@@ -212,8 +212,6 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewTier0VrfsDataSource,
-		// NewPublicIPDataSource,
-		// NewEdgeGatewaysDataSource,
 		NewTier0VrfDataSource,
 	}
 }
