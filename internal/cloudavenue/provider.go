@@ -108,41 +108,37 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 		org = config.Org.ValueString()
 	}
 
+	// Default URL to the public CloudAvenue API if not set.
+	if url == "" {
+		url = "https://console1.cloudavenue.orange-business.com"
+	}
+
 	// If any of the expected configurations are missing, return
 	// errors with provider-specific guidance.
-	if url == "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("url"),
-			"Missing CloudAvenue API Host",
-			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API host. "+
-				"Set the host value in the configuration or use the HASHICUPS_HOST environment variable. "+
-				"If either is already set, ensure the value is not empty.",
-		)
-	}
 	if user == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("user"),
-			"Missing CloudAvenue API Host",
-			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API host. "+
-				"Set the host value in the configuration or use the HASHICUPS_HOST environment variable. "+
+			"Missing CloudAvenue API User",
+			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API user. "+
+				"Set the host value in the configuration or use the CLOUDAVENUE_USER environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
 	if password == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("password"),
-			"Missing CloudAvenue API Host",
-			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API host. "+
-				"Set the host value in the configuration or use the HASHICUPS_HOST environment variable. "+
+			"Missing CloudAvenue API Password",
+			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API password. "+
+				"Set the host value in the configuration or use the CLOUDAVENUE_PASWWORD environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
 	if org == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("org"),
-			"Missing CloudAvenue API Host",
-			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API host. "+
-				"Set the host value in the configuration or use the HASHICUPS_HOST environment variable. "+
+			"Missing CloudAvenue API Org",
+			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API org. "+
+				"Set the host value in the configuration or use the CLOUDAVENUE_ORG environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
@@ -165,7 +161,13 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 		Password: password,
 	})
 
-	client.APIClient = apiclient.NewAPIClient(apiclient.NewConfiguration())
+	cfg := &apiclient.Configuration{
+		BasePath:      url,
+		DefaultHeader: make(map[string]string),
+		UserAgent:     "Terraform/" + req.TerraformVersion + "CloudAvenue/" + p.version,
+	}
+
+	client.APIClient = apiclient.NewAPIClient(cfg)
 	_, ret, err := client.APIClient.AuthenticationApi.Cloudapi100SessionsPost(auth)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -201,8 +203,8 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewTier0VrfsDataSource,
-		NewPublicIPDataSource,
-		NewEdgeGatewaysDataSource,
+		// NewPublicIPDataSource,
+		// NewEdgeGatewaysDataSource,
 		NewTier0VrfDataSource,
 	}
 }
