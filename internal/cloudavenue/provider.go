@@ -203,6 +203,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		NewTier0VrfsDataSource,
 		NewPublicIPDataSource,
 		NewEdgeGatewaysDataSource,
+		NewTier0VrfDataSource,
 	}
 }
 
