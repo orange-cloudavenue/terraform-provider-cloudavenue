@@ -6,7 +6,8 @@ require (
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
 	github.com/hashicorp/terraform-plugin-framework v1.1.1
 	github.com/hashicorp/terraform-plugin-log v0.7.0
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.0.0-20230203090221-e47dc87938b5
+	github.com/k0kubun/pp v3.0.1+incompatible
+	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.0.0-20230203131752-11b9d256fa4a
 )
 
 require (
@@ -36,6 +37,7 @@ require (
 	github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
+	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/cli v1.1.4 // indirect
