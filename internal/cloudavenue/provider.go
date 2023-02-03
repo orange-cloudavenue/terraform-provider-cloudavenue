@@ -3,12 +3,15 @@ package cloudavenue
 import (
 	"context"
 	"os"
+	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
@@ -59,6 +62,12 @@ func (p *cloudavenueProvider) Schema(_ context.Context, _ provider.SchemaRequest
 			"url": schema.StringAttribute{
 				MarkdownDescription: "The URL of the CloudAvenue API. Can also be set with the `CLOUDAVENUE_URL` environment variable.",
 				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`[a-z]$`),
+						"must end with a letter",
+					),
+				},
 			},
 			"user": schema.StringAttribute{
 				MarkdownDescription: "The username to use to connect to the CloudAvenue API. Can also be set with the `CLOUDAVENUE_USER` environment variable.",
