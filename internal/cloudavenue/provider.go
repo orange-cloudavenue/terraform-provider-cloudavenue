@@ -17,7 +17,7 @@ import (
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 )
 
-// Ensure the implementation satisfies the expected interfaces
+// Ensure the implementation satisfies the expected interfaces.
 var _ provider.Provider = &cloudavenueProvider{}
 
 // cloudavenueProvider is the provider implementation.

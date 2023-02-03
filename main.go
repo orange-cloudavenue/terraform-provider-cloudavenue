@@ -10,7 +10,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/cloudavenue"
 )
 
-// Example version string that can be overwritten by a release process
+// Example version string that can be overwritten by a release process.
 var version string = "dev"
 
 // Provider documentation generation.
