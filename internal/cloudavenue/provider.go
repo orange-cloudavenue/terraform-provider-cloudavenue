@@ -22,7 +22,7 @@ type cloudavenueProvider struct {
 	// version is set to the provider version on release, "dev" when the
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
-	Version string
+	version string
 }
 
 type cloudavenueProviderModel struct {
@@ -41,7 +41,7 @@ type CloudAvenueClient struct {
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
 		return &cloudavenueProvider{
-			Version: version,
+			version: version,
 		}
 	}
 }
@@ -49,7 +49,7 @@ func New(version string) func() provider.Provider {
 // Metadata returns the provider type name.
 func (p *cloudavenueProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "cloudavenue"
-	resp.Version = p.Version
+	resp.Version = p.version
 }
 
 // Schema defines the provider-level schema for configuration data.
