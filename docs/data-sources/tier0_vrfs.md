@@ -13,9 +13,9 @@ The Tier-0 VRFs data source allow access to a list of Tier-0 that can be accesse
 ## Example Usage
 
 ```terraform
-data "cloudavenue_tier0_vrfs" "example_vrfs" {}
+data "cloudavenue_tier0_vrfs" "example" {}
 
-data "cloudavenue_tier0_vrf" "example_vrf" {
+data "cloudavenue_tier0_vrf" "example" {
   name = data.cloudavenue_tier0_vrfs.example.tier0_vrfs.0.name
 }
 ```
