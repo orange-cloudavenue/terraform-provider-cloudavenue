@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"sort"
 	"strings"
 
@@ -8,23 +9,27 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Generate a string from a sorted list of strings.
-func generateStringFromList(list []string) string {
-	sort.Strings(list)
-	return strings.Join(list, "")
-}
-
-// Generate unique UUID from a string.
+// generateUUID generates a unique UUID based on a string.
+// This is used to generate a unique ID for a resource.
 func generateUUID(str string) string {
 	return uuid.NewSHA1(uuid.Nil, []byte(str)).String()
 }
 
-// Generate unique UUID from a sorted list of strings.
-func GenerateUUIDFromList(list []string) types.String {
-	return types.StringValue(generateUUID(generateStringFromList(list)))
-}
+// GenerateUUID generates a unique UUID. The value can be a string or a slice of strings.
+// If the value is a slice of strings, the strings will be sorted before generating the UUID.
+// This is used to generate a unique ID for a resource.
+func GenerateUUID(value interface{}) (types.String, error) {
+	var val string
 
-// Generate unique UUID from string.
-func GenerateUUIDFromString(str string) types.String {
-	return types.StringValue(generateUUID(str))
+	switch v := value.(type) {
+	case []string:
+		sort.Strings(v)
+		val = strings.Join(v, "")
+	case string:
+		val = v
+	default:
+		return types.StringNull(), errors.New("invalid type")
+	}
+
+	return types.StringValue(generateUUID(val)), nil
 }
