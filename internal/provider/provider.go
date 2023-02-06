@@ -71,16 +71,16 @@ func (p *cloudavenueProvider) Schema(_ context.Context, _ provider.SchemaRequest
 			},
 			"user": schema.StringAttribute{
 				MarkdownDescription: "The username to use to connect to the CloudAvenue API. Can also be set with the `CLOUDAVENUE_USER` environment variable.",
-				Required:            true,
+				Optional:            true,
 			},
 			"password": schema.StringAttribute{
 				MarkdownDescription: "The password to use to connect to the CloudAvenue API. Can also be set with the `CLOUDAVENUE_PASSWORD` environment variable.",
-				Required:            true,
 				Sensitive:           true,
+				Optional:            true,
 			},
 			"org": schema.StringAttribute{
 				MarkdownDescription: "The organization used on CloudAvenue API. Can also be set with the `CLOUDAVENUE_ORG` environment variable.",
-				Required:            true,
+				Optional:            true,
 			},
 		},
 	}
