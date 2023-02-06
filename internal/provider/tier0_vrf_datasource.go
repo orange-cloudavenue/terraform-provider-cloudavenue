@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	_ "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -137,7 +138,11 @@ func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadReques
 	tflog.Trace(ctx, "read a data source")
 
 	// Generate ID for the data source
-	data.ID = utils.GenerateUUIDFromString(data.Name.String())
+	data.ID, err = utils.GenerateUUID(data.Name.String())
+	if err != nil {
+		resp.Diagnostics.AddError("UUID Generation Error", fmt.Sprintf("Unable to generate UUID, got error: %s", err))
+		return
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
