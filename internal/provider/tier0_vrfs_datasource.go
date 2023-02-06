@@ -1,4 +1,4 @@
-package cloudavenue
+package provider
 
 import (
 	"context"
