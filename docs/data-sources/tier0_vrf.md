@@ -26,6 +26,7 @@ data "cloudavenue_tier0_vrfs" "example" {}
 ### Read-Only
 
 - `class_service` (String) List of tag of the Tier0 VRF.
+- `id` (String) The ID of this resource.
 - `services` (Attributes List) Services list of the Tier0-VRF. (see [below for nested schema](#nestedatt--services))
 - `tier0_provider` (String) Tier-O provider info.
 

@@ -16,6 +16,7 @@ func TestAccTier0VrfsDataSource(t *testing.T) {
 				Config: testAccTier0VrfsDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.cloudavenue_tier0_vrfs.test", "tier0_vrfs.0.name", "prvrf01eocb0006205allsp01"),
+					resource.TestCheckResourceAttr("data.cloudavenue_tier0_vrfs.test", "id", "474baabd-09ea-5f2f-ad74-c4a3778fd16e"),
 				),
 			},
 		},

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	_ "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 var (
@@ -25,6 +26,7 @@ type tier0VrfDataSource struct {
 }
 
 type tier0VrfDataSourceModel struct {
+	ID           types.String   `tfsdk:"id"`
 	Name         types.String   `tfsdk:"name"`
 	Provider     types.String   `tfsdk:"tier0_provider"`
 	ClassService types.String   `tfsdk:"class_service"`
@@ -45,6 +47,9 @@ func (d *tier0VrfDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 		MarkdownDescription: "Retrieve information about a Tier-0 VRF.",
 
 		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the Tier-0 VRF.",
 				Required:            true,
@@ -130,6 +135,9 @@ func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadReques
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
 	tflog.Trace(ctx, "read a data source")
+
+	// Generate ID for the data source
+	data.ID = utils.GenerateUUIDFromString(data.Name.String())
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

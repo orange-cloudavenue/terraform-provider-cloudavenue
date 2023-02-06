@@ -25,6 +25,7 @@ data "cloudavenue_tier0_vrf" "example" {
 
 ### Read-Only
 
+- `id` (String) The ID of this resource.
 - `tier0_vrfs` (Attributes List) A list of Tier-0 VRFs. (see [below for nested schema](#nestedatt--tier0_vrfs))
 
 <a id="nestedatt--tier0_vrfs"></a>
