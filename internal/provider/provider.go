@@ -64,7 +64,7 @@ func (p *cloudavenueProvider) Schema(_ context.Context, _ provider.SchemaRequest
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`[a-z]$`),
+						regexp.MustCompile(`^https?:\/\/\S+\w$`),
 						"must end with a letter",
 					),
 				},
