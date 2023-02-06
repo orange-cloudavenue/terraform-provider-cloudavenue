@@ -1,0 +1,10 @@
+{
+    "gopls": {
+        "ui.semanticTokens": true,
+        "formatting.local": "github.com/orange-cloudavenue/terraform-provider-cloudavenue",
+    },
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": [
+        "--fast"
+    ]
+}
