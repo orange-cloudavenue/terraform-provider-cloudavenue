@@ -103,7 +103,7 @@ func (d *tier0VrfsDataSource) Read(ctx context.Context, req datasource.ReadReque
 			Name: types.StringValue(tier0vrf),
 		}
 		data.Tier0Vrfs = append(data.Tier0Vrfs, name)
-		names = append(names, string(tier0vrf))
+		names = append(names, tier0vrf)
 	}
 
 	// Write logs using the tflog package

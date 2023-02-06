@@ -11,7 +11,7 @@ func TestAccTier0VrfDataSource(t *testing.T) {
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Read testing
+			// Read testing.
 			{
 				Config: testAccTier0VrfDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
