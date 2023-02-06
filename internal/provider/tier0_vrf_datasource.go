@@ -1,4 +1,4 @@
-package cloudavenue
+package provider
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	_ "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 var (
@@ -24,11 +26,16 @@ type tier0VrfDataSource struct {
 }
 
 type tier0VrfDataSourceModel struct {
-	Tier0Vrfs []tier0VrfModel `tfsdk:"tier0_vrfs"`
+	ID           types.String   `tfsdk:"id"`
+	Name         types.String   `tfsdk:"name"`
+	Provider     types.String   `tfsdk:"tier0_provider"`
+	ClassService types.String   `tfsdk:"class_service"`
+	Services     []segmentModel `tfsdk:"services"`
 }
 
-type tier0VrfModel struct {
-	Name types.String `tfsdk:"name"`
+type segmentModel struct {
+	Service types.String `tfsdk:"service"`
+	VlanId  types.String `tfsdk:"vlan_id"`
 }
 
 func (d *tier0VrfDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -37,16 +44,35 @@ func (d *tier0VrfDataSource) Metadata(ctx context.Context, req datasource.Metada
 
 func (d *tier0VrfDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Tier-0 VRFs data source allow access to a list of Tier-0 that can be accessed by the user.",
+		MarkdownDescription: "Retrieve information about a Tier-0 VRF.",
 
 		Attributes: map[string]schema.Attribute{
-			"tier0_vrfs": schema.ListNestedAttribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
+			"name": schema.StringAttribute{
+				MarkdownDescription: "The name of the Tier-0 VRF.",
+				Required:            true,
+			},
+			"tier0_provider": schema.StringAttribute{
+				MarkdownDescription: "Tier-O provider info.",
 				Computed:            true,
-				MarkdownDescription: "A list of Tier-0 VRFs.",
+			},
+			"class_service": schema.StringAttribute{
+				MarkdownDescription: "List of tag of the Tier0 VRF.",
+				Computed:            true,
+			},
+			"services": schema.ListNestedAttribute{
+				MarkdownDescription: "Services list of the Tier0-VRF.",
+				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "The name of the Tier-0 VRF.",
+						"service": schema.StringAttribute{
+							MarkdownDescription: "Service of the segment.",
+							Computed:            true,
+						},
+						"vlan_id": schema.StringAttribute{
+							MarkdownDescription: "VLAN ID of the segment.",
 							Computed:            true,
 						},
 					},
@@ -86,22 +112,32 @@ func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	tier0vrfs, _, err := d.client.Tier0Api.ApiCustomersV20Tier0VrfsGet(d.client.auth)
+	tier0Detail, _, err := d.client.Tier0Api.ApiCustomersV20Tier0VrfsTier0NameGet(d.client.auth, data.Name.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Tier0 detail, got error: %s", err))
 		return
 	}
 
-	for _, tier0vrf := range tier0vrfs {
-		name := tier0VrfModel{
-			Name: types.StringValue(tier0vrf),
+	data.Provider = types.StringValue(tier0Detail.Tier0Provider)
+	if tier0Detail.ClassService != nil {
+		data.ClassService = types.StringValue(string(*tier0Detail.ClassService))
+	}
+
+	if tier0Detail.Services != nil {
+		for _, segment := range *tier0Detail.Services {
+			data.Services = append(data.Services, segmentModel{
+				Service: types.StringValue(segment.Service),
+				VlanId:  types.StringValue(segment.VlanId),
+			})
 		}
-		data.Tier0Vrfs = append(data.Tier0Vrfs, name)
 	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
 	tflog.Trace(ctx, "read a data source")
+
+	// Generate ID for the data source
+	data.ID = utils.GenerateUUIDFromString(data.Name.String())
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

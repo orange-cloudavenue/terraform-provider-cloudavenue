@@ -1,20 +1,23 @@
-package cloudavenue
+package provider
 
 import (
 	"context"
 	"os"
+	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 )
 
-// Ensure the implementation satisfies the expected interfaces
+// Ensure the implementation satisfies the expected interfaces.
 var _ provider.Provider = &cloudavenueProvider{}
 
 // cloudavenueProvider is the provider implementation.
@@ -22,7 +25,7 @@ type cloudavenueProvider struct {
 	// version is set to the provider version on release, "dev" when the
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
-	Version string
+	version string
 }
 
 type cloudavenueProviderModel struct {
@@ -41,7 +44,7 @@ type CloudAvenueClient struct {
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
 		return &cloudavenueProvider{
-			Version: version,
+			version: version,
 		}
 	}
 }
@@ -49,7 +52,7 @@ func New(version string) func() provider.Provider {
 // Metadata returns the provider type name.
 func (p *cloudavenueProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "cloudavenue"
-	resp.Version = p.Version
+	resp.Version = p.version
 }
 
 // Schema defines the provider-level schema for configuration data.
@@ -59,19 +62,25 @@ func (p *cloudavenueProvider) Schema(_ context.Context, _ provider.SchemaRequest
 			"url": schema.StringAttribute{
 				MarkdownDescription: "The URL of the CloudAvenue API. Can also be set with the `CLOUDAVENUE_URL` environment variable.",
 				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^https?:\/\/\S+\w$`),
+						"must end with a letter",
+					),
+				},
 			},
 			"user": schema.StringAttribute{
 				MarkdownDescription: "The username to use to connect to the CloudAvenue API. Can also be set with the `CLOUDAVENUE_USER` environment variable.",
-				Required:            true,
+				Optional:            true,
 			},
 			"password": schema.StringAttribute{
 				MarkdownDescription: "The password to use to connect to the CloudAvenue API. Can also be set with the `CLOUDAVENUE_PASSWORD` environment variable.",
-				Required:            true,
 				Sensitive:           true,
+				Optional:            true,
 			},
 			"org": schema.StringAttribute{
 				MarkdownDescription: "The organization used on CloudAvenue API. Can also be set with the `CLOUDAVENUE_ORG` environment variable.",
-				Required:            true,
+				Optional:            true,
 			},
 		},
 	}
@@ -108,41 +117,37 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 		org = config.Org.ValueString()
 	}
 
+	// Default URL to the public CloudAvenue API if not set.
+	if url == "" {
+		url = "https://console1.cloudavenue.orange-business.com"
+	}
+
 	// If any of the expected configurations are missing, return
 	// errors with provider-specific guidance.
-	if url == "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("url"),
-			"Missing CloudAvenue API Host",
-			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API host. "+
-				"Set the host value in the configuration or use the HASHICUPS_HOST environment variable. "+
-				"If either is already set, ensure the value is not empty.",
-		)
-	}
 	if user == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("user"),
-			"Missing CloudAvenue API Host",
-			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API host. "+
-				"Set the host value in the configuration or use the HASHICUPS_HOST environment variable. "+
+			"Missing CloudAvenue API User",
+			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API user. "+
+				"Set the host value in the configuration or use the CLOUDAVENUE_USER environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
 	if password == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("password"),
-			"Missing CloudAvenue API Host",
-			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API host. "+
-				"Set the host value in the configuration or use the HASHICUPS_HOST environment variable. "+
+			"Missing CloudAvenue API Password",
+			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API password. "+
+				"Set the host value in the configuration or use the CLOUDAVENUE_PASWWORD environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
 	if org == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("org"),
-			"Missing CloudAvenue API Host",
-			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API host. "+
-				"Set the host value in the configuration or use the HASHICUPS_HOST environment variable. "+
+			"Missing CloudAvenue API Org",
+			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API org. "+
+				"Set the host value in the configuration or use the CLOUDAVENUE_ORG environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
@@ -165,7 +170,13 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 		Password: password,
 	})
 
-	client.APIClient = apiclient.NewAPIClient(apiclient.NewConfiguration())
+	cfg := &apiclient.Configuration{
+		BasePath:      url,
+		DefaultHeader: make(map[string]string),
+		UserAgent:     "Terraform/" + req.TerraformVersion + "CloudAvenue/" + p.version,
+	}
+
+	client.APIClient = apiclient.NewAPIClient(cfg)
 	_, ret, err := client.APIClient.AuthenticationApi.Cloudapi100SessionsPost(auth)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -201,8 +212,7 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewTier0VrfsDataSource,
-		NewPublicIPDataSource,
-		NewEdgeGatewaysDataSource,
+		NewTier0VrfDataSource,
 	}
 }
 
