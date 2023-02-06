@@ -75,5 +75,8 @@ jobs:
       - run: go mod download
       - env:
           TF_ACC: "1"
+          CLOUDAVENUE_ORG: ${{ secrets.CLOUDAVENUE_ORG }}
+          CLOUDAVENUE_USER: ${{ secrets.CLOUDAVENUE_USER }}
+          CLOUDAVENUE_PASSWORD: ${{ secrets.CLOUDAVENUE_PASSWORD }}
         run: go test -v -cover ./internal/provider/
         timeout-minutes: 10
