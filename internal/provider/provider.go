@@ -29,7 +29,7 @@ type cloudavenueProvider struct {
 }
 
 type cloudavenueProviderModel struct {
-	Url      types.String `tfsdk:"url"`
+	URL      types.String `tfsdk:"url"`
 	User     types.String `tfsdk:"user"`
 	Password types.String `tfsdk:"password"`
 	Org      types.String `tfsdk:"org"`
@@ -50,13 +50,21 @@ func New(version string) func() provider.Provider {
 }
 
 // Metadata returns the provider type name.
-func (p *cloudavenueProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
+func (p *cloudavenueProvider) Metadata(
+	_ context.Context,
+	_ provider.MetadataRequest,
+	resp *provider.MetadataResponse,
+) {
 	resp.TypeName = "cloudavenue"
 	resp.Version = p.version
 }
 
 // Schema defines the provider-level schema for configuration data.
-func (p *cloudavenueProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *cloudavenueProvider) Schema(
+	_ context.Context,
+	_ provider.SchemaRequest,
+	resp *provider.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"url": schema.StringAttribute{
@@ -86,7 +94,11 @@ func (p *cloudavenueProvider) Schema(_ context.Context, _ provider.SchemaRequest
 	}
 }
 
-func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *cloudavenueProvider) Configure(
+	ctx context.Context,
+	req provider.ConfigureRequest,
+	resp *provider.ConfigureResponse,
+) {
 	tflog.Info(ctx, "Configuring CloudAvenue client")
 	var config cloudavenueProviderModel
 	var client CloudAvenueClient
@@ -104,16 +116,16 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 	password := os.Getenv("CLOUDAVENUE_PASSWORD")
 	org := os.Getenv("CLOUDAVENUE_ORG")
 
-	if !config.Url.IsNull() {
-		url = config.Url.ValueString()
+	if !config.URL.IsNull() && config.URL.ValueString() != "" {
+		url = config.URL.ValueString()
 	}
-	if !config.User.IsNull() {
+	if !config.User.IsNull() && config.User.ValueString() != "" {
 		user = config.User.ValueString()
 	}
-	if !config.Password.IsNull() {
+	if !config.Password.IsNull() && config.Password.ValueString() != "" {
 		password = config.Password.ValueString()
 	}
-	if !config.Org.IsNull() {
+	if !config.Org.IsNull() && config.Org.ValueString() != "" {
 		org = config.Org.ValueString()
 	}
 
@@ -177,7 +189,7 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 	}
 
 	client.APIClient = apiclient.NewAPIClient(cfg)
-	_, ret, err := client.APIClient.AuthenticationApi.Cloudapi100SessionsPost(auth)
+	_, ret, err := client.AuthenticationApi.Cloudapi100SessionsPost(auth)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Create CloudAvenue API Client",
@@ -193,7 +205,7 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 				"Unable to Create CloudAvenue API Client",
 				"An unexpected error occurred when creating the CloudAvenue API client. "+
 					"If the error is not clear, please contact the provider developers.\n\n"+
-					"CloudAvenue Client Error: "+err.Error(),
+					"CloudAvenue Client Error: empty token",
 			)
 			return
 		}
@@ -213,6 +225,9 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 	return []func() datasource.DataSource{
 		NewTier0VrfsDataSource,
 		NewTier0VrfDataSource,
+		NewPublicIPDataSource,
+		NewEdgeGatewayDataSource,
+		NewEdgeGatewaysDataSource,
 	}
 }
 
