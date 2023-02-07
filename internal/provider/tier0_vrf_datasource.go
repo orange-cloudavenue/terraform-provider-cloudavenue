@@ -138,11 +138,7 @@ func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadReques
 	tflog.Trace(ctx, "read a data source")
 
 	// Generate ID for the data source
-	data.ID, err = utils.GenerateUUID(data.Name.String())
-	if err != nil {
-		resp.Diagnostics.AddError("UUID Generation Error", fmt.Sprintf("Unable to generate UUID, got error: %s", err))
-		return
-	}
+	data.ID = utils.GenerateUUID(data.Name.String())
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
