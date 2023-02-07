@@ -34,49 +34,56 @@ func Test_generateUUID(t *testing.T) {
 }
 
 func TestGenerateUUID(t *testing.T) {
-	type args struct {
-		value interface{}
+	type args[T tfValuesForUUID] struct {
+		value T
 	}
-	tests := []struct {
-		name    string
-		args    args
-		want    types.String
-		wantErr bool
-	}{
+
+	type testTF[T tfValuesForUUID] struct {
+		name string
+		args args[T]
+		want types.String
+	}
+
+	testString := []testTF[string]{
 		{
 			name: "GenerateUUIDFromString",
-			args: args{
+			args: args[string]{
 				value: "test",
 			},
-			want:    types.StringValue("e8b764da-5fe5-51ed-8af8-c5c6eca28d7a"),
-			wantErr: false,
+			want: types.StringValue("e8b764da-5fe5-51ed-8af8-c5c6eca28d7a"),
 		},
 		{
 			name: "GenerateUUIDFromSliceString",
-			args: args{
-				value: []string{"test", "test2"},
+			args: args[string]{
+				value: "test2",
 			},
-			want:    types.StringValue("56a2aec8-8045-5727-91fc-7194fd4e339f"),
-			wantErr: false,
-		},
-		{
-			name: "GenerateUUIDFromIntError",
-			args: args{
-				value: 1,
-			},
-			want:    types.StringNull(),
-			wantErr: true,
+			want: types.StringValue("a4065824-05e5-5a82-9841-cd5efc76b8c1"),
 		},
 	}
-	for _, tt := range tests {
+
+	testSliceString := []testTF[[]string]{
+		{
+			name: "GenerateUUIDFromSliceString",
+			args: args[[]string]{
+				value: []string{"test", "test2"},
+			},
+			want: types.StringValue("016fab6f-3c2d-5b38-b6fc-421aff431b61"),
+		},
+	}
+
+	for _, tt := range testString {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GenerateUUID(tt.args.value)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GenerateUUID() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			got := GenerateUUID(tt.args.value)
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GenerateUUID() = %v, want %v", got, tt.want)
+				t.Errorf("GenerateUUID() from testString = %v, want %v", got, tt.want)
+			}
+		})
+	}
+	for _, tt := range testSliceString {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GenerateUUID(tt.args.value)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GenerateUUID() from testSliceString = %v, want %v", got, tt.want)
 			}
 		})
 	}
