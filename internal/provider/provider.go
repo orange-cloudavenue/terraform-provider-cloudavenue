@@ -230,6 +230,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		NewEdgeGatewaysDataSource,
 		NewVdcsDataSource,
 		NewVdcDataSource,
+		NewJobsDataSource,
 	}
 }
 
