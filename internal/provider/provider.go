@@ -238,5 +238,6 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 	return []func() resource.Resource{
 		NewEdgeGatewayResource,
 		NewVdcResource,
+		NewVcdaIPResource,
 	}
 }
