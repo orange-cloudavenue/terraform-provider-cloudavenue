@@ -26,12 +26,8 @@ type tier0VrfsDataSource struct {
 }
 
 type tier0VrfsDataSourceModel struct {
-	ID        types.String     `tfsdk:"id"`
-	Tier0Vrfs []tier0VrfsModel `tfsdk:"tier0_vrfs"`
-}
-
-type tier0VrfsModel struct {
-	Name types.String `tfsdk:"name"`
+	ID    types.String   `tfsdk:"id"`
+	Names []types.String `tfsdk:"names"`
 }
 
 func (d *tier0VrfsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -46,17 +42,10 @@ func (d *tier0VrfsDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"id": schema.StringAttribute{
 				Computed: true,
 			},
-			"tier0_vrfs": schema.ListNestedAttribute{
+			"names": schema.ListAttribute{
+				ElementType:         types.StringType,
 				Computed:            true,
-				MarkdownDescription: "A list of Tier-0 VRFs.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "The name of the Tier-0 VRF.",
-							Computed:            true,
-						},
-					},
-				},
+				MarkdownDescription: "List of Tier-0 VRFs names.",
 			},
 		},
 	}
@@ -98,13 +87,8 @@ func (d *tier0VrfsDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	names := make([]string, 0, len(tier0vrfs))
-	for _, tier0vrf := range tier0vrfs {
-		name := tier0VrfsModel{
-			Name: types.StringValue(tier0vrf),
-		}
-		data.Tier0Vrfs = append(data.Tier0Vrfs, name)
-		names = append(names, tier0vrf)
+	for _, name := range tier0vrfs {
+		data.Names = append(data.Names, types.StringValue(name))
 	}
 
 	// Write logs using the tflog package
@@ -112,7 +96,7 @@ func (d *tier0VrfsDataSource) Read(ctx context.Context, req datasource.ReadReque
 	tflog.Trace(ctx, "read a data source")
 
 	// Generate a UUID from the list of names
-	data.ID = utils.GenerateUUID(names)
+	data.ID = utils.GenerateUUID(tier0vrfs)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
