@@ -15,8 +15,8 @@ The Tier-0 VRFs data source allow access to a list of Tier-0 that can be accesse
 ```terraform
 data "cloudavenue_tier0_vrfs" "example" {}
 
-data "cloudavenue_tier0_vrf" "example" {
-  name = data.cloudavenue_tier0_vrfs.example.tier0_vrfs.0.name
+output "vrfs" {
+  value = data.cloudavenue_tier0_vrfs.example
 }
 ```
 
@@ -26,13 +26,6 @@ data "cloudavenue_tier0_vrf" "example" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `tier0_vrfs` (Attributes List) A list of Tier-0 VRFs. (see [below for nested schema](#nestedatt--tier0_vrfs))
-
-<a id="nestedatt--tier0_vrfs"></a>
-### Nested Schema for `tier0_vrfs`
-
-Read-Only:
-
-- `name` (String) The name of the Tier-0 VRF.
+- `names` (List of String) List of Tier-0 VRFs names.
 
 
