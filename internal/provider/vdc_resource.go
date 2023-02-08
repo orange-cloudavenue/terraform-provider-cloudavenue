@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -14,7 +17,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	cloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	sdkResource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
@@ -37,6 +41,7 @@ type vdcResource struct {
 }
 
 type vdcResourceModel struct {
+	Timeouts               timeouts.Value           `tfsdk:"timeouts"`
 	ID                     types.String             `tfsdk:"id"`
 	Name                   types.String             `tfsdk:"name"`
 	Description            types.String             `tfsdk:"description"`
@@ -63,10 +68,14 @@ func (r *vdcResource) Metadata(_ context.Context, req resource.MetadataRequest, 
 }
 
 // Schema defines the schema for the resource.
-func (r *vdcResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "VDC resource allows you to create a org VDC in Cloud Avenue.",
 		Attributes: map[string]schema.Attribute{
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Read:   true,
+			}),
 			"id": schema.StringAttribute{
 				Computed: true,
 			},
@@ -196,84 +205,192 @@ func (r *vdcResource) Configure(ctx context.Context, req resource.ConfigureReque
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *vdcResourceModel
+	// Retrieve values from plan
+	var plan *vdcResourceModel
 
-	// Read Terraform plan data into the model.
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Prepare the vdcObject to create a VDC.
-	vdcObject := cloudavenue.CreateOrgVdcV2{
-		VdcGroup: data.VdcGroup.ValueString(),
-		Vdc: &cloudavenue.OrgVdcV2{
-			Name:                   data.Name.ValueString(),
-			Description:            data.Description.ValueString(),
-			VdcServiceClass:        data.VdcServiceClass.ValueString(),
-			VdcDisponibilityClass:  data.VdcDisponibilityClass.ValueString(),
-			VdcBillingModel:        data.VdcBillingModel.ValueString(),
-			VcpuInMhz2:             data.VcpuInMhz2.ValueFloat64(),
-			CpuAllocated:           data.CPUAllocated.ValueFloat64(),
-			MemoryAllocated:        data.MemoryAllocated.ValueFloat64(),
-			VdcStorageBillingModel: data.VdcStorageBillingModel.ValueString(),
+	// Create() is passed a default timeout to use if no value
+	// has been supplied in the Terraform configuration.
+	createTimeout, errTO := plan.Timeouts.Create(ctx, 8*time.Minute)
+	if errTO != nil {
+		resp.Diagnostics.AddError(
+			"Error creating timeout",
+			"Could not create timeout, unexpected error",
+		)
+		return
+	}
+
+	ctxTO, cancel := context.WithTimeout(ctx, createTimeout)
+	defer cancel()
+
+	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
+	if errCtx != nil {
+		resp.Diagnostics.AddError(
+			"Error creating context",
+			"Could not create context, context value token is not a string ?",
+		)
+		return
+	}
+
+	// Prepare the body to create a VDC.
+	body := apiclient.CreateOrgVdcV2{
+		VdcGroup: plan.VdcGroup.ValueString(),
+		Vdc: &apiclient.OrgVdcV2{
+			Name:                   plan.Name.ValueString(),
+			Description:            plan.Description.ValueString(),
+			VdcServiceClass:        plan.VdcServiceClass.ValueString(),
+			VdcDisponibilityClass:  plan.VdcDisponibilityClass.ValueString(),
+			VdcBillingModel:        plan.VdcBillingModel.ValueString(),
+			VcpuInMhz2:             plan.VcpuInMhz2.ValueFloat64(),
+			CpuAllocated:           plan.CPUAllocated.ValueFloat64(),
+			MemoryAllocated:        plan.MemoryAllocated.ValueFloat64(),
+			VdcStorageBillingModel: plan.VdcStorageBillingModel.ValueString(),
 		},
 	}
 
-	// Iterate over the storage profiles and add them to the vdcObject.
-	for _, storageProfile := range data.VdcStorageProfiles {
-		vdcObject.Vdc.VdcStorageProfiles = append(vdcObject.Vdc.VdcStorageProfiles, cloudavenue.VdcStorageProfilesV2{
+	// Iterate over the storage profiles and add them to the body.
+	for _, storageProfile := range plan.VdcStorageProfiles {
+		body.Vdc.VdcStorageProfiles = append(body.Vdc.VdcStorageProfiles, apiclient.VdcStorageProfilesV2{
 			Class:    storageProfile.Class.ValueString(),
 			Limit:    int32(storageProfile.Limit.ValueInt64()),
 			Default_: storageProfile.Default.ValueBool(),
 		})
 	}
 
+	var err error
+	var job apiclient.Jobcreated
+	var httpR *http.Response
+
 	// Call API to create the resource and test for errors.
-	_, _, err := r.client.VDCApi.ApiCustomersV20VdcsPost(r.client.auth, vdcObject)
+	job, httpR, err = r.client.VDCApi.ApiCustomersV20VdcsPost(auth, body)
+	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	// Wait for job to complete
+	refreshF := func() (interface{}, string, error) {
+		jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
+		if errGetJob != nil {
+			return nil, "", err
+		}
+
+		vdcID := ""
+
+		if jobStatus == "DONE" {
+			// get all VDC and find the one that matches the vdc name
+			vdcs, _, errVdcsGet := r.client.VDCApi.ApiCustomersV20VdcsGet(auth)
+			if errVdcsGet != nil {
+				return nil, "error", err
+			}
+
+			for _, vdc := range vdcs {
+				if vdc.VdcName == plan.Name.ValueString() {
+					vdcID = uuid.NewSHA1(uuid.Nil, []byte(vdc.VdcName)).String()
+					break
+				}
+			}
+		} else {
+			return nil, "pending", nil
+		}
+		return vdcID, "done", nil
+	}
+
+	createStateConf := &sdkResource.StateChangeConf{
+		Delay:      10 * time.Second,
+		Refresh:    refreshF,
+		MinTimeout: 5 * time.Second,
+		Timeout:    5 * time.Minute,
+		Pending:    []string{"pending"},
+		Target:     []string{"done"},
+	}
+
+	vdcID, err := createStateConf.WaitForStateContext(ctxTO)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating VDC",
-			"Could not create VDC, unexpected error: "+err.Error(),
+			"Error creating order",
+			"Could not create vdc, unexpected error: "+err.Error(),
+		)
+		return
+	}
+
+	// Set the ID
+
+	id, idIsAString := vdcID.(string)
+	if !idIsAString {
+		resp.Diagnostics.AddError(
+			"Error creating edge gateway",
+			"Could not create edge gateway, unexpected error: edgeID is not a string",
 		)
 		return
 	}
 
 	// Generate a unique ID for the resource.
-	data.ID = utils.GenerateUUID(data.Name.ValueString())
+	plan.ID = types.StringValue(id)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
 	tflog.Trace(ctx, "created a resource")
 
-	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Save plan into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *vdcResourceModel
+	// Get current state
+	var state *vdcResourceModel
 
 	// Read Terraform prior state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Call API to read the resource and test for errors.
-	vdc, httpResp, err := r.client.VDCApi.ApiCustomersV20VdcsVdcNameGet(r.client.auth, data.Name.ValueString())
-	if err != nil {
+	readTimeout, errTO := state.Timeouts.Read(ctx, 8*time.Minute)
+	if errTO != nil {
 		resp.Diagnostics.AddError(
-			"Error reading VDC",
-			"Could not get VDC, unexpected error: "+err.Error(),
+			"Error creating timeout",
+			"Could not create timeout, unexpected error",
 		)
 		return
 	}
 
+	ctxTO, cancel := context.WithTimeout(ctx, readTimeout)
+	defer cancel()
+
+	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
+	if errCtx != nil {
+		resp.Diagnostics.AddError(
+			"Error creating context",
+			"Could not create context, context value token is not a string ?",
+		)
+		return
+	}
+
+	var isNotFound bool
+
+	vdc, httpR, err := r.client.VDCApi.ApiCustomersV20VdcsVdcNameGet(auth, state.Name.ValueString())
+	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		isNotFound = true
+	}
+
 	// If the resource does not exist, remove it from Terraform state.
-	if httpResp.StatusCode == http.StatusNotFound {
+	if isNotFound {
 		resp.State.RemoveResource(ctx)
 
 		return
@@ -281,7 +398,7 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	// Convert from the API data model to the Terraform data model
 	// and refresh any attribute values.
-	data = &vdcResourceModel{
+	state = &vdcResourceModel{
 		ID:                     utils.GenerateUUID(vdc.Vdc.Name),
 		Name:                   types.StringValue(vdc.Vdc.Name),
 		Description:            types.StringValue(vdc.Vdc.Description),
@@ -297,15 +414,15 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	for i, storageProfile := range vdc.Vdc.VdcStorageProfiles {
-		data.VdcStorageProfiles[i] = vdcStorageProfileModel{
+		state.VdcStorageProfiles[i] = vdcStorageProfileModel{
 			Class:   types.StringValue(storageProfile.Class),
 			Limit:   types.Int64Value(int64(storageProfile.Limit)),
 			Default: types.BoolValue(storageProfile.Default_),
 		}
 	}
 
-	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Save updated state into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -314,14 +431,80 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *vdcResourceModel
+	// Get current state
+	var state *vdcResourceModel
 
-	// Read Terraform prior state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+<<<<<<< HEAD
+=======
+
+	// Create() is passed a default timeout to use if no value
+	// has been supplied in the Terraform configuration.
+	createTimeout, errTO := state.Timeouts.Create(ctx, 8*time.Minute)
+	if errTO != nil {
+		resp.Diagnostics.AddError(
+			"Error creating timeout",
+			"Could not create timeout, unexpected error",
+		)
+		return
+	}
+
+	ctxTO, cancel := context.WithTimeout(ctx, createTimeout)
+	defer cancel()
+
+	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
+	if errCtx != nil {
+		resp.Diagnostics.AddError(
+			"Error creating context",
+			"Could not create context, context value token is not a string ?",
+		)
+		return
+	}
+
+	// Delete the VDC
+	job, httpR, err := r.client.VDCApi.ApiCustomersV20VdcsVdcNameDelete(r.client.auth, state.Name.ValueString())
+	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	// Wait for job to complete
+	refreshF := func() (interface{}, string, error) {
+		jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
+		if errGetJob != nil {
+			return nil, "", err
+		}
+
+		if jobStatus == "DONE" {
+			return nil, "done", nil
+		}
+		return nil, "pending", nil
+	}
+
+	createStateConf := &sdkResource.StateChangeConf{
+		Delay:      10 * time.Second,
+		Refresh:    refreshF,
+		MinTimeout: 5 * time.Second,
+		Timeout:    5 * time.Minute,
+		Pending:    []string{"pending"},
+		Target:     []string{"done"},
+	}
+
+	_, err = createStateConf.WaitForStateContext(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating order",
+			"Could not delete vdc, unexpected error: "+err.Error(),
+		)
+		return
+	}
+>>>>>>> 3d64f52 (feat(vdc): add async requests)
 }
 
 func (r *vdcResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

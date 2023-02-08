@@ -55,6 +55,7 @@ resource "cloudavenue_vdc" "example" {
 ### Optional
 
 - `description` (String) The description of the org VDC.
+- `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
@@ -68,6 +69,15 @@ Required:
 - `class` (String) The storage class of the storage profile.It can be `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
 - `default` (Boolean) Set this storage profile as default for this VDC. Only one storage profile can be default per VDC.
 - `limit` (Number) Max number of units allocated for this storage profile. In Gb. It must be between 500 and 10000.
+
+
+<a id="nestedatt--timeouts"></a>
+### Nested Schema for `timeouts`
+
+Optional:
+
+- `create` (String)
+- `read` (String)
 
 ## Import
 
