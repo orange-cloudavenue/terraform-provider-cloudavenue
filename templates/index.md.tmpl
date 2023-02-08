@@ -1,0 +1,26 @@
+---
+page_title: "CloudAvenue Provider"
+subcategory: ""
+description: |-
+  {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# CloudAvenue Provider
+
+The CloudAvenue Provider provides utilities for working with Cloud Avenue platform.
+The provider needs to be configured with the proper credentials before it can be used.
+
+Documentation regarding Data Sources and Resources can be found in the sidebar to the left.
+
+## Authentication
+
+Cloud Avenue support authentication with username, password and organization.
+
+{{ if .HasExample -}}
+
+## Example Usage
+
+{{ printf "{{tffile %q}}" .ExampleFile }}
+{{- end }}
+
+{{ .SchemaMarkdown | trimspace }}
