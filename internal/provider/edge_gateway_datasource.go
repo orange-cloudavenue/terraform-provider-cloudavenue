@@ -102,22 +102,29 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	gateway, _, err := d.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(d.client.auth, data.EdgeID.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read gateway detail, got error: %s", err))
-		return
-	}
+	gateway, httpR, err := d.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(d.client.auth, data.EdgeID.ValueString())
+	if x := CheckApiError(err, httpR); x != nil {
+		resp.Diagnostics.Append(x.GetTerraformDiagnostic())
+		if resp.Diagnostics.HasError() {
+			return
+		}
 
-	data = edgeGatewayDataSourceModel{
-		Tier0VrfID:  types.StringValue(gateway.Tier0VrfId),
-		EdgeName:    types.StringValue(gateway.EdgeName),
-		EdgeID:      types.StringValue(gateway.EdgeId),
-		OwnerType:   types.StringValue(gateway.OwnerType),
-		OwnerName:   types.StringValue(gateway.OwnerName),
-		Description: types.StringValue(gateway.Description),
-	}
+		// Is Not Found
+		data.ID = types.StringValue("")
 
-	data.ID = types.StringValue("frangipane")
+	} else {
+
+		data = edgeGatewayDataSourceModel{
+			Tier0VrfID:  types.StringValue(gateway.Tier0VrfId),
+			EdgeName:    types.StringValue(gateway.EdgeName),
+			EdgeID:      types.StringValue(gateway.EdgeId),
+			OwnerType:   types.StringValue(gateway.OwnerType),
+			OwnerName:   types.StringValue(gateway.OwnerName),
+			Description: types.StringValue(gateway.Description),
+		}
+
+		data.ID = types.StringValue("frangipane")
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
