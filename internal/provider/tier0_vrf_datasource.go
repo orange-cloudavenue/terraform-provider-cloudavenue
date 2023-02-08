@@ -36,7 +36,7 @@ type tier0VrfDataSourceModel struct {
 
 type segmentModel struct {
 	Service types.String `tfsdk:"service"`
-	VlanId  types.String `tfsdk:"vlan_id"`
+	VlanID  types.String `tfsdk:"vlan_id"`
 }
 
 func (d *tier0VrfDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -128,7 +128,7 @@ func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadReques
 		for _, segment := range *tier0Detail.Services {
 			data.Services = append(data.Services, segmentModel{
 				Service: types.StringValue(segment.Service),
-				VlanId:  types.StringValue(segment.VlanId),
+				VlanID:  types.StringValue(segment.VlanId),
 			})
 		}
 	}
