@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	_ "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
