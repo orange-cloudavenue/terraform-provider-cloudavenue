@@ -115,7 +115,7 @@ func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRe
 	}
 
 	gateways, httpR, err := d.client.EdgeGatewaysApi.ApiCustomersV20EdgesGet(d.client.auth)
-	if x := CheckApiError(err, httpR); x != nil {
+	if x := CheckAPIError(err, httpR); x != nil {
 		resp.Diagnostics.Append(x.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -124,9 +124,7 @@ func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRe
 		// Is Not Found
 		data.EdgeGateways = []gateway{}
 		data.ID = types.StringValue("")
-
 	} else {
-
 		for _, gw := range gateways {
 			d := gateway{
 				Tier0VrfID:  types.StringValue(gw.Tier0VrfId),

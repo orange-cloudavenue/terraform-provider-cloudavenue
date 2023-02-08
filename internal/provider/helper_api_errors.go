@@ -67,14 +67,12 @@ func (e *APIError) IsNotFound() bool {
 // CheckApiError checks the HTTP response for errors and returns an APIError
 // if the response code is >= 400.
 // If the response code is < 400, nil is returned.
-func CheckApiError(err error, httpR *http.Response) *APIError {
-
+func CheckAPIError(err error, httpR *http.Response) *APIError {
 	if err == nil {
 		return nil
 	}
 
 	if httpR != nil && httpR.StatusCode >= 400 {
-
 		if e, ok := err.(apiclient.GenericSwaggerError); ok {
 			x := &APIError{
 				lastError:  err,
