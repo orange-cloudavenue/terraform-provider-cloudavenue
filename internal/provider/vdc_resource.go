@@ -399,6 +399,7 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	// Convert from the API data model to the Terraform data model
 	// and refresh any attribute values.
 	state = &vdcResourceModel{
+		Timeouts:               state.Timeouts,
 		ID:                     utils.GenerateUUID(vdc.Vdc.Name),
 		Name:                   types.StringValue(vdc.Vdc.Name),
 		Description:            types.StringValue(vdc.Vdc.Description),
