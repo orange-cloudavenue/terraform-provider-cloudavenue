@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 var (
@@ -23,12 +25,12 @@ type publicIPDataSource struct {
 }
 
 type publicIPDataSourceModel struct {
-	ID            types.String         `tfsdk:"id"`
-	InternalIP    types.String         `tfsdk:"internal_ip"`
-	NetworkConfig []networkConfigModel `tfsdk:"network_config"`
+	ID            types.String                 `tfsdk:"id"`
+	InternalIP    types.String                 `tfsdk:"internal_ip"`
+	NetworkConfig []publicIPNetworkConfigModel `tfsdk:"network_config"`
 }
 
-type networkConfigModel struct {
+type publicIPNetworkConfigModel struct {
 	UPLinkIP        types.String `tfsdk:"uplink_ip"`
 	TranslatedIP    types.String `tfsdk:"translated_ip"`
 	EdgeGatewayName types.String `tfsdk:"edge_gateway_name"`
@@ -114,15 +116,19 @@ func (d *publicIPDataSource) Read(ctx context.Context, req datasource.ReadReques
 		InternalIP: types.StringValue(publicIP.InternalIp),
 	}
 
+	listOfIps := make([]string, 0)
+
 	for _, cfg := range publicIP.NetworkConfig {
-		data.NetworkConfig = append(data.NetworkConfig, networkConfigModel{
+		data.NetworkConfig = append(data.NetworkConfig, publicIPNetworkConfigModel{
 			UPLinkIP:        types.StringValue(cfg.UplinkIp),
 			TranslatedIP:    types.StringValue(cfg.TranslatedIp),
 			EdgeGatewayName: types.StringValue(cfg.EdgeGatewayName),
 		})
+
+		listOfIps = append(listOfIps, cfg.UplinkIp)
 	}
 
-	data.ID = types.StringValue("frangipane")
+	data.ID = utils.GenerateUUID(listOfIps)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
