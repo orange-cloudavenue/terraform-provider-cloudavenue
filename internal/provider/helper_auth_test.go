@@ -10,7 +10,6 @@ import (
 
 func TestGetAuthContextWithTO(t *testing.T) {
 	name := "testGetAuthContextWithTO"
-	want := "token"
 
 	apiCtx := context.WithValue(context.Background(), apiclient.ContextAccessToken, "token")
 	ctx := context.Background()
@@ -20,7 +19,7 @@ func TestGetAuthContextWithTO(t *testing.T) {
 
 	newCtx, _ := getAuthContextWithTO(apiCtx, tfCtx)
 	newToken, _ := newCtx.Value(apiclient.ContextAccessToken).(string)
-	if newToken != want {
+	if want := "token"; newToken != want {
 		t.Errorf("%s: got %s, want %s", name, newToken, want)
 	}
 }
