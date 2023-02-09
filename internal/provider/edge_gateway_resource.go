@@ -301,10 +301,8 @@ func (r *edgeGatewaysResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	if isNotFound {
-		state = &edgeGatewaysResourceModel{
-			ID:       types.StringValue(""),
-			Timeouts: state.Timeouts,
-		}
+		resp.State.RemoveResource(ctxTO)
+		return
 	} else {
 		state = &edgeGatewaysResourceModel{
 			ID:          types.StringValue(gateway.EdgeId),
