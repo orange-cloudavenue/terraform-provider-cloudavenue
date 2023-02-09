@@ -15,6 +15,8 @@ The Edge Gateway resource allows you to create and manage Edge Gateways in Cloud
 ```terraform
 resource "cloudavenue_edge_gateway" "example" {
   vdc_name = "VDC_Frangipane"
+  tier0_vrf_id = "vrf-1"
+  owner_type = "vdc"
 }
 ```
 
@@ -52,5 +54,6 @@ Optional:
 Import is supported using the following syntax:
 
 ```shell
+# use the edge-id to import the edge gateway
 terraform import cloudavenue_edge_gateway.example 12345678-1234-1234-1234-123456789012
 ```

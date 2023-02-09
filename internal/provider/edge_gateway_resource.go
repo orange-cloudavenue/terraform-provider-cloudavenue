@@ -174,7 +174,7 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 			}
 		}
 	case "vdc-group":
-		job, httpR, err = r.client.EdgeGatewaysApi.ApiCustomersV20VdcGroupsVdcGroupNameEdgesPost(r.client.auth, body, plan.OwnerName.ValueString())
+		job, httpR, err = r.client.EdgeGatewaysApi.ApiCustomersV20VdcGroupsVdcGroupNameEdgesPost(auth, body, plan.OwnerName.ValueString())
 		if apiErr := CheckApiError(err, httpR); apiErr != nil {
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
@@ -194,7 +194,7 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 
 		if jobStatus == "DONE" {
 			// get all edge gateways and find the one that matches the tier0_vrf_id and owner_name
-			gateways, _, errEdgesGet := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesGet(r.client.auth)
+			gateways, _, errEdgesGet := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesGet(auth)
 			if errEdgesGet != nil {
 				return nil, "error", err
 			}
