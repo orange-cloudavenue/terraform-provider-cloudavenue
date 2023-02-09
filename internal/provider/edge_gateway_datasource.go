@@ -103,7 +103,7 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	gateway, httpR, err := d.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(d.client.auth, data.EdgeID.ValueString())
-	if x := CheckApiError(err, httpR); x != nil {
+	if x := CheckAPIError(err, httpR); x != nil {
 		resp.Diagnostics.Append(x.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -111,9 +111,7 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 		// Is Not Found
 		data.ID = types.StringValue("")
-
 	} else {
-
 		data = edgeGatewayDataSourceModel{
 			Tier0VrfID:  types.StringValue(gateway.Tier0VrfId),
 			EdgeName:    types.StringValue(gateway.EdgeName),

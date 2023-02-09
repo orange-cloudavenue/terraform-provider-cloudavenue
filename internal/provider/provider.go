@@ -199,19 +199,18 @@ func (p *cloudavenueProvider) Configure(
 				"CloudAvenue Client Error: "+err.Error(),
 		)
 		return
-	} else {
-		token := ret.Header.Get("x-vmware-vcloud-access-token")
-		if token == "" {
-			resp.Diagnostics.AddError(
-				"Unable to Create CloudAvenue API Client",
-				"An unexpected error occurred when creating the CloudAvenue API client. "+
-					"If the error is not clear, please contact the provider developers.\n\n"+
-					"CloudAvenue Client Error: empty token",
-			)
-			return
-		}
-		client.auth = context.WithValue(context.Background(), apiclient.ContextAccessToken, token)
 	}
+	token := ret.Header.Get("x-vmware-vcloud-access-token")
+	if token == "" {
+		resp.Diagnostics.AddError(
+			"Unable to Create CloudAvenue API Client",
+			"An unexpected error occurred when creating the CloudAvenue API client. "+
+				"If the error is not clear, please contact the provider developers.\n\n"+
+				"CloudAvenue Client Error: empty token",
+		)
+		return
+	}
+	client.auth = context.WithValue(context.Background(), apiclient.ContextAccessToken, token)
 
 	// Make the CloudAvenue client available during DataSource and Resource
 	// type Configure methods.
