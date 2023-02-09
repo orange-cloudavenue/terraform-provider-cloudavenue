@@ -40,7 +40,7 @@ resource "cloudavenue_vdc" "example" {
 
 ### Required
 
-- `cpu_allocated` (Number) Capacity that is committed to be available or used as a limit in PAYG mode.Unit for compute capacity allocated to this vdc is MHz. It must be beetwen 5 and 2500000.
+- `cpu_allocated` (Number) Capacity that is committed to be available or used as a limit in PAYG mode.Unit for compute capacity allocated to this vdc is MHz. It must be at least 5 * `vcpu_in_mhz2`.
  *Note:* Reserved capacity is automatically set according to the service class.
 - `memory_allocated` (Number) Memory capacity that is committed to be available or used as a limit in PAYG mode.Unit for memory capacity allocated to this vdc is Gb. It must be between 1 and 5000.
 - `name` (String) The name of the org VDC. It must be unique in the organization. The length must be between 2 and 27 characters.

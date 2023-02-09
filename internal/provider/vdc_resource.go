@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -106,7 +105,7 @@ func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 			"cpu_allocated": schema.Float64Attribute{
 				Required: true,
 				MarkdownDescription: "Capacity that is committed to be available or used as a limit in PAYG mode." +
-					"Unit for compute capacity allocated to this vdc is MHz. It must be beetwen 5 and 2500000.\n" +
+					"Unit for compute capacity allocated to this vdc is MHz. It must be at least 5 * `vcpu_in_mhz2`.\n" +
 					" *Note:* Reserved capacity is automatically set according to the service class.",
 				Validators: []validator.Float64{
 					float64validator.AtLeast(5),
@@ -276,43 +275,22 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	// Wait for job to complete
-	refreshF := func() (interface{}, string, error) {
-		jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
-		if errGetJob != nil {
-			return nil, "", err
-		}
-
-		vdcID := ""
-
-		if jobStatus.IsDone() {
-			// get all VDC and find the one that matches the vdc name
-			vdcs, _, errVdcsGet := r.client.VDCApi.ApiCustomersV20VdcsGet(auth)
-			if errVdcsGet != nil {
-				return nil, "error", err
-			}
-
-			for _, vdc := range vdcs {
-				if vdc.VdcName == plan.Name.ValueString() {
-					vdcID = uuid.NewSHA1(uuid.Nil, []byte(vdc.VdcName)).String()
-					break
-				}
-			}
-		} else {
-			return nil, jobStatus.String(), nil
-		}
-		return vdcID, jobStatus.String(), nil
-	}
-
 	createStateConf := &sdkResource.StateChangeConf{
-		Delay:      10 * time.Second,
-		Refresh:    refreshF,
+		Delay: 10 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
+			if errGetJob != nil {
+				return nil, "", err
+			}
+			return jobStatus, jobStatus.String(), nil
+		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    []string{PENDING.String()},
+		Pending:    []string{PENDING.String(), INPROGRESS.String()},
 		Target:     []string{DONE.String()},
 	}
 
-	vdcID, err := createStateConf.WaitForStateContext(ctxTO)
+	_, err = createStateConf.WaitForStateContext(ctxTO)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating order",
@@ -322,18 +300,7 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	// Set the ID
-
-	id, idIsAString := vdcID.(string)
-	if !idIsAString {
-		resp.Diagnostics.AddError(
-			"Error creating edge gateway",
-			"Could not create edge gateway, unexpected error: edgeID is not a string",
-		)
-		return
-	}
-
-	// Generate a unique ID for the resource.
-	plan.ID = types.StringValue(id)
+	plan.ID = utils.GenerateUUID(plan.Name.String())
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -465,7 +432,7 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 
 	// Delete the VDC
-	job, httpR, err := r.client.VDCApi.ApiCustomersV20VdcsVdcNameDelete(r.client.auth, state.Name.ValueString())
+	job, httpR, err := r.client.VDCApi.ApiCustomersV20VdcsVdcNameDelete(auth, state.Name.ValueString())
 	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
@@ -473,32 +440,34 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		}
 	}
 
+	ctx = tflog.SetField(ctx, "jobID", job.JobId)
+
+	tflog.Debug(ctx, "Check job completion")
+
 	// Wait for job to complete
-	refreshF := func() (interface{}, string, error) {
-		jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
-		if errGetJob != nil {
-			return nil, "", err
-		}
+	deleteStateConf := &sdkResource.StateChangeConf{
+		Delay: 10 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
+			if errGetJob != nil {
+				return nil, "", err
+			}
 
-		if jobStatus.IsDone() {
-			return nil, jobStatus.String(), nil
-		}
-		return nil, jobStatus.String(), nil
-	}
+			ctx = tflog.SetField(ctx, "joStatus", jobStatus.String())
+			tflog.Debug(ctx, "Check job status")
 
-	createStateConf := &sdkResource.StateChangeConf{
-		Delay:      10 * time.Second,
-		Refresh:    refreshF,
+			return jobStatus, jobStatus.String(), nil
+		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    []string{PENDING.String()},
+		Pending:    []string{PENDING.String(), INPROGRESS.String()},
 		Target:     []string{DONE.String()},
 	}
 
-	_, err = createStateConf.WaitForStateContext(ctx)
+	_, err = deleteStateConf.WaitForStateContext(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating order",
+			"Error deleting vdc",
 			"Could not delete vdc, unexpected error: "+err.Error(),
 		)
 		return
