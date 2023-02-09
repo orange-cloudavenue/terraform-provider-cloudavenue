@@ -287,7 +287,6 @@ func (r *edgeGatewaysResource) Read(ctx context.Context, req resource.ReadReques
 		)
 		return
 	}
-	var isNotFound bool
 
 	// Get edge gateway
 	gateway, httpR, err := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(auth, state.EdgeID.ValueString())
@@ -297,10 +296,6 @@ func (r *edgeGatewaysResource) Read(ctx context.Context, req resource.ReadReques
 			return
 		}
 
-		isNotFound = true
-	}
-
-	if isNotFound {
 		resp.State.RemoveResource(ctxTO)
 		return
 	}
