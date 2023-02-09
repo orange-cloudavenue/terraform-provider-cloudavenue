@@ -284,7 +284,7 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 		vdcID := ""
 
-		if jobStatus == "DONE" {
+		if jobStatus.IsDone() {
 			// get all VDC and find the one that matches the vdc name
 			vdcs, _, errVdcsGet := r.client.VDCApi.ApiCustomersV20VdcsGet(auth)
 			if errVdcsGet != nil {
@@ -298,9 +298,9 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 				}
 			}
 		} else {
-			return nil, "pending", nil
+			return nil, jobStatus.String(), nil
 		}
-		return vdcID, "done", nil
+		return vdcID, jobStatus.String(), nil
 	}
 
 	createStateConf := &sdkResource.StateChangeConf{
@@ -308,8 +308,8 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 		Refresh:    refreshF,
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    []string{"pending"},
-		Target:     []string{"done"},
+		Pending:    []string{PENDING.String()},
+		Target:     []string{DONE.String()},
 	}
 
 	vdcID, err := createStateConf.WaitForStateContext(ctxTO)
@@ -439,8 +439,6 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
-<<<<<<< HEAD
-=======
 
 	// Create() is passed a default timeout to use if no value
 	// has been supplied in the Terraform configuration.
@@ -481,10 +479,10 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 			return nil, "", err
 		}
 
-		if jobStatus == "DONE" {
-			return nil, "done", nil
+		if jobStatus.IsDone() {
+			return nil, jobStatus.String(), nil
 		}
-		return nil, "pending", nil
+		return nil, jobStatus.String(), nil
 	}
 
 	createStateConf := &sdkResource.StateChangeConf{
@@ -492,8 +490,8 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		Refresh:    refreshF,
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    []string{"pending"},
-		Target:     []string{"done"},
+		Pending:    []string{PENDING.String()},
+		Target:     []string{DONE.String()},
 	}
 
 	_, err = createStateConf.WaitForStateContext(ctx)
@@ -504,7 +502,6 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		)
 		return
 	}
->>>>>>> 3d64f52 (feat(vdc): add async requests)
 }
 
 func (r *vdcResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
