@@ -239,5 +239,6 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		NewEdgeGatewayResource,
 		NewVdcResource,
 		NewVcdaIPResource,
+		NewPublicIPResource,
 	}
 }
