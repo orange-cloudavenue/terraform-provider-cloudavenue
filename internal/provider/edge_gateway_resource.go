@@ -167,7 +167,7 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 	switch plan.OwnerType.ValueString() {
 	case "vdc":
 		job, httpR, err = r.client.EdgeGatewaysApi.ApiCustomersV20VdcsVdcNameEdgesPost(auth, body, plan.OwnerName.ValueString())
-		if apiErr := CheckApiError(err, httpR); apiErr != nil {
+		if apiErr := CheckAPIError(err, httpR); apiErr != nil {
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
 				return
@@ -175,7 +175,7 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 		}
 	case "vdc-group":
 		job, httpR, err = r.client.EdgeGatewaysApi.ApiCustomersV20VdcGroupsVdcGroupNameEdgesPost(auth, body, plan.OwnerName.ValueString())
-		if apiErr := CheckApiError(err, httpR); apiErr != nil {
+		if apiErr := CheckAPIError(err, httpR); apiErr != nil {
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
 				return
@@ -291,7 +291,7 @@ func (r *edgeGatewaysResource) Read(ctx context.Context, req resource.ReadReques
 
 	// Get edge gateway
 	gateway, httpR, err := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(auth, state.EdgeID.ValueString())
-	if apiErr := CheckApiError(err, httpR); apiErr != nil {
+	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -340,7 +340,7 @@ func (r *edgeGatewaysResource) Delete(ctx context.Context, req resource.DeleteRe
 
 	// Delete the edge gateway
 	_, httpR, err := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdDelete(r.client.auth, state.EdgeID.ValueString())
-	if apiErr := CheckApiError(err, httpR); apiErr != nil {
+	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
