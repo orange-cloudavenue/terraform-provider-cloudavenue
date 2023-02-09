@@ -287,7 +287,6 @@ func (r *edgeGatewaysResource) Read(ctx context.Context, req resource.ReadReques
 		)
 		return
 	}
-	var isNotFound bool
 
 	// Get edge gateway
 	gateway, httpR, err := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(auth, state.EdgeID.ValueString())
@@ -297,23 +296,19 @@ func (r *edgeGatewaysResource) Read(ctx context.Context, req resource.ReadReques
 			return
 		}
 
-		isNotFound = true
-	}
-
-	if isNotFound {
 		resp.State.RemoveResource(ctxTO)
 		return
-	} else {
-		state = &edgeGatewaysResourceModel{
-			ID:          types.StringValue(gateway.EdgeId),
-			Tier0VrfID:  types.StringValue(gateway.Tier0VrfId),
-			EdgeName:    types.StringValue(gateway.EdgeName),
-			EdgeID:      types.StringValue(gateway.EdgeId),
-			OwnerType:   types.StringValue(gateway.OwnerType),
-			OwnerName:   types.StringValue(gateway.OwnerName),
-			Description: types.StringValue(gateway.Description),
-			Timeouts:    state.Timeouts,
-		}
+	}
+
+	state = &edgeGatewaysResourceModel{
+		ID:          types.StringValue(gateway.EdgeId),
+		Tier0VrfID:  types.StringValue(gateway.Tier0VrfId),
+		EdgeName:    types.StringValue(gateway.EdgeName),
+		EdgeID:      types.StringValue(gateway.EdgeId),
+		OwnerType:   types.StringValue(gateway.OwnerType),
+		OwnerName:   types.StringValue(gateway.OwnerName),
+		Description: types.StringValue(gateway.Description),
+		Timeouts:    state.Timeouts,
 	}
 
 	// Set refreshed state

@@ -8,7 +8,7 @@ import (
 )
 
 // getAuthContextWithTO is a helper function to create the auth context with the token api and the terraform context with timeout.
-func getAuthContextWithTO(apiCtx context.Context, tfCtx context.Context) (context.Context, error) {
+func getAuthContextWithTO(apiCtx, tfCtx context.Context) (context.Context, error) {
 	token, tokenIsAString := apiCtx.Value(apiclient.ContextAccessToken).(string)
 	if !tokenIsAString {
 		return nil, errors.New("token is not a string")
