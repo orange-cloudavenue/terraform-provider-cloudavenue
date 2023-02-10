@@ -3,12 +3,12 @@
 page_title: "cloudavenue_vcda_ip Resource - cloudavenue"
 subcategory: ""
 description: |-
-  VCDa resource permit to declare or remove your On Premise IP address for DRaaS Service.
+  VCDa resource permit to declare or remove your On Premise IP address for DRaaS Service. -> Note: For more information, please refer to the Cloud Avenue DRaaS documentation https://wiki.cloudavenue.orange-business.com/w/index.php/DRaaS_avec_VCDA.
 ---
 
 # cloudavenue_vcda_ip (Resource)
 
-VCDa resource permit to declare or remove your On Premise IP address for DRaaS Service.
+VCDa resource permit to declare or remove your On Premise IP address for DRaaS Service. -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://wiki.cloudavenue.orange-business.com/w/index.php/DRaaS_avec_VCDA).
 
 ## Example Usage
 

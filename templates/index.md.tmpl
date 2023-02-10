@@ -12,6 +12,7 @@ The provider needs to be configured with the proper credentials before it can be
 
 Documentation regarding Data Sources and Resources can be found in the sidebar to the left.
 
+ -> Note : If you need more information about Cloud Avenue, please visit [Cloud Avenue documentation](https://wiki.cloudavenue.orange-business.com/w/index.php/Accueil).
 ## Authentication
 
 Cloud Avenue support authentication with username, password and organization.
