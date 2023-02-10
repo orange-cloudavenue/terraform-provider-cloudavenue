@@ -3,12 +3,12 @@
 page_title: "cloudavenue_vdc Resource - cloudavenue"
 subcategory: ""
 description: |-
-  Provides a Cloud Avenue Organization VDC resource. This can be used to create, update and delete an Organization VDC.
+  Provides a Cloud Avenue Organization VDC resource. This can be used to create, update and delete an Organization VDC. -> Note: For more information about Organization VDC, please refer to the Cloud Avenue documentation https://wiki.cloudavenue.orange-business.com/w/index.php/Datacenter_virtuel.
 ---
 
 # cloudavenue_vdc (Resource)
 
-Provides a Cloud Avenue Organization VDC resource. This can be used to create, update and delete an Organization VDC.
+Provides a Cloud Avenue Organization VDC resource. This can be used to create, update and delete an Organization VDC. -> Note: For more information about Organization VDC, please refer to the [Cloud Avenue documentation](https://wiki.cloudavenue.orange-business.com/w/index.php/Datacenter_virtuel).
 
 ## Example Usage
 

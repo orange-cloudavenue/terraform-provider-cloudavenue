@@ -70,7 +70,8 @@ func (r *vdcResource) Metadata(_ context.Context, req resource.MetadataRequest, 
 // Schema defines the schema for the resource.
 func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a Cloud Avenue Organization VDC resource. This can be used to create, update and delete an Organization VDC.",
+		MarkdownDescription: "Provides a Cloud Avenue Organization VDC resource. This can be used to create, update and delete an Organization VDC." +
+			" -> Note: For more information about Organization VDC, please refer to the [Cloud Avenue documentation](https://wiki.cloudavenue.orange-business.com/w/index.php/Datacenter_virtuel).",
 		Attributes: map[string]schema.Attribute{
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
@@ -101,7 +102,7 @@ func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 			"cpu_speed_in_mhz": schema.Float64Attribute{
 				Required: true,
 				MarkdownDescription: "Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM.\n" +
-					"It must be at least 1200.",
+					"It must be at least 1200.\n",
 				Validators: []validator.Float64{
 					float64validator.AtLeast(1200),
 				},

@@ -46,7 +46,8 @@ func (r *vcdaIPResource) Metadata(_ context.Context, req resource.MetadataReques
 // Schema defines the schema for the resource.
 func (r *vcdaIPResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "VCDa resource permit to declare or remove your On Premise IP address for DRaaS Service.",
+		MarkdownDescription: "VCDa resource permit to declare or remove your On Premise IP address for DRaaS Service." +
+			" -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://wiki.cloudavenue.orange-business.com/w/index.php/DRaaS_avec_VCDA).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
