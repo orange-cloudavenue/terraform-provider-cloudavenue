@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	sdkResource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -38,7 +40,7 @@ type edgeGatewaysResource struct {
 type edgeGatewaysResourceModel struct {
 	Timeouts            timeouts.Value `tfsdk:"timeouts"`
 	ID                  types.String   `tfsdk:"id"`
-	Tier0VrfID          types.String   `tfsdk:"tier0_vrf_id"`
+	Tier0VrfID          types.String   `tfsdk:"tier0_vrf_name"`
 	EdgeName            types.String   `tfsdk:"edge_name"`
 	EdgeID              types.String   `tfsdk:"edge_id"`
 	OwnerType           types.String   `tfsdk:"owner_type"`
@@ -55,46 +57,62 @@ func (r *edgeGatewaysResource) Metadata(_ context.Context, req resource.Metadata
 // Schema defines the schema for the resource.
 func (r *edgeGatewaysResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Edge Gateway resource allows you to create and manage Edge Gateways in CloudAvenue.",
+		MarkdownDescription: "The Edge Gateway resource allows you to create and delete Edge Gateways in CloudAvenue.",
 		Attributes: map[string]schema.Attribute{
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
 				Read:   true,
+				Delete: true,
 			}),
 			"id": schema.StringAttribute{
 				Computed: true,
 			},
-			"tier0_vrf_id": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The ID of the Tier0 VRF to which the Edge Gateway will be attached.",
+			"tier0_vrf_name": schema.StringAttribute{
+				Required: true,
+				MarkdownDescription: "The name of the Tier0 VRF to which the Edge Gateway will be attached.\n" +
+					"Changes to this field will force a new resource to be created.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"edge_name": schema.StringAttribute{
-				MarkdownDescription: "The name of the Edge Gateway.", Computed: true,
+				MarkdownDescription: "The name of the Edge Gateway.",
+				Computed:            true,
 			},
 			"edge_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The ID of the Edge Gateway.",
 			},
 			"owner_type": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The type of the owner of the Edge Gateway (vdc|vdc-group).",
+				Required: true,
+				MarkdownDescription: "The type of the owner of the Edge Gateway (vdc|vdc-group).\n" +
+					"Changes to this field will force a new resource to be created.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^(vdc|vdc-group)$`),
 						"must be vdc or vdc-group",
 					),
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"owner_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The name of the owner of the Edge Gateway.",
+				Required: true,
+				MarkdownDescription: "The name of the owner of the Edge Gateway.\n" +
+					"Changes to this field will force a new resource to be created.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"description": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The description of the Edge Gateway.",
 			},
 			"enable_load_balancing": schema.BoolAttribute{
-				Optional: true,
+				MarkdownDescription: "Enable load balancing on the Edge Gateway.\n" +
+					"Always set to true for now.",
+				Computed: true,
 			},
 		},
 	}
@@ -216,15 +234,15 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 		Refresh:    refreshF,
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    []string{PENDING.String()},
+		Pending:    StatePending(),
 		Target:     []string{DONE.String()},
 	}
 
 	edgeID, err := createStateConf.WaitForStateContext(ctxTO)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating order",
-			"Could not create vdc, unexpected error: "+err.Error(),
+			"Error creating edge gateway",
+			"Could not create edge gateway, unexpected error: "+err.Error(),
 		)
 		return
 	}
@@ -241,12 +259,13 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	plan = &edgeGatewaysResourceModel{
-		ID:         types.StringValue(id),
-		EdgeID:     types.StringValue(id),
-		Tier0VrfID: plan.Tier0VrfID,
-		OwnerName:  plan.OwnerName,
-		OwnerType:  plan.OwnerType,
-		Timeouts:   plan.Timeouts,
+		ID:                  types.StringValue(id),
+		EdgeID:              types.StringValue(id),
+		Tier0VrfID:          plan.Tier0VrfID,
+		OwnerName:           plan.OwnerName,
+		OwnerType:           plan.OwnerType,
+		Timeouts:            plan.Timeouts,
+		EnableLoadBalancing: types.BoolValue(true),
 	}
 
 	// Set state to fully populated data
@@ -267,6 +286,7 @@ func (r *edgeGatewaysResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
+	// Create timeout
 	readTimeout, errTO := state.Timeouts.Read(ctx, 8*time.Minute)
 	if errTO != nil {
 		resp.Diagnostics.AddError(
@@ -301,14 +321,15 @@ func (r *edgeGatewaysResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	state = &edgeGatewaysResourceModel{
-		ID:          types.StringValue(gateway.EdgeId),
-		Tier0VrfID:  types.StringValue(gateway.Tier0VrfId),
-		EdgeName:    types.StringValue(gateway.EdgeName),
-		EdgeID:      types.StringValue(gateway.EdgeId),
-		OwnerType:   types.StringValue(gateway.OwnerType),
-		OwnerName:   types.StringValue(gateway.OwnerName),
-		Description: types.StringValue(gateway.Description),
-		Timeouts:    state.Timeouts,
+		ID:                  types.StringValue(gateway.EdgeId),
+		Tier0VrfID:          types.StringValue(gateway.Tier0VrfId),
+		EdgeName:            types.StringValue(gateway.EdgeName),
+		EdgeID:              types.StringValue(gateway.EdgeId),
+		OwnerType:           types.StringValue(gateway.OwnerType),
+		OwnerName:           types.StringValue(gateway.OwnerName),
+		Description:         types.StringValue(gateway.Description),
+		EnableLoadBalancing: types.BoolValue(true),
+		Timeouts:            state.Timeouts,
 	}
 
 	// Set refreshed state
@@ -333,17 +354,65 @@ func (r *edgeGatewaysResource) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 
+	// Create timeout
+	deleteTimeout, errTO := state.Timeouts.Delete(ctx, 8*time.Minute)
+	if errTO != nil {
+		resp.Diagnostics.AddError(
+			"Error creating timeout",
+			"Could not create timeout, unexpected error",
+		)
+		return
+	}
+
+	ctxTO, cancel := context.WithTimeout(ctx, deleteTimeout)
+	defer cancel()
+
+	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
+	if errCtx != nil {
+		resp.Diagnostics.AddError(
+			"Error creating context",
+			"Could not create context, context value token is not a string ?",
+		)
+		return
+	}
+
 	// Delete the edge gateway
-	_, httpR, err := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdDelete(r.client.auth, state.EdgeID.ValueString())
+	job, httpR, err := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdDelete(auth, state.EdgeID.ValueString())
 	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
 		}
 	}
+
+	// Wait for job to complete
+	deleteStateConf := &sdkResource.StateChangeConf{
+		Delay: 10 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
+			if errGetJob != nil {
+				return nil, "", err
+			}
+
+			return jobStatus, jobStatus.String(), nil
+		},
+		MinTimeout: 5 * time.Second,
+		Timeout:    5 * time.Minute,
+		Pending:    StatePending(),
+		Target:     []string{DONE.String()},
+	}
+
+	_, err = deleteStateConf.WaitForStateContext(ctxTO)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error deleting Edge Gateway",
+			"Could not delete Edge Gateway, unexpected error: "+err.Error(),
+		)
+		return
+	}
 }
 
 func (r *edgeGatewaysResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("edge_id"), req, resp)
 }

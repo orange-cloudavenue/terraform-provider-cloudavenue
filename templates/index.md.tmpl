@@ -16,11 +16,13 @@ Documentation regarding Data Sources and Resources can be found in the sidebar t
 
 Cloud Avenue support authentication with username, password and organization.
 
-{{ if .HasExample -}}
+## Known Limitations
+
+Because of the way Cloud Avenue API works, it is not possible to work on many resources at the same time.
+This means that if you have a Terraform configuration with multiple resources, you will need to run `terraform apply -parallelism=1` or `terraform destroy -parallelism=1`.
 
 ## Example Usage
 
-{{ printf "{{tffile %q}}" .ExampleFile }}
-{{- end }}
+{{ tffile .ExampleFile }}
 
 {{ .SchemaMarkdown | trimspace }}

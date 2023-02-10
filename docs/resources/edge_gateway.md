@@ -3,20 +3,28 @@
 page_title: "cloudavenue_edge_gateway Resource - cloudavenue"
 subcategory: ""
 description: |-
-  The Edge Gateway resource allows you to create and manage Edge Gateways in CloudAvenue.
+  The Edge Gateway resource allows you to create and delete Edge Gateways in CloudAvenue.
 ---
 
 # cloudavenue_edge_gateway (Resource)
 
-The Edge Gateway resource allows you to create and manage Edge Gateways in CloudAvenue.
+The Edge Gateway resource allows you to create and delete Edge Gateways in CloudAvenue.
 
 ## Example Usage
 
 ```terraform
-resource "cloudavenue_edge_gateway" "example" {
-  vdc_name = "VDC_Frangipane"
-  tier0_vrf_id = "vrf-1"
-  owner_type = "vdc"
+data "cloudavenue_tier0_vrfs" "example" {}
+
+resource "cloudavenue_edge_gateway" "example-with-vdc" {
+  owner_name     = "MyVdc"
+  tier0_vrf_name = data.cloudavenue_tier0_vrfs.example.names.0
+  owner_type     = "vdc"
+}
+
+resource "cloudavenue_edge_gateway" "example-with-group" {
+  owner_name     = "MyVdcGroup"
+  tier0_vrf_name = data.cloudavenue_tier0_vrfs.example.names.0
+  owner_type     = "vdc-group"
 }
 ```
 
@@ -26,12 +34,14 @@ resource "cloudavenue_edge_gateway" "example" {
 ### Required
 
 - `owner_name` (String) The name of the owner of the Edge Gateway.
+Changes to this field will force a new resource to be created.
 - `owner_type` (String) The type of the owner of the Edge Gateway (vdc|vdc-group).
-- `tier0_vrf_id` (String) The ID of the Tier0 VRF to which the Edge Gateway will be attached.
+Changes to this field will force a new resource to be created.
+- `tier0_vrf_name` (String) The name of the Tier0 VRF to which the Edge Gateway will be attached.
+Changes to this field will force a new resource to be created.
 
 ### Optional
 
-- `enable_load_balancing` (Boolean)
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
@@ -39,6 +49,8 @@ resource "cloudavenue_edge_gateway" "example" {
 - `description` (String) The description of the Edge Gateway.
 - `edge_id` (String) The ID of the Edge Gateway.
 - `edge_name` (String) The name of the Edge Gateway.
+- `enable_load_balancing` (Boolean) Enable load balancing on the Edge Gateway.
+Always set to true for now.
 - `id` (String) The ID of this resource.
 
 <a id="nestedatt--timeouts"></a>
@@ -47,6 +59,7 @@ resource "cloudavenue_edge_gateway" "example" {
 Optional:
 
 - `create` (String)
+- `delete` (String)
 - `read` (String)
 
 ## Import

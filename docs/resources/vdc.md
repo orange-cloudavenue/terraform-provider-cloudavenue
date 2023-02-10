@@ -3,12 +3,12 @@
 page_title: "cloudavenue_vdc Resource - cloudavenue"
 subcategory: ""
 description: |-
-  Provides a Cloud Avenue Organization VDC resource. This can be used to create and delete an Organization VDC.
+  Provides a Cloud Avenue Organization VDC resource. This can be used to create, update and delete an Organization VDC.
 ---
 
 # cloudavenue_vdc (Resource)
 
-Provides a Cloud Avenue Organization VDC resource. This can be used to create and delete an Organization VDC.
+Provides a Cloud Avenue Organization VDC resource. This can be used to create, update and delete an Organization VDC.
 
 ## Example Usage
 
@@ -47,8 +47,9 @@ resource "cloudavenue_vdc" "example" {
 
 - `billing_model` (String) Choose Billing model of compute resources. It can be `PAYG`, `DRAAS` or `RESERVED`.
 - `cpu_allocated` (Number) CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.
-It must be at least 5 * `cpu_speed_in_mhz` and at most 200 * `cpu_speed_in_mhz`.
- *Note:* Reserved capacity is automatically set according to the service class.
+It must be at least 5 * `cpu_speed_in_mhz`.
+
+ -> Note: Reserved capacity is automatically set according to the service class.
 - `cpu_speed_in_mhz` (Number) Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM.
 It must be at least 1200.
 - `disponibility_class` (String) The disponibility class of the org VDC. It can be `ONE-ROOM`, `DUAL-ROOM` or `HA-DUAL-ROOM`.
@@ -56,10 +57,12 @@ It must be at least 1200.
 It must be between 1 and 5000.
 - `name` (String) The name of the org VDC. It must be unique in the organization.
 The length must be between 2 and 27 characters.
+Changes to this field will force a new resource to be created.
 - `service_class` (String) The service class of the org VDC. It can be `ECO`, `STD`, `HP` or `VOIP`.
 - `storage_billing_model` (String) Choose Billing model of storage resources. It can be `PAYG` or `RESERVED`.
 - `vdc_group` (String) Name of an existing VDC group or a new one. This allows you to isolate your VDC.
 VMs of VDCs which belong to the same VDC group can communicate together.
+Changes to this field will force a new resource to be created.
 
 ### Optional
 
