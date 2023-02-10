@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"fmt"
+	"net/url"
 	"os"
 	"regexp"
 
@@ -15,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	"github.com/vmware/go-vcloud-director/v2/govcd"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -33,11 +36,53 @@ type cloudavenueProviderModel struct {
 	User     types.String `tfsdk:"user"`
 	Password types.String `tfsdk:"password"`
 	Org      types.String `tfsdk:"org"`
+	Vdc      types.String `tfsdk:"vdc"`
 }
 
 type CloudAvenueClient struct {
+	// API CLOUDAVENUE
 	*apiclient.APIClient
-	auth context.Context
+	// API VMWARE
+	vmware   *govcd.VCDClient
+	org      string // name of default Org
+	vdc      string // name of default VDC
+	basePath string
+	auth     context.Context
+}
+
+// GetDefaultOrg returns the default Org
+func (c *CloudAvenueClient) GetDefaultOrg() string {
+	return c.org
+}
+
+// DefaultVdcExists returns true if the default VDC exists
+func (c *CloudAvenueClient) DefaultVdcExists() bool {
+	return c.vdc != ""
+}
+
+// GetDefaultVdc returns the default VDC
+func (c *CloudAvenueClient) GetDefaultVdc() string {
+	return c.vdc
+}
+
+// SetDefaultOrg sets the default Org
+func (c *CloudAvenueClient) SetDefaultOrg(org string) {
+	c.org = org
+}
+
+// SetDefaultVdc sets the default VDC
+func (c *CloudAvenueClient) SetDefaultVdc(vdc string) {
+	c.vdc = vdc
+}
+
+// GetBasePath returns the base path of the API
+func (c *CloudAvenueClient) GetBasePath() string {
+	return c.basePath
+}
+
+// SetBasePath sets the base path of the API
+func (c *CloudAvenueClient) SetBasePath(basePath string) {
+	c.basePath = basePath
 }
 
 // New is a helper function to simplify provider server and testing implementation.
@@ -91,6 +136,10 @@ func (p *cloudavenueProvider) Schema(
 				MarkdownDescription: "The organization used on CloudAvenue API. Can also be set with the `CLOUDAVENUE_ORG` environment variable.",
 				Optional:            true,
 			},
+			"vdc": schema.StringAttribute{
+				MarkdownDescription: "The VDC used on CloudAvenue API. Can also be set with the `CLOUDAVENUE_VDC` environment variable.",
+				Optional:            true,
+			},
 		},
 	}
 }
@@ -112,13 +161,14 @@ func (p *cloudavenueProvider) Configure(
 
 	// Default values to environment variables, but override
 	// with Terraform configuration value if set.
-	url := os.Getenv("CLOUDAVENUE_URL")
+	urlCloudAvenue := os.Getenv("CLOUDAVENUE_URL")
 	user := os.Getenv("CLOUDAVENUE_USER")
 	password := os.Getenv("CLOUDAVENUE_PASSWORD")
 	org := os.Getenv("CLOUDAVENUE_ORG")
+	vdc := os.Getenv("CLOUDAVENUE_VDC")
 
 	if !config.URL.IsNull() && config.URL.ValueString() != "" {
-		url = config.URL.ValueString()
+		urlCloudAvenue = config.URL.ValueString()
 	}
 	if !config.User.IsNull() && config.User.ValueString() != "" {
 		user = config.User.ValueString()
@@ -129,10 +179,13 @@ func (p *cloudavenueProvider) Configure(
 	if !config.Org.IsNull() && config.Org.ValueString() != "" {
 		org = config.Org.ValueString()
 	}
+	if !config.Vdc.IsNull() && config.Vdc.ValueString() != "" {
+		vdc = config.Vdc.ValueString()
+	}
 
 	// Default URL to the public CloudAvenue API if not set.
-	if url == "" {
-		url = "https://console1.cloudavenue.orange-business.com"
+	if urlCloudAvenue == "" {
+		urlCloudAvenue = "https://console1.cloudavenue.orange-business.com"
 	}
 
 	// If any of the expected configurations are missing, return
@@ -169,7 +222,7 @@ func (p *cloudavenueProvider) Configure(
 		return
 	}
 
-	ctx = tflog.SetField(ctx, "cloudavenue_host", url)
+	ctx = tflog.SetField(ctx, "cloudavenue_host", urlCloudAvenue)
 	ctx = tflog.SetField(ctx, "cloudavenue_username", user)
 	ctx = tflog.SetField(ctx, "cloudavenue_org", org)
 	ctx = tflog.SetField(ctx, "cloudavenue_password", password)
@@ -179,14 +232,14 @@ func (p *cloudavenueProvider) Configure(
 
 	// Create a new CloudAvenue client using the configuration values
 	auth := context.WithValue(context.Background(), apiclient.ContextBasicAuth, apiclient.BasicAuth{
-		UserName: user + "@" + org,
+		UserName: fmt.Sprintf("%s@%s", user, org),
 		Password: password,
 	})
 
 	cfg := &apiclient.Configuration{
-		BasePath:      url,
+		BasePath:      urlCloudAvenue,
 		DefaultHeader: make(map[string]string),
-		UserAgent:     "Terraform/" + req.TerraformVersion + "CloudAvenue/" + p.version,
+		UserAgent:     "Terraform/" + req.TerraformVersion + "/CloudAvenue/" + p.version,
 	}
 
 	client.APIClient = apiclient.NewAPIClient(cfg)
@@ -212,6 +265,34 @@ func (p *cloudavenueProvider) Configure(
 	}
 	client.auth = context.WithValue(context.Background(), apiclient.ContextAccessToken, token)
 
+	client.SetDefaultOrg(org)
+	client.SetDefaultVdc(vdc)
+	client.SetBasePath(urlCloudAvenue)
+
+	// Setup Vmware Client
+	urlCloudAvenueForVmware, err := url.Parse(fmt.Sprintf("%s/api", client.GetBasePath()))
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to parse CloudAvenue URL",
+			"An unexpected error occurred when parsing the CloudAvenue URL. "+
+				"If the error is not clear, please contact the provider developers.\n\n"+
+				"CloudAvenue Client Error: "+err.Error(),
+		)
+		return
+	}
+
+	client.vmware = govcd.NewVCDClient(*urlCloudAvenueForVmware, false, govcd.WithHttpUserAgent(fmt.Sprintf("Terraform/%s/CloudAvenue/%s", req.TerraformVersion, p.version)))
+	err = client.vmware.SetToken(org, govcd.AuthorizationHeader, token)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to set token",
+			"An unexpected error occurred when setting the token. "+
+				"If the error is not clear, please contact the provider developers.\n\n"+
+				"CloudAvenue Client Error: "+err.Error(),
+		)
+		return
+	}
+
 	// Make the CloudAvenue client available during DataSource and Resource
 	// type Configure methods.
 	resp.DataSourceData = &client
@@ -223,6 +304,7 @@ func (p *cloudavenueProvider) Configure(
 // DataSources defines the data sources implemented in the provider.
 func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		// CloudAvenue data sources
 		NewTier0VrfsDataSource,
 		NewTier0VrfDataSource,
 		NewPublicIPDataSource,
@@ -230,6 +312,9 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		NewEdgeGatewaysDataSource,
 		NewVdcsDataSource,
 		NewVdcDataSource,
+
+		// Vmware data sources
+		NewCatalogDataSource,
 	}
 }
 
