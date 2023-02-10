@@ -259,25 +259,25 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 			return nil, "", err
 		}
 
-		if jobStatus.IsDone() {
+		if jobStatus.isDone() {
 			// get all edge gateways and find the one that matches the tier0_vrf_id and owner_name
 			publicIps, _, errEdgesGet := r.client.PublicIPApi.ApiCustomersV20IpGet(auth)
 			if errEdgesGet != nil {
 				return nil, "error", err
 			}
 
-			pubIP, err := findIPNotAlreadyExists(publicIps)
-			if err != nil {
+			pubIP, errFind := findIPNotAlreadyExists(publicIps)
+			if errFind != nil {
 				return nil, "error", err
 			}
 
 			publicIP.InternalIp = publicIps.InternalIp
 			publicIP.NetworkConfig = append(publicIP.NetworkConfig, pubIP.(apiclient.PublicIpsNetworkConfig))
 
-			return publicIP, jobStatus.String(), nil
+			return publicIP, jobStatus.string(), nil
 		}
 
-		return nil, jobStatus.String(), nil
+		return nil, jobStatus.string(), nil
 	}
 
 	createStateConf := &sdkResource.StateChangeConf{
@@ -285,8 +285,8 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 		Refresh:    refreshF,
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    []string{PENDING.String()},
-		Target:     []string{DONE.String()},
+		Pending:    []string{PENDING.string()},
+		Target:     []string{DONE.string()},
 	}
 
 	publicIP, err := createStateConf.WaitForStateContext(ctxTO)
