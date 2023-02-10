@@ -3,12 +3,12 @@
 page_title: "cloudavenue_vdc Data Source - cloudavenue"
 subcategory: ""
 description: |-
-  Show the vDC details.
+  Provides a Cloud Avenue Organization VDC data source. An Organization VDC can be used to reference a VDC and use its data within other resources or data sources.
 ---
 
 # cloudavenue_vdc (Data Source)
 
-Show the vDC details.
+Provides a Cloud Avenue Organization VDC data source. An Organization VDC can be used to reference a VDC and use its data within other resources or data sources.
 
 ## Example Usage
 
@@ -27,37 +27,36 @@ output "example" {
 
 ### Required
 
-- `name` (String) VDC name.
+- `name` (String) The name of the org VDC. It must be unique in the organization.
+The length must be between 2 and 27 characters.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-- `vdc` (Attributes) VDC details. (see [below for nested schema](#nestedatt--vdc))
-- `vdc_group` (String)
+- `billing_model` (String) Choose Billing model of compute resources. It can be `PAYG`, `DRAAS` or `RESERVED`.
+- `cpu_allocated` (Number) CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.
+It must be at least 5 * `cpu_speed_in_mhz` and at most 200 * `cpu_speed_in_mhz`.
+ *Note:* Reserved capacity is automatically set according to the service class.
+- `cpu_speed_in_mhz` (Number) Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM.
+It must be at least 1200.
+- `description` (String) The description of the org VDC.
+- `disponibility_class` (String) The disponibility class of the org VDC. It can be `ONE-ROOM`, `DUAL-ROOM` or `HA-DUAL-ROOM`.
+- `id` (String) ID is the Name of the VCD.
+- `memory_allocated` (Number) Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode.
+It must be between 1 and 5000.
+- `service_class` (String) The service class of the org VDC. It can be `ECO`, `STD`, `HP` or `VOIP`.
+- `storage_billing_model` (String) Choose Billing model of storage resources. It can be `PAYG` or `RESERVED`.
+- `storage_profile` (Block List) List of storage profiles for this VDC. (see [below for nested schema](#nestedblock--storage_profile))
+- `vdc_group` (String) Name of an existing VDC group or a new one. This allows you to isolate your VDC.
+VMs of VDCs which belong to the same VDC group can communicate together.
 
-<a id="nestedatt--vdc"></a>
-### Nested Schema for `vdc`
-
-Read-Only:
-
-- `cpu_allocated` (Number) VDC CPU allocated.
-- `description` (String) VDC UUID.
-- `memory_allocated` (Number) VDC memory allocated.
-- `name` (String) VDC name.
-- `vcpu_in_mhz2` (Number) VDC CPU in Mhz2.
-- `vdc_billing_model` (String) VDC billing model.
-- `vdc_disponibility_class` (String) VDC disponibility class.
-- `vdc_service_class` (String) VDC service class.
-- `vdc_storage_billing_model` (String) VDC storage billing model.
-- `vdc_storage_profiles` (Attributes List) VDC storage profiles. (see [below for nested schema](#nestedatt--vdc--vdc_storage_profiles))
-
-<a id="nestedatt--vdc--vdc_storage_profiles"></a>
-### Nested Schema for `vdc.vdc_storage_profiles`
+<a id="nestedblock--storage_profile"></a>
+### Nested Schema for `storage_profile`
 
 Read-Only:
 
-- `class` (String) VDC storage profile class.
-- `default` (Boolean) VDC storage profile default.
-- `limit` (Number) VDC storage profile limit.
+- `class` (String) The storage class of the storage profile.
+It can be `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
+- `default` (Boolean) Set this storage profile as default for this VDC. Only one storage profile can be default per VDC.
+- `limit` (Number) Max number of units allocated for this storage profile. In Gb. It must be between 500 and 10000.
 
 

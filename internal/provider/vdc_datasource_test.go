@@ -16,7 +16,7 @@ func TestAccVdcDataSource(t *testing.T) {
 			{
 				Config: testAccVdcDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "id", "frangipane"),
+					resource.TestCheckResourceAttr(dataSourceName, "id", "VDC_Frangipane"),
 				),
 			},
 		},
