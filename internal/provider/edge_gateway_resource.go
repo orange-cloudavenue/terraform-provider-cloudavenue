@@ -70,7 +70,7 @@ func (r *edgeGatewaysResource) Schema(ctx context.Context, _ resource.SchemaRequ
 			"tier0_vrf_name": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The name of the Tier0 VRF to which the Edge Gateway will be attached.\n" +
-					"Changes to this field will force a new resource to be created.",
+					ForceNewDescription,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -86,7 +86,7 @@ func (r *edgeGatewaysResource) Schema(ctx context.Context, _ resource.SchemaRequ
 			"owner_type": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The type of the owner of the Edge Gateway (vdc|vdc-group).\n" +
-					"Changes to this field will force a new resource to be created.",
+					ForceNewDescription,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^(vdc|vdc-group)$`),
@@ -100,7 +100,7 @@ func (r *edgeGatewaysResource) Schema(ctx context.Context, _ resource.SchemaRequ
 			"owner_name": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The name of the owner of the Edge Gateway.\n" +
-					"Changes to this field will force a new resource to be created.",
+					ForceNewDescription,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
