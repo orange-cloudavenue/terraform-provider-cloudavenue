@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -53,6 +55,9 @@ func (d *vdcDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 				Required: true,
 				MarkdownDescription: "The name of the org VDC. It must be unique in the organization.\n" +
 					"The length must be between 2 and 27 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(2, 27),
+				},
 			},
 			"description": schema.StringAttribute{
 				Computed:            true,
