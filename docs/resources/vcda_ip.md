@@ -24,6 +24,7 @@ resource "cloudavenue_vcda_ip" "example" {
 ### Required
 
 - `ip_address` (String) On Premise IP address. This is the IP address of our on premise infrastructure which run vCloud Extender.
+Changes to this field will force a new resource to be created.
 
 ### Read-Only
 

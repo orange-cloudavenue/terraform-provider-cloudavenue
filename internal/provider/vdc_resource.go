@@ -70,7 +70,7 @@ func (r *vdcResource) Metadata(_ context.Context, req resource.MetadataRequest, 
 // Schema defines the schema for the resource.
 func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a Cloud Avenue Organization VDC resource. This can be used to create and delete an Organization VDC.",
+		MarkdownDescription: "Provides a Cloud Avenue Organization VDC resource. This can be used to create, update and delete an Organization VDC.",
 		Attributes: map[string]schema.Attribute{
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
@@ -85,7 +85,8 @@ func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 			"name": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The name of the org VDC. It must be unique in the organization.\n" +
-					"The length must be between 2 and 27 characters.",
+					"The length must be between 2 and 27 characters.\n" +
+					"Changes to this field will force a new resource to be created.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(2, 27),
 				},
@@ -108,8 +109,8 @@ func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 			"cpu_allocated": schema.Float64Attribute{
 				Required: true,
 				MarkdownDescription: "CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.\n" +
-					"It must be at least 5 * `cpu_speed_in_mhz` and at most 200 * `cpu_speed_in_mhz`.\n" +
-					" *Note:* Reserved capacity is automatically set according to the service class.",
+					"It must be at least 5 * `cpu_speed_in_mhz`.\n\n" +
+					" -> Note: Reserved capacity is automatically set according to the service class.",
 			},
 			"memory_allocated": schema.Float64Attribute{
 				Required: true,
@@ -123,7 +124,11 @@ func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 			"vdc_group": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "Name of an existing VDC group or a new one. This allows you to isolate your VDC.\n" +
-					"VMs of VDCs which belong to the same VDC group can communicate together.",
+					"VMs of VDCs which belong to the same VDC group can communicate together.\n" +
+					"Changes to this field will force a new resource to be created.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"service_class": schema.StringAttribute{
 				Required:            true,
@@ -294,7 +299,7 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    []string{PENDING.String(), INPROGRESS.String()},
+		Pending:    StatePending(),
 		Target:     []string{DONE.String()},
 	}
 
@@ -478,7 +483,7 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    []string{PENDING.String(), INPROGRESS.String()},
+		Pending:    StatePending(),
 		Target:     []string{DONE.String()},
 	}
 
@@ -558,7 +563,7 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    []string{PENDING.String(), INPROGRESS.String()},
+		Pending:    StatePending(),
 		Target:     []string{DONE.String()},
 	}
 

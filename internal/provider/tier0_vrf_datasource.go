@@ -8,8 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 var (
@@ -137,7 +135,7 @@ func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadReques
 	tflog.Trace(ctx, "read a data source")
 
 	// Generate ID for the data source
-	data.ID = utils.GenerateUUID(data.Name.String())
+	data.ID = data.Name
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

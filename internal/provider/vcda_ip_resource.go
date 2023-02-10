@@ -52,8 +52,9 @@ func (r *vcdaIPResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 				Computed: true,
 			},
 			"ip_address": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "On Premise IP address. This is the IP address of our on premise infrastructure which run vCloud Extender.",
+				Required: true,
+				MarkdownDescription: "On Premise IP address. This is the IP address of our on premise infrastructure which run vCloud Extender.\n" +
+					"Changes to this field will force a new resource to be created.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4})`),
