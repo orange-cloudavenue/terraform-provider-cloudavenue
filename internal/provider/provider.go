@@ -40,6 +40,7 @@ type cloudavenueProviderModel struct {
 	User     types.String `tfsdk:"user"`
 	Password types.String `tfsdk:"password"`
 	Org      types.String `tfsdk:"org"`
+	Vdc      types.String `tfsdk:"vdc"`
 }
 
 // New is a helper function to simplify provider server and testing implementation.
@@ -93,6 +94,10 @@ func (p *cloudavenueProvider) Schema(
 				MarkdownDescription: "The organization used on CloudAvenue API. Can also be set with the `CLOUDAVENUE_ORG` environment variable.",
 				Optional:            true,
 			},
+			"vdc": schema.StringAttribute{
+				MarkdownDescription: "The VDC used on CloudAvenue API. Can also be set with the `CLOUDAVENUE_VDC` environment variable.",
+				Optional:            true,
+			},
 		},
 	}
 }
@@ -113,13 +118,14 @@ func (p *cloudavenueProvider) Configure(
 
 	// Default values to environment variables, but override
 	// with Terraform configuration value if set.
-	url := os.Getenv("CLOUDAVENUE_URL")
+	urlCloudAvenue := os.Getenv("CLOUDAVENUE_URL")
 	user := os.Getenv("CLOUDAVENUE_USER")
 	password := os.Getenv("CLOUDAVENUE_PASSWORD")
 	org := os.Getenv("CLOUDAVENUE_ORG")
+	vdc := os.Getenv("CLOUDAVENUE_VDC")
 
 	if !config.URL.IsNull() && config.URL.ValueString() != "" {
-		url = config.URL.ValueString()
+		urlCloudAvenue = config.URL.ValueString()
 	}
 	if !config.User.IsNull() && config.User.ValueString() != "" {
 		user = config.User.ValueString()
@@ -130,10 +136,13 @@ func (p *cloudavenueProvider) Configure(
 	if !config.Org.IsNull() && config.Org.ValueString() != "" {
 		org = config.Org.ValueString()
 	}
+	if !config.Vdc.IsNull() && config.Vdc.ValueString() != "" {
+		vdc = config.Vdc.ValueString()
+	}
 
 	// Default URL to the public CloudAvenue API if not set.
-	if url == "" {
-		url = "https://console1.cloudavenue.orange-business.com"
+	if urlCloudAvenue == "" {
+		urlCloudAvenue = "https://console1.cloudavenue.orange-business.com"
 	}
 
 	// If any of the expected configurations are missing, return
@@ -170,7 +179,7 @@ func (p *cloudavenueProvider) Configure(
 		return
 	}
 
-	ctx = tflog.SetField(ctx, "cloudavenue_host", url)
+	ctx = tflog.SetField(ctx, "cloudavenue_host", urlCloudAvenue)
 	ctx = tflog.SetField(ctx, "cloudavenue_username", user)
 	ctx = tflog.SetField(ctx, "cloudavenue_org", org)
 	ctx = tflog.SetField(ctx, "cloudavenue_password", password)
@@ -179,10 +188,11 @@ func (p *cloudavenueProvider) Configure(
 	tflog.Debug(ctx, "Creating CloudAvenue client")
 
 	cloudAvenue := client.CloudAvenue{
-		URL:                url,
+		URL:                urlCloudAvenue,
 		User:               user,
 		Password:           password,
 		Org:                org,
+		Vdc:                vdc,
 		TerraformVersion:   req.TerraformVersion,
 		CloudAvenueVersion: p.version,
 	}
@@ -217,11 +227,14 @@ func (p *cloudavenueProvider) Configure(
 // DataSources defines the data sources implemented in the provider.
 func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		// API CloudAvenue
 		vrf.NewTier0VrfsDataSource,
 		vrf.NewTier0VrfDataSource,
 		publicip.NewPublicIPDataSource,
 		edgegw.NewEdgeGatewayDataSource,
 		edgegw.NewEdgeGatewaysDataSource,
+
+		// API VMWARE
 		vdc.NewVdcsDataSource,
 		vdc.NewVdcDataSource,
 	}
@@ -230,9 +243,13 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 // Resources defines the resources implemented in the provider.
 func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		// API CloudAvenue
 		edgegw.NewEdgeGatewayResource,
 		vdc.NewVdcResource,
 		vcda.NewVcdaIPResource,
 		publicip.NewPublicIPResource,
+
+		// API VMWARE
+
 	}
 }

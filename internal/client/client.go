@@ -4,28 +4,39 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	"github.com/vmware/go-vcloud-director/v2/govcd"
 )
 
 var (
-	ErrAuthFailed = errors.New("authentication error")
-	ErrTokenEmpty = errors.New("token is empty")
+	ErrAuthFailed      = errors.New("authentication error")
+	ErrTokenEmpty      = errors.New("token is empty")
+	ErrConfigureVmware = errors.New("error configuring vmware")
 )
 
 type CloudAvenue struct {
-	User               string
 	Org                string
+	Vdc                string
+	User               string
 	Password           string
 	URL                string
 	TerraformVersion   string
 	CloudAvenueVersion string
-	APIClient          *apiclient.APIClient
-	Auth               context.Context
+
+	// API CLOUDAVENUE
+	APIClient *apiclient.APIClient
+	Auth      context.Context
+
+	// API VMWARE
+	Vmware    *govcd.VCDClient
+	urlVmware *url.URL
 }
 
 // New creates a new CloudAvenue client.
 func (c *CloudAvenue) New() (*CloudAvenue, error) {
+	// API CLOUDAVENUE
 	auth := c.createBasicAuthContext()
 	cfg := c.createConfiguration()
 
@@ -40,6 +51,19 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 	}
 
 	c.Auth = createTokenInContext(token)
+
+	// API VMWARE
+	err = c.configurVmware()
+	if err != nil {
+		return nil, fmt.Errorf("%w : %v", ErrConfigureVmware, err)
+	}
+
+	c.Vmware = govcd.NewVCDClient(*c.urlVmware, false)
+	err = c.Vmware.SetToken(c.GetOrg(), govcd.AuthorizationHeader, token)
+	if err != nil {
+		return nil, fmt.Errorf("%w : %v", ErrConfigureVmware, err)
+	}
+
 	return c, nil
 }
 
@@ -59,13 +83,44 @@ func (c *CloudAvenue) createConfiguration() *apiclient.Configuration {
 	cfg := &apiclient.Configuration{
 		BasePath:      c.URL,
 		DefaultHeader: make(map[string]string),
-		UserAgent:     fmt.Sprintf("Terraform/%s CloudAvenue/%s", c.TerraformVersion, c.CloudAvenueVersion),
+		UserAgent:     c.createUserAgent(),
 	}
 
 	return cfg
 }
 
+// configurVmware creates a new configuration for the Vmware client.
+func (c *CloudAvenue) configurVmware() (err error) {
+	c.urlVmware, err = url.Parse(fmt.Sprintf("%s/api", c.GetURL()))
+	return err
+}
+
+// createUserAgent creates a new user agent for the CloudAvenue client.
+func (c *CloudAvenue) createUserAgent() string {
+	return fmt.Sprintf("Terraform/%s CloudAvenue/%s", c.TerraformVersion, c.CloudAvenueVersion)
+}
+
 // createTokenInContext creates a new context with the token value.
 func createTokenInContext(token string) context.Context {
 	return context.WithValue(context.Background(), apiclient.ContextAccessToken, token)
+}
+
+// GetOrg returns the default Org
+func (c *CloudAvenue) GetOrg() string {
+	return c.Org
+}
+
+// DefaultVdcExists returns true if the default VDC exists
+func (c *CloudAvenue) DefaultVdcExist() bool {
+	return c.Vdc != ""
+}
+
+// GetDefaultVdc returns the default VDC
+func (c *CloudAvenue) GetDefaultVdc() string {
+	return c.Vdc
+}
+
+// GetBasePath returns the base path of the API
+func (c *CloudAvenue) GetURL() string {
+	return c.URL
 }
