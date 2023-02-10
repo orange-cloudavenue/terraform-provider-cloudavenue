@@ -3,35 +3,40 @@
 page_title: "cloudavenue_vdc Resource - cloudavenue"
 subcategory: ""
 description: |-
-  VDC resource allows you to create a org VDC in Cloud Avenue.
+  Provides a Cloud Avenue Organization VDC resource. This can be used to create and delete an Organization VDC.
 ---
 
 # cloudavenue_vdc (Resource)
 
-VDC resource allows you to create a org VDC in Cloud Avenue.
+Provides a Cloud Avenue Organization VDC resource. This can be used to create and delete an Organization VDC.
 
 ## Example Usage
 
 ```terraform
 resource "cloudavenue_vdc" "example" {
-  name                      = "MyVDC"
-  vdc_group                 = "MyVDCGroup"
-  description               = "Example VDC created by Terraform"
-  cpu_allocated             = 5
-  memory_allocated          = 128
-  vcpu_in_mhz2              = 2200
-  vdc_billing_model         = "PAYG"
-  vdc_disponibility_class   = "ONE-ROOM"
-  vdc_service_class         = "STD"
-  vdc_storage_billing_model = "PAYG"
+  name                  = "MyVDC"
+  vdc_group             = "MyVDCGroup"
+  description           = "Example VDC created by Terraform"
+  cpu_allocated         = 6000
+  memory_allocated      = 10
+  cpu_speed_in_mhz      = 1200
+  billing_model         = "PAYG"
+  disponibility_class   = "ONE-ROOM"
+  service_class         = "STD"
+  storage_billing_model = "PAYG"
 
-  vdc_storage_profiles = [
-    {
-      class   = "gold"
-      default = true
-      limit   = 500
-    }
-  ]
+  storage_profile {
+    class   = "gold"
+    default = true
+    limit   = 500
+  }
+
+  storage_profile {
+    class   = "silver"
+    default = false
+    limit   = 500
+  }
+
 }
 ```
 
@@ -40,33 +45,39 @@ resource "cloudavenue_vdc" "example" {
 
 ### Required
 
-- `cpu_allocated` (Number) Capacity that is committed to be available or used as a limit in PAYG mode.Unit for compute capacity allocated to this vdc is MHz. It must be at least 5 * `vcpu_in_mhz2`.
+- `billing_model` (String) Choose Billing model of compute resources. It can be `PAYG`, `DRAAS` or `RESERVED`.
+- `cpu_allocated` (Number) CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.
+It must be at least 5 * `cpu_speed_in_mhz` and at most 200 * `cpu_speed_in_mhz`.
  *Note:* Reserved capacity is automatically set according to the service class.
-- `memory_allocated` (Number) Memory capacity that is committed to be available or used as a limit in PAYG mode.Unit for memory capacity allocated to this vdc is Gb. It must be between 1 and 5000.
-- `name` (String) The name of the org VDC. It must be unique in the organization. The length must be between 2 and 27 characters.
-- `vcpu_in_mhz2` (Number) Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM.It must be at least 1200.
-- `vdc_billing_model` (String) Choose Billing model of compute resources. It can be `PAYG`, `DRAAS` or `RESERVED`.
-- `vdc_disponibility_class` (String) The disponibility class of the org VDC. It can be `ONE-ROOM`, `DUAL-ROOM` or `HA-DUAL-ROOM`.
-- `vdc_group` (String) Name of an existing vDC group or a new one. This allows you to isolate your vDC.VMs of vDCs which belong to the same vDC group can communicate together.
-- `vdc_service_class` (String) The service class of the org VDC. It can be `ECO`, `STD`, `HP` or `VOIP`.
-- `vdc_storage_billing_model` (String) Choose Billing model of storage resources. It can be `PAYG` or `RESERVED`.
-- `vdc_storage_profiles` (Attributes List) List of storage profiles for this VDC. (see [below for nested schema](#nestedatt--vdc_storage_profiles))
+- `cpu_speed_in_mhz` (Number) Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM.
+It must be at least 1200.
+- `disponibility_class` (String) The disponibility class of the org VDC. It can be `ONE-ROOM`, `DUAL-ROOM` or `HA-DUAL-ROOM`.
+- `memory_allocated` (Number) Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode.
+It must be between 1 and 5000.
+- `name` (String) The name of the org VDC. It must be unique in the organization.
+The length must be between 2 and 27 characters.
+- `service_class` (String) The service class of the org VDC. It can be `ECO`, `STD`, `HP` or `VOIP`.
+- `storage_billing_model` (String) Choose Billing model of storage resources. It can be `PAYG` or `RESERVED`.
+- `vdc_group` (String) Name of an existing VDC group or a new one. This allows you to isolate your VDC.
+VMs of VDCs which belong to the same VDC group can communicate together.
 
 ### Optional
 
 - `description` (String) The description of the org VDC.
+- `storage_profile` (Block List) List of storage profiles for this VDC. (see [below for nested schema](#nestedblock--storage_profile))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) ID is the Name of the VCD.
 
-<a id="nestedatt--vdc_storage_profiles"></a>
-### Nested Schema for `vdc_storage_profiles`
+<a id="nestedblock--storage_profile"></a>
+### Nested Schema for `storage_profile`
 
 Required:
 
-- `class` (String) The storage class of the storage profile.It can be `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
+- `class` (String) The storage class of the storage profile.
+It can be `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
 - `default` (Boolean) Set this storage profile as default for this VDC. Only one storage profile can be default per VDC.
 - `limit` (Number) Max number of units allocated for this storage profile. In Gb. It must be between 500 and 10000.
 
@@ -77,7 +88,9 @@ Required:
 Optional:
 
 - `create` (String)
+- `delete` (String)
 - `read` (String)
+- `update` (String)
 
 ## Import
 
@@ -86,5 +99,5 @@ Import is supported using the following syntax:
 ```shell
 # VDC can be imported using the name.
 
-terraform import cloudavenue_vdc.vdc vdc_name
+terraform import cloudavenue_vdc.vdc name
 ```

@@ -9,17 +9,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	sdkResource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -44,14 +45,14 @@ type vdcResourceModel struct {
 	ID                     types.String             `tfsdk:"id"`
 	Name                   types.String             `tfsdk:"name"`
 	Description            types.String             `tfsdk:"description"`
-	VdcServiceClass        types.String             `tfsdk:"vdc_service_class"`
-	VdcDisponibilityClass  types.String             `tfsdk:"vdc_disponibility_class"`
-	VdcBillingModel        types.String             `tfsdk:"vdc_billing_model"`
-	VcpuInMhz2             types.Float64            `tfsdk:"vcpu_in_mhz2"`
+	VdcServiceClass        types.String             `tfsdk:"service_class"`
+	VdcDisponibilityClass  types.String             `tfsdk:"disponibility_class"`
+	VdcBillingModel        types.String             `tfsdk:"billing_model"`
+	VcpuInMhz2             types.Float64            `tfsdk:"cpu_speed_in_mhz"`
 	CPUAllocated           types.Float64            `tfsdk:"cpu_allocated"`
 	MemoryAllocated        types.Float64            `tfsdk:"memory_allocated"`
-	VdcStorageBillingModel types.String             `tfsdk:"vdc_storage_billing_model"`
-	VdcStorageProfiles     []vdcStorageProfileModel `tfsdk:"vdc_storage_profiles"`
+	VdcStorageBillingModel types.String             `tfsdk:"storage_billing_model"`
+	VdcStorageProfiles     []vdcStorageProfileModel `tfsdk:"storage_profile"`
 	VdcGroup               types.String             `tfsdk:"vdc_group"`
 }
 
@@ -69,34 +70,36 @@ func (r *vdcResource) Metadata(_ context.Context, req resource.MetadataRequest, 
 // Schema defines the schema for the resource.
 func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "VDC resource allows you to create a org VDC in Cloud Avenue.",
+		MarkdownDescription: "Provides a Cloud Avenue Organization VDC resource. This can be used to create and delete an Organization VDC.",
 		Attributes: map[string]schema.Attribute{
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
 				Read:   true,
+				Delete: true,
+				Update: true,
 			}),
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "ID is the Name of the VCD.",
 			},
 			"name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The name of the org VDC. It must be unique in the organization. The length must be between 2 and 27 characters.",
+				Required: true,
+				MarkdownDescription: "The name of the org VDC. It must be unique in the organization.\n" +
+					"The length must be between 2 and 27 characters.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(2, 27),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"description": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The description of the org VDC.",
 			},
-			"vdc_group": schema.StringAttribute{
+			"cpu_speed_in_mhz": schema.Float64Attribute{
 				Required: true,
-				MarkdownDescription: "Name of an existing vDC group or a new one. This allows you to isolate your vDC." +
-					"VMs of vDCs which belong to the same vDC group can communicate together.",
-			},
-			"vcpu_in_mhz2": schema.Float64Attribute{
-				Required: true,
-				MarkdownDescription: "Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM." +
+				MarkdownDescription: "Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM.\n" +
 					"It must be at least 1200.",
 				Validators: []validator.Float64{
 					float64validator.AtLeast(1200),
@@ -104,59 +107,61 @@ func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 			},
 			"cpu_allocated": schema.Float64Attribute{
 				Required: true,
-				MarkdownDescription: "Capacity that is committed to be available or used as a limit in PAYG mode." +
-					"Unit for compute capacity allocated to this vdc is MHz. It must be at least 5 * `vcpu_in_mhz2`.\n" +
+				MarkdownDescription: "CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.\n" +
+					"It must be at least 5 * `cpu_speed_in_mhz` and at most 200 * `cpu_speed_in_mhz`.\n" +
 					" *Note:* Reserved capacity is automatically set according to the service class.",
-				Validators: []validator.Float64{
-					float64validator.AtLeast(5),
-					float64validator.AtMost(2500000),
-				},
 			},
 			"memory_allocated": schema.Float64Attribute{
 				Required: true,
-				MarkdownDescription: "Memory capacity that is committed to be available or used as a limit in PAYG mode." +
-					"Unit for memory capacity allocated to this vdc is Gb. It must be between 1 and 5000.",
+				MarkdownDescription: "Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode.\n" +
+					"It must be between 1 and 5000.",
 				Validators: []validator.Float64{
 					float64validator.AtLeast(1),
 					float64validator.AtMost(5000),
 				},
 			},
-			"vdc_service_class": schema.StringAttribute{
+			"vdc_group": schema.StringAttribute{
+				Required: true,
+				MarkdownDescription: "Name of an existing VDC group or a new one. This allows you to isolate your VDC.\n" +
+					"VMs of VDCs which belong to the same VDC group can communicate together.",
+			},
+			"service_class": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The service class of the org VDC. It can be `ECO`, `STD`, `HP` or `VOIP`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("ECO", "STD", "HP", "VOIP"),
 				},
 			},
-			"vdc_disponibility_class": schema.StringAttribute{
+			"disponibility_class": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The disponibility class of the org VDC. It can be `ONE-ROOM`, `DUAL-ROOM` or `HA-DUAL-ROOM`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("ONE-ROOM", "DUAL-ROOM", "HA-DUAL-ROOM"),
 				},
 			},
-			"vdc_billing_model": schema.StringAttribute{
+			"billing_model": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Choose Billing model of compute resources. It can be `PAYG`, `DRAAS` or `RESERVED`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("PAYG", "DRAAS", "RESERVED"),
 				},
 			},
-			"vdc_storage_billing_model": schema.StringAttribute{
+			"storage_billing_model": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Choose Billing model of storage resources. It can be `PAYG` or `RESERVED`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("PAYG", "RESERVED"),
 				},
 			},
-			"vdc_storage_profiles": schema.ListNestedAttribute{
-				Required:            true,
+		},
+		Blocks: map[string]schema.Block{
+			"storage_profile": schema.ListNestedBlock{
 				MarkdownDescription: "List of storage profiles for this VDC.",
-				NestedObject: schema.NestedAttributeObject{
+				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"class": schema.StringAttribute{
 							Required: true,
-							MarkdownDescription: "The storage class of the storage profile." +
+							MarkdownDescription: "The storage class of the storage profile.\n" +
 								"It can be `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.",
 							Validators: []validator.String{
 								stringvalidator.OneOf("silver", "silver_r1", "silver_r2", "gold", "gold_r1", "gold_r2", "gold_hm", "platinum3k", "platinum3k_r1", "platinum3k_r2", "platinum3k_hm", "platinum7k", "platinum7k_r1", "platinum7k_r2", "platinum7k_hm"),
@@ -175,6 +180,9 @@ func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 							MarkdownDescription: "Set this storage profile as default for this VDC. Only one storage profile can be default per VDC.",
 						},
 					},
+				},
+				Validators: []validator.List{
+					listvalidator.SizeAtLeast(1),
 				},
 			},
 		},
@@ -293,18 +301,18 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	_, err = createStateConf.WaitForStateContext(ctxTO)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating order",
+			"Error creating VDC",
 			"Could not create vdc, unexpected error: "+err.Error(),
 		)
 		return
 	}
 
 	// Set the ID
-	plan.ID = utils.GenerateUUID(plan.Name.String())
+	plan.ID = plan.Name
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
-	tflog.Trace(ctx, "created a resource")
+	tflog.Trace(ctx, "VDC created")
 
 	// Save plan into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -344,8 +352,6 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
-	var isNotFound bool
-
 	vdc, httpR, err := r.client.VDCApi.ApiCustomersV20VdcsVdcNameGet(auth, state.Name.ValueString())
 	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
@@ -353,11 +359,6 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 			return
 		}
 
-		isNotFound = true
-	}
-
-	// If the resource does not exist, remove it from Terraform state.
-	if isNotFound {
 		resp.State.RemoveResource(ctx)
 
 		return
@@ -367,7 +368,7 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	// and refresh any attribute values.
 	state = &vdcResourceModel{
 		Timeouts:               state.Timeouts,
-		ID:                     utils.GenerateUUID(vdc.Vdc.Name),
+		ID:                     types.StringValue(vdc.Vdc.Name),
 		Name:                   types.StringValue(vdc.Vdc.Name),
 		Description:            types.StringValue(vdc.Vdc.Description),
 		VdcGroup:               types.StringValue(vdc.VdcGroup),
@@ -395,6 +396,110 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan *vdcResourceModel
+
+	// Read Terraform plan data into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Update() is passed a default timeout to use if no value
+	// has been supplied in the Terraform configuration.
+	updateTimeout, errTO := plan.Timeouts.Update(ctx, 8*time.Minute)
+	if errTO != nil {
+		resp.Diagnostics.AddError(
+			"Error creating timeout",
+			"Could not create timeout, unexpected error",
+		)
+		return
+	}
+
+	ctxTO, cancel := context.WithTimeout(ctx, updateTimeout)
+	defer cancel()
+
+	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
+	if errCtx != nil {
+		resp.Diagnostics.AddError(
+			"Error creating context",
+			"Could not create context, context value token is not a string ?",
+		)
+		return
+	}
+
+	// Convert from Terraform data model into API data model
+	body := apiclient.UpdateOrgVdcV2{
+		VdcGroup: plan.VdcGroup.ValueString(),
+		Vdc: &apiclient.OrgVdcV2{
+			Name:                   plan.Name.ValueString(),
+			Description:            plan.Description.ValueString(),
+			VdcServiceClass:        plan.VdcServiceClass.ValueString(),
+			VdcDisponibilityClass:  plan.VdcDisponibilityClass.ValueString(),
+			VdcBillingModel:        plan.VdcBillingModel.ValueString(),
+			VcpuInMhz2:             plan.VcpuInMhz2.ValueFloat64(),
+			CpuAllocated:           plan.CPUAllocated.ValueFloat64(),
+			MemoryAllocated:        plan.MemoryAllocated.ValueFloat64(),
+			VdcStorageBillingModel: plan.VdcStorageBillingModel.ValueString(),
+		},
+	}
+
+	// Iterate over the storage profiles and add them to the body.
+	for _, storageProfile := range plan.VdcStorageProfiles {
+		body.Vdc.VdcStorageProfiles = append(body.Vdc.VdcStorageProfiles, apiclient.VdcStorageProfilesV2{
+			Class:    storageProfile.Class.ValueString(),
+			Limit:    int32(storageProfile.Limit.ValueInt64()),
+			Default_: storageProfile.Default.ValueBool(),
+		})
+	}
+
+	var err error
+	var job apiclient.Jobcreated
+	var httpR *http.Response
+
+	// Call API to update the resource and test for errors.
+	job, httpR, err = r.client.VDCApi.ApiCustomersV20VdcsVdcNamePut(auth, body, body.Vdc.Name)
+	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	// Wait for job to complete
+	updateStateConf := &sdkResource.StateChangeConf{
+		Delay: 10 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
+			if errGetJob != nil {
+				return nil, "", err
+			}
+			return jobStatus, jobStatus.String(), nil
+		},
+		MinTimeout: 5 * time.Second,
+		Timeout:    5 * time.Minute,
+		Pending:    []string{PENDING.String(), INPROGRESS.String()},
+		Target:     []string{DONE.String()},
+	}
+
+	_, err = updateStateConf.WaitForStateContext(ctxTO)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error updating VDC",
+			"Could not update vdc, unexpected error: "+err.Error(),
+		)
+		return
+	}
+
+	// Set the ID
+	plan.ID = plan.Name
+
+	// Write logs using the tflog package
+	// Documentation: https://terraform.io/plugin/log
+	tflog.Trace(ctx, "VDC updated")
+
+	// Save updated data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -410,7 +515,7 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	// Create() is passed a default timeout to use if no value
 	// has been supplied in the Terraform configuration.
-	createTimeout, errTO := state.Timeouts.Create(ctx, 8*time.Minute)
+	deleteTimeout, errTO := state.Timeouts.Delete(ctx, 8*time.Minute)
 	if errTO != nil {
 		resp.Diagnostics.AddError(
 			"Error creating timeout",
@@ -419,7 +524,7 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	ctxTO, cancel := context.WithTimeout(ctx, createTimeout)
+	ctxTO, cancel := context.WithTimeout(ctx, deleteTimeout)
 	defer cancel()
 
 	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
@@ -440,10 +545,6 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		}
 	}
 
-	ctx = tflog.SetField(ctx, "jobID", job.JobId)
-
-	tflog.Debug(ctx, "Check job completion")
-
 	// Wait for job to complete
 	deleteStateConf := &sdkResource.StateChangeConf{
 		Delay: 10 * time.Second,
@@ -452,9 +553,6 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 			if errGetJob != nil {
 				return nil, "", err
 			}
-
-			ctx = tflog.SetField(ctx, "joStatus", jobStatus.String())
-			tflog.Debug(ctx, "Check job status")
 
 			return jobStatus, jobStatus.String(), nil
 		},
@@ -472,6 +570,10 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		)
 		return
 	}
+
+	// Write logs using the tflog package
+	// Documentation: https://terraform.io/plugin/log
+	tflog.Trace(ctx, "VDC deleted")
 }
 
 func (r *vdcResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
