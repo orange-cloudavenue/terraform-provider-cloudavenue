@@ -86,7 +86,7 @@ func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 				Required: true,
 				MarkdownDescription: "The name of the org VDC. It must be unique in the organization.\n" +
 					"The length must be between 2 and 27 characters.\n" +
-					"Changes to this field will force a new resource to be created.",
+					ForceNewDescription,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(2, 27),
 				},
@@ -125,7 +125,7 @@ func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 				Required: true,
 				MarkdownDescription: "Name of an existing VDC group or a new one. This allows you to isolate your VDC.\n" +
 					"VMs of VDCs which belong to the same VDC group can communicate together.\n" +
-					"Changes to this field will force a new resource to be created.",
+					ForceNewDescription,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
