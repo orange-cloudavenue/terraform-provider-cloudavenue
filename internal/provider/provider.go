@@ -237,5 +237,6 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewEdgeGatewayResource,
+		NewVdcResource,
 	}
 }

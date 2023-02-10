@@ -192,11 +192,11 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 
 		edgeID := ""
 
-		if jobStatus == "DONE" {
+		if jobStatus.IsDone() {
 			// get all edge gateways and find the one that matches the tier0_vrf_id and owner_name
 			gateways, _, errEdgesGet := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesGet(auth)
 			if errEdgesGet != nil {
-				return nil, "error", err
+				return nil, "err", err
 			}
 
 			for _, gw := range gateways {
@@ -206,9 +206,9 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 				}
 			}
 		} else {
-			return nil, "pending", nil
+			return nil, jobStatus.String(), nil
 		}
-		return edgeID, "done", nil
+		return edgeID, jobStatus.String(), nil
 	}
 
 	createStateConf := &sdkResource.StateChangeConf{
@@ -216,8 +216,8 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 		Refresh:    refreshF,
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    []string{"pending"},
-		Target:     []string{"done"},
+		Pending:    []string{PENDING.String()},
+		Target:     []string{DONE.String()},
 	}
 
 	edgeID, err := createStateConf.WaitForStateContext(ctxTO)
