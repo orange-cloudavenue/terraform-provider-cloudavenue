@@ -299,8 +299,8 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    StatePending(),
-		Target:     []string{DONE.String()},
+		Pending:    JobStatePending(),
+		Target:     JobStateDone(),
 	}
 
 	_, err = createStateConf.WaitForStateContext(ctxTO)
@@ -483,8 +483,8 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    StatePending(),
-		Target:     []string{DONE.String()},
+		Pending:    JobStatePending(),
+		Target:     JobStateDone(),
 	}
 
 	_, err = updateStateConf.WaitForStateContext(ctxTO)
@@ -563,8 +563,8 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    StatePending(),
-		Target:     []string{DONE.String()},
+		Pending:    JobStatePending(),
+		Target:     JobStateDone(),
 	}
 
 	_, err = deleteStateConf.WaitForStateContext(ctx)

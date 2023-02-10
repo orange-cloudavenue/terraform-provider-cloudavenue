@@ -234,8 +234,8 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 		Refresh:    refreshF,
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    StatePending(),
-		Target:     []string{DONE.String()},
+		Pending:    JobStatePending(),
+		Target:     JobStateDone(),
 	}
 
 	edgeID, err := createStateConf.WaitForStateContext(ctxTO)
@@ -398,8 +398,8 @@ func (r *edgeGatewaysResource) Delete(ctx context.Context, req resource.DeleteRe
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    StatePending(),
-		Target:     []string{DONE.String()},
+		Pending:    JobStatePending(),
+		Target:     JobStateDone(),
 	}
 
 	_, err = deleteStateConf.WaitForStateContext(ctxTO)

@@ -53,7 +53,12 @@ func (j JobStatus) IsDone() bool {
 	return j == DONE
 }
 
-// StatePending is a helper function to return an array of pending states.
-func StatePending() []string {
+// JobStatePending is a helper function to return an array of pending states.
+func JobStatePending() []string {
 	return []string{CREATED.String(), INPROGRESS.String(), PENDING.String()}
+}
+
+// JobStateDone is a helper function to return an array of done states.
+func JobStateDone() []string {
+	return []string{DONE.String()}
 }
