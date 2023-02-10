@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"errors"
 	"os"
 	"regexp"
 
@@ -15,13 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/publicip"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vcda"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vrf"
+	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -98,6 +91,10 @@ func (p *cloudavenueProvider) Schema(
 				MarkdownDescription: "The VDC used on CloudAvenue API. Can also be set with the `CLOUDAVENUE_VDC` environment variable.",
 				Optional:            true,
 			},
+			"vdc": schema.StringAttribute{
+				MarkdownDescription: "The VDC used on CloudAvenue API. Can also be set with the `CLOUDAVENUE_VDC` environment variable.",
+				Optional:            true,
+			},
 		},
 	}
 }
@@ -119,12 +116,15 @@ func (p *cloudavenueProvider) Configure(
 	// Default values to environment variables, but override
 	// with Terraform configuration value if set.
 	urlCloudAvenue := os.Getenv("CLOUDAVENUE_URL")
+	urlCloudAvenue := os.Getenv("CLOUDAVENUE_URL")
 	user := os.Getenv("CLOUDAVENUE_USER")
 	password := os.Getenv("CLOUDAVENUE_PASSWORD")
 	org := os.Getenv("CLOUDAVENUE_ORG")
 	vdc := os.Getenv("CLOUDAVENUE_VDC")
+	vdc := os.Getenv("CLOUDAVENUE_VDC")
 
 	if !config.URL.IsNull() && config.URL.ValueString() != "" {
+		urlCloudAvenue = config.URL.ValueString()
 		urlCloudAvenue = config.URL.ValueString()
 	}
 	if !config.User.IsNull() && config.User.ValueString() != "" {
@@ -139,8 +139,13 @@ func (p *cloudavenueProvider) Configure(
 	if !config.Vdc.IsNull() && config.Vdc.ValueString() != "" {
 		vdc = config.Vdc.ValueString()
 	}
+	if !config.Vdc.IsNull() && config.Vdc.ValueString() != "" {
+		vdc = config.Vdc.ValueString()
+	}
 
 	// Default URL to the public CloudAvenue API if not set.
+	if urlCloudAvenue == "" {
+		urlCloudAvenue = "https://console1.cloudavenue.orange-business.com"
 	if urlCloudAvenue == "" {
 		urlCloudAvenue = "https://console1.cloudavenue.orange-business.com"
 	}
