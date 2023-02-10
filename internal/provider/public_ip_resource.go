@@ -81,8 +81,7 @@ func (r *publicIPResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.AlsoRequires(path.MatchRoot("vdc_name")),
-					stringvalidator.AlsoRequires(path.MatchRoot("edge_id")),
+					stringvalidator.AlsoRequires(path.MatchRoot("vdc_name"), path.MatchRoot("edge_id")),
 				},
 			},
 			"edge_id": schema.StringAttribute{
@@ -92,8 +91,7 @@ func (r *publicIPResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.AlsoRequires(path.MatchRoot("edge_name")),
-					stringvalidator.AlsoRequires(path.MatchRoot("vdc_name")),
+					stringvalidator.AlsoRequires(path.MatchRoot("edge_name"), path.MatchRoot("vdc_name")),
 				},
 			},
 			"vdc_name": schema.StringAttribute{
@@ -103,8 +101,7 @@ func (r *publicIPResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.AlsoRequires(path.MatchRoot("edge_name")),
-					stringvalidator.AlsoRequires(path.MatchRoot("edge_id")),
+					stringvalidator.AlsoRequires(path.MatchRoot("edge_name"), path.MatchRoot("edge_id")),
 				},
 			},
 			"internal_ip": schema.StringAttribute{
@@ -147,7 +144,6 @@ func (r *publicIPResource) Configure(ctx context.Context, req resource.Configure
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected *CloudAvenueClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
-
 		return
 	}
 
@@ -263,7 +259,7 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 			return nil, "", err
 		}
 
-		if jobStatus == "DONE" {
+		if jobStatus.IsDone() {
 			// get all edge gateways and find the one that matches the tier0_vrf_id and owner_name
 			publicIps, _, errEdgesGet := r.client.PublicIPApi.ApiCustomersV20IpGet(auth)
 			if errEdgesGet != nil {
@@ -278,10 +274,10 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 			publicIP.InternalIp = publicIps.InternalIp
 			publicIP.NetworkConfig = append(publicIP.NetworkConfig, pubIP.(apiclient.PublicIpsNetworkConfig))
 
-			return publicIP, "done", nil
+			return publicIP, jobStatus.String(), nil
 		}
 
-		return nil, "pending", nil
+		return nil, jobStatus.String(), nil
 	}
 
 	createStateConf := &sdkResource.StateChangeConf{
@@ -289,8 +285,8 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 		Refresh:    refreshF,
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    []string{"pending"},
-		Target:     []string{"done"},
+		Pending:    []string{PENDING.String()},
+		Target:     []string{DONE.String()},
 	}
 
 	publicIP, err := createStateConf.WaitForStateContext(ctxTO)
@@ -305,6 +301,14 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	// Set the ID
 	ip, ok := publicIP.(apiclient.PublicIps)
 	if !ok {
+		resp.Diagnostics.AddError(
+			"Error creating edge gateway",
+			"Could not create edge gateway, unexpected error: publicIP is not a publicIPNetworkConfigModel",
+		)
+		return
+	}
+
+	if len(ip.NetworkConfig) == 0 {
 		resp.Diagnostics.AddError(
 			"Error creating edge gateway",
 			"Could not create edge gateway, unexpected error: publicIP is not a publicIPNetworkConfigModel",
@@ -368,8 +372,7 @@ func (r *publicIPResource) Read(ctx context.Context, req resource.ReadRequest, r
 	}
 
 	for _, ip := range publicIps.NetworkConfig {
-		if state.NetworkConfig.UPLinkIP.Equal(types.StringValue(ip.UplinkIp)) && state.NetworkConfig.EdgeGatewayName.Equal(types.StringValue(ip.EdgeGatewayName)) {
-			state.ID = types.StringValue(ip.UplinkIp)
+		if state.ID.Equal(types.StringValue(ip.UplinkIp)) {
 			state.NetworkConfig.EdgeGatewayName = types.StringValue(ip.EdgeGatewayName)
 			state.NetworkConfig.UPLinkIP = types.StringValue(ip.UplinkIp)
 			state.NetworkConfig.TranslatedIP = types.StringValue(ip.TranslatedIp)
@@ -406,8 +409,6 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 			return
 		}
 	}
-
-	resp.State.RemoveResource(ctx)
 }
 
 func (r *publicIPResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
