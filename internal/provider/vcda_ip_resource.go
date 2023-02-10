@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -59,6 +59,9 @@ func (r *vcdaIPResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 						regexp.MustCompile(`^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4})`),
 						"must be a valide ipv4 address",
 					),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 		},
@@ -108,7 +111,7 @@ func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Set the ID
-	plan.ID = utils.GenerateUUID(plan.IPAddress.ValueString())
+	plan.ID = plan.IPAddress
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -143,7 +146,7 @@ func (r *vcdaIPResource) Read(ctx context.Context, req resource.ReadRequest, res
 	for _, vcdaIP := range vcdaIPList {
 		if vcdaIP == state.IPAddress.ValueString() {
 			found = true
-			state.ID = utils.GenerateUUID(vcdaIP)
+			state.ID = types.StringValue(vcdaIP)
 			break
 		}
 	}
@@ -151,7 +154,6 @@ func (r *vcdaIPResource) Read(ctx context.Context, req resource.ReadRequest, res
 	// If the VCDA is not in the list, remove it from the state
 	if !found {
 		resp.State.RemoveResource(ctx)
-
 		return
 	}
 
