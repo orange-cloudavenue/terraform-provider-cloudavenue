@@ -286,7 +286,7 @@ func (r *edgeGatewaysResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	// Create timeout
+	// Read timeout
 	readTimeout, errTO := state.Timeouts.Read(ctx, 8*time.Minute)
 	if errTO != nil {
 		resp.Diagnostics.AddError(
@@ -354,7 +354,7 @@ func (r *edgeGatewaysResource) Delete(ctx context.Context, req resource.DeleteRe
 		return
 	}
 
-	// Create timeout
+	// Delete timeout
 	deleteTimeout, errTO := state.Timeouts.Delete(ctx, 8*time.Minute)
 	if errTO != nil {
 		resp.Diagnostics.AddError(
@@ -413,6 +413,6 @@ func (r *edgeGatewaysResource) Delete(ctx context.Context, req resource.DeleteRe
 }
 
 func (r *edgeGatewaysResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Retrieve import ID and save to id attribute
+	// Retrieve import ID and save to edge_id attribute
 	resource.ImportStatePassthroughID(ctx, path.Root("edge_id"), req, resp)
 }
