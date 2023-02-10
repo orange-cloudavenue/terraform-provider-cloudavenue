@@ -5,19 +5,23 @@ import (
 	"strings"
 )
 
-type JobStatus string
+type jobStatusMessage string
 
 const (
-	DONE       JobStatus = "DONE"
-	FAILED     JobStatus = "FAILED"
-	CREATED    JobStatus = "CREATED"
-	PENDING    JobStatus = "PENDING"
-	INPROGRESS JobStatus = "IN_PROGRESS"
-	ERROR      JobStatus = "ERROR"
+	DONE       jobStatusMessage = "DONE"
+	FAILED     jobStatusMessage = "FAILED"
+	CREATED    jobStatusMessage = "CREATED"
+	PENDING    jobStatusMessage = "PENDING"
+	INPROGRESS jobStatusMessage = "IN_PROGRESS"
+	ERROR      jobStatusMessage = "ERROR"
 )
 
 // getJobStatus is a helper function to get the status of a job.
-func getJobStatus(ctx context.Context, client *CloudAvenueClient, jobID string) (JobStatus, error) {
+func getJobStatus(
+	ctx context.Context,
+	client *CloudAvenueClient,
+	jobID string,
+) (jobStatusMessage, error) {
 	jobStatus, _, err := client.JobsApi.ApiCustomersV10JobsJobIdGet(ctx, jobID)
 	if err != nil {
 		return "", err
@@ -26,7 +30,7 @@ func getJobStatus(ctx context.Context, client *CloudAvenueClient, jobID string) 
 }
 
 // parseJobStatus return the status of a job.
-func parseJobStatus(str string) JobStatus {
+func parseJobStatus(str string) jobStatusMessage {
 	switch str {
 	case "DONE":
 		return DONE
@@ -43,22 +47,22 @@ func parseJobStatus(str string) JobStatus {
 	}
 }
 
-// Stringer interface for JobStatus
-func (j JobStatus) String() string {
+// string is a stringer interface for jobStatus
+func (j jobStatusMessage) string() string {
 	return strings.ToLower(string(j))
 }
 
-// IsDone is a helper function to check if a job is done.
-func (j JobStatus) IsDone() bool {
+// isDone is a helper function to check if a job is done.
+func (j jobStatusMessage) isDone() bool {
 	return j == DONE
 }
 
-// JobStatePending is a helper function to return an array of pending states.
-func JobStatePending() []string {
-	return []string{CREATED.String(), INPROGRESS.String(), PENDING.String()}
+// jobStatePending is a helper function to return an array of pending states.
+func jobStatePending() []string {
+	return []string{CREATED.string(), INPROGRESS.string(), PENDING.string()}
 }
 
-// JobStateDone is a helper function to return an array of done states.
-func JobStateDone() []string {
-	return []string{DONE.String()}
+// jobStateDone is a helper function to return an array of done states.
+func jobStateDone() []string {
+	return []string{DONE.string()}
 }

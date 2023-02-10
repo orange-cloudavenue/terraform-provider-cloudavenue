@@ -295,12 +295,12 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 			if errGetJob != nil {
 				return nil, "", err
 			}
-			return jobStatus, jobStatus.String(), nil
+			return jobStatus, jobStatus.string(), nil
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    JobStatePending(),
-		Target:     JobStateDone(),
+		Pending:    jobStatePending(),
+		Target:     jobStateDone(),
 	}
 
 	_, err = createStateConf.WaitForStateContext(ctxTO)
@@ -479,12 +479,12 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 			if errGetJob != nil {
 				return nil, "", err
 			}
-			return jobStatus, jobStatus.String(), nil
+			return jobStatus, jobStatus.string(), nil
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    JobStatePending(),
-		Target:     JobStateDone(),
+		Pending:    jobStatePending(),
+		Target:     jobStateDone(),
 	}
 
 	_, err = updateStateConf.WaitForStateContext(ctxTO)
@@ -559,12 +559,12 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 				return nil, "", err
 			}
 
-			return jobStatus, jobStatus.String(), nil
+			return jobStatus, jobStatus.string(), nil
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    JobStatePending(),
-		Target:     JobStateDone(),
+		Pending:    jobStatePending(),
+		Target:     jobStateDone(),
 	}
 
 	_, err = deleteStateConf.WaitForStateContext(ctx)

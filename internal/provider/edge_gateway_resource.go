@@ -20,11 +20,21 @@ import (
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 )
 
+const (
+	defaultCheckJobDelayEdgeGateway = 10 * time.Second
+)
+
 // Ensure the implementation satisfies the expected interfaces.
 var (
 	_ resource.Resource                = &edgeGatewaysResource{}
 	_ resource.ResourceWithConfigure   = &edgeGatewaysResource{}
 	_ resource.ResourceWithImportState = &edgeGatewaysResource{}
+
+	configEdgeGateway setDefaultEdgeGateway = func() edgeGatewayConfig {
+		return edgeGatewayConfig{
+			checkJobDelay: defaultCheckJobDelayEdgeGateway,
+		}
+	}
 )
 
 // NewEdgeGatewayResource is a helper function to simplify the provider implementation.
@@ -32,9 +42,17 @@ func NewEdgeGatewayResource() resource.Resource {
 	return &edgeGatewaysResource{}
 }
 
+type setDefaultEdgeGateway func() edgeGatewayConfig
+
+type edgeGatewayConfig struct {
+	jobDoneMsg    jobStatusMessage
+	checkJobDelay time.Duration
+}
+
 // edgeGatewaysResource is the resource implementation.
 type edgeGatewaysResource struct {
 	client *CloudAvenueClient
+	edgeGatewayConfig
 }
 
 type edgeGatewaysResourceModel struct {
@@ -50,12 +68,20 @@ type edgeGatewaysResourceModel struct {
 }
 
 // Metadata returns the resource type name.
-func (r *edgeGatewaysResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *edgeGatewaysResource) Metadata(
+	_ context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
 	resp.TypeName = req.ProviderTypeName + "_edge_gateway"
 }
 
 // Schema defines the schema for the resource.
-func (r *edgeGatewaysResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *edgeGatewaysResource) Schema(
+	ctx context.Context,
+	_ resource.SchemaRequest,
+	resp *resource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "The Edge Gateway resource allows you to create and delete Edge Gateways in CloudAvenue.",
 		Attributes: map[string]schema.Attribute{
@@ -118,7 +144,11 @@ func (r *edgeGatewaysResource) Schema(ctx context.Context, _ resource.SchemaRequ
 	}
 }
 
-func (r *edgeGatewaysResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *edgeGatewaysResource) Configure(
+	ctx context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -129,17 +159,25 @@ func (r *edgeGatewaysResource) Configure(ctx context.Context, req resource.Confi
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *CloudAvenueClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf(
+				"Expected *CloudAvenueClient, got: %T. Please report this issue to the provider developers.",
+				req.ProviderData,
+			),
 		)
 
 		return
 	}
 
 	r.client = client
+	r.edgeGatewayConfig = configEdgeGateway()
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *edgeGatewaysResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
 	// Retrieve values from plan
 	var plan *edgeGatewaysResourceModel
 
@@ -184,7 +222,11 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 
 	switch plan.OwnerType.ValueString() {
 	case "vdc":
-		job, httpR, err = r.client.EdgeGatewaysApi.ApiCustomersV20VdcsVdcNameEdgesPost(auth, body, plan.OwnerName.ValueString())
+		job, httpR, err = r.client.EdgeGatewaysApi.ApiCustomersV20VdcsVdcNameEdgesPost(
+			auth,
+			body,
+			plan.OwnerName.ValueString(),
+		)
 		if apiErr := CheckAPIError(err, httpR); apiErr != nil {
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
@@ -192,7 +234,11 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 			}
 		}
 	case "vdc-group":
-		job, httpR, err = r.client.EdgeGatewaysApi.ApiCustomersV20VdcGroupsVdcGroupNameEdgesPost(auth, body, plan.OwnerName.ValueString())
+		job, httpR, err = r.client.EdgeGatewaysApi.ApiCustomersV20VdcGroupsVdcGroupNameEdgesPost(
+			auth,
+			body,
+			plan.OwnerName.ValueString(),
+		)
 		if apiErr := CheckAPIError(err, httpR); apiErr != nil {
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
@@ -208,37 +254,37 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 			return nil, "", err
 		}
 
-		edgeID := ""
+		edgeGW := apiclient.EdgeGateway{}
 
-		if jobStatus.IsDone() {
+		if jobStatus.isDone() {
 			// get all edge gateways and find the one that matches the tier0_vrf_id and owner_name
 			gateways, _, errEdgesGet := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesGet(auth)
 			if errEdgesGet != nil {
-				return nil, "err", err
+				return nil, "err", errEdgesGet
 			}
 
 			for _, gw := range gateways {
-				if gw.Tier0VrfId == plan.Tier0VrfID.ValueString() && gw.OwnerName == plan.OwnerName.ValueString() {
-					edgeID = gw.EdgeId
+				if gw.Tier0VrfId == plan.Tier0VrfID.ValueString() &&
+					gw.OwnerName == plan.OwnerName.ValueString() {
+					edgeGW = gw
 					break
 				}
 			}
-		} else {
-			return nil, jobStatus.String(), nil
 		}
-		return edgeID, jobStatus.String(), nil
+
+		return edgeGW, jobStatus.string(), nil
 	}
 
 	createStateConf := &sdkResource.StateChangeConf{
-		Delay:      10 * time.Second,
+		Delay:      r.checkJobDelay,
 		Refresh:    refreshF,
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    JobStatePending(),
-		Target:     JobStateDone(),
+		Pending:    jobStatePending(),
+		Target:     jobStateDone(),
 	}
 
-	edgeID, err := createStateConf.WaitForStateContext(ctxTO)
+	edgeGW, err := createStateConf.WaitForStateContext(ctxTO)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating edge gateway",
@@ -249,18 +295,20 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Set the ID
 
-	id, idIsAString := edgeID.(string)
-	if !idIsAString {
+	newEdgeGW, isEdgeGW := edgeGW.(apiclient.EdgeGateway)
+	if !isEdgeGW {
 		resp.Diagnostics.AddError(
 			"Error creating edge gateway",
-			"Could not create edge gateway, unexpected error: edgeID is not a string",
+			"Could not create edge gateway, unexpected error: edge gateway is not of type apiclient.EdgeGateway",
 		)
 		return
 	}
 
 	plan = &edgeGatewaysResourceModel{
-		ID:                  types.StringValue(id),
-		EdgeID:              types.StringValue(id),
+		ID:                  types.StringValue(newEdgeGW.EdgeId),
+		EdgeID:              types.StringValue(newEdgeGW.EdgeId),
+		EdgeName:            types.StringValue(newEdgeGW.EdgeName),
+		Description:         types.StringValue(newEdgeGW.Description),
 		Tier0VrfID:          plan.Tier0VrfID,
 		OwnerName:           plan.OwnerName,
 		OwnerType:           plan.OwnerType,
@@ -277,7 +325,11 @@ func (r *edgeGatewaysResource) Create(ctx context.Context, req resource.CreateRe
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *edgeGatewaysResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *edgeGatewaysResource) Read(
+	ctx context.Context,
+	req resource.ReadRequest,
+	resp *resource.ReadResponse,
+) {
 	// Get current state
 	var state *edgeGatewaysResourceModel
 	diags := req.State.Get(ctx, &state)
@@ -309,7 +361,10 @@ func (r *edgeGatewaysResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// Get edge gateway
-	gateway, httpR, err := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(auth, state.EdgeID.ValueString())
+	gateway, httpR, err := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(
+		auth,
+		state.EdgeID.ValueString(),
+	)
 	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
@@ -341,11 +396,19 @@ func (r *edgeGatewaysResource) Read(ctx context.Context, req resource.ReadReques
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *edgeGatewaysResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *edgeGatewaysResource) Update(
+	ctx context.Context,
+	req resource.UpdateRequest,
+	resp *resource.UpdateResponse,
+) {
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *edgeGatewaysResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *edgeGatewaysResource) Delete(
+	ctx context.Context,
+	req resource.DeleteRequest,
+	resp *resource.DeleteResponse,
+) {
 	// Get current state
 	var state edgeGatewaysResourceModel
 	diags := req.State.Get(ctx, &state)
@@ -377,7 +440,10 @@ func (r *edgeGatewaysResource) Delete(ctx context.Context, req resource.DeleteRe
 	}
 
 	// Delete the edge gateway
-	job, httpR, err := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdDelete(auth, state.EdgeID.ValueString())
+	job, httpR, err := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdDelete(
+		auth,
+		state.EdgeID.ValueString(),
+	)
 	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
@@ -387,19 +453,19 @@ func (r *edgeGatewaysResource) Delete(ctx context.Context, req resource.DeleteRe
 
 	// Wait for job to complete
 	deleteStateConf := &sdkResource.StateChangeConf{
-		Delay: 10 * time.Second,
+		Delay: r.checkJobDelay,
 		Refresh: func() (interface{}, string, error) {
 			jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
 			if errGetJob != nil {
-				return nil, "", err
+				return nil, "", errGetJob
 			}
 
-			return jobStatus, jobStatus.String(), nil
+			return jobStatus, jobStatus.string(), nil
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    JobStatePending(),
-		Target:     JobStateDone(),
+		Pending:    jobStatePending(),
+		Target:     jobStateDone(),
 	}
 
 	_, err = deleteStateConf.WaitForStateContext(ctxTO)
@@ -412,7 +478,11 @@ func (r *edgeGatewaysResource) Delete(ctx context.Context, req resource.DeleteRe
 	}
 }
 
-func (r *edgeGatewaysResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *edgeGatewaysResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
 	// Retrieve import ID and save to edge_id attribute
 	resource.ImportStatePassthroughID(ctx, path.Root("edge_id"), req, resp)
 }
