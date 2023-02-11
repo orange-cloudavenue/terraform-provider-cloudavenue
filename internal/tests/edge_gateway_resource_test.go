@@ -1,10 +1,12 @@
-package provider
+package tests
 
 import (
 	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
 )
 
 const testAccEdgeGatewayResourceConfig = `
@@ -27,9 +29,9 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 	resourceName := "cloudavenue_edge_gateway.test"
 
 	// resourceNameVDCGroup := "cloudavenue_edge_gateway.test-group"
-	configEdgeGateway = func() edgeGatewayConfig {
-		return edgeGatewayConfig{
-			checkJobDelay: 10 * time.Millisecond,
+	edgegw.ConfigEdgeGateway = func() edgegw.EdgeGatewayConfig {
+		return edgegw.EdgeGatewayConfig{
+			CheckJobDelay: 10 * time.Millisecond,
 		}
 	}
 
@@ -39,7 +41,8 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: testAccEdgeGatewayResourceConfig,
+				Destroy: false,
+				Config:  testAccEdgeGatewayResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "id", "cc1f35c2-90a2-48d1-9359-62794faf44ad"),
 					resource.TestCheckResourceAttr(resourceName, "edge_id", "cc1f35c2-90a2-48d1-9359-62794faf44ad"),

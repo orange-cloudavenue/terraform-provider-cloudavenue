@@ -1,4 +1,4 @@
-package provider
+package vdc
 
 import (
 	"context"
@@ -21,6 +21,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	sdkResource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -37,7 +40,7 @@ func NewVdcResource() resource.Resource {
 
 // vdcResource is the resource implementation.
 type vdcResource struct {
-	client *CloudAvenueClient
+	client *client.CloudAvenue
 }
 
 type vdcResourceModel struct {
@@ -87,7 +90,7 @@ func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 				Required: true,
 				MarkdownDescription: "The name of the org VDC. It must be unique in the organization.\n" +
 					"The length must be between 2 and 27 characters.\n" +
-					ForceNewDescription,
+					helpers.ForceNewDescription,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(2, 27),
 				},
@@ -126,7 +129,7 @@ func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 				Required: true,
 				MarkdownDescription: "Name of an existing VDC group or a new one. This allows you to isolate your VDC.\n" +
 					"VMs of VDCs which belong to the same VDC group can communicate together.\n" +
-					ForceNewDescription,
+					helpers.ForceNewDescription,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -202,12 +205,12 @@ func (r *vdcResource) Configure(ctx context.Context, req resource.ConfigureReque
 		return
 	}
 
-	client, ok := req.ProviderData.(*CloudAvenueClient)
+	client, ok := req.ProviderData.(*client.CloudAvenue)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *CloudAvenueClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -241,7 +244,7 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	ctxTO, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 
-	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
+	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
 	if errCtx != nil {
 		resp.Diagnostics.AddError(
 			"Error creating context",
@@ -280,8 +283,8 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	var httpR *http.Response
 
 	// Call API to create the resource and test for errors.
-	job, httpR, err = r.client.VDCApi.ApiCustomersV20VdcsPost(auth, body)
-	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+	job, httpR, err = r.client.APIClient.VDCApi.ApiCustomersV20VdcsPost(auth, body)
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -292,16 +295,16 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	createStateConf := &sdkResource.StateChangeConf{
 		Delay: 10 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-			jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
+			jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
 			if errGetJob != nil {
 				return nil, "", err
 			}
-			return jobStatus, jobStatus.string(), nil
+			return jobStatus, jobStatus.String(), nil
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    jobStatePending(),
-		Target:     jobStateDone(),
+		Pending:    helpers.JobStatePending(),
+		Target:     helpers.JobStateDone(),
 	}
 
 	_, err = createStateConf.WaitForStateContext(ctxTO)
@@ -349,7 +352,7 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	ctxTO, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
-	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
+	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
 	if errCtx != nil {
 		resp.Diagnostics.AddError(
 			"Error creating context",
@@ -358,8 +361,8 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
-	vdc, httpR, err := r.client.VDCApi.ApiCustomersV20VdcsVdcNameGet(auth, state.Name.ValueString())
-	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+	vdc, httpR, err := r.client.APIClient.VDCApi.ApiCustomersV20VdcsVdcNameGet(auth, state.Name.ValueString())
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -425,7 +428,7 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	ctxTO, cancel := context.WithTimeout(ctx, updateTimeout)
 	defer cancel()
 
-	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
+	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
 	if errCtx != nil {
 		resp.Diagnostics.AddError(
 			"Error creating context",
@@ -464,8 +467,8 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	var httpR *http.Response
 
 	// Call API to update the resource and test for errors.
-	job, httpR, err = r.client.VDCApi.ApiCustomersV20VdcsVdcNamePut(auth, body, body.Vdc.Name)
-	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+	job, httpR, err = r.client.APIClient.VDCApi.ApiCustomersV20VdcsVdcNamePut(auth, body, body.Vdc.Name)
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -476,16 +479,16 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	updateStateConf := &sdkResource.StateChangeConf{
 		Delay: 10 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-			jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
+			jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
 			if errGetJob != nil {
 				return nil, "", err
 			}
-			return jobStatus, jobStatus.string(), nil
+			return jobStatus, jobStatus.String(), nil
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    jobStatePending(),
-		Target:     jobStateDone(),
+		Pending:    helpers.JobStatePending(),
+		Target:     helpers.JobStateDone(),
 	}
 
 	_, err = updateStateConf.WaitForStateContext(ctxTO)
@@ -533,7 +536,7 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	ctxTO, cancel := context.WithTimeout(ctx, deleteTimeout)
 	defer cancel()
 
-	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
+	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
 	if errCtx != nil {
 		resp.Diagnostics.AddError(
 			"Error creating context",
@@ -543,8 +546,8 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 
 	// Delete the VDC
-	job, httpR, err := r.client.VDCApi.ApiCustomersV20VdcsVdcNameDelete(auth, state.Name.ValueString())
-	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+	job, httpR, err := r.client.APIClient.VDCApi.ApiCustomersV20VdcsVdcNameDelete(auth, state.Name.ValueString())
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -555,17 +558,17 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	deleteStateConf := &sdkResource.StateChangeConf{
 		Delay: 10 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-			jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
+			jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
 			if errGetJob != nil {
 				return nil, "", err
 			}
 
-			return jobStatus, jobStatus.string(), nil
+			return jobStatus, jobStatus.String(), nil
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    jobStatePending(),
-		Target:     jobStateDone(),
+		Pending:    helpers.JobStatePending(),
+		Target:     helpers.JobStateDone(),
 	}
 
 	_, err = deleteStateConf.WaitForStateContext(ctx)

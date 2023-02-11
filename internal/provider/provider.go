@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"os"
 	"regexp"
 
@@ -14,7 +15,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/publicip"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vcda"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vrf"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -33,11 +40,6 @@ type cloudavenueProviderModel struct {
 	User     types.String `tfsdk:"user"`
 	Password types.String `tfsdk:"password"`
 	Org      types.String `tfsdk:"org"`
-}
-
-type CloudAvenueClient struct {
-	*apiclient.APIClient
-	auth context.Context
 }
 
 // New is a helper function to simplify provider server and testing implementation.
@@ -102,7 +104,6 @@ func (p *cloudavenueProvider) Configure(
 ) {
 	tflog.Info(ctx, "Configuring CloudAvenue client")
 	var config cloudavenueProviderModel
-	var client CloudAvenueClient
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 
@@ -177,21 +178,17 @@ func (p *cloudavenueProvider) Configure(
 
 	tflog.Debug(ctx, "Creating CloudAvenue client")
 
-	// Create a new CloudAvenue client using the configuration values
-	auth := context.WithValue(context.Background(), apiclient.ContextBasicAuth, apiclient.BasicAuth{
-		UserName: user + "@" + org,
-		Password: password,
-	})
-
-	cfg := &apiclient.Configuration{
-		BasePath:      url,
-		DefaultHeader: make(map[string]string),
-		UserAgent:     "Terraform/" + req.TerraformVersion + "CloudAvenue/" + p.version,
+	cloudAvenue := client.CloudAvenue{
+		URL:                url,
+		User:               user,
+		Password:           password,
+		Org:                org,
+		TerraformVersion:   req.TerraformVersion,
+		CloudAvenueVersion: p.version,
 	}
 
-	client.APIClient = apiclient.NewAPIClient(cfg)
-	_, ret, err := client.AuthenticationApi.Cloudapi100SessionsPost(auth)
-	if err != nil {
+	cA, err := cloudAvenue.New()
+	if errors.Is(err, client.ErrAuthFailed) {
 		resp.Diagnostics.AddError(
 			"Unable to Create CloudAvenue API Client",
 			"An unexpected error occurred when creating the CloudAvenue API client. "+
@@ -199,9 +196,7 @@ func (p *cloudavenueProvider) Configure(
 				"CloudAvenue Client Error: "+err.Error(),
 		)
 		return
-	}
-	token := ret.Header.Get("x-vmware-vcloud-access-token")
-	if token == "" {
+	} else if errors.Is(err, client.ErrTokenEmpty) {
 		resp.Diagnostics.AddError(
 			"Unable to Create CloudAvenue API Client",
 			"An unexpected error occurred when creating the CloudAvenue API client. "+
@@ -210,12 +205,11 @@ func (p *cloudavenueProvider) Configure(
 		)
 		return
 	}
-	client.auth = context.WithValue(context.Background(), apiclient.ContextAccessToken, token)
 
 	// Make the CloudAvenue client available during DataSource and Resource
 	// type Configure methods.
-	resp.DataSourceData = &client
-	resp.ResourceData = &client
+	resp.DataSourceData = cA
+	resp.ResourceData = cA
 
 	tflog.Info(ctx, "Configured CloudAvenue client", map[string]any{"success": true})
 }
@@ -223,22 +217,22 @@ func (p *cloudavenueProvider) Configure(
 // DataSources defines the data sources implemented in the provider.
 func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewTier0VrfsDataSource,
-		NewTier0VrfDataSource,
-		NewPublicIPDataSource,
-		NewEdgeGatewayDataSource,
-		NewEdgeGatewaysDataSource,
-		NewVdcsDataSource,
-		NewVdcDataSource,
+		vrf.NewTier0VrfsDataSource,
+		vrf.NewTier0VrfDataSource,
+		publicip.NewPublicIPDataSource,
+		edgegw.NewEdgeGatewayDataSource,
+		edgegw.NewEdgeGatewaysDataSource,
+		vdc.NewVdcsDataSource,
+		vdc.NewVdcDataSource,
 	}
 }
 
 // Resources defines the resources implemented in the provider.
 func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		NewEdgeGatewayResource,
-		NewVdcResource,
-		NewVcdaIPResource,
-		NewPublicIPResource,
+		edgegw.NewEdgeGatewayResource,
+		vdc.NewVdcResource,
+		vcda.NewVcdaIPResource,
+		publicip.NewPublicIPResource,
 	}
 }

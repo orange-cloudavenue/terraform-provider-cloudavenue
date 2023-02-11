@@ -1,4 +1,4 @@
-package provider
+package vcda
 
 import (
 	"context"
@@ -14,6 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -30,7 +33,7 @@ func NewVcdaIPResource() resource.Resource {
 
 // vcdaIPResource is the resource implementation.
 type vcdaIPResource struct {
-	client *CloudAvenueClient
+	client *client.CloudAvenue
 }
 
 type vcdaIPResourceModel struct {
@@ -55,7 +58,7 @@ func (r *vcdaIPResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 			"ip_address": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "On Premise IP address. This is the IP address of our on premise infrastructure which run vCloud Extender.\n" +
-					ForceNewDescription,
+					helpers.ForceNewDescription,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4})`),
@@ -77,12 +80,12 @@ func (r *vcdaIPResource) Configure(ctx context.Context, req resource.ConfigureRe
 		return
 	}
 
-	client, ok := req.ProviderData.(*CloudAvenueClient)
+	client, ok := req.ProviderData.(*client.CloudAvenue)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *CloudAvenueClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -104,8 +107,8 @@ func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Call API to create the resource and check for errors.
-	_, httpR, err := r.client.VCDAApi.ApiCustomersV20VcdaIpsIpAddressPost(r.client.auth, plan.IPAddress.ValueString())
-	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+	_, httpR, err := r.client.APIClient.VCDAApi.ApiCustomersV20VcdaIpsIpAddressPost(r.client.Auth, plan.IPAddress.ValueString())
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -135,8 +138,8 @@ func (r *vcdaIPResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Call API to get list of VCDA and check for errors.
-	vcdaIPList, httpR, err := r.client.VCDAApi.ApiCustomersV20VcdaIpsGet(r.client.auth)
-	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+	vcdaIPList, httpR, err := r.client.APIClient.VCDAApi.ApiCustomersV20VcdaIpsGet(r.client.Auth)
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -179,8 +182,8 @@ func (r *vcdaIPResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 
 	// Call API to delete the resource and check for errors.
-	_, httpR, err := r.client.VCDAApi.ApiCustomersV20VcdaIpsIpAddressDelete(r.client.auth, state.IPAddress.ValueString())
-	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+	_, httpR, err := r.client.APIClient.VCDAApi.ApiCustomersV20VcdaIpsIpAddressDelete(r.client.Auth, state.IPAddress.ValueString())
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return

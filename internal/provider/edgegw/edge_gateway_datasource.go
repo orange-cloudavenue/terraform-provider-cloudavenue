@@ -1,4 +1,4 @@
-package provider
+package edgegw
 
 import (
 	"context"
@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 )
 
 var (
@@ -19,7 +22,7 @@ func NewEdgeGatewayDataSource() datasource.DataSource {
 }
 
 type edgeGatewayDataSource struct {
-	client *CloudAvenueClient
+	client *client.CloudAvenue
 }
 
 type edgeGatewayDataSourceModel struct {
@@ -78,12 +81,12 @@ func (d *edgeGatewayDataSource) Configure(ctx context.Context, req datasource.Co
 		return
 	}
 
-	client, ok := req.ProviderData.(*CloudAvenueClient)
+	client, ok := req.ProviderData.(*client.CloudAvenue)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *CloudAvenueClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -102,8 +105,8 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	gateway, httpR, err := d.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(d.client.auth, data.EdgeID.ValueString())
-	if x := CheckAPIError(err, httpR); x != nil {
+	gateway, httpR, err := d.client.APIClient.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(d.client.Auth, data.EdgeID.ValueString())
+	if x := helpers.CheckAPIError(err, httpR); x != nil {
 		resp.Diagnostics.Append(x.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return

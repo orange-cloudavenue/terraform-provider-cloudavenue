@@ -1,4 +1,4 @@
-package provider
+package edgegw
 
 import (
 	"context"
@@ -18,6 +18,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	sdkResource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 )
 
 const (
@@ -30,9 +33,9 @@ var (
 	_ resource.ResourceWithConfigure   = &edgeGatewaysResource{}
 	_ resource.ResourceWithImportState = &edgeGatewaysResource{}
 
-	configEdgeGateway setDefaultEdgeGateway = func() edgeGatewayConfig {
-		return edgeGatewayConfig{
-			checkJobDelay: defaultCheckJobDelayEdgeGateway,
+	ConfigEdgeGateway setDefaultEdgeGateway = func() EdgeGatewayConfig {
+		return EdgeGatewayConfig{
+			CheckJobDelay: defaultCheckJobDelayEdgeGateway,
 		}
 	}
 )
@@ -42,17 +45,16 @@ func NewEdgeGatewayResource() resource.Resource {
 	return &edgeGatewaysResource{}
 }
 
-type setDefaultEdgeGateway func() edgeGatewayConfig
+type setDefaultEdgeGateway func() EdgeGatewayConfig
 
-type edgeGatewayConfig struct {
-	jobDoneMsg    jobStatusMessage
-	checkJobDelay time.Duration
+type EdgeGatewayConfig struct {
+	CheckJobDelay time.Duration
 }
 
 // edgeGatewaysResource is the resource implementation.
 type edgeGatewaysResource struct {
-	client *CloudAvenueClient
-	edgeGatewayConfig
+	client *client.CloudAvenue
+	EdgeGatewayConfig
 }
 
 type edgeGatewaysResourceModel struct {
@@ -96,7 +98,7 @@ func (r *edgeGatewaysResource) Schema(
 			"tier0_vrf_name": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The name of the Tier0 VRF to which the Edge Gateway will be attached.\n" +
-					ForceNewDescription,
+					helpers.ForceNewDescription,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -112,7 +114,7 @@ func (r *edgeGatewaysResource) Schema(
 			"owner_type": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The type of the owner of the Edge Gateway (vdc|vdc-group).\n" +
-					ForceNewDescription,
+					helpers.ForceNewDescription,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^(vdc|vdc-group)$`),
@@ -126,7 +128,7 @@ func (r *edgeGatewaysResource) Schema(
 			"owner_name": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The name of the owner of the Edge Gateway.\n" +
-					ForceNewDescription,
+					helpers.ForceNewDescription,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -154,13 +156,13 @@ func (r *edgeGatewaysResource) Configure(
 		return
 	}
 
-	client, ok := req.ProviderData.(*CloudAvenueClient)
+	client, ok := req.ProviderData.(*client.CloudAvenue)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
 			fmt.Sprintf(
-				"Expected *CloudAvenueClient, got: %T. Please report this issue to the provider developers.",
+				"Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.",
 				req.ProviderData,
 			),
 		)
@@ -169,7 +171,7 @@ func (r *edgeGatewaysResource) Configure(
 	}
 
 	r.client = client
-	r.edgeGatewayConfig = configEdgeGateway()
+	r.EdgeGatewayConfig = ConfigEdgeGateway()
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -201,7 +203,7 @@ func (r *edgeGatewaysResource) Create(
 	ctxTO, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 
-	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
+	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
 	if errCtx != nil {
 		resp.Diagnostics.AddError(
 			"Error creating context",
@@ -222,24 +224,24 @@ func (r *edgeGatewaysResource) Create(
 
 	switch plan.OwnerType.ValueString() {
 	case "vdc":
-		job, httpR, err = r.client.EdgeGatewaysApi.ApiCustomersV20VdcsVdcNameEdgesPost(
+		job, httpR, err = r.client.APIClient.EdgeGatewaysApi.ApiCustomersV20VdcsVdcNameEdgesPost(
 			auth,
 			body,
 			plan.OwnerName.ValueString(),
 		)
-		if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
 				return
 			}
 		}
 	case "vdc-group":
-		job, httpR, err = r.client.EdgeGatewaysApi.ApiCustomersV20VdcGroupsVdcGroupNameEdgesPost(
+		job, httpR, err = r.client.APIClient.EdgeGatewaysApi.ApiCustomersV20VdcGroupsVdcGroupNameEdgesPost(
 			auth,
 			body,
 			plan.OwnerName.ValueString(),
 		)
-		if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
 				return
@@ -249,16 +251,16 @@ func (r *edgeGatewaysResource) Create(
 
 	// Wait for job to complete
 	refreshF := func() (interface{}, string, error) {
-		jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
+		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
 		if errGetJob != nil {
 			return nil, "", err
 		}
 
 		edgeGW := apiclient.EdgeGateway{}
 
-		if jobStatus.isDone() {
+		if jobStatus.IsDone() {
 			// get all edge gateways and find the one that matches the tier0_vrf_id and owner_name
-			gateways, _, errEdgesGet := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesGet(auth)
+			gateways, _, errEdgesGet := r.client.APIClient.EdgeGatewaysApi.ApiCustomersV20EdgesGet(auth)
 			if errEdgesGet != nil {
 				return nil, "err", errEdgesGet
 			}
@@ -272,16 +274,16 @@ func (r *edgeGatewaysResource) Create(
 			}
 		}
 
-		return edgeGW, jobStatus.string(), nil
+		return edgeGW, jobStatus.String(), nil
 	}
 
 	createStateConf := &sdkResource.StateChangeConf{
-		Delay:      r.checkJobDelay,
+		Delay:      r.CheckJobDelay,
 		Refresh:    refreshF,
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    jobStatePending(),
-		Target:     jobStateDone(),
+		Pending:    helpers.JobStatePending(),
+		Target:     helpers.JobStateDone(),
 	}
 
 	edgeGW, err := createStateConf.WaitForStateContext(ctxTO)
@@ -351,7 +353,7 @@ func (r *edgeGatewaysResource) Read(
 	ctxTO, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
-	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
+	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
 	if errCtx != nil {
 		resp.Diagnostics.AddError(
 			"Error creating context",
@@ -361,11 +363,11 @@ func (r *edgeGatewaysResource) Read(
 	}
 
 	// Get edge gateway
-	gateway, httpR, err := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(
+	gateway, httpR, err := r.client.APIClient.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(
 		auth,
 		state.EdgeID.ValueString(),
 	)
-	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -430,7 +432,7 @@ func (r *edgeGatewaysResource) Delete(
 	ctxTO, cancel := context.WithTimeout(ctx, deleteTimeout)
 	defer cancel()
 
-	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
+	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
 	if errCtx != nil {
 		resp.Diagnostics.AddError(
 			"Error creating context",
@@ -440,11 +442,11 @@ func (r *edgeGatewaysResource) Delete(
 	}
 
 	// Delete the edge gateway
-	job, httpR, err := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdDelete(
+	job, httpR, err := r.client.APIClient.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdDelete(
 		auth,
 		state.EdgeID.ValueString(),
 	)
-	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -453,19 +455,19 @@ func (r *edgeGatewaysResource) Delete(
 
 	// Wait for job to complete
 	deleteStateConf := &sdkResource.StateChangeConf{
-		Delay: r.checkJobDelay,
+		Delay: r.CheckJobDelay,
 		Refresh: func() (interface{}, string, error) {
-			jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
+			jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
 			if errGetJob != nil {
 				return nil, "", errGetJob
 			}
 
-			return jobStatus, jobStatus.string(), nil
+			return jobStatus, jobStatus.String(), nil
 		},
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    jobStatePending(),
-		Target:     jobStateDone(),
+		Pending:    helpers.JobStatePending(),
+		Target:     helpers.JobStateDone(),
 	}
 
 	_, err = deleteStateConf.WaitForStateContext(ctxTO)
