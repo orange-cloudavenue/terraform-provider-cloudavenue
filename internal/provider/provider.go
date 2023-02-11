@@ -233,10 +233,11 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		publicip.NewPublicIPDataSource,
 		edgegw.NewEdgeGatewayDataSource,
 		edgegw.NewEdgeGatewaysDataSource,
-
-		// API VMWARE
 		vdc.NewVdcsDataSource,
 		vdc.NewVdcDataSource,
+
+		// API VMWARE
+
 	}
 }
 
