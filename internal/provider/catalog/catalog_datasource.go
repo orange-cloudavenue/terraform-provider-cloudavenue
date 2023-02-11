@@ -13,11 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
 
 var (
-	_ datasource.DataSource              = &edgeGatewaysDataSource{}
-	_ datasource.DataSourceWithConfigure = &edgeGatewaysDataSource{}
+	_ datasource.DataSource              = &catalogDataSource{}
+	_ datasource.DataSourceWithConfigure = &catalogDataSource{}
 )
 
 func NewCatalogDataSource() datasource.DataSource {
@@ -25,7 +27,7 @@ func NewCatalogDataSource() datasource.DataSource {
 }
 
 type catalogDataSource struct {
-	client *CloudAvenueClient
+	client *client.CloudAvenue
 }
 
 type catalogDataSourceModel struct {
@@ -130,7 +132,7 @@ func (d *catalogDataSource) Configure(ctx context.Context, req datasource.Config
 		return
 	}
 
-	client, ok := req.ProviderData.(*CloudAvenueClient)
+	client, ok := req.ProviderData.(*client.CloudAvenue)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -154,7 +156,7 @@ func (d *catalogDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	catalogRecords, err := d.client.vmware.Client.QueryCatalogRecords(data.Name.String(), govcd.TenantContext{})
+	catalogRecords, err := d.client.Vmware.Client.QueryCatalogRecords(data.Name.String(), govcd.TenantContext{})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to query catalog records",
@@ -194,7 +196,7 @@ func (d *catalogDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	record, err := d.client.vmware.Client.GetAdminCatalogByHref(catalogRecord.HREF)
+	record, err := d.client.Vmware.Client.GetAdminCatalogByHref(catalogRecord.HREF)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to get catalog record",
@@ -225,7 +227,7 @@ func (d *catalogDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	var mediaItemList []string
 
 	filter := fmt.Sprintf("catalog==%s", url.QueryEscape(data.Href.String()))
-	mediaResults, err := d.client.vmware.QueryWithNotEncodedParams(nil, map[string]string{"type": "media", "filter": filter, "filterEncoded": "true"})
+	mediaResults, err := d.client.Vmware.QueryWithNotEncodedParams(nil, map[string]string{"type": "media", "filter": filter, "filterEncoded": "true"})
 	if err != nil {
 		resp.Diagnostics.AddWarning(
 			"Unable to get media records",

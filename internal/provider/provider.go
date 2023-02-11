@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"os"
 	"regexp"
 
@@ -14,7 +15,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/publicip"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vapp"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vcda"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vrf"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -34,6 +42,37 @@ type cloudavenueProviderModel struct {
 	Password types.String `tfsdk:"password"`
 	Org      types.String `tfsdk:"org"`
 	Vdc      types.String `tfsdk:"vdc"`
+}
+
+// DataSources defines the data sources implemented in the provider.
+func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
+	return []func() datasource.DataSource{
+		// API CloudAvenue
+		vrf.NewTier0VrfsDataSource,
+		vrf.NewTier0VrfDataSource,
+		publicip.NewPublicIPDataSource,
+		edgegw.NewEdgeGatewayDataSource,
+		edgegw.NewEdgeGatewaysDataSource,
+		vdc.NewVdcsDataSource,
+		vdc.NewVdcDataSource,
+
+		// API VMWARE
+		vapp.NewVappDataSource,
+	}
+}
+
+// Resources defines the resources implemented in the provider.
+func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		// API CloudAvenue
+		edgegw.NewEdgeGatewayResource,
+		vdc.NewVdcResource,
+		vcda.NewVcdaIPResource,
+		publicip.NewPublicIPResource,
+
+		// API VMWARE
+
+	}
 }
 
 // New is a helper function to simplify provider server and testing implementation.
@@ -91,19 +130,11 @@ func (p *cloudavenueProvider) Schema(
 				MarkdownDescription: "The VDC used on CloudAvenue API. Can also be set with the `CLOUDAVENUE_VDC` environment variable.",
 				Optional:            true,
 			},
-			"vdc": schema.StringAttribute{
-				MarkdownDescription: "The VDC used on CloudAvenue API. Can also be set with the `CLOUDAVENUE_VDC` environment variable.",
-				Optional:            true,
-			},
 		},
 	}
 }
 
-func (p *cloudavenueProvider) Configure(
-	ctx context.Context,
-	req provider.ConfigureRequest,
-	resp *provider.ConfigureResponse,
-) {
+func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	tflog.Info(ctx, "Configuring CloudAvenue client")
 	var config cloudavenueProviderModel
 
@@ -116,15 +147,12 @@ func (p *cloudavenueProvider) Configure(
 	// Default values to environment variables, but override
 	// with Terraform configuration value if set.
 	urlCloudAvenue := os.Getenv("CLOUDAVENUE_URL")
-	urlCloudAvenue := os.Getenv("CLOUDAVENUE_URL")
 	user := os.Getenv("CLOUDAVENUE_USER")
 	password := os.Getenv("CLOUDAVENUE_PASSWORD")
 	org := os.Getenv("CLOUDAVENUE_ORG")
 	vdc := os.Getenv("CLOUDAVENUE_VDC")
-	vdc := os.Getenv("CLOUDAVENUE_VDC")
 
 	if !config.URL.IsNull() && config.URL.ValueString() != "" {
-		urlCloudAvenue = config.URL.ValueString()
 		urlCloudAvenue = config.URL.ValueString()
 	}
 	if !config.User.IsNull() && config.User.ValueString() != "" {
@@ -146,116 +174,86 @@ func (p *cloudavenueProvider) Configure(
 	// Default URL to the public CloudAvenue API if not set.
 	if urlCloudAvenue == "" {
 		urlCloudAvenue = "https://console1.cloudavenue.orange-business.com"
-	if urlCloudAvenue == "" {
-		urlCloudAvenue = "https://console1.cloudavenue.orange-business.com"
-	}
+		if urlCloudAvenue == "" {
+			urlCloudAvenue = "https://console1.cloudavenue.orange-business.com"
+		}
 
-	// If any of the expected configurations are missing, return
-	// errors with provider-specific guidance.
-	if user == "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("user"),
-			"Missing CloudAvenue API User",
-			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API user. "+
-				"Set the host value in the configuration or use the CLOUDAVENUE_USER environment variable. "+
-				"If either is already set, ensure the value is not empty.",
-		)
-	}
-	if password == "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("password"),
-			"Missing CloudAvenue API Password",
-			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API password. "+
-				"Set the host value in the configuration or use the CLOUDAVENUE_PASWWORD environment variable. "+
-				"If either is already set, ensure the value is not empty.",
-		)
-	}
-	if org == "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("org"),
-			"Missing CloudAvenue API Org",
-			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API org. "+
-				"Set the host value in the configuration or use the CLOUDAVENUE_ORG environment variable. "+
-				"If either is already set, ensure the value is not empty.",
-		)
-	}
+		// If any of the expected configurations are missing, return
+		// errors with provider-specific guidance.
+		if user == "" {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("user"),
+				"Missing CloudAvenue API User",
+				"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API user. "+
+					"Set the host value in the configuration or use the CLOUDAVENUE_USER environment variable. "+
+					"If either is already set, ensure the value is not empty.",
+			)
+		}
+		if password == "" {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("password"),
+				"Missing CloudAvenue API Password",
+				"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API password. "+
+					"Set the host value in the configuration or use the CLOUDAVENUE_PASWWORD environment variable. "+
+					"If either is already set, ensure the value is not empty.",
+			)
+		}
+		if org == "" {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("org"),
+				"Missing CloudAvenue API Org",
+				"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API org. "+
+					"Set the host value in the configuration or use the CLOUDAVENUE_ORG environment variable. "+
+					"If either is already set, ensure the value is not empty.",
+			)
+		}
 
-	if resp.Diagnostics.HasError() {
-		return
-	}
+		if resp.Diagnostics.HasError() {
+			return
+		}
 
-	ctx = tflog.SetField(ctx, "cloudavenue_host", urlCloudAvenue)
-	ctx = tflog.SetField(ctx, "cloudavenue_username", user)
-	ctx = tflog.SetField(ctx, "cloudavenue_org", org)
-	ctx = tflog.SetField(ctx, "cloudavenue_password", password)
-	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "cloudavenue_password")
+		ctx = tflog.SetField(ctx, "cloudavenue_host", urlCloudAvenue)
+		ctx = tflog.SetField(ctx, "cloudavenue_username", user)
+		ctx = tflog.SetField(ctx, "cloudavenue_org", org)
+		ctx = tflog.SetField(ctx, "cloudavenue_password", password)
+		ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "cloudavenue_password")
 
-	tflog.Debug(ctx, "Creating CloudAvenue client")
+		tflog.Debug(ctx, "Creating CloudAvenue client")
 
-	cloudAvenue := client.CloudAvenue{
-		URL:                urlCloudAvenue,
-		User:               user,
-		Password:           password,
-		Org:                org,
-		Vdc:                vdc,
-		TerraformVersion:   req.TerraformVersion,
-		CloudAvenueVersion: p.version,
-	}
+		cloudAvenue := client.CloudAvenue{
+			URL:                urlCloudAvenue,
+			User:               user,
+			Password:           password,
+			Org:                org,
+			Vdc:                vdc,
+			TerraformVersion:   req.TerraformVersion,
+			CloudAvenueVersion: p.version,
+		}
 
-	cA, err := cloudAvenue.New()
-	if errors.Is(err, client.ErrAuthFailed) {
-		resp.Diagnostics.AddError(
-			"Unable to Create CloudAvenue API Client",
-			"An unexpected error occurred when creating the CloudAvenue API client. "+
-				"If the error is not clear, please contact the provider developers.\n\n"+
-				"CloudAvenue Client Error: "+err.Error(),
-		)
-		return
-	} else if errors.Is(err, client.ErrTokenEmpty) {
-		resp.Diagnostics.AddError(
-			"Unable to Create CloudAvenue API Client",
-			"An unexpected error occurred when creating the CloudAvenue API client. "+
-				"If the error is not clear, please contact the provider developers.\n\n"+
-				"CloudAvenue Client Error: empty token",
-		)
-		return
-	}
+		cA, err := cloudAvenue.New()
+		if errors.Is(err, client.ErrAuthFailed) {
+			resp.Diagnostics.AddError(
+				"Unable to Create CloudAvenue API Client",
+				"An unexpected error occurred when creating the CloudAvenue API client. "+
+					"If the error is not clear, please contact the provider developers.\n\n"+
+					"CloudAvenue Client Error: "+err.Error(),
+			)
+			return
+		} else if errors.Is(err, client.ErrTokenEmpty) {
+			resp.Diagnostics.AddError(
+				"Unable to Create CloudAvenue API Client",
+				"An unexpected error occurred when creating the CloudAvenue API client. "+
+					"If the error is not clear, please contact the provider developers.\n\n"+
+					"CloudAvenue Client Error: empty token",
+			)
+			return
+		}
 
-	// Make the CloudAvenue client available during DataSource and Resource
-	// type Configure methods.
-	resp.DataSourceData = cA
-	resp.ResourceData = cA
+		// Make the CloudAvenue client available during DataSource and Resource
+		// type Configure methods.
+		resp.DataSourceData = cA
+		resp.ResourceData = cA
 
-	tflog.Info(ctx, "Configured CloudAvenue client", map[string]any{"success": true})
-}
-
-// DataSources defines the data sources implemented in the provider.
-func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{
-		// API CloudAvenue
-		vrf.NewTier0VrfsDataSource,
-		vrf.NewTier0VrfDataSource,
-		publicip.NewPublicIPDataSource,
-		edgegw.NewEdgeGatewayDataSource,
-		edgegw.NewEdgeGatewaysDataSource,
-		vdc.NewVdcsDataSource,
-		vdc.NewVdcDataSource,
-
-		// API VMWARE
-
-	}
-}
-
-// Resources defines the resources implemented in the provider.
-func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		// API CloudAvenue
-		edgegw.NewEdgeGatewayResource,
-		vdc.NewVdcResource,
-		vcda.NewVcdaIPResource,
-		publicip.NewPublicIPResource,
-
-		// API VMWARE
-
+		tflog.Info(ctx, "Configured CloudAvenue client", map[string]any{"success": true})
 	}
 }
