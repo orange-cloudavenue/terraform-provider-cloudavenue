@@ -1,4 +1,4 @@
-package provider
+package vrf
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -22,7 +23,7 @@ func NewTier0VrfsDataSource() datasource.DataSource {
 }
 
 type tier0VrfsDataSource struct {
-	client *CloudAvenueClient
+	client *client.CloudAvenue
 }
 
 type tier0VrfsDataSourceModel struct {
@@ -57,12 +58,12 @@ func (d *tier0VrfsDataSource) Configure(ctx context.Context, req datasource.Conf
 		return
 	}
 
-	client, ok := req.ProviderData.(*CloudAvenueClient)
+	client, ok := req.ProviderData.(*client.CloudAvenue)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *CloudAvenueClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -81,7 +82,7 @@ func (d *tier0VrfsDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	tier0vrfs, _, err := d.client.Tier0Api.ApiCustomersV20Tier0VrfsGet(d.client.auth)
+	tier0vrfs, _, err := d.client.APIClient.Tier0Api.ApiCustomersV20Tier0VrfsGet(d.client.Auth)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
 		return

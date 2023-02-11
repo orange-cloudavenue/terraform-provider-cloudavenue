@@ -1,4 +1,4 @@
-package provider
+package helpers
 
 import (
 	"context"
@@ -17,7 +17,7 @@ func TestGetAuthContextWithTO(t *testing.T) {
 	tfCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	newCtx, _ := getAuthContextWithTO(apiCtx, tfCtx)
+	newCtx, _ := GetAuthContextWithTO(apiCtx, tfCtx)
 	newToken, _ := newCtx.Value(apiclient.ContextAccessToken).(string)
 	if want := "token"; newToken != want {
 		t.Errorf("%s: got %s, want %s", name, newToken, want)

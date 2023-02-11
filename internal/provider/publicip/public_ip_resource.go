@@ -1,4 +1,4 @@
-package provider
+package publicip
 
 import (
 	"context"
@@ -18,6 +18,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	sdkResource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -34,7 +37,7 @@ func NewPublicIPResource() resource.Resource {
 
 // publicIPResource is the resource implementation.
 type publicIPResource struct {
-	client *CloudAvenueClient
+	client *client.CloudAvenue
 }
 
 type publicIPResourceModel struct {
@@ -138,11 +141,11 @@ func (r *publicIPResource) Configure(ctx context.Context, req resource.Configure
 		return
 	}
 
-	client, ok := req.ProviderData.(*CloudAvenueClient)
+	client, ok := req.ProviderData.(*client.CloudAvenue)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *CloudAvenueClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 		return
 	}
@@ -178,7 +181,7 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	ctxTO, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 
-	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
+	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
 	if errCtx != nil {
 		resp.Diagnostics.AddError(
 			"Error creating context",
@@ -190,8 +193,8 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	// if edge_id is provided, get edge_name
 	if !plan.EdgeID.IsNull() {
 		// Get Edge Gateway Name
-		edgeGateway, httR, err := r.client.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(auth, plan.EdgeID.ValueString())
-		if apiErr := CheckAPIError(err, httR); apiErr != nil {
+		edgeGateway, httR, err := r.client.APIClient.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(auth, plan.EdgeID.ValueString())
+		if apiErr := helpers.CheckAPIError(err, httR); apiErr != nil {
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() || apiErr.IsNotFound() {
 				return
@@ -242,8 +245,8 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 		return publicIPNetworkConfigModel{}, fmt.Errorf("no public ip found")
 	}
 
-	job, httpR, err = r.client.PublicIPApi.ApiCustomersV10IpPost(auth, &body)
-	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+	job, httpR, err = r.client.APIClient.PublicIPApi.ApiCustomersV10IpPost(auth, &body)
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -254,14 +257,14 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	refreshF := func() (interface{}, string, error) {
 		var publicIP apiclient.PublicIps
 
-		jobStatus, errGetJob := getJobStatus(auth, r.client, job.JobId)
+		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
 		if errGetJob != nil {
 			return nil, "", err
 		}
 
-		if jobStatus.isDone() {
+		if jobStatus.IsDone() {
 			// get all edge gateways and find the one that matches the tier0_vrf_id and owner_name
-			publicIps, _, errEdgesGet := r.client.PublicIPApi.ApiCustomersV20IpGet(auth)
+			publicIps, _, errEdgesGet := r.client.APIClient.PublicIPApi.ApiCustomersV20IpGet(auth)
 			if errEdgesGet != nil {
 				return nil, "error", err
 			}
@@ -274,10 +277,10 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 			publicIP.InternalIp = publicIps.InternalIp
 			publicIP.NetworkConfig = append(publicIP.NetworkConfig, pubIP.(apiclient.PublicIpsNetworkConfig))
 
-			return publicIP, jobStatus.string(), nil
+			return publicIP, jobStatus.String(), nil
 		}
 
-		return nil, jobStatus.string(), nil
+		return nil, jobStatus.String(), nil
 	}
 
 	createStateConf := &sdkResource.StateChangeConf{
@@ -285,8 +288,8 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 		Refresh:    refreshF,
 		MinTimeout: 5 * time.Second,
 		Timeout:    5 * time.Minute,
-		Pending:    []string{PENDING.string()},
-		Target:     []string{DONE.string()},
+		Pending:    []string{helpers.PENDING.String()},
+		Target:     []string{helpers.DONE.String()},
 	}
 
 	publicIP, err := createStateConf.WaitForStateContext(ctxTO)
@@ -351,7 +354,7 @@ func (r *publicIPResource) Read(ctx context.Context, req resource.ReadRequest, r
 	ctxTO, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
-	auth, errCtx := getAuthContextWithTO(r.client.auth, ctxTO)
+	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
 	if errCtx != nil {
 		resp.Diagnostics.AddError(
 			"Error creating context",
@@ -360,8 +363,8 @@ func (r *publicIPResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 	// Get edge gateway
-	publicIps, httpR, err := r.client.PublicIPApi.ApiCustomersV20IpGet(auth)
-	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+	publicIps, httpR, err := r.client.APIClient.PublicIPApi.ApiCustomersV20IpGet(auth)
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -402,8 +405,8 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 	}
 
 	// Delete the public IP
-	_, httpR, err := r.client.PublicIPApi.ApiCustomersV10IpPublicIpDelete(ctx, state.NetworkConfig.UPLinkIP.ValueString())
-	if apiErr := CheckAPIError(err, httpR); apiErr != nil {
+	_, httpR, err := r.client.APIClient.PublicIPApi.ApiCustomersV10IpPublicIpDelete(ctx, state.NetworkConfig.UPLinkIP.ValueString())
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return

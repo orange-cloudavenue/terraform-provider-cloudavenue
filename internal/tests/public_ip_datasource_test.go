@@ -1,4 +1,4 @@
-package provider
+package tests
 
 import (
 	"testing"
@@ -6,21 +6,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-const testAccEdgeGatewayDataSourceConfig = `
-data "cloudavenue_edge_gateway" "test" {
-	edge_id = "frangipane"
-	}
+const testAccPublicIPDataSourceConfig = `
+data "cloudavenue_public_ip" "test" {}
 `
 
-func TestAccEdgeGatewayDataSource(t *testing.T) {
-	dataSourceName := "data.cloudavenue_edge_gateway.test"
+func TestAccPublicIPDataSource(t *testing.T) {
+	dataSourceName := "data.cloudavenue_public_ip.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: testAccEdgeGatewayDataSourceConfig,
+				Config: testAccPublicIPDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Verify placeholder id attribute
 					resource.TestCheckResourceAttr(dataSourceName, "id", "frangipane"),

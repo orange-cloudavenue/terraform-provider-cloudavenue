@@ -1,4 +1,4 @@
-package provider
+package publicip
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -21,7 +22,7 @@ func NewPublicIPDataSource() datasource.DataSource {
 }
 
 type publicIPDataSource struct {
-	client *CloudAvenueClient
+	client *client.CloudAvenue
 }
 
 type publicIPDataSourceModel struct {
@@ -82,12 +83,12 @@ func (d *publicIPDataSource) Configure(ctx context.Context, req datasource.Confi
 		return
 	}
 
-	client, ok := req.ProviderData.(*CloudAvenueClient)
+	client, ok := req.ProviderData.(*client.CloudAvenue)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *CloudAvenueClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -106,7 +107,7 @@ func (d *publicIPDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	publicIP, _, err := d.client.PublicIPApi.ApiCustomersV20IpGet(d.client.auth)
+	publicIP, _, err := d.client.APIClient.PublicIPApi.ApiCustomersV20IpGet(d.client.Auth)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
 		return

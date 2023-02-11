@@ -1,4 +1,4 @@
-package provider
+package vdc
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
 
 var (
@@ -21,7 +23,7 @@ func NewVdcDataSource() datasource.DataSource {
 }
 
 type vdcDataSource struct {
-	client *CloudAvenueClient
+	client *client.CloudAvenue
 }
 
 type vdcDataSourceModel struct {
@@ -132,12 +134,12 @@ func (d *vdcDataSource) Configure(ctx context.Context, req datasource.ConfigureR
 		return
 	}
 
-	client, ok := req.ProviderData.(*CloudAvenueClient)
+	client, ok := req.ProviderData.(*client.CloudAvenue)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *CloudAvenueClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -156,7 +158,7 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		return
 	}
 
-	vdcs, _, err := d.client.VDCApi.ApiCustomersV20VdcsVdcNameGet(d.client.auth, data.Name.ValueString())
+	vdcs, _, err := d.client.APIClient.VDCApi.ApiCustomersV20VdcsVdcNameGet(d.client.Auth, data.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read vdc detail, got error: %s", err))
 		return
