@@ -315,6 +315,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 
 		// Vmware data sources
 		NewCatalogDataSource,
+		NewVappDataSource,
 	}
 }
 
