@@ -107,7 +107,7 @@ func (d *publicIPDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	publicIP, _, err := d.client.APIClient.PublicIPApi.ApiCustomersV20IpGet(d.client.Auth)
+	publicIP, _, err := d.client.APIClient.PublicIPApi.GetPublicIPs(d.client.Auth)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
 		return

@@ -25,7 +25,7 @@ func GetJobStatus(
 	client *client.CloudAvenue,
 	jobID string,
 ) (JobStatusMessage, error) {
-	jobStatus, _, err := client.APIClient.JobsApi.ApiCustomersV10JobsJobIdGet(ctx, jobID)
+	jobStatus, _, err := client.APIClient.JobsApi.GetJobById(ctx, jobID)
 	if err != nil {
 		return "", err
 	}

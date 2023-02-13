@@ -112,7 +112,7 @@ func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	tier0Detail, _, err := d.client.APIClient.Tier0Api.ApiCustomersV20Tier0VrfsTier0NameGet(d.client.Auth, data.Name.ValueString())
+	tier0Detail, _, err := d.client.APIClient.Tier0Api.GetTier0VrfByName(d.client.Auth, data.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Tier0 detail, got error: %s", err))
 		return

@@ -224,7 +224,7 @@ func (r *edgeGatewaysResource) Create(
 
 	switch plan.OwnerType.ValueString() {
 	case "vdc":
-		job, httpR, err = r.client.APIClient.EdgeGatewaysApi.ApiCustomersV20VdcsVdcNameEdgesPost(
+		job, httpR, err = r.client.APIClient.EdgeGatewaysApi.CreateVdcEdge(
 			auth,
 			body,
 			plan.OwnerName.ValueString(),
@@ -236,7 +236,7 @@ func (r *edgeGatewaysResource) Create(
 			}
 		}
 	case "vdc-group":
-		job, httpR, err = r.client.APIClient.EdgeGatewaysApi.ApiCustomersV20VdcGroupsVdcGroupNameEdgesPost(
+		job, httpR, err = r.client.APIClient.EdgeGatewaysApi.CreateVdcGroupEdge(
 			auth,
 			body,
 			plan.OwnerName.ValueString(),
@@ -260,7 +260,7 @@ func (r *edgeGatewaysResource) Create(
 
 		if jobStatus.IsDone() {
 			// get all edge gateways and find the one that matches the tier0_vrf_id and owner_name
-			gateways, _, errEdgesGet := r.client.APIClient.EdgeGatewaysApi.ApiCustomersV20EdgesGet(auth)
+			gateways, _, errEdgesGet := r.client.APIClient.EdgeGatewaysApi.GetEdges(auth)
 			if errEdgesGet != nil {
 				return nil, "err", errEdgesGet
 			}
@@ -363,7 +363,7 @@ func (r *edgeGatewaysResource) Read(
 	}
 
 	// Get edge gateway
-	gateway, httpR, err := r.client.APIClient.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(
+	gateway, httpR, err := r.client.APIClient.EdgeGatewaysApi.GetEdgeById(
 		auth,
 		state.EdgeID.ValueString(),
 	)
@@ -442,7 +442,7 @@ func (r *edgeGatewaysResource) Delete(
 	}
 
 	// Delete the edge gateway
-	job, httpR, err := r.client.APIClient.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdDelete(
+	job, httpR, err := r.client.APIClient.EdgeGatewaysApi.DeleteEdge(
 		auth,
 		state.EdgeID.ValueString(),
 	)
