@@ -82,7 +82,7 @@ func (d *tier0VrfsDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	tier0vrfs, _, err := d.client.APIClient.Tier0Api.ApiCustomersV20Tier0VrfsGet(d.client.Auth)
+	tier0vrfs, _, err := d.client.APIClient.Tier0Api.GetTier0Vrfs(d.client.Auth)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
 		return

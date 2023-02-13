@@ -283,7 +283,7 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	var httpR *http.Response
 
 	// Call API to create the resource and test for errors.
-	job, httpR, err = r.client.APIClient.VDCApi.ApiCustomersV20VdcsPost(auth, body)
+	job, httpR, err = r.client.APIClient.VDCApi.CreateOrgVdc(auth, body)
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
@@ -361,7 +361,7 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
-	vdc, httpR, err := r.client.APIClient.VDCApi.ApiCustomersV20VdcsVdcNameGet(auth, state.Name.ValueString())
+	vdc, httpR, err := r.client.APIClient.VDCApi.GetOrgVdcByName(auth, state.Name.ValueString())
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
@@ -467,7 +467,7 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	var httpR *http.Response
 
 	// Call API to update the resource and test for errors.
-	job, httpR, err = r.client.APIClient.VDCApi.ApiCustomersV20VdcsVdcNamePut(auth, body, body.Vdc.Name)
+	job, httpR, err = r.client.APIClient.VDCApi.UpdateOrgVdc(auth, body, body.Vdc.Name)
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
@@ -546,7 +546,7 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 
 	// Delete the VDC
-	job, httpR, err := r.client.APIClient.VDCApi.ApiCustomersV20VdcsVdcNameDelete(auth, state.Name.ValueString())
+	job, httpR, err := r.client.APIClient.VDCApi.DeleteOrgVdc(auth, state.Name.ValueString())
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
@@ -560,7 +560,7 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		Refresh: func() (interface{}, string, error) {
 			jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
 			if errGetJob != nil {
-				return nil, "", err
+				return nil, "", errGetJob
 			}
 
 			return jobStatus, jobStatus.String(), nil

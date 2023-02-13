@@ -158,7 +158,7 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		return
 	}
 
-	vdcs, _, err := d.client.APIClient.VDCApi.ApiCustomersV20VdcsVdcNameGet(d.client.Auth, data.Name.ValueString())
+	vdcs, _, err := d.client.APIClient.VDCApi.GetOrgVdcByName(d.client.Auth, data.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read vdc detail, got error: %s", err))
 		return

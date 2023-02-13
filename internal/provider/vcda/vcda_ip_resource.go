@@ -107,7 +107,7 @@ func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Call API to create the resource and check for errors.
-	_, httpR, err := r.client.APIClient.VCDAApi.ApiCustomersV20VcdaIpsIpAddressPost(r.client.Auth, plan.IPAddress.ValueString())
+	_, httpR, err := r.client.APIClient.VCDAApi.CreateVcdaIP(r.client.Auth, plan.IPAddress.ValueString())
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
@@ -138,7 +138,7 @@ func (r *vcdaIPResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Call API to get list of VCDA and check for errors.
-	vcdaIPList, httpR, err := r.client.APIClient.VCDAApi.ApiCustomersV20VcdaIpsGet(r.client.Auth)
+	vcdaIPList, httpR, err := r.client.APIClient.VCDAApi.GetVcdaIPs(r.client.Auth)
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
@@ -182,7 +182,7 @@ func (r *vcdaIPResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 
 	// Call API to delete the resource and check for errors.
-	_, httpR, err := r.client.APIClient.VCDAApi.ApiCustomersV20VcdaIpsIpAddressDelete(r.client.Auth, state.IPAddress.ValueString())
+	_, httpR, err := r.client.APIClient.VCDAApi.DeleteVcdaIP(r.client.Auth, state.IPAddress.ValueString())
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {

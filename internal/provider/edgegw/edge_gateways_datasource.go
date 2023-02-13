@@ -117,7 +117,7 @@ func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	gateways, httpR, err := d.client.APIClient.EdgeGatewaysApi.ApiCustomersV20EdgesGet(d.client.Auth)
+	gateways, httpR, err := d.client.APIClient.EdgeGatewaysApi.GetEdges(d.client.Auth)
 	if x := helpers.CheckAPIError(err, httpR); x != nil {
 		resp.Diagnostics.Append(x.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {

@@ -193,7 +193,7 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	// if edge_id is provided, get edge_name
 	if !plan.EdgeID.IsNull() {
 		// Get Edge Gateway Name
-		edgeGateway, httR, err := r.client.APIClient.EdgeGatewaysApi.ApiCustomersV20EdgesEdgeIdGet(auth, plan.EdgeID.ValueString())
+		edgeGateway, httR, err := r.client.APIClient.EdgeGatewaysApi.GetEdgeById(auth, plan.EdgeID.ValueString())
 		if apiErr := helpers.CheckAPIError(err, httR); apiErr != nil {
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() || apiErr.IsNotFound() {
@@ -204,8 +204,8 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 		plan.EdgeName = types.StringValue(edgeGateway.EdgeName)
 	}
 
-	// Create new edge gateway
-	body := apiclient.PublicIPApiApiCustomersV10IpPostOpts{
+	// Create new Public IP
+	body := apiclient.PublicIPApiCreatePublicIPOpts{
 		XNattedIP:    optional.NewString(plan.NattedIP.ValueString()),
 		XVDCEdgeName: optional.NewString(plan.EdgeName.ValueString()),
 		XVDCName:     optional.NewString(plan.VdcName.ValueString()),
@@ -245,7 +245,7 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 		return publicIPNetworkConfigModel{}, fmt.Errorf("no public ip found")
 	}
 
-	job, httpR, err = r.client.APIClient.PublicIPApi.ApiCustomersV10IpPost(auth, &body)
+	job, httpR, err = r.client.APIClient.PublicIPApi.CreatePublicIP(auth, &body)
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
@@ -264,7 +264,7 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 
 		if jobStatus.IsDone() {
 			// get all edge gateways and find the one that matches the tier0_vrf_id and owner_name
-			publicIps, _, errEdgesGet := r.client.APIClient.PublicIPApi.ApiCustomersV20IpGet(auth)
+			publicIps, _, errEdgesGet := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
 			if errEdgesGet != nil {
 				return nil, "error", err
 			}
@@ -363,7 +363,7 @@ func (r *publicIPResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 	// Get edge gateway
-	publicIps, httpR, err := r.client.APIClient.PublicIPApi.ApiCustomersV20IpGet(auth)
+	publicIps, httpR, err := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
@@ -405,7 +405,7 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 	}
 
 	// Delete the public IP
-	_, httpR, err := r.client.APIClient.PublicIPApi.ApiCustomersV10IpPublicIpDelete(ctx, state.NetworkConfig.UPLinkIP.ValueString())
+	_, httpR, err := r.client.APIClient.PublicIPApi.DeletePublicIP(ctx, state.NetworkConfig.UPLinkIP.ValueString())
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {

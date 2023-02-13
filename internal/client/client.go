@@ -30,7 +30,7 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 	cfg := c.createConfiguration()
 
 	c.APIClient = apiclient.NewAPIClient(cfg)
-	_, ret, err := c.APIClient.AuthenticationApi.Cloudapi100SessionsPost(auth)
+	_, ret, err := c.APIClient.AuthenticationApi.GetToken(auth)
 	if err != nil {
 		return nil, fmt.Errorf("%w : %v", ErrAuthFailed, err)
 	}
