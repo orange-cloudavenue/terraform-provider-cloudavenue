@@ -560,7 +560,7 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		Refresh: func() (interface{}, string, error) {
 			jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
 			if errGetJob != nil {
-				return nil, "", err
+				return nil, "", errGetJob
 			}
 
 			return jobStatus, jobStatus.String(), nil

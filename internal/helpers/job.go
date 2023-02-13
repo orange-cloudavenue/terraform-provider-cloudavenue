@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
@@ -28,6 +29,16 @@ func GetJobStatus(
 	if err != nil {
 		return "", err
 	}
+
+	// Find the action name with failed status if global status is failed
+	if jobStatus[0].Status == string(FAILED) {
+		for _, action := range jobStatus[0].Actions {
+			if action.Status == string(FAILED) {
+				return parseJobStatus(jobStatus[0].Status), errors.New("Error in action : " + action.Name)
+			}
+		}
+	}
+
 	return parseJobStatus(jobStatus[0].Status), nil
 }
 
