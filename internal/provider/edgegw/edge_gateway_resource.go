@@ -362,19 +362,47 @@ func (r *edgeGatewaysResource) Read(
 		return
 	}
 
+	var gateway apiclient.EdgeGateway
 	// Get edge gateway
-	gateway, httpR, err := r.client.APIClient.EdgeGatewaysApi.GetEdgeById(
-		auth,
-		state.EdgeID.ValueString(),
-	)
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		if resp.Diagnostics.HasError() {
+	if !state.EdgeID.IsNull() {
+		var (
+			httpR *http.Response
+			err   error
+		)
+		gateway, httpR, err = r.client.APIClient.EdgeGatewaysApi.GetEdgeById(
+			auth,
+			state.EdgeID.ValueString(),
+		)
+		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
+			resp.State.RemoveResource(ctxTO)
 			return
 		}
+	} else {
+		gateways, httpR, err := r.client.APIClient.EdgeGatewaysApi.GetEdges(auth)
+		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+			if resp.Diagnostics.HasError() {
+				return
+			}
+		}
 
-		resp.State.RemoveResource(ctxTO)
-		return
+		found := false
+		for _, gateway = range gateways {
+			if state.EdgeName.Equal(types.StringValue(gateway.EdgeName)) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			resp.State.RemoveResource(ctxTO)
+			return
+		}
 	}
 
 	state = &edgeGatewaysResourceModel{
@@ -485,6 +513,6 @@ func (r *edgeGatewaysResource) ImportState(
 	req resource.ImportStateRequest,
 	resp *resource.ImportStateResponse,
 ) {
-	// Retrieve import ID and save to edge_id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("edge_id"), req, resp)
+	// Retrieve import Name and save to edge_name attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("edge_name"), req, resp)
 }
