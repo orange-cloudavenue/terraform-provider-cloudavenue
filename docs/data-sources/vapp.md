@@ -14,7 +14,7 @@ The public IP data source show the list of public IP addresses.
 
 ```terraform
 data "cloudavenue_vapp" "example" {
-  vapp_name = "vapp_test"
+  vapp_name = "vapp_name"
 }
 ```
 

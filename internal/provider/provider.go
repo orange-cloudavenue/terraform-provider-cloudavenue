@@ -71,7 +71,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		publicip.NewPublicIPResource,
 
 		// API VMWARE
-
+		vapp.NewVappResource,
 	}
 }
 
