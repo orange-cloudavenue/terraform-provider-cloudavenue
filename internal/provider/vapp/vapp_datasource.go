@@ -43,11 +43,6 @@ type vappDataSourceModel struct {
 	Lease           types.Object                  `tfsdk:"lease"`
 }
 
-type vappLeaseDataSourceModel struct {
-	RuntimeLeaseInSec types.Int64 `tfsdk:"runtime_lease_in_sec"`
-	StorageLeaseInSec types.Int64 `tfsdk:"storage_lease_in_sec"`
-}
-
 func (d *vappDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_vapp"
 }
@@ -202,7 +197,7 @@ func (d *vappDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	}
 
 	if leaseInfo != nil {
-		data.Lease.As(ctx, &vappLeaseDataSourceModel{
+		data.Lease.As(ctx, &vappLeaseModel{
 			RuntimeLeaseInSec: types.Int64Value(int64(leaseInfo.DeploymentLeaseInSeconds)),
 			StorageLeaseInSec: types.Int64Value(int64(leaseInfo.StorageLeaseInSeconds)),
 		}, basetypes.ObjectAsOptions{})
