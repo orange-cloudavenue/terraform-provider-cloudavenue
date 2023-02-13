@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
@@ -21,4 +22,23 @@ var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 // about the appropriate environment variables being set are common to see in a pre-check
 // function.
 func testAccPreCheck(t *testing.T) {
+	if v := os.Getenv("CLOUDAVENUE_URL"); v == "" {
+		t.Fatal("CLOUDAVENUE_URL must be set for acceptance tests")
+	}
+
+	if v := os.Getenv("CLOUDAVENUE_USER"); v == "" {
+		t.Fatal("CLOUDAVENUE_USER must be set for acceptance tests")
+	}
+
+	if v := os.Getenv("CLOUDAVENUE_PASSWORD"); v == "" {
+		t.Fatal("CLOUDAVENUE_PASSWORD must be set for acceptance tests")
+	}
+
+	if v := os.Getenv("CLOUDAVENUE_ORG"); v == "" {
+		t.Fatal("CLOUDAVENUE_ORG must be set for acceptance tests")
+	}
+
+	if v := os.Getenv("CLOUDAVENUE_VDC"); v == "" {
+		t.Fatal("CLOUDAVENUE_VDC must be set for acceptance tests")
+	}
 }
