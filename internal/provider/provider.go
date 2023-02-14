@@ -174,86 +174,82 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 	// Default URL to the public CloudAvenue API if not set.
 	if urlCloudAvenue == "" {
 		urlCloudAvenue = "https://console1.cloudavenue.orange-business.com"
-		if urlCloudAvenue == "" {
-			urlCloudAvenue = "https://console1.cloudavenue.orange-business.com"
-		}
-
-		// If any of the expected configurations are missing, return
-		// errors with provider-specific guidance.
-		if user == "" {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("user"),
-				"Missing CloudAvenue API User",
-				"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API user. "+
-					"Set the host value in the configuration or use the CLOUDAVENUE_USER environment variable. "+
-					"If either is already set, ensure the value is not empty.",
-			)
-		}
-		if password == "" {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("password"),
-				"Missing CloudAvenue API Password",
-				"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API password. "+
-					"Set the host value in the configuration or use the CLOUDAVENUE_PASWWORD environment variable. "+
-					"If either is already set, ensure the value is not empty.",
-			)
-		}
-		if org == "" {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("org"),
-				"Missing CloudAvenue API Org",
-				"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API org. "+
-					"Set the host value in the configuration or use the CLOUDAVENUE_ORG environment variable. "+
-					"If either is already set, ensure the value is not empty.",
-			)
-		}
-
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		ctx = tflog.SetField(ctx, "cloudavenue_host", urlCloudAvenue)
-		ctx = tflog.SetField(ctx, "cloudavenue_username", user)
-		ctx = tflog.SetField(ctx, "cloudavenue_org", org)
-		ctx = tflog.SetField(ctx, "cloudavenue_password", password)
-		ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "cloudavenue_password")
-
-		tflog.Debug(ctx, "Creating CloudAvenue client")
-
-		cloudAvenue := client.CloudAvenue{
-			URL:                urlCloudAvenue,
-			User:               user,
-			Password:           password,
-			Org:                org,
-			Vdc:                vdc,
-			TerraformVersion:   req.TerraformVersion,
-			CloudAvenueVersion: p.version,
-		}
-
-		cA, err := cloudAvenue.New()
-		if errors.Is(err, client.ErrAuthFailed) {
-			resp.Diagnostics.AddError(
-				"Unable to Create CloudAvenue API Client",
-				"An unexpected error occurred when creating the CloudAvenue API client. "+
-					"If the error is not clear, please contact the provider developers.\n\n"+
-					"CloudAvenue Client Error: "+err.Error(),
-			)
-			return
-		} else if errors.Is(err, client.ErrTokenEmpty) {
-			resp.Diagnostics.AddError(
-				"Unable to Create CloudAvenue API Client",
-				"An unexpected error occurred when creating the CloudAvenue API client. "+
-					"If the error is not clear, please contact the provider developers.\n\n"+
-					"CloudAvenue Client Error: empty token",
-			)
-			return
-		}
-
-		// Make the CloudAvenue client available during DataSource and Resource
-		// type Configure methods.
-		resp.DataSourceData = cA
-		resp.ResourceData = cA
-
-		tflog.Info(ctx, "Configured CloudAvenue client", map[string]any{"success": true})
 	}
+	// If any of the expected configurations are missing, return
+	// errors with provider-specific guidance.
+	if user == "" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("user"),
+			"Missing CloudAvenue API User",
+			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API user. "+
+				"Set the host value in the configuration or use the CLOUDAVENUE_USER environment variable. "+
+				"If either is already set, ensure the value is not empty.",
+		)
+	}
+	if password == "" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("password"),
+			"Missing CloudAvenue API Password",
+			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API password. "+
+				"Set the host value in the configuration or use the CLOUDAVENUE_PASWWORD environment variable. "+
+				"If either is already set, ensure the value is not empty.",
+		)
+	}
+	if org == "" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("org"),
+			"Missing CloudAvenue API Org",
+			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API org. "+
+				"Set the host value in the configuration or use the CLOUDAVENUE_ORG environment variable. "+
+				"If either is already set, ensure the value is not empty.",
+		)
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	ctx = tflog.SetField(ctx, "cloudavenue_host", urlCloudAvenue)
+	ctx = tflog.SetField(ctx, "cloudavenue_username", user)
+	ctx = tflog.SetField(ctx, "cloudavenue_org", org)
+	ctx = tflog.SetField(ctx, "cloudavenue_password", password)
+	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "cloudavenue_password")
+
+	tflog.Debug(ctx, "Creating CloudAvenue client")
+
+	cloudAvenue := client.CloudAvenue{
+		URL:                urlCloudAvenue,
+		User:               user,
+		Password:           password,
+		Org:                org,
+		Vdc:                vdc,
+		TerraformVersion:   req.TerraformVersion,
+		CloudAvenueVersion: p.version,
+	}
+
+	cA, err := cloudAvenue.New()
+	if errors.Is(err, client.ErrAuthFailed) {
+		resp.Diagnostics.AddError(
+			"Unable to Create CloudAvenue API Client",
+			"An unexpected error occurred when creating the CloudAvenue API client. "+
+				"If the error is not clear, please contact the provider developers.\n\n"+
+				"CloudAvenue Client Error: "+err.Error(),
+		)
+		return
+	} else if errors.Is(err, client.ErrTokenEmpty) {
+		resp.Diagnostics.AddError(
+			"Unable to Create CloudAvenue API Client",
+			"An unexpected error occurred when creating the CloudAvenue API client. "+
+				"If the error is not clear, please contact the provider developers.\n\n"+
+				"CloudAvenue Client Error: empty token",
+		)
+		return
+	}
+
+	// Make the CloudAvenue client available during DataSource and Resource
+	// type Configure methods.
+	resp.DataSourceData = cA
+	resp.ResourceData = cA
+
+	tflog.Info(ctx, "Configured CloudAvenue client", map[string]any{"success": true})
 }
