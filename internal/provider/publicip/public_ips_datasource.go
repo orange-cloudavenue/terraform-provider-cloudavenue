@@ -26,19 +26,17 @@ type publicIPDataSource struct {
 }
 
 type publicIPDataSourceModel struct {
-	ID            types.String                 `tfsdk:"id"`
-	InternalIP    types.String                 `tfsdk:"internal_ip"`
-	NetworkConfig []publicIPNetworkConfigModel `tfsdk:"network_config"`
+	ID        types.String                 `tfsdk:"id"`
+	PublicIPs []publicIPNetworkConfigModel `tfsdk:"public_ips"`
 }
 
 type publicIPNetworkConfigModel struct {
-	UPLinkIP        types.String `tfsdk:"uplink_ip"`
-	TranslatedIP    types.String `tfsdk:"translated_ip"`
+	ID              types.String `tfsdk:"id"`
 	EdgeGatewayName types.String `tfsdk:"edge_gateway_name"`
 }
 
 func (d *publicIPDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_public_ip"
+	resp.TypeName = req.ProviderTypeName + "_public_ips"
 }
 
 func (d *publicIPDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -49,21 +47,13 @@ func (d *publicIPDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 			"id": schema.StringAttribute{
 				Computed: true,
 			},
-			"internal_ip": schema.StringAttribute{
-				Description: "Internal IP address.",
-				Computed:    true,
-			},
-			"network_config": schema.ListNestedAttribute{
-				Description: "List of networks.",
+			"public_ips": schema.ListNestedAttribute{
+				Description: "A list of public IPs.",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"uplink_ip": schema.StringAttribute{
-							Description: "Uplink IP address.",
-							Computed:    true,
-						},
-						"translated_ip": schema.StringAttribute{
-							Description: "Translated IP address.",
+						"id": schema.StringAttribute{
+							Description: "The public IP address.",
 							Computed:    true,
 						},
 						"edge_gateway_name": schema.StringAttribute{
@@ -107,22 +97,17 @@ func (d *publicIPDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	publicIP, _, err := d.client.APIClient.PublicIPApi.GetPublicIPs(d.client.Auth)
+	publicIPs, _, err := d.client.APIClient.PublicIPApi.GetPublicIPs(d.client.Auth)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
 		return
 	}
 
-	data = publicIPDataSourceModel{
-		InternalIP: types.StringValue(publicIP.InternalIp),
-	}
-
 	listOfIps := make([]string, 0)
 
-	for _, cfg := range publicIP.NetworkConfig {
-		data.NetworkConfig = append(data.NetworkConfig, publicIPNetworkConfigModel{
-			UPLinkIP:        types.StringValue(cfg.UplinkIp),
-			TranslatedIP:    types.StringValue(cfg.TranslatedIp),
+	for _, cfg := range publicIPs.NetworkConfig {
+		data.PublicIPs = append(data.PublicIPs, publicIPNetworkConfigModel{
+			ID:              types.StringValue(cfg.UplinkIp),
 			EdgeGatewayName: types.StringValue(cfg.EdgeGatewayName),
 		})
 
