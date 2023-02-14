@@ -53,7 +53,7 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 	c.Auth = createTokenInContext(token)
 
 	// API VMWARE
-	err = c.configurVmware()
+	err = c.configureVmware()
 	if err != nil {
 		return nil, fmt.Errorf("%w : %v", ErrConfigureVmware, err)
 	}
@@ -90,7 +90,7 @@ func (c *CloudAvenue) createConfiguration() *apiclient.Configuration {
 }
 
 // configurVmware creates a new configuration for the Vmware client.
-func (c *CloudAvenue) configurVmware() (err error) {
+func (c *CloudAvenue) configureVmware() (err error) {
 	c.urlVmware, err = url.Parse(fmt.Sprintf("%s/api", c.GetURL()))
 	return err
 }
