@@ -108,8 +108,8 @@ github.com/hashicorp/terraform-plugin-docs v0.13.0 h1:6e+VIWsVGb6jYJewfzq2ok2smP
 github.com/hashicorp/terraform-plugin-docs v0.13.0/go.mod h1:W0oCmHAjIlTHBbvtppWHe8fLfZ2BznQbuv8+UD8OucQ=
 github.com/hashicorp/terraform-plugin-framework v1.1.1 h1:PbnEKHsIU8KTTzoztHQGgjZUWx7Kk8uGtpGMMc1p+oI=
 github.com/hashicorp/terraform-plugin-framework v1.1.1/go.mod h1:DyZPxQA+4OKK5ELxFIIcqggcszqdWWUpTLPHAhS/tkY=
-github.com/hashicorp/terraform-plugin-framework-timeouts v0.3.0 h1:+JyyLOcqpnq3aELxmWWxMH5g55ml8NsyLWmYkcSR2fk=
-github.com/hashicorp/terraform-plugin-framework-timeouts v0.3.0/go.mod h1:ZvvDe5yPEf3lAv9IP6cqwobqFeXsPMJtPXMX3ZYxahQ=
+github.com/hashicorp/terraform-plugin-framework-timeouts v0.3.1 h1:5GhozvHUsrqxqku+yd0UIRTkmDLp2QPX5paL1Kq5uUA=
+github.com/hashicorp/terraform-plugin-framework-timeouts v0.3.1/go.mod h1:ThtYDU8p6sJ9+SI+TYxXrw28vXxgBwYOpoPv1EojSJI=
 github.com/hashicorp/terraform-plugin-framework-validators v0.10.0 h1:4L0tmy/8esP6OcvocVymw52lY0HyQ5OxB7VNl7k4bS0=
 github.com/hashicorp/terraform-plugin-framework-validators v0.10.0/go.mod h1:qdQJCdimB9JeX2YwOpItEu+IrfoJjWQ5PhLpAOMDQAE=
 github.com/hashicorp/terraform-plugin-go v0.14.3 h1:nlnJ1GXKdMwsC8g1Nh05tK2wsC3+3BL/DBBxFEki+j0=
@@ -181,8 +181,6 @@ github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/oklog/run v1.1.0 h1:GEenZ1cK0+q0+wsJew9qUg/DyD8k3JzYsZAi5gYi2mA=
 github.com/oklog/run v1.1.0/go.mod h1:sVPdnTZT1zYwAJeCMu2Th4T21pA3FPOQRfWjQlk7DVU=
-github.com/orange-cloudavenue/cloudavenue-sdk-go v0.0.3 h1:/dpatYcDfTdTco2pXy0TJO6XLSySK0xayQUNFXTcetA=
-github.com/orange-cloudavenue/cloudavenue-sdk-go v0.0.3/go.mod h1:bMSQ+EQ0CtwIca1J133sM9fc/4cAfLXN3r4TpnS0BDY=
 github.com/orange-cloudavenue/cloudavenue-sdk-go v0.1.0 h1:RPuSTeYvfSJAHtx+Ziu6jjbTMK1yGu3LCgRnyJ1jfUk=
 github.com/orange-cloudavenue/cloudavenue-sdk-go v0.1.0/go.mod h1:bMSQ+EQ0CtwIca1J133sM9fc/4cAfLXN3r4TpnS0BDY=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
