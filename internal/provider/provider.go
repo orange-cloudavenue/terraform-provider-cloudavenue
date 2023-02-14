@@ -228,22 +228,41 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 	}
 
 	cA, err := cloudAvenue.New()
-	if errors.Is(err, client.ErrAuthFailed) {
-		resp.Diagnostics.AddError(
-			"Unable to Create CloudAvenue API Client",
-			"An unexpected error occurred when creating the CloudAvenue API client. "+
-				"If the error is not clear, please contact the provider developers.\n\n"+
-				"CloudAvenue Client Error: "+err.Error(),
-		)
-		return
-	} else if errors.Is(err, client.ErrTokenEmpty) {
-		resp.Diagnostics.AddError(
-			"Unable to Create CloudAvenue API Client",
-			"An unexpected error occurred when creating the CloudAvenue API client. "+
-				"If the error is not clear, please contact the provider developers.\n\n"+
-				"CloudAvenue Client Error: empty token",
-		)
-		return
+	if err != nil {
+		switch {
+		case errors.Is(err, client.ErrAuthFailed):
+			resp.Diagnostics.AddError(
+				"Unable to Create CloudAvenue API Client",
+				"An unexpected error occurred when creating the CloudAvenue API client. "+
+					"If the error is not clear, please contact the provider developers.\n\n"+
+					"CloudAvenue Client Error: "+err.Error(),
+			)
+			return
+		case errors.Is(err, client.ErrTokenEmpty):
+			resp.Diagnostics.AddError(
+				"Unable to Create CloudAvenue API Client",
+				"An unexpected error occurred when creating the CloudAvenue API client. "+
+					"If the error is not clear, please contact the provider developers.\n\n"+
+					"CloudAvenue Client Error: empty token",
+			)
+			return
+		case errors.Is(err, client.ErrConfigureVmware):
+			resp.Diagnostics.AddError(
+				"Unable to Configure VMWare VCD Client",
+				"An unexpected error occurred when creating the VMWare VCD Client. "+
+					"If the error is not clear, please contact the provider developers.\n\n"+
+					"VMWare VCD Client Error: "+err.Error(),
+			)
+			return
+		default:
+			resp.Diagnostics.AddError(
+				"Unable to Create CloudAvenue API Client",
+				"An unexpected error occurred when creating the CloudAvenue API client. "+
+					"If the error is not clear, please contact the provider developers.\n\n"+
+					"unknown error: "+err.Error(),
+			)
+			return
+		}
 	}
 
 	// Make the CloudAvenue client available during DataSource and Resource
