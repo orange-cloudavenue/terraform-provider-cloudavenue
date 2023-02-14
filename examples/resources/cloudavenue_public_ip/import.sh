@@ -1,2 +1,3 @@
-# use the public ip to import the public ip
-terraform import cloudavenue_public_ip.example <public-ip>
+# use the `id` to import an existing public IP
+# `id` is the public IP
+terraform import cloudavenue_public_ip.example <id>

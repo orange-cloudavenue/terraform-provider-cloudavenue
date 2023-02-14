@@ -522,7 +522,7 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	// Create() is passed a default timeout to use if no value
+	// Delete() is passed a default timeout to use if no value
 	// has been supplied in the Terraform configuration.
 	deleteTimeout, errTO := state.Timeouts.Delete(ctx, 8*time.Minute)
 	if errTO != nil {
