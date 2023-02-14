@@ -54,12 +54,12 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 				),
 			},
 			// ImportState testing
-			// {
-			// 	ResourceName:      resourceName,
-			// 	ImportState:       true,
-			// 	ImportStateId:     "cc1f35c2-90a2-48d1-9359-62794faf44ad",
-			// 	ImportStateVerify: true,
-			// },
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateId:     "edgeName",
+				ImportStateVerify: true,
+			},
 			// check bad owner_type
 			// https://github.com/hashicorp/terraform-plugin-sdk/issues/609
 			// {
