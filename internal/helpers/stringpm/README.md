@@ -21,3 +21,25 @@ func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
                 },
             },
 ```
+
+### `DefaultEnvVar`
+
+This helper is used to set a default value for a string from an environment variable.
+
+```sh
+export CAV_VAR_DEFAULT_NAME="default-name"
+```
+
+```go
+// Schema defines the schema for the resource.
+func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        (...)
+            "name": schema.StringAttribute{
+                Required:            true,
+                MarkdownDescription: "A name for ...",
+                PlanModifiers: []planmodifier.String{
+                    stringpm.DefaultEnvVar("CAV_VAR_DEFAULT_NAME"),
+                },
+            },
+```
