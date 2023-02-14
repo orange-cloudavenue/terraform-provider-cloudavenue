@@ -187,7 +187,7 @@ func (r *vappResource) Configure(ctx context.Context, req resource.ConfigureRequ
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) { //nolint: gocyclo
 	// Retrieve values from plan
 	var (
 		plan *vappResourceModel
@@ -497,7 +497,7 @@ func (r *vappResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { //nolint: gocyclo
 	var plan, state *vappResourceModel
 
 	// Get current state
