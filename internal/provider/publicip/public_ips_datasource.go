@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -48,17 +49,17 @@ func (d *publicIPDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 				Computed: true,
 			},
 			"public_ips": schema.ListNestedAttribute{
-				Description: "A list of public IPs.",
-				Computed:    true,
+				MarkdownDescription: "A list of public IPs.",
+				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
-							Description: "The public IP address.",
-							Computed:    true,
+							MarkdownDescription: "The public IP address.",
+							Computed:            true,
 						},
 						"edge_gateway_name": schema.StringAttribute{
-							Description: "The name of the edge gateway related to the public ip. This properties is only present for NGP.",
-							Computed:    true,
+							MarkdownDescription: "The name of the edge gateway related to the public ip. This properties is only present for NGP.",
+							Computed:            true,
 						},
 					},
 				},
@@ -97,9 +98,13 @@ func (d *publicIPDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	publicIPs, _, err := d.client.APIClient.PublicIPApi.GetPublicIPs(d.client.Auth)
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+	publicIPs, httpR, err := d.client.APIClient.PublicIPApi.GetPublicIPs(d.client.Auth)
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		// If 404 return
 		return
 	}
 

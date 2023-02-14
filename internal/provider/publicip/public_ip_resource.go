@@ -70,8 +70,8 @@ func (r *publicIPResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 				Computed:            true,
 			},
 			"public_ip": schema.StringAttribute{
-				Description: "Public IP address.",
-				Computed:    true,
+				MarkdownDescription: "Public IP address.",
+				Computed:            true,
 			},
 			"edge_name": schema.StringAttribute{
 				MarkdownDescription: "The name of the Edge Gateway.",
@@ -298,7 +298,7 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Error creating Public IP",
-			"Could not create Public IP, unexpected error: publicIP is not a publicIPNetworkConfigModel",
+			"Could not create Public IP, unexpected error: publicIP is not a apiclient.PublicIps",
 		)
 		return
 	}
@@ -306,7 +306,7 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	if len(IP.NetworkConfig) == 0 {
 		resp.Diagnostics.AddError(
 			"Error creating Public IP",
-			"Could not create Public IP, unexpected error: publicIP is not a publicIPNetworkConfigModel",
+			"Could not create Public IP, unexpected error: no public IP find after creation",
 		)
 		return
 	}
@@ -370,6 +370,7 @@ func (r *publicIPResource) Read(ctx context.Context, req resource.ReadRequest, r
 			state.PublicIP = types.StringValue(ip.UplinkIp)
 
 			found = true
+			break
 		}
 	}
 
@@ -458,8 +459,6 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
 	tflog.Trace(ctx, "Public IP deleted")
 }
 
