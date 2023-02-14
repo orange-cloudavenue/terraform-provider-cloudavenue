@@ -55,72 +55,71 @@ func (d *catalogDataSource) Metadata(ctx context.Context, req datasource.Metadat
 
 func (d *catalogDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "The catalog data source show the details of the catalog.",
-
+		MarkdownDescription: "The catalog data source show the details of the catalog.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
 			},
 			"name": schema.StringAttribute{
-				Required:    true,
-				Description: "Name of the catalog.",
+				Required:            true,
+				MarkdownDescription: "Name of the catalog.",
 			},
 			"created": schema.StringAttribute{
-				Computed:    true,
-				Description: "Time stamp of when the catalog was created",
+				Computed:            true,
+				MarkdownDescription: "Time stamp of when the catalog was created",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 			},
 			"publish_enabled": schema.BoolAttribute{
-				Computed:    true,
-				Description: "True allows to publish a catalog externally to make its vApp templates and media files available for subscription by organizations outside the Cloud Director installation. Default is `false`.",
+				Computed:            true,
+				MarkdownDescription: "True allows to publish a catalog externally to make its vApp templates and media files available for subscription by organizations outside the Cloud Director installation. Default is `false`.",
 			},
 			"cache_enabled": schema.BoolAttribute{
-				Computed:    true,
-				Description: "True enables early catalog export to optimize synchronization",
+				Computed:            true,
+				MarkdownDescription: "True enables early catalog export to optimize synchronization",
 			},
 			"preserve_identity_information": schema.BoolAttribute{
-				Computed:    true,
-				Description: "Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Preserving the identity information limits the portability of the package and you should use it only when necessary.",
+				Computed:            true,
+				MarkdownDescription: "Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Preserving the identity information limits the portability of the package and you should use it only when necessary.",
 			},
 			"href": schema.StringAttribute{
-				Computed:    true,
-				Description: "Catalog HREF",
+				Computed:            true,
+				MarkdownDescription: "Catalog HREF",
 			},
 			"catalog_version": schema.Int64Attribute{
-				Computed:    true,
-				Description: "Catalog version number.",
+				Computed:            true,
+				MarkdownDescription: "Catalog version number.",
 			},
 			"owner_name": schema.StringAttribute{
-				Computed:    true,
-				Description: "Owner name from the catalog.",
+				Computed:            true,
+				MarkdownDescription: "Owner name from the catalog.",
 			},
 			"number_of_media": schema.Int64Attribute{
-				Computed:    true,
-				Description: "Number of Medias this catalog contains.",
+				Computed:            true,
+				MarkdownDescription: "Number of Medias this catalog contains.",
 			},
 			"media_item_list": schema.ListAttribute{
-				Computed:    true,
-				ElementType: types.StringType,
-				Description: "List of Media items in this catalog",
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of Media items in this catalog",
 			},
 			"is_shared": schema.BoolAttribute{
-				Computed:    true,
-				Description: "True if this catalog is shared.",
+				Computed:            true,
+				MarkdownDescription: "True if this catalog is shared.",
 			},
 			"is_local": schema.BoolAttribute{
-				Computed:    true,
-				Description: "True if this catalog belongs to the current organization.",
+				Computed:            true,
+				MarkdownDescription: "True if this catalog belongs to the current organization.",
 			},
 			"is_published": schema.BoolAttribute{
-				Computed:    true,
-				Description: "True if this catalog is shared to all organizations.",
+				Computed:            true,
+				MarkdownDescription: "True if this catalog is shared to all organizations.",
 			},
 			"publish_subscription_type": schema.StringAttribute{
-				Computed:    true,
-				Description: "PUBLISHED if published externally, SUBSCRIBED if subscribed to an external catalog, UNPUBLISHED otherwise.",
+				Computed:            true,
+				MarkdownDescription: "PUBLISHED if published externally, SUBSCRIBED if subscribed to an external catalog, UNPUBLISHED otherwise.",
 			},
 		},
 	}
