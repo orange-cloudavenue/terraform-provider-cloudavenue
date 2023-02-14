@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -55,7 +55,7 @@ type vdcResourceModel struct {
 	CPUAllocated           types.Float64            `tfsdk:"cpu_allocated"`
 	MemoryAllocated        types.Float64            `tfsdk:"memory_allocated"`
 	VdcStorageBillingModel types.String             `tfsdk:"storage_billing_model"`
-	VdcStorageProfiles     []vdcStorageProfileModel `tfsdk:"storage_profile"`
+	VdcStorageProfiles     []vdcStorageProfileModel `tfsdk:"storage_profiles"`
 	VdcGroup               types.String             `tfsdk:"vdc_group"`
 }
 
@@ -162,11 +162,10 @@ func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 					stringvalidator.OneOf("PAYG", "RESERVED"),
 				},
 			},
-		},
-		Blocks: map[string]schema.Block{
-			"storage_profile": schema.ListNestedBlock{
+			"storage_profiles": schema.SetNestedAttribute{
+				Required:            true,
 				MarkdownDescription: "List of storage profiles for this VDC.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"class": schema.StringAttribute{
 							Required: true,
@@ -190,8 +189,8 @@ func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 						},
 					},
 				},
-				Validators: []validator.List{
-					listvalidator.SizeAtLeast(1),
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
 				},
 			},
 		},

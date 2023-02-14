@@ -10,16 +10,16 @@ resource "cloudavenue_vdc" "example" {
   service_class         = "STD"
   storage_billing_model = "PAYG"
 
-  storage_profile {
-    class   = "gold"
-    default = true
-    limit   = 500
-  }
-
-  storage_profile {
-    class   = "silver"
-    default = false
-    limit   = 500
-  }
-
+  storage_profiles = [
+    {
+      class   = "gold"
+      default = true
+      limit   = 500
+    },
+    {
+      class   = "silver"
+      default = false
+      limit   = 500
+    },
+  ]
 }
