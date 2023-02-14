@@ -58,11 +58,6 @@ type vappResourceModel struct {
 	Lease           []vappLeaseModel              `tfsdk:"lease"`
 }
 
-type vappLeaseModel struct {
-	RuntimeLeaseInSec types.Int64 `tfsdk:"runtime_lease_in_sec"`
-	StorageLeaseInSec types.Int64 `tfsdk:"storage_lease_in_sec"`
-}
-
 // Metadata returns the resource type name.
 func (r *vappResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_vapp"

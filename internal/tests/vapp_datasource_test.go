@@ -7,6 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+const testAccVappDataSourceConfig = `
+resource "cloudavenue_vapp" "example" {
+	vapp_name = "vapp_name"
+	description = "This is a test vapp"
+}
+
+data "cloudavenue_vapp" "test" {
+	vapp_name = cloudavenue_vapp.example.vapp_name
+}
+`
+
 func TestAccVappDataSource(t *testing.T) {
 	dataSourceName := "data.cloudavenue_vapp.test"
 	resource.Test(t, resource.TestCase{
@@ -17,21 +28,14 @@ func TestAccVappDataSource(t *testing.T) {
 			{
 				Config: testAccVappDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "id", "urn:vcloud:vapp:83ce9843-f84c-4a72-8c16-3ec12835c4b4"),
-					resource.TestCheckResourceAttr(dataSourceName, "vapp_id", "urn:vcloud:vapp:83ce9843-f84c-4a72-8c16-3ec12835c4b4"),
-					resource.TestCheckResourceAttr(dataSourceName, "vapp_name", "vapp_test"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "vapp_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "vapp_name", "vapp_name"),
 					resource.TestCheckResourceAttr(dataSourceName, "status_text", "RESOLVED"),
 					resource.TestCheckResourceAttr(dataSourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
-
-					resource.TestCheckResourceAttr(dataSourceName, "href", os.Getenv("CLOUDAVENUE_URL")+"/api/vApp/vapp-83ce9843-f84c-4a72-8c16-3ec12835c4b4"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "href"),
 				),
 			},
 		},
 	})
 }
-
-const testAccVappDataSourceConfig = `
-data "cloudavenue_vapp" "test" {
-	name = "vapp_test"
-}
-`
