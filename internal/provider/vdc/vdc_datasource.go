@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 )
 
 var (
@@ -37,7 +38,7 @@ type vdcDataSourceModel struct {
 	CPUAllocated           types.Float64            `tfsdk:"cpu_allocated"`
 	MemoryAllocated        types.Float64            `tfsdk:"memory_allocated"`
 	VdcStorageBillingModel types.String             `tfsdk:"storage_billing_model"`
-	VdcStorageProfiles     []vdcStorageProfileModel `tfsdk:"storage_profile"`
+	VdcStorageProfiles     []vdcStorageProfileModel `tfsdk:"storage_profiles"`
 	VdcGroup               types.String             `tfsdk:"vdc_group"`
 }
 
@@ -102,11 +103,10 @@ func (d *vdcDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 				Computed:            true,
 				MarkdownDescription: "Choose Billing model of storage resources. It can be `PAYG` or `RESERVED`.",
 			},
-		},
-		Blocks: map[string]schema.Block{
-			"storage_profile": schema.ListNestedBlock{
+			"storage_profiles": schema.ListNestedAttribute{
+				Computed:            true,
 				MarkdownDescription: "List of storage profiles for this VDC.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"class": schema.StringAttribute{
 							Computed: true,
@@ -158,14 +158,17 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		return
 	}
 
-	vdcs, _, err := d.client.APIClient.VDCApi.GetOrgVdcByName(d.client.Auth, data.Name.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read vdc detail, got error: %s", err))
+	vdc, httpR, err := d.client.APIClient.VDCApi.GetOrgVdcByName(d.client.Auth, data.Name.ValueString())
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+		if resp.Diagnostics.HasError() {
+			return
+		}
 		return
 	}
 
 	var profiles []vdcStorageProfileModel
-	for _, profile := range vdcs.Vdc.VdcStorageProfiles {
+	for _, profile := range vdc.Vdc.VdcStorageProfiles {
 		p := vdcStorageProfileModel{
 			Class:   types.StringValue(profile.Class),
 			Limit:   types.Int64Value(int64(profile.Limit)),
@@ -175,17 +178,17 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	}
 
 	data = vdcDataSourceModel{
-		ID:                     types.StringValue(vdcs.Vdc.Name),
-		VdcGroup:               types.StringValue(vdcs.VdcGroup),
-		Name:                   types.StringValue(vdcs.Vdc.Name),
-		Description:            types.StringValue(vdcs.Vdc.Description),
-		VdcServiceClass:        types.StringValue(vdcs.Vdc.VdcServiceClass),
-		VdcDisponibilityClass:  types.StringValue(vdcs.Vdc.VdcDisponibilityClass),
-		VdcBillingModel:        types.StringValue(vdcs.Vdc.VdcBillingModel),
-		VcpuInMhz2:             types.Float64Value(vdcs.Vdc.VcpuInMhz2),
-		CPUAllocated:           types.Float64Value(vdcs.Vdc.CpuAllocated),
-		MemoryAllocated:        types.Float64Value(vdcs.Vdc.MemoryAllocated),
-		VdcStorageBillingModel: types.StringValue(vdcs.Vdc.VdcStorageBillingModel),
+		ID:                     types.StringValue(vdc.Vdc.Name),
+		VdcGroup:               types.StringValue(vdc.VdcGroup),
+		Name:                   types.StringValue(vdc.Vdc.Name),
+		Description:            types.StringValue(vdc.Vdc.Description),
+		VdcServiceClass:        types.StringValue(vdc.Vdc.VdcServiceClass),
+		VdcDisponibilityClass:  types.StringValue(vdc.Vdc.VdcDisponibilityClass),
+		VdcBillingModel:        types.StringValue(vdc.Vdc.VdcBillingModel),
+		VcpuInMhz2:             types.Float64Value(vdc.Vdc.VcpuInMhz2),
+		CPUAllocated:           types.Float64Value(vdc.Vdc.CpuAllocated),
+		MemoryAllocated:        types.Float64Value(vdc.Vdc.MemoryAllocated),
+		VdcStorageBillingModel: types.StringValue(vdc.Vdc.VdcStorageBillingModel),
 		VdcStorageProfiles:     profiles,
 	}
 

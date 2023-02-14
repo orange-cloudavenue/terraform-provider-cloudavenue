@@ -45,12 +45,12 @@ It must be at least 1200.
 It must be between 1 and 5000.
 - `service_class` (String) The service class of the org VDC. It can be `ECO`, `STD`, `HP` or `VOIP`.
 - `storage_billing_model` (String) Choose Billing model of storage resources. It can be `PAYG` or `RESERVED`.
-- `storage_profile` (Block List) List of storage profiles for this VDC. (see [below for nested schema](#nestedblock--storage_profile))
+- `storage_profiles` (Attributes List) List of storage profiles for this VDC. (see [below for nested schema](#nestedatt--storage_profiles))
 - `vdc_group` (String) Name of an existing VDC group or a new one. This allows you to isolate your VDC.
 VMs of VDCs which belong to the same VDC group can communicate together.
 
-<a id="nestedblock--storage_profile"></a>
-### Nested Schema for `storage_profile`
+<a id="nestedatt--storage_profiles"></a>
+### Nested Schema for `storage_profiles`
 
 Read-Only:
 

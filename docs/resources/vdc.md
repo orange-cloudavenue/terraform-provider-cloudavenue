@@ -25,18 +25,18 @@ resource "cloudavenue_vdc" "example" {
   service_class         = "STD"
   storage_billing_model = "PAYG"
 
-  storage_profile {
-    class   = "gold"
-    default = true
-    limit   = 500
-  }
-
-  storage_profile {
-    class   = "silver"
-    default = false
-    limit   = 500
-  }
-
+  storage_profiles = [
+    {
+      class   = "gold"
+      default = true
+      limit   = 500
+    },
+    {
+      class   = "silver"
+      default = false
+      limit   = 500
+    },
+  ]
 }
 ```
 
@@ -60,6 +60,7 @@ The length must be between 2 and 27 characters.
 Changes to this field will force a new resource to be created.
 - `service_class` (String) The service class of the org VDC. It can be `ECO`, `STD`, `HP` or `VOIP`.
 - `storage_billing_model` (String) Choose Billing model of storage resources. It can be `PAYG` or `RESERVED`.
+- `storage_profiles` (Attributes Set) List of storage profiles for this VDC. (see [below for nested schema](#nestedatt--storage_profiles))
 - `vdc_group` (String) Name of an existing VDC group or a new one. This allows you to isolate your VDC.
 VMs of VDCs which belong to the same VDC group can communicate together.
 Changes to this field will force a new resource to be created.
@@ -67,15 +68,14 @@ Changes to this field will force a new resource to be created.
 ### Optional
 
 - `description` (String) The description of the org VDC.
-- `storage_profile` (Block List) List of storage profiles for this VDC. (see [below for nested schema](#nestedblock--storage_profile))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
 - `id` (String) ID is the Name of the VCD.
 
-<a id="nestedblock--storage_profile"></a>
-### Nested Schema for `storage_profile`
+<a id="nestedatt--storage_profiles"></a>
+### Nested Schema for `storage_profiles`
 
 Required:
 
@@ -102,5 +102,5 @@ Import is supported using the following syntax:
 ```shell
 # VDC can be imported using the name.
 
-terraform import cloudavenue_vdc.vdc name
+terraform import cloudavenue_vdc.example name
 ```

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 var (
@@ -87,7 +88,10 @@ func (d *vdcsDataSource) Configure(ctx context.Context, req datasource.Configure
 }
 
 func (d *vdcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data vdcsDataSourceModel
+	var (
+		data  vdcsDataSourceModel
+		names []string
+	)
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -109,9 +113,10 @@ func (d *vdcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			VDCName: types.StringValue(v.VdcName),
 			VDCUuid: types.StringValue(v.VdcUuid),
 		})
+		names = append(names, v.VdcName)
 	}
 
-	data.ID = types.StringValue("frangipane")
+	data.ID = utils.GenerateUUID(names)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
