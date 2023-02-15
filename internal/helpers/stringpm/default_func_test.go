@@ -87,7 +87,7 @@ func TestDefaultFuncModifierPlanModifyString(t *testing.T) {
 				PlanValue: testCase.request.PlanValue,
 			}
 
-			x := stringpm.DefaultFunc(func(ctx context.Context, req planmodifier.StringRequest, resp *stringpm.DefaultFuncResponse) {
+			x := stringpm.DefaultFunc(func(_ context.Context, _ planmodifier.StringRequest, resp *stringpm.DefaultFuncResponse) {
 				resp.Value = expectedValue
 			})
 

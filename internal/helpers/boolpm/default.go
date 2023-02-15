@@ -14,7 +14,7 @@ import (
 //   - The plan or state values are not null or known
 func SetDefault(str bool) planmodifier.Bool {
 	return setDefaultFunc(
-		func(ctx context.Context, req planmodifier.BoolRequest, resp *DefaultFuncResponse) {
+		func(_ context.Context, _ planmodifier.BoolRequest, resp *DefaultFuncResponse) {
 			resp.Value = str
 		},
 		"Set default value",

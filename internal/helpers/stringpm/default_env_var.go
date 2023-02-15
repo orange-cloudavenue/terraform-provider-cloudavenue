@@ -16,7 +16,7 @@ import (
 //   - The plan or state values are not null or known
 func SetDefaultEnvVar(envVar string) planmodifier.String {
 	return setDefaultFunc(
-		func(ctx context.Context, req planmodifier.StringRequest, resp *DefaultFuncResponse) {
+		func(_ context.Context, _ planmodifier.StringRequest, resp *DefaultFuncResponse) {
 			v := os.Getenv(envVar)
 			if v != "" {
 				resp.Value = v
