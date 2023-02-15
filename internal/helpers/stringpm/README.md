@@ -4,7 +4,7 @@ This helper is used to modify a string value in a plan.
 
 ## Helpers Available
 
-### `Default`
+### `SetDefault`
 
 This helper is used to set a default value for a string.
 
@@ -17,12 +17,12 @@ func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
                 Required:            true,
                 MarkdownDescription: "A name for ...",
                 PlanModifiers: []planmodifier.String{
-                    stringpm.Default("default-name"),
+                    stringpm.SetDefault("default-name"),
                 },
             },
 ```
 
-### `DefaultEnvVar`
+### `SetDefaultEnvVar`
 
 This helper is used to set a default value for a string from an environment variable.
 
@@ -39,7 +39,7 @@ func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
                 Required:            true,
                 MarkdownDescription: "A name for ...",
                 PlanModifiers: []planmodifier.String{
-                    stringpm.DefaultEnvVar("CAV_VAR_DEFAULT_NAME"),
+                    stringpm.SetDefaultEnvVar("CAV_VAR_DEFAULT_NAME"),
                 },
             },
 ```
