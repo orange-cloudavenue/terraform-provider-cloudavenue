@@ -14,8 +14,9 @@ Provides a Cloud Avenue Organization group. This can be used to create, update, 
 
 ```terraform
 resource "cloudavenue_org_group" "example" {
-  name          = "ExampleGroup"
+  name          = "OrgTest"
   role          = "Organization Administrator"
+  description   = "org test from go test"
 }
 ```
 
@@ -41,6 +42,6 @@ resource "cloudavenue_org_group" "example" {
 Import is supported using the following syntax:
 
 ```shell
-# use the id to import the org group
-terraform import cloudavenue_org_group.example urn:vcloud:group:2bd85bc6-cb68-42be-b8f0-973790594cd8
+# use the name to import the resource
+terraform import cloudavenue_org_group.example name
 ```

@@ -6,11 +6,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../examples -test
 const testAccOrgGroupResourceConfig = `
 resource "cloudavenue_org_group" "example" {
   name          = "OrgTest"
   role          = "Organization Administrator"
-	description   = "org test from go test"
+  description   = "org test from go test"
 }
 `
 
@@ -23,8 +24,7 @@ func TestAccOrgGroupResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Destroy: false,
-				Config:  testAccOrgGroupResourceConfig,
+				Config: testAccOrgGroupResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", "OrgTest"),
@@ -37,6 +37,7 @@ func TestAccOrgGroupResource(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
+				ImportStateId:     "OrgTest",
 				ImportStateVerify: true,
 			},
 		},

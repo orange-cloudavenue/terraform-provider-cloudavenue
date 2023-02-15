@@ -34,7 +34,7 @@ type orgGroupResource struct {
 	client *client.CloudAvenue
 }
 
-type orgResourceModel struct {
+type orgGroupResourceModel struct {
 	ID          types.String `tfsdk:"id"`
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
@@ -108,7 +108,7 @@ func (r *orgGroupResource) Configure(ctx context.Context, req resource.Configure
 func (r *orgGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var (
-		plan *orgResourceModel
+		plan *orgGroupResourceModel
 		err  error
 	)
 
@@ -150,7 +150,7 @@ func (r *orgGroupResource) Create(ctx context.Context, req resource.CreateReques
 
 	var userNames []attr.Value
 
-	plan = &orgResourceModel{
+	plan = &orgGroupResourceModel{
 		ID:          types.StringValue(createGroup.Group.ID),
 		Name:        plan.Name,
 		Description: plan.Description,
@@ -167,7 +167,7 @@ func (r *orgGroupResource) Create(ctx context.Context, req resource.CreateReques
 
 // Read refreshes the Terraform state with the latest data.
 func (r *orgGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state *orgResourceModel
+	var state *orgGroupResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -181,7 +181,14 @@ func (r *orgGroupResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
-	group, err := adminOrg.GetGroupById(state.ID.ValueString(), false)
+	var groupID string
+	if state.ID.IsNull() {
+		groupID = state.Name.ValueString()
+	} else {
+		groupID = state.ID.ValueString()
+	}
+
+	group, err := adminOrg.GetGroupByNameOrId(groupID, false)
 	if err != nil {
 		if govcd.IsNotFound(err) {
 			// Group not found, remove from state
@@ -198,7 +205,7 @@ func (r *orgGroupResource) Read(ctx context.Context, req resource.ReadRequest, r
 		userNames = append(userNames, types.StringValue(user.Name))
 	}
 
-	state = &orgResourceModel{
+	state = &orgGroupResourceModel{
 		ID:          types.StringValue(group.Group.ID),
 		Name:        types.StringValue(group.Group.Name),
 		Description: types.StringValue(group.Group.Description),
@@ -215,7 +222,7 @@ func (r *orgGroupResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *orgGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state *orgResourceModel
+	var plan, state *orgGroupResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -247,13 +254,17 @@ func (r *orgGroupResource) Update(ctx context.Context, req resource.UpdateReques
 		group.Group.Role = roleRef
 	}
 
+	if !plan.Description.Equal(state.Description) {
+		group.Group.Description = plan.Description.ValueString()
+	}
+
 	err = group.Update()
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating Org group", err.Error())
 		return
 	}
 
-	plan = &orgResourceModel{
+	plan = &orgGroupResourceModel{
 		ID:          state.ID,
 		Name:        plan.Name,
 		Description: plan.Description,
@@ -270,7 +281,7 @@ func (r *orgGroupResource) Update(ctx context.Context, req resource.UpdateReques
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *orgGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state *orgResourceModel
+	var state *orgGroupResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -293,8 +304,6 @@ func (r *orgGroupResource) Delete(ctx context.Context, req resource.DeleteReques
 	err = group.Delete()
 	if err != nil {
 		if govcd.IsNotFound(err) {
-			// Group not found, remove from state
-			resp.State.RemoveResource(ctx)
 			return
 		}
 		resp.Diagnostics.AddError("Error deleting Org group", err.Error())
@@ -302,6 +311,7 @@ func (r *orgGroupResource) Delete(ctx context.Context, req resource.DeleteReques
 	}
 }
 
+//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -resource
 func (r *orgGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
