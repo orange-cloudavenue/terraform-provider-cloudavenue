@@ -66,3 +66,21 @@ func (r *xResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *
                 },
             },
 ```
+
+### `SetDefaultEmptyString`
+
+This helper is used to set a default empty value for a string.
+
+```go
+// Schema defines the schema for the resource.
+func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        (...)
+            "name": schema.StringAttribute{
+                Required:            true,
+                MarkdownDescription: "A name for ...",
+                PlanModifiers: []planmodifier.String{
+                    stringpm.SetDefaultEmptyString(),
+                },
+            },
+```
