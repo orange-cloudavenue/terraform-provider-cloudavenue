@@ -10,14 +10,14 @@ This helper is used to set a default value for a boolean.
 
 ```go
 // Schema defines the schema for the resource.
-func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *xResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
     resp.Schema = schema.Schema{
         (...)
-            "enabled": schema.BoolAttribute{
-                Required:            true,
-                MarkdownDescription: "Enable or disable ...",
-                PlanModifiers: []planmodifier.Bool{
-                    int64pm.SetDefault(true),
+            "disk_size": schema.Int64Attribute{
+                Optional:            true,
+                MarkdownDescription: "The size of the disk in MB.",
+                PlanModifiers: []planmodifier.Int64{
+                    int64pm.SetDefault(100),
                 },
             },
 ```
@@ -27,19 +27,19 @@ func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 This helper is used to set a default value for a boolean from an environment variable.
 
 ```sh
-export CAV_VAR_DEFAULT_NAME="true"
+export CAV_VAR_DEFAULT_DISK_SIZE="100"
 ```
 
 ```go
 // Schema defines the schema for the resource.
-func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *xResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
     resp.Schema = schema.Schema{
         (...)
-            "enabled": schema.BoolAttribute{
-                Required:            true,
-                MarkdownDescription: "Enable or disable ...",
-                PlanModifiers: []planmodifier.Bool{
-                    int64pm.SetDefaultEnvVar("CAV_VAR_DEFAULT_NAME"),
+            "disk_size": schema.Int64Attribute{
+                Optional:            true,
+                MarkdownDescription: "The size of the disk in MB.",
+                PlanModifiers: []planmodifier.Int64{
+                    int64pm.SetDefaultEnvVar("CAV_VAR_DEFAULT_DISK_SIZE"),
                 },
             },
 ```
@@ -54,14 +54,11 @@ func (r *xResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *
     resp.Schema = schema.Schema{
         (...)
             "enabled": schema.BoolAttribute{
-                Required:            true,
-                MarkdownDescription: "Enable or disable ...",
+                Optional:            true,
+                MarkdownDescription: "The size of the disk in MB.",
                 PlanModifiers: []planmodifier.Bool{
-                    int64pm.SetDefaultFunc(int64pm.DefaultFunc(func(ctx context.Context, req planmodifier.BoolRequest, resp *int64pm.DefaultFuncResponse) {
-                        if os.Getenv("CAV_VAR_1") == "foo" && os.Getenv("CAV_VAR_2") == "bar" {
-                            resp.Value = true
-                            return
-                        }
+                    int64pm.SetDefaultFunc(int64pm.DefaultFunc(func(ctx context.Context, req planmodifier.Int64Request, resp *int64pm.DefaultFuncResponse) {
+                        resp.Value = req.PlanValue * 1024
                     })),
                 },
             },

@@ -86,7 +86,7 @@ func TestDefaultFuncModifierPlanModifyInt64(t *testing.T) {
 				PlanValue: testCase.request.PlanValue,
 			}
 
-			x := int64pm.DefaultFunc(func(ctx context.Context, req planmodifier.Int64Request, resp *int64pm.DefaultFuncResponse) {
+			x := int64pm.DefaultFunc(func(_ context.Context, _ planmodifier.Int64Request, resp *int64pm.DefaultFuncResponse) {
 				resp.Value = expectedValue
 			})
 

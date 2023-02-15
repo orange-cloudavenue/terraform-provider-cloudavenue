@@ -14,7 +14,7 @@ func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
     resp.Schema = schema.Schema{
         (...)
             "enabled": schema.BoolAttribute{
-                Required:            true,
+                Optional:            true,
                 MarkdownDescription: "Enable or disable ...",
                 PlanModifiers: []planmodifier.Bool{
                     boolpm.SetDefault(true),
@@ -36,7 +36,7 @@ func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
     resp.Schema = schema.Schema{
         (...)
             "enabled": schema.BoolAttribute{
-                Required:            true,
+                Optional:            true,
                 MarkdownDescription: "Enable or disable ...",
                 PlanModifiers: []planmodifier.Bool{
                     boolpm.SetDefaultEnvVar("CAV_VAR_DEFAULT_NAME"),
@@ -54,7 +54,7 @@ func (r *xResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *
     resp.Schema = schema.Schema{
         (...)
             "enabled": schema.BoolAttribute{
-                Required:            true,
+                Optional:            true,
                 MarkdownDescription: "Enable or disable ...",
                 PlanModifiers: []planmodifier.Bool{
                     boolpm.SetDefaultFunc(boolpm.DefaultFunc(func(ctx context.Context, req planmodifier.BoolRequest, resp *boolpm.DefaultFuncResponse) {

@@ -17,7 +17,7 @@ import (
 //   - The plan or state values are not null or known
 func SetDefaultEnvVar(envVar string) planmodifier.Int64 {
 	return setDefaultFunc(
-		func(ctx context.Context, req planmodifier.Int64Request, resp *DefaultFuncResponse) {
+		func(_ context.Context, _ planmodifier.Int64Request, resp *DefaultFuncResponse) {
 			v := os.Getenv(envVar)
 			if v != "" {
 				// string to int64
