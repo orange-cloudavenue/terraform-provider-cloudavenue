@@ -77,6 +77,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		vapp.NewVappResource,
 		catalog.NewCatalogResource,
 		org.NewOrgUserResource,
+		org.NewOrgGroupResource,
 	}
 }
 
@@ -139,7 +140,11 @@ func (p *cloudavenueProvider) Schema(
 	}
 }
 
-func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *cloudavenueProvider) Configure(
+	ctx context.Context,
+	req provider.ConfigureRequest,
+	resp *provider.ConfigureResponse,
+) {
 	tflog.Info(ctx, "Configuring CloudAvenue client")
 	var config cloudavenueProviderModel
 
