@@ -43,3 +43,26 @@ func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
                 },
             },
 ```
+
+### `SetDefaultFunc`
+
+This helper is used to set a default value for a string using a function.
+
+```go
+// Schema defines the schema for the resource.
+func (r *xResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+    resp.Schema = schema.Schema{
+        (...)
+            "name": schema.StringAttribute{
+                Required:            true,
+                MarkdownDescription: "A name for ...",
+                PlanModifiers: []planmodifier.String{
+                    stringpm.SetDefaultFunc(stringpm.DefaultFunc(func(ctx context.Context, req planmodifier.StringRequest, resp *stringpm.DefaultFuncResponse) {
+                        if strings.Contains(req.PlanValue, "foo") {
+                            resp.Value = "bar"
+                            return
+                        }
+                    })),
+                },
+            },
+```
