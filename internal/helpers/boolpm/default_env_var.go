@@ -17,7 +17,7 @@ import (
 //   - The plan or state values are not null or known
 func SetDefaultEnvVar(envVar string) planmodifier.Bool {
 	return setDefaultFunc(
-		func(ctx context.Context, req planmodifier.BoolRequest, resp *DefaultFuncResponse) {
+		func(_ context.Context, _ planmodifier.BoolRequest, resp *DefaultFuncResponse) {
 			v := os.Getenv(envVar)
 			if v != "" {
 				// Parse string to bool

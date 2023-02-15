@@ -86,7 +86,7 @@ func TestDefaultFuncModifierPlanModifyBool(t *testing.T) {
 				PlanValue: testCase.request.PlanValue,
 			}
 
-			x := boolpm.DefaultFunc(func(ctx context.Context, req planmodifier.BoolRequest, resp *boolpm.DefaultFuncResponse) {
+			x := boolpm.DefaultFunc(func(_ context.Context, _ planmodifier.BoolRequest, resp *boolpm.DefaultFuncResponse) {
 				resp.Value = expectedValue
 			})
 
