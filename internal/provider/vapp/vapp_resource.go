@@ -268,9 +268,9 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 		runtimeLease = int(plan.Lease[0].RuntimeLeaseInSec.ValueInt64())
 		storageLease = int(plan.Lease[0].StorageLeaseInSec.ValueInt64())
 	} else {
-		adminOrg, err := r.client.Vmware.GetAdminOrgById(org.Org.ID)
-		if err != nil {
-			resp.Diagnostics.AddError("Error retrieving Org", err.Error())
+		adminOrg, errGetAdminOrg := r.client.Vmware.GetAdminOrgById(org.Org.ID)
+		if errGetAdminOrg != nil {
+			resp.Diagnostics.AddError("Error retrieving Org", errGetAdminOrg.Error())
 			return
 		}
 
@@ -309,9 +309,9 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 	// power_on
 	if !plan.PowerON.IsNull() {
 		if plan.PowerON.ValueBool() {
-			task, err := vapp.PowerOn()
-			if err != nil {
-				resp.Diagnostics.AddError("Error powering on VApp", err.Error())
+			task, errPowerOn := vapp.PowerOn()
+			if errPowerOn != nil {
+				resp.Diagnostics.AddError("Error powering on VApp", errPowerOn.Error())
 				return
 			}
 			err = task.WaitTaskCompletion()
@@ -320,9 +320,9 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 				return
 			}
 		} else {
-			task, err := vapp.Undeploy()
-			if err != nil {
-				resp.Diagnostics.AddError("Error powering off VApp", err.Error())
+			task, errUndeploy := vapp.Undeploy()
+			if errUndeploy != nil {
+				resp.Diagnostics.AddError("Error powering off VApp", errUndeploy.Error())
 				return
 			}
 			err = task.WaitTaskCompletion()
@@ -544,9 +544,9 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		runtimeLease = int(plan.Lease[0].RuntimeLeaseInSec.ValueInt64())
 		storageLease = int(plan.Lease[0].StorageLeaseInSec.ValueInt64())
 	} else {
-		adminOrg, err := r.client.Vmware.GetAdminOrgById(org.Org.ID)
-		if err != nil {
-			resp.Diagnostics.AddError("Error retrieving Org", err.Error())
+		adminOrg, errGetAdminOrg := r.client.Vmware.GetAdminOrgById(org.Org.ID)
+		if errGetAdminOrg != nil {
+			resp.Diagnostics.AddError("Error retrieving Org", errGetAdminOrg.Error())
 			return
 		}
 
@@ -585,9 +585,9 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// power_on
 	if !plan.PowerON.IsNull() {
 		if plan.PowerON.ValueBool() {
-			task, err := vapp.PowerOn()
-			if err != nil {
-				resp.Diagnostics.AddError("Error powering on VApp", err.Error())
+			task, errPowerOn := vapp.PowerOn()
+			if errPowerOn != nil {
+				resp.Diagnostics.AddError("Error powering on VApp", errPowerOn.Error())
 				return
 			}
 			err = task.WaitTaskCompletion()
@@ -596,9 +596,9 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 				return
 			}
 		} else {
-			task, err := vapp.Undeploy()
-			if err != nil {
-				resp.Diagnostics.AddError("Error powering off VApp", err.Error())
+			task, errUndeploy := vapp.Undeploy()
+			if errUndeploy != nil {
+				resp.Diagnostics.AddError("Error powering off VApp", errUndeploy.Error())
 				return
 			}
 			err = task.WaitTaskCompletion()
@@ -754,9 +754,9 @@ func (r *vappResource) resourceVappUpdate(ctx context.Context, plan, state, conf
 		runtimeLease = int(plan.Lease[0].RuntimeLeaseInSec.ValueInt64())
 		storageLease = int(plan.Lease[0].StorageLeaseInSec.ValueInt64())
 	} else {
-		adminOrg, err := r.client.Vmware.GetAdminOrgById(org.Org.ID)
-		if err != nil {
-			return diag.Diagnostics{diag.NewErrorDiagnostic("Error retrieving Org", err.Error())}, nil
+		adminOrg, errGetAdminOrg := r.client.Vmware.GetAdminOrgById(org.Org.ID)
+		if errGetAdminOrg != nil {
+			return diag.Diagnostics{diag.NewErrorDiagnostic("Error retrieving Org", errGetAdminOrg.Error())}, nil
 		}
 
 		if adminOrg.AdminOrg.OrgSettings == nil || adminOrg.AdminOrg.OrgSettings.OrgVAppLeaseSettings == nil {
