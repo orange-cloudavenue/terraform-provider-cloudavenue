@@ -255,8 +255,8 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 
 		if jobStatus.IsDone() {
 			// get all Public IPs and find the new one
-			publicIPs, httpR, err := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
-			if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+			publicIPs, httpR, errGet := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
+			if apiErr := helpers.CheckAPIError(errGet, httpR); apiErr != nil {
 				resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 				if resp.Diagnostics.HasError() {
 					return nil, "error", apiErr

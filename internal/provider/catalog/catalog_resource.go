@@ -290,9 +290,9 @@ func (r *catalogResource) Update(ctx context.Context, req resource.UpdateRequest
 			newAdminCatalog.AdminCatalog.CatalogStorageProfiles = &govcdtypes.CatalogStorageProfiles{VdcStorageProfile: []*govcdtypes.Reference{}}
 		} else {
 			// If StorageProfileID is not empty, add storage profile to catalog
-			storageProfileReference, err := r.getStorageProfileReference(adminOrg, plan.StorageProfileID.ValueString(), false)
-			if err != nil {
-				resp.Diagnostics.AddError("Error retrieving Storage Profile", err.Error())
+			storageProfileReference, errGet := r.getStorageProfileReference(adminOrg, plan.StorageProfileID.ValueString(), false)
+			if errGet != nil {
+				resp.Diagnostics.AddError("Error retrieving Storage Profile", errGet.Error())
 				return
 			}
 
