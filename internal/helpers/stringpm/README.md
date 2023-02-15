@@ -10,11 +10,11 @@ This helper is used to set a default value for a string.
 
 ```go
 // Schema defines the schema for the resource.
-func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *xResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
     resp.Schema = schema.Schema{
         (...)
             "name": schema.StringAttribute{
-                Required:            true,
+                Optional:            true,
                 MarkdownDescription: "A name for ...",
                 PlanModifiers: []planmodifier.String{
                     stringpm.SetDefault("default-name"),
@@ -32,11 +32,11 @@ export CAV_VAR_DEFAULT_NAME="default-name"
 
 ```go
 // Schema defines the schema for the resource.
-func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *xResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
     resp.Schema = schema.Schema{
         (...)
             "name": schema.StringAttribute{
-                Required:            true,
+                Optional:            true,
                 MarkdownDescription: "A name for ...",
                 PlanModifiers: []planmodifier.String{
                     stringpm.SetDefaultEnvVar("CAV_VAR_DEFAULT_NAME"),
@@ -54,7 +54,7 @@ func (r *xResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *
     resp.Schema = schema.Schema{
         (...)
             "name": schema.StringAttribute{
-                Required:            true,
+                Optional:            true,
                 MarkdownDescription: "A name for ...",
                 PlanModifiers: []planmodifier.String{
                     stringpm.SetDefaultFunc(stringpm.DefaultFunc(func(ctx context.Context, req planmodifier.StringRequest, resp *stringpm.DefaultFuncResponse) {
@@ -73,11 +73,11 @@ This helper is used to set a default empty value for a string.
 
 ```go
 // Schema defines the schema for the resource.
-func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *xResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
     resp.Schema = schema.Schema{
         (...)
             "name": schema.StringAttribute{
-                Required:            true,
+                Optional:            true,
                 MarkdownDescription: "A name for ...",
                 PlanModifiers: []planmodifier.String{
                     stringpm.SetDefaultEmptyString(),
