@@ -1,3 +1,4 @@
+// Package client is the main client for the CloudAvenue provider.
 package client
 
 import (

@@ -1,3 +1,4 @@
+// Package vdc provides a resource to manage VDCs.
 package vdc
 
 import (

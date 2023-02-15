@@ -1,3 +1,4 @@
+// Package catalog provides a Terraform resource to manage catalogs.
 package catalog
 
 import (

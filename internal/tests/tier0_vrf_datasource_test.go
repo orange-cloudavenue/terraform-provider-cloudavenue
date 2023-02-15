@@ -1,3 +1,4 @@
+// Package tests provides the acceptance tests for the provider.
 package tests
 
 import (

@@ -1,3 +1,4 @@
+// Package helpers provides configuration helpers for Terraform Provider.
 package helpers
 
 const (

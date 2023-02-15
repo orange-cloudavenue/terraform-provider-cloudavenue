@@ -1,3 +1,4 @@
+// Package vcda provides a Terraform resource to manage vcda.
 package vcda
 
 import (

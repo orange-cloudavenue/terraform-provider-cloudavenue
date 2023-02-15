@@ -1,3 +1,4 @@
+// Package edgegw provides a Terraform resource to manage edge gateways.
 package edgegw
 
 import (

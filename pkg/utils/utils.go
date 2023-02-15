@@ -1,3 +1,4 @@
+// Package utils provides utils for Terraform Provider.
 package utils
 
 import (
