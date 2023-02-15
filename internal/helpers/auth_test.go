@@ -1,3 +1,4 @@
+// Package helpers provides auth helpers for the CloudAvenue Terraform Provider.
 package helpers
 
 import (

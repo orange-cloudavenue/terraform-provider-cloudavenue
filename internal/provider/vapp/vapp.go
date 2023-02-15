@@ -1,3 +1,4 @@
+// Package vapp provides a Terraform resource to manage vApps.
 package vapp
 
 import "github.com/hashicorp/terraform-plugin-framework/types"

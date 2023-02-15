@@ -1,3 +1,4 @@
+// Package publicip provides a Terraform resource to manage public IPs.
 package publicip
 
 import (

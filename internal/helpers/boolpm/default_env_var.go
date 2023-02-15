@@ -1,3 +1,4 @@
+// Package boolpm provides a plan modifier for boolean values.
 package boolpm
 
 import (

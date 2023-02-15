@@ -1,3 +1,4 @@
+// Package int64pm provides a plan modifier for int64 values.
 package int64pm
 
 import "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"

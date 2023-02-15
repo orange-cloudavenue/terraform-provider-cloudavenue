@@ -1,3 +1,4 @@
+// Package org provides a Terraform resource to manage org users.
 package org
 
 import (

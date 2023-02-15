@@ -1,3 +1,4 @@
+// Package stringpm provides a plan modifier for string values.
 package stringpm_test
 
 import (
