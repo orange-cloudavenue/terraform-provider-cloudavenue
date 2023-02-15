@@ -19,6 +19,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/catalog"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/publicip"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vcda"
@@ -74,6 +75,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		// API VMWARE
 		vapp.NewVappResource,
 		catalog.NewCatalogResource,
+		org.NewOrgUserResource,
 	}
 }
 
