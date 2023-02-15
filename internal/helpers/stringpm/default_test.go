@@ -87,7 +87,7 @@ func TestDefaultModifierPlanModifyString(t *testing.T) {
 				PlanValue: testCase.request.PlanValue,
 			}
 
-			stringpm.Default(expectedValue).PlanModifyString(context.Background(), testCase.request, resp)
+			stringpm.SetDefault(expectedValue).PlanModifyString(context.Background(), testCase.request, resp)
 
 			if diff := cmp.Diff(testCase.expected, resp); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

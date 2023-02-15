@@ -91,7 +91,7 @@ func TestDefaultEnvVarModifierPlanModifyString(t *testing.T) {
 				PlanValue: testCase.request.PlanValue,
 			}
 
-			stringpm.DefaultEnvVar(envVarName).PlanModifyString(context.Background(), testCase.request, resp)
+			stringpm.SetDefaultEnvVar(envVarName).PlanModifyString(context.Background(), testCase.request, resp)
 
 			if diff := cmp.Diff(testCase.expected, resp); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
