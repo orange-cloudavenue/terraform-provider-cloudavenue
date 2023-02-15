@@ -58,7 +58,6 @@ func (r *catalogResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 		MarkdownDescription: "The Catalog resource allows you to manage a catalog in CloudAvenue.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				CustomType:          types.StringType,
 				Computed:            true,
 				MarkdownDescription: "The ID is a unique identifier for the catalog",
 			},
