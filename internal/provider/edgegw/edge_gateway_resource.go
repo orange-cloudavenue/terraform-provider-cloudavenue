@@ -233,6 +233,7 @@ func (r *edgeGatewaysResource) Create(
 			plan.OwnerName.ValueString(),
 		)
 		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+			defer httpR.Body.Close()
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
 				return
@@ -245,6 +246,7 @@ func (r *edgeGatewaysResource) Create(
 			plan.OwnerName.ValueString(),
 		)
 		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+			defer httpR.Body.Close()
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
 				return
@@ -263,10 +265,11 @@ func (r *edgeGatewaysResource) Create(
 
 		if jobStatus.IsDone() {
 			// get all edge gateways and find the one that matches the tier0_vrf_id and owner_name
-			gateways, _, errEdgesGet := r.client.APIClient.EdgeGatewaysApi.GetEdges(auth)
+			gateways, httpR, errEdgesGet := r.client.APIClient.EdgeGatewaysApi.GetEdges(auth)
 			if errEdgesGet != nil {
 				return nil, "err", errEdgesGet
 			}
+			defer httpR.Body.Close()
 
 			for _, gw := range gateways {
 				if gw.Tier0VrfId == plan.Tier0VrfID.ValueString() &&
@@ -377,6 +380,7 @@ func (r *edgeGatewaysResource) Read(
 			state.EdgeID.ValueString(),
 		)
 		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+			defer httpR.Body.Close()
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
 				return
@@ -388,6 +392,7 @@ func (r *edgeGatewaysResource) Read(
 	} else {
 		gateways, httpR, err := r.client.APIClient.EdgeGatewaysApi.GetEdges(auth)
 		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+			defer httpR.Body.Close()
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
 				return
@@ -478,6 +483,7 @@ func (r *edgeGatewaysResource) Delete(
 		state.EdgeID.ValueString(),
 	)
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+		defer httpR.Body.Close()
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return

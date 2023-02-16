@@ -102,11 +102,12 @@ func (d *vdcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	vdcs, _, err := d.client.APIClient.VDCApi.GetOrgVdcs(d.client.Auth)
+	vdcs, httpR, err := d.client.APIClient.VDCApi.GetOrgVdcs(d.client.Auth)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read vdcs detail, got error: %s", err))
 		return
 	}
+	defer httpR.Body.Close()
 
 	data = vdcsDataSourceModel{}
 

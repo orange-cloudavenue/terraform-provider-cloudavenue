@@ -102,6 +102,7 @@ func (d *publicIPDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 	publicIPs, httpR, err := d.client.APIClient.PublicIPApi.GetPublicIPs(d.client.Auth)
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+		defer httpR.Body.Close()
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
