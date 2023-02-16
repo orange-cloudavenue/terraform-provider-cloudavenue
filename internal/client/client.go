@@ -12,11 +12,15 @@ import (
 )
 
 var (
-	ErrAuthFailed      = errors.New("authentication error")
-	ErrTokenEmpty      = errors.New("token is empty")
+	// ErrAuthFailed is returned when the authentication failed.
+	ErrAuthFailed = errors.New("authentication error")
+	// ErrTokenEmpty is returned when the token is empty.
+	ErrTokenEmpty = errors.New("token is empty")
+	// ErrConfigureVmware is returned when the configuration of vmware failed.
 	ErrConfigureVmware = errors.New("error configuring vmware")
 )
 
+// CloudAvenue is the main struct for the CloudAvenue client.
 type CloudAvenue struct {
 	Org                string
 	Vdc                string
@@ -111,7 +115,7 @@ func (c *CloudAvenue) GetOrg() string {
 	return c.Org
 }
 
-// DefaultVdcExists returns true if the default VDC exists
+// DefaultVdcExist returns true if the default VDC exists
 func (c *CloudAvenue) DefaultVdcExist() bool {
 	return c.Vdc != ""
 }
@@ -121,7 +125,7 @@ func (c *CloudAvenue) GetDefaultVdc() string {
 	return c.Vdc
 }
 
-// GetBasePath returns the base path of the API
+// GetURL returns the base path of the API
 func (c *CloudAvenue) GetURL() string {
 	return c.URL
 }

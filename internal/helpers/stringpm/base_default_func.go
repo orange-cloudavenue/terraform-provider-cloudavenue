@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// RequiresReplaceIfFunc is a conditional function used in the RequiresReplaceIf
-// plan modifier to determine whether the attribute requires replacement.
+// DefaultFunc is a function that can be used to set a default value for a
+// string attribute.
 type DefaultFunc func(context.Context, planmodifier.StringRequest, *DefaultFuncResponse)
 
-// RequiresReplaceIfFuncResponse is the response type for a RequiresReplaceIfFunc.
+// DefaultFuncResponse is the response type for a DefaultFunc.
 type DefaultFuncResponse struct {
 	// Diagnostics report errors or warnings related to this logic. An empty
 	// or unset slice indicates success, with no warnings or errors generated.

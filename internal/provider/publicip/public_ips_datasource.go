@@ -19,6 +19,7 @@ var (
 	_ datasource.DataSourceWithConfigure = &publicIPDataSource{}
 )
 
+// NewPublicIPDataSource returns a new resource implementing the public IP data source.
 func NewPublicIPDataSource() datasource.DataSource {
 	return &publicIPDataSource{}
 }

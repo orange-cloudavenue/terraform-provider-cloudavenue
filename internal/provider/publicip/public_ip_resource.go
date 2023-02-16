@@ -32,7 +32,7 @@ var (
 	_ resource.ResourceWithImportState = &publicIPResource{}
 )
 
-// NewEdgeGatewayResource is a helper function to simplify the provider implementation.
+// NewPublicIPResource returns a new resource implementing the public_ip resource.
 func NewPublicIPResource() resource.Resource {
 	return &publicIPResource{}
 }
