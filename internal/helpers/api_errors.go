@@ -64,7 +64,7 @@ func (e *APIError) GetTerraformDiagnostic() diag.Diagnostic {
 
 // IsNotFound returns true if the error is a 404 Not Found error.
 func (e *APIError) IsNotFound() bool {
-	return e.GetStatusCode() == 404
+	return e.GetStatusCode() == http.StatusNotFound
 }
 
 // CheckAPIError checks the HTTP response for errors and returns an APIError
@@ -75,7 +75,7 @@ func CheckAPIError(err error, httpR *http.Response) *APIError {
 		return nil
 	}
 
-	if httpR != nil && httpR.StatusCode >= 400 {
+	if httpR != nil && httpR.StatusCode >= http.StatusBadRequest {
 		var apiErr *apiclient.GenericSwaggerError
 		if errors.As(err, &apiErr) {
 			x := &APIError{
