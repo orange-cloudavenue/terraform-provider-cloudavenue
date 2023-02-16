@@ -20,7 +20,7 @@ func (c *CloudAvenue) GetOrgAndVdc(orgName, vdcName string) (org *govcd.Org, vdc
 
 	org, err = c.Vmware.GetOrgByName(orgName)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error retrieving Org %s: %s", orgName, err)
+		return nil, nil, fmt.Errorf("error retrieving Org %s: %w", orgName, err)
 	}
 
 	if org.Org.Name == "" || org.Org.HREF == "" || org.Org.ID == "" {
@@ -29,7 +29,7 @@ func (c *CloudAvenue) GetOrgAndVdc(orgName, vdcName string) (org *govcd.Org, vdc
 
 	vdc, err = org.GetVDCByName(vdcName, false)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error retrieving VDC %s: %s", vdcName, err)
+		return nil, nil, fmt.Errorf("error retrieving VDC %s: %w", vdcName, err)
 	}
 
 	if vdc == nil || vdc.Vdc.ID == "" || vdc.Vdc.HREF == "" || vdc.Vdc.Name == "" {
