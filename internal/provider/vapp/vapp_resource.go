@@ -862,9 +862,9 @@ func (r *vappResource) resourceVappRead(ctx context.Context, state *vappResource
 	if err != nil {
 		return diag.Diagnostics{diag.NewErrorDiagnostic("Unable to get lease info", err.Error())}, nil
 	}
-	tflog.Info(ctx, fmt.Sprintf("leaseInfo %v", leaseInfo.DeploymentLeaseInSeconds), nil)
 
 	if leaseInfo != nil {
+		tflog.Info(ctx, fmt.Sprintf("leaseInfo %v", leaseInfo.DeploymentLeaseInSeconds))
 		plan.Lease[0] = vappLeaseModel{
 			RuntimeLeaseInSec: types.Int64Value(int64(leaseInfo.DeploymentLeaseInSeconds)),
 			StorageLeaseInSec: types.Int64Value(int64(leaseInfo.StorageLeaseInSeconds)),
