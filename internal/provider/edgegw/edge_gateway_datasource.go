@@ -109,6 +109,7 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	gateway, httpR, err := d.client.APIClient.EdgeGatewaysApi.GetEdgeById(d.client.Auth, data.EdgeID.ValueString())
 	if x := helpers.CheckAPIError(err, httpR); x != nil {
+		defer httpR.Body.Close()
 		resp.Diagnostics.Append(x.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return

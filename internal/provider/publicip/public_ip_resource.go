@@ -168,8 +168,9 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	// if edge_id is provided, get edge_name
 	if !plan.EdgeID.IsNull() {
 		// Get Edge Gateway Name
-		edgeGateway, httR, err := r.client.APIClient.EdgeGatewaysApi.GetEdgeById(auth, plan.EdgeID.ValueString())
-		if apiErr := helpers.CheckAPIError(err, httR); apiErr != nil {
+		edgeGateway, httpR, err := r.client.APIClient.EdgeGatewaysApi.GetEdgeById(auth, plan.EdgeID.ValueString())
+		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+			defer httpR.Body.Close()
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() || apiErr.IsNotFound() {
 				return
@@ -202,6 +203,7 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	// Get Public IP
 	publicIPs, httpR, err := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+		defer httpR.Body.Close()
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -238,6 +240,7 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 
 	job, httpR, err = r.client.APIClient.PublicIPApi.CreatePublicIP(auth, &body)
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+		defer httpR.Body.Close()
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -257,6 +260,7 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 			// get all Public IPs and find the new one
 			publicIPs, httpR, errGet := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
 			if apiErr := helpers.CheckAPIError(errGet, httpR); apiErr != nil {
+				defer httpR.Body.Close()
 				resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 				if resp.Diagnostics.HasError() {
 					return nil, "error", apiErr
@@ -358,6 +362,7 @@ func (r *publicIPResource) Read(ctx context.Context, req resource.ReadRequest, r
 	// Get Public IP
 	publicIPs, httpR, err := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+		defer httpR.Body.Close()
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -428,6 +433,7 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 	// Delete the public IP
 	job, httpR, err := r.client.APIClient.PublicIPApi.DeletePublicIP(ctx, state.PublicIP.ValueString())
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+		defer httpR.Body.Close()
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return

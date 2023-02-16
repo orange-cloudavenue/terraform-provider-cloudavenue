@@ -33,10 +33,11 @@ func GetJobStatus(
 	client *client.CloudAvenue,
 	jobID string,
 ) (JobStatusMessage, error) {
-	jobStatus, _, err := client.APIClient.JobsApi.GetJobById(ctx, jobID)
+	jobStatus, httpR, err := client.APIClient.JobsApi.GetJobById(ctx, jobID)
 	if err != nil {
 		return "", err
 	}
+	defer httpR.Body.Close()
 
 	// Find the action name with failed status if global status is failed
 	if jobStatus[0].Status == string(FAILED) {

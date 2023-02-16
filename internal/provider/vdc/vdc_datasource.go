@@ -162,6 +162,7 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	vdc, httpR, err := d.client.APIClient.VDCApi.GetOrgVdcByName(d.client.Auth, data.Name.ValueString())
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+		defer httpR.Body.Close()
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
