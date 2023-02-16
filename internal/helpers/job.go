@@ -68,7 +68,7 @@ func parseJobStatus(str string) JobStatusMessage {
 	}
 }
 
-// string is a stringer interface for jobStatus
+// String is a stringer interface for jobStatus.
 func (j JobStatusMessage) String() string {
 	return strings.ToLower(string(j))
 }

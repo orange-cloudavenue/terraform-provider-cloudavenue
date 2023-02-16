@@ -384,7 +384,7 @@ func (r *catalogResource) ImportState(ctx context.Context, req resource.ImportSt
 	resource.ImportStatePassthroughID(ctx, path.Root("catalog_name"), req, resp)
 }
 
-// getStorageProfile returns the storage profile reference
+// getStorageProfile returns the storage profile reference.
 func (r *catalogResource) getStorageProfile(adminOrg *govcd.AdminOrg, storageProfilID string, refresh bool) (*govcdtypes.CatalogStorageProfiles, error) {
 	if storageProfilID == "" {
 		return nil, nil
@@ -399,17 +399,17 @@ func (r *catalogResource) getStorageProfile(adminOrg *govcd.AdminOrg, storagePro
 	return &govcdtypes.CatalogStorageProfiles{VdcStorageProfile: []*govcdtypes.Reference{storageProfileReference}}, nil
 }
 
-// getStorageProfileReference returns the storage profile reference
+// getStorageProfileReference returns the storage profile reference.
 func (r *catalogResource) getStorageProfileReference(adminOrg *govcd.AdminOrg, storageProfilID string, refresh bool) (*govcdtypes.Reference, error) {
 	return adminOrg.GetStorageProfileReferenceById(storageProfilID, refresh)
 }
 
-// createCatalogStorageProfile creates a storage profile reference
+// createCatalogStorageProfile creates a storage profile reference.
 func (r *catalogResource) createCatalogStorageProfile(adminOrg *govcd.AdminOrg, plan *catalogResourceModel, storageProfiles *govcdtypes.CatalogStorageProfiles) (*govcd.AdminCatalog, error) {
 	return adminOrg.CreateCatalogWithStorageProfile(plan.CatalogName.ValueString(), plan.Description.ValueString(), storageProfiles)
 }
 
-// getCatalog returns the catalog reference
+// getCatalog returns the catalog reference.
 func (r *catalogResource) getCatalog(adminOrg *govcd.AdminOrg, catalogNameOrID string, refresh bool) (*govcd.AdminCatalog, error) {
 	// Get the catalog
 	return adminOrg.GetAdminCatalogByNameOrId(catalogNameOrID, refresh)
