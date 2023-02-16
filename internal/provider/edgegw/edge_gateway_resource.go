@@ -34,6 +34,7 @@ var (
 	_ resource.ResourceWithConfigure   = &edgeGatewaysResource{}
 	_ resource.ResourceWithImportState = &edgeGatewaysResource{}
 
+	// ConfigEdgeGateway is the default configuration for edge gateway.
 	ConfigEdgeGateway setDefaultEdgeGateway = func() EdgeGatewayConfig {
 		return EdgeGatewayConfig{
 			CheckJobDelay: defaultCheckJobDelayEdgeGateway,
@@ -41,13 +42,14 @@ var (
 	}
 )
 
-// NewEdgeGatewayResource is a helper function to simplify the provider implementation.
+// NewEdgeGatewayResource returns a new resource implementing the edge_gateway data source.
 func NewEdgeGatewayResource() resource.Resource {
 	return &edgeGatewaysResource{}
 }
 
 type setDefaultEdgeGateway func() EdgeGatewayConfig
 
+// EdgeGatewayConfig is the configuration for edge gateway.
 type EdgeGatewayConfig struct {
 	CheckJobDelay time.Duration
 }

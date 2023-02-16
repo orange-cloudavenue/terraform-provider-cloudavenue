@@ -23,6 +23,7 @@ var (
 
 const vAppUnknownStatus = "-unknown-status-"
 
+// NewVappDataSource returns a new vApp data source.
 func NewVappDataSource() datasource.DataSource {
 	return &vappDataSource{}
 }

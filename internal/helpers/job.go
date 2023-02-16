@@ -9,15 +9,22 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
 
+// JobStatusMessage is a type for job status.
 type JobStatusMessage string
 
 const (
-	DONE       JobStatusMessage = "DONE"
-	FAILED     JobStatusMessage = "FAILED"
-	CREATED    JobStatusMessage = "CREATED"
-	PENDING    JobStatusMessage = "PENDING"
+	// DONE is the done status message.
+	DONE JobStatusMessage = "DONE"
+	// FAILED is the failed status message.
+	FAILED JobStatusMessage = "FAILED"
+	// CREATED is the created status message.
+	CREATED JobStatusMessage = "CREATED"
+	// PENDING is the pending status message.
+	PENDING JobStatusMessage = "PENDING"
+	// INPROGRESS is the in progress status message.
 	INPROGRESS JobStatusMessage = "IN_PROGRESS"
-	ERROR      JobStatusMessage = "ERROR"
+	// ERROR is the error status message.
+	ERROR JobStatusMessage = "ERROR"
 )
 
 // GetJobStatus is a helper function to get the status of a job.
@@ -66,7 +73,7 @@ func (j JobStatusMessage) String() string {
 	return strings.ToLower(string(j))
 }
 
-// isDone is a helper function to check if a job is done.
+// IsDone is a helper function to check if a job is done.
 func (j JobStatusMessage) IsDone() bool {
 	return j == DONE
 }

@@ -18,6 +18,7 @@ var (
 	_ datasource.DataSourceWithConfigure = &vdcsDataSource{}
 )
 
+// NewVdcsDataSource returns a new resource implementing the vdcs data source.
 func NewVdcsDataSource() datasource.DataSource {
 	return &vdcsDataSource{}
 }

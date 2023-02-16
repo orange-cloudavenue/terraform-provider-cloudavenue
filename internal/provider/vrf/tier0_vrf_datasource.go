@@ -18,6 +18,7 @@ var (
 	_ datasource.DataSourceWithConfigure = &tier0VrfDataSource{}
 )
 
+// NewTier0VrfDataSource returns a new datasource implementing the tier0_vrf data source.
 func NewTier0VrfDataSource() datasource.DataSource {
 	return &tier0VrfDataSource{}
 }

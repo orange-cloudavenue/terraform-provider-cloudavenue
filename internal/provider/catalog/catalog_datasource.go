@@ -23,6 +23,7 @@ var (
 	_ datasource.DataSourceWithConfigure = &catalogDataSource{}
 )
 
+// NewCatalogDataSource returns a new resource implementing the catalog data source.
 func NewCatalogDataSource() datasource.DataSource {
 	return &catalogDataSource{}
 }

@@ -9,6 +9,7 @@ import (
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 )
 
+// APIError is an error returned by the CloudAvenue API.
 type APIError struct {
 	lastError  error
 	statusCode int
@@ -65,7 +66,7 @@ func (e *APIError) IsNotFound() bool {
 	return e.GetStatusCode() == 404
 }
 
-// CheckApiError checks the HTTP response for errors and returns an APIError
+// CheckAPIError checks the HTTP response for errors and returns an APIError
 // if the response code is >= 400.
 // If the response code is < 400, nil is returned.
 func CheckAPIError(err error, httpR *http.Response) *APIError {

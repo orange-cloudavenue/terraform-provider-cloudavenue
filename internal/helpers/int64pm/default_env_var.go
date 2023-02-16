@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
-// SetDefaultFunc returns a plan modifier that conditionally requires
+// SetDefaultEnvVar returns a plan modifier that conditionally requires
 // resource replacement if:
 //
 //   - The resource is planned for update.

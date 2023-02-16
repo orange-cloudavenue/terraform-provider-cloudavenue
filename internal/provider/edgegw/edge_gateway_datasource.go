@@ -18,6 +18,7 @@ var (
 	_ datasource.DataSourceWithConfigure = &edgeGatewaysDataSource{}
 )
 
+// NewEdgeGatewayDataSource returns a new datasource implementing the edge_gateway data source.
 func NewEdgeGatewayDataSource() datasource.DataSource {
 	return &edgeGatewayDataSource{}
 }
