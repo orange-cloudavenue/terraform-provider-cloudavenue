@@ -295,7 +295,7 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	// Set the ID
-	IP, ok := publicIP.(apiclient.PublicIps)
+	ip, ok := publicIP.(apiclient.PublicIps)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Error creating Public IP",
@@ -304,16 +304,16 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	if len(IP.NetworkConfig) == 0 {
+	if len(ip.NetworkConfig) == 0 {
 		resp.Diagnostics.AddError(
 			"Error creating Public IP",
 			"Could not create Public IP, unexpected error: no public IP find after creation",
 		)
 		return
 	}
-	plan.ID = types.StringValue(IP.NetworkConfig[0].UplinkIp)
-	plan.EdgeName = types.StringValue(IP.NetworkConfig[0].EdgeGatewayName)
-	plan.PublicIP = types.StringValue(IP.NetworkConfig[0].UplinkIp)
+	plan.ID = types.StringValue(ip.NetworkConfig[0].UplinkIp)
+	plan.EdgeName = types.StringValue(ip.NetworkConfig[0].EdgeGatewayName)
+	plan.PublicIP = types.StringValue(ip.NetworkConfig[0].UplinkIp)
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, &plan)
