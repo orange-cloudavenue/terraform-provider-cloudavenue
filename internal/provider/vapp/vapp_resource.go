@@ -816,7 +816,7 @@ func (r *vappResource) resourceVappUpdate(ctx context.Context, plan, state, conf
 	return r.resourceVappRead(ctx, plan)
 }
 
-// resourceVappRead reads the vApp resource from vCD
+// resourceVappRead reads the vApp resource from vCD.
 func (r *vappResource) resourceVappRead(ctx context.Context, state *vappResourceModel) (diag.Diagnostics, *vappResourceModel) {
 	plan := &vappResourceModel{
 		Lease: make([]vappLeaseModel, 1),
@@ -897,7 +897,7 @@ func (r *vappResource) resourceVappRead(ctx context.Context, state *vappResource
 	return nil, plan
 }
 
-// getGuestProperties returns the guest properties of a vApp
+// getGuestProperties returns the guest properties of a vApp.
 func (vapp *vappResourceModel) getGuestProperties() *govcdtypes.ProductSectionList {
 	x := &govcdtypes.ProductSectionList{
 		ProductSection: &govcdtypes.ProductSection{
@@ -920,10 +920,10 @@ func (vapp *vappResourceModel) getGuestProperties() *govcdtypes.ProductSectionLi
 	return x
 }
 
-// Try to undeploy a vApp, but do not throw an error if the vApp is powered off.
+// tryUndeploy try to undeploy a vApp, but do not throw an error if the vApp is powered off.
 // Very often the vApp is powered off at this point and Undeploy() would fail with error:
 // "The requested operation could not be executed since vApp vApp_name is not running"
-// So, if the error matches we just ignore it and the caller may fast forward to vapp.Delete()
+// So, if the error matches we just ignore it and the caller may fast forward to vapp.Delete().
 func tryUndeploy(vapp govcd.VApp) error {
 	task, err := vapp.Undeploy()
 	reErr := regexp.MustCompile(`.*The requested operation could not be executed since vApp.*is not running.*`)

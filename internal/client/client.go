@@ -110,22 +110,22 @@ func createTokenInContext(token string) context.Context {
 	return context.WithValue(context.Background(), apiclient.ContextAccessToken, token)
 }
 
-// GetOrg returns the default Org
+// GetOrg returns the default Org.
 func (c *CloudAvenue) GetOrg() string {
 	return c.Org
 }
 
-// DefaultVdcExist returns true if the default VDC exists
+// DefaultVdcExist returns true if the default VDC exists.
 func (c *CloudAvenue) DefaultVdcExist() bool {
 	return c.Vdc != ""
 }
 
-// GetDefaultVdc returns the default VDC
+// GetDefaultVdc returns the default VDC.
 func (c *CloudAvenue) GetDefaultVdc() string {
 	return c.Vdc
 }
 
-// GetURL returns the base path of the API
+// GetURL returns the base path of the API.
 func (c *CloudAvenue) GetURL() string {
 	return c.URL
 }
