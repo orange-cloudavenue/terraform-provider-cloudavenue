@@ -258,16 +258,16 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 
 		if jobStatus.IsDone() {
 			// get all Public IPs and find the new one
-			publicIPs, httpR, errGet := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
-			if apiErr := helpers.CheckAPIError(errGet, httpR); apiErr != nil {
-				defer httpR.Body.Close()
+			checkPublicIPs, httpRc, errGet := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
+			if apiErr := helpers.CheckAPIError(errGet, httpRc); apiErr != nil {
+				defer httpRc.Body.Close()
 				resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 				if resp.Diagnostics.HasError() {
 					return nil, "error", apiErr
 				}
 			}
 
-			pubIP, errFind := findIPNotAlreadyExists(publicIPs)
+			pubIP, errFind := findIPNotAlreadyExists(checkPublicIPs)
 			if errFind != nil {
 				return nil, "error", err
 			}

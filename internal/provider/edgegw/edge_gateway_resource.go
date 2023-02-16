@@ -265,11 +265,11 @@ func (r *edgeGatewaysResource) Create(
 
 		if jobStatus.IsDone() {
 			// get all edge gateways and find the one that matches the tier0_vrf_id and owner_name
-			gateways, httpR, errEdgesGet := r.client.APIClient.EdgeGatewaysApi.GetEdges(auth)
+			gateways, httpRc, errEdgesGet := r.client.APIClient.EdgeGatewaysApi.GetEdges(auth)
 			if errEdgesGet != nil {
 				return nil, "err", errEdgesGet
 			}
-			defer httpR.Body.Close()
+			defer httpRc.Body.Close()
 
 			for _, gw := range gateways {
 				if gw.Tier0VrfId == plan.Tier0VrfID.ValueString() &&
