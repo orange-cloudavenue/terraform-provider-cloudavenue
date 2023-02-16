@@ -2,6 +2,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -75,14 +76,15 @@ func CheckAPIError(err error, httpR *http.Response) *APIError {
 	}
 
 	if httpR != nil && httpR.StatusCode >= 400 {
-		if e, ok := err.(apiclient.GenericSwaggerError); ok {
+		var apiErr *apiclient.GenericSwaggerError
+		if errors.As(err, &apiErr) {
 			x := &APIError{
 				lastError:  err,
 				statusCode: httpR.StatusCode,
 			}
 
-			if e.Model() != nil {
-				if m, ok := e.Model().(apiclient.ApiError); ok {
+			if apiErr.Model() != nil {
+				if m, ok := apiErr.Model().(apiclient.ApiError); ok {
 					x.ApiError = m
 				}
 			}

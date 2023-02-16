@@ -3,6 +3,7 @@ package vapp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -336,7 +337,7 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 	// Request vApp
 	vappRefreshed, err := vdc.GetVAppByNameOrId(vapp.VApp.ID, true)
 	if err != nil {
-		if err == govcd.ErrorEntityNotFound {
+		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found after creating", err.Error())
 			return
 		}
@@ -436,7 +437,7 @@ func (r *vappResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	// Request vApp
 	vappRefreshed, err := vdc.GetVAppByNameOrId(vappNameID, true)
 	if err != nil {
-		if err == govcd.ErrorEntityNotFound {
+		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found", err.Error())
 			return
 		}
@@ -517,7 +518,7 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// Request vApp
 	vapp, err := vdc.GetVAppByNameOrId(state.ID.String(), true)
 	if err != nil {
-		if err == govcd.ErrorEntityNotFound {
+		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found after creating", err.Error())
 			return
 		}
@@ -622,7 +623,7 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// Request vApp
 	vappRefreshed, err := vdc.GetVAppByNameOrId(state.ID.String(), true)
 	if err != nil {
-		if err == govcd.ErrorEntityNotFound {
+		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found after creating", err.Error())
 			return
 		}
@@ -694,7 +695,7 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	// Request vApp
 	vapp, err := vdc.GetVAppByNameOrId(state.ID.String(), true)
 	if err != nil {
-		if err == govcd.ErrorEntityNotFound {
+		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found after creating", err.Error())
 			return
 		}
@@ -838,7 +839,7 @@ func (r *vappResource) resourceVappRead(ctx context.Context, state *vappResource
 	// Request vApp
 	vapp, err := vdc.GetVAppByNameOrId(v, true)
 	if err != nil {
-		if err == govcd.ErrorEntityNotFound {
+		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			tflog.Info(ctx, fmt.Sprintf("vApp %s not found. Removing from state file %s", v, err.Error()))
 			return nil, plan
 		}
@@ -931,12 +932,12 @@ func tryUndeploy(vapp govcd.VApp) error {
 		// ignore - can't be undeployed
 		return nil
 	} else if err != nil {
-		return fmt.Errorf("error undeploying vApp: %#v", err)
+		return fmt.Errorf("error undeploying vApp: %w", err)
 	}
 
 	err = task.WaitTaskCompletion()
 	if err != nil {
-		return fmt.Errorf("error undeploying vApp: %#v", err)
+		return fmt.Errorf("error undeploying vApp: %w", err)
 	}
 	return nil
 }
