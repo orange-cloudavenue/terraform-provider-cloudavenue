@@ -5,13 +5,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
 	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -736,166 +734,6 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 func (r *vappResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Retrieve import ID and save to id attribute
 	resource.ImportStatePassthroughID(ctx, path.Root("vapp_id"), req, resp)
-}
-
-func (r *vappResource) resourceVappUpdate(ctx context.Context, plan, state, config *vappResourceModel) (diag.Diagnostics, *vappResourceModel) {
-	org, vdc, err := r.client.GetOrgAndVdc(r.client.GetOrg(), plan.VDC.ValueString())
-	if err != nil {
-		return diag.Diagnostics{diag.NewErrorDiagnostic("Error retrieving VDC", err.Error())}, nil
-	}
-
-	vapp, err := vdc.GetVAppById(plan.ID.ValueString(), false)
-	if err != nil {
-		return diag.Diagnostics{diag.NewErrorDiagnostic("Error retrieving vApp", err.Error())}, nil
-	}
-
-	var runtimeLease, storageLease int
-
-	if len(plan.Lease) > 0 {
-		runtimeLease = int(plan.Lease[0].RuntimeLeaseInSec.ValueInt64())
-		storageLease = int(plan.Lease[0].StorageLeaseInSec.ValueInt64())
-	} else {
-		adminOrg, errGetAdminOrg := r.client.Vmware.GetAdminOrgById(org.Org.ID)
-		if errGetAdminOrg != nil {
-			return diag.Diagnostics{diag.NewErrorDiagnostic("Error retrieving Org", errGetAdminOrg.Error())}, nil
-		}
-
-		if adminOrg.AdminOrg.OrgSettings == nil || adminOrg.AdminOrg.OrgSettings.OrgVAppLeaseSettings == nil {
-			return diag.Diagnostics{diag.NewErrorDiagnostic("Error retrieving Org", "Org settings are not available")}, nil
-		}
-
-		runtimeLease = *adminOrg.AdminOrg.OrgSettings.OrgVAppLeaseSettings.DeploymentLeaseSeconds
-		storageLease = *adminOrg.AdminOrg.OrgSettings.OrgVAppLeaseSettings.StorageLeaseSeconds
-	}
-
-	if runtimeLease != vapp.VApp.LeaseSettingsSection.DeploymentLeaseInSeconds ||
-		storageLease != vapp.VApp.LeaseSettingsSection.StorageLeaseInSeconds {
-		err = vapp.RenewLease(runtimeLease, storageLease)
-		if err != nil {
-			return diag.Diagnostics{diag.NewErrorDiagnostic("Error updating VApp lease terms", err.Error())}, nil
-		}
-	}
-
-	if !plan.Description.Equal(state.Description) {
-		err = vapp.UpdateDescription(plan.Description.ValueString())
-		if err != nil {
-			return diag.Diagnostics{diag.NewErrorDiagnostic("Error updating VApp description", err.Error())}, nil
-		}
-	}
-
-	if !reflect.DeepEqual(plan.GuestProperties, state.GuestProperties) {
-		x := plan.getGuestProperties()
-		_, err = vapp.SetProductSectionList(x)
-		if err != nil {
-			return diag.Diagnostics{diag.NewErrorDiagnostic("Error updating VApp guest properties", err.Error())}, nil
-		}
-	}
-
-	// power_on
-	if !plan.PowerON.Equal(state.PowerON) {
-		if plan.PowerON.ValueBool() {
-			task, err := vapp.PowerOn()
-			if err != nil {
-				return diag.Diagnostics{diag.NewErrorDiagnostic("Error powering on VApp", err.Error())}, nil
-			}
-			err = task.WaitTaskCompletion()
-			if err != nil {
-				return diag.Diagnostics{diag.NewErrorDiagnostic("Error powering on VApp", err.Error())}, nil
-			}
-		} else {
-			task, err := vapp.PowerOff()
-			if err != nil {
-				return diag.Diagnostics{diag.NewErrorDiagnostic("Error powering off VApp", err.Error())}, nil
-			}
-			err = task.WaitTaskCompletion()
-			if err != nil {
-				return diag.Diagnostics{diag.NewErrorDiagnostic("Error powering off VApp", err.Error())}, nil
-			}
-		}
-	}
-
-	return r.resourceVappRead(ctx, plan)
-}
-
-// resourceVappRead reads the vApp resource from vCD.
-func (r *vappResource) resourceVappRead(ctx context.Context, state *vappResourceModel) (diag.Diagnostics, *vappResourceModel) {
-	plan := &vappResourceModel{
-		Lease: make([]vappLeaseModel, 1),
-	}
-
-	_, vdc, err := r.client.GetOrgAndVdc(r.client.GetOrg(), state.VDC.ValueString())
-	if err != nil {
-		return diag.Diagnostics{diag.NewErrorDiagnostic("Unable to find VDC", err.Error())}, nil
-	}
-
-	var v string
-
-	if !state.VappID.IsNull() {
-		v = state.VappID.ValueString()
-	} else {
-		v = state.VappName.ValueString()
-	}
-
-	// Request vApp
-	vapp, err := vdc.GetVAppByNameOrId(v, true)
-	if err != nil {
-		if errors.Is(err, govcd.ErrorEntityNotFound) {
-			tflog.Info(ctx, fmt.Sprintf("vApp %s not found. Removing from state file %s", v, err.Error()))
-			return nil, plan
-		}
-		return diag.Diagnostics{diag.NewErrorDiagnostic("Unable to find vApp", err.Error())}, nil
-	}
-
-	guestProperties, err := vapp.GetProductSectionList()
-	if err != nil {
-		return diag.Diagnostics{diag.NewErrorDiagnostic("Unable to get guest properties", err.Error())}, nil
-	}
-
-	if guestProperties != nil && guestProperties.ProductSection != nil && guestProperties.ProductSection.Property != nil {
-		for _, guestProperty := range guestProperties.ProductSection.Property {
-			if guestProperty.Value != nil {
-				plan.GuestProperties[types.StringValue(guestProperty.Key)] = types.StringValue(guestProperty.Value.Value)
-			}
-		}
-	}
-
-	leaseInfo, err := vapp.GetLease()
-	if err != nil {
-		return diag.Diagnostics{diag.NewErrorDiagnostic("Unable to get lease info", err.Error())}, nil
-	}
-
-	if leaseInfo != nil {
-		tflog.Info(ctx, fmt.Sprintf("leaseInfo %v", leaseInfo.DeploymentLeaseInSeconds))
-		plan.Lease[0] = vappLeaseModel{
-			RuntimeLeaseInSec: types.Int64Value(int64(leaseInfo.DeploymentLeaseInSeconds)),
-			StorageLeaseInSec: types.Int64Value(int64(leaseInfo.StorageLeaseInSeconds)),
-		}
-	}
-
-	var statusText string
-
-	statusText, err = vapp.GetStatus()
-	if err != nil {
-		statusText = vAppUnknownStatus
-	}
-
-	if plan.PowerON.IsNull() {
-		plan.PowerON = types.BoolValue(false)
-	}
-
-	plan.StatusCode = types.Int64Value(int64(vapp.VApp.Status))
-	plan.StatusText = types.StringValue(statusText)
-	plan.Href = types.StringValue(vapp.VApp.HREF)
-	plan.Description = types.StringValue(vapp.VApp.Description)
-
-	plan.ID = types.StringValue(vapp.VApp.ID)
-	plan.VappID = types.StringValue(vapp.VApp.ID)
-	plan.VappName = types.StringValue(vapp.VApp.Name)
-	plan.VDC = state.VDC
-
-	tflog.Info(ctx, fmt.Sprintf("vapp read: %#v", plan))
-
-	return nil, plan
 }
 
 // getGuestProperties returns the guest properties of a vApp.
