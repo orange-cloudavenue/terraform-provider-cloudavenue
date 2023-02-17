@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
@@ -34,21 +33,18 @@ type catalogDataSource struct {
 
 type catalogDataSourceModel struct {
 	ID                          types.String `tfsdk:"id"`
-	Name                        types.String `tfsdk:"name"`
-	Created                     types.String `tfsdk:"created"`
+	CatalogName                 types.String `tfsdk:"catalog_name"`
+	CreatedAt                   types.String `tfsdk:"created_at"`
 	Description                 types.String `tfsdk:"description"`
-	PublishEnabled              types.Bool   `tfsdk:"publish_enabled"`
-	CacheEnabled                types.Bool   `tfsdk:"cache_enabled"`
 	PreserveIdentityInformation types.Bool   `tfsdk:"preserve_identity_information"`
 	Href                        types.String `tfsdk:"href"`
-	CatalogVersion              types.Int64  `tfsdk:"catalog_version"`
 	OwnerName                   types.String `tfsdk:"owner_name"`
 	NumberOfMedia               types.Int64  `tfsdk:"number_of_media"`
 	MediaItemList               types.List   `tfsdk:"media_item_list"`
 	IsShared                    types.Bool   `tfsdk:"is_shared"`
 	IsPublished                 types.Bool   `tfsdk:"is_published"`
 	IsLocal                     types.Bool   `tfsdk:"is_local"`
-	PublishSubscriptionType     types.String `tfsdk:"publish_subscription_type"`
+	IsCached                    types.Bool   `tfsdk:"is_cached"`
 }
 
 func (d *catalogDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -62,25 +58,18 @@ func (d *catalogDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			"id": schema.StringAttribute{
 				Computed: true,
 			},
-			"name": schema.StringAttribute{
+			"catalog_name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Name of the catalog.",
 			},
-			"created": schema.StringAttribute{
+			"created_at": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Time stamp of when the catalog was created",
 			},
 			"description": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-			},
-			"publish_enabled": schema.BoolAttribute{
+				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "True allows to publish a catalog externally to make its vApp templates and media files available for subscription by organizations outside the Cloud Director installation. Default is `false`.",
-			},
-			"cache_enabled": schema.BoolAttribute{
-				Computed:            true,
-				MarkdownDescription: "True enables early catalog export to optimize synchronization",
+				MarkdownDescription: "Description of the catalog.",
 			},
 			"preserve_identity_information": schema.BoolAttribute{
 				Computed:            true,
@@ -89,10 +78,6 @@ func (d *catalogDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			"href": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Catalog HREF",
-			},
-			"catalog_version": schema.Int64Attribute{
-				Computed:            true,
-				MarkdownDescription: "Catalog version number.",
 			},
 			"owner_name": schema.StringAttribute{
 				Computed:            true,
@@ -119,9 +104,9 @@ func (d *catalogDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				Computed:            true,
 				MarkdownDescription: "True if this catalog is shared to all organizations.",
 			},
-			"publish_subscription_type": schema.StringAttribute{
+			"is_cached": schema.BoolAttribute{
 				Computed:            true,
-				MarkdownDescription: "PUBLISHED if published externally, SUBSCRIBED if subscribed to an external catalog, UNPUBLISHED otherwise.",
+				MarkdownDescription: "True if this catalog is cached.",
 			},
 		},
 	}
@@ -157,77 +142,44 @@ func (d *catalogDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	catalogRecords, err := d.client.Vmware.Client.QueryCatalogRecords(data.Name.String(), govcd.TenantContext{})
+	// catalog creation is accessible only for administator account
+	adminOrg, err := d.client.Vmware.GetAdminOrgByNameOrId(d.client.GetOrg())
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Unable to query catalog records",
-			fmt.Sprintf("Unable to query catalog records: %s", err),
-		)
+		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
 		return
 	}
 
-	resp.Diagnostics.AddWarning("Catalog records", fmt.Sprintf("Catalog records: %v", catalogRecords))
-
-	if len(catalogRecords) == 0 {
-		resp.Diagnostics.AddError(
-			"Unable to find catalog",
-			fmt.Sprintf("Unable to find catalog: %s", data.Name.String()),
-		)
-		return
-	}
-
-	var catalogRecord *govcdtypes.CatalogRecord
-
-	for _, cr := range catalogRecords {
-		// if d.client.GetDefaultOrg() == cr.OrgName {
-		// 	catalogRecord = cr
-		// 	break
-		// }
-		if cr.Name == data.Name.String() {
-			catalogRecord = cr
-			break
+	catalog, err := adminOrg.GetAdminCatalogByNameOrId(data.CatalogName.ValueString(), false)
+	if err != nil {
+		if govcd.ContainsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
 		}
-	}
-
-	if catalogRecord == nil {
-		resp.Diagnostics.AddError(
-			"Unable to get catalog record",
-			fmt.Sprintf("Unable to get catalog record: %s", err),
-		)
+		resp.Diagnostics.AddError("Unable to query catalog records", fmt.Sprintf("Unable to query catalog records: %s", err))
 		return
 	}
 
-	record, err := d.client.Vmware.Client.GetAdminCatalogByHref(catalogRecord.HREF)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Unable to get catalog record",
-			fmt.Sprintf("Unable to get catalog record: %s", err),
-		)
-		return
+	state := catalogDataSourceModel{
+		ID:          types.StringValue(catalog.AdminCatalog.ID),
+		CatalogName: types.StringValue(catalog.AdminCatalog.Name),
+		CreatedAt:   types.StringValue(catalog.AdminCatalog.DateCreated),
+		Description: types.StringValue(catalog.AdminCatalog.Description),
+		Href:        types.StringValue(catalog.AdminCatalog.HREF),
+		OwnerName:   types.StringValue(catalog.AdminCatalog.Owner.User.Name),
+		IsPublished: types.BoolValue(catalog.AdminCatalog.IsPublished),
+		IsLocal:     types.BoolValue(!catalog.AdminCatalog.IsPublished),
 	}
 
-	data.ID = types.StringValue(record.AdminCatalog.ID)
-	data.Created = types.StringValue(record.AdminCatalog.DateCreated)
-	data.Description = types.StringValue(record.AdminCatalog.Description)
-	data.Href = types.StringValue(record.AdminCatalog.HREF)
-
-	if record.AdminCatalog.PublishExternalCatalogParams != nil {
-		data.CacheEnabled = types.BoolValue(*record.AdminCatalog.PublishExternalCatalogParams.IsCachedEnabled)
-		data.PublishEnabled = types.BoolValue(*record.AdminCatalog.PublishExternalCatalogParams.IsPublishedExternally)
-		data.PreserveIdentityInformation = types.BoolValue(*record.AdminCatalog.PublishExternalCatalogParams.PreserveIdentityInfoFlag)
+	if catalog.AdminCatalog.PublishExternalCatalogParams != nil {
+		state.IsCached = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsCachedEnabled)
+		state.IsShared = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsPublishedExternally)
+		state.PreserveIdentityInformation = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.PreserveIdentityInfoFlag)
 	}
-
-	data.CatalogVersion = types.Int64Value(catalogRecord.Version)
-	data.OwnerName = types.StringValue(catalogRecord.OwnerName)
-	data.IsPublished = types.BoolValue(catalogRecord.IsPublished)
-	data.IsShared = types.BoolValue(catalogRecord.IsShared)
-	data.IsLocal = types.BoolValue(catalogRecord.IsLocal)
-	data.PublishSubscriptionType = types.StringValue(catalogRecord.PublishSubscriptionType)
 
 	var rawMediaItemsList []attr.Value
 	var mediaItemList []string
 
-	filter := fmt.Sprintf("catalog==%s", url.QueryEscape(data.Href.String()))
+	filter := fmt.Sprintf("catalog==%s", url.QueryEscape(catalog.AdminCatalog.HREF))
 	mediaResults, err := d.client.Vmware.QueryWithNotEncodedParams(nil, map[string]string{"type": "media", "filter": filter, "filterEncoded": "true"})
 	if err != nil {
 		resp.Diagnostics.AddWarning(
@@ -246,11 +198,11 @@ func (d *catalogDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		rawMediaItemsList = append(rawMediaItemsList, types.StringValue(mediaName))
 	}
 
-	data.MediaItemList = basetypes.NewListValueMust(types.StringType, rawMediaItemsList)
-	data.NumberOfMedia = types.Int64Value(int64(len(mediaItemList)))
+	state.MediaItemList = basetypes.NewListValueMust(types.StringType, rawMediaItemsList)
+	state.NumberOfMedia = types.Int64Value(int64(len(mediaItemList)))
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
