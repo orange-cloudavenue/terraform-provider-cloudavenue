@@ -9,7 +9,7 @@ import (
 
 const testAccOrgUserResourceConfig = `
 resource "cloudavenue_org_user" "test" {
-	user_name        = "testuser"
+	user_name   = "testuser"
 	description = "A test user"
 	role        = "Organization Administrator"
 	password    = "Th!s1sSecur3P@ssword"

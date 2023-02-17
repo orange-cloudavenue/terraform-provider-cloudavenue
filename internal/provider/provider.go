@@ -61,6 +61,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 
 		// API VMWARE
 		vapp.NewVappDataSource,
+		org.NewOrgUserDataSource,
 	}
 }
 
