@@ -60,8 +60,14 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		vdc.NewVdcDataSource,
 
 		// API VMWARE
+		// VAPP
 		vapp.NewVappDataSource,
+
+		// CATALOG
 		catalog.NewCatalogDataSource,
+		catalog.NewCatalogVappTemplateDataSource,
+
+		// ORG
 		org.NewOrgUserDataSource,
 	}
 }
@@ -76,8 +82,13 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		publicip.NewPublicIPResource,
 
 		// API VMWARE
+		// VAPP
 		vapp.NewVappResource,
+
+		// CATALOG
 		catalog.NewCatalogResource,
+
+		// ORG
 		org.NewOrgUserResource,
 		org.NewOrgGroupResource,
 	}
