@@ -69,6 +69,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 
 		// ORG
 		org.NewOrgUserDataSource,
+		org.NewOrgGroupDataSource,
 		catalog.NewCatalogsDataSource,
 	}
 }
