@@ -165,9 +165,12 @@ func (d *catalogDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		CreatedAt:   types.StringValue(catalog.AdminCatalog.DateCreated),
 		Description: types.StringValue(catalog.AdminCatalog.Description),
 		Href:        types.StringValue(catalog.AdminCatalog.HREF),
-		OwnerName:   types.StringValue(catalog.AdminCatalog.Owner.User.Name),
 		IsPublished: types.BoolValue(catalog.AdminCatalog.IsPublished),
 		IsLocal:     types.BoolValue(!catalog.AdminCatalog.IsPublished),
+	}
+
+	if catalog.AdminCatalog.Owner != nil && catalog.AdminCatalog.Owner.User != nil {
+		state.OwnerName = types.StringValue(catalog.AdminCatalog.Owner.User.Name)
 	}
 
 	if catalog.AdminCatalog.PublishExternalCatalogParams != nil {
