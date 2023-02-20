@@ -63,6 +63,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		vapp.NewVappDataSource,
 		catalog.NewCatalogDataSource,
 		org.NewOrgUserDataSource,
+		org.NewOrgGroupDataSource,
 		catalog.NewCatalogsDataSource,
 	}
 }
