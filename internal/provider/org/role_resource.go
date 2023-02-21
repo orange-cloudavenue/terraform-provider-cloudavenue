@@ -3,7 +3,6 @@ package org
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
@@ -25,8 +25,8 @@ var (
 	_ resource.ResourceWithImportState = &orgRoleResource{}
 )
 
-// NewRoleResource is a helper function to simplify the provider implementation.
-func NewOrgRolesResource() resource.Resource {
+// NewOrgRoleResource is a helper function to simplify the provider implementation.
+func NewOrgRoleResource() resource.Resource {
 	return &orgRoleResource{}
 }
 
@@ -62,12 +62,12 @@ func (r *orgRoleResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 			"name": schema.StringAttribute{
 				// Not ForceNew, to allow the resource name to be updated
 				Required:            true,
-				MarkdownDescription: "A name for the Role",
+				MarkdownDescription: "A name for the role",
 			},
 			"description": schema.StringAttribute{
 				// Not ForceNew, to allow the resource name to be updated
 				Required:            true,
-				MarkdownDescription: "Optional description of the role",
+				MarkdownDescription: "A description for the role",
 			},
 			"bundle_key": schema.StringAttribute{
 				Computed:            true,
@@ -80,7 +80,7 @@ func (r *orgRoleResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 			"rights": schema.SetAttribute{
 				// Not ForceNew, to allow the resource name to be updated
 				Required:            true,
-				MarkdownDescription: "Optional rights of the role",
+				MarkdownDescription: "A list of rights for the role",
 				ElementType:         types.StringType,
 			},
 		},
@@ -132,8 +132,7 @@ func (r *orgRoleResource) Create(ctx context.Context, req resource.CreateRequest
 	// Check rights are valid
 	rights := make([]govcdtypes.OpenApiReference, 0)
 	for _, right := range plan.Rights.Elements() {
-		rg := right.String()
-		rg = strings.Trim(rg, "\"")
+		rg := strings.Trim(right.String(), "\"")
 		x, err := adminOrg.GetRightByName(rg)
 		if err != nil {
 			resp.Diagnostics.AddError("[role create] Error retrieving right", err.Error())
@@ -193,7 +192,6 @@ func (r *orgRoleResource) Create(ctx context.Context, req resource.CreateRequest
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -226,7 +224,7 @@ func (r *orgRoleResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
-			log.Printf("[DEBUG] Unable to find role. Removing from tfstate")
+			tflog.Info(ctx, "[DEBUG] Unable to find role. Removing from tfstate")
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -267,7 +265,6 @@ func (r *orgRoleResource) Read(ctx context.Context, req resource.ReadRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 }
 
 func (r *orgRoleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -298,7 +295,7 @@ func (r *orgRoleResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
-			log.Printf("[DEBUG] Unable to find role. Removing from tfstate")
+			tflog.Info(ctx, "[DEBUG] Unable to find role. Removing from tfstate")
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -310,7 +307,6 @@ func (r *orgRoleResource) Delete(ctx context.Context, req resource.DeleteRequest
 		resp.Diagnostics.AddError("[role delete] Error deleting role", err.Error())
 		return
 	}
-
 }
 
 func (r *orgRoleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -338,7 +334,7 @@ func (r *orgRoleResource) Update(ctx context.Context, req resource.UpdateRequest
 	role, err = adminOrg.GetRoleById(state.ID.ValueString())
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
-			log.Printf("[DEBUG] Unable to find role. Removing from tfstate")
+			tflog.Info(ctx, "[DEBUG] Unable to find role. Removing from tfstate")
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -347,11 +343,10 @@ func (r *orgRoleResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Update the role Name or Description
-	if (plan.Name != state.Name) || (plan.Description != state.Description) {
+	if (plan.Name.Equal(state.Name)) || (plan.Description.Equal(state.Description)) {
 		role.Role.Name = plan.Name.ValueString()
 		role.Role.Description = plan.Description.ValueString()
 		_, err = role.Update()
-		fmt.Printf("************err: %#v", err)
 		if err != nil {
 			resp.Diagnostics.AddError("[role update] Error updating role", err.Error())
 			return
@@ -361,8 +356,7 @@ func (r *orgRoleResource) Update(ctx context.Context, req resource.UpdateRequest
 	// Check rights are valid
 	rights := make([]govcdtypes.OpenApiReference, 0)
 	for _, right := range plan.Rights.Elements() {
-		rg := right.String()
-		rg = strings.Trim(rg, "\"")
+		rg := strings.Trim(right.String(), "\"")
 		x, err := adminOrg.GetRightByName(rg)
 		if err != nil {
 			resp.Diagnostics.AddError("[role update] Error retrieving right", err.Error())
@@ -411,7 +405,7 @@ func (r *orgRoleResource) Update(ctx context.Context, req resource.UpdateRequest
 	// Set Plan state
 	plan = &orgRoleResourceModel{
 		ID:          types.StringValue(role.Role.ID),
-		Name:        plan.Name,
+		Name:        types.StringValue(role.Role.Name),
 		BundleKey:   types.StringValue(role.Role.BundleKey),
 		ReadOnly:    types.BoolValue(role.Role.ReadOnly),
 		Description: types.StringValue(role.Role.Description),
@@ -423,10 +417,9 @@ func (r *orgRoleResource) Update(ctx context.Context, req resource.UpdateRequest
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 }
 
+//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -resource
 func (r *orgRoleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Import from Api
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
