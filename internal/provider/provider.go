@@ -81,6 +81,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		catalog.NewCatalogResource,
 		org.NewOrgUserResource,
 		org.NewOrgGroupResource,
+		org.NewOrgRoleResource,
 	}
 }
 
