@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccVdcDataSource(t *testing.T) {
+func TestAccVDCDataSource(t *testing.T) {
 	dataSourceName := "data.cloudavenue_vdc.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -15,7 +15,7 @@ func TestAccVdcDataSource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Read testing.
 			{
-				Config: testAccVdcDataSourceConfig,
+				Config: testAccVDCDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "id", "VDC_Frangipane"),
 				),
@@ -24,7 +24,7 @@ func TestAccVdcDataSource(t *testing.T) {
 	})
 }
 
-const testAccVdcDataSourceConfig = `
+const testAccVDCDataSourceConfig = `
 data "cloudavenue_vdc" "test" {
 	name = "VDC_Frangipane"
 }

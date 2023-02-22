@@ -34,8 +34,8 @@ var (
 	_ resource.ResourceWithImportState = &vdcResource{}
 )
 
-// NewVdcResource is a helper function to simplify the provider implementation.
-func NewVdcResource() resource.Resource {
+// NewVDCResource is a helper function to simplify the provider implementation.
+func NewVDCResource() resource.Resource {
 	return &vdcResource{}
 }
 
@@ -49,15 +49,15 @@ type vdcResourceModel struct {
 	ID                     types.String             `tfsdk:"id"`
 	Name                   types.String             `tfsdk:"name"`
 	Description            types.String             `tfsdk:"description"`
-	VdcServiceClass        types.String             `tfsdk:"service_class"`
-	VdcDisponibilityClass  types.String             `tfsdk:"disponibility_class"`
-	VdcBillingModel        types.String             `tfsdk:"billing_model"`
+	VDCServiceClass        types.String             `tfsdk:"service_class"`
+	VDCDisponibilityClass  types.String             `tfsdk:"disponibility_class"`
+	VDCBillingModel        types.String             `tfsdk:"billing_model"`
 	VcpuInMhz2             types.Float64            `tfsdk:"cpu_speed_in_mhz"`
 	CPUAllocated           types.Float64            `tfsdk:"cpu_allocated"`
 	MemoryAllocated        types.Float64            `tfsdk:"memory_allocated"`
-	VdcStorageBillingModel types.String             `tfsdk:"storage_billing_model"`
-	VdcStorageProfiles     []vdcStorageProfileModel `tfsdk:"storage_profiles"`
-	VdcGroup               types.String             `tfsdk:"vdc_group"`
+	VDCStorageBillingModel types.String             `tfsdk:"storage_billing_model"`
+	VDCStorageProfiles     []vdcStorageProfileModel `tfsdk:"storage_profiles"`
+	VDCGroup               types.String             `tfsdk:"vdc_group"`
 }
 
 type vdcStorageProfileModel struct {
@@ -255,22 +255,22 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Prepare the body to create a VDC.
 	body := apiclient.CreateOrgVdcV2{
-		VdcGroup: plan.VdcGroup.ValueString(),
+		VdcGroup: plan.VDCGroup.ValueString(),
 		Vdc: &apiclient.OrgVdcV2{
 			Name:                   plan.Name.ValueString(),
 			Description:            plan.Description.ValueString(),
-			VdcServiceClass:        plan.VdcServiceClass.ValueString(),
-			VdcDisponibilityClass:  plan.VdcDisponibilityClass.ValueString(),
-			VdcBillingModel:        plan.VdcBillingModel.ValueString(),
+			VdcServiceClass:        plan.VDCServiceClass.ValueString(),
+			VdcDisponibilityClass:  plan.VDCDisponibilityClass.ValueString(),
+			VdcBillingModel:        plan.VDCBillingModel.ValueString(),
 			VcpuInMhz2:             plan.VcpuInMhz2.ValueFloat64(),
 			CpuAllocated:           plan.CPUAllocated.ValueFloat64(),
 			MemoryAllocated:        plan.MemoryAllocated.ValueFloat64(),
-			VdcStorageBillingModel: plan.VdcStorageBillingModel.ValueString(),
+			VdcStorageBillingModel: plan.VDCStorageBillingModel.ValueString(),
 		},
 	}
 
 	// Iterate over the storage profiles and add them to the body.
-	for _, storageProfile := range plan.VdcStorageProfiles {
+	for _, storageProfile := range plan.VDCStorageProfiles {
 		body.Vdc.VdcStorageProfiles = append(body.Vdc.VdcStorageProfiles, apiclient.VdcStorageProfilesV2{
 			Class:    storageProfile.Class.ValueString(),
 			Limit:    int32(storageProfile.Limit.ValueInt64()),
@@ -382,19 +382,19 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		ID:                     types.StringValue(vdc.Vdc.Name),
 		Name:                   types.StringValue(vdc.Vdc.Name),
 		Description:            types.StringValue(vdc.Vdc.Description),
-		VdcGroup:               types.StringValue(vdc.VdcGroup),
-		VdcServiceClass:        types.StringValue(vdc.Vdc.VdcServiceClass),
-		VdcDisponibilityClass:  types.StringValue(vdc.Vdc.VdcDisponibilityClass),
-		VdcBillingModel:        types.StringValue(vdc.Vdc.VdcBillingModel),
+		VDCGroup:               types.StringValue(vdc.VdcGroup),
+		VDCServiceClass:        types.StringValue(vdc.Vdc.VdcServiceClass),
+		VDCDisponibilityClass:  types.StringValue(vdc.Vdc.VdcDisponibilityClass),
+		VDCBillingModel:        types.StringValue(vdc.Vdc.VdcBillingModel),
 		VcpuInMhz2:             types.Float64Value(vdc.Vdc.VcpuInMhz2),
 		CPUAllocated:           types.Float64Value(vdc.Vdc.CpuAllocated),
 		MemoryAllocated:        types.Float64Value(vdc.Vdc.MemoryAllocated),
-		VdcStorageBillingModel: types.StringValue(vdc.Vdc.VdcStorageBillingModel),
-		VdcStorageProfiles:     make([]vdcStorageProfileModel, len(vdc.Vdc.VdcStorageProfiles)),
+		VDCStorageBillingModel: types.StringValue(vdc.Vdc.VdcStorageBillingModel),
+		VDCStorageProfiles:     make([]vdcStorageProfileModel, len(vdc.Vdc.VdcStorageProfiles)),
 	}
 
 	for i, storageProfile := range vdc.Vdc.VdcStorageProfiles {
-		state.VdcStorageProfiles[i] = vdcStorageProfileModel{
+		state.VDCStorageProfiles[i] = vdcStorageProfileModel{
 			Class:   types.StringValue(storageProfile.Class),
 			Limit:   types.Int64Value(int64(storageProfile.Limit)),
 			Default: types.BoolValue(storageProfile.Default_),
@@ -441,22 +441,22 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	// Convert from Terraform data model into API data model
 	body := apiclient.UpdateOrgVdcV2{
-		VdcGroup: plan.VdcGroup.ValueString(),
+		VdcGroup: plan.VDCGroup.ValueString(),
 		Vdc: &apiclient.OrgVdcV2{
 			Name:                   plan.Name.ValueString(),
 			Description:            plan.Description.ValueString(),
-			VdcServiceClass:        plan.VdcServiceClass.ValueString(),
-			VdcDisponibilityClass:  plan.VdcDisponibilityClass.ValueString(),
-			VdcBillingModel:        plan.VdcBillingModel.ValueString(),
+			VdcServiceClass:        plan.VDCServiceClass.ValueString(),
+			VdcDisponibilityClass:  plan.VDCDisponibilityClass.ValueString(),
+			VdcBillingModel:        plan.VDCBillingModel.ValueString(),
 			VcpuInMhz2:             plan.VcpuInMhz2.ValueFloat64(),
 			CpuAllocated:           plan.CPUAllocated.ValueFloat64(),
 			MemoryAllocated:        plan.MemoryAllocated.ValueFloat64(),
-			VdcStorageBillingModel: plan.VdcStorageBillingModel.ValueString(),
+			VdcStorageBillingModel: plan.VDCStorageBillingModel.ValueString(),
 		},
 	}
 
 	// Iterate over the storage profiles and add them to the body.
-	for _, storageProfile := range plan.VdcStorageProfiles {
+	for _, storageProfile := range plan.VDCStorageProfiles {
 		body.Vdc.VdcStorageProfiles = append(body.Vdc.VdcStorageProfiles, apiclient.VdcStorageProfilesV2{
 			Class:    storageProfile.Class.ValueString(),
 			Limit:    int32(storageProfile.Limit.ValueInt64()),

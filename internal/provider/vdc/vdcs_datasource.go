@@ -18,8 +18,8 @@ var (
 	_ datasource.DataSourceWithConfigure = &vdcsDataSource{}
 )
 
-// NewVdcsDataSource returns a new resource implementing the vdcs data source.
-func NewVdcsDataSource() datasource.DataSource {
+// NewVDCsDataSource returns a new resource implementing the vdcs data source.
+func NewVDCsDataSource() datasource.DataSource {
 	return &vdcsDataSource{}
 }
 
@@ -29,7 +29,7 @@ type vdcsDataSource struct {
 
 type vdcsDataSourceModel struct {
 	ID   types.String `tfsdk:"id"`
-	Vdcs []vdc        `tfsdk:"vdcs"`
+	VDCs []vdc        `tfsdk:"vdcs"`
 }
 
 type vdc struct {
@@ -112,7 +112,7 @@ func (d *vdcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	data = vdcsDataSourceModel{}
 
 	for _, v := range vdcs {
-		data.Vdcs = append(data.Vdcs, vdc{
+		data.VDCs = append(data.VDCs, vdc{
 			VDCName: types.StringValue(v.VdcName),
 			VDCUuid: types.StringValue(v.VdcUuid),
 		})

@@ -48,7 +48,7 @@ type publicIPResourceModel struct {
 	PublicIP types.String   `tfsdk:"public_ip"`
 	EdgeName types.String   `tfsdk:"edge_name"`
 	EdgeID   types.String   `tfsdk:"edge_id"`
-	Vdc      types.String   `tfsdk:"vdc"`
+	VDC      types.String   `tfsdk:"vdc"`
 }
 
 // Metadata returns the resource type name.
@@ -183,8 +183,8 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	// if vdc is provided
-	if !plan.Vdc.IsNull() {
-		body.XVDCName = optional.NewString(plan.Vdc.ValueString())
+	if !plan.VDC.IsNull() {
+		body.XVDCName = optional.NewString(plan.VDC.ValueString())
 		body.XVDCEdgeName = optional.EmptyString()
 	}
 

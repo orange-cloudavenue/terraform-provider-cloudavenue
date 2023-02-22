@@ -135,28 +135,28 @@ func TestCloudAvenueClient(t *testing.T) {
 		}
 	})
 
-	t.Run("GetDefaultVdc", func(t *testing.T) {
+	t.Run("GetDefaultVDC", func(t *testing.T) {
 		t.Parallel()
 
 		ca := CloudAvenue{
-			Vdc: "acme-vdc",
+			VDC: "acme-vdc",
 		}
 
-		vdc := ca.GetDefaultVdc()
+		vdc := ca.GetDefaultVDC()
 
 		if vdc != "acme-vdc" {
 			t.Fatalf("expected default vdc to be %q, got %q", "acme-vdc", vdc)
 		}
 	})
 
-	t.Run("DefaultVdcExist", func(t *testing.T) {
+	t.Run("DefaultVDCExist", func(t *testing.T) {
 		t.Parallel()
 
 		ca := CloudAvenue{
-			Vdc: "acme-vdc",
+			VDC: "acme-vdc",
 		}
 
-		exist := ca.DefaultVdcExist()
+		exist := ca.DefaultVDCExist()
 
 		if !exist {
 			t.Fatalf("expected default vdc to exist")

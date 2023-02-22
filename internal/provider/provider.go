@@ -44,7 +44,7 @@ type cloudavenueProviderModel struct {
 	User     types.String `tfsdk:"user"`
 	Password types.String `tfsdk:"password"`
 	Org      types.String `tfsdk:"org"`
-	Vdc      types.String `tfsdk:"vdc"`
+	VDC      types.String `tfsdk:"vdc"`
 }
 
 // DataSources defines the data sources implemented in the provider.
@@ -56,8 +56,8 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		publicip.NewPublicIPDataSource,
 		edgegw.NewEdgeGatewayDataSource,
 		edgegw.NewEdgeGatewaysDataSource,
-		vdc.NewVdcsDataSource,
-		vdc.NewVdcDataSource,
+		vdc.NewVDCsDataSource,
+		vdc.NewVDCDataSource,
 
 		// API VMWARE
 		vapp.NewVappDataSource,
@@ -72,7 +72,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 	return []func() resource.Resource{
 		// API CloudAvenue
 		edgegw.NewEdgeGatewayResource,
-		vdc.NewVdcResource,
+		vdc.NewVDCResource,
 		vcda.NewVcdaIPResource,
 		publicip.NewPublicIPResource,
 
@@ -178,11 +178,11 @@ func (p *cloudavenueProvider) Configure(
 	if !config.Org.IsNull() && config.Org.ValueString() != "" {
 		org = config.Org.ValueString()
 	}
-	if !config.Vdc.IsNull() && config.Vdc.ValueString() != "" {
-		vdc = config.Vdc.ValueString()
+	if !config.VDC.IsNull() && config.VDC.ValueString() != "" {
+		vdc = config.VDC.ValueString()
 	}
-	if !config.Vdc.IsNull() && config.Vdc.ValueString() != "" {
-		vdc = config.Vdc.ValueString()
+	if !config.VDC.IsNull() && config.VDC.ValueString() != "" {
+		vdc = config.VDC.ValueString()
 	}
 
 	// Default URL to the public CloudAvenue API if not set.
@@ -236,7 +236,7 @@ func (p *cloudavenueProvider) Configure(
 		User:               user,
 		Password:           password,
 		Org:                org,
-		Vdc:                vdc,
+		VDC:                vdc,
 		TerraformVersion:   req.TerraformVersion,
 		CloudAvenueVersion: p.version,
 	}
