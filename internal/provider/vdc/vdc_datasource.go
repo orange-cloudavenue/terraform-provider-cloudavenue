@@ -20,8 +20,8 @@ var (
 	_ datasource.DataSourceWithConfigure = &vdcsDataSource{}
 )
 
-// NewVdcDataSource returns a new resource implementing the vdcs data source.
-func NewVdcDataSource() datasource.DataSource {
+// NewVDCDataSource returns a new resource implementing the vdcs data source.
+func NewVDCDataSource() datasource.DataSource {
 	return &vdcDataSource{}
 }
 
@@ -33,15 +33,15 @@ type vdcDataSourceModel struct {
 	ID                     types.String             `tfsdk:"id"`
 	Name                   types.String             `tfsdk:"name"`
 	Description            types.String             `tfsdk:"description"`
-	VdcServiceClass        types.String             `tfsdk:"service_class"`
-	VdcDisponibilityClass  types.String             `tfsdk:"disponibility_class"`
-	VdcBillingModel        types.String             `tfsdk:"billing_model"`
+	VDCServiceClass        types.String             `tfsdk:"service_class"`
+	VDCDisponibilityClass  types.String             `tfsdk:"disponibility_class"`
+	VDCBillingModel        types.String             `tfsdk:"billing_model"`
 	VcpuInMhz2             types.Float64            `tfsdk:"cpu_speed_in_mhz"`
 	CPUAllocated           types.Float64            `tfsdk:"cpu_allocated"`
 	MemoryAllocated        types.Float64            `tfsdk:"memory_allocated"`
-	VdcStorageBillingModel types.String             `tfsdk:"storage_billing_model"`
-	VdcStorageProfiles     []vdcStorageProfileModel `tfsdk:"storage_profiles"`
-	VdcGroup               types.String             `tfsdk:"vdc_group"`
+	VDCStorageBillingModel types.String             `tfsdk:"storage_billing_model"`
+	VDCStorageProfiles     []vdcStorageProfileModel `tfsdk:"storage_profiles"`
+	VDCGroup               types.String             `tfsdk:"vdc_group"`
 }
 
 func (d *vdcDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -182,17 +182,17 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	data = vdcDataSourceModel{
 		ID:                     types.StringValue(vdc.Vdc.Name),
-		VdcGroup:               types.StringValue(vdc.VdcGroup),
+		VDCGroup:               types.StringValue(vdc.VdcGroup),
 		Name:                   types.StringValue(vdc.Vdc.Name),
 		Description:            types.StringValue(vdc.Vdc.Description),
-		VdcServiceClass:        types.StringValue(vdc.Vdc.VdcServiceClass),
-		VdcDisponibilityClass:  types.StringValue(vdc.Vdc.VdcDisponibilityClass),
-		VdcBillingModel:        types.StringValue(vdc.Vdc.VdcBillingModel),
+		VDCServiceClass:        types.StringValue(vdc.Vdc.VdcServiceClass),
+		VDCDisponibilityClass:  types.StringValue(vdc.Vdc.VdcDisponibilityClass),
+		VDCBillingModel:        types.StringValue(vdc.Vdc.VdcBillingModel),
 		VcpuInMhz2:             types.Float64Value(vdc.Vdc.VcpuInMhz2),
 		CPUAllocated:           types.Float64Value(vdc.Vdc.CpuAllocated),
 		MemoryAllocated:        types.Float64Value(vdc.Vdc.MemoryAllocated),
-		VdcStorageBillingModel: types.StringValue(vdc.Vdc.VdcStorageBillingModel),
-		VdcStorageProfiles:     profiles,
+		VDCStorageBillingModel: types.StringValue(vdc.Vdc.VdcStorageBillingModel),
+		VDCStorageProfiles:     profiles,
 	}
 
 	// Save data into Terraform state

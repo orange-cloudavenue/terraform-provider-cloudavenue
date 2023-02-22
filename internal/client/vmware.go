@@ -7,10 +7,10 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 )
 
-// GetOrgAndVdc finds a pair of org and vdc using the names provided
+// GetOrgAndVDC finds a pair of org and vdc using the names provided
 // in the args. If the names are empty, it will use the default
 // org and vdc names from the provider.
-func (c *CloudAvenue) GetOrgAndVdc(orgName, vdcName string) (org *govcd.Org, vdc *govcd.Vdc, err error) {
+func (c *CloudAvenue) GetOrgAndVDC(orgName, vdcName string) (org *govcd.Org, vdc *govcd.Vdc, err error) {
 	if orgName == "" {
 		return nil, nil, fmt.Errorf("empty Org name provided")
 	}

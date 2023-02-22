@@ -201,15 +201,15 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// If VDC is not defined at data source level, use the one defined at provider level
 	if plan.VDC.IsNull() || plan.VDC.IsUnknown() {
-		if r.client.DefaultVdcExist() {
-			plan.VDC = types.StringValue(r.client.GetDefaultVdc())
+		if r.client.DefaultVDCExist() {
+			plan.VDC = types.StringValue(r.client.GetDefaultVDC())
 		} else {
 			resp.Diagnostics.AddError("Missing VDC", "VDC is required when not defined at provider level")
 			return
 		}
 	}
 
-	org, vdc, err := r.client.GetOrgAndVdc(r.client.GetOrg(), plan.VDC.ValueString())
+	org, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), plan.VDC.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
 		return
@@ -410,15 +410,15 @@ func (r *vappResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	// If VDC is not defined at data source level, use the one defined at provider level
 	if state.VDC.IsNull() || state.VDC.IsUnknown() {
-		if r.client.DefaultVdcExist() {
-			state.VDC = types.StringValue(r.client.GetDefaultVdc())
+		if r.client.DefaultVDCExist() {
+			state.VDC = types.StringValue(r.client.GetDefaultVDC())
 		} else {
 			resp.Diagnostics.AddError("Missing VDC", "VDC is required when not defined at provider level")
 			return
 		}
 	}
 
-	_, vdc, err := r.client.GetOrgAndVdc(r.client.GetOrg(), state.VDC.ValueString())
+	_, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), state.VDC.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
 		return
@@ -507,7 +507,7 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	org, vdc, err := r.client.GetOrgAndVdc(r.client.GetOrg(), plan.VDC.ValueString())
+	org, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), plan.VDC.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
 		return
@@ -684,7 +684,7 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	_, vdc, err := r.client.GetOrgAndVdc(r.client.GetOrg(), state.VDC.ValueString())
+	_, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), state.VDC.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
 		return

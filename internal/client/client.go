@@ -23,7 +23,7 @@ var (
 // CloudAvenue is the main struct for the CloudAvenue client.
 type CloudAvenue struct {
 	Org                string
-	Vdc                string
+	VDC                string
 	User               string
 	Password           string
 	URL                string
@@ -115,14 +115,14 @@ func (c *CloudAvenue) GetOrg() string {
 	return c.Org
 }
 
-// DefaultVdcExist returns true if the default VDC exists.
-func (c *CloudAvenue) DefaultVdcExist() bool {
-	return c.Vdc != ""
+// DefaultVDCExist returns true if the default VDC exists.
+func (c *CloudAvenue) DefaultVDCExist() bool {
+	return c.VDC != ""
 }
 
-// GetDefaultVdc returns the default VDC.
-func (c *CloudAvenue) GetDefaultVdc() string {
-	return c.Vdc
+// GetDefaultVDC returns the default VDC.
+func (c *CloudAvenue) GetDefaultVDC() string {
+	return c.VDC
 }
 
 // GetURL returns the base path of the API.

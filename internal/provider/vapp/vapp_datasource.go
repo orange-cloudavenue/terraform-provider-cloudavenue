@@ -148,15 +148,15 @@ func (d *vappDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	// If VDC is not defined at data source level, use the one defined at provider level
 	if data.VDC.IsNull() {
-		if d.client.DefaultVdcExist() {
-			data.VDC = types.StringValue(d.client.GetDefaultVdc())
+		if d.client.DefaultVDCExist() {
+			data.VDC = types.StringValue(d.client.GetDefaultVDC())
 		} else {
 			resp.Diagnostics.AddError("Missing VDC", "VDC is required when not defined at provider level")
 			return
 		}
 	}
 
-	_, vdc, err := d.client.GetOrgAndVdc(d.client.GetOrg(), data.VDC.ValueString())
+	_, vdc, err := d.client.GetOrgAndVDC(d.client.GetOrg(), data.VDC.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to find VDC", err.Error())
 		return
