@@ -1,0 +1,28 @@
+{
+	"Base terraform resource/datasource": {
+		"scope": "go",
+		"prefix": "tf-templates",
+		"body": [
+			"//tfname: my_tfname",
+			"// Usage: terraform-templates -filename internal/provider/CATEGORY/FILE.go",
+			"package myPkgName"
+		],
+		"description": "Boilerplate for resource or data source terraform provider"
+	},
+	"Go Generate Import example": {
+		"scope": "go",
+		"prefix": "tf-generate-example-import",
+		"body": [
+			"//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -resource"
+		],
+		"description": "Boilerplate for resource or data source terraform provider"
+	},
+	"Go Generate Resource example": {
+		"scope": "go",
+		"prefix": "tf-generate-example-import",
+		"body": [
+			"//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../examples -test"
+		],
+		"description": "Boilerplate for resource or data source terraform provider"
+	}
+}
