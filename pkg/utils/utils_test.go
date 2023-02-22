@@ -88,3 +88,84 @@ func TestGenerateUUID(t *testing.T) {
 		})
 	}
 }
+
+func TestTakeBoolPointer(t *testing.T) {
+	type args struct {
+		value bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want *bool
+	}{
+		{
+			name: "TakeBoolPointer",
+			args: args{
+				value: true,
+			},
+			want: &[]bool{true}[0],
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := TakeBoolPointer(tt.args.value)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TakeBoolPointer() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTakeIntPointer(t *testing.T) {
+	type args struct {
+		value int
+	}
+	tests := []struct {
+		name string
+		args args
+		want *int
+	}{
+		{
+			name: "TakeIntPointer",
+			args: args{
+				value: 666,
+			},
+			want: &[]int{666}[0],
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := TakeIntPointer(tt.args.value)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TakeIntPointer() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTakeInt64Pointer(t *testing.T) {
+	type args struct {
+		x int64
+	}
+	tests := []struct {
+		name string
+		args args
+		want *int64
+	}{
+		{
+			name: "TakeInt64Pointer",
+			args: args{
+				x: 666,
+			},
+			want: &[]int64{666}[0],
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := TakeInt64Pointer(tt.args.x)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TakeInt64Pointer() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

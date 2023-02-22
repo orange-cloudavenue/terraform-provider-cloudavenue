@@ -95,7 +95,12 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		org.NewOrgUserResource,
 		org.NewOrgGroupResource,
 		org.NewOrgRoleResource,
+
+		// VAPP
 		vapp.NewInternalDiskResource,
+
+		// // VM
+		// vm.NewVMResource,
 	}
 }
 

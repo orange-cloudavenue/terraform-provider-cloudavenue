@@ -34,3 +34,18 @@ func GenerateUUID[T tfValuesForUUID](values ...T) types.String {
 
 	return types.StringValue(generateUUID(str))
 }
+
+// TakeBoolPointer accepts a boolean and returns a pointer to this value.
+func TakeBoolPointer(value bool) *bool {
+	return &value
+}
+
+// TakeIntPointer accepts an int and returns a pointer to this value.
+func TakeIntPointer(x int) *int {
+	return &x
+}
+
+// TakeInt64Pointer accepts an int64 and returns a pointer to this value.
+func TakeInt64Pointer(x int64) *int64 {
+	return &x
+}
