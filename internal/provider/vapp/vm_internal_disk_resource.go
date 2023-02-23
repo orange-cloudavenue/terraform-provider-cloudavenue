@@ -91,10 +91,9 @@ func (r *internalDiskResource) Schema(ctx context.Context, _ resource.SchemaRequ
 				PlanModifiers:       []planmodifier.Bool{boolpm.SetDefault(false)},
 				MarkdownDescription: "Powers off VM when changing any attribute of an IDE disk or unit/bus number of other disk types, after the change is complete VM is powered back on. Without this setting enabled, such changes on a powered-on VM would fail.",
 			},
-		},
-		Blocks: map[string]schema.Block{
-			"internal_disk": schema.SingleNestedBlock{
-				MarkdownDescription: "The internal disk configuration. See [internal_disk](#internal_disk) below for details.",
+			"internal_disk": schema.SingleNestedAttribute{
+				MarkdownDescription: "A block to define disk. Multiple can be used.",
+				Optional:            true,
 				Attributes:          vm.InternalDiskSchema(),
 			},
 		},

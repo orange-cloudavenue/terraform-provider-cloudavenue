@@ -17,7 +17,7 @@ resource "cloudavenue_vapp_vm_internal_disk" "example" {
   vapp_name       = "vapp_test3"
   vm_name         = "TestRomain"
 	allow_vm_reboot = true
-	internal_disk {
+	internal_disk = {
 		bus_type      = "sata"
 		size_in_mb    = "500"
 		bus_number    = 0
@@ -37,14 +37,14 @@ resource "cloudavenue_vapp_vm_internal_disk" "example" {
 ### Optional
 
 - `allow_vm_reboot` (Boolean) Powers off VM when changing any attribute of an IDE disk or unit/bus number of other disk types, after the change is complete VM is powered back on. Without this setting enabled, such changes on a powered-on VM would fail.
-- `internal_disk` (Block, Optional) The internal disk configuration. See [internal_disk](#internal_disk) below for details. (see [below for nested schema](#nestedblock--internal_disk))
+- `internal_disk` (Attributes) A block to define disk. Multiple can be used. (see [below for nested schema](#nestedatt--internal_disk))
 - `vdc` (String) The name of VDC to use, optional if defined at provider level.
 
 ### Read-Only
 
 - `id` (String) The ID of the internal disk.
 
-<a id="nestedblock--internal_disk"></a>
+<a id="nestedatt--internal_disk"></a>
 ### Nested Schema for `internal_disk`
 
 Required:
