@@ -8,11 +8,11 @@ import (
 )
 
 const testAccPublicIPDataSourceConfig = `
-data "cloudavenue_public_ip" "test" {}
+data "cloudavenue_publicip" "test" {}
 `
 
 func TestAccPublicIPDataSource(t *testing.T) {
-	dataSourceName := "data.cloudavenue_public_ip.test"
+	dataSourceName := "data.cloudavenue_publicip.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,

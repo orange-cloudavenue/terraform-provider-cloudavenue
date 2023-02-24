@@ -8,19 +8,19 @@ import (
 
 //go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../examples -test
 const testAccOrgGroupDataSourceConfig = `
-resource "cloudavenue_org_group" "example" {
+resource "cloudavenue_iam_group" "example" {
   name          = "OrgTest"
   role          = "Organization Administrator"
   description   = "org test from go test"
 }
 
-data "cloudavenue_org_group" "example" {
-	name = cloudavenue_org_group.example.name
+data "cloudavenue_iam_group" "example" {
+	name = cloudavenue_iam_group.example.name
 }
 `
 
 func TestAccOrgGroupDataSource(t *testing.T) {
-	resourceName := "data.cloudavenue_org_group.example"
+	resourceName := "data.cloudavenue_iam_group.example"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },

@@ -8,7 +8,7 @@ import (
 )
 
 const testAccOrgUserResourceConfig = `
-resource "cloudavenue_org_user" "test" {
+resource "cloudavenue_iam_user" "test" {
 	user_name   = "testuser"
 	description = "A test user"
 	role        = "Organization Administrator"
@@ -17,7 +17,7 @@ resource "cloudavenue_org_user" "test" {
 `
 
 const testAccOrgUserResourceConfigFull = `
-resource "cloudavenue_org_user" "test" {
+resource "cloudavenue_iam_user" "test" {
 	user_name         = "testuserfull"
 	description       = "A test user"
 	role              = "Organization Administrator"
@@ -33,7 +33,7 @@ resource "cloudavenue_org_user" "test" {
 `
 
 func TestAccOrgUserResource(t *testing.T) {
-	resourceName := "cloudavenue_org_user.test"
+	resourceName := "cloudavenue_iam_user.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },

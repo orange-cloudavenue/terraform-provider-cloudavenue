@@ -9,7 +9,7 @@ import (
 
 //go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../examples -test
 const testAccOrgRoleResourceConfig = `
-resource "cloudavenue_org_role" "example" {
+resource "cloudavenue_iam_role" "example" {
 	name   		= "roletest"
 	description = "A test role"
 	rights = [
@@ -24,7 +24,7 @@ resource "cloudavenue_org_role" "example" {
 `
 
 func TestAccOrgRoleResource(t *testing.T) {
-	resourceName := "cloudavenue_org_role.example"
+	resourceName := "cloudavenue_iam_role.example"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
