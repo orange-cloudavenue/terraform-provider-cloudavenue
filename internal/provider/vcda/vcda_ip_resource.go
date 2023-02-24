@@ -44,7 +44,7 @@ type vcdaIPResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *vcdaIPResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vcda_ip"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "ip"
 }
 
 // Schema defines the schema for the resource.

@@ -1,4 +1,4 @@
-package org
+package iam
 
 import (
 	"context"
@@ -44,21 +44,21 @@ type orgGroupResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *orgGroupResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_org_group"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "group"
 }
 
 // Schema defines the schema for the resource.
 func (r *orgGroupResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a Cloud Avenue Organization group. This can be used to create, update, and delete organization groups.",
+		MarkdownDescription: "Provides a Cloud Avenue IAM group. This can be used to create, update, and delete iam groups.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The ID is a unique identifier for the org group",
+				MarkdownDescription: "The ID is a unique identifier for the iam group",
 			},
 			"name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "A name for the org group",
+				MarkdownDescription: "A name for the iam group",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -66,19 +66,19 @@ func (r *orgGroupResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 			"description": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Description of the org group",
+				MarkdownDescription: "Description of the iam group",
 				PlanModifiers: []planmodifier.String{
 					stringpm.SetDefaultEmptyString(),
 				},
 			},
 			"role": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The role to assign to the org group",
+				MarkdownDescription: "The role to assign to the iam group",
 			},
 			"user_names": schema.ListAttribute{
 				ElementType:         types.StringType,
 				Computed:            true,
-				MarkdownDescription: "Set of user names that belong to the org group",
+				MarkdownDescription: "Set of user names that belong to the iam group",
 			},
 		},
 	}

@@ -48,7 +48,7 @@ type catalogDataSourceModel struct {
 }
 
 func (d *catalogDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_catalog"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
 func (d *catalogDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

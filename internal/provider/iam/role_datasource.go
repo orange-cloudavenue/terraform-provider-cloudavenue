@@ -1,5 +1,5 @@
 // Package org provides a Terraform datasource.
-package org
+package iam
 
 import (
 	"context"
@@ -38,12 +38,12 @@ type orgRoleDataSourceModel struct {
 }
 
 func (d *orgRoleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + "org_role"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "role"
 }
 
 func (d *orgRoleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "The org_role datasource allows you to read roles in an organization.",
+		Description: "The CloudAvenue iam role datasource allows you to read roles.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

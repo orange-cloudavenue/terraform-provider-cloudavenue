@@ -60,7 +60,7 @@ type vappResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *vappResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vapp"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
 // Schema defines the schema for the resource.

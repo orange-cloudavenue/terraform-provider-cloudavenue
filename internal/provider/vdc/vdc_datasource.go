@@ -45,7 +45,7 @@ type vdcDataSourceModel struct {
 }
 
 func (d *vdcDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vdc"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
 func (d *vdcDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

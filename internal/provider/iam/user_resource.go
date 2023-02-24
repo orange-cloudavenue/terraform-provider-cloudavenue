@@ -1,5 +1,5 @@
 // Package org provides a Terraform resource to manage org users.
-package org
+package iam
 
 import (
 	"context"
@@ -53,13 +53,13 @@ type orgUserResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *orgUserResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_org_user"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "user"
 }
 
 // Schema defines the schema for the resource.
 func (r *orgUserResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a user in an organization.",
+		MarkdownDescription: "Manages a user.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -69,7 +69,7 @@ func (r *orgUserResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 			// Required attributes
 			"user_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "User's name. Only lowercase letters allowed. Cannot be changed after creation",
+				MarkdownDescription: "User name. Only lowercase letters allowed. Cannot be changed after creation",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},

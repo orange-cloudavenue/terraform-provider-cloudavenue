@@ -50,7 +50,7 @@ type catalogResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *catalogResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_catalog"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
 // Schema defines the schema for the resource.

@@ -39,7 +39,7 @@ type publicIPNetworkConfigModel struct {
 }
 
 func (d *publicIPDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_public_ips"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "s"
 }
 
 func (d *publicIPDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

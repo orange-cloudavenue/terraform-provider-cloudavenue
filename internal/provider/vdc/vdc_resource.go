@@ -68,7 +68,7 @@ type vdcStorageProfileModel struct {
 
 // Metadata returns the resource type name.
 func (r *vdcResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vdc"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
 // Schema defines the schema for the resource.

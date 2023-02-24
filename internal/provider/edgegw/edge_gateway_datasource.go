@@ -38,7 +38,7 @@ type edgeGatewayDataSourceModel struct {
 }
 
 func (d *edgeGatewayDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_edge_gateway"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
 func (d *edgeGatewayDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

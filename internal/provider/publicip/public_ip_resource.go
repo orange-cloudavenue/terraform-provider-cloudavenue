@@ -53,7 +53,7 @@ type publicIPResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *publicIPResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_public_ip"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
 // Schema defines the schema for the resource.

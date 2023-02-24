@@ -1,5 +1,5 @@
-// Package vapp provides a Terraform resource.
-package vapp
+// Package vm provides a Terraform resource.
+package vm
 
 import (
 	"context"
@@ -24,22 +24,22 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &internalDiskResource{}
-	_ resource.ResourceWithConfigure   = &internalDiskResource{}
-	_ resource.ResourceWithImportState = &internalDiskResource{}
+	_ resource.Resource                = &diskResource{}
+	_ resource.ResourceWithConfigure   = &diskResource{}
+	_ resource.ResourceWithImportState = &diskResource{}
 )
 
-// NewInternalDiskResource is a helper function to simplify the provider implementation.
-func NewInternalDiskResource() resource.Resource {
-	return &internalDiskResource{}
+// NewDiskResource is a helper function to simplify the provider implementation.
+func NewDiskResource() resource.Resource {
+	return &diskResource{}
 }
 
-// internalDiskResource is the resource implementation.
-type internalDiskResource struct {
+// diskResource is the resource implementation.
+type diskResource struct {
 	client *client.CloudAvenue
 }
 
-type internalDiskResourceModel struct {
+type diskResourceModel struct {
 	*vm.InternalDiskModel `tfsdk:"internal_disk"`
 	ID                    types.String `tfsdk:"id"`
 	VDC                   types.String `tfsdk:"vdc"`
@@ -49,14 +49,14 @@ type internalDiskResourceModel struct {
 }
 
 // Metadata returns the resource type name.
-func (r *internalDiskResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vapp_vm_internal_disk"
+func (r *diskResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "disk"
 }
 
 // Schema defines the schema for the resource.
-func (r *internalDiskResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *diskResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "The vm_internal_disk resource allows you to manage an internal disk of a VM in a vApp.",
+		MarkdownDescription: "The disk resource allows you to manage an disk of a VM .",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -76,14 +76,14 @@ func (r *internalDiskResource) Schema(ctx context.Context, _ resource.SchemaRequ
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "The vApp this VM internal disk belongs to.",
+				MarkdownDescription: "The vApp this VM disk belongs to.",
 			},
 			"vm_name": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "VM in vApp in which internal disk is created.",
+				MarkdownDescription: "VM in vApp in which disk is created.",
 			},
 			"allow_vm_reboot": schema.BoolAttribute{
 				Computed:            true,
@@ -100,7 +100,7 @@ func (r *internalDiskResource) Schema(ctx context.Context, _ resource.SchemaRequ
 	}
 }
 
-func (r *internalDiskResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *diskResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -121,10 +121,10 @@ func (r *internalDiskResource) Configure(ctx context.Context, req resource.Confi
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *internalDiskResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var (
-		plan *internalDiskResourceModel
+		plan *diskResourceModel
 	)
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -217,7 +217,7 @@ func (r *internalDiskResource) Create(ctx context.Context, req resource.CreateRe
 		resp.Diagnostics.AddError("Error powering on VM", err.Error())
 	}
 
-	plan = &internalDiskResourceModel{
+	plan = &diskResourceModel{
 		InternalDiskModel: &vm.InternalDiskModel{
 			ID:             types.StringValue(diskID),
 			BusType:        plan.BusType,
@@ -241,8 +241,8 @@ func (r *internalDiskResource) Create(ctx context.Context, req resource.CreateRe
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *internalDiskResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state *internalDiskResourceModel
+func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state *diskResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -287,7 +287,7 @@ func (r *internalDiskResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	plan := &internalDiskResourceModel{
+	plan := &diskResourceModel{
 		InternalDiskModel: &vm.InternalDiskModel{
 			ID:             types.StringValue(diskSettings.DiskId),
 			BusType:        types.StringValue(vm.InternalDiskBusTypesFromValues[strings.ToLower(diskSettings.AdapterType)]),
@@ -311,8 +311,8 @@ func (r *internalDiskResource) Read(ctx context.Context, req resource.ReadReques
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *internalDiskResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state *internalDiskResourceModel
+func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state *diskResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -410,7 +410,7 @@ func (r *internalDiskResource) Update(ctx context.Context, req resource.UpdateRe
 		resp.Diagnostics.AddError("Error powering on VM", err.Error())
 	}
 
-	plan = &internalDiskResourceModel{
+	plan = &diskResourceModel{
 		InternalDiskModel: &vm.InternalDiskModel{
 			ID:             state.ID,
 			BusType:        plan.BusType,
@@ -434,8 +434,8 @@ func (r *internalDiskResource) Update(ctx context.Context, req resource.UpdateRe
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *internalDiskResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state *internalDiskResourceModel
+func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state *diskResourceModel
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -502,8 +502,8 @@ func (r *internalDiskResource) Delete(ctx context.Context, req resource.DeleteRe
 	tflog.Trace(ctx, "Disk deleted", infos)
 }
 
-func (r *internalDiskResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	var state *internalDiskResourceModel
+func (r *diskResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	var state *diskResourceModel
 	resourceURI := strings.Split(req.ID, ".")
 
 	if len(resourceURI) != 4 && len(resourceURI) != 3 {
@@ -511,7 +511,7 @@ func (r *internalDiskResource) ImportState(ctx context.Context, req resource.Imp
 		return
 	}
 
-	state = &internalDiskResourceModel{
+	state = &diskResourceModel{
 		InternalDiskModel: &vm.InternalDiskModel{
 			ID: types.StringValue(resourceURI[2]),
 		},
@@ -521,7 +521,7 @@ func (r *internalDiskResource) ImportState(ctx context.Context, req resource.Imp
 	}
 
 	if len(resourceURI) == 4 {
-		state = &internalDiskResourceModel{
+		state = &diskResourceModel{
 			InternalDiskModel: &vm.InternalDiskModel{
 				ID: types.StringValue(resourceURI[3]),
 			},

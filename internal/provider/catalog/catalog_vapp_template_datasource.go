@@ -44,7 +44,7 @@ type catalogVappTemplateDataSourceModel struct {
 }
 
 func (d *catalogVappTemplateDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + "catalog_vapp_template"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "vapp_template"
 }
 
 func (d *catalogVappTemplateDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
