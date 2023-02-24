@@ -7,20 +7,20 @@ import (
 )
 
 const testAccOrgUserDataSourceConfig = `
-resource "cloudavenue_org_user" "test" {
+resource "cloudavenue_iam_user" "test" {
 	user_name   = "testuser"
 	description = "A test user"
 	role        = "Organization Administrator"
 	password    = "Th!s1sSecur3P@ssword"
 }
 
-data "cloudavenue_org_user" "test" {
-	user_name = cloudavenue_org_user.test.user_name
+data "cloudavenue_iam_user" "test" {
+	user_name = cloudavenue_iam_user.test.user_name
 }
 `
 
 const testAccOrgUserDataSourceConfigFull = `
-resource "cloudavenue_org_user" "test" {
+resource "cloudavenue_iam_user" "test" {
 	user_name         = "testuserfull"
 	description       = "A test user"
 	role              = "Organization Administrator"
@@ -34,13 +34,13 @@ resource "cloudavenue_org_user" "test" {
 	stored_vm_quota   = 5
 }
 
-data "cloudavenue_org_user" "test" {
-	user_name = cloudavenue_org_user.test.user_name
+data "cloudavenue_iam_user" "test" {
+	user_name = cloudavenue_iam_user.test.user_name
 }
 `
 
 func TestAccOrgUserDataSource(t *testing.T) {
-	resourceName := "cloudavenue_org_user.test"
+	resourceName := "cloudavenue_iam_user.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
