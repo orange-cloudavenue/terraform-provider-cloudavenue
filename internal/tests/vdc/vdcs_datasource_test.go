@@ -1,10 +1,12 @@
-// Package tests provides the acceptance tests for the provider.
-package tests
+// Package vdc provides the acceptance tests for the provider.
+package vdc
 
 import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
 const testAccVDCsDataSourceConfig = `
@@ -15,8 +17,8 @@ data "cloudavenue_vdcs" "test" {
 func TestAccVDCsDataSource(t *testing.T) {
 	dataSourceName := "data.cloudavenue_vdcs.test"
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck:                 func() { tests.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: tests.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Read testing.
 			{

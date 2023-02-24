@@ -1,5 +1,5 @@
-// Package tests provides the acceptance tests for the provider.
-package tests
+// Package edgegw provides the acceptance tests for the provider.
+package edgegw
 
 import (
 	"testing"
@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
+	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
 const testAccEdgeGatewayResourceConfig = `
@@ -37,8 +38,8 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck:                 func() { tests.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: tests.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Read testing
 			{
