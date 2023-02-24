@@ -7,6 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+const testAccTier0VrfDataSourceConfig = `
+data "cloudavenue_tier0_vrf" "test" {
+	name = "prvrf01eocb0006205allsp01"
+}
+`
+
 func TestAccTier0VrfDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -32,9 +38,3 @@ func TestAccTier0VrfDataSource(t *testing.T) {
 		},
 	})
 }
-
-const testAccTier0VrfDataSourceConfig = `
-data "cloudavenue_tier0_vrf" "test" {
-	name = "prvrf01eocb0006205allsp01"
-}
-`

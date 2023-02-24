@@ -11,9 +11,9 @@ import (
 )
 
 const testAccEdgeGatewayResourceConfig = `
-resource "cloudavenue_edge_gateway" "test" {
+resource "cloudavenue_edgegateway" "test" {
 	owner_type = "vdc"
-  owner_name = "myVDC01"
+	owner_name = "myVDC01"
 	tier0_vrf_name = "prvrf01iocb0000001allsp01"
 }
 `
@@ -27,7 +27,7 @@ resource "cloudavenue_edge_gateway" "test" {
 // `
 
 func TestAccEdgeGatewayResource(t *testing.T) {
-	resourceName := "cloudavenue_edge_gateway.test"
+	resourceName := "cloudavenue_edgegateway.test"
 
 	// resourceNameVDCGroup := "cloudavenue_edge_gateway.test-group"
 	edgegw.ConfigEdgeGateway = func() edgegw.EdgeGatewayConfig {
