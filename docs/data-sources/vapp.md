@@ -1,6 +1,6 @@
 ---
 page_title: "cloudavenue_vapp Data Source - cloudavenue"
-subcategory: "vAPP"
+subcategory: "vApp (Virtual Appliance)"
 description: |-
   The public IP data source show the list of public IP addresses.
 ---

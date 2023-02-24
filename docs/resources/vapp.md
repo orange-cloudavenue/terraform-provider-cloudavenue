@@ -1,6 +1,6 @@
 ---
 page_title: "cloudavenue_vapp Resource - cloudavenue"
-subcategory: "vAPP"
+subcategory: "vApp (Virtual Appliance)"
 description: |-
   The Edge Gateway resource allows you to create and manage Edge Gateways in CloudAvenue.
 ---
