@@ -1,10 +1,12 @@
-// Package tests provides the acceptance tests for the provider.
-package tests
+// Package vapp provides the acceptance tests for the provider.
+package vapp
 
 import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
 const testAccEVappResourceConfig = `
@@ -18,8 +20,8 @@ func TestAccVappResource(t *testing.T) {
 	resourceName := "cloudavenue_vapp.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck:                 func() { tests.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: tests.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Read testing
 			{

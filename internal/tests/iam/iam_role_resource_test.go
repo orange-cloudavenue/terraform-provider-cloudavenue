@@ -1,13 +1,17 @@
-package tests
+// Package tests provides the acceptance tests for the provider.
+// Package iam provides the acceptance tests for the provider.
+package iam
 
 import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
 //go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../examples -test
-const testAccOrgRoleDataSourceConfig = `
+const testAccOrgRoleResourceConfig = `
 resource "cloudavenue_iam_role" "example" {
 	name   		= "roletest"
 	description = "A test role"
@@ -19,23 +23,19 @@ resource "cloudavenue_iam_role" "example" {
     	"vApp Template / Media: Edit",
     	"vApp Template / Media: View",
   	]
-}
-
-data "cloudavenue_iam_role" "example" {
-	name = cloudavenue_iam_role.example.name
-}
+  }
 `
 
-func TestAccOrgRoleDataSource(t *testing.T) {
+func TestAccOrgRoleResource(t *testing.T) {
 	resourceName := "cloudavenue_iam_role.example"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck:                 func() { tests.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: tests.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: testAccOrgRoleDataSourceConfig,
+				Config: testAccOrgRoleResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", "roletest"),
@@ -43,6 +43,13 @@ func TestAccOrgRoleDataSource(t *testing.T) {
 					resource.TestCheckTypeSetElemAttr(resourceName, "rights.*", "Catalog: Add vApp from My Cloud"),
 					resource.TestCheckResourceAttr(resourceName, "rights.#", "6"),
 				),
+			},
+			// ImportState testing
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateId:     "roletest",
+				ImportStateVerify: true,
 			},
 		},
 	})
