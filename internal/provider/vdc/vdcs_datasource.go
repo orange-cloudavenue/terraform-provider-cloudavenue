@@ -38,7 +38,7 @@ type vdc struct {
 }
 
 func (d *vdcsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vdcs"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "s"
 }
 
 func (d *vdcsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

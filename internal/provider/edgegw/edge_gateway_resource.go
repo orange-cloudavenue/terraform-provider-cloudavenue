@@ -73,20 +73,12 @@ type edgeGatewaysResourceModel struct {
 }
 
 // Metadata returns the resource type name.
-func (r *edgeGatewaysResource) Metadata(
-	_ context.Context,
-	req resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
-	resp.TypeName = req.ProviderTypeName + "_edge_gateway"
+func (r *edgeGatewaysResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
 // Schema defines the schema for the resource.
-func (r *edgeGatewaysResource) Schema(
-	ctx context.Context,
-	_ resource.SchemaRequest,
-	resp *resource.SchemaResponse,
-) {
+func (r *edgeGatewaysResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "The Edge Gateway resource allows you to create and delete Edge Gateways in CloudAvenue.",
 		Attributes: map[string]schema.Attribute{

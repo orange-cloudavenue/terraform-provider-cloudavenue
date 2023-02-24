@@ -73,7 +73,7 @@ type vmResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *vmResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vm"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
 // Schema defines the schema for the resource.

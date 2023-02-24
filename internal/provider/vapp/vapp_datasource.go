@@ -46,7 +46,7 @@ type vappDataSourceModel struct {
 }
 
 func (d *vappDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vapp"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
 func (d *vappDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

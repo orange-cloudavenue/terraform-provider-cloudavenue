@@ -1,4 +1,4 @@
-package org
+package iam
 
 import (
 	"context"
@@ -47,7 +47,7 @@ type orgRoleResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *orgRoleResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_org_role"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "role"
 }
 
 // Schema defines the schema for the resource.

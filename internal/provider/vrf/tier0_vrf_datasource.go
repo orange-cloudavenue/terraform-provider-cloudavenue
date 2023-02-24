@@ -1,5 +1,5 @@
-// Package vrf provides a Terraform resource to manage Tier-0 VRFs.
-package vrf
+// Package tier0 provides a Terraform resource to manage Tier-0 VRFs.
+package tier0
 
 import (
 	"context"
@@ -41,7 +41,7 @@ type segmentModel struct {
 }
 
 func (d *tier0VrfDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_tier0_vrf"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "vrf"
 }
 
 func (d *tier0VrfDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

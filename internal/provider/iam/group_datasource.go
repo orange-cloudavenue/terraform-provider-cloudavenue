@@ -1,5 +1,5 @@
 // Package org provides a Terraform datasource.
-package org
+package iam
 
 import (
 	"context"
@@ -35,7 +35,7 @@ type orgGroupDataSourceModel struct {
 }
 
 func (d *orgGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + "org_group"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "group"
 }
 
 func (d *orgGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

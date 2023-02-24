@@ -20,12 +20,13 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/catalog"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/org"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/iam"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/publicip"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vcda"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vrf"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vm"
+	tier0 "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vrf"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -50,56 +51,64 @@ type cloudavenueProviderModel struct {
 // DataSources defines the data sources implemented in the provider.
 func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		// API CloudAvenue
-		vrf.NewTier0VrfsDataSource,
-		vrf.NewTier0VrfDataSource,
+		// TIER0
+		tier0.NewTier0VrfsDataSource,
+		tier0.NewTier0VrfDataSource,
+
+		//PUBLICIP
 		publicip.NewPublicIPDataSource,
+
+		// EDGE GATEWAY
 		edgegw.NewEdgeGatewayDataSource,
 		edgegw.NewEdgeGatewaysDataSource,
+
+		// VDC
 		vdc.NewVDCsDataSource,
 		vdc.NewVDCDataSource,
 
-		// API VMWARE
 		// VAPP
 		vapp.NewVappDataSource,
 
 		// CATALOG
+		catalog.NewCatalogsDataSource,
 		catalog.NewCatalogDataSource,
 		catalog.NewCatalogVappTemplateDataSource,
 
-		// ORG
-		org.NewOrgUserDataSource,
-		org.NewOrgGroupDataSource,
-		org.NewOrgRoleDataSource,
-		catalog.NewCatalogsDataSource,
+		// IAM
+		iam.NewOrgUserDataSource,
+		iam.NewOrgGroupDataSource,
+		iam.NewOrgRoleDataSource,
 	}
 }
 
 // Resources defines the resources implemented in the provider.
 func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		// API CloudAvenue
+		// EDGE GATEWAY
 		edgegw.NewEdgeGatewayResource,
+
+		// VDC
 		vdc.NewVDCResource,
+
+		// VCDA
 		vcda.NewVcdaIPResource,
+
+		// PUBLICIP
 		publicip.NewPublicIPResource,
 
-		// API VMWARE
 		// VAPP
 		vapp.NewVappResource,
 
 		// CATALOG
 		catalog.NewCatalogResource,
 
-		// ORG
-		org.NewOrgUserResource,
-		org.NewOrgGroupResource,
-		org.NewOrgRoleResource,
+		// IAM
+		iam.NewOrgUserResource,
+		iam.NewOrgGroupResource,
+		iam.NewOrgRoleResource,
 
-		// VAPP
-		vapp.NewInternalDiskResource,
-
-		// // VM
+		// VM
+		vm.NewDiskResource,
 		// vm.NewVMResource,
 	}
 }

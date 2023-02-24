@@ -1,4 +1,4 @@
-package org
+package iam
 
 import (
 	"context"
@@ -52,13 +52,13 @@ type orgUserDataSourceModel struct {
 
 // Metadata returns the resource type name.
 func (d *orgUserDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_org_user"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "user"
 }
 
 // Schema defines the schema for the data source.
 func (d *orgUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a CloudAvenue Org User data source. This can be used to read users.",
+		MarkdownDescription: "Provides a CloudAvenue iam User data source. This can be used to read users.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The ID is a `user_id`.",
