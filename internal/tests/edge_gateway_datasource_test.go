@@ -8,13 +8,13 @@ import (
 )
 
 const testAccEdgeGatewayDataSourceConfig = `
-data "cloudavenue_edge_gateway" "test" {
+data "cloudavenue_edgegateway" "test" {
 	edge_id = "frangipane"
 	}
 `
 
 func TestAccEdgeGatewayDataSource(t *testing.T) {
-	dataSourceName := "data.cloudavenue_edge_gateway.test"
+	dataSourceName := "data.cloudavenue_edgegateway.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,

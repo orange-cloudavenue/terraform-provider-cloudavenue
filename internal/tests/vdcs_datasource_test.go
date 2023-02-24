@@ -7,6 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+const testAccVDCsDataSourceConfig = `
+data "cloudavenue_vdcs" "test" {
+}
+`
+
 func TestAccVDCsDataSource(t *testing.T) {
 	dataSourceName := "data.cloudavenue_vdcs.test"
 	resource.Test(t, resource.TestCase{
@@ -23,8 +28,3 @@ func TestAccVDCsDataSource(t *testing.T) {
 		},
 	})
 }
-
-const testAccVDCsDataSourceConfig = `
-data "cloudavenue_vdcs" "test" {
-}
-`
