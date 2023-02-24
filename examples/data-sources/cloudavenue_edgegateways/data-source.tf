@@ -1,5 +1,5 @@
 data "cloudavenue_edgegateways" "example" {}
 
-output "gateways" {
+output "list_of_gateways" {
   value = data.cloudavenue_edgegateways.example
 }

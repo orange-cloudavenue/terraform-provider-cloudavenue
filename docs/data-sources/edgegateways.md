@@ -14,7 +14,7 @@ The edge gateways data source show the list of edge gateways of an organization.
 ```terraform
 data "cloudavenue_edgegateways" "example" {}
 
-output "gateways" {
+output "list_of_gateways" {
   value = data.cloudavenue_edgegateways.example
 }
 ```
