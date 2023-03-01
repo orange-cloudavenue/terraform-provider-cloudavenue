@@ -166,5 +166,6 @@ linters-settings:
               "XSRF",
               "XSS",
               # Custom rules
-              "VDC"
+              "VDC",
+              "DFW"
             ] 

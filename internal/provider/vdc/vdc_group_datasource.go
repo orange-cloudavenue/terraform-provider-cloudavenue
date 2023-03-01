@@ -5,18 +5,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
+
+const vdcStatuses = "`SAVING`, `SAVED`, `CONFIGURING`, `REALIZED`, `REALIZATION_FAILED`," +
+	" `DELETING`, `DELETE_FAILED`, `OBJECT_NOT_FOUND`, `UNCONFIGURED`."
 
 var (
 	_ datasource.DataSource              = &vdcGroupDataSource{}
@@ -36,7 +35,7 @@ type vdcGroupDataSourceModel struct {
 	Name                       types.String `tfsdk:"name"`
 	Description                types.String `tfsdk:"description"`
 	ErrorMessage               types.String `tfsdk:"error_message"`
-	DfwEnabled                 types.Bool   `tfsdk:"dfw_enabled"`
+	DFWEnabled                 types.Bool   `tfsdk:"dfw_enabled"`
 	LocalEgress                types.Bool   `tfsdk:"local_egress"`
 	NetworkPoolID              types.String `tfsdk:"network_pool_id"`
 	NetworkPoolUniversalID     types.String `tfsdk:"network_pool_universal_id"`
@@ -78,26 +77,19 @@ func (d *vdcGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 		MarkdownDescription: "Provides a data source to read vDC group and reference in other resources.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("name")),
-				},
+				MarkdownDescription: "The ID of the vDC Group.",
+				Computed:            true,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the vDC Group.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("id")),
-				},
+				Required:            true,
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "The description of the vDC Group.",
 				Computed:            true,
 			},
 			"error_message": schema.StringAttribute{
-				MarkdownDescription: "The name of the vDC Group.",
+				MarkdownDescription: "More detailed error message when vDC group has error status.",
 				Computed:            true,
 			},
 			"dfw_enabled": schema.BoolAttribute{
@@ -105,7 +97,7 @@ func (d *vdcGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 				Computed:            true,
 			},
 			"local_egress": schema.BoolAttribute{
-				MarkdownDescription: "Status whether local egress is enabled for a universal router belonging to a universal VDC group.",
+				MarkdownDescription: "Status whether local egress is enabled for a universal router belonging to a universal vDC group.",
 				Computed:            true,
 			},
 			"network_pool_id": schema.StringAttribute{
@@ -117,21 +109,19 @@ func (d *vdcGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 				Computed:            true,
 			},
 			"network_provider_type": schema.StringAttribute{
-				MarkdownDescription: "Defines the networking provider backing the VDC Group.",
+				MarkdownDescription: "Defines the networking provider backing the vDC Group.",
 				Computed:            true,
 			},
 			"status": schema.StringAttribute{
-				MarkdownDescription: "The status that the group can be in 'SAVING', 'SAVED', 'CONFIGURING'," +
-					" 'REALIZED', 'REALIZATION_FAILED', 'DELETING', 'DELETE_FAILED', 'OBJECT_NOT_FOUND'," +
-					" 'UNCONFIGURED'",
-				Computed: true,
+				MarkdownDescription: "The status of the group can be in " + vdcStatuses,
+				Computed:            true,
 			},
 			"type": schema.StringAttribute{
-				MarkdownDescription: "The type of the vDC Group (e.g. 'LOCAL', 'UNIVERSAL').",
+				MarkdownDescription: "The type of the vDC Group (e.g. `LOCAL`, `UNIVERSAL`).",
 				Computed:            true,
 			},
 			"universal_networking_enabled": schema.BoolAttribute{
-				MarkdownDescription: "True means that a VDC group router has been created.",
+				MarkdownDescription: "True means that a vDC group router has been created.",
 				Computed:            true,
 			},
 			"vdcs": schema.ListNestedAttribute{
@@ -140,29 +130,27 @@ func (d *vdcGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"fault_domain_tag": schema.StringAttribute{
-							MarkdownDescription: "Represents the fault domain of a given organization vDC",
+							MarkdownDescription: "Represents the fault domain of a given organization vDC.",
 							Computed:            true,
 						},
 						"network_provider_scope": schema.StringAttribute{
-							MarkdownDescription: "Specifies the network provider scope of the vDC",
+							MarkdownDescription: "Specifies the network provider scope of the vDC.",
 							Computed:            true,
 						},
 						"is_remote_org": schema.BoolAttribute{
-							MarkdownDescription: "Specifies whether the vDC is local to this VCD site",
+							MarkdownDescription: "Specifies whether the vDC is local to this VCD site.",
 							Computed:            true,
 						},
 						"status": schema.StringAttribute{
-							MarkdownDescription: "The status that the vDC can be in 'SAVING', 'SAVED', 'CONFIGURING'," +
-								" 'REALIZED', 'REALIZATION_FAILED', 'DELETING', 'DELETE_FAILED', 'OBJECT_NOT_FOUND'," +
-								" 'UNCONFIGURED'",
-							Computed: true,
+							MarkdownDescription: "The status of the vDC can be in " + vdcStatuses,
+							Computed:            true,
 						},
 						"site_name": schema.StringAttribute{
-							MarkdownDescription: "Site vDC belongs.",
+							MarkdownDescription: "Site name that vDC belongs.",
 							Computed:            true,
 						},
 						"site_id": schema.StringAttribute{
-							MarkdownDescription: "Site vDC belongs.",
+							MarkdownDescription: "Site ID that vDC belongs.",
 							Computed:            true,
 						},
 						"name": schema.StringAttribute{
@@ -170,7 +158,7 @@ func (d *vdcGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 							Computed:            true,
 						},
 						"id": schema.StringAttribute{
-							MarkdownDescription: "vDC ID",
+							MarkdownDescription: "vDC ID.",
 							Computed:            true,
 						},
 					},
@@ -201,9 +189,10 @@ func (d *vdcGroupDataSource) Configure(ctx context.Context, req datasource.Confi
 }
 
 func (d *vdcGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data vdcGroupDataSourceModel
-	var diag diag.Diagnostics
-
+	var (
+		data vdcGroupDataSourceModel
+		diag diag.Diagnostics
+	)
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
@@ -217,18 +206,9 @@ func (d *vdcGroupDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	// Get the vdcGroup. If id is not set, user name.
-	var vdcGroup *govcd.VdcGroup
-	if !data.ID.IsNull() && !data.ID.IsUnknown() {
-		vdcGroup, err = adminOrg.GetVdcGroupById(data.ID.ValueString())
-	} else {
-		vdcGroup, err = adminOrg.GetVdcGroupByName(data.Name.ValueString())
-	}
+	// Get the vdcGroup.
+	vdcGroup, err := adminOrg.GetVdcGroupByName(data.Name.ValueString())
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		resp.Diagnostics.AddError("Error retrieving vDC Group", err.Error())
 		return
 	}
@@ -238,7 +218,7 @@ func (d *vdcGroupDataSource) Read(ctx context.Context, req datasource.ReadReques
 		ID:                         types.StringValue(vdcGroup.VdcGroup.Id),
 		Name:                       types.StringValue(vdcGroup.VdcGroup.Name),
 		Description:                types.StringValue(vdcGroup.VdcGroup.Description),
-		DfwEnabled:                 types.BoolValue(vdcGroup.VdcGroup.DfwEnabled),
+		DFWEnabled:                 types.BoolValue(vdcGroup.VdcGroup.DfwEnabled),
 		ErrorMessage:               types.StringValue(vdcGroup.VdcGroup.ErrorMessage),
 		LocalEgress:                types.BoolValue(vdcGroup.VdcGroup.LocalEgress),
 		NetworkPoolID:              types.StringValue(vdcGroup.VdcGroup.NetworkPoolId),

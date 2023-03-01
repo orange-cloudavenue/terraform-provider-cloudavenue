@@ -19,19 +19,12 @@ description: |-
 
 ```terraform
 data "cloudavenue_vdc" "example" {
-	name = "VDC_Frangipane"
+	name = "MyVDC"
 }
 
 data "cloudavenue_vdc_group" "example" {
-  name = data.cloudavenue_vdc.example.vdc_group
+	name = data.cloudavenue_vdc.example.vdc_group
 }
 ```
 
 {{ .SchemaMarkdown | trimspace }}
-
-{{ if .HasImport -}}
-## Import
-
-Import is supported using the following syntax:
-{{ codefile "shell" .ImportFile }}
-{{- end }}
