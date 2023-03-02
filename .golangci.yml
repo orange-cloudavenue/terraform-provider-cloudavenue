@@ -167,6 +167,5 @@ linters-settings:
               "XSS",
               # Custom rules
               "VDC",
-              "DFW",
-              "VLAN"
+              "DFW"
             ] 
