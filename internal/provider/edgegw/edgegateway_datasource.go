@@ -8,9 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 )
 
 var (
@@ -30,8 +32,7 @@ type edgeGatewayDataSource struct {
 type edgeGatewayDataSourceModel struct {
 	ID          types.String `tfsdk:"id"`
 	Tier0VrfID  types.String `tfsdk:"tier0_vrf_id"`
-	EdgeName    types.String `tfsdk:"edge_name"`
-	EdgeID      types.String `tfsdk:"edge_id"`
+	Name        types.String `tfsdk:"name"`
 	OwnerType   types.String `tfsdk:"owner_type"`
 	OwnerName   types.String `tfsdk:"owner_name"`
 	Description types.String `tfsdk:"description"`
@@ -46,32 +47,29 @@ func (d *edgeGatewayDataSource) Schema(ctx context.Context, req datasource.Schem
 		Description: "The edge gateway data source show the details of the edge gateway.",
 
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
 			"tier0_vrf_id": schema.StringAttribute{
-				Description: "The ID of the Tier-0 VRF.",
-				Computed:    true,
+				MarkdownDescription: "The ID of the Tier-0 VRF.",
+				Computed:            true,
 			},
-			"edge_name": schema.StringAttribute{
-				Description: "The name of the Edge Gateway.",
-				Computed:    true,
+			"name": schema.StringAttribute{
+				MarkdownDescription: "The name of the Edge Gateway.",
+				Required:            true,
 			},
-			"edge_id": schema.StringAttribute{
-				Description: "The ID of the Edge Gateway.",
-				Required:    true,
+			"id": schema.StringAttribute{
+				MarkdownDescription: "The ID of the Edge Gateway.",
+				Computed:            true,
 			},
 			"owner_type": schema.StringAttribute{
-				Description: "The type of the owner of the Edge Gateway.",
-				Computed:    true,
+				MarkdownDescription: "The type of the owner of the Edge Gateway.",
+				Computed:            true,
 			},
 			"owner_name": schema.StringAttribute{
-				Description: "The name of the owner of the Edge Gateway.",
-				Computed:    true,
+				MarkdownDescription: "The name of the owner of the Edge Gateway.",
+				Computed:            true,
 			},
 			"description": schema.StringAttribute{
-				Description: "The description of the Edge Gateway.",
-				Computed:    true,
+				MarkdownDescription: "The description of the Edge Gateway.",
+				Computed:            true,
 			},
 		},
 	}
@@ -98,7 +96,10 @@ func (d *edgeGatewayDataSource) Configure(ctx context.Context, req datasource.Co
 }
 
 func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data edgeGatewayDataSourceModel
+	var (
+		data    edgeGatewayDataSourceModel
+		gateway apiclient.EdgeGateway
+	)
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -107,27 +108,34 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	gateway, httpR, err := d.client.APIClient.EdgeGatewaysApi.GetEdgeById(d.client.Auth, data.EdgeID.ValueString())
-	if x := helpers.CheckAPIError(err, httpR); x != nil {
+	gateways, httpR, err := d.client.APIClient.EdgeGatewaysApi.GetEdges(d.client.Auth)
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		defer httpR.Body.Close()
-		resp.Diagnostics.Append(x.GetTerraformDiagnostic())
+		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
 		}
+	}
 
-		// Is Not Found
+	found := false
+	for _, gateway = range gateways {
+		if data.Name.Equal(types.StringValue(gateway.EdgeName)) {
+			found = true
+			break
+		}
+	}
+
+	if !found {
 		data.ID = types.StringValue("")
 	} else {
 		data = edgeGatewayDataSourceModel{
 			Tier0VrfID:  types.StringValue(gateway.Tier0VrfId),
-			EdgeName:    types.StringValue(gateway.EdgeName),
-			EdgeID:      types.StringValue(gateway.EdgeId),
+			Name:        types.StringValue(gateway.EdgeName),
+			ID:          types.StringValue(common.NormalizeID("urn:vcloud:gateway:", gateway.EdgeId)),
 			OwnerType:   types.StringValue(gateway.OwnerType),
 			OwnerName:   types.StringValue(gateway.OwnerName),
 			Description: types.StringValue(gateway.Description),
 		}
-
-		data.ID = types.StringValue("frangipane")
 	}
 
 	// Save data into Terraform state

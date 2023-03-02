@@ -22,6 +22,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 )
 
 const (
@@ -64,8 +65,7 @@ type edgeGatewaysResourceModel struct {
 	Timeouts            timeouts.Value `tfsdk:"timeouts"`
 	ID                  types.String   `tfsdk:"id"`
 	Tier0VrfID          types.String   `tfsdk:"tier0_vrf_name"`
-	EdgeName            types.String   `tfsdk:"edge_name"`
-	EdgeID              types.String   `tfsdk:"edge_id"`
+	Name                types.String   `tfsdk:"name"`
 	OwnerType           types.String   `tfsdk:"owner_type"`
 	OwnerName           types.String   `tfsdk:"owner_name"`
 	Description         types.String   `tfsdk:"description"`
@@ -87,9 +87,6 @@ func (r *edgeGatewaysResource) Schema(ctx context.Context, _ resource.SchemaRequ
 				Read:   true,
 				Delete: true,
 			}),
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
 			"tier0_vrf_name": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The name of the Tier0 VRF to which the Edge Gateway will be attached.\n" +
@@ -98,13 +95,16 @@ func (r *edgeGatewaysResource) Schema(ctx context.Context, _ resource.SchemaRequ
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"edge_name": schema.StringAttribute{
+			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the Edge Gateway.",
 				Computed:            true,
 			},
-			"edge_id": schema.StringAttribute{
+			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The ID of the Edge Gateway.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"owner_type": schema.StringAttribute{
 				Required: true,
@@ -305,9 +305,8 @@ func (r *edgeGatewaysResource) Create(
 	}
 
 	plan = &edgeGatewaysResourceModel{
-		ID:                  types.StringValue(newEdgeGW.EdgeId),
-		EdgeID:              types.StringValue(newEdgeGW.EdgeId),
-		EdgeName:            types.StringValue(newEdgeGW.EdgeName),
+		ID:                  types.StringValue(common.NormalizeID("urn:vcloud:gateway:", newEdgeGW.EdgeId)),
+		Name:                types.StringValue(newEdgeGW.EdgeName),
 		Description:         types.StringValue(newEdgeGW.Description),
 		Tier0VrfID:          plan.Tier0VrfID,
 		OwnerName:           plan.OwnerName,
@@ -362,14 +361,14 @@ func (r *edgeGatewaysResource) Read(
 
 	var gateway apiclient.EdgeGateway
 	// Get edge gateway
-	if !state.EdgeID.IsNull() {
+	if !state.ID.IsNull() {
 		var (
 			httpR *http.Response
 			err   error
 		)
 		gateway, httpR, err = r.client.APIClient.EdgeGatewaysApi.GetEdgeById(
 			auth,
-			state.EdgeID.ValueString(),
+			common.ExtractUUID(state.ID.ValueString()),
 		)
 		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 			defer httpR.Body.Close()
@@ -393,7 +392,7 @@ func (r *edgeGatewaysResource) Read(
 
 		found := false
 		for _, gateway = range gateways {
-			if state.EdgeName.Equal(types.StringValue(gateway.EdgeName)) {
+			if state.Name.Equal(types.StringValue(gateway.EdgeName)) {
 				found = true
 				break
 			}
@@ -406,10 +405,9 @@ func (r *edgeGatewaysResource) Read(
 	}
 
 	state = &edgeGatewaysResourceModel{
-		ID:                  types.StringValue(gateway.EdgeId),
+		ID:                  types.StringValue(common.NormalizeID("urn:vcloud:gateway:", gateway.EdgeId)),
 		Tier0VrfID:          types.StringValue(gateway.Tier0VrfId),
-		EdgeName:            types.StringValue(gateway.EdgeName),
-		EdgeID:              types.StringValue(gateway.EdgeId),
+		Name:                types.StringValue(gateway.EdgeName),
 		OwnerType:           types.StringValue(gateway.OwnerType),
 		OwnerName:           types.StringValue(gateway.OwnerName),
 		Description:         types.StringValue(gateway.Description),
@@ -472,7 +470,7 @@ func (r *edgeGatewaysResource) Delete(
 	// Delete the edge gateway
 	job, httpR, err := r.client.APIClient.EdgeGatewaysApi.DeleteEdge(
 		auth,
-		state.EdgeID.ValueString(),
+		common.ExtractUUID(state.ID.ValueString()),
 	)
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		defer httpR.Body.Close()
@@ -514,6 +512,6 @@ func (r *edgeGatewaysResource) ImportState(
 	req resource.ImportStateRequest,
 	resp *resource.ImportStateResponse,
 ) {
-	// Retrieve import Name and save to edge_name attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("edge_name"), req, resp)
+	// Retrieve import Name and save to name attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
