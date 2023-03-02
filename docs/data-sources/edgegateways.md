@@ -33,8 +33,8 @@ output "list_of_gateways" {
 Read-Only:
 
 - `description` (String) The description of the Edge Gateway.
-- `edge_id` (String) The ID of the Edge Gateway.
-- `edge_name` (String) The name of the Edge Gateway.
+- `id` (String) The ID of the Edge Gateway.
+- `name` (String) The name of the Edge Gateway.
 - `owner_name` (String) The name of the owner of the Edge Gateway.
 - `owner_type` (String) The type of the owner of the Edge Gateway.
 - `tier0_vrf_id` (String) The ID of the Tier-0 VRF.

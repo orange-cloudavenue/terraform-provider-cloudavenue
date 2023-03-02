@@ -5,12 +5,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 var (
@@ -29,16 +33,16 @@ type edgeGatewaysDataSource struct {
 
 type edgeGatewaysDataSourceModel struct {
 	ID           types.String `tfsdk:"id"`
-	EdgeGateways []gateway    `tfsdk:"edge_gateways"`
+	EdgeGateways types.List   `tfsdk:"edge_gateways"`
 }
 
-type gateway struct {
-	Tier0VrfID  types.String `tfsdk:"tier0_vrf_id"`
-	EdgeName    types.String `tfsdk:"edge_name"`
-	EdgeID      types.String `tfsdk:"edge_id"`
-	OwnerType   types.String `tfsdk:"owner_type"`
-	OwnerName   types.String `tfsdk:"owner_name"`
-	Description types.String `tfsdk:"description"`
+var edgeGatewayDataSourceModelAttrTypes = map[string]attr.Type{
+	"tier0_vrf_id": types.StringType,
+	"name":         types.StringType,
+	"id":           types.StringType,
+	"owner_type":   types.StringType,
+	"owner_name":   types.StringType,
+	"description":  types.StringType,
 }
 
 func (d *edgeGatewaysDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -62,11 +66,11 @@ func (d *edgeGatewaysDataSource) Schema(ctx context.Context, req datasource.Sche
 							Description: "The ID of the Tier-0 VRF.",
 							Computed:    true,
 						},
-						"edge_name": schema.StringAttribute{
+						"name": schema.StringAttribute{
 							Description: "The name of the Edge Gateway.",
 							Computed:    true,
 						},
-						"edge_id": schema.StringAttribute{
+						"id": schema.StringAttribute{
 							Description: "The ID of the Edge Gateway.",
 							Computed:    true,
 						},
@@ -110,8 +114,10 @@ func (d *edgeGatewaysDataSource) Configure(ctx context.Context, req datasource.C
 }
 
 func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data edgeGatewaysDataSourceModel
-
+	var (
+		data  edgeGatewaysDataSourceModel
+		names []string
+	)
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
@@ -128,22 +134,27 @@ func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRe
 		}
 
 		// Is Not Found
-		data.EdgeGateways = []gateway{}
-		data.ID = types.StringValue("")
+		data.EdgeGateways = types.ListNull(types.ObjectType{AttrTypes: edgeGatewayDataSourceModelAttrTypes})
+		data.ID = types.StringNull()
 	} else {
+		var diag diag.Diagnostics
+		gws := make([]edgeGatewayDataSourceModel, 0)
 		for _, gw := range gateways {
-			d := gateway{
+			gws = append(gws, edgeGatewayDataSourceModel{
 				Tier0VrfID:  types.StringValue(gw.Tier0VrfId),
-				EdgeName:    types.StringValue(gw.EdgeName),
-				EdgeID:      types.StringValue(gw.EdgeId),
+				Name:        types.StringValue(gw.EdgeName),
+				ID:          types.StringValue(common.NormalizeID("urn:vcloud:gateway:", gw.EdgeId)),
 				OwnerType:   types.StringValue(gw.OwnerType),
 				OwnerName:   types.StringValue(gw.OwnerName),
 				Description: types.StringValue(gw.Description),
-			}
-			data.EdgeGateways = append(data.EdgeGateways, d)
+			})
+
+			names = append(names, gw.EdgeName)
 		}
 
-		data.ID = types.StringValue("frangipane")
+		data.EdgeGateways, diag = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: edgeGatewayDataSourceModelAttrTypes}, gws)
+		resp.Diagnostics.Append(diag...)
+		data.ID = utils.GenerateUUID(names)
 	}
 
 	// Save data into Terraform state

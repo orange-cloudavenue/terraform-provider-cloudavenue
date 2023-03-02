@@ -2,6 +2,7 @@
 package edgegw
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -11,8 +12,8 @@ import (
 
 const testAccEdgeGatewayDataSourceConfig = `
 data "cloudavenue_edgegateway" "test" {
-	edge_id = "frangipane"
-	}
+	name = "tn01e02ocb0006205spt101"
+}
 `
 
 func TestAccEdgeGatewayDataSource(t *testing.T) {
@@ -26,7 +27,7 @@ func TestAccEdgeGatewayDataSource(t *testing.T) {
 				Config: testAccEdgeGatewayDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Verify placeholder id attribute
-					resource.TestCheckResourceAttr(dataSourceName, "id", "frangipane"),
+					resource.TestMatchResourceAttr(dataSourceName, "id", regexp.MustCompile(`(urn:vcloud:gateway:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
 				),
 			},
 		},

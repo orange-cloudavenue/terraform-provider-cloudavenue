@@ -46,11 +46,10 @@ Changes to this field will force a new resource to be created.
 ### Read-Only
 
 - `description` (String) The description of the Edge Gateway.
-- `edge_id` (String) The ID of the Edge Gateway.
-- `edge_name` (String) The name of the Edge Gateway.
 - `enable_load_balancing` (Boolean) Enable load balancing on the Edge Gateway.
 Always set to true for now.
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the Edge Gateway.
+- `name` (String) The name of the Edge Gateway.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
@@ -65,6 +64,6 @@ Optional:
 
 Import is supported using the following syntax:
 ```shell
-# use the edge-id to import the edge gateway
-terraform import cloudavenue_edgegateway.example 12345678-1234-1234-1234-123456789012
+# use the name to import the edge gateway
+terraform import cloudavenue_edgegateway.example MyEdgeName
 ```
