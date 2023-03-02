@@ -7,14 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 )
 
-func (s *orgNetworkResourceModel) getVDCName(client *client.CloudAvenue) *diagnosticError {
+func (s *isolatedNetworkResourceModel) getVDCName(client *client.CloudAvenue) *diagnosticError {
 	// If VDC is not defined at data source level, use the one defined at provider level
 	if s.VDC.IsNull() || s.VDC.IsUnknown() {
 		if client.DefaultVDCExist() {
@@ -29,7 +27,7 @@ func (s *orgNetworkResourceModel) getVDCName(client *client.CloudAvenue) *diagno
 	return nil
 }
 
-func (s *orgNetworkResourceModel) initOrgNetworkQuery(ctx context.Context, client *client.CloudAvenue, lockVApp bool) (*networkRef, *diagnosticError) {
+func (s *isolatedNetworkResourceModel) initNetworkQuery(ctx context.Context, client *client.CloudAvenue, lockVApp bool) (*networkRef, *diagnosticError) {
 	if err := s.getVDCName(client); err != nil {
 		return nil, err
 	}
@@ -87,28 +85,4 @@ func (s *orgNetworkResourceModel) initOrgNetworkQuery(ctx context.Context, clien
 	networkRef.VApp = vapp
 
 	return networkRef, nil
-}
-
-func (s *orgNetworkResourceModel) findOrgNetwork(vAppNetworkConfig *govcdtypes.NetworkConfigSection) (*govcdtypes.VAppNetworkConfiguration, *string, *diagnosticError) {
-	var vAppNetwork govcdtypes.VAppNetworkConfiguration
-	var networkID string
-
-	for _, networkConfig := range vAppNetworkConfig.NetworkConfig {
-		if networkConfig.Link != nil {
-			id, err := govcd.GetUuidFromHref(networkConfig.Link.HREF, false)
-			if err != nil {
-				return nil, nil, &diagnosticError{
-					Summary: "Unable to get network ID from HREF",
-					Detail:  err.Error(),
-				}
-			}
-			// name check needed for datasource to find network as don't have ID
-			if common.ExtractUUID(s.ID.ValueString()) == common.ExtractUUID(id) || networkConfig.NetworkName == s.NetworkName.ValueString() {
-				networkID = id
-				vAppNetwork = networkConfig
-				break
-			}
-		}
-	}
-	return &vAppNetwork, &networkID, nil
 }
