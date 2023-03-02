@@ -3,7 +3,7 @@ module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 go 1.20
 
 require (
-	github.com/FrangipaneTeam/terraform-plugin-framework-validators v0.0.0-20230309070523-86a8219b2eae
+	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.0.0
 	github.com/antihax/optional v1.0.0
 	github.com/dchest/uniuri v1.2.0
 	github.com/google/go-cmp v0.5.9
@@ -15,6 +15,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.14.3
 	github.com/hashicorp/terraform-plugin-log v0.8.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.25.0
+	github.com/kr/pretty v0.3.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.1.1
 	github.com/vmware/go-vcloud-director/v2 v2.19.0
 )
@@ -49,7 +50,6 @@ require (
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
-	github.com/kr/pretty v0.3.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
