@@ -43,11 +43,18 @@ func TestAccOrgNetworkResource(t *testing.T) {
 			// },
 			// ImportruetState testing
 			{
-				// Import test with vdc
+				// Import test without vdc
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateId:     "vapp_test3.test_remi",
+			},
+			{
+				// Import test with vdc
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateId:     "VDC_Frangipane.vapp_test3.test_remi",
 			},
 		},
 	})

@@ -373,7 +373,7 @@ func (r *orgNetworkResource) ImportState(ctx context.Context, req resource.Impor
 		NetworkName: types.StringValue(resourceURI[1]),
 	}
 
-	if len(resourceURI) == 4 {
+	if len(resourceURI) == 3 {
 		state = &orgNetworkResourceModel{
 			VDC:         types.StringValue(resourceURI[0]),
 			VAppName:    types.StringValue(resourceURI[1]),
