@@ -18,6 +18,7 @@ var (
 	ErrTokenEmpty = errors.New("token is empty")
 	// ErrConfigureVmware is returned when the configuration of vmware failed.
 	ErrConfigureVmware = errors.New("error configuring vmware")
+	ErrVCDVersionEmpty = errors.New("empty vcd version")
 )
 
 // CloudAvenue is the main struct for the CloudAvenue client.
@@ -35,8 +36,9 @@ type CloudAvenue struct {
 	Auth      context.Context
 
 	// API VMWARE
-	Vmware    *govcd.VCDClient
-	urlVmware *url.URL
+	Vmware     *govcd.VCDClient
+	urlVmware  *url.URL
+	VCDVersion string
 }
 
 // New creates a new CloudAvenue client.
@@ -63,7 +65,11 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 		return nil, fmt.Errorf("%w : %v", ErrConfigureVmware, err)
 	}
 
-	c.Vmware = govcd.NewVCDClient(*c.urlVmware, false)
+	if c.VCDVersion == "" {
+		return nil, fmt.Errorf("%w : %v", ErrVCDVersionEmpty, err)
+	}
+
+	c.Vmware = govcd.NewVCDClient(*c.urlVmware, false, govcd.WithAPIVersion(c.VCDVersion))
 	err = c.Vmware.SetToken(c.GetOrg(), govcd.AuthorizationHeader, token)
 	if err != nil {
 		return nil, fmt.Errorf("%w : %v", ErrConfigureVmware, err)

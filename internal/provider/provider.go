@@ -29,6 +29,8 @@ import (
 	tier0 "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vrf"
 )
 
+const VCDVersion = "37.0"
+
 // Ensure the implementation satisfies the expected interfaces.
 var _ provider.Provider = &cloudavenueProvider{}
 
@@ -272,6 +274,7 @@ func (p *cloudavenueProvider) Configure(
 		VDC:                vdc,
 		TerraformVersion:   req.TerraformVersion,
 		CloudAvenueVersion: p.version,
+		VCDVersion:         VCDVersion,
 	}
 
 	cA, err := cloudAvenue.New()
@@ -299,6 +302,14 @@ func (p *cloudavenueProvider) Configure(
 				"An unexpected error occurred when creating the VMWare VCD Client. "+
 					"If the error is not clear, please contact the provider developers.\n\n"+
 					"VMWare VCD Client Error: "+err.Error(),
+			)
+			return
+		case errors.Is(err, client.ErrVCDVersionEmpty):
+			resp.Diagnostics.AddError(
+				"Unable to Configure VMWare VCD Client",
+				"An unexpected error occurred when creating the VMWare VCD Client. "+
+					"If the error is not clear, please contact the provider developers.\n\n"+
+					"VMWare VCD version is empty",
 			)
 			return
 		default:
