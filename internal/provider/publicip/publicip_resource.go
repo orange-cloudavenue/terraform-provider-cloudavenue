@@ -23,6 +23,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -168,7 +169,7 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	// if edge_id is provided, get edge_name
 	if !plan.EdgeID.IsNull() {
 		// Get Edge Gateway Name
-		edgeGateway, httpR, err := r.client.APIClient.EdgeGatewaysApi.GetEdgeById(auth, plan.EdgeID.ValueString())
+		edgeGateway, httpR, err := r.client.APIClient.EdgeGatewaysApi.GetEdgeById(auth, common.ExtractUUID(plan.EdgeID.ValueString()))
 		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 			defer httpR.Body.Close()
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
