@@ -13,6 +13,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 )
 
 var (
@@ -50,15 +51,15 @@ func (d *vdcDataSource) Metadata(ctx context.Context, req datasource.MetadataReq
 
 func (d *vdcDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a Cloud Avenue Organization VDC data source. An Organization VDC can be used to reference a VDC and use its data within other resources or data sources.",
+		MarkdownDescription: "Provides a Cloud Avenue Organization vDC data source. An Organization VDC can be used to reference a vDC and use its data within other resources or data sources.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "ID is the Name of the VCD.",
+				MarkdownDescription: "The ID of the vDC.",
 			},
 			"name": schema.StringAttribute{
 				Required: true,
-				MarkdownDescription: "The name of the org VDC. It must be unique in the organization.\n" +
+				MarkdownDescription: "The name of the org vDC. It must be unique in the organization.\n" +
 					"The length must be between 2 and 27 characters.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(2, 27),
@@ -66,7 +67,7 @@ func (d *vdcDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			},
 			"description": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The description of the org VDC.",
+				MarkdownDescription: "The description of the org vDC.",
 			},
 			"cpu_speed_in_mhz": schema.Float64Attribute{
 				Computed: true,
@@ -76,8 +77,8 @@ func (d *vdcDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			"cpu_allocated": schema.Float64Attribute{
 				Computed: true,
 				MarkdownDescription: "CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.\n" +
-					"It must be at least 5 * `cpu_speed_in_mhz` and at most 200 * `cpu_speed_in_mhz`.\n" +
-					" *Note:* Reserved capacity is automatically set according to the service class.",
+					"It must be at least 5 * `cpu_speed_in_mhz` and at most 200 * `cpu_speed_in_mhz`.\n\n" +
+					" -> Note: Reserved capacity is automatically set according to the service class.",
 			},
 			"memory_allocated": schema.Float64Attribute{
 				Computed: true,
@@ -86,16 +87,16 @@ func (d *vdcDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			},
 			"vdc_group": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: "Name of an existing VDC group or a new one. This allows you to isolate your VDC.\n" +
-					"VMs of VDCs which belong to the same VDC group can communicate together.",
+				MarkdownDescription: "Name of an existing vDC group or a new one. This allows you to isolate your VDC.\n" +
+					"VMs of vDCs which belong to the same vDC group can communicate together.",
 			},
 			"service_class": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The service class of the org VDC. It can be `ECO`, `STD`, `HP` or `VOIP`.",
+				MarkdownDescription: "The service class of the org vDC. It can be `ECO`, `STD`, `HP` or `VOIP`.",
 			},
 			"disponibility_class": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The disponibility class of the org VDC. It can be `ONE-ROOM`, `DUAL-ROOM` or `HA-DUAL-ROOM`.",
+				MarkdownDescription: "The disponibility class of the org vDC. It can be `ONE-ROOM`, `DUAL-ROOM` or `HA-DUAL-ROOM`.",
 			},
 			"billing_model": schema.StringAttribute{
 				Computed:            true,
@@ -107,7 +108,7 @@ func (d *vdcDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 			},
 			"storage_profiles": schema.ListNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "List of storage profiles for this VDC.",
+				MarkdownDescription: "List of storage profiles for this vDC.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"class": schema.StringAttribute{
@@ -121,7 +122,7 @@ func (d *vdcDataSource) Schema(ctx context.Context, req datasource.SchemaRequest
 						},
 						"default": schema.BoolAttribute{
 							Computed:            true,
-							MarkdownDescription: "Set this storage profile as default for this VDC. Only one storage profile can be default per VDC.",
+							MarkdownDescription: "Set this storage profile as default for this vDC. Only one storage profile can be default per vDC.",
 						},
 					},
 				},
@@ -160,16 +161,34 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		return
 	}
 
+	// Get vDC info
 	vdc, httpR, err := d.client.APIClient.VDCApi.GetOrgVdcByName(d.client.Auth, data.Name.ValueString())
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		defer httpR.Body.Close()
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
 		}
 		return
 	}
+	defer httpR.Body.Close()
 
+	// Get vDC UUID by parsing vDCs list and set URN ID
+	var ID string
+	vdcs, httpR, err := d.client.APIClient.VDCApi.GetOrgVdcs(d.client.Auth)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read vdcs detail, got error: %s", err))
+		return
+	}
+	defer httpR.Body.Close()
+
+	for _, v := range vdcs {
+		if data.Name.ValueString() == v.VdcName {
+			ID = common.NormalizeID("urn:vcloud:vdc:", v.VdcUuid)
+			break
+		}
+	}
+
+	// Get storageProfile
 	var profiles []vdcStorageProfileModel
 	for _, profile := range vdc.Vdc.VdcStorageProfiles {
 		p := vdcStorageProfileModel{
@@ -181,7 +200,7 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	}
 
 	data = vdcDataSourceModel{
-		ID:                     types.StringValue(vdc.Vdc.Name),
+		ID:                     types.StringValue(ID),
 		VDCGroup:               types.StringValue(vdc.VdcGroup),
 		Name:                   types.StringValue(vdc.Vdc.Name),
 		Description:            types.StringValue(vdc.Vdc.Description),
