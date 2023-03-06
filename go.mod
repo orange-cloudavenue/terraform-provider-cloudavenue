@@ -7,7 +7,7 @@ require (
 	github.com/dchest/uniuri v1.2.0
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.3.0
-	github.com/hashicorp/terraform-plugin-docs v0.14.0
+	github.com/hashicorp/terraform-plugin-docs v0.14.1
 	github.com/hashicorp/terraform-plugin-framework v1.1.1
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.3.1
 	github.com/hashicorp/terraform-plugin-framework-validators v0.10.0
@@ -41,7 +41,7 @@ require (
 	github.com/hashicorp/hc-install v0.5.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.16.1 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
-	github.com/hashicorp/terraform-exec v0.18.0 // indirect
+	github.com/hashicorp/terraform-exec v0.18.1 // indirect
 	github.com/hashicorp/terraform-json v0.15.0 // indirect
 	github.com/hashicorp/terraform-registry-address v0.1.0 // indirect
 	github.com/hashicorp/terraform-svchost v0.1.0 // indirect
