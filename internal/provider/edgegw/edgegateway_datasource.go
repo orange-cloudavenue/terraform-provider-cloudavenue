@@ -31,12 +31,13 @@ type edgeGatewayDataSource struct {
 }
 
 type edgeGatewayDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Tier0VrfID  types.String `tfsdk:"tier0_vrf_id"`
-	Name        types.String `tfsdk:"name"`
-	OwnerType   types.String `tfsdk:"owner_type"`
-	OwnerName   types.String `tfsdk:"owner_name"`
-	Description types.String `tfsdk:"description"`
+	ID                  types.String `tfsdk:"id"`
+	Tier0VrfID          types.String `tfsdk:"tier0_vrf_id"`
+	Name                types.String `tfsdk:"name"`
+	OwnerType           types.String `tfsdk:"owner_type"`
+	OwnerName           types.String `tfsdk:"owner_name"`
+	Description         types.String `tfsdk:"description"`
+	EnableLoadBalancing types.Bool   `tfsdk:"lb_enabled"`
 }
 
 func (d *edgeGatewayDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -70,6 +71,10 @@ func (d *edgeGatewayDataSource) Schema(ctx context.Context, req datasource.Schem
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "The description of the Edge Gateway.",
+				Computed:            true,
+			},
+			"lb_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Load Balancing state on the Edge Gateway.",
 				Computed:            true,
 			},
 		},
@@ -133,13 +138,24 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 	if !found {
 		data.ID = types.StringValue("")
 	} else {
+		// Get LoadBalancing state.
+		gatewaysLoadBalancing, httpR, err := d.client.APIClient.EdgeGatewaysApi.GetEdgeLoadBalancing(d.client.Auth, gateway.EdgeId)
+		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+			defer httpR.Body.Close()
+			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+			if resp.Diagnostics.HasError() {
+				return
+			}
+		}
+
 		data = edgeGatewayDataSourceModel{
-			Tier0VrfID:  types.StringValue(gateway.Tier0VrfId),
-			Name:        types.StringValue(gateway.EdgeName),
-			ID:          types.StringValue(common.NormalizeID("urn:vcloud:gateway:", gateway.EdgeId)),
-			OwnerType:   types.StringValue(gateway.OwnerType),
-			OwnerName:   types.StringValue(gateway.OwnerName),
-			Description: types.StringValue(gateway.Description),
+			Tier0VrfID:          types.StringValue(gateway.Tier0VrfId),
+			Name:                types.StringValue(gateway.EdgeName),
+			ID:                  types.StringValue(common.NormalizeID("urn:vcloud:gateway:", gateway.EdgeId)),
+			OwnerType:           types.StringValue(gateway.OwnerType),
+			OwnerName:           types.StringValue(gateway.OwnerName),
+			Description:         types.StringValue(gateway.Description),
+			EnableLoadBalancing: types.BoolValue((gatewaysLoadBalancing.Enabled)),
 		}
 	}
 

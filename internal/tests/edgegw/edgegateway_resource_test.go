@@ -55,6 +55,7 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "owner_name", "MyVDC"),
 					resource.TestCheckResourceAttr(resourceName, "tier0_vrf_name", "prvrf01eocb0006205allsp01"),
 					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(`tn01e02ocb0006205spt[0-9]{3}`)),
+					resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				),
 			},
@@ -63,12 +64,12 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 				Config:  testAccEdgeGatewayResourceConfig,
 			},
 			// ImportState testing
-			// {
-			// 	ResourceName:      resourceName,
-			// 	ImportState:       true,
-			// 	ImportStateId:     "edgeName",
-			// 	ImportStateVerify: true,
-			// },
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateId:     "tn01e02ocb0006205spt101",
+				ImportStateVerify: true,
+			},
 			// check bad owner_type
 			// https://github.com/hashicorp/terraform-plugin-sdk/issues/609
 			// {
