@@ -105,3 +105,14 @@ func BusTypeAttributeComputed() schema.Attribute {
 		MarkdownDescription: budTypeDescription,
 	}
 }
+
+// BusTypeAttributeRequired returns a schema.Attribute with a required value.
+func BusTypeAttributeRequired() schema.Attribute {
+	return schema.StringAttribute{
+		Required:            true,
+		MarkdownDescription: budTypeDescription,
+		Validators: []validator.String{
+			stringvalidator.OneOf(listOfBusTypes...),
+		},
+	}
+}

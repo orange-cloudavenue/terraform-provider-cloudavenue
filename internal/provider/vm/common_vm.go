@@ -1,19 +1,19 @@
 package vm
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net"
-	"reflect"
-	"sort"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
+	commonvm "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -27,7 +27,23 @@ const vmUnknownStatus = "-unknown-status-"
 
 var errRemoveResource = errors.New("resource is being removed")
 
+/*
+	* Guest properties
+
+	Following code is responsible for setting guest properties on the VM
+	3 functions are available:
+		- addRemoveGuestProperties
+		- getGuestProperties
+		- updateGuestCustomizationSetting
+
+*/
+
+// addRemoveGuestProperties is responsible for setting guest properties on the VM
 func addRemoveGuestProperties(v *VMClient, vm *govcd.VM) error {
+
+	// * GuestPropertiers is Optional Value in Terraform Schema.
+	// * If it is not set, we don't need to do anything and return `nil`
+
 	if !v.Plan.GuestProperties.IsNull() || !v.Plan.GuestProperties.IsUnknown() {
 		vmProperties, err := getGuestProperties(v.Plan.GuestProperties)
 		if err != nil {
@@ -44,14 +60,17 @@ func addRemoveGuestProperties(v *VMClient, vm *govcd.VM) error {
 
 // getGuestProperties returns a struct for setting guest properties
 func getGuestProperties(guestProperties types.Map) (*govcdtypes.ProductSectionList, error) {
+
+	// Init Struct
 	vmProperties := &govcdtypes.ProductSectionList{
 		ProductSection: &govcdtypes.ProductSection{
 			Info:     "Custom properties",
 			Property: []*govcdtypes.Property{},
 		},
 	}
+
+	// For each key/value pair, add it to the struct
 	for key, value := range guestProperties.Elements() {
-		log.Printf("[TRACE] Adding guest property: key=%s, value=%s to object", key, value)
 		oneProp := &govcdtypes.Property{
 			UserConfigurable: true,
 			Type:             "string",
@@ -62,8 +81,25 @@ func getGuestProperties(guestProperties types.Map) (*govcdtypes.ProductSectionLi
 		vmProperties.ProductSection.Property = append(vmProperties.ProductSection.Property, oneProp)
 	}
 
+	if len(guestProperties.Elements()) != len(vmProperties.ProductSection.Property) {
+		return nil, fmt.Errorf("unable to convert guest properties to data structure")
+	}
+
 	return vmProperties, nil
 }
+
+// * End of guest properties
+
+/*
+	* Customization
+
+	Following code is responsible for setting VM customization
+	3 functions are available:
+		- updateGuestCustomizationSetting
+		- updateCustomizationSection
+		- isForcedCustomization
+
+*/
 
 // updateGuestCustomizationSetting is responsible for setting all the data related to VM customization
 func updateGuestCustomizationSetting(v *VMClient, vm *govcd.VM) error {
@@ -71,13 +107,6 @@ func updateGuestCustomizationSetting(v *VMClient, vm *govcd.VM) error {
 	customizationSection, err := vm.GetGuestCustomizationSection()
 	if err != nil {
 		return fmt.Errorf("error getting existing customization section before changing: %s", err)
-	}
-
-	// for back compatibility we allow to set computer name from `name` if computer_name isn't provided
-	var computerName string
-
-	if !v.Plan.ComputerName.IsNull() && !v.Plan.ComputerName.IsUnknown() {
-		customizationSection.ComputerName = computerName
 	}
 
 	// Process parameters from 'customization' block
@@ -91,89 +120,99 @@ func updateGuestCustomizationSetting(v *VMClient, vm *govcd.VM) error {
 	return nil
 }
 
+// updateCustomizationSection is responsible for setting all the data related to VM customization
 func updateCustomizationSection(v *VMClient, customizationSection *govcdtypes.GuestCustomizationSection) {
-	customizationSlice := v.Plan.Customization
-	if len(customizationSlice) == 1 {
-		customization := customizationSlice[0]
 
-		if !customization.Enabled.IsNull() && !customization.Enabled.IsUnknown() {
-			customizationSection.Enabled = utils.TakeBoolPointer(customization.Enabled.ValueBool())
-		}
-		// init script
-		if !customization.InitScript.IsNull() && !customization.InitScript.IsUnknown() {
-			customizationSection.CustomizationScript = customization.InitScript.ValueString()
-		}
-		// change SID
-		if !customization.ChangeSid.IsNull() && !customization.ChangeSid.IsUnknown() {
-			customizationSection.ChangeSid = utils.TakeBoolPointer(customization.ChangeSid.ValueBool())
-		}
-		// allow local admin password
-		if !customization.AllowLocalAdminPassword.IsNull() && !customization.AllowLocalAdminPassword.IsUnknown() {
-			customizationSection.AdminPasswordEnabled = utils.TakeBoolPointer(customization.AllowLocalAdminPassword.ValueBool())
-		}
-		// must change password on first login
-		if !customization.MustChangePasswordOnFirstLogin.IsNull() && !customization.MustChangePasswordOnFirstLogin.IsUnknown() {
-			customizationSection.ResetPasswordRequired = utils.TakeBoolPointer(customization.MustChangePasswordOnFirstLogin.ValueBool())
-		}
-		// auto generate password
-		if !customization.AutoGeneratePassword.IsNull() && !customization.AutoGeneratePassword.IsUnknown() {
-			customizationSection.AdminPasswordAuto = utils.TakeBoolPointer(customization.AutoGeneratePassword.ValueBool())
-		}
-		// admin password
-		if !customization.AdminPassword.IsNull() && !customization.AdminPassword.IsUnknown() {
-			customizationSection.AdminPassword = customization.AdminPassword.ValueString()
-		}
-		// number of auto logins
-		if !customization.NumberOfAutoLogons.IsNull() && !customization.NumberOfAutoLogons.IsUnknown() {
-			// The AdminAutoLogonEnabled is "hidden" from direct user input to behave exactly like UI does. UI sets
-			// the value of this field behind the scenes based on number_of_auto_logons count.
-			// AdminAutoLogonEnabled=false if number_of_auto_logons == 0
-			// AdminAutoLogonEnabled=true if number_of_auto_logons > 0
-			customizationSection.AdminAutoLogonEnabled = utils.TakeBoolPointer(customization.NumberOfAutoLogons.ValueInt64() > 0)
-			customizationSection.AdminAutoLogonCount = int(customization.NumberOfAutoLogons.ValueInt64())
-		}
-		// join domain
-		if !customization.JoinDomain.IsNull() && !customization.JoinDomain.IsUnknown() {
-			customizationSection.JoinDomainEnabled = utils.TakeBoolPointer(customization.JoinDomain.ValueBool())
-		}
-		// join org domain
-		if !customization.JoinOrgDomain.IsNull() && !customization.JoinOrgDomain.IsUnknown() {
-			customizationSection.UseOrgSettings = utils.TakeBoolPointer(customization.JoinOrgDomain.ValueBool())
-		}
-		// domain name
-		if !customization.JoinDomainName.IsNull() && !customization.JoinDomainName.IsUnknown() {
-			customizationSection.DomainName = customization.JoinDomainName.ValueString()
-		}
-		// domain user
-		if !customization.JoinDomainUser.IsNull() && !customization.JoinDomainUser.IsUnknown() {
-			customizationSection.DomainUserName = customization.JoinDomainUser.ValueString()
-		}
-		// domain domain password
-		if !customization.JoinDomainPassword.IsNull() && !customization.JoinDomainPassword.IsUnknown() {
-			customizationSection.DomainUserPassword = customization.JoinDomainPassword.ValueString()
-		}
-		// domain account ou
-		if !customization.JoinDomainAccountOU.IsNull() && !customization.JoinDomainAccountOU.IsUnknown() {
-			customizationSection.MachineObjectOU = customization.JoinDomainAccountOU.ValueString()
-		}
+	if v.Plan.ComputerName.IsNull() {
+		// for back compatibility we allow to set computer name from `name` if computer_name isn't provided
+		customizationSection.ComputerName = v.Plan.VMName.ValueString()
+	} else {
+		customizationSection.ComputerName = v.Plan.ComputerName.ValueString()
+	}
+
+	var customization vm.Customization
+	v.Plan.Customization.As(context.Background(), customization, basetypes.ObjectAsOptions{})
+
+	if !customization.Enabled.IsNull() && !customization.Enabled.IsUnknown() {
+		customizationSection.Enabled = utils.TakeBoolPointer(customization.Enabled.ValueBool())
+	}
+	// init script
+	if !customization.InitScript.IsNull() && !customization.InitScript.IsUnknown() {
+		customizationSection.CustomizationScript = customization.InitScript.ValueString()
+	}
+	// change SID
+	if !customization.ChangeSid.IsNull() && !customization.ChangeSid.IsUnknown() {
+		customizationSection.ChangeSid = utils.TakeBoolPointer(customization.ChangeSid.ValueBool())
+	}
+	// allow local admin password
+	if !customization.AllowLocalAdminPassword.IsNull() && !customization.AllowLocalAdminPassword.IsUnknown() {
+		customizationSection.AdminPasswordEnabled = utils.TakeBoolPointer(customization.AllowLocalAdminPassword.ValueBool())
+	}
+	// must change password on first login
+	if !customization.MustChangePasswordOnFirstLogin.IsNull() && !customization.MustChangePasswordOnFirstLogin.IsUnknown() {
+		customizationSection.ResetPasswordRequired = utils.TakeBoolPointer(customization.MustChangePasswordOnFirstLogin.ValueBool())
+	}
+	// auto generate password
+	if !customization.AutoGeneratePassword.IsNull() && !customization.AutoGeneratePassword.IsUnknown() {
+		customizationSection.AdminPasswordAuto = utils.TakeBoolPointer(customization.AutoGeneratePassword.ValueBool())
+	}
+	// admin password
+	if !customization.AdminPassword.IsNull() && !customization.AdminPassword.IsUnknown() {
+		customizationSection.AdminPassword = customization.AdminPassword.ValueString()
+	}
+	// number of auto logins
+	if !customization.NumberOfAutoLogons.IsNull() && !customization.NumberOfAutoLogons.IsUnknown() {
+		// The AdminAutoLogonEnabled is "hidden" from direct user input to behave exactly like UI does. UI sets
+		// the value of this field behind the scenes based on number_of_auto_logons count.
+		// AdminAutoLogonEnabled=false if number_of_auto_logons == 0
+		// AdminAutoLogonEnabled=true if number_of_auto_logons > 0
+		customizationSection.AdminAutoLogonEnabled = utils.TakeBoolPointer(customization.NumberOfAutoLogons.ValueInt64() > 0)
+		customizationSection.AdminAutoLogonCount = int(customization.NumberOfAutoLogons.ValueInt64())
+	}
+	// join domain
+	if !customization.JoinDomain.IsNull() && !customization.JoinDomain.IsUnknown() {
+		customizationSection.JoinDomainEnabled = utils.TakeBoolPointer(customization.JoinDomain.ValueBool())
+	}
+	// join org domain
+	if !customization.JoinOrgDomain.IsNull() && !customization.JoinOrgDomain.IsUnknown() {
+		customizationSection.UseOrgSettings = utils.TakeBoolPointer(customization.JoinOrgDomain.ValueBool())
+	}
+	// domain name
+	if !customization.JoinDomainName.IsNull() && !customization.JoinDomainName.IsUnknown() {
+		customizationSection.DomainName = customization.JoinDomainName.ValueString()
+	}
+	// domain user
+	if !customization.JoinDomainUser.IsNull() && !customization.JoinDomainUser.IsUnknown() {
+		customizationSection.DomainUserName = customization.JoinDomainUser.ValueString()
+	}
+	// domain domain password
+	if !customization.JoinDomainPassword.IsNull() && !customization.JoinDomainPassword.IsUnknown() {
+		customizationSection.DomainUserPassword = customization.JoinDomainPassword.ValueString()
+	}
+	// domain account ou
+	if !customization.JoinDomainAccountOU.IsNull() && !customization.JoinDomainAccountOU.IsUnknown() {
+		customizationSection.MachineObjectOU = customization.JoinDomainAccountOU.ValueString()
 	}
 }
 
 // isForcedCustomization checks "customization" block in resource and checks if the value of field "force"
 // is set to "true". It returns false if the value is not set or is set to false
 func isForcedCustomization(v *VMClient) bool {
-	if len(v.Plan.Customization) != 1 {
+	if v.Plan.Customization.IsNull() {
 		return false
 	}
 
-	cust := v.Plan.Customization[0]
+	var customization vm.Customization
+	v.Plan.Customization.As(context.Background(), customization, basetypes.ObjectAsOptions{})
 
-	if !cust.Force.IsNull() && !cust.Force.IsUnknown() {
-		return cust.Force.ValueBool()
+	if !customization.Force.IsNull() && !customization.Force.IsUnknown() {
+		return customization.Force.ValueBool()
 	} else {
 		return false
 	}
 }
+
+// * End of customization section
 
 // lookupvAppTemplateforVm will do the following
 // evaluate if optional parameter `vm_name_in_template` was specified.
@@ -184,7 +223,7 @@ func isForcedCustomization(v *VMClient) bool {
 // If `vm_name_in_template` was not specified:
 // * Return error
 func lookupvAppTemplateforVM(v *VMClient, org *govcd.Org, vdc *govcd.Vdc) (govcd.VAppTemplate, error) {
-	if !v.Plan.VappTemplateID.IsNull() && !v.Plan.VappName.IsUnknown() {
+	if !v.Plan.VappTemplateID.IsNull() && !v.Plan.VappTemplateID.IsUnknown() {
 		// Lookup of vApp Template using URN
 
 		vAppTemplate, err := v.Client.Vmware.GetVAppTemplateById(v.Plan.VappTemplateID.ValueString())
@@ -228,23 +267,39 @@ func lookupvAppTemplateforVM(v *VMClient, org *govcd.Org, vdc *govcd.Vdc) (govcd
 func networksToConfig(v *VMClient, vapp *govcd.VApp) (govcdtypes.NetworkConnectionSection, error) {
 	networkConnectionSection := govcdtypes.NetworkConnectionSection{}
 
+	if v.Plan.Networks.IsNull() {
+		return networkConnectionSection, nil
+	}
+
+	networks, err := vm.NetworksFromPlan(v.Plan.Networks)
+	if err != nil {
+		return networkConnectionSection, nil
+	}
+
 	// sets existing primary network connection index. Further code changes index only if change is
 	// found
-	for index, singleNetwork := range v.Plan.Networks {
+	for index, singleNetwork := range *networks {
 		if singleNetwork.IsPrimary.ValueBool() {
 			networkConnectionSection.PrimaryNetworkConnectionIndex = index
 		}
 	}
 
-	for index, singleNetwork := range v.Plan.Networks {
+	for index, singleNetwork := range *networks {
 		netConn := &govcdtypes.NetworkConnection{}
 
 		networkName := singleNetwork.Name.ValueString()
 		ipAllocationMode := singleNetwork.IPAllocationMode.ValueString()
 		ip := singleNetwork.IP.ValueString()
 
-		if v.State != nil && !v.Plan.Networks[index].IsPrimary.Equal(v.State.Networks[index].IsPrimary) && singleNetwork.IsPrimary.ValueBool() {
-			networkConnectionSection.PrimaryNetworkConnectionIndex = index
+		if v.State != nil {
+			networksState, err := vm.NetworksFromPlan(v.State.Networks)
+			if err != nil {
+				return govcdtypes.NetworkConnectionSection{}, err
+			}
+
+			if !singleNetwork.IsPrimary.Equal((*networksState)[index].IsPrimary) && singleNetwork.IsPrimary.ValueBool() {
+				networkConnectionSection.PrimaryNetworkConnectionIndex = index
+			}
 		}
 
 		switch singleNetwork.Type.ValueString() {
@@ -357,105 +412,6 @@ func lookupComputePolicy(v *VMClient, value string) (*govcd.VdcComputePolicyV2, 
 	return computePolicy, nil
 }
 
-// lookupComputePolicySizingPolicyID returns the Compute Policy Sizing Policy ID associated to the value of the given
-// Compute Policy Sizing Policy ID attribute. If the attribute is not set, the returned policy will be nil. If the
-// obtained policy is incorrect, it will return an error.
-// func lookupComputePolicySizingPolicyID(v *VMClient, sizingPolicyID string) (*govcd.VdcComputePolicyV2, error) {
-// 	if sizingPolicyID == "" {
-// 		return nil, nil
-// 	}
-
-// 	return lookupComputePolicy(v, sizingPolicyID)
-// }
-
-// lookupComputePolicyPlacementPolicyID returns the Compute Policy Placement Policy ID associated to the value of the
-// given Compute Policy Placement Policy ID attribute. If the attribute is not set, the returned policy will be nil.
-// If the obtained policy is incorrect, it will return an error.
-// func lookupComputePolicyPlacementPolicyID(v *VMClient, placementPolicyID string) (*govcd.VdcComputePolicyV2, error) {
-// 	if placementPolicyID == "" {
-// 		return nil, nil
-// 	}
-
-// 	return lookupComputePolicy(v, placementPolicyID)
-// }
-
-func updateTemplateInternalDisks(v *VMClient, vm govcd.VM) error {
-	// Get vcd object
-	_, vdc, err := v.Client.GetOrgAndVDC(v.Client.GetOrg(), v.Plan.VDC.ValueString())
-	if err != nil {
-		return fmt.Errorf("error retrieving VDC %s: %s", v.Plan.VDC.ValueString(), err)
-	}
-
-	if vm.VM.VmSpecSection == nil || vm.VM.VmSpecSection.DiskSection == nil {
-		return fmt.Errorf("[updateTemplateInternalDisks] VmSpecSection part is missing")
-	}
-
-	diskSettings := vm.VM.VmSpecSection.DiskSection.DiskSettings
-
-	var storageProfilePrt *govcdtypes.Reference
-	var overrideVMDefault bool
-
-	if len(v.Plan.OverrideTemplateDisks) == 0 {
-		return nil
-	}
-
-	for _, internalDiskProvidedConfig := range v.Plan.OverrideTemplateDisks {
-		diskCreatedByTemplate := getMatchedDisk(internalDiskProvidedConfig, diskSettings)
-
-		storageProfileName := internalDiskProvidedConfig.StorageProfile.ValueString()
-		if storageProfileName != "" {
-			storageProfile, err := vdc.FindStorageProfileReference(storageProfileName)
-			if err != nil {
-				return fmt.Errorf("[vm creation] error retrieving storage profile %s : %s", storageProfileName, err)
-			}
-			storageProfilePrt = &storageProfile
-			overrideVMDefault = true
-		} else {
-			storageProfilePrt = vm.VM.StorageProfile
-			overrideVMDefault = false
-		}
-
-		if diskCreatedByTemplate == nil {
-			return fmt.Errorf("[vm creation] disk with bus type %s, bus number %d and unit number %d not found",
-				internalDiskProvidedConfig.BusType.ValueString(), internalDiskProvidedConfig.BusNumber.ValueInt64(), internalDiskProvidedConfig.UnitNumber.ValueInt64())
-		}
-
-		// Update details of internal disk for disk existing in template
-		if !internalDiskProvidedConfig.Iops.IsNull() && !internalDiskProvidedConfig.Iops.IsUnknown() {
-			diskCreatedByTemplate.Iops = utils.TakeInt64Pointer(internalDiskProvidedConfig.Iops.ValueInt64())
-		}
-
-		// value is required but not treated.
-		isThinProvisioned := true
-		diskCreatedByTemplate.ThinProvisioned = &isThinProvisioned
-
-		diskCreatedByTemplate.SizeMb = internalDiskProvidedConfig.SizeInMb.ValueInt64()
-		diskCreatedByTemplate.StorageProfile = storageProfilePrt
-		diskCreatedByTemplate.OverrideVmDefault = overrideVMDefault
-	}
-
-	vmSpecSection := vm.VM.VmSpecSection
-	vmSpecSection.DiskSection.DiskSettings = diskSettings
-	_, err = vm.UpdateInternalDisks(vmSpecSection)
-	if err != nil {
-		return fmt.Errorf("error updating VM disks: %s", err)
-	}
-
-	return nil
-}
-
-// getMatchedDisk returns matched disk by adapter type, bus number and unit number
-func getMatchedDisk(internalDiskProvidedConfig vm.TemplateDiskModel, diskSettings []*govcdtypes.DiskSettings) *govcdtypes.DiskSettings {
-	for _, diskSetting := range diskSettings {
-		if diskSetting.AdapterType == vm.InternalDiskBusTypes[internalDiskProvidedConfig.BusType.ValueString()] &&
-			diskSetting.BusNumber == int(internalDiskProvidedConfig.BusNumber.ValueInt64()) &&
-			diskSetting.UnitNumber == int(internalDiskProvidedConfig.UnitNumber.ValueInt64()) {
-			return diskSetting
-		}
-	}
-	return nil
-}
-
 func updateOsType(v *VMClient, vm *govcd.VM) error {
 	var err error
 
@@ -476,122 +432,153 @@ func updateOsType(v *VMClient, vm *govcd.VM) error {
 // schema configuration and then whatever is present in compute policy (if it was specified at all)
 func getCPUMemoryValues(v *VMClient, vdcComputePolicy *govcdtypes.VdcComputePolicyV2) (cpu, cores *int, memory *int64, err error) {
 	var (
-		setCPU    int
-		setCores  int
-		setMemory int64
+		setCPU    *int
+		setCores  *int
+		setMemory *int64
 	)
 
-	if !v.Plan.Resource.Memory.IsNull() && !v.Plan.Resource.Memory.IsUnknown() {
-		setMemory = v.Plan.Resource.Memory.ValueInt64()
-	}
-
-	if !v.Plan.Resource.CPUs.IsNull() && !v.Plan.Resource.CPUs.IsUnknown() {
-		setCPU = int(v.Plan.Resource.CPUs.ValueInt64())
-	}
-
-	if !v.Plan.Resource.CPUCores.IsNull() && !v.Plan.Resource.CPUCores.IsUnknown() {
-		setCores = int(v.Plan.Resource.CPUCores.ValueInt64())
-	}
-
-	// Check if sizing policy has any settings settings and override VM configuration with it
-	if vdcComputePolicy != nil {
-		if vdcComputePolicy.Memory != nil {
-			mem := int64(*vdcComputePolicy.Memory)
-			setMemory = mem
+	var resource commonvm.Resource
+	if !v.Plan.Resource.IsNull() && !v.Plan.Resource.IsUnknown() {
+		d := v.Plan.Resource.As(context.Background(), resource, basetypes.ObjectAsOptions{})
+		if d.HasError() {
+			return nil, nil, nil, fmt.Errorf("error retrieving resource: %s", d)
 		}
 
-		if vdcComputePolicy.CPUCount != nil {
-			setCPU = *vdcComputePolicy.CPUCount
+		if !resource.Memory.IsNull() && !resource.Memory.IsUnknown() {
+			setMemory = utils.TakeInt64Pointer(resource.Memory.ValueInt64())
 		}
 
-		if vdcComputePolicy.CoresPerSocket != nil {
-			setCores = *vdcComputePolicy.CoresPerSocket
+		if !resource.CPUs.IsNull() && !resource.CPUs.IsUnknown() {
+			setCPU = utils.TakeIntPointer(int(resource.CPUs.ValueInt64()))
+		}
+
+		if !resource.CPUCores.IsNull() && !resource.CPUCores.IsUnknown() {
+			setCores = utils.TakeIntPointer(int(resource.CPUCores.ValueInt64()))
 		}
 	}
 
-	return &setCPU, &setCores, &setMemory, nil
+	return setCPU, setCores, setMemory, nil
 }
 
-// attachDetachIndependentDisks updates attached disks to latest state, removes not needed, and adds
-// new ones
-func attachDetachIndependentDisks(v *VMClient, gvcdvm govcd.VM, vdc *govcd.Vdc) error {
-	if reflect.DeepEqual(v.Plan.Disks, v.State.Disks) {
-		// No changes in disks
-		return nil
+func createPlan(ctx context.Context, gvm *govcd.VM, x *vmResourceModel) (newPlan *vmResourceModel, err error) {
+
+	vdc, err := gvm.GetParentVdc()
+	if err != nil {
+		return
 	}
 
-	var (
-		attachDisks []vm.DiskModel
-		detachDisks []vm.DiskModel
-	)
+	networks, err := vm.NetworksRead(gvm)
+	if err != nil {
+		return
+	}
 
-	for i := range v.Plan.Disks {
-		if reflect.DeepEqual(v.Plan.Disks[i], v.State.Disks[i]) {
-			// No changes in disk
-			continue
-		} else {
-			// Disk changed
+	resource, err := vm.ResourceRead(gvm)
+	if err != nil {
+		return
+	}
 
-			// Determine if disk was added or removed
-			if v.State.Disks[i].Name.IsNull() || v.State.Disks[i].Name.IsUnknown() {
-				// Disk was added
-				attachDisks = append(attachDisks, v.Plan.Disks[i])
-			} else {
-				// Disk was removed
-				detachDisks = append(detachDisks, v.State.Disks[i])
-			}
+	disks, err := DisksRead(gvm)
+	if err != nil {
+		return
+	}
+
+	guestproperties, err := vm.GuestPropertiesRead(gvm)
+	if err != nil {
+		return
+	}
+
+	customization, err := vm.CustomizationRead(gvm)
+	if err != nil {
+		return
+	}
+
+	customizationState, d := commonvm.CustomizationFromPlan(ctx, x.Customization)
+	if d.HasError() {
+		err = fmt.Errorf("error convert customization: %s", d[0].Detail())
+		return
+	}
+
+	customization.Force = customizationState.Force
+
+	statusText, err := gvm.GetStatus()
+	if err != nil {
+		statusText = vmUnknownStatus
+	}
+
+	vapp, err := gvm.GetParentVApp()
+	if err != nil {
+		return
+	}
+
+	err = gvm.Refresh()
+	if err != nil {
+		return
+	}
+
+	newPlan = &vmResourceModel{
+		ID:  types.StringValue(gvm.VM.ID),
+		VDC: types.StringValue(vdc.Vdc.Name),
+
+		VappName:       types.StringValue(vapp.VApp.Name),
+		VappTemplateID: x.VappTemplateID,
+
+		Resource: resource.ToPlan(),
+
+		VMName:           types.StringValue(gvm.VM.Name),
+		VMNameInTemplate: x.VMNameInTemplate,
+
+		Description:    types.StringValue(gvm.VM.Description),
+		Href:           types.StringValue(gvm.VM.HREF),
+		AcceptAllEulas: x.AcceptAllEulas,
+
+		PowerON:               x.PowerON,
+		PreventUpdatePowerOff: x.PreventUpdatePowerOff,
+
+		BootImageID: x.BootImageID,
+		// OverrideTemplateDisks: x.OverrideTemplateDisks,
+
+		Networks:               networks.ToPlan(),
+		NetworkDhcpWaitSeconds: x.NetworkDhcpWaitSeconds,
+
+		ExposeHardwareVirtualization: types.BoolValue(gvm.VM.NestedHypervisorEnabled),
+		GuestProperties:              guestproperties.ToPlan(),
+		Customization:                customization.ToPlan(),
+		StatusCode:                   types.Int64Value(int64(gvm.VM.Status)),
+		StatusText:                   types.StringValue(statusText),
+	}
+
+	if gvm.VM.VmSpecSection != nil {
+		newPlan.OsType = types.StringValue(gvm.VM.VmSpecSection.OsType)
+	}
+
+	if gvm.VM.ComputePolicy != nil {
+		if gvm.VM.ComputePolicy.VmSizingPolicy != nil {
+			newPlan.SizingPolicyID = types.StringValue(gvm.VM.ComputePolicy.VmSizingPolicy.ID)
+		}
+
+		if gvm.VM.ComputePolicy.VmPlacementPolicy != nil {
+			newPlan.PlacementPolicyID = types.StringValue(gvm.VM.ComputePolicy.VmPlacementPolicy.ID)
 		}
 	}
 
-	for _, diskData := range detachDisks {
-		disk, err := vdc.QueryDisk(diskData.Name.ValueString())
-		if err != nil {
-			return fmt.Errorf("did not find disk `%s`: %s", diskData.Name.ValueString(), err)
-		}
-
-		attachParams := &govcdtypes.DiskAttachOrDetachParams{
-			Disk:       &govcdtypes.Reference{HREF: disk.Disk.HREF},
-			UnitNumber: utils.TakeIntPointer(int(diskData.UnitNumber.ValueInt64())),
-			BusNumber:  utils.TakeIntPointer(int(diskData.BusNumber.ValueInt64())),
-		}
-
-		task, err := gvcdvm.DetachDisk(attachParams)
-		if err != nil {
-			return fmt.Errorf("error detaching disk `%s` to vm %s", diskData.Name.ValueString(), err)
-		}
-		err = task.WaitTaskCompletion()
-		if err != nil {
-			return fmt.Errorf("error waiting for task to complete detaching disk `%s` to vm %s", diskData.Name.ValueString(), err)
+	if gvm.VM.GuestCustomizationSection != nil {
+		newPlan.ComputerName = types.StringValue(gvm.VM.GuestCustomizationSection.ComputerName)
+	} else {
+		if !x.ComputerName.IsNull() {
+			newPlan.ComputerName = x.ComputerName
 		}
 	}
 
-	sort.SliceStable(attachDisks, func(i, j int) bool {
-		if attachDisks[i].BusNumber.Equal(attachDisks[j].BusNumber) {
-			return attachDisks[i].UnitNumber.ValueInt64() > attachDisks[j].UnitNumber.ValueInt64()
-		}
-		return attachDisks[i].BusNumber.ValueInt64() > attachDisks[j].BusNumber.ValueInt64()
-	})
-
-	for _, diskData := range attachDisks {
-		disk, err := vdc.QueryDisk(diskData.Name.ValueString())
-		if err != nil {
-			return fmt.Errorf("did not find disk `%s`: %s", diskData.Name.ValueString(), err)
-		}
-
-		attachParams := &govcdtypes.DiskAttachOrDetachParams{
-			Disk:       &govcdtypes.Reference{HREF: disk.Disk.HREF},
-			UnitNumber: utils.TakeIntPointer(int(diskData.UnitNumber.ValueInt64())),
-			BusNumber:  utils.TakeIntPointer(int(diskData.BusNumber.ValueInt64())),
-		}
-
-		task, err := gvcdvm.AttachDisk(attachParams)
-		if err != nil {
-			return fmt.Errorf("error attaching disk `%s` to vm %s", diskData.Name.ValueString(), err)
-		}
-		err = task.WaitTaskCompletion()
-		if err != nil {
-			return fmt.Errorf("error waiting for task to complete attaching disk `%s` to vm %s", diskData.Name.ValueString(), err)
-		}
+	if gvm.VM.StorageProfile != nil {
+		newPlan.StorageProfile = types.StringValue(gvm.VM.StorageProfile.Name)
 	}
-	return nil
+
+	xDisks, d := disks.ToPlan(ctx)
+	if d.HasError() {
+		err = fmt.Errorf("error convert disks: %s", d[0].Detail())
+		return
+	}
+	newPlan.Disks = xDisks
+
+	return
 }

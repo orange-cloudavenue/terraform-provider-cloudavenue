@@ -9,7 +9,7 @@ import (
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 )
 
-const busNumberDescription = "The number of the `SCSI` or `IDE` controller itself."
+const busNumberDescription = "The number of the controller itself."
 
 /*
 BusNumberAttribute
@@ -31,6 +31,18 @@ func BusNumberAttribute() schema.Attribute {
 	}
 }
 
+// BusNumberAttributeRequired returns a schema.Attribute with a required value.
+func BusNumberAttributeRequired() schema.Attribute {
+	return schema.Int64Attribute{
+		MarkdownDescription: busNumberDescription,
+		Required:            true,
+		Validators: []validator.Int64{
+			int64validator.AtLeast(0),
+			int64validator.AtMost(3),
+		},
+	}
+}
+
 // BusNumberAttributeComputed returns a schema.Attribute with a computed value.
 func BusNumberAttributeComputed() schema.Attribute {
 	return schema.Int64Attribute{
@@ -39,7 +51,7 @@ func BusNumberAttributeComputed() schema.Attribute {
 	}
 }
 
-const unitNumberDescription = "The device number on the `SCSI` or `IDE` controller of the disk."
+const unitNumberDescription = "The device number on the controller of the disk."
 
 /*
 UnitNumberAttribute
@@ -61,6 +73,19 @@ func UnitNumberAttribute() schema.Attribute {
 	}
 }
 
+// UnitNumberAttributeRequired returns a schema.Attribute with a required value.
+func UnitNumberAttributeRequired() schema.Attribute {
+	return schema.Int64Attribute{
+		MarkdownDescription: unitNumberDescription,
+		Required:            true,
+		Validators: []validator.Int64{
+			int64validator.AtLeast(0),
+			int64validator.AtMost(15),
+		},
+	}
+}
+
+// UnitNumberAttributeComputed returns a schema.Attribute with a computed value.
 func UnitNumberAttributeComputed() schema.Attribute {
 	return schema.Int64Attribute{
 		MarkdownDescription: unitNumberDescription,

@@ -5,6 +5,8 @@ import (
 	"log"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 )
 
 const (
@@ -13,12 +15,12 @@ const (
 )
 
 // GetVM returns a VM by name.
-func GetVM(vdc *govcd.Vdc, vappName, vmName string) (*govcd.VM, error) {
-	vapp, err := vdc.GetVAppByName(vappName, true)
+func GetVM(vdc *govcd.Vdc, vappNameOrID, vmNameOrID string) (*govcd.VM, error) {
+	vapp, err := vdc.GetVAppByNameOrId(vappNameOrID, true)
 	if err != nil {
 		return nil, fmt.Errorf("[getVm] failed to get vApp: %s", err)
 	}
-	vm, err := vapp.GetVMByName(vmName, false)
+	vm, err := vapp.GetVMByNameOrId(vmNameOrID, false)
 	if err != nil {
 		return nil, fmt.Errorf("[getVm] failed to get VM: %s", err)
 	}
@@ -69,3 +71,7 @@ func PowerOffIfNeeded(vm *govcd.VM, busType string, allowVMReboot bool) (string,
 	}
 	return vmStatusBefore, nil
 }
+
+var (
+	vcdMutexKV = mutex.NewKV()
+)

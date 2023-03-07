@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vm_disk Resource - cloudavenue"
 subcategory: "VM"
 description: |-
-  The disk resource allows you to manage an disk of a VM .
+  The disk resource allows you to manage an disk in the vDC.
 ---
 
 # cloudavenue_vm_disk (Resource)
 
-The disk resource allows you to manage an disk of a VM .
+The disk resource allows you to manage an disk in the vDC.
 
 ## Example Usage
 
@@ -30,44 +30,30 @@ resource "cloudavenue_vm_disk" "example" {
 
 ### Required
 
-- `vapp_name` (String) The vApp this VM disk belongs to.
-- `vm_name` (String) VM in vApp in which disk is created.
+- `is_detachable` (Boolean) If the disk is detachable or not. If set to `true`, the disk will be attached to any VM that is created from the vApp. If set to `false`, the disk will be attached to the VM specified in `vm_name` or `vm_id`. Change this field requires a replacement of the disk.
+- `name` (String) The name of the disk.
 
 ### Optional
 
-- `allow_vm_reboot` (Boolean) Powers off VM when changing any attribute of an IDE disk or unit/bus number of other disk types, after the change is complete VM is powered back on. Without this setting enabled, such changes on a powered-on VM would fail.
-- `internal_disk` (Attributes) A block to define disk. Multiple can be used. (see [below for nested schema](#nestedatt--internal_disk))
+- `bus_number` (Number) The number of the `SCSI` or `IDE` controller itself.
+- `bus_type` (String) The type of disk controller. Possible values: `ide`, `scsi`, `sata` or `nvme`. Default value is `scsi`.
+- `size_in_mb` (Number) The size of the disk in MB.
+- `storage_profile` (String) Storage profile to override the VM default one. Allowed values are: `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
+- `unit_number` (Number) The device number on the `SCSI` or `IDE` controller of the disk.
+- `vapp_id` (String) The ID of the vApp. Required if `vapp_name` is not set.
+- `vapp_name` (String) The name of the vApp. Required if `vapp_id` is not set.
 - `vdc` (String) The name of VDC to use, optional if defined at provider level.
+- `vm_id` (String) The ID of the VM. If `vm_name` is not set and `ìs_detachable` is set to `true`, the disk will be attached to any VM. This field is required if `is_detachable` is set to `false`.
+- `vm_name` (String) The name of the VM. If `vm_id` is not set and `ìs_detachable` is set to `true`, the disk will be attached to any VM. This field is required if `is_detachable` is set to `false`.
 
 ### Read-Only
 
-- `id` (String) The ID of the internal disk.
-
-<a id="nestedatt--internal_disk"></a>
-### Nested Schema for `internal_disk`
-
-Required:
-
-- `bus_number` (Number) The number of the `SCSI` or `IDE` controller itself.
-- `bus_type` (String) The type of disk controller. Possible values: `ide`, `parallel` (LSI Logic Parallel SCSI), `sas` (LSI Logic SAS SCSI), `paravirtual` (Paravirtual SCSI), `sata`, `nvme`.
-- `size_in_mb` (Number) The size of the disk in MB.
-- `unit_number` (Number) The device number on the `SCSI` or `IDE` controller of the disk.
-
-Optional:
-
-- `storage_profile` (String) Storage profile to override the VM default one.
-
-Read-Only:
-
-- `id` (String) The ID of the internal disk.
+- `id` (String) The ID of the disk.
 
 ## Import
 
 Import is supported using the following syntax:
 ```shell
-# if vdc is not specified, the default vdc will be used
-terraform import cloudavenue_vm_disk.example vapp_name.vm_name.id
-
-# if vdc is specified, the vdc will be used
-terraform import cloudavenue_vm_disk.example vdc.vapp_name.vm_name.id
+# use the id to import the resource
+terraform import cloudavenue_vm_disk.example id
 ```
