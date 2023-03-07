@@ -1,14 +1,22 @@
 package vm
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+
+	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/boolpm"
 )
@@ -29,6 +37,73 @@ type Customization struct {
 	JoinDomainPassword             types.String `tfsdk:"join_domain_password"`
 	JoinDomainAccountOU            types.String `tfsdk:"join_domain_account_ou"`
 	InitScript                     types.String `tfsdk:"init_script"`
+}
+
+// ToAttrValue converts the Customization struct to a map of attr.Value
+func (c *Customization) ToAttrValue() map[string]attr.Value {
+	return map[string]attr.Value{
+		"enabled":                             c.Enabled,
+		"force":                               c.Force,
+		"change_sid":                          c.ChangeSid,
+		"allow_local_admin_password":          c.AllowLocalAdminPassword,
+		"must_change_password_on_first_login": c.MustChangePasswordOnFirstLogin,
+		"admin_password":                      c.AdminPassword,
+		"auto_generate_password":              c.AutoGeneratePassword,
+		"number_of_auto_logons":               c.NumberOfAutoLogons,
+		"join_domain":                         c.JoinDomain,
+		"join_org_domain":                     c.JoinOrgDomain,
+		"join_domain_name":                    c.JoinDomainName,
+		"join_domain_user":                    c.JoinDomainUser,
+		"join_domain_password":                c.JoinDomainPassword,
+		"join_domain_account_ou":              c.JoinDomainAccountOU,
+		"init_script":                         c.InitScript,
+	}
+}
+
+// CustomizationAttrType
+func CustomizationAttrType() map[string]attr.Type {
+	return map[string]attr.Type{
+		"enabled":                             types.BoolType,
+		"force":                               types.BoolType,
+		"change_sid":                          types.BoolType,
+		"allow_local_admin_password":          types.BoolType,
+		"must_change_password_on_first_login": types.BoolType,
+		"admin_password":                      types.StringType,
+		"auto_generate_password":              types.BoolType,
+		"number_of_auto_logons":               types.Int64Type,
+		"join_domain":                         types.BoolType,
+		"join_org_domain":                     types.BoolType,
+		"join_domain_name":                    types.StringType,
+		"join_domain_user":                    types.StringType,
+		"join_domain_password":                types.StringType,
+		"join_domain_account_ou":              types.StringType,
+		"init_script":                         types.StringType,
+	}
+}
+
+// CustomizationFromPlan converts the terraform plan to a Customization struct
+func CustomizationFromPlan(ctx context.Context, x types.Object) (*Customization, diag.Diagnostics) {
+	if x.IsNull() || x.IsUnknown() {
+		return &Customization{}, diag.Diagnostics{}
+	}
+
+	c := &Customization{}
+
+	d := x.As(ctx, c, basetypes.ObjectAsOptions{
+		UnhandledNullAsEmpty:    false,
+		UnhandledUnknownAsEmpty: false,
+	})
+
+	return c, d
+}
+
+// ToPlan converts the Customization struct to a terraform plan
+func (c *Customization) ToPlan() basetypes.ObjectValue {
+	if c == nil {
+		return types.ObjectNull(CustomizationAttrType())
+	}
+
+	return types.ObjectValueMust(CustomizationAttrType(), c.ToAttrValue())
 }
 
 // CustomizationSchema returns the schema for the customization block.
@@ -66,7 +141,7 @@ func CustomizationSchema() map[string]schema.Attribute {
 			Optional:            true,
 			Computed:            true,
 			Validators: []validator.Bool{
-				boolvalidator.ExactlyOneOf(path.MatchRoot("auto_generate_password"), path.MatchRoot("admin_password")),
+				boolvalidator.ExactlyOneOf(path.MatchRoot("admin_password")),
 			},
 		},
 		"admin_password": schema.StringAttribute{
@@ -75,7 +150,7 @@ func CustomizationSchema() map[string]schema.Attribute {
 			Computed:            true,
 			Sensitive:           true,
 			Validators: []validator.String{
-				stringvalidator.ExactlyOneOf(path.MatchRoot("auto_generate_password"), path.MatchRoot("admin_password")),
+				stringvalidator.ExactlyOneOf(path.MatchRoot("auto_generate_password")),
 			},
 		},
 		"number_of_auto_logons": schema.Int64Attribute{
@@ -123,4 +198,32 @@ func CustomizationSchema() map[string]schema.Attribute {
 			Computed:            true,
 		},
 	}
+}
+
+// CustomizationRead reads the customization block from the API response.
+func CustomizationRead(vm *govcd.VM) (c Customization, err error) {
+	customizationSection, err := vm.GetGuestCustomizationSection()
+	if err != nil {
+		return c, fmt.Errorf("unable to get guest customization section: %s", err)
+	}
+
+	c = Customization{
+		Enabled:                        types.BoolValue(*customizationSection.Enabled),
+		ChangeSid:                      types.BoolValue(*customizationSection.ChangeSid),
+		AllowLocalAdminPassword:        types.BoolValue(*customizationSection.AdminPasswordEnabled),
+		MustChangePasswordOnFirstLogin: types.BoolValue(*customizationSection.ResetPasswordRequired),
+		AutoGeneratePassword:           types.BoolValue(*customizationSection.AdminPasswordAuto),
+		AdminPassword:                  types.StringValue(customizationSection.AdminPassword),
+		NumberOfAutoLogons:             types.Int64Value(int64(customizationSection.AdminAutoLogonCount)),
+		JoinDomain:                     types.BoolValue(*customizationSection.JoinDomainEnabled),
+		JoinOrgDomain:                  types.BoolValue(*customizationSection.UseOrgSettings),
+		JoinDomainName:                 types.StringValue(customizationSection.DomainName),
+		JoinDomainUser:                 types.StringValue(customizationSection.DomainUserName),
+		JoinDomainPassword:             types.StringValue(customizationSection.DomainUserPassword),
+		JoinDomainAccountOU:            types.StringValue(customizationSection.MachineObjectOU),
+		InitScript:                     types.StringValue(customizationSection.CustomizationScript),
+	}
+
+	return c, nil
+
 }

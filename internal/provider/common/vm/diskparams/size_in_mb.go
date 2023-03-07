@@ -12,10 +12,6 @@ const sizeInMBDescription = "The size of the disk in MB."
 SizeInMBAttribute
 
 returns a schema.Attribute with a value.
-
-  - ConflictsWith `disk_id` attribute.
-  - Computed if `disk_id` is set.
-  - Required if `name` is set.
 */
 func SizeInMBAttribute() schema.Attribute {
 	return schema.Int64Attribute{
@@ -33,5 +29,13 @@ func SizeInMBAttributeComputed() schema.Attribute {
 	return schema.Int64Attribute{
 		MarkdownDescription: sizeInMBDescription,
 		Computed:            true,
+	}
+}
+
+// SizeInMBAttributeRequired returns a schema.Attribute with a required value.
+func SizeInMBAttributeRequired() schema.Attribute {
+	return schema.Int64Attribute{
+		MarkdownDescription: sizeInMBDescription,
+		Required:            true,
 	}
 }

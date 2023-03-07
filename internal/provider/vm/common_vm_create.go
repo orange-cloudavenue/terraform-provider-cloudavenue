@@ -97,11 +97,6 @@ func createVM(ctx context.Context, v *VMClient) (vm *govcd.VM, err error) { //no
 		}
 	}
 
-	vapp, err = vdc.GetVAppByName(v.Plan.VappName.ValueString(), false)
-	if err != nil {
-		return nil, fmt.Errorf("[VM create] error finding vApp %s: %s", v.Plan.VappName.ValueString(), err)
-	}
-
 	if !v.Plan.VappTemplateID.IsNull() && !v.Plan.VappTemplateID.IsUnknown() {
 		vmFromTemplateParams := &govcdtypes.ReComposeVAppParams{
 			Ovf:              govcdtypes.XMLNamespaceOVF,
@@ -140,9 +135,7 @@ func createVM(ctx context.Context, v *VMClient) (vm *govcd.VM, err error) { //no
 			return nil, fmt.Errorf("error finding storage profile: %s", err)
 		}
 
-		customizationSection := &govcdtypes.GuestCustomizationSection{
-			ComputerName: v.Plan.ComputerName.ValueString(),
-		}
+		customizationSection := &govcdtypes.GuestCustomizationSection{}
 
 		// Process parameters from 'customization' block
 		updateCustomizationSection(v, customizationSection)
@@ -173,6 +166,7 @@ func createVM(ctx context.Context, v *VMClient) (vm *govcd.VM, err error) { //no
 			}
 
 			bootImage = &govcdtypes.Media{HREF: mediaRecord.MediaRecord.HREF}
+
 		}
 
 		vmParams := &govcdtypes.RecomposeVAppParamsForEmptyVm{
@@ -220,18 +214,6 @@ func createVM(ctx context.Context, v *VMClient) (vm *govcd.VM, err error) { //no
 	}
 
 	// Refresh VM to have the latest structure
-	if err := vm.Refresh(); err != nil {
-		return nil, fmt.Errorf("error refreshing VM %s : %s", v.Plan.VMName.ValueString(), err)
-	}
-
-	// update existing internal disks in template (it is only applicable to VMs created)
-	// Such fields are processed:
-	// * override_template_disk
-	err = updateTemplateInternalDisks(v, *vm)
-	if err != nil {
-		return nil, fmt.Errorf("error managing internal disks : %s", err)
-	}
-
 	if err := vm.Refresh(); err != nil {
 		return nil, fmt.Errorf("error refreshing VM %s : %s", v.Plan.VMName.ValueString(), err)
 	}
