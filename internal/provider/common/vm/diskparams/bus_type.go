@@ -1,34 +1,107 @@
 package diskparams
 
 import (
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/stringpm"
 )
 
-type busType string
+var (
+	busTypeIDE  = busType{name: "ide", code: "5", subtype: "ide"}                      // Bus type IDE
+	busTypeSATA = busType{name: "sata", code: "20", subtype: "vmware.sata.ahci"}       // Bus type SATA
+	busTypeSCSI = busType{name: "scsi", code: "6", subtype: "lsilogicsas"}             // Bus type SCSI
+	busTypeNVME = busType{name: "nvme", code: "20", subtype: "vmware.nvme.controller"} // Bus type NVME
+)
 
-func (b busType) String() string {
-	return string(b)
+type busType struct {
+	name    string
+	code    string
+	subtype string
 }
 
-const (
-	busTypeIDE         busType = "ide"         // Bus type IDE
-	busTypeParallel    busType = "parallel"    // Bus type Parallel (LSI Logic Parallel SCSI)
-	busTypeSAS         busType = "sas"         // Bus type SAS (LSI Logic SAS SCSI)
-	busTypeParavirtual busType = "paravirtual" // Bus type Paravirtual (Paravirtual SCSI)
-	busTypeSATA        busType = "sata"        // Bus type SATA
-	busTypeNVME        busType = "nvme"        // Bus type NVME
-)
+func (b busType) Name() string {
+	return strings.ToUpper(b.name)
+}
 
-var busTypes = []string{busTypeIDE.String(), busTypeParallel.String(), busTypeSAS.String(), busTypeParavirtual.String(), busTypeSATA.String(), busTypeNVME.String()}
+func (b busType) SubType() string {
+	return b.subtype
+}
 
+func (b busType) Code() string {
+	return b.code
+}
+
+func GetBusTypeByCode(code, subtype string) busType {
+	switch code {
+	case busTypeIDE.code:
+		return busTypeIDE
+	case busTypeSATA.code:
+		// SATA and NVME have the same code
+		// Using the subtype to differentiate them
+		switch subtype {
+		case busTypeNVME.subtype:
+			return busTypeNVME
+		default:
+			return busTypeSATA
+		}
+	case busTypeSCSI.code:
+		return busTypeSCSI
+	default:
+		return busTypeSATA
+	}
+}
+
+func GetBusTypeByName(name string) busType {
+	switch strings.ToLower(name) {
+	case busTypeIDE.name:
+		return busTypeIDE
+	case busTypeSATA.name:
+		return busTypeSATA
+	case busTypeSCSI.name:
+		return busTypeSCSI
+	case busTypeNVME.name:
+		return busTypeNVME
+	default:
+		return busTypeSATA
+	}
+}
+
+var listOfBusTypes = []string{busTypeIDE.Name(), busTypeSATA.Name(), busTypeSCSI.Name(), busTypeNVME.Name()}
+
+const budTypeDescription = "The type of disk controller. Possible values: `ide`, `scsi`, `sata` or `nvme`. Default value is `scsi`."
+
+/*
+BusTypeAttribute
+
+returns a schema.Attribute with a value.
+
+This is Optional and has a default value of busTypeSCSI.String().
+*/
 func BusTypeAttribute() schema.Attribute {
 	return schema.StringAttribute{
-		Required:            true,
-		MarkdownDescription: "The type of disk controller. Possible values: `ide`, `parallel` (LSI Logic Parallel SCSI), `sas` (LSI Logic SAS SCSI), `paravirtual` (Paravirtual SCSI), `sata`, `nvme`.",
+		Optional:            true,
+		Computed:            true,
+		MarkdownDescription: budTypeDescription,
 		Validators: []validator.String{
-			stringvalidator.OneOf(busTypes...),
+			stringvalidator.OneOf(listOfBusTypes...),
 		},
+		PlanModifiers: []planmodifier.String{
+			stringpm.SetDefault(busTypeSCSI.Name()),
+			stringplanmodifier.UseStateForUnknown(),
+		},
+	}
+}
+
+// BusTypeAttributeComputed returns a schema.Attribute with a computed value.
+func BusTypeAttributeComputed() schema.Attribute {
+	return schema.StringAttribute{
+		Computed:            true,
+		MarkdownDescription: budTypeDescription,
 	}
 }
