@@ -163,6 +163,7 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	// Get vDC info
 	vdc, httpR, err := d.client.APIClient.VDCApi.GetOrgVdcByName(d.client.Auth, data.Name.ValueString())
+	defer httpR.Body.Close()
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
@@ -170,7 +171,6 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		}
 		return
 	}
-	defer httpR.Body.Close()
 
 	// Get vDC UUID by parsing vDCs list and set URN ID
 	var ID string
