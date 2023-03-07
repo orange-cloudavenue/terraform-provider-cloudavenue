@@ -156,7 +156,7 @@ func (d *catalogMediaDataSource) Read(ctx context.Context, req datasource.ReadRe
 		}
 		data.CatalogID = types.StringValue(catalog.Catalog.ID)
 	} else {
-		catalog, err := d.client.Vmware.Client.GetCatalogById(data.CatalogID.ValueString())
+		catalog, err = d.client.Vmware.Client.GetCatalogById(data.CatalogID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("Unable to find catalog", err.Error())
 			return
