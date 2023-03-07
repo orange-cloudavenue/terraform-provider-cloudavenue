@@ -102,6 +102,8 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 
 		// VAPP
 		vapp.NewVappResource,
+		vapp.NewOrgNetworkResource,
+		vapp.NewIsolatedNetworkResource,
 
 		// CATALOG
 		catalog.NewCatalogResource,
@@ -114,8 +116,6 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		// VM
 		vm.NewDiskResource,
 		// vm.NewVMResource,
-		//
-		vapp.NewOrgNetworkResource,
 		vm.NewVMInsertedMediaResource,
 	}
 }
