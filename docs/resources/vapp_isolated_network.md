@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vapp_isolated_network Resource - cloudavenue"
 subcategory: "vApp (Virtual Appliance)"
 description: |-
-  Provides a VMware Cloud Director isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network.
+  Provides a Cloud Avenue isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network.
 ---
 
 # cloudavenue_vapp_isolated_network (Resource)
 
-Provides a VMware Cloud Director isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network.
+Provides a Cloud Avenue isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network.
 
 ## Example Usage
 

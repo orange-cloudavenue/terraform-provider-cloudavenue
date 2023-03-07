@@ -76,7 +76,7 @@ func (r *isolatedNetworkResource) Metadata(_ context.Context, req resource.Metad
 // Schema defines the schema for the resource.
 func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a VMware Cloud Director isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network.",
+		MarkdownDescription: "Provides a Cloud Avenue isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the vApp network.",
@@ -282,9 +282,7 @@ func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	id := common.NormalizeID("urn:vcloud:network:", networkID)
-
-	plan.ID = types.StringValue(id)
+	plan.ID = types.StringValue(common.NormalizeID("urn:vcloud:network:", networkID))
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -321,7 +319,7 @@ func (r *isolatedNetworkResource) Read(ctx context.Context, req resource.ReadReq
 
 	vAppNetworkConfig, err := isolatedNetworkRef.VApp.GetNetworkConfig()
 	if err != nil {
-		resp.Diagnostics.AddError("error getting vApp networks", err.Error())
+		resp.Diagnostics.AddError("Error getting vApp networks", err.Error())
 		return
 	}
 
@@ -361,6 +359,20 @@ func (r *isolatedNetworkResource) Read(ctx context.Context, req resource.ReadReq
 		RetainIPMacEnabled: types.BoolValue(*vAppNetwork.Configuration.RetainNetInfoAcrossDeployments),
 	}
 
+	if len(vAppNetwork.Configuration.IPScopes.IPScope) == 0 {
+		plan.Netmask = types.StringNull()
+		plan.Gateway = types.StringNull()
+		plan.DNS1 = types.StringNull()
+		plan.DNS2 = types.StringNull()
+		plan.DNSSuffix = types.StringNull()
+	} else {
+		plan.Netmask = types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].Netmask)
+		plan.Gateway = types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].Gateway)
+		plan.DNS1 = types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].DNS1)
+		plan.DNS2 = types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].DNS2)
+		plan.DNSSuffix = types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].DNSSuffix)
+	}
+
 	// Fix empty string as StringNull for optional attributes
 	if plan.Description.ValueString() == "" {
 		plan.Description = types.StringNull()
@@ -385,11 +397,14 @@ func (r *isolatedNetworkResource) Read(ctx context.Context, req resource.ReadReq
 			})
 		}
 		plan.StaticIPPool, diag = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolModelAttrTypes}, staticIPRanges)
+
+		resp.Diagnostics.Append(diag...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	} else {
 		plan.StaticIPPool = types.SetNull(types.ObjectType{AttrTypes: staticIPPoolModelAttrTypes})
 	}
-
-	resp.Diagnostics.Append(diag...)
 
 	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

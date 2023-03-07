@@ -67,8 +67,7 @@ func (s *isolatedNetworkResourceModel) initNetworkQuery(ctx context.Context, cli
 		}
 	}
 
-	vappName := s.VAppName.ValueString()
-	vapp, err := vdc.GetVAppByName(vappName, false)
+	vapp, err := vdc.GetVAppByName(s.VAppName.ValueString(), false)
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			return nil, &diagnosticError{
