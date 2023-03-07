@@ -13,17 +13,17 @@ import (
 //go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
 const testAccOrgRoleResourceConfig = `
 resource "cloudavenue_iam_role" "example" {
-	name   		= "roletest"
-	description = "A test role"
+    name        = "roletest"
+    description = "A test role"
 	rights = [
-    	"Catalog: Add vApp from My Cloud",
-    	"Catalog: Edit Properties",
-    	"Catalog: View Private and Shared Catalogs",
-    	"Organization vDC Compute Policy: View",
-    	"vApp Template / Media: Edit",
-    	"vApp Template / Media: View",
-  	]
-  }
+		"Catalog: Add vApp from My Cloud",
+		"Catalog: Edit Properties",
+		"Catalog: View Private and Shared Catalogs",
+		"Organization vDC Compute Policy: View",
+		"vApp Template / Media: Edit",
+		"vApp Template / Media: View",
+	]
+}
 `
 
 func TestAccOrgRoleResource(t *testing.T) {
@@ -40,7 +40,11 @@ func TestAccOrgRoleResource(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", "roletest"),
 					resource.TestCheckResourceAttr(resourceName, "description", "A test role"),
-					resource.TestCheckTypeSetElemAttr(resourceName, "rights.*", "Catalog: Add vApp from My Cloud"),
+					resource.TestCheckTypeSetElemAttr(
+						resourceName,
+						"rights.*",
+						"Catalog: Add vApp from My Cloud",
+					),
 					resource.TestCheckResourceAttr(resourceName, "rights.#", "6"),
 				),
 			},

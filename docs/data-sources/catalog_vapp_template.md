@@ -13,8 +13,8 @@ The catalog_vapp_template datasource provides information about a vApp Template 
 
 ```terraform
 data "cloudavenue_catalog_vapp_template" "example" {
-	catalog_name = "Orange-Linux"
-	vapp_name    = "debian_10_X64"
+  catalog_name = "Orange-Linux"
+  vapp_name    = "debian_10_X64"
 }
 ```
 

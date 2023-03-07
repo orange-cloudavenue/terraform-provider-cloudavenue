@@ -12,8 +12,14 @@ Provides a CloudAvenue Org User data source. This can be used to read group.
 ## Example Usage
 
 ```terraform
+resource "cloudavenue_iam_group" "example" {
+  name        = "OrgTest"
+  role        = "Organization Administrator"
+  description = "org test from go test"
+}
+
 data "cloudavenue_iam_group" "example" {
-	name = "your_value"
+  name = "your_value"
 }
 ```
 

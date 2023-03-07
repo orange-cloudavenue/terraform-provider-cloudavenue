@@ -13,7 +13,7 @@ Provides a data source to read vDC group and reference in other resources.
 
 ```terraform
 data "cloudavenue_vdc_group" "example" {
-	name = "MyVDCGroup"
+  name = "MyVDCGroup"
 }
 ```
 
