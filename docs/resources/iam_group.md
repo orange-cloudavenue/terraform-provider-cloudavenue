@@ -13,9 +13,9 @@ Provides a Cloud Avenue IAM group. This can be used to create, update, and delet
 
 ```terraform
 resource "cloudavenue_iam_group" "example" {
-  name          = "OrgTest"
-  role          = "Organization Administrator"
-  description   = "org test from go test"
+  name        = "OrgTest"
+  role        = "Organization Administrator"
+  description = "org test from go test"
 }
 ```
 

@@ -16,7 +16,7 @@ resource "cloudavenue_iam_user" "test" {
 	description = "A test user"
 	role        = "Organization Administrator"
 	password    = "Th!s1sSecur3P@ssword"
-  }
+ }
 `
 
 const testAccOrgUserResourceConfigFull = `
@@ -32,7 +32,7 @@ resource "cloudavenue_iam_user" "test" {
 	take_ownership    = true
 	deployed_vm_quota = 10
 	stored_vm_quota   = 5
-  }
+ }
 `
 
 func TestAccOrgUserResource(t *testing.T) {

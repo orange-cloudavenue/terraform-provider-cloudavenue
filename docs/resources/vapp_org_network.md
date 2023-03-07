@@ -13,7 +13,7 @@ Provides capability to attach an existing Org VDC Network to a vApp and toggle n
 
 ```terraform
 resource "cloudavenue_vapp_org_network" "example" {
-  vapp_name = "vapp_test3"
+  vapp_name    = "vapp_test3"
   network_name = "test_remi"
 }
 ```
