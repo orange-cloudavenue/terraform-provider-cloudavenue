@@ -2,6 +2,7 @@
 package vdc
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -11,7 +12,7 @@ import (
 
 const testAccVDCDataSourceConfig = `
 data "cloudavenue_vdc" "test" {
-	name = "VDC_Frangipane"
+	name = "MyVDC"
 }
 `
 
@@ -25,7 +26,18 @@ func TestAccVDCDataSource(t *testing.T) {
 			{
 				Config: testAccVDCDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "id", "VDC_Frangipane"),
+					resource.TestMatchResourceAttr(dataSourceName, "id", regexp.MustCompile(`(urn:vcloud:vdc:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "service_class"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "disponibility_class"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "billing_model"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "cpu_speed_in_mhz"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "cpu_allocated"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "memory_allocated"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "storage_billing_model"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "storage_profiles.0.%"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "vdc_group"),
 				),
 			},
 		},
