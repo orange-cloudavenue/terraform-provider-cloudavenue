@@ -29,10 +29,10 @@ type vdcsDataSource struct {
 
 type vdcsDataSourceModel struct {
 	ID   types.String `tfsdk:"id"`
-	VDCs []vdc        `tfsdk:"vdcs"`
+	VDCs []vdcRef     `tfsdk:"vdcs"`
 }
 
-type vdc struct {
+type vdcRef struct {
 	VDCName types.String `tfsdk:"vdc_name"`
 	VDCUuid types.String `tfsdk:"vdc_uuid"`
 }
@@ -112,7 +112,7 @@ func (d *vdcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	data = vdcsDataSourceModel{}
 
 	for _, v := range vdcs {
-		data.VDCs = append(data.VDCs, vdc{
+		data.VDCs = append(data.VDCs, vdcRef{
 			VDCName: types.StringValue(v.VdcName),
 			VDCUuid: types.StringValue(v.VdcUuid),
 		})
