@@ -20,23 +20,23 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &orgRoleResource{}
-	_ resource.ResourceWithConfigure   = &orgRoleResource{}
-	_ resource.ResourceWithImportState = &orgRoleResource{}
+	_ resource.Resource                = &iamRoleResource{}
+	_ resource.ResourceWithConfigure   = &iamRoleResource{}
+	_ resource.ResourceWithImportState = &iamRoleResource{}
 )
 
-// NewOrgRoleResource is a helper function to simplify the provider implementation.
-func NewOrgRoleResource() resource.Resource {
-	return &orgRoleResource{}
+// NewiamRoleResource is a helper function to simplify the provider implementation.
+func NewIAMRoleResource() resource.Resource {
+	return &iamRoleResource{}
 }
 
-// orgRoleResource is the resource implementation.
-type orgRoleResource struct {
+// iamRoleResource is the resource implementation.
+type iamRoleResource struct {
 	client *client.CloudAvenue
 }
 
-// orgRoleResourceModel is the internal state representation of the resource.
-type orgRoleResourceModel struct {
+// iamRoleResourceModel is the internal state representation of the resource.
+type iamRoleResourceModel struct {
 	ID          types.String `tfsdk:"id"`
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
@@ -46,12 +46,12 @@ type orgRoleResourceModel struct {
 }
 
 // Metadata returns the resource type name.
-func (r *orgRoleResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *iamRoleResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "role"
 }
 
 // Schema defines the schema for the resource.
-func (r *orgRoleResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *iamRoleResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "The Role resource allows you to manage a role in CloudAvenue.",
 		Attributes: map[string]schema.Attribute{
@@ -87,7 +87,7 @@ func (r *orgRoleResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 	}
 }
 
-func (r *orgRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *iamRoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -108,10 +108,10 @@ func (r *orgRoleResource) Configure(ctx context.Context, req resource.ConfigureR
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *orgRoleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *iamRoleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var (
-		plan *orgRoleResourceModel
+		plan *iamRoleResourceModel
 		err  error
 	)
 
@@ -178,7 +178,7 @@ func (r *orgRoleResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Set Plan state
-	plan = &orgRoleResourceModel{
+	plan = &iamRoleResourceModel{
 		ID:          types.StringValue(role.Role.ID),
 		Name:        types.StringValue(role.Role.Name),
 		BundleKey:   types.StringValue(role.Role.BundleKey),
@@ -195,10 +195,10 @@ func (r *orgRoleResource) Create(ctx context.Context, req resource.CreateRequest
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *orgRoleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *iamRoleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Retrieve values from state
 	var (
-		state *orgRoleResourceModel
+		state *iamRoleResourceModel
 		err   error
 		role  *govcd.Role
 	)
@@ -233,7 +233,7 @@ func (r *orgRoleResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Set state to fully populated data
-	plan := &orgRoleResourceModel{
+	plan := &iamRoleResourceModel{
 		ID:          types.StringValue(role.Role.ID),
 		Name:        types.StringValue(role.Role.Name),
 		BundleKey:   types.StringValue(role.Role.BundleKey),
@@ -267,9 +267,9 @@ func (r *orgRoleResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 }
 
-func (r *orgRoleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *iamRoleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var (
-		state *orgRoleResourceModel
+		state *iamRoleResourceModel
 		err   error
 		role  *govcd.Role
 	)
@@ -309,9 +309,9 @@ func (r *orgRoleResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 }
 
-func (r *orgRoleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *iamRoleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var (
-		plan, state *orgRoleResourceModel
+		plan, state *iamRoleResourceModel
 		err         error
 		role        *govcd.Role
 	)
@@ -403,7 +403,7 @@ func (r *orgRoleResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Set Plan state
-	plan = &orgRoleResourceModel{
+	plan = &iamRoleResourceModel{
 		ID:          types.StringValue(role.Role.ID),
 		Name:        types.StringValue(role.Role.Name),
 		BundleKey:   types.StringValue(role.Role.BundleKey),
@@ -420,6 +420,6 @@ func (r *orgRoleResource) Update(ctx context.Context, req resource.UpdateRequest
 }
 
 //go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -resource
-func (r *orgRoleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *iamRoleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }

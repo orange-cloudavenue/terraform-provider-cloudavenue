@@ -19,22 +19,22 @@ import (
 )
 
 var (
-	_ resource.Resource                = &orgGroupResource{}
-	_ resource.ResourceWithConfigure   = &orgGroupResource{}
-	_ resource.ResourceWithImportState = &orgGroupResource{}
+	_ resource.Resource                = &iamGroupResource{}
+	_ resource.ResourceWithConfigure   = &iamGroupResource{}
+	_ resource.ResourceWithImportState = &iamGroupResource{}
 )
 
-// NewOrgGroupResource is a helper function to simplify the provider implementation.
-func NewOrgGroupResource() resource.Resource {
-	return &orgGroupResource{}
+// NewiamGroupResource is a helper function to simplify the provider implementation.
+func NewIAMGroupResource() resource.Resource {
+	return &iamGroupResource{}
 }
 
-// orgGroupResource is the resource implementation.
-type orgGroupResource struct {
+// iamGroupResource is the resource implementation.
+type iamGroupResource struct {
 	client *client.CloudAvenue
 }
 
-type orgGroupResourceModel struct {
+type iamGroupResourceModel struct {
 	ID          types.String `tfsdk:"id"`
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
@@ -43,12 +43,12 @@ type orgGroupResourceModel struct {
 }
 
 // Metadata returns the resource type name.
-func (r *orgGroupResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *iamGroupResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "group"
 }
 
 // Schema defines the schema for the resource.
-func (r *orgGroupResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *iamGroupResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Provides a Cloud Avenue IAM group. This can be used to create, update, and delete iam groups.",
 		Attributes: map[string]schema.Attribute{
@@ -84,7 +84,7 @@ func (r *orgGroupResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 	}
 }
 
-func (r *orgGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *iamGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -105,10 +105,10 @@ func (r *orgGroupResource) Configure(ctx context.Context, req resource.Configure
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *orgGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *iamGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var (
-		plan *orgGroupResourceModel
+		plan *iamGroupResourceModel
 		err  error
 	)
 
@@ -150,7 +150,7 @@ func (r *orgGroupResource) Create(ctx context.Context, req resource.CreateReques
 
 	var userNames []attr.Value
 
-	plan = &orgGroupResourceModel{
+	plan = &iamGroupResourceModel{
 		ID:          types.StringValue(createGroup.Group.ID),
 		Name:        plan.Name,
 		Description: plan.Description,
@@ -166,8 +166,8 @@ func (r *orgGroupResource) Create(ctx context.Context, req resource.CreateReques
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *orgGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state *orgGroupResourceModel
+func (r *iamGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state *iamGroupResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -205,7 +205,7 @@ func (r *orgGroupResource) Read(ctx context.Context, req resource.ReadRequest, r
 		userNames = append(userNames, types.StringValue(user.Name))
 	}
 
-	state = &orgGroupResourceModel{
+	state = &iamGroupResourceModel{
 		ID:          types.StringValue(group.Group.ID),
 		Name:        types.StringValue(group.Group.Name),
 		Description: types.StringValue(group.Group.Description),
@@ -221,8 +221,8 @@ func (r *orgGroupResource) Read(ctx context.Context, req resource.ReadRequest, r
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *orgGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state *orgGroupResourceModel
+func (r *iamGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state *iamGroupResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -264,7 +264,7 @@ func (r *orgGroupResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	plan = &orgGroupResourceModel{
+	plan = &iamGroupResourceModel{
 		ID:          state.ID,
 		Name:        plan.Name,
 		Description: plan.Description,
@@ -280,8 +280,8 @@ func (r *orgGroupResource) Update(ctx context.Context, req resource.UpdateReques
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *orgGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state *orgGroupResourceModel
+func (r *iamGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state *iamGroupResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -312,6 +312,6 @@ func (r *orgGroupResource) Delete(ctx context.Context, req resource.DeleteReques
 }
 
 //go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -resource
-func (r *orgGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *iamGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }

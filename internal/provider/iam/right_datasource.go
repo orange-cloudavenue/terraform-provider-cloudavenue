@@ -19,7 +19,7 @@ var (
 	_ datasource.DataSourceWithConfigure = &iamRightDataSource{}
 )
 
-func NewIamRightDataSource() datasource.DataSource {
+func NewIAMRightDataSource() datasource.DataSource {
 	return &iamRightDataSource{}
 }
 

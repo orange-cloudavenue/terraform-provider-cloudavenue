@@ -17,22 +17,22 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ datasource.DataSource              = &orgUserDataSource{}
-	_ datasource.DataSourceWithConfigure = &orgUserDataSource{}
+	_ datasource.DataSource              = &iamUserDataSource{}
+	_ datasource.DataSourceWithConfigure = &iamUserDataSource{}
 )
 
-// NewOrgUserDataSource returns a new Org User data source.
-func NewOrgUserDataSource() datasource.DataSource {
-	return &orgUserDataSource{}
+// NewiamUserDataSource returns a new Org User data source.
+func NewIAMUserDataSource() datasource.DataSource {
+	return &iamUserDataSource{}
 }
 
-// orgUserDataSource implements the DataSource interface.
-type orgUserDataSource struct {
+// iamUserDataSource implements the DataSource interface.
+type iamUserDataSource struct {
 	client *client.CloudAvenue
 }
 
-// orgUserDataSourceModel is the data source schema.
-type orgUserDataSourceModel struct {
+// iamUserDataSourceModel is the data source schema.
+type iamUserDataSourceModel struct {
 	ID              types.String `tfsdk:"id"`
 	UserName        types.String `tfsdk:"user_name"`
 	UserID          types.String `tfsdk:"user_id"`
@@ -51,14 +51,14 @@ type orgUserDataSourceModel struct {
 }
 
 // Metadata returns the resource type name.
-func (d *orgUserDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *iamUserDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "user"
 }
 
 // Schema defines the schema for the data source.
-func (d *orgUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a CloudAvenue iam User data source. This can be used to read users.",
+		MarkdownDescription: "Provides a Cloud Avenue iam User data source. This can be used to read users.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The ID is a `user_id`.",
@@ -138,7 +138,7 @@ func (d *orgUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 }
 
 // Configure configures the data source.
-func (d *orgUserDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *iamUserDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -158,8 +158,8 @@ func (d *orgUserDataSource) Configure(ctx context.Context, req datasource.Config
 }
 
 // Read reads the data source.
-func (d *orgUserDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data *orgUserDataSourceModel
+func (d *iamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data *iamUserDataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -199,7 +199,7 @@ func (d *orgUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	// Populate the data source model with the user data
-	data = &orgUserDataSourceModel{
+	data = &iamUserDataSourceModel{
 		ID:              types.StringValue(user.User.ID),
 		UserName:        types.StringValue(user.User.Name),
 		UserID:          types.StringValue(user.User.ID),

@@ -2,12 +2,12 @@
 page_title: "cloudavenue_iam_user Data Source - cloudavenue"
 subcategory: "IAM (Identity & Access Management)"
 description: |-
-  Provides a CloudAvenue iam User data source. This can be used to read users.
+  Provides a Cloud Avenue iam User data source. This can be used to read users.
 ---
 
 # cloudavenue_iam_user (Data Source)
 
-Provides a CloudAvenue iam User data source. This can be used to read users.
+Provides a Cloud Avenue iam User data source. This can be used to read users.
 
 ## Example Usage
 

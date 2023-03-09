@@ -8,8 +8,8 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../examples -test
-const testAccIamRightDataSourceConfig = `
+//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
+const testAccIAMRightDataSourceConfig = `
 data "cloudavenue_iam_right" "example" {
 	name = "Catalog: Add vApp from My Cloud"
 }
@@ -24,7 +24,7 @@ func TestAccIamRightDatasource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: testAccIamRightDataSourceConfig,
+				Config: testAccIAMRightDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "bundle_key"),
