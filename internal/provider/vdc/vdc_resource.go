@@ -3,6 +3,7 @@ package vdc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -283,7 +284,9 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	// Call API to create the resource and test for errors.
 	job, httpR, err = r.client.APIClient.VDCApi.CreateOrgVdc(auth, body)
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		defer httpR.Body.Close()
+		defer func() {
+			err = errors.Join(err, httpR.Body.Close())
+		}()
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -322,7 +325,9 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read vdcs detail, got error: %s", err))
 		return
 	}
-	defer httpR.Body.Close()
+	defer func() {
+		err = errors.Join(err, httpR.Body.Close())
+	}()
 
 	for _, v := range vdcs {
 		if plan.Name.ValueString() == v.VdcName {
@@ -386,7 +391,9 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 		return
 	}
-	defer httpR.Body.Close()
+	defer func() {
+		err = errors.Join(err, httpR.Body.Close())
+	}()
 
 	// Get vDC UUID by parsing vDCs list and set URN ID
 	var ID string
@@ -395,7 +402,9 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read vdcs detail, got error: %s", err))
 		return
 	}
-	defer httpR.Body.Close()
+	defer func() {
+		err = errors.Join(err, httpR.Body.Close())
+	}()
 
 	for _, v := range vdcs {
 		if state.Name.ValueString() == v.VdcName {
@@ -503,7 +512,9 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	// Call API to update the resource and test for errors.
 	job, httpR, err = r.client.APIClient.VDCApi.UpdateOrgVdc(auth, body, body.Vdc.Name)
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		defer httpR.Body.Close()
+		defer func() {
+			err = errors.Join(err, httpR.Body.Close())
+		}()
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
@@ -580,7 +591,9 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	// Delete the VDC
 	job, httpR, err := r.client.APIClient.VDCApi.DeleteOrgVdc(auth, state.Name.ValueString())
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		defer httpR.Body.Close()
+		defer func() {
+			err = errors.Join(err, httpR.Body.Close())
+		}()
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return

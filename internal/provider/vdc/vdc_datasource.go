@@ -3,6 +3,7 @@ package vdc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -163,7 +164,9 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	// Get vDC info
 	vdc, httpR, err := d.client.APIClient.VDCApi.GetOrgVdcByName(d.client.Auth, data.Name.ValueString())
-	defer httpR.Body.Close()
+	defer func() {
+		err = errors.Join(err, httpR.Body.Close())
+	}()
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
@@ -179,7 +182,9 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read vdcs detail, got error: %s", err))
 		return
 	}
-	defer httpR.Body.Close()
+	defer func() {
+		err = errors.Join(err, httpR.Body.Close())
+	}()
 
 	for _, v := range vdcs {
 		if data.Name.ValueString() == v.VdcName {

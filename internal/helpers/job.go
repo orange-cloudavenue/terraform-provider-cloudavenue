@@ -37,7 +37,9 @@ func GetJobStatus(
 	if err != nil {
 		return "", err
 	}
-	defer httpR.Body.Close()
+	defer func() {
+		err = errors.Join(err, httpR.Body.Close())
+	}()
 
 	// Find the action name with failed status if global status is failed
 	if jobStatus[0].Status == string(FAILED) {
