@@ -3,6 +3,7 @@ package vdc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -107,7 +108,9 @@ func (d *vdcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read vdcs detail, got error: %s", err))
 		return
 	}
-	defer httpR.Body.Close()
+	defer func() {
+		err = errors.Join(err, httpR.Body.Close())
+	}()
 
 	data = vdcsDataSourceModel{}
 

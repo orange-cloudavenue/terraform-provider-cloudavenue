@@ -318,7 +318,7 @@ func (r *aclResource) createOrUpdateACL(ctx context.Context, rm *aclResourceMode
 	if diag.HasError() {
 		return
 	}
-	defer r.vapp.UnlockParentVApp(ctx)
+	defer diag.Append(r.vapp.UnlockParentVApp(ctx)...)
 
 	// treat the shared_with
 	if !isSharedWithEveryone {

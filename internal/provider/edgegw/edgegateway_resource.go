@@ -3,6 +3,7 @@ package edgegw
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -225,7 +226,9 @@ func (r *edgeGatewaysResource) Create(
 			plan.OwnerName.ValueString(),
 		)
 		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-			defer httpR.Body.Close()
+			defer func() {
+				err = errors.Join(err, httpR.Body.Close())
+			}()
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
 				return
@@ -238,7 +241,9 @@ func (r *edgeGatewaysResource) Create(
 			plan.OwnerName.ValueString(),
 		)
 		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-			defer httpR.Body.Close()
+			defer func() {
+				err = errors.Join(err, httpR.Body.Close())
+			}()
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
 				return
@@ -261,7 +266,9 @@ func (r *edgeGatewaysResource) Create(
 			if errEdgesGet != nil {
 				return nil, "err", errEdgesGet
 			}
-			defer httpRc.Body.Close()
+			defer func() {
+				err = errors.Join(err, httpRc.Body.Close())
+			}()
 
 			for _, gw := range gateways {
 				if gw.Tier0VrfId == plan.Tier0VrfID.ValueString() &&
@@ -371,7 +378,9 @@ func (r *edgeGatewaysResource) Read(
 			common.ExtractUUID(state.ID.ValueString()),
 		)
 		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-			defer httpR.Body.Close()
+			defer func() {
+				err = errors.Join(err, httpR.Body.Close())
+			}()
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
 				return
@@ -383,7 +392,9 @@ func (r *edgeGatewaysResource) Read(
 	} else {
 		gateways, httpR, err := r.client.APIClient.EdgeGatewaysApi.GetEdges(auth)
 		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-			defer httpR.Body.Close()
+			defer func() {
+				err = errors.Join(err, httpR.Body.Close())
+			}()
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 			if resp.Diagnostics.HasError() {
 				return
@@ -473,7 +484,9 @@ func (r *edgeGatewaysResource) Delete(
 		common.ExtractUUID(state.ID.ValueString()),
 	)
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		defer httpR.Body.Close()
+		defer func() {
+			err = errors.Join(err, httpR.Body.Close())
+		}()
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		if resp.Diagnostics.HasError() {
 			return
