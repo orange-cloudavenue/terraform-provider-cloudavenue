@@ -81,10 +81,10 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		catalog.NewCatalogMediasDataSource,
 
 		// IAM
-		iam.NewOrgUserDataSource,
-		iam.NewOrgGroupDataSource,
-		iam.NewOrgRoleDataSource,
-		iam.NewIamRightDataSource,
+		iam.NewIAMUserDataSource,
+		iam.NewIAMGroupDataSource,
+		iam.NewIAMRoleDataSource,
+		iam.NewIAMRightDataSource,
 	}
 }
 
@@ -113,9 +113,9 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		catalog.NewCatalogResource,
 
 		// IAM
-		iam.NewOrgUserResource,
-		iam.NewOrgGroupResource,
-		iam.NewOrgRoleResource,
+		iam.NewIAMUserResource,
+		iam.NewIAMGroupResource,
+		iam.NewIAMRoleResource,
 
 		// VM
 		vm.NewDiskResource,

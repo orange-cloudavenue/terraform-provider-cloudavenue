@@ -21,22 +21,22 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &orgUserResource{}
-	_ resource.ResourceWithConfigure   = &orgUserResource{}
-	_ resource.ResourceWithImportState = &orgUserResource{}
+	_ resource.Resource                = &iamUserResource{}
+	_ resource.ResourceWithConfigure   = &iamUserResource{}
+	_ resource.ResourceWithImportState = &iamUserResource{}
 )
 
-// NewOrgUserResource is a helper function to simplify the provider implementation.
-func NewOrgUserResource() resource.Resource {
-	return &orgUserResource{}
+// NewiamUserResource is a helper function to simplify the provider implementation.
+func NewIAMUserResource() resource.Resource {
+	return &iamUserResource{}
 }
 
-// orgUserResource is the resource implementation.
-type orgUserResource struct {
+// iamUserResource is the resource implementation.
+type iamUserResource struct {
 	client *client.CloudAvenue
 }
 
-type orgUserResourceModel struct {
+type iamUserResourceModel struct {
 	ID              types.String `tfsdk:"id"`
 	UserName        types.String `tfsdk:"user_name"`
 	FullName        types.String `tfsdk:"full_name"`
@@ -52,12 +52,12 @@ type orgUserResourceModel struct {
 }
 
 // Metadata returns the resource type name.
-func (r *orgUserResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *iamUserResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "user"
 }
 
 // Schema defines the schema for the resource.
-func (r *orgUserResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *iamUserResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a user.",
 		Attributes: map[string]schema.Attribute{
@@ -140,7 +140,7 @@ func (r *orgUserResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 	}
 }
 
-func (r *orgUserResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *iamUserResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -161,10 +161,10 @@ func (r *orgUserResource) Configure(ctx context.Context, req resource.ConfigureR
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *orgUserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *iamUserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var (
-		plan *orgUserResourceModel
+		plan *iamUserResourceModel
 		err  error
 	)
 
@@ -205,7 +205,7 @@ func (r *orgUserResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	plan = &orgUserResourceModel{
+	plan = &iamUserResourceModel{
 		ID:              types.StringValue(user.User.ID),
 		UserName:        types.StringValue(user.User.Name),
 		FullName:        types.StringValue(user.User.FullName),
@@ -229,8 +229,8 @@ func (r *orgUserResource) Create(ctx context.Context, req resource.CreateRequest
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *orgUserResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state *orgUserResourceModel
+func (r *iamUserResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state *iamUserResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -255,7 +255,7 @@ func (r *orgUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	plan := &orgUserResourceModel{
+	plan := &iamUserResourceModel{
 		ID:              types.StringValue(user.User.ID),
 		UserName:        types.StringValue(user.User.Name),
 		FullName:        types.StringValue(user.User.FullName),
@@ -278,8 +278,8 @@ func (r *orgUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *orgUserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state *orgUserResourceModel
+func (r *iamUserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state *iamUserResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -324,7 +324,7 @@ func (r *orgUserResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	plan = &orgUserResourceModel{
+	plan = &iamUserResourceModel{
 		ID:              types.StringValue(userRefresh.User.ID),
 		UserName:        types.StringValue(userRefresh.User.Name),
 		FullName:        types.StringValue(userRefresh.User.FullName),
@@ -347,8 +347,8 @@ func (r *orgUserResource) Update(ctx context.Context, req resource.UpdateRequest
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *orgUserResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state *orgUserResourceModel
+func (r *iamUserResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state *iamUserResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -376,6 +376,6 @@ func (r *orgUserResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 }
 
-func (r *orgUserResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *iamUserResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("user_name"), req, resp)
 }

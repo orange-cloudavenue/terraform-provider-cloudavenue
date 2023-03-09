@@ -16,19 +16,19 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &orgRoleDataSource{}
-	_ datasource.DataSourceWithConfigure = &orgRoleDataSource{}
+	_ datasource.DataSource              = &iamRoleDataSource{}
+	_ datasource.DataSourceWithConfigure = &iamRoleDataSource{}
 )
 
-func NewOrgRoleDataSource() datasource.DataSource {
-	return &orgRoleDataSource{}
+func NewIAMRoleDataSource() datasource.DataSource {
+	return &iamRoleDataSource{}
 }
 
-type orgRoleDataSource struct {
+type iamRoleDataSource struct {
 	client *client.CloudAvenue
 }
 
-type orgRoleDataSourceModel struct {
+type iamRoleDataSourceModel struct {
 	ID          types.String `tfsdk:"id"`
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
@@ -37,11 +37,11 @@ type orgRoleDataSourceModel struct {
 	Rights      types.Set    `tfsdk:"rights"`
 }
 
-func (d *orgRoleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *iamRoleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "role"
 }
 
-func (d *orgRoleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *iamRoleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "The CloudAvenue iam role datasource allows you to read roles.",
 
@@ -75,7 +75,7 @@ func (d *orgRoleDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 	}
 }
 
-func (d *orgRoleDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *iamRoleDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -95,9 +95,9 @@ func (d *orgRoleDataSource) Configure(ctx context.Context, req datasource.Config
 	d.client = client
 }
 
-func (d *orgRoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *iamRoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var (
-		data *orgRoleDataSourceModel
+		data *iamRoleDataSourceModel
 		err  error
 		role *govcd.Role
 	)
@@ -152,7 +152,7 @@ func (d *orgRoleDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	// Set state to fully populated data
-	data = &orgRoleDataSourceModel{
+	data = &iamRoleDataSourceModel{
 		ID:          types.StringValue(role.Role.ID),
 		Name:        types.StringValue(role.Role.Name),
 		BundleKey:   types.StringValue(role.Role.BundleKey),

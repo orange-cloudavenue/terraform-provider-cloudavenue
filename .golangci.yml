@@ -168,5 +168,6 @@ linters-settings:
               # Custom rules
               "VDC",
               "DFW",
-              "VLAN"
+              "VLAN",
+              "IAM"
             ] 
