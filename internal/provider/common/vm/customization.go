@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/boolpm"
@@ -204,7 +203,7 @@ func CustomizationSchema() map[string]schema.Attribute {
 func CustomizationRead(vm *govcd.VM) (c Customization, err error) {
 	customizationSection, err := vm.GetGuestCustomizationSection()
 	if err != nil {
-		return c, fmt.Errorf("unable to get guest customization section: %s", err)
+		return c, fmt.Errorf("unable to get guest customization section: %w", err)
 	}
 
 	c = Customization{
@@ -225,5 +224,4 @@ func CustomizationRead(vm *govcd.VM) (c Customization, err error) {
 	}
 
 	return c, nil
-
 }

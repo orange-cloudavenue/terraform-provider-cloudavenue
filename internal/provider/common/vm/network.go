@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -61,19 +62,16 @@ func (n *Networks) ObjectType() types.ObjectType {
 }
 
 // ToPlan converts a Network to a plan.
-func (n *Networks) ToPlan() basetypes.ListValue {
+func (n *Networks) ToPlan() (basetypes.ListValue, diag.Diagnostics) {
 	if n == nil || len(*n) == 0 {
-		return types.ListNull(n.ObjectType())
+		return types.ListNull(n.ObjectType()), diag.Diagnostics{}
 	}
 
-	x, _ := types.ListValueFrom(context.Background(), n.ObjectType(), n)
-
-	return x
+	return types.ListValueFrom(context.Background(), n.ObjectType(), n)
 }
 
 // NetworksFromPlan converts a plan to a Networks struct.
 func NetworksFromPlan(x basetypes.ListValue) (networks *Networks, err error) {
-
 	if x.IsNull() {
 		return nil, nil
 	}
@@ -156,8 +154,10 @@ func NetworkSchema() map[string]schema.Attribute {
 
 // NetworksRead returns network configuration for saving into statefile
 func NetworksRead(vm *govcd.VM) (*Networks, error) {
-
 	vapp, err := vm.GetParentVApp()
+	if err != nil {
+		return nil, fmt.Errorf("error getting vApp: %s", err)
+	}
 
 	// Determine type for all networks in vApp
 	vAppNetworkConfig, err := vapp.GetNetworkConfig()

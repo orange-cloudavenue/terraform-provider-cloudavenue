@@ -73,7 +73,6 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 
 	// Update Resource
 	if !v.Plan.Resource.Equal(v.State.Resource) {
-
 		// * Update Memory
 		if resource.MemoryHotAddEnabled.ValueBool() && !resource.Memory.Equal(resourceState.Memory) {
 			if err := vm.ChangeMemory(resource.Memory.ValueInt64()); err != nil {

@@ -2,26 +2,27 @@
 page_title: "cloudavenue_vm_disk Resource - cloudavenue"
 subcategory: "VM"
 description: |-
-  The disk resource allows you to manage an disk in the vDC.
+  The disk resource allows you to manage a disk in the vDC.
 ---
 
 # cloudavenue_vm_disk (Resource)
 
-The disk resource allows you to manage an disk in the vDC.
+The disk resource allows you to manage a disk in the vDC.
 
 ## Example Usage
 
 ```terraform
-resource "cloudavenue_vm_disk" "example" {
-  vapp_name       = "vapp_test3"
-  vm_name         = "TestRomain"
-  allow_vm_reboot = true
-  internal_disk = {
-    bus_type    = "sata"
-    size_in_mb  = "500"
-    bus_number  = 0
-    unit_number = 1
-  }
+resource "cloudavenue_vapp" "example" {
+  vapp_name   = "vapp_example"
+  description = "This is a example vapp"
+}
+
+resource "cloudavenue_vm_disk" "example-detachable" {
+  vapp_id       = cloudavenue_vapp.example.id
+  name          = "disk-example"
+  bus_type      = "SATA"
+  size_in_mb    = 2048
+  is_detachable = true
 }
 ```
 
@@ -35,11 +36,11 @@ resource "cloudavenue_vm_disk" "example" {
 
 ### Optional
 
-- `bus_number` (Number) The number of the `SCSI` or `IDE` controller itself.
-- `bus_type` (String) The type of disk controller. Possible values: `ide`, `scsi`, `sata` or `nvme`. Default value is `scsi`.
+- `bus_number` (Number) The number of the controller itself.
+- `bus_type` (String) The type of disk controller. Possible values: `scsi`, `sata` or `nvme`. Default value is `scsi`.
 - `size_in_mb` (Number) The size of the disk in MB.
 - `storage_profile` (String) Storage profile to override the VM default one. Allowed values are: `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
-- `unit_number` (Number) The device number on the `SCSI` or `IDE` controller of the disk.
+- `unit_number` (Number) The device number on the controller of the disk.
 - `vapp_id` (String) The ID of the vApp. Required if `vapp_name` is not set.
 - `vapp_name` (String) The name of the vApp. Required if `vapp_id` is not set.
 - `vdc` (String) The name of VDC to use, optional if defined at provider level.

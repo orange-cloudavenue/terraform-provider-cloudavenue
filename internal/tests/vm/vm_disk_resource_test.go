@@ -9,8 +9,7 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
-const testAccVMIDiskResourceConfig = `
+const testAccVMDiskResourceConfig = `
 resource "cloudavenue_vapp" "example" {
 	vapp_name = "vapp_example"
 	description = "This is a example vapp"
@@ -26,7 +25,7 @@ resource "cloudavenue_vm_disk" "example-detachable" {
 `
 const resourceName = "cloudavenue_vm_disk.example-detachable"
 
-func TestAccVMInternalDiskResource(t *testing.T) {
+func TestAccVMDiskResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: tests.TestAccProtoV6ProviderFactories,
@@ -34,7 +33,7 @@ func TestAccVMInternalDiskResource(t *testing.T) {
 			// Read testing
 			{
 				// Apply test
-				Config: testAccVMIDiskResourceConfig,
+				Config: testAccVMDiskResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "vapp_name", "vapp_example"),

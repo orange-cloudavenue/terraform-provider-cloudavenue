@@ -115,14 +115,12 @@ func InternalDiskSchemaComputed() map[string]schema.Attribute {
 }
 
 // ToPlan converts a InternalDisks struct to a terraform plan.
-func (i *InternalDisks) ToPlan(ctx context.Context) basetypes.SetValue {
+func (i *InternalDisks) ToPlan(ctx context.Context) (basetypes.SetValue, diag.Diagnostics) {
 	if i == nil {
-		return types.SetUnknown(types.ObjectType{AttrTypes: InternalDiskAttrType()})
+		return types.SetUnknown(types.ObjectType{AttrTypes: InternalDiskAttrType()}), diag.Diagnostics{}
 	}
 
-	x, _ := types.SetValueFrom(ctx, types.ObjectType{AttrTypes: InternalDiskAttrType()}, i)
-
-	return x
+	return types.SetValueFrom(ctx, types.ObjectType{AttrTypes: InternalDiskAttrType()}, i)
 }
 
 // InternalDiskFromPlan creates a InternalDisks from a plan.
@@ -144,7 +142,6 @@ InternalDiskCreate
 Creates a new internal disk associated with a VM.
 */
 func InternalDiskCreate(ctx context.Context, client *client.CloudAvenue, disk InternalDisk, vAppName, vmName, vdcName types.String) (newDisk *InternalDisk, d diag.Diagnostics) {
-
 	_, vdc, err := client.GetOrgAndVDC(client.GetOrg(), vdcName.ValueString())
 	if err != nil {
 		d.AddError("Error retrieving VDC", err.Error())
@@ -213,7 +210,7 @@ func InternalDiskCreate(ctx context.Context, client *client.CloudAvenue, disk In
 	newDisk.SizeInMb = types.Int64Value(diskSetting.SizeMb)
 	newDisk.StorageProfile = types.StringValue(storageProfilePrt.Name)
 
-	return
+	return newDisk, d
 }
 
 /*
@@ -222,7 +219,6 @@ InternalDiskRead
 Reads an internal disk associated with a VM.
 */
 func InternalDiskRead(ctx context.Context, client *client.CloudAvenue, disk *InternalDisk, vm *govcd.VM) (readDisk *InternalDisk, d diag.Diagnostics) {
-
 	diskSettings, err := vm.GetInternalDiskById(disk.ID.ValueString(), true)
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
@@ -303,7 +299,7 @@ func InternalDiskUpdate(ctx context.Context, client *client.CloudAvenue, disk In
 	updatedDisk.SizeInMb = types.Int64Value(diskSettingsToUpdate.SizeMb)
 	updatedDisk.StorageProfile = types.StringValue(storageProfilePrt.Name)
 
-	return
+	return updatedDisk, nil
 }
 
 /*
@@ -312,7 +308,6 @@ InternalDiskDelete
 Deletes an internal disk associated with a VM.
 */
 func InternalDiskDelete(ctx context.Context, disk *InternalDisk, vm *govcd.VM) (d diag.Diagnostics) {
-
 	errDelete := vm.DeleteInternalDisk(disk.ID.ValueString())
 	if errDelete != nil {
 		d.AddError("Error deleting disk", errDelete.Error())

@@ -13,17 +13,22 @@ The virtual machine (vm) resource allows you to manage a virtual machine in the 
 ## Example Usage
 
 ```terraform
+data "cloudavenue_catalog_vapp_template" "example" {
+  catalog_name = "Orange-Linux"
+  vapp_name    = "debian_10_X64"
+}
+
 resource "cloudavenue_vapp" "example" {
-	vapp_name = "vapp_example"
-	description = "This is a example vapp"
+  vapp_name   = "vapp_example"
+  description = "This is a example vapp"
 }
 
 resource "cloudavenue_vm" "example" {
-	vm_name         	= "example-vm"
-	description 		= "This is a example vm"
-	accept_all_eulas 	= true
-	vapp_name 			= "your_value"
-	vapp_template_id 	= data.cloudavenue_catalog_vapp_template.example.id
+  vm_name          = "example-vm"
+  description      = "This is a example vm"
+  accept_all_eulas = true
+  vapp_name        = cloudavenue_vapp.example.vapp_name
+  vapp_template_id = data.cloudavenue_catalog_vapp_template.example.id
 }
 ```
 
@@ -32,8 +37,8 @@ resource "cloudavenue_vm" "example" {
 
 ### Required
 
+- `name` (String) The name of the VM. Unique within the vApp.
 - `vapp_name` (String) The vApp this VM belongs to.
-- `vm_name` (String) The name of the VM. Unique within the vApp.
 
 ### Optional
 
@@ -42,12 +47,11 @@ resource "cloudavenue_vm" "example" {
 - `computer_name` (String) Computer name to assign to this virtual machine. Default is `vm_name`.
 - `customization` (Attributes) Guest customization block. (see [below for nested schema](#nestedatt--customization))
 - `description` (String) Description of the VM.
-- `expose_hardware_virtualization` (Boolean) Expose hardware-assisted CPU virtualization to guest OS.
+- `expose_hardware_virtualization` (Boolean) Expose hardware-assisted CPU virtualization to guest OS. Default is `false`.
 - `guest_properties` (Map of String) Key/Value settings for guest properties
 - `network_dhcp_wait_seconds` (Number) Optional number of seconds to try and wait for DHCP IP (valid for `network` block only)
 - `networks` (Attributes List) A block to define network interface. Multiple can be used. (see [below for nested schema](#nestedatt--networks))
 - `os_type` (String) Operating System type.
-- `override_template_disks` (Attributes Set) A block to match internal_disk interface in template. Multiple can be used. Disk will be matched by `bus_type`, bus_number and unit_number. (see [below for nested schema](#nestedatt--override_template_disks))
 - `placement_policy_id` (String) VM placement policy ID. Has to be assigned to Org VDC.
 - `power_on` (Boolean) A boolean value stating if this VM should be powered on. Default is `true`.
 - `prevent_update_power_off` (Boolean) `true` if the update of resource should fail when virtual machine power off needed. Default is `false`.
@@ -56,11 +60,11 @@ resource "cloudavenue_vm" "example" {
 - `storage_profile` (String) Storage profile to override the default one.
 - `vapp_template_id` (String) The URN of the vApp template to use for this VM. Required if `boot_image_id` is not set.
 - `vdc` (String) The name of the VDC this VM belongs to. If not specified, VDC define in provider will be used.
-- `vm_name_in_template` (String) The name of the VM in vApp Template to use. In cases when vApp template has more than one VM
+- `vm_name_in_template` (String) The name of the VM in vApp Template to use. In cases when vApp template has more than one VM.
 
 ### Read-Only
 
-- `disks` (Attributes Set) A block to define disk. Multiple can be used. (see [below for nested schema](#nestedatt--disks))
+- `disks` (Attributes Set) A list of disks attached to this VM. (see [below for nested schema](#nestedatt--disks))
 - `href` (String) VM Hyper Reference
 - `id` (String) The ID of the VM.
 - `status_code` (Number) Shows the status code of the VM
@@ -106,18 +110,6 @@ Optional:
 - `name` (String) Name of the network this VM should connect to. Always required except for `type` `NONE`.
 
 
-<a id="nestedatt--override_template_disks"></a>
-### Nested Schema for `override_template_disks`
-
-Optional:
-
-- `bus_number` (Number) The number of the `SCSI` or `IDE` controller itself.
-- `bus_type` (String) The type of disk controller. Possible values: `ide`, `scsi`, `sata` or `nvme`. Default value is `scsi`.
-- `size_in_mb` (Number) The size of the disk in MB.
-- `storage_profile` (String) Storage profile to override the VM default one. Allowed values are: `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
-- `unit_number` (Number) The device number on the `SCSI` or `IDE` controller of the disk.
-
-
 <a id="nestedatt--resource"></a>
 ### Nested Schema for `resource`
 
@@ -135,12 +127,12 @@ Optional:
 
 Optional:
 
-- `bus_number` (Number) The number of the `SCSI` or `IDE` controller itself.
-- `bus_type` (String) The type of disk controller. Possible values: `ide`, `scsi`, `sata` or `nvme`. Default value is `scsi`.
+- `bus_number` (Number) The number of the controller itself.
+- `bus_type` (String) The type of disk controller. Possible values: `scsi`, `sata` or `nvme`. Default value is `scsi`.
 - `id` (String) The ID of the disk.
 - `name` (String) The name of the disk.
 - `size_in_mb` (Number) The size of the disk in MB.
 - `storage_profile` (String) Storage profile to override the VM default one. Allowed values are: `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
-- `unit_number` (Number) The device number on the `SCSI` or `IDE` controller of the disk.
+- `unit_number` (Number) The device number on the controller of the disk.
 
 

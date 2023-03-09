@@ -132,7 +132,6 @@ func ResourceSchema() map[string]schema.Attribute {
 
 // ResourceRead is the read function for the resource.
 func ResourceRead(vm *govcd.VM) (Resource, error) {
-
 	if vm == nil {
 		return Resource{}, fmt.Errorf("vm is nil")
 	}
@@ -146,14 +145,14 @@ func ResourceRead(vm *govcd.VM) (Resource, error) {
 
 		// Memory
 		if vm.VM.VmSpecSection.MemoryResourceMb != nil {
-			resource.Memory = types.Int64Value(int64(*&vm.VM.VmSpecSection.MemoryResourceMb.Configured))
+			resource.Memory = types.Int64Value((vm.VM.VmSpecSection.MemoryResourceMb.Configured))
 		}
 	}
 
 	if vm.VM.VMCapabilities != nil {
 		// HotAddEnabled
-		resource.CPUHotAddEnabled = types.BoolValue(*&vm.VM.VMCapabilities.CPUHotAddEnabled)
-		resource.MemoryHotAddEnabled = types.BoolValue(*&vm.VM.VMCapabilities.MemoryHotAddEnabled)
+		resource.CPUHotAddEnabled = types.BoolValue(vm.VM.VMCapabilities.CPUHotAddEnabled)
+		resource.MemoryHotAddEnabled = types.BoolValue(vm.VM.VMCapabilities.MemoryHotAddEnabled)
 	}
 
 	return resource, nil

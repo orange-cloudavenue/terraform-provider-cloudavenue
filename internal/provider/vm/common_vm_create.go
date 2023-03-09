@@ -166,7 +166,6 @@ func createVM(ctx context.Context, v *VMClient) (vm *govcd.VM, err error) { //no
 			}
 
 			bootImage = &govcdtypes.Media{HREF: mediaRecord.MediaRecord.HREF}
-
 		}
 
 		vmParams := &govcdtypes.RecomposeVAppParamsForEmptyVm{

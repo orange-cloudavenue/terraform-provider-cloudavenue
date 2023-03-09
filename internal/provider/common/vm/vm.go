@@ -5,8 +5,6 @@ import (
 	"log"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 )
 
 const (
@@ -72,6 +70,4 @@ func PowerOffIfNeeded(vm *govcd.VM, busType string, allowVMReboot bool) (string,
 	return vmStatusBefore, nil
 }
 
-var (
-	vcdMutexKV = mutex.NewKV()
-)
+// var vcdMutexKV = mutex.NewKV()
