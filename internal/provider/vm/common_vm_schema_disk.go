@@ -42,7 +42,7 @@ func vmResourceModelDiskAttrType() map[string]attr.Type {
 	}
 }
 
-func (x *vmResourceModelDisks) ObjectType() attr.Type {
+func (d *vmResourceModelDisks) ObjectType() attr.Type {
 	return types.ObjectType{
 		AttrTypes: vmResourceModelDiskAttrType(),
 	}
@@ -84,7 +84,6 @@ func (d *vmResourceModelDisks) ToPlan(ctx context.Context) (types.Set, diag.Diag
 	}
 
 	return types.SetValueFrom(ctx, d.ObjectType(), d)
-
 }
 
 // DisksFromPlan converts the terraform plan to a OLDDisk struct
@@ -149,7 +148,6 @@ func DiskFromGovcdDiskSettings(diskSettings *govcdtypes.DiskSettings) vmResource
 	}
 
 	return d
-
 }
 
 // Append appends a disk to the list of disks
@@ -163,7 +161,6 @@ DiskRead
 Reads the disks of a VM
 */
 func DisksRead(vm *govcd.VM) (disks vmResourceModelDisks, err error) {
-
 	if vm.VM != nil && vm.VM.VmSpecSection != nil && vm.VM.VmSpecSection.DiskSection != nil && vm.VM.VmSpecSection.DiskSection.DiskSettings != nil {
 		disks := vmResourceModelDisks{}
 
@@ -173,8 +170,6 @@ func DisksRead(vm *govcd.VM) (disks vmResourceModelDisks, err error) {
 		}
 
 		return disks, nil
-	} else {
-		return vmResourceModelDisks{}, errors.New("no disks found")
 	}
-
+	return vmResourceModelDisks{}, errors.New("no disks found")
 }

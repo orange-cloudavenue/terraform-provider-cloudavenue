@@ -147,6 +147,7 @@ return the attr.Type for the disk
 func (d *Disk) ElementType() attr.Type {
 	return types.ObjectType{AttrTypes: DiskAttrType()}
 }
+
 func (d *Disks) ElementType() attr.Type {
 	return types.ObjectType{AttrTypes: DiskAttrType()}
 }
@@ -163,7 +164,6 @@ func (d *Disks) ToPlan(ctx context.Context) (basetypes.SetValue, diag.Diagnostic
 // Specific planmodifier
 // if is_detachable is false the VMName/VMID is not modifiable
 func requireReplaceIfNotDetachable() planmodifier.String {
-
 	description := "Attribute requires replacement if `is_detachable` is false"
 
 	return stringplanmodifier.RequiresReplaceIf(stringplanmodifier.RequiresReplaceIfFunc(func(ctx context.Context, req planmodifier.StringRequest, resp *stringplanmodifier.RequiresReplaceIfFuncResponse) {
@@ -174,9 +174,7 @@ func requireReplaceIfNotDetachable() planmodifier.String {
 		if !isDetachable.ValueBool() {
 			resp.RequiresReplace = true
 		}
-
 	}), description, description)
-
 }
 
 // DiskSchema returns the schema for the OLDdisk
@@ -282,7 +280,6 @@ DiskCreate
 creates a detachable disk
 */
 func DiskCreate(ctx context.Context, vdc *govcd.Vdc, vm *govcd.VM, disk *Disk, goVapp *govcd.VApp, org *govcd.Org) (*Disk, diag.Diagnostics) {
-
 	d := diag.Diagnostics{}
 
 	if goVapp.VApp == nil || org.Org == nil || vdc.Vdc == nil {
@@ -414,7 +411,6 @@ if disk and diag.Diagnostics are nil the disk is
 not found and the resource should be removed from state
 */
 func DiskRead(ctx context.Context, client *client.CloudAvenue, vdc *govcd.Vdc, disk *Disk, goVapp *govcd.VApp, org *govcd.Org) (*Disk, diag.Diagnostics) {
-
 	d := diag.Diagnostics{}
 
 	var (
@@ -467,7 +463,6 @@ func DiskRead(ctx context.Context, client *client.CloudAvenue, vdc *govcd.Vdc, d
 	dRead := disk
 
 	if disk.IsDetachable.ValueBool() {
-
 		if !disk.ID.IsNull() && !disk.ID.IsUnknown() {
 			// Get the disk by the ID
 			x, err = vdc.GetDiskById(disk.ID.ValueString(), true)
@@ -533,7 +528,6 @@ func DiskRead(ctx context.Context, client *client.CloudAvenue, vdc *govcd.Vdc, d
 		dRead.BusType = types.StringValue(diskparams.GetBusTypeByCode(x.Disk.BusType, x.Disk.BusSubType).Name())
 		dRead.SizeInMb = types.Int64Value(x.Disk.SizeMb)
 		dRead.StorageProfile = types.StringValue(x.Disk.StorageProfile.Name)
-
 	} else {
 		// Internal Disk
 		internalDisk, diagErr := InternalDiskRead(ctx, client, &InternalDisk{
@@ -551,7 +545,6 @@ func DiskRead(ctx context.Context, client *client.CloudAvenue, vdc *govcd.Vdc, d
 		dRead.BusType = internalDisk.BusType
 		dRead.SizeInMb = internalDisk.SizeInMb
 		dRead.StorageProfile = internalDisk.StorageProfile
-
 	}
 
 	if r != nil {
@@ -578,8 +571,7 @@ List of attributes require attach/detach disk to be updated if the disk is detac
   - size_in_mb
   - storage_profile
 */
-func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskState *Disk, vdc *govcd.Vdc, goVapp *govcd.VApp, org *govcd.Org) (*Disk, diag.Diagnostics) {
-
+func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskState *Disk, vdc *govcd.Vdc, goVapp *govcd.VApp, org *govcd.Org) (*Disk, diag.Diagnostics) { //nolint:gocyclo
 	d := diag.Diagnostics{}
 
 	// Preventing nil pointer
@@ -623,7 +615,6 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 	}
 
 	if diskPlan.IsDetachable.ValueBool() {
-
 		// Get the disk by the ID
 		x, err := vdc.GetDiskById(diskState.ID.ValueString(), true)
 		if err != nil {
@@ -636,7 +627,6 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 			!diskPlan.StorageProfile.Equal(diskState.StorageProfile) ||
 			!diskPlan.VMID.Equal(diskState.VMID) ||
 			!diskPlan.VMName.Equal(diskState.VMName) {
-
 			var (
 				storageProfileRef *govcdtypes.Reference
 				vm                *govcd.VM
@@ -654,7 +644,6 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 			// if VMName or VMID is not define is not necessary to detach the disk
 			// Use diskState to get possible OLD VMID
 			if diskState.VMName.ValueString() != "" || diskState.VMID.ValueString() != "" {
-
 				if diskState.VMID.ValueString() != "" {
 					vm, err = vapp.GetVMById(diskState.VMID.ValueString(), true)
 				} else {
@@ -754,7 +743,6 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 				diskPlan.VMID = types.StringValue(vm.VM.ID)
 				diskPlan.VMName = types.StringValue(vm.VM.Name)
 			}
-
 		}
 
 		err = x.Refresh()
@@ -762,12 +750,9 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 			d.AddError("unable to refresh disk", fmt.Sprintf("unable to refresh disk %s (id:%s): %s", diskPlan.Name.ValueString(), diskPlan.ID.ValueString(), err))
 			return nil, d
 		}
-
-	} else {
-
+	} else { //nolint:gocritic
 		if !diskPlan.SizeInMb.Equal(diskState.SizeInMb) ||
 			!diskPlan.StorageProfile.Equal(diskState.StorageProfile) {
-
 			_, diagerr := InternalDiskUpdate(ctx, client, InternalDisk{
 				ID:             diskPlan.ID,
 				BusType:        diskPlan.BusType,
@@ -796,7 +781,6 @@ delete a disk
 if the disk is attached to a VM, it will return an error
 */
 func DiskDelete(ctx context.Context, client *client.CloudAvenue, disk *Disk, vdc *govcd.Vdc, goVapp *govcd.VApp, org *govcd.Org) diag.Diagnostics {
-
 	d := diag.Diagnostics{}
 
 	if goVapp.VApp == nil || org.Org == nil || vdc.Vdc == nil {
@@ -830,7 +814,6 @@ func DiskDelete(ctx context.Context, client *client.CloudAvenue, disk *Disk, vdc
 	}
 
 	if disk.IsDetachable.ValueBool() {
-
 		diskRecord, err := vdc.QueryDisk(disk.Name.ValueString())
 		if err != nil {
 			return d
@@ -909,7 +892,6 @@ DiskAttach
 attach a disk to a VM
 */
 func DiskAttach(ctx context.Context, vdc *govcd.Vdc, disk *Disk, vm *govcd.VM) diag.Diagnostics {
-
 	d := diag.Diagnostics{}
 
 	// Get disk object
@@ -947,7 +929,6 @@ DiskDetach
 detach a disk from a VM
 */
 func DiskDetach(ctx context.Context, vdc *govcd.Vdc, disk *Disk, vm *govcd.VM) diag.Diagnostics {
-
 	d := diag.Diagnostics{}
 
 	// Get disk object

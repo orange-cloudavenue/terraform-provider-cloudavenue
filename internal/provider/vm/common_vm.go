@@ -12,7 +12,6 @@ import (
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 	commonvm "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
@@ -40,7 +39,6 @@ var errRemoveResource = errors.New("resource is being removed")
 
 // addRemoveGuestProperties is responsible for setting guest properties on the VM
 func addRemoveGuestProperties(v *VMClient, vm *govcd.VM) error {
-
 	// * GuestPropertiers is Optional Value in Terraform Schema.
 	// * If it is not set, we don't need to do anything and return `nil`
 
@@ -60,7 +58,6 @@ func addRemoveGuestProperties(v *VMClient, vm *govcd.VM) error {
 
 // getGuestProperties returns a struct for setting guest properties
 func getGuestProperties(guestProperties types.Map) (*govcdtypes.ProductSectionList, error) {
-
 	// Init Struct
 	vmProperties := &govcdtypes.ProductSectionList{
 		ProductSection: &govcdtypes.ProductSection{
@@ -122,7 +119,6 @@ func updateGuestCustomizationSetting(v *VMClient, vm *govcd.VM) error {
 
 // updateCustomizationSection is responsible for setting all the data related to VM customization
 func updateCustomizationSection(v *VMClient, customizationSection *govcdtypes.GuestCustomizationSection) {
-
 	if v.Plan.ComputerName.IsNull() {
 		// for back compatibility we allow to set computer name from `name` if computer_name isn't provided
 		customizationSection.ComputerName = v.Plan.VMName.ValueString()
@@ -130,7 +126,7 @@ func updateCustomizationSection(v *VMClient, customizationSection *govcdtypes.Gu
 		customizationSection.ComputerName = v.Plan.ComputerName.ValueString()
 	}
 
-	var customization vm.Customization
+	var customization commonvm.Customization
 	v.Plan.Customization.As(context.Background(), customization, basetypes.ObjectAsOptions{})
 
 	if !customization.Enabled.IsNull() && !customization.Enabled.IsUnknown() {
@@ -202,14 +198,14 @@ func isForcedCustomization(v *VMClient) bool {
 		return false
 	}
 
-	var customization vm.Customization
+	var customization commonvm.Customization
 	v.Plan.Customization.As(context.Background(), customization, basetypes.ObjectAsOptions{})
 
 	if !customization.Force.IsNull() && !customization.Force.IsUnknown() {
 		return customization.Force.ValueBool()
-	} else {
-		return false
 	}
+
+	return false
 }
 
 // * End of customization section
@@ -271,9 +267,9 @@ func networksToConfig(v *VMClient, vapp *govcd.VApp) (govcdtypes.NetworkConnecti
 		return networkConnectionSection, nil
 	}
 
-	networks, err := vm.NetworksFromPlan(v.Plan.Networks)
+	networks, err := commonvm.NetworksFromPlan(v.Plan.Networks)
 	if err != nil {
-		return networkConnectionSection, nil
+		return networkConnectionSection, err
 	}
 
 	// sets existing primary network connection index. Further code changes index only if change is
@@ -292,7 +288,7 @@ func networksToConfig(v *VMClient, vapp *govcd.VApp) (govcdtypes.NetworkConnecti
 		ip := singleNetwork.IP.ValueString()
 
 		if v.State != nil {
-			networksState, err := vm.NetworksFromPlan(v.State.Networks)
+			networksState, err := commonvm.NetworksFromPlan(v.State.Networks)
 			if err != nil {
 				return govcdtypes.NetworkConnectionSection{}, err
 			}
@@ -461,18 +457,23 @@ func getCPUMemoryValues(v *VMClient, vdcComputePolicy *govcdtypes.VdcComputePoli
 }
 
 func createPlan(ctx context.Context, gvm *govcd.VM, x *vmResourceModel) (newPlan *vmResourceModel, err error) {
-
 	vdc, err := gvm.GetParentVdc()
 	if err != nil {
 		return
 	}
 
-	networks, err := vm.NetworksRead(gvm)
+	networks, err := commonvm.NetworksRead(gvm)
 	if err != nil {
 		return
 	}
 
-	resource, err := vm.ResourceRead(gvm)
+	networksPlan, diag := networks.ToPlan()
+	if diag.HasError() {
+		err = fmt.Errorf("error converting networks to plan: %s", diag[0].Detail())
+		return
+	}
+
+	resource, err := commonvm.ResourceRead(gvm)
 	if err != nil {
 		return
 	}
@@ -482,12 +483,12 @@ func createPlan(ctx context.Context, gvm *govcd.VM, x *vmResourceModel) (newPlan
 		return
 	}
 
-	guestproperties, err := vm.GuestPropertiesRead(gvm)
+	guestproperties, err := commonvm.GuestPropertiesRead(gvm)
 	if err != nil {
 		return
 	}
 
-	customization, err := vm.CustomizationRead(gvm)
+	customization, err := commonvm.CustomizationRead(gvm)
 	if err != nil {
 		return
 	}
@@ -537,7 +538,7 @@ func createPlan(ctx context.Context, gvm *govcd.VM, x *vmResourceModel) (newPlan
 		BootImageID: x.BootImageID,
 		// OverrideTemplateDisks: x.OverrideTemplateDisks,
 
-		Networks:               networks.ToPlan(),
+		Networks:               networksPlan,
 		NetworkDhcpWaitSeconds: x.NetworkDhcpWaitSeconds,
 
 		ExposeHardwareVirtualization: types.BoolValue(gvm.VM.NestedHypervisorEnabled),
@@ -563,10 +564,8 @@ func createPlan(ctx context.Context, gvm *govcd.VM, x *vmResourceModel) (newPlan
 
 	if gvm.VM.GuestCustomizationSection != nil {
 		newPlan.ComputerName = types.StringValue(gvm.VM.GuestCustomizationSection.ComputerName)
-	} else {
-		if !x.ComputerName.IsNull() {
-			newPlan.ComputerName = x.ComputerName
-		}
+	} else if !x.ComputerName.IsNull() {
+		newPlan.ComputerName = x.ComputerName
 	}
 
 	if gvm.VM.StorageProfile != nil {
@@ -580,5 +579,5 @@ func createPlan(ctx context.Context, gvm *govcd.VM, x *vmResourceModel) (newPlan
 	}
 	newPlan.Disks = xDisks
 
-	return
+	return newPlan, nil
 }

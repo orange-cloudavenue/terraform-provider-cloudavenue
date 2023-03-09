@@ -285,7 +285,6 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 
 // ModifyPlan modifies the resource plan.
 func (r *vmResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-
 	var plan, state *vmResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -305,7 +304,6 @@ func (r *vmResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -421,9 +419,6 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 		resp.Diagnostics.AddError("Error removing VM", err.Error())
 		return
 	}
-
-	return
-
 }
 
 func (r *vmResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

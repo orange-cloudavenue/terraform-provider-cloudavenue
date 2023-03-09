@@ -41,7 +41,7 @@ func (r *diskResource) Metadata(_ context.Context, req resource.MetadataRequest,
 // Schema defines the schema for the resource.
 func (r *diskResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "The disk resource allows you to manage an disk in the vDC.",
+		MarkdownDescription: "The disk resource allows you to manage a disk in the vDC.",
 		Attributes:          vm.DiskSchema(),
 	}
 }
@@ -68,7 +68,6 @@ func (r *diskResource) Configure(ctx context.Context, req resource.ConfigureRequ
 
 // ModifyPlan is called before Create, Update, and Delete to modify the plan.
 func (r *diskResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-
 	var d diag.Diagnostics
 
 	diskPlan := &diskResourceModel{}
@@ -95,7 +94,6 @@ func (r *diskResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRe
 			)
 		}
 	}
-
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -190,7 +188,6 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 		}
 
 		newPlan = disk
-
 	} else {
 		// Create a disk attached to a VM
 		internalDisk, d := vm.InternalDiskCreate(ctx, r.client, vm.InternalDisk{
@@ -213,7 +210,6 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 		newPlan.UnitNumber = internalDisk.UnitNumber
 		newPlan.SizeInMb = internalDisk.SizeInMb
 		newPlan.StorageProfile = internalDisk.StorageProfile
-
 	}
 
 	if myVM != nil && myVM.VM != nil {

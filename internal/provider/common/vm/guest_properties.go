@@ -42,12 +42,10 @@ func (g *GuestProperties) ToAttrValue() map[string]attr.Value {
 	}
 
 	return x
-
 }
 
 // ToPlan converts a GuestProperties to a plan
 func (g *GuestProperties) ToPlan() basetypes.MapValue {
-
 	if g == nil || len(*g) == 0 {
 		return types.MapNull(types.StringType)
 	}
@@ -70,7 +68,6 @@ func GuestPropertiesFromPlan(ctx context.Context, x types.Map) (*GuestProperties
 
 // GuestPropertiesRead reads the guest properties from a VM
 func GuestPropertiesRead(vm *govcd.VM) (m *GuestProperties, err error) {
-
 	if m == nil {
 		m = &GuestProperties{}
 	}

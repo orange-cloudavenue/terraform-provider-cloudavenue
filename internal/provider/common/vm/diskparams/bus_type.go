@@ -39,8 +39,6 @@ func (b busType) Code() string {
 
 func GetBusTypeByCode(code, subtype string) busType {
 	switch code {
-	case busTypeIDE.code:
-		return busTypeIDE
 	case busTypeSATA.code:
 		// SATA and NVME have the same code
 		// Using the subtype to differentiate them
@@ -59,8 +57,6 @@ func GetBusTypeByCode(code, subtype string) busType {
 
 func GetBusTypeByName(name string) busType {
 	switch strings.ToLower(name) {
-	case busTypeIDE.name:
-		return busTypeIDE
 	case busTypeSATA.name:
 		return busTypeSATA
 	case busTypeSCSI.name:
@@ -74,7 +70,7 @@ func GetBusTypeByName(name string) busType {
 
 var listOfBusTypes = []string{busTypeIDE.Name(), busTypeSATA.Name(), busTypeSCSI.Name(), busTypeNVME.Name()}
 
-const budTypeDescription = "The type of disk controller. Possible values: `ide`, `scsi`, `sata` or `nvme`. Default value is `scsi`."
+const busTypeDescription = "The type of disk controller. Possible values: `scsi`, `sata` or `nvme`. Default value is `scsi`."
 
 /*
 BusTypeAttribute
@@ -87,7 +83,7 @@ func BusTypeAttribute() schema.Attribute {
 	return schema.StringAttribute{
 		Optional:            true,
 		Computed:            true,
-		MarkdownDescription: budTypeDescription,
+		MarkdownDescription: busTypeDescription,
 		Validators: []validator.String{
 			stringvalidator.OneOf(listOfBusTypes...),
 		},
@@ -102,7 +98,7 @@ func BusTypeAttribute() schema.Attribute {
 func BusTypeAttributeComputed() schema.Attribute {
 	return schema.StringAttribute{
 		Computed:            true,
-		MarkdownDescription: budTypeDescription,
+		MarkdownDescription: busTypeDescription,
 	}
 }
 
@@ -110,7 +106,7 @@ func BusTypeAttributeComputed() schema.Attribute {
 func BusTypeAttributeRequired() schema.Attribute {
 	return schema.StringAttribute{
 		Required:            true,
-		MarkdownDescription: budTypeDescription,
+		MarkdownDescription: busTypeDescription,
 		Validators: []validator.String{
 			stringvalidator.OneOf(listOfBusTypes...),
 		},
