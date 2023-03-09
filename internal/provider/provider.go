@@ -105,6 +105,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		vapp.NewVappResource,
 		vapp.NewOrgNetworkResource,
 		vapp.NewIsolatedNetworkResource,
+		vapp.NewACLResource,
 
 		// CATALOG
 		catalog.NewCatalogResource,
