@@ -124,17 +124,17 @@ func (v VApp) GetID() string {
 	return v.VApp.VApp.ID
 }
 
-// GetStatusCode give you the status code of the vApp
+// GetStatusCode give you the status code of the vApp.
 func (v VApp) GetStatusCode() int {
 	return v.VApp.VApp.Status
 }
 
-// GetHREF give you the HREF of the vApp
+// GetHREF give you the HREF of the vApp.
 func (v VApp) GetHREF() string {
 	return v.VApp.VApp.HREF
 }
 
-// GetDescription give you the status code of the vApp
+// GetDescription give you the status code of the vApp.
 func (v VApp) GetDescription() string {
 	return v.VApp.VApp.Description
 }

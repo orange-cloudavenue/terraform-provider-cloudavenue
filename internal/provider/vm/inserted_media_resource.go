@@ -17,7 +17,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
-// Ensure the implementation satisfies the expected interfaces.VAppName
+// Ensure the implementation satisfies the expected interfaces.VAppName.
 var (
 	_ resource.Resource              = &vmInsertedMediaResource{}
 	_ resource.ResourceWithConfigure = &vmInsertedMediaResource{}
