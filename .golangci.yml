@@ -63,6 +63,7 @@ linters:
     - nilnil # Checks that there is no simultaneous return of `nil` error and an invalid value. [fast: false, auto-fix: false]
     - godot # Check if comments end in a period [fast: true, auto-fix: true]
     - unused #(megacheck): Checks Go code for unused constants, variables, functions and types [fast: false, auto-fix: false]
+    - unparam # reports unused function parameters
 
   disable:
     - dupl # Tool for code clone detection [fast: true, auto-fix: false]

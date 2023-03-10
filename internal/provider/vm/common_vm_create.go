@@ -27,7 +27,7 @@ import (
 // 3. Perform additional operations which are common for both types of VMs
 //
 // Note. VM Power ON (if it wasn't disabled in HCL configuration) occurs as last step after all configuration is done.
-func createVM(ctx context.Context, v *VMClient) (vm *govcd.VM, err error) { //nolint:gocyclo
+func createVM(_ context.Context, v *VMClient) (vm *govcd.VM, err error) { //nolint:gocyclo
 	var (
 		vdc        *govcd.Vdc
 		org        *govcd.Org
