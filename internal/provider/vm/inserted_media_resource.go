@@ -3,9 +3,9 @@ package vm
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -13,10 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	myvapp "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
-// Ensure the implementation satisfies the expected interfaces.
+// Ensure the implementation satisfies the expected interfaces.VAppName
 var (
 	_ resource.Resource              = &vmInsertedMediaResource{}
 	_ resource.ResourceWithConfigure = &vmInsertedMediaResource{}
@@ -30,6 +31,8 @@ func NewVMInsertedMediaResource() resource.Resource {
 // vmInsertedMediaResource is the resource implementation.
 type vmInsertedMediaResource struct {
 	client *client.CloudAvenue
+	vdc    vdc.VDC
+	vapp   vapp.VApp
 }
 
 type vmInsertedMediaResourceModel struct {
@@ -37,7 +40,8 @@ type vmInsertedMediaResourceModel struct {
 	VDC      types.String `tfsdk:"vdc"`
 	Catalog  types.String `tfsdk:"catalog"`
 	Name     types.String `tfsdk:"name"`
-	VappName types.String `tfsdk:"vapp_name"`
+	VAppName types.String `tfsdk:"vapp_name"`
+	VAppID   types.String `tfsdk:"vapp_id"`
 	VMName   types.String `tfsdk:"vm_name"`
 	// EjectForce types.Bool   `tfsdk:"eject_force"` - Disable attributes - Issue referrer: vmware/go-vcloud-director#552
 }
@@ -56,14 +60,9 @@ func (r *vmInsertedMediaResource) Schema(ctx context.Context, _ resource.SchemaR
 				Computed:            true,
 				MarkdownDescription: "The ID of the inserted media. This is the vm Id where the media is inserted.",
 			},
-			"vdc": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The name of VDC to use, optional if defined at provider level",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
+			"vdc":       vdc.Schema(),
+			"vapp_id":   vapp.Schema()["vapp_id"],
+			"vapp_name": vapp.Schema()["vapp_name"],
 			"catalog": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The name of the catalog where to find media file",
@@ -74,13 +73,6 @@ func (r *vmInsertedMediaResource) Schema(ctx context.Context, _ resource.SchemaR
 			"name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Media file name in catalog which will be inserted to VM",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"vapp_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "vApp name where VM is located",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -101,6 +93,17 @@ func (r *vmInsertedMediaResource) Schema(ctx context.Context, _ resource.SchemaR
 			// },
 		},
 	}
+}
+
+func (r *vmInsertedMediaResource) Init(ctx context.Context, rm *vmInsertedMediaResourceModel) (diags diag.Diagnostics) {
+	r.vdc, diags = vdc.Init(r.client, rm.VDC)
+	if diags.HasError() {
+		return
+	}
+
+	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
+
+	return
 }
 
 func (r *vmInsertedMediaResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -137,57 +140,28 @@ func (r *vmInsertedMediaResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	// If VDC is not defined at data source level, use the one defined at provider level
-	if plan.VDC.IsNull() || plan.VDC.IsUnknown() {
-		if r.client.DefaultVDCExist() {
-			plan.VDC = types.StringValue(r.client.GetDefaultVDC())
-		} else {
-			resp.Diagnostics.AddError("Missing VDC", "VDC is required when not defined at provider level")
-			return
-		}
-	}
-
-	// Get Org & VDC
-	org, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), plan.VDC.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
-		return
-	}
-
-	// Check if vApp exists
-	vapp, err := vdc.GetVAppByName(plan.VappName.ValueString(), true)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving vApp", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Lock vApp
-	lockvapp := myvapp.Ref{
-		Name:  plan.VappName.ValueString(),
-		Org:   org.Org.Name,
-		VDC:   plan.VDC.ValueString(),
-		TFCtx: ctx,
-	}
-	if errLock := lockvapp.LockParentVApp(); errors.Is(errLock, myvapp.ErrVAppRefEmpty) {
-		resp.Diagnostics.AddError("Error locking vApp", errLock.Error())
+	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer func() {
-		if errUnlock := lockvapp.UnLockParentVApp(); errUnlock != nil {
-			resp.Diagnostics.AddError("Error unlocking vApp", errUnlock.Error())
-			return
-		}
-	}()
+	defer r.vapp.UnlockParentVApp(ctx)
 
 	// Check if VM exists
-	vm, err := vapp.GetVMByName(plan.VMName.ValueString(), true)
+	vm, err := r.vapp.GetVMByName(plan.VMName.ValueString(), true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving VM", err.Error())
 		return
 	}
 
 	// Insert media
-	task, err := vm.HandleInsertMedia(org, plan.Catalog.ValueString(), plan.Name.ValueString())
+	task, err := vm.HandleInsertMedia(r.vdc.GetOrg(), plan.Catalog.ValueString(), plan.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error inserting media", err.Error())
 		return
@@ -201,10 +175,11 @@ func (r *vmInsertedMediaResource) Create(ctx context.Context, req resource.Creat
 	// Set Plan state
 	plan = &vmInsertedMediaResourceModel{
 		ID:       types.StringValue(vm.VM.ID),
-		VDC:      plan.VDC,
+		VDC:      types.StringValue(r.vdc.GetName()),
 		Catalog:  plan.Catalog,
 		Name:     plan.Name,
-		VappName: plan.VappName,
+		VAppName: plan.VAppName,
+		VAppID:   plan.VAppID,
 		VMName:   plan.VMName,
 		// EjectForce: plan.EjectForce,
 	}
@@ -226,32 +201,14 @@ func (r *vmInsertedMediaResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	// If VDC is not defined at data source level, use the one defined at provider level
-	if state.VDC.IsNull() || state.VDC.IsUnknown() {
-		if r.client.DefaultVDCExist() {
-			state.VDC = types.StringValue(r.client.GetDefaultVDC())
-		} else {
-			resp.Diagnostics.AddError("Missing VDC", "VDC is required when not defined at provider level")
-			return
-		}
-	}
-
-	// Get Org & VDC
-	_, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), state.VDC.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC or Org", err.Error())
-		return
-	}
-
-	// Check if vApp exists
-	vapp, err := vdc.GetVAppByName(state.VappName.ValueString(), true)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving vApp", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Check if VM exists
-	vm, err := vapp.GetVMByName(state.VMName.ValueString(), true)
+	vm, err := r.vapp.GetVMByName(state.VMName.ValueString(), true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving VM", err.Error())
 		return
@@ -275,10 +232,11 @@ func (r *vmInsertedMediaResource) Read(ctx context.Context, req resource.ReadReq
 	// Set Plan state
 	plan := &vmInsertedMediaResourceModel{
 		ID:       types.StringValue(vm.VM.ID),
-		VDC:      state.VDC,
+		VDC:      types.StringValue(r.vdc.GetName()),
 		Catalog:  state.Catalog,
 		Name:     state.Name,
-		VappName: state.VappName,
+		VAppName: state.VAppName,
+		VAppID:   state.VAppID,
 		VMName:   state.VMName,
 		// EjectForce: state.EjectForce,
 	}
@@ -302,50 +260,21 @@ func (r *vmInsertedMediaResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	// If VDC is not defined at data source level, use the one defined at provider level
-	if plan.VDC.IsNull() || plan.VDC.IsUnknown() {
-		if r.client.DefaultVDCExist() {
-			plan.VDC = types.StringValue(r.client.GetDefaultVDC())
-		} else {
-			resp.Diagnostics.AddError("Missing VDC", "VDC is required when not defined at provider level")
-			return
-		}
-	}
-
-	// Get Org & VDC
-	org, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), plan.VDC.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC or Org", err.Error())
-		return
-	}
-
-	// Check if vApp exists
-	vapp, err := vdc.GetVAppByName(plan.VappName.ValueString(), true)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving vApp", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Lock vApp
-	lockvapp := myvapp.Ref{
-		Name:  state.VappName.ValueString(),
-		Org:   org.Org.Name,
-		VDC:   state.VDC.ValueString(),
-		TFCtx: ctx,
-	}
-	if errLock := lockvapp.LockParentVApp(); errors.Is(errLock, myvapp.ErrVAppRefEmpty) {
-		resp.Diagnostics.AddError("Error locking vApp", errLock.Error())
+	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer func() {
-		if errUnlock := lockvapp.UnLockParentVApp(); errUnlock != nil {
-			resp.Diagnostics.AddError("Error unlocking vApp", errUnlock.Error())
-			return
-		}
-	}()
+	defer r.vapp.UnlockParentVApp(ctx)
 
 	// Check if VM exists
-	vm, err := vapp.GetVMByName(state.VMName.ValueString(), true)
+	vm, err := r.vapp.GetVMByName(state.VMName.ValueString(), true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving VM", err.Error())
 		return
@@ -356,7 +285,7 @@ func (r *vmInsertedMediaResource) Update(ctx context.Context, req resource.Updat
 		VDC:      plan.VDC,
 		Catalog:  plan.Catalog,
 		Name:     plan.Name,
-		VappName: plan.VappName,
+		VAppName: plan.VAppName,
 		VMName:   plan.VMName,
 		// EjectForce: plan.EjectForce,
 	}
@@ -379,57 +308,28 @@ func (r *vmInsertedMediaResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
-	// If VDC is not defined at data source level, use the one defined at provider level
-	if state.VDC.IsNull() || state.VDC.IsUnknown() {
-		if r.client.DefaultVDCExist() {
-			state.VDC = types.StringValue(r.client.GetDefaultVDC())
-		} else {
-			resp.Diagnostics.AddError("Missing VDC", "VDC is required when not defined at provider level")
-			return
-		}
-	}
-
-	// Get Org & VDC
-	org, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), state.VDC.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC or Org", err.Error())
-		return
-	}
-
-	// Check if vApp exists
-	vapp, err := vdc.GetVAppByName(state.VappName.ValueString(), true)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving vApp", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Lock vApp
-	lockvapp := myvapp.Ref{
-		Name:  state.VappName.ValueString(),
-		Org:   org.Org.Name,
-		VDC:   state.VDC.ValueString(),
-		TFCtx: ctx,
-	}
-	if errLock := lockvapp.LockParentVApp(); errors.Is(errLock, myvapp.ErrVAppRefEmpty) {
-		resp.Diagnostics.AddError("Error locking vApp", errLock.Error())
+	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer func() {
-		if errUnlock := lockvapp.UnLockParentVApp(); errUnlock != nil {
-			resp.Diagnostics.AddError("Error unlocking vApp", errUnlock.Error())
-			return
-		}
-	}()
+	defer r.vapp.UnlockParentVApp(ctx)
 
 	// Check if VM exists
-	vm, err := vapp.GetVMByName(state.VMName.ValueString(), true)
+	vm, err := r.vapp.GetVMByName(state.VMName.ValueString(), true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving VM", err.Error())
 		return
 	}
 
 	// Eject media
-	_, err = vm.HandleEjectMediaAndAnswer(org, state.Catalog.ValueString(), state.Name.ValueString(), true)
+	_, err = vm.HandleEjectMediaAndAnswer(r.vdc.GetOrg(), state.Catalog.ValueString(), state.Name.ValueString(), true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error ejecting media", err.Error())
 		return

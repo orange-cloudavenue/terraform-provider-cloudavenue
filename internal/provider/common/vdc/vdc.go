@@ -13,6 +13,7 @@ import (
 
 type VDC struct {
 	*govcd.Vdc
+	*govcd.Org
 }
 
 /*
@@ -50,21 +51,31 @@ func Init(client *client.CloudAvenue, vdc types.String) (VDC, diag.Diagnostics) 
 			return VDC{}, d
 		}
 	}
-	// Request vDC
-	_, vdcOut, err := client.GetOrgAndVDC(client.GetOrg(), vdc.ValueString())
+	// Request Org and vDC
+	orgOut, vdcOut, err := client.GetOrgAndVDC(client.GetOrg(), vdc.ValueString())
 	if err != nil {
 		d.AddError("Error retrieving VDC", err.Error())
 		return VDC{}, d
 	}
-	return VDC{Vdc: vdcOut}, nil
+	return VDC{Vdc: vdcOut, Org: orgOut}, nil
 }
 
-// GetName give you the name of the vDC
+// Name give you the name of the vDC
 func (v VDC) GetName() string {
 	return v.Vdc.Vdc.Name
 }
 
-// GetID give you the ID of the vDC
+// ID give you the ID of the vDC
 func (v VDC) GetID() string {
 	return v.Vdc.Vdc.ID
+}
+
+// GetOrg give you the Org of the vDC
+func (v VDC) GetOrg() *govcd.Org {
+	return v.Org
+}
+
+// OrgID give you the ID of the Org of the vDC
+func (v VDC) GetOrgID() string {
+	return v.Org.Org.ID
 }

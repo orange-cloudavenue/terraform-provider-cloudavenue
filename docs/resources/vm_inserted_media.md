@@ -30,12 +30,13 @@ resource "cloudavenue_vm_inserted_media" "example" {
 
 - `catalog` (String) The name of the catalog where to find media file
 - `name` (String) Media file name in catalog which will be inserted to VM
-- `vapp_name` (String) vApp name where VM is located
 - `vm_name` (String) VM name where media will be inserted or ejected
 
 ### Optional
 
-- `vdc` (String) The name of VDC to use, optional if defined at provider level
+- `vapp_id` (String) (ForceNew) ID of the vApp. Required if `vapp_name` is not set.
+- `vapp_name` (String) (ForceNew) Name of the vApp. Required if `vapp_id` is not set.
+- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 

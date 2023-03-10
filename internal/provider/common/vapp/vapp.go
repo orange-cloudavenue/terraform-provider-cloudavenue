@@ -22,21 +22,12 @@ import (
 )
 
 const (
-	ErrVAppNotFound = "VApp not found"
+	ErrVAppNotFound = "vApp not found"
 )
 
 type VApp struct {
 	*govcd.VApp
 	vdc vdc.VDC
-}
-
-// Ref is a reference to a vApp.
-// DEPRECATED
-type Ref struct {
-	Org   string
-	VDC   string
-	Name  string
-	TFCtx context.Context
 }
 
 var (
@@ -133,24 +124,17 @@ func (v VApp) GetID() string {
 	return v.VApp.VApp.ID
 }
 
-// LockParentVApp locks the parent vApp.
-// DEPRECATED
-func (v *Ref) LockParentVApp() error {
-	if v.Org == "" || v.VDC == "" || v.Name == "" || v.TFCtx == nil {
-		return ErrVAppRefEmpty
-	}
-	key := fmt.Sprintf("org:%s|vdc:%s|vapp:%s", v.Org, v.VDC, v.Name)
-	vcdMutexKV.KvLock(v.TFCtx, key)
-	return nil
+// GetStatusCode give you the status code of the vApp
+func (v VApp) GetStatusCode() int {
+	return v.VApp.VApp.Status
 }
 
-// UnLockParentVApp unlocks the parent vApp.
-// DEPRECATED
-func (v *Ref) UnLockParentVApp() error {
-	if v.Org == "" || v.VDC == "" || v.Name == "" || v.TFCtx == nil {
-		return ErrVAppRefEmpty
-	}
-	key := fmt.Sprintf("org:%s|vdc:%s|vapp:%s", v.Org, v.VDC, v.Name)
-	vcdMutexKV.KvUnlock(v.TFCtx, key)
-	return nil
+// GetHREF give you the HREF of the vApp
+func (v VApp) GetHREF() string {
+	return v.VApp.VApp.HREF
+}
+
+// GetDescription give you the status code of the vApp
+func (v VApp) GetDescription() string {
+	return v.VApp.VApp.Description
 }

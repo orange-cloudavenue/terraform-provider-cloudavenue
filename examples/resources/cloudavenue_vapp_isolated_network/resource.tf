@@ -1,7 +1,11 @@
+resource "cloudavenue_vapp" "example" {
+  name        = "MyVapp"
+  description = "This is an example vApp"
+}
+
 resource "cloudavenue_vapp_isolated_network" "example" {
-  vdc                   = "MyVDC"
   name                  = "MyVappNet"
-  vapp_name             = "MyVapp"
+  vapp_name             = cloudavenue_vapp.example.name
   gateway               = "192.168.10.1"
   netmask               = "255.255.255.0"
   dns1                  = "192.168.10.1"

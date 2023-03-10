@@ -2,18 +2,18 @@
 page_title: "cloudavenue_vapp Data Source - cloudavenue"
 subcategory: "vApp (Virtual Appliance)"
 description: |-
-  The public IP data source show the list of public IP addresses.
+  Provides a Cloud Avenue vApp data source. This can be used to reference vApps.
 ---
 
 # cloudavenue_vapp (Data Source)
 
-The public IP data source show the list of public IP addresses.
+Provides a Cloud Avenue vApp data source. This can be used to reference vApps.
 
 ## Example Usage
 
 ```terraform
 data "cloudavenue_vapp" "example" {
-  vapp_name = "vapp_name"
+  name = "vapp_name"
 }
 ```
 
@@ -22,16 +22,15 @@ data "cloudavenue_vapp" "example" {
 
 ### Optional
 
-- `vapp_id` (String) The ID of vApp to use, unique within the VDC. Required if `vapp_name` is not set.
-- `vapp_name` (String) A name for the vApp, unique within the VDC. Required if `vapp_id` is not set.
-- `vdc` (String) The name of VDC to use, optional if defined at provider level
+- `id` (String) The ID of vApp to use, unique within the VDC. Required if `name` is not set.
+- `name` (String) A name for the vApp, unique within the VDC. Required if `id` is not set.
+- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 
 - `description` (String) Optional description of the vApp
 - `guest_properties` (Map of String) Key/value settings for guest properties
 - `href` (String) vApp Hyper Reference
-- `id` (String) The ID is a `vapp_id`.
 - `lease` (Block, Read-only) (see [below for nested schema](#nestedblock--lease))
 - `status_code` (Number) Shows the status code of the vApp
 - `status_text` (String) Shows the status of the vApp

@@ -82,9 +82,6 @@ func (r *aclResource) Init(ctx context.Context, rm *aclResourceModel) (diags dia
 	}
 
 	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
-	if diags.HasError() {
-		return
-	}
 
 	return
 }
@@ -253,6 +250,13 @@ func (r *aclResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Lock vApp
+	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	defer r.vapp.UnlockParentVApp(ctx)
 
 	// Delete vApp access control
 	if err := r.vapp.RemoveAccessControl(false); err != nil {

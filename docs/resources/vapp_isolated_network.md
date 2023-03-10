@@ -12,10 +12,14 @@ Provides a Cloud Avenue isolated vAPP Network resource. This can be used to crea
 ## Example Usage
 
 ```terraform
+resource "cloudavenue_vapp" "example" {
+  name        = "MyVapp"
+  description = "This is an example vApp"
+}
+
 resource "cloudavenue_vapp_isolated_network" "example" {
-  vdc                   = "MyVDC"
   name                  = "MyVappNet"
-  vapp_name             = "MyVapp"
+  vapp_name             = cloudavenue_vapp.example.name
   gateway               = "192.168.10.1"
   netmask               = "255.255.255.0"
   dns1                  = "192.168.10.1"
@@ -42,7 +46,6 @@ resource "cloudavenue_vapp_isolated_network" "example" {
 
 - `gateway` (String) The gateway of the network.
 - `name` (String) (ForceNew) The name of the vApp network.
-- `vapp_name` (String) (ForceNew) The vApp name this network belongs to.
 
 ### Optional
 
@@ -54,6 +57,8 @@ resource "cloudavenue_vapp_isolated_network" "example" {
 - `netmask` (String) (ForceNew) The netmask for the network. Default is `255.255.255.0`
 - `retain_ip_mac_enabled` (Boolean) Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Default to `false`.
 - `static_ip_pool` (Attributes Set) Range(s) of IPs permitted to be used as static IPs for virtual machines (see [below for nested schema](#nestedatt--static_ip_pool))
+- `vapp_id` (String) (ForceNew) ID of the vApp. Required if `vapp_name` is not set.
+- `vapp_name` (String) (ForceNew) Name of the vApp. Required if `vapp_id` is not set.
 - `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only

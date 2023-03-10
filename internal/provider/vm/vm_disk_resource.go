@@ -12,6 +12,8 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 )
 
@@ -29,6 +31,8 @@ func NewDiskResource() resource.Resource {
 // diskResource is the resource implementation.
 type diskResource struct {
 	client *client.CloudAvenue
+	vapp   vapp.VApp
+	vdc    vdc.VDC
 }
 
 type diskResourceModel vm.Disk
@@ -44,6 +48,17 @@ func (r *diskResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 		MarkdownDescription: "The disk resource allows you to manage a disk in the vDC.",
 		Attributes:          vm.DiskSchema(),
 	}
+}
+
+func (r *diskResource) Init(ctx context.Context, rm *vm.Disk) (diags diag.Diagnostics) {
+	r.vdc, diags = vdc.Init(r.client, rm.VDC)
+	if diags.HasError() {
+		return
+	}
+
+	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
+
+	return
 }
 
 func (r *diskResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -110,43 +125,14 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	// If VDC is not defined at data source level, use the one defined at provider level
-	if plan.VDC.IsNull() || plan.VDC.IsUnknown() {
-		if r.client.DefaultVDCExist() {
-			plan.VDC = types.StringValue(r.client.GetDefaultVDC())
-		} else {
-			resp.Diagnostics.AddError("Missing VDC", "VDC is required when not defined at provider level")
-			return
-		}
-	}
-
-	// Get VDC Object
-	org, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), plan.VDC.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get vApp Object
-	var vAppByNameOrID types.String
-	if !plan.VappName.IsNull() && !plan.VappName.IsUnknown() {
-		vAppByNameOrID = plan.VappName
-	} else {
-		vAppByNameOrID = plan.VappID
-	}
-	vapp, err := vdc.GetVAppByNameOrId(vAppByNameOrID.ValueString(), false)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving vApp", err.Error())
-		return
-	}
-
-	if vapp.VApp == nil {
-		resp.Diagnostics.AddError("Error retrieving vApp", "vApp not found")
-		return
-	}
-
-	plan.VappName = types.StringValue(vapp.VApp.Name)
-	plan.VappID = types.StringValue(vapp.VApp.ID)
+	plan.VAppName = types.StringValue(r.vapp.GetName())
+	plan.VAppID = types.StringValue(r.vapp.GetID())
 
 	// VMName or VMID was emptyString by default, so we need to check if it is emptyString or not
 	if plan.VMName.ValueString() == "" && plan.VMID.ValueString() == "" &&
@@ -163,7 +149,7 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 		} else {
 			vmByNameOrID = plan.VMID
 		}
-		myVM, err = vapp.GetVMByNameOrId(vmByNameOrID.ValueString(), false)
+		myVM, err := r.vapp.GetVMByNameOrId(vmByNameOrID.ValueString(), false)
 		if err != nil {
 			resp.Diagnostics.AddError("Error retrieving VM", err.Error())
 			return
@@ -181,7 +167,7 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	if plan.IsDetachable.ValueBool() {
 		// Create a detachable disk
-		disk, d := vm.DiskCreate(ctx, vdc, myVM, plan, vapp, org)
+		disk, d := vm.DiskCreate(ctx, r.vdc, myVM, plan, r.vapp)
 		resp.Diagnostics.Append(d...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -197,7 +183,7 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 			UnitNumber:     plan.UnitNumber,
 			SizeInMb:       plan.SizeInMb,
 			StorageProfile: plan.StorageProfile,
-		}, plan.VappName, plan.VMName, plan.VDC)
+		}, plan.VAppName, plan.VMName, plan.VDC)
 		resp.Diagnostics.Append(d...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -234,41 +220,13 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	// If VDC is not defined at data source level, use the one defined at provider level
-	if state.VDC.IsNull() || state.VDC.IsUnknown() {
-		if r.client.DefaultVDCExist() {
-			state.VDC = types.StringValue(r.client.GetDefaultVDC())
-		} else {
-			resp.Diagnostics.AddError("Missing VDC", "VDC is required when not defined at provider level")
-			return
-		}
-	}
-
-	org, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), state.VDC.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get vApp Object
-	var vAppByNameOrID types.String
-	if !state.VappName.IsNull() && !state.VappName.IsUnknown() {
-		vAppByNameOrID = state.VappName
-	} else {
-		vAppByNameOrID = state.VappID
-	}
-	vapp, err := vdc.GetVAppByNameOrId(vAppByNameOrID.ValueString(), false)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving vApp", err.Error())
-		return
-	}
-
-	if vapp.VApp == nil {
-		resp.Diagnostics.AddError("Error retrieving vApp", "vApp not found")
-		return
-	}
-
-	disk, d := vm.DiskRead(ctx, r.client, vdc, state, vapp, org)
+	disk, d := vm.DiskRead(ctx, r.client, r.vdc, state, r.vapp)
 	if disk == nil && d != nil {
 		// Disk not found, remove from state
 		resp.State.RemoveResource(ctx)
@@ -301,35 +259,13 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	// If VDC is not defined at data source level, use the one defined at provider level
-	if plan.VDC.IsNull() || plan.VDC.IsUnknown() {
-		if r.client.DefaultVDCExist() {
-			plan.VDC = types.StringValue(r.client.GetDefaultVDC())
-		} else {
-			resp.Diagnostics.AddError("Missing VDC", "VDC is required when not defined at provider level")
-			return
-		}
-	}
-
-	org, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), state.VDC.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get vApp Object
-	vapp, err := vdc.GetVAppById(state.VappID.ValueString(), false)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving vApp", err.Error())
-		return
-	}
-
-	if vapp.VApp == nil {
-		resp.Diagnostics.AddError("Error retrieving vApp", "vApp not found")
-		return
-	}
-
-	disk, d := vm.DiskUpdate(ctx, r.client, plan, state, vdc, vapp, org)
+	disk, d := vm.DiskUpdate(ctx, r.client, plan, state, r.vdc, r.vapp)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -350,30 +286,14 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	// If VDC is not defined at data source level, use the one defined at provider level
-	if state.VDC.IsNull() || state.VDC.IsUnknown() {
-		if r.client.DefaultVDCExist() {
-			state.VDC = types.StringValue(r.client.GetDefaultVDC())
-		} else {
-			resp.Diagnostics.AddError("Missing VDC", "VDC is required when not defined at provider level")
-			return
-		}
-	}
 
-	org, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), state.VDC.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get vApp Object
-	vapp, err := vdc.GetVAppById(state.VappID.ValueString(), false)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving vApp", err.Error())
-		return
-	}
-
-	resp.Diagnostics.Append(vm.DiskDelete(ctx, r.client, state, vdc, vapp, org)...)
+	resp.Diagnostics.Append(vm.DiskDelete(ctx, r.client, state, r.vdc, r.vapp)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
