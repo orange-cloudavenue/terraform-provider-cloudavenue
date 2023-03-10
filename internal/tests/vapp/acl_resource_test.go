@@ -9,8 +9,9 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-const testAccAccessControlResourceConfig = `
+const testAccACLResourceConfig = `
 resource "cloudavenue_vapp_acl" "example" {
+	vdc                  = "MyVDC" # Optional
 	vapp_name            = "MyVapp"
 	shared_with = [{
 	  access_level = "ReadOnly"
@@ -23,14 +24,15 @@ resource "cloudavenue_vapp_acl" "example" {
   }
 `
 
-const testAccAccessControlResourceUpdateConfig = `
+const testAccACLResourceUpdateConfig = `
 resource "cloudavenue_vapp_acl" "example" {
-	vapp_name            = "MyVapp"
+	vdc                   = "MyVDC" # Optional
+	vapp_name             = "MyVapp"
 	everyone_access_level = "Change"
   }
 `
 
-func TestAccAccessControlResource(t *testing.T) {
+func TestAccACLResource(t *testing.T) {
 	const resourceName = "cloudavenue_vapp_acl.example"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },
@@ -39,7 +41,7 @@ func TestAccAccessControlResource(t *testing.T) {
 			// Read testing
 			{
 				// Apply test
-				Config: testAccAccessControlResourceConfig,
+				Config: testAccACLResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:vapp:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
 					resource.TestCheckResourceAttr(resourceName, "vdc", "MyVDC"),
@@ -51,7 +53,7 @@ func TestAccAccessControlResource(t *testing.T) {
 			// Uncomment if you want to test update or delete this block
 			{
 				// Update test
-				Config: testAccAccessControlResourceUpdateConfig,
+				Config: testAccACLResourceUpdateConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:vapp:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
 					resource.TestCheckResourceAttr(resourceName, "vdc", "MyVDC"),
@@ -66,6 +68,13 @@ func TestAccAccessControlResource(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateId:     "MyVDC.MyVapp",
+			},
+			{
+				// Import test
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateId:     "MyVapp",
 			},
 		},
 	})

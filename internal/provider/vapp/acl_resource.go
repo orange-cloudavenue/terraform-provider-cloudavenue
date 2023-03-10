@@ -16,7 +16,6 @@ import (
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/acl"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
@@ -129,8 +128,8 @@ func (r *aclResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	// Create resource
-	resp.Diagnostics.Append(r.createOrUpdateACL(ctx, plan)...)
-	if resp.Diagnostics.HasError() {
+	plan, diags := r.createOrUpdateACL(ctx, plan)
+	if diags.HasError() {
 		return
 	}
 
@@ -143,10 +142,7 @@ func (r *aclResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 // Read refreshes the Terraform state with the latest data.
 func (r *aclResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var (
-		state *aclResourceModel
-		diags diag.Diagnostics
-	)
+	var state *aclResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -164,59 +160,50 @@ func (r *aclResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	accessControl, err := r.vapp.GetAccessControl(false)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving access control properties", err.Error())
+		return
 	}
 
-	// Get SharedList
-	accessList := make([]acl.SharedWithModel, 0)
+	// SharedWithEveryone
+	everyoneAccessLevel := ""
+	if accessControl.EveryoneAccessLevel != nil {
+		everyoneAccessLevel = *accessControl.EveryoneAccessLevel
+	}
 
+	plan := &aclResourceModel{
+		ID:                  types.StringValue(r.vapp.GetID()),
+		VDC:                 types.StringValue(r.vdc.GetName()),
+		VAppID:              state.VAppID,
+		VAppName:            state.VAppName,
+		EveryoneAccessLevel: types.StringValue(everyoneAccessLevel),
+	}
+
+	if plan.EveryoneAccessLevel.ValueString() == "" {
+		plan.EveryoneAccessLevel = types.StringNull()
+	}
+
+	plan.SharedWith = types.SetNull(types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes})
 	if accessControl.AccessSettings != nil {
-		for _, item := range accessControl.AccessSettings.AccessSetting {
-			switch item.Subject.Type {
-			case govcdtypes.MimeAdminUser:
-				accessList = append(accessList, acl.SharedWithModel{
-					UserID:      types.StringValue("urn:vcloud:user:" + common.ExtractUUID(item.Subject.HREF)),
-					AccessLevel: types.StringValue(item.AccessLevel),
-					SubjectName: types.StringValue(item.Subject.Name),
-				})
-			case govcdtypes.MimeAdminGroup:
-				accessList = append(accessList, acl.SharedWithModel{
-					GroupID:     types.StringValue("urn:vcloud:group:" + common.ExtractUUID(item.Subject.HREF)),
-					AccessLevel: types.StringValue(item.AccessLevel),
-					SubjectName: types.StringValue(item.Subject.Name),
-				})
-			default:
-				resp.Diagnostics.AddError("unhandled type", "Type : "+item.Subject.Type+" Item : "+item.Subject.Name)
-				return
-			}
+		accessControlListSet, err := acl.AccessControlListToSharedSet(accessControl.AccessSettings.AccessSetting)
+		if err != nil {
+			resp.Diagnostics.AddError("Error converting slice AccessSetting into set", err.Error())
+			return
 		}
-		state.SharedWith, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes}, accessList)
+		var diags diag.Diagnostics
+		plan.SharedWith, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes}, accessControlListSet)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
-	} else {
-		state.SharedWith = types.SetNull(types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes})
-	}
-
-	// SharedWithEveryone
-	if accessControl.IsSharedToEveryone {
-		state.EveryoneAccessLevel = types.StringValue(*accessControl.EveryoneAccessLevel)
 	}
 
 	// Remove resource if all rights are null
-	if state.EveryoneAccessLevel.IsNull() && state.SharedWith.IsNull() {
+	if plan.EveryoneAccessLevel.IsNull() && plan.SharedWith.IsNull() {
 		resp.State.RemoveResource(ctx)
 		return
 	}
 
-	// Set ID
-	state.ID = types.StringValue(r.vapp.GetID())
-
-	// Set vDC
-	state.VDC = types.StringValue(r.vdc.GetName())
-
 	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -239,8 +226,8 @@ func (r *aclResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 
 	// Update resource
-	resp.Diagnostics.Append(r.createOrUpdateACL(ctx, plan)...)
-	if resp.Diagnostics.HasError() {
+	plan, diags := r.createOrUpdateACL(ctx, plan)
+	if diags.HasError() {
 		return
 	}
 
@@ -268,8 +255,7 @@ func (r *aclResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 
 	// Delete vApp access control
-	err := r.vapp.RemoveAccessControl(false)
-	if err != nil {
+	if err := r.vapp.RemoveAccessControl(false); err != nil {
 		resp.Diagnostics.AddError("Error removing vApp", err.Error())
 		return
 	}
@@ -294,119 +280,75 @@ func (r *aclResource) ImportState(ctx context.Context, req resource.ImportStateR
 	}
 }
 
-func (r *aclResource) createOrUpdateACL(ctx context.Context, rm *aclResourceModel) (diag diag.Diagnostics) {
+func (r *aclResource) createOrUpdateACL(ctx context.Context, plan *aclResourceModel) (*aclResourceModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
 	var accessControl govcdtypes.ControlAccessParams
 
-	// Check arguments
-	isSharedWithEveryone := !(rm.EveryoneAccessLevel.IsNull() || rm.EveryoneAccessLevel.IsUnknown())
-	everyoneAccessLevel := rm.EveryoneAccessLevel.ValueString()
+	everyoneAccessLevel := plan.EveryoneAccessLevel.ValueString()
 
-	var sharedList []*acl.SharedWithModel
-	diag.Append(rm.SharedWith.ElementsAs(ctx, &sharedList, true)...)
-	if diag.HasError() {
-		return
-	}
-
-	// Early checks, so that we can fail as soon as possible
-	if isSharedWithEveryone {
-		accessControl.IsSharedToEveryone = true
-		accessControl.EveryoneAccessLevel = &everyoneAccessLevel
+	sharedList := []acl.SharedWithModel{}
+	diags.Append(plan.SharedWith.ElementsAs(ctx, &sharedList, true)...)
+	if diags.HasError() {
+		return nil, diags
 	}
 
 	// Lock vApp
-	diag.Append(r.vapp.LockParentVApp(ctx)...)
-	if diag.HasError() {
-		return
+	diags.Append(r.vapp.LockParentVApp(ctx)...)
+	if diags.HasError() {
+		return nil, diags
 	}
-	defer diag.Append(r.vapp.UnlockParentVApp(ctx)...)
+	defer diags.Append(r.vapp.UnlockParentVApp(ctx)...)
 
-	// treat the shared_with
-	if !isSharedWithEveryone {
-		// Get Org
+	var accessSettings []*govcdtypes.AccessSetting
+
+	isSharedWithEveryone := !(plan.EveryoneAccessLevel.IsNull() || plan.EveryoneAccessLevel.IsUnknown())
+	if isSharedWithEveryone {
+		accessControl.IsSharedToEveryone = true
+		accessControl.EveryoneAccessLevel = &everyoneAccessLevel
+	} else {
+		var sharedListOutput []*acl.SharedWithModel
+
+		// Get admin Org
 		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
 		if err != nil {
-			diag.AddError("Error retrieving Org", err.Error())
-			return
+			diags.AddError("Error retrieving Org", err.Error())
+			return nil, diags
 		}
 
-		aclList := make([]*govcdtypes.AccessSetting, 0)
-		accessList := make([]acl.SharedWithModel, 0)
-		for _, accessControl := range sharedList {
-			// user_id or group_id
-			if !accessControl.UserID.IsNull() {
-				// Get User infos
-				user, err := adminOrg.GetUserById(accessControl.UserID.ValueString(), false)
-				if err != nil {
-					diag.AddError("Error retrieving user "+accessControl.UserID.ValueString(), err.Error())
-					return
-				}
-				// Append data to update
-				aclList = append(aclList, &govcdtypes.AccessSetting{
-					Subject: &govcdtypes.LocalSubject{
-						HREF: user.User.Href,
-						Name: user.User.Name,
-						Type: user.User.Type,
-					},
-					ExternalSubject: nil,
-					AccessLevel:     accessControl.AccessLevel.ValueString(),
-				})
-				// Append terraform data for compute
-				accessList = append(accessList, acl.SharedWithModel{
-					UserID:      types.StringValue("urn:vcloud:user:" + common.ExtractUUID(user.User.Href)),
-					AccessLevel: accessControl.AccessLevel,
-					SubjectName: types.StringValue(user.User.Name),
-				})
-			} else {
-				// Get group info
-				group, err := adminOrg.GetGroupById(accessControl.GroupID.ValueString(), false)
-				if err != nil {
-					diag.AddError("Error retrieving group", err.Error())
-					return
-				}
-				// Append data to update
-				aclList = append(aclList, &govcdtypes.AccessSetting{
-					Subject: &govcdtypes.LocalSubject{
-						HREF: group.Group.Href,
-						Name: group.Group.Name,
-						Type: group.Group.Type,
-					},
-					ExternalSubject: nil,
-					AccessLevel:     accessControl.AccessLevel.ValueString(),
-				})
-				// Append terraform data for compute
-				accessList = append(accessList, acl.SharedWithModel{
-					GroupID:     types.StringValue("urn:vcloud:group:" + common.ExtractUUID(group.Group.Href)),
-					AccessLevel: accessControl.AccessLevel,
-					SubjectName: types.StringValue(group.Group.Name),
-				})
-			}
+		accessSettings, sharedListOutput, err = acl.SharedSetToAccessControl(r.client.Vmware, adminOrg, sharedList)
+		if err != nil {
+			diags.AddError("Error when reading shared_with from schema.", err.Error())
+			return nil, diags
 		}
 
-		if len(aclList) > 0 {
+		plan.SharedWith = types.SetNull(types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes})
+		if len(sharedListOutput) != 0 {
 			accessControl.AccessSettings = &govcdtypes.AccessSettingList{
-				AccessSetting: aclList,
+				AccessSetting: accessSettings,
 			}
-			rm.SharedWith, diag = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes}, accessList)
-			diag.Append(diag...)
-			if diag.HasError() {
-				return
+			plan.SharedWith, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes}, sharedListOutput)
+
+			diags.Append(diags...)
+			if diags.HasError() {
+				return nil, diags
 			}
-		} else {
-			rm.SharedWith = types.SetNull(types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes})
 		}
 	}
-
-	// Set ID
-	rm.ID = types.StringValue(r.vapp.GetID())
-
-	// Set vDC
-	rm.VDC = types.StringValue(r.vdc.GetName())
 
 	err := r.vapp.SetAccessControl(&accessControl, false)
 	if err != nil {
-		diag.AddError("Error setting access control for vApp", err.Error())
-		return
+		diags.AddError("Error setting access control for vApp", err.Error())
+		return nil, diags
 	}
 
-	return nil
+	plan = &aclResourceModel{
+		ID:                  types.StringValue(r.vapp.GetID()),
+		VDC:                 types.StringValue(r.vdc.GetName()),
+		VAppID:              plan.VAppID,
+		VAppName:            plan.VAppName,
+		EveryoneAccessLevel: plan.EveryoneAccessLevel,
+		SharedWith:          plan.SharedWith,
+	}
+
+	return plan, diags
 }
