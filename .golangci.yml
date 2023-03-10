@@ -66,6 +66,7 @@ linters:
     - unparam # reports unused function parameters
     - dupl # Tool for code clone detection [fast: true, auto-fix: false]
     - staticcheck #(megacheck): Staticcheck is a go vet on steroids, applying a ton of static analysis checks [fast: false, auto-fix: false]
+    - bodyclose # checks whether HTTP response body is closed successfully
 
   disable:
     - containedctx # containedctx is a linter that detects struct contained context.Context field [fast: true, auto-fix: false]
