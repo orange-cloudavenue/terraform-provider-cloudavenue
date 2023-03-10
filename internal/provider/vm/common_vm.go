@@ -218,7 +218,7 @@ func isForcedCustomization(v *VMClient) bool {
 //
 // If `vm_name_in_template` was not specified:
 // * Return error.
-func lookupvAppTemplateforVM(v *VMClient, org *govcd.Org, vdc *govcd.Vdc) (govcd.VAppTemplate, error) {
+func lookupvAppTemplateforVM(v *VMClient, _ *govcd.Org, _ *govcd.Vdc) (govcd.VAppTemplate, error) {
 	if !v.Plan.VappTemplateID.IsNull() && !v.Plan.VappTemplateID.IsUnknown() {
 		// Lookup of vApp Template using URN
 
@@ -426,7 +426,7 @@ func updateOsType(v *VMClient, vm *govcd.VM) error {
 
 // getCpuMemoryValues returns CPU, CPU core count and Memory variables. Priority comes from HCL
 // schema configuration and then whatever is present in compute policy (if it was specified at all).
-func getCPUMemoryValues(v *VMClient, vdcComputePolicy *govcdtypes.VdcComputePolicyV2) (cpu, cores *int, memory *int64, err error) {
+func getCPUMemoryValues(v *VMClient, _ *govcdtypes.VdcComputePolicyV2) (cpu, cores *int, memory *int64, err error) {
 	var (
 		setCPU    *int
 		setCores  *int
