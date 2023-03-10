@@ -65,6 +65,7 @@ linters:
     - unused #(megacheck): Checks Go code for unused constants, variables, functions and types [fast: false, auto-fix: false]
     - unparam # reports unused function parameters
     - dupl # Tool for code clone detection [fast: true, auto-fix: false]
+    - staticcheck #(megacheck): Staticcheck is a go vet on steroids, applying a ton of static analysis checks [fast: false, auto-fix: false]
 
   disable:
     - containedctx # containedctx is a linter that detects struct contained context.Context field [fast: true, auto-fix: false]
@@ -82,7 +83,6 @@ linters:
     - maintidx # maintidx measures the maintainability index of each function. [fast: true, auto-fix: false]
     - nestif # Reports deeply nested if statements [fast: true, auto-fix: false]
     - nlreturn # nlreturn checks for a new line before return and branch statements to increase code clarity [fast: true, auto-fix: false]
-    - staticcheck #(megacheck): Staticcheck is a go vet on steroids, applying a ton of static analysis checks [fast: false, auto-fix: false]
     - varnamelen # checks that the length of a variable's name matches its scope [fast: false, auto-fix: false]
     - wrapcheck # Checks that errors returned from external packages are wrapped [fast: false, auto-fix: false]
     - wsl # Whitespace Linter - Forces you to use empty lines! [fast: true, auto-fix: false]
