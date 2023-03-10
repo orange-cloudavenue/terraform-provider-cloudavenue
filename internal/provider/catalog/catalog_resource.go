@@ -3,6 +3,7 @@ package catalog
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -387,7 +388,7 @@ func (r *catalogResource) ImportState(ctx context.Context, req resource.ImportSt
 // getStorageProfile returns the storage profile reference.
 func (r *catalogResource) getStorageProfile(adminOrg *govcd.AdminOrg, storageProfilID string, refresh bool) (*govcdtypes.CatalogStorageProfiles, error) {
 	if storageProfilID == "" {
-		return nil, nil
+		return nil, errors.New("storageProfilID is an empty string")
 	}
 
 	// Get the storage profile

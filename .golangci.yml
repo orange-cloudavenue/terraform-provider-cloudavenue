@@ -60,6 +60,7 @@ linters:
     - wastedassign # wastedassign finds wasted assignment statements. [fast: false, auto-fix: false]
     - whitespace # Tool for detection of leading and trailing whitespace [fast: true, auto-fix: true]
     - errorlint # errorlint is a linter for that can be used to find code that will cause problems with the error wrapping scheme introduced in Go 1.13. [fast: false, auto-fix: false]
+    - nilnil # Checks that there is no simultaneous return of `nil` error and an invalid value. [fast: false, auto-fix: false]
 
   disable:
     - dupl # Tool for code clone detection [fast: true, auto-fix: false]
@@ -78,7 +79,6 @@ linters:
     - lll # Reports long lines [fast: true, auto-fix: false]
     - maintidx # maintidx measures the maintainability index of each function. [fast: true, auto-fix: false]
     - nestif # Reports deeply nested if statements [fast: true, auto-fix: false]
-    - nilnil # Checks that there is no simultaneous return of `nil` error and an invalid value. [fast: false, auto-fix: false]
     - nlreturn # nlreturn checks for a new line before return and branch statements to increase code clarity [fast: true, auto-fix: false]
     - staticcheck #(megacheck): Staticcheck is a go vet on steroids, applying a ton of static analysis checks [fast: false, auto-fix: false]
     - unused #(megacheck): Checks Go code for unused constants, variables, functions and types [fast: false, auto-fix: false]

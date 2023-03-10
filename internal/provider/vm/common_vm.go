@@ -380,7 +380,7 @@ func isItVappNetwork(vAppNetworkName string, vapp govcd.VApp) (bool, error) {
 func lookupStorageProfile(storageProfileName string, vdc *govcd.Vdc) (*govcdtypes.Reference, error) {
 	// If no storage profile lookup was requested - bail out early and return nil reference
 	if storageProfileName == "" {
-		return nil, nil
+		return nil, errors.New("storageProfileName is an empty string")
 	}
 
 	storageProfile, err := vdc.FindStorageProfileReference(storageProfileName)
@@ -395,7 +395,7 @@ func lookupStorageProfile(storageProfileName string, vdc *govcd.Vdc) (*govcdtype
 // attribute is not set, the returned policy will be nil. If the obtained policy is incorrect, it will return an error.
 func lookupComputePolicy(v *VMClient, value string) (*govcd.VdcComputePolicyV2, error) {
 	if value == "" {
-		return nil, nil
+		return nil, errors.New("value is an empty string")
 	}
 
 	computePolicy, err := v.Client.Vmware.GetVdcComputePolicyV2ById(value)
