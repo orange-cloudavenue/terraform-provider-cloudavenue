@@ -86,7 +86,7 @@ func NetworksFromPlan(x basetypes.ListValue) (networks *Networks, err error) {
 	return net, nil
 }
 
-// NetworkSchema returns the schema for the network
+// NetworkSchema returns the schema for the network.
 func NetworkSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"type": schema.StringAttribute{
@@ -152,7 +152,7 @@ func NetworkSchema() map[string]schema.Attribute {
 	}
 }
 
-// NetworksRead returns network configuration for saving into statefile
+// NetworksRead returns network configuration for saving into statefile.
 func NetworksRead(vm *govcd.VM) (*Networks, error) {
 	vapp, err := vm.GetParentVApp()
 	if err != nil {

@@ -48,7 +48,7 @@ func (d *vmResourceModelDisks) ObjectType() attr.Type {
 	}
 }
 
-// DiskInternalExternalSchema returns schema for internal and external disks
+// DiskInternalExternalSchema returns schema for internal and external disks.
 func diskInternalExternalSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"id": schema.StringAttribute{
@@ -77,7 +77,7 @@ func diskInternalExternalSchema() map[string]schema.Attribute {
 	}
 }
 
-// ToPlan converts the vmResourceModelDisks struct to a terraform plan
+// ToPlan converts the vmResourceModelDisks struct to a terraform plan.
 func (d *vmResourceModelDisks) ToPlan(ctx context.Context) (types.Set, diag.Diagnostics) {
 	if d == nil {
 		return types.SetNull(d.ObjectType()), diag.Diagnostics{}
@@ -86,7 +86,7 @@ func (d *vmResourceModelDisks) ToPlan(ctx context.Context) (types.Set, diag.Diag
 	return types.SetValueFrom(ctx, d.ObjectType(), d)
 }
 
-// DisksFromPlan converts the terraform plan to a OLDDisk struct
+// DisksFromPlan converts the terraform plan to a OLDDisk struct.
 func DisksFromPlan(ctx context.Context, x types.Set) ([]vmResourceModelDisk, diag.Diagnostics) {
 	if x.IsNull() || x.IsUnknown() {
 		return []vmResourceModelDisk{}, diag.Diagnostics{}
@@ -99,12 +99,12 @@ func DisksFromPlan(ctx context.Context, x types.Set) ([]vmResourceModelDisk, dia
 	return c, d
 }
 
-// IsExternal checks if the disk is external
+// IsExternal checks if the disk is external.
 func (d *vmResourceModelDisk) IsExternal() bool {
 	return !d.ID.IsNull()
 }
 
-// DiskFromInternalDisk converts an internal disk to a vmResourceModelDisk
+// DiskFromInternalDisk converts an internal disk to a vmResourceModelDisk.
 func DiskFromInternalDisk(internalDisk vm.InternalDisk) vmResourceModelDisk {
 	return vmResourceModelDisk{
 		ID:             internalDisk.ID,
@@ -116,7 +116,7 @@ func DiskFromInternalDisk(internalDisk vm.InternalDisk) vmResourceModelDisk {
 	}
 }
 
-// DiskFromExternalDisk converts an external disk to a vmResourceModelDisk
+// DiskFromExternalDisk converts an external disk to a vmResourceModelDisk.
 func DiskFromExternalDisk(externalDisk vm.Disk, busNumber, unitNumber types.Int64) vmResourceModelDisk {
 	return vmResourceModelDisk{
 		ID:             externalDisk.ID,
@@ -129,7 +129,7 @@ func DiskFromExternalDisk(externalDisk vm.Disk, busNumber, unitNumber types.Int6
 	}
 }
 
-// DiskFromGovcdDiskSettings converts a govcd disk settings to a vmResourceModelDisk
+// DiskFromGovcdDiskSettings converts a govcd disk settings to a vmResourceModelDisk.
 func DiskFromGovcdDiskSettings(diskSettings *govcdtypes.DiskSettings) vmResourceModelDisk {
 	d := vmResourceModelDisk{
 		BusType:    types.StringValue(vm.GetBusTypeByCode(diskSettings.AdapterType).Name()),
@@ -150,7 +150,7 @@ func DiskFromGovcdDiskSettings(diskSettings *govcdtypes.DiskSettings) vmResource
 	return d
 }
 
-// Append appends a disk to the list of disks
+// Append appends a disk to the list of disks.
 func (d *vmResourceModelDisks) Append(disk ...vmResourceModelDisk) {
 	*d = append(*d, disk...)
 }
@@ -158,7 +158,7 @@ func (d *vmResourceModelDisks) Append(disk ...vmResourceModelDisk) {
 /*
 DiskRead
 
-Reads the disks of a VM
+Reads the disks of a VM.
 */
 func DisksRead(vm *govcd.VM) (disks vmResourceModelDisks, err error) {
 	if vm.VM != nil && vm.VM.VmSpecSection != nil && vm.VM.VmSpecSection.DiskSection != nil && vm.VM.VmSpecSection.DiskSection.DiskSettings != nil {

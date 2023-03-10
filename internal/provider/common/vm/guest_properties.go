@@ -22,14 +22,14 @@ func GuestPropertiesSchema() schema.Attribute {
 	}
 }
 
-// GuestPropertiesAttrType returns the type map for the guest properties
+// GuestPropertiesAttrType returns the type map for the guest properties.
 func GuestPropertiesAttrType() map[string]attr.Type {
 	return map[string]attr.Type{
 		"guest_properties": types.MapType{ElemType: types.StringType},
 	}
 }
 
-// ToAttrValue converts a GuestProperties to an attr.Value
+// ToAttrValue converts a GuestProperties to an attr.Value.
 func (g *GuestProperties) ToAttrValue() map[string]attr.Value {
 	x := make(map[string]attr.Value)
 
@@ -44,7 +44,7 @@ func (g *GuestProperties) ToAttrValue() map[string]attr.Value {
 	return x
 }
 
-// ToPlan converts a GuestProperties to a plan
+// ToPlan converts a GuestProperties to a plan.
 func (g *GuestProperties) ToPlan() basetypes.MapValue {
 	if g == nil || len(*g) == 0 {
 		return types.MapNull(types.StringType)
@@ -66,7 +66,7 @@ func GuestPropertiesFromPlan(ctx context.Context, x types.Map) (*GuestProperties
 	return g, d
 }
 
-// GuestPropertiesRead reads the guest properties from a VM
+// GuestPropertiesRead reads the guest properties from a VM.
 func GuestPropertiesRead(vm *govcd.VM) (m *GuestProperties, err error) {
 	if m == nil {
 		m = &GuestProperties{}

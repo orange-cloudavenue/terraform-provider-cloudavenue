@@ -24,7 +24,7 @@ import (
 )
 
 /*
-Disks is a list of Disk
+Disks is a list of Disk.
 */
 type Disks []Disk
 
@@ -124,7 +124,7 @@ func DiskAttrType() map[string]attr.Type {
 	}
 }
 
-// DisksFromPlan converts the terraform plan to a OLDDisk struct
+// DisksFromPlan converts the terraform plan to a OLDDisk struct.
 func DisksFromPlan(ctx context.Context, x types.Set) (*Disk, diag.Diagnostics) {
 	if x.IsNull() || x.IsUnknown() {
 		return &Disk{}, diag.Diagnostics{}
@@ -140,7 +140,7 @@ func DisksFromPlan(ctx context.Context, x types.Set) (*Disk, diag.Diagnostics) {
 /*
 ElementType
 
-return the attr.Type for the disk
+return the attr.Type for the disk.
 */
 func (d *Disk) ElementType() attr.Type {
 	return types.ObjectType{AttrTypes: DiskAttrType()}
@@ -150,7 +150,7 @@ func (d *Disks) ElementType() attr.Type {
 	return types.ObjectType{AttrTypes: DiskAttrType()}
 }
 
-// ToPlan converts the disk struct to a terraform plan
+// ToPlan converts the disk struct to a terraform plan.
 func (d *Disks) ToPlan(ctx context.Context) (basetypes.SetValue, diag.Diagnostics) {
 	if d == nil {
 		return types.SetNull(d.ElementType()), diag.Diagnostics{}
@@ -160,7 +160,7 @@ func (d *Disks) ToPlan(ctx context.Context) (basetypes.SetValue, diag.Diagnostic
 }
 
 // Specific planmodifier
-// if is_detachable is false the VMName/VMID is not modifiable
+// if is_detachable is false the VMName/VMID is not modifiable.
 func requireReplaceIfNotDetachable() planmodifier.String {
 	description := "Attribute requires replacement if `is_detachable` is false"
 
@@ -175,7 +175,7 @@ func requireReplaceIfNotDetachable() planmodifier.String {
 	}), description, description)
 }
 
-// DiskSchema returns the schema for the OLDdisk
+// DiskSchema returns the schema for the OLDdisk.
 func DiskSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"id": schema.StringAttribute{
@@ -246,7 +246,7 @@ func DiskSchema() map[string]schema.Attribute {
 /*
 DiskCreate
 
-creates a detachable disk
+creates a detachable disk.
 */
 func DiskCreate(ctx context.Context, inVDC vdc.VDC, vm *govcd.VM, disk *Disk, inVapp vapp.VApp) (*Disk, diag.Diagnostics) {
 	d := diag.Diagnostics{}
@@ -365,7 +365,7 @@ reads a detachable disk
 If the disk is not found, returns nil
 
 if disk and diag.Diagnostics are nil the disk is
-not found and the resource should be removed from state
+not found and the resource should be removed from state.
 */
 func DiskRead(ctx context.Context, client *client.CloudAvenue, inVDC vdc.VDC, disk *Disk, inVapp vapp.VApp) (*Disk, diag.Diagnostics) {
 	d := diag.Diagnostics{}
@@ -711,7 +711,7 @@ DiskDelete
 
 delete a disk
 
-if the disk is attached to a VM, it will return an error
+if the disk is attached to a VM, it will return an error.
 */
 func DiskDelete(ctx context.Context, client *client.CloudAvenue, disk *Disk, inVDC vdc.VDC, inVapp vapp.VApp) diag.Diagnostics {
 	d := diag.Diagnostics{}
@@ -810,7 +810,7 @@ func DiskDelete(ctx context.Context, client *client.CloudAvenue, disk *Disk, inV
 /*
 DiskAttach
 
-attach a disk to a VM
+attach a disk to a VM.
 */
 func DiskAttach(ctx context.Context, vdc *govcd.Vdc, disk *Disk, vm *govcd.VM) diag.Diagnostics {
 	d := diag.Diagnostics{}
@@ -847,7 +847,7 @@ func DiskAttach(ctx context.Context, vdc *govcd.Vdc, disk *Disk, vm *govcd.VM) d
 /*
 DiskDetach
 
-detach a disk from a VM
+detach a disk from a VM.
 */
 func DiskDetach(ctx context.Context, vdc *govcd.Vdc, disk *Disk, vm *govcd.VM) diag.Diagnostics {
 	d := diag.Diagnostics{}

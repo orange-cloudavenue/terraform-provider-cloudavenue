@@ -39,7 +39,7 @@ func Schema() schema.StringAttribute {
 /*
 Init
 
-If vDC is not defined at data source level, use the one defined at provider level
+If vDC is not defined at data source level, use the one defined at provider level.
 */
 func Init(client *client.CloudAvenue, vdc types.String) (VDC, diag.Diagnostics) {
 	d := diag.Diagnostics{}

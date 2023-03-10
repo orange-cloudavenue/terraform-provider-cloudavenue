@@ -21,7 +21,7 @@ type KV struct {
 	tfCtx context.Context
 }
 
-// NewKV is an implementation of KV
+// NewKV is an implementation of KV.
 func NewKV() *KV {
 	return &KV{
 		store: make(map[string]*sync.Mutex),
@@ -29,21 +29,21 @@ func NewKV() *KV {
 }
 
 // KvLock locks the mutex for the given key. Caller is responsible for calling kvUnlock
-// for the same key
+// for the same key.
 func (m *KV) KvLock(ctx context.Context, key string) {
 	tflog.Debug(ctx, fmt.Sprintf("Locking %q", key))
 	m.get(key).Lock()
 	tflog.Debug(ctx, fmt.Sprintf("Locked %q", key))
 }
 
-// KvUnlock unlocks the mutex for the given key. Caller must have called kvLock for the same key first
+// KvUnlock unlocks the mutex for the given key. Caller must have called kvLock for the same key first.
 func (m *KV) KvUnlock(ctx context.Context, key string) {
 	tflog.Debug(ctx, fmt.Sprintf("Unlocking %q", key))
 	m.get(key).Unlock()
 	tflog.Debug(ctx, fmt.Sprintf("Unlocked %q", key))
 }
 
-// Returns a mutex for the given key, no guarantee of its lock status
+// Returns a mutex for the given key, no guarantee of its lock status.
 func (m *KV) get(key string) *sync.Mutex {
 	m.lock.Lock()
 	defer m.lock.Unlock()

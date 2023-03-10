@@ -180,7 +180,7 @@ func (o *osTypes) sortByName() {
 	*o = y
 }
 
-// getAllOsTypes returns all osTypes name
+// getAllOsTypes returns all osTypes name.
 func GetAllOsTypes() []string {
 	all := osAllTypes{
 		linux:   getOsTypeLinux(),
