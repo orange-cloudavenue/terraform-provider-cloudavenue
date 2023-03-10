@@ -60,22 +60,22 @@ func Init(client *client.CloudAvenue, vdc types.String) (VDC, diag.Diagnostics) 
 	return VDC{Vdc: vdcOut, Org: orgOut}, nil
 }
 
-// Name give you the name of the vDC
+// GetName give you the name of the vDC.
 func (v VDC) GetName() string {
 	return v.Vdc.Vdc.Name
 }
 
-// ID give you the ID of the vDC
+// GetID give you the ID of the vDC.
 func (v VDC) GetID() string {
 	return v.Vdc.Vdc.ID
 }
 
-// GetOrg give you the Org of the vDC
+// GetOrg give you the Org of the vDC.
 func (v VDC) GetOrg() *govcd.Org {
 	return v.Org
 }
 
-// OrgID give you the ID of the Org of the vDC
+// OrgID give you the ID of the Org of the vDC.
 func (v VDC) GetOrgID() string {
 	return v.Org.Org.ID
 }
