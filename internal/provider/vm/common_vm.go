@@ -50,7 +50,7 @@ func addRemoveGuestProperties(v *VMClient, vm *govcd.VM) error {
 
 		_, err = vm.SetProductSectionList(vmProperties)
 		if err != nil {
-			return fmt.Errorf("error setting guest properties: %s", err)
+			return fmt.Errorf("error setting guest properties: %w", err)
 		}
 	}
 	return nil
@@ -103,7 +103,7 @@ func updateGuestCustomizationSetting(v *VMClient, vm *govcd.VM) error {
 	// Retrieve existing customization section to only customize what was throughout this function
 	customizationSection, err := vm.GetGuestCustomizationSection()
 	if err != nil {
-		return fmt.Errorf("error getting existing customization section before changing: %s", err)
+		return fmt.Errorf("error getting existing customization section before changing: %w", err)
 	}
 
 	// Process parameters from 'customization' block
@@ -111,7 +111,7 @@ func updateGuestCustomizationSetting(v *VMClient, vm *govcd.VM) error {
 
 	// Apply any of the settings we have set
 	if _, err = vm.SetGuestCustomizationSection(customizationSection); err != nil {
-		return fmt.Errorf("error applying guest customization details: %s", err)
+		return fmt.Errorf("error applying guest customization details: %w", err)
 	}
 
 	return nil
@@ -224,18 +224,18 @@ func lookupvAppTemplateforVM(v *VMClient, org *govcd.Org, vdc *govcd.Vdc) (govcd
 
 		vAppTemplate, err := v.Client.Vmware.GetVAppTemplateById(v.Plan.VappTemplateID.ValueString())
 		if err != nil {
-			return govcd.VAppTemplate{}, fmt.Errorf("error finding vApp Template with URN %s: %s", v.Plan.VappTemplateID.ValueString(), err)
+			return govcd.VAppTemplate{}, fmt.Errorf("error finding vApp Template with URN %s: %w", v.Plan.VappTemplateID.ValueString(), err)
 		}
 
 		if !v.Plan.VMNameInTemplate.IsNull() && !v.Plan.VMNameInTemplate.IsUnknown() {
 			vmInTemplateRecord, err := v.Client.Vmware.QuerySynchronizedVmInVAppTemplateByHref(vAppTemplate.VAppTemplate.HREF, v.Plan.VMNameInTemplate.ValueString())
 			if err != nil {
-				return govcd.VAppTemplate{}, fmt.Errorf("error obtaining VM '%s' inside vApp Template: %s", v.Plan.VMNameInTemplate.ValueString(), err)
+				return govcd.VAppTemplate{}, fmt.Errorf("error obtaining VM '%s' inside vApp Template: %w", v.Plan.VMNameInTemplate.ValueString(), err)
 			}
 
 			returnedVAppTemplate, err := v.Client.Vmware.GetVAppTemplateByHref(vmInTemplateRecord.HREF)
 			if err != nil {
-				return govcd.VAppTemplate{}, fmt.Errorf("error getting vApp template from inner VM %s: %s", v.Plan.VMNameInTemplate.ValueString(), err)
+				return govcd.VAppTemplate{}, fmt.Errorf("error getting vApp template from inner VM %s: %w", v.Plan.VMNameInTemplate.ValueString(), err)
 			}
 
 			return *returnedVAppTemplate, err
@@ -310,7 +310,7 @@ func networksToConfig(v *VMClient, vapp *govcd.VApp) (govcdtypes.NetworkConnecti
 		case "vapp":
 			isVappNetwork, err := isItVappNetwork(networkName, *vapp)
 			if err != nil {
-				return govcdtypes.NetworkConnectionSection{}, fmt.Errorf("unable to find vApp network %s: %s", networkName, err)
+				return govcdtypes.NetworkConnectionSection{}, fmt.Errorf("unable to find vApp network %s: %w", networkName, err)
 			}
 			if !isVappNetwork {
 				return govcdtypes.NetworkConnectionSection{}, fmt.Errorf("vApp network : %s is not found", networkName)
@@ -347,7 +347,7 @@ func networksToConfig(v *VMClient, vapp *govcd.VApp) (govcdtypes.NetworkConnecti
 func isItVappOrgNetwork(vAppNetworkName string, vapp govcd.VApp) (bool, error) {
 	vAppNetworkConfig, err := vapp.GetNetworkConfig()
 	if err != nil {
-		return false, fmt.Errorf("error getting vApp networks: %s", err)
+		return false, fmt.Errorf("error getting vApp networks: %w", err)
 	}
 
 	for _, networkConfig := range vAppNetworkConfig.NetworkConfig {
@@ -364,7 +364,7 @@ func isItVappOrgNetwork(vAppNetworkName string, vapp govcd.VApp) (bool, error) {
 func isItVappNetwork(vAppNetworkName string, vapp govcd.VApp) (bool, error) {
 	vAppNetworkConfig, err := vapp.GetNetworkConfig()
 	if err != nil {
-		return false, fmt.Errorf("error getting vApp networks: %s", err)
+		return false, fmt.Errorf("error getting vApp networks: %w", err)
 	}
 
 	for _, networkConfig := range vAppNetworkConfig.NetworkConfig {
@@ -385,7 +385,7 @@ func lookupStorageProfile(storageProfileName string, vdc *govcd.Vdc) (*govcdtype
 
 	storageProfile, err := vdc.FindStorageProfileReference(storageProfileName)
 	if err != nil {
-		return nil, fmt.Errorf("[vm creation] error retrieving storage profile %s : %s", storageProfileName, err)
+		return nil, fmt.Errorf("[vm creation] error retrieving storage profile %s : %w", storageProfileName, err)
 	}
 
 	return &storageProfile, nil
@@ -400,7 +400,7 @@ func lookupComputePolicy(v *VMClient, value string) (*govcd.VdcComputePolicyV2, 
 
 	computePolicy, err := v.Client.Vmware.GetVdcComputePolicyV2ById(value)
 	if err != nil {
-		return nil, fmt.Errorf("error getting compute policy %s: %s", value, err)
+		return nil, fmt.Errorf("error getting compute policy %s: %w", value, err)
 	}
 	if computePolicy.Href == "" {
 		return nil, fmt.Errorf("empty compute policy HREF detected")
@@ -417,7 +417,7 @@ func updateOsType(v *VMClient, vm *govcd.VM) error {
 		vmSpecSection.OsType = v.Plan.OsType.ValueString()
 		_, err = vm.UpdateVmSpecSection(vmSpecSection, v.Plan.Description.ValueString())
 		if err != nil {
-			return fmt.Errorf("error changing VM spec section: %s", err)
+			return fmt.Errorf("error changing VM spec section: %w", err)
 		}
 	}
 

@@ -156,13 +156,13 @@ func NetworkSchema() map[string]schema.Attribute {
 func NetworksRead(vm *govcd.VM) (*Networks, error) {
 	vapp, err := vm.GetParentVApp()
 	if err != nil {
-		return nil, fmt.Errorf("error getting vApp: %s", err)
+		return nil, fmt.Errorf("error getting vApp: %w", err)
 	}
 
 	// Determine type for all networks in vApp
 	vAppNetworkConfig, err := vapp.GetNetworkConfig()
 	if err != nil {
-		return nil, fmt.Errorf("error getting vApp networks: %s", err)
+		return nil, fmt.Errorf("error getting vApp networks: %w", err)
 	}
 	// If vApp network is "isolated" and has no ParentNetwork - it is a vApp network.
 	// https://code.vmware.com/apis/72/vcloud/doc/doc/types/NetworkConfigurationType.html

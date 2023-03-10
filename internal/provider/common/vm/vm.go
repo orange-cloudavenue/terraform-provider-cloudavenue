@@ -16,11 +16,11 @@ const (
 func GetVM(vdc *govcd.Vdc, vappNameOrID, vmNameOrID string) (*govcd.VM, error) {
 	vapp, err := vdc.GetVAppByNameOrId(vappNameOrID, true)
 	if err != nil {
-		return nil, fmt.Errorf("[getVm] failed to get vApp: %s", err)
+		return nil, fmt.Errorf("[getVm] failed to get vApp: %w", err)
 	}
 	vm, err := vapp.GetVMByNameOrId(vmNameOrID, false)
 	if err != nil {
-		return nil, fmt.Errorf("[getVm] failed to get VM: %s", err)
+		return nil, fmt.Errorf("[getVm] failed to get VM: %w", err)
 	}
 	return vm, err
 }
@@ -29,7 +29,7 @@ func GetVM(vdc *govcd.Vdc, vappNameOrID, vmNameOrID string) (*govcd.VM, error) {
 func PowerOnIfNeeded(vm *govcd.VM, busType string, allowVMReboot bool, vmStatusBefore string) error {
 	vmStatus, err := vm.GetStatus()
 	if err != nil {
-		return fmt.Errorf("error getting VM status before ensuring it is powered on: %s", err)
+		return fmt.Errorf("error getting VM status before ensuring it is powered on: %w", err)
 	}
 
 	if vmStatusBefore == "POWERED_ON" && vmStatus != "POWERED_ON" && busType == "ide" && allowVMReboot {
@@ -37,7 +37,7 @@ func PowerOnIfNeeded(vm *govcd.VM, busType string, allowVMReboot bool, vmStatusB
 
 		task, err := vm.PowerOn()
 		if err != nil {
-			return fmt.Errorf("error powering on VM for adding/updating internal disk: %s", err)
+			return fmt.Errorf("error powering on VM for adding/updating internal disk: %w", err)
 		}
 		err = task.WaitTaskCompletion()
 		if err != nil {
@@ -51,7 +51,7 @@ func PowerOnIfNeeded(vm *govcd.VM, busType string, allowVMReboot bool, vmStatusB
 func PowerOffIfNeeded(vm *govcd.VM, busType string, allowVMReboot bool) (string, error) {
 	vmStatus, err := vm.GetStatus()
 	if err != nil {
-		return "", fmt.Errorf("error getting VM status before ensuring it is powered off: %s", err)
+		return "", fmt.Errorf("error getting VM status before ensuring it is powered off: %w", err)
 	}
 	vmStatusBefore := vmStatus
 
@@ -60,7 +60,7 @@ func PowerOffIfNeeded(vm *govcd.VM, busType string, allowVMReboot bool) (string,
 
 		task, err := vm.PowerOff()
 		if err != nil {
-			return vmStatusBefore, fmt.Errorf("error powering off VM for adding internal disk: %s", err)
+			return vmStatusBefore, fmt.Errorf("error powering off VM for adding internal disk: %w", err)
 		}
 		err = task.WaitTaskCompletion()
 		if err != nil {

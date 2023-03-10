@@ -32,19 +32,19 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 	// Get vcd object
 	_, vdc, err = v.Client.GetOrgAndVDC(v.Client.GetOrg(), v.Plan.VDC.ValueString())
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving VDC %s: %s", v.Plan.VDC.ValueString(), err)
+		return nil, fmt.Errorf("error retrieving VDC %s: %w", v.Plan.VDC.ValueString(), err)
 	}
 
 	// Get vApp
 	vapp, err = vdc.GetVAppByName(v.Plan.VappName.ValueString(), false)
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving vApp %s: %s", v.Plan.VappName.ValueString(), err)
+		return nil, fmt.Errorf("error retrieving vApp %s: %w", v.Plan.VappName.ValueString(), err)
 	}
 
 	// Get VM
 	vm, err = vapp.GetVMByNameOrId(v.Plan.VMName.ValueString(), false)
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving VM %s: %s", v.Plan.VMName.ValueString(), err)
+		return nil, fmt.Errorf("error retrieving VM %s: %w", v.Plan.VMName.ValueString(), err)
 	}
 
 	customizationNeeded := isForcedCustomization(v)
@@ -76,7 +76,7 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 		// * Update Memory
 		if resource.MemoryHotAddEnabled.ValueBool() && !resource.Memory.Equal(resourceState.Memory) {
 			if err := vm.ChangeMemory(resource.Memory.ValueInt64()); err != nil {
-				return nil, fmt.Errorf("error changing memory: %s", err)
+				return nil, fmt.Errorf("error changing memory: %w", err)
 			}
 		} else if !resource.MemoryHotAddEnabled.ValueBool() && !resource.Memory.Equal(resourceState.Memory) {
 			memoryNeedsColdChange = true
@@ -85,7 +85,7 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 		// * Update CPU
 		if resource.CPUHotAddEnabled.ValueBool() && resource.CPUs.Equal(resourceState.CPUs) {
 			if err := vm.ChangeCPUAndCoreCount(utils.TakeIntPointer(int(resource.CPUs.ValueInt64())), utils.TakeIntPointer(int(resource.CPUCores.ValueInt64()))); err != nil {
-				return nil, fmt.Errorf("error changing CPU: %s", err)
+				return nil, fmt.Errorf("error changing CPU: %w", err)
 			}
 		} else if !resource.CPUHotAddEnabled.ValueBool() && !resource.CPUs.Equal(resourceState.CPUs) {
 			cpuNeedsColdChange = true
@@ -161,11 +161,11 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 		if requireUpdate && !isPrimaryNic {
 			networkConnectionSection, err := networksToConfig(v, vapp)
 			if err != nil {
-				return nil, fmt.Errorf("unable to setup network configuration for update: %s", err)
+				return nil, fmt.Errorf("unable to setup network configuration for update: %w", err)
 			}
 			err = vm.UpdateNetworkConnectionSection(&networkConnectionSection)
 			if err != nil {
-				return nil, fmt.Errorf("unable to update network configuration: %s", err)
+				return nil, fmt.Errorf("unable to update network configuration: %w", err)
 			}
 		} else if requireUpdate && isPrimaryNic {
 			networksNeedsColdChange = true
@@ -173,13 +173,13 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 
 		err = addRemoveGuestProperties(v, vm)
 		if err != nil {
-			return nil, fmt.Errorf("unable to update guest properties: %s", err)
+			return nil, fmt.Errorf("unable to update guest properties: %w", err)
 		}
 
 		if !v.Plan.SizingPolicyID.Equal(v.State.SizingPolicyID) || !v.Plan.PlacementPolicyID.Equal(v.State.PlacementPolicyID) {
 			_, err = vm.UpdateComputePolicyV2(v.Plan.SizingPolicyID.ValueString(), v.Plan.PlacementPolicyID.ValueString(), "")
 			if err != nil {
-				return nil, fmt.Errorf("unable to update compute policy: %s", err)
+				return nil, fmt.Errorf("unable to update compute policy: %w", err)
 			}
 		}
 
@@ -187,11 +187,11 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 			if v.Plan.StorageProfile.ValueString() != "" {
 				storageProfile, err := vdc.FindStorageProfileReference(v.Plan.StorageProfile.ValueString())
 				if err != nil {
-					return nil, fmt.Errorf("error retrieving storage profile %s : %s", v.Plan.StorageProfile.ValueString(), err)
+					return nil, fmt.Errorf("error retrieving storage profile %s : %w", v.Plan.StorageProfile.ValueString(), err)
 				}
 				_, err = vm.UpdateStorageProfile(storageProfile.HREF)
 				if err != nil {
-					return nil, fmt.Errorf("error updating changing storage profile to %s: %s", v.Plan.StorageProfile.ValueString(), err)
+					return nil, fmt.Errorf("error updating changing storage profile to %s: %w", v.Plan.StorageProfile.ValueString(), err)
 				}
 			}
 		}
@@ -202,7 +202,7 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 	if !v.Plan.GuestProperties.Equal(v.State.GuestProperties) {
 		err = addRemoveGuestProperties(v, vm)
 		if err != nil {
-			return nil, fmt.Errorf("unable to update guest properties: %s", err)
+			return nil, fmt.Errorf("unable to update guest properties: %w", err)
 		}
 	}
 	// End of update guest properties
@@ -211,7 +211,7 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 	if !v.Plan.SizingPolicyID.Equal(v.State.SizingPolicyID) || !v.Plan.PlacementPolicyID.Equal(v.State.PlacementPolicyID) {
 		_, err = vm.UpdateComputePolicyV2(v.Plan.SizingPolicyID.ValueString(), v.Plan.PlacementPolicyID.ValueString(), "")
 		if err != nil {
-			return nil, fmt.Errorf("unable to update compute policy: %s", err)
+			return nil, fmt.Errorf("unable to update compute policy: %w", err)
 		}
 	}
 	// End of update sizing policy
@@ -221,12 +221,12 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 		if !v.Plan.StorageProfile.IsUnknown() && v.Plan.StorageProfile.ValueString() != "" {
 			sP, err := vdc.FindStorageProfileReference(v.Plan.StorageProfile.ValueString())
 			if err != nil {
-				return nil, fmt.Errorf("error retrieving storage profile %s : %s", v.Plan.StorageProfile.ValueString(), err)
+				return nil, fmt.Errorf("error retrieving storage profile %s : %w", v.Plan.StorageProfile.ValueString(), err)
 			}
 
 			_, err = vm.UpdateStorageProfile(sP.HREF)
 			if err != nil {
-				return nil, fmt.Errorf("error updating changing storage profile to %s: %s", v.Plan.StorageProfile.ValueString(), err)
+				return nil, fmt.Errorf("error updating changing storage profile to %s: %w", v.Plan.StorageProfile.ValueString(), err)
 			}
 		}
 	}
@@ -236,7 +236,7 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 	if !v.Plan.Customization.Equal(v.State.Customization) || !v.Plan.ComputerName.Equal(v.State.ComputerName) {
 		err = updateGuestCustomizationSetting(v, vm)
 		if err != nil {
-			return nil, fmt.Errorf("unable to update guest customization: %s", err)
+			return nil, fmt.Errorf("unable to update guest customization: %w", err)
 		}
 	}
 	// End of update customization and computer name
@@ -246,7 +246,7 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 	// ! Cold Update (VM must be powered off)
 	vmStatusBeforeUpdate, err := vm.GetStatus()
 	if err != nil {
-		return nil, fmt.Errorf("unable to get VM status before update: %s", err)
+		return nil, fmt.Errorf("unable to get VM status before update: %w", err)
 	}
 
 	// if power_on, boot_image, expose_hardware_virtualization, os_type, description, cpu_hot_add_enabled, memory_hot_add_enabled haschange
@@ -267,12 +267,12 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 
 			task, err := vm.Undeploy()
 			if err != nil {
-				return nil, fmt.Errorf("error triggering undeploy for VM %s: %s", vm.VM.Name, err)
+				return nil, fmt.Errorf("error triggering undeploy for VM %s: %w", vm.VM.Name, err)
 			}
 
 			err = task.WaitTaskCompletion()
 			if err != nil {
-				return nil, fmt.Errorf("error waiting for undeploy task for VM %s: %s", vm.VM.Name, err)
+				return nil, fmt.Errorf("error waiting for undeploy task for VM %s: %w", vm.VM.Name, err)
 			}
 		}
 
@@ -280,7 +280,7 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 		if !resource.CPUCores.Equal(resourceState.CPUCores) || cpuNeedsColdChange {
 			err := vm.ChangeCPUAndCoreCount(utils.TakeIntPointer(int(resource.CPUs.ValueInt64())), utils.TakeIntPointer(int(resource.CPUCores.ValueInt64())))
 			if err != nil {
-				return nil, fmt.Errorf("unable to update CPU cores: %s", err)
+				return nil, fmt.Errorf("unable to update CPU cores: %w", err)
 			}
 		}
 		// End of update CPUCores
@@ -289,7 +289,7 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 		if memoryNeedsColdChange {
 			err := vm.ChangeMemory(resource.Memory.ValueInt64())
 			if err != nil {
-				return nil, fmt.Errorf("unable to update memory: %s", err)
+				return nil, fmt.Errorf("unable to update memory: %w", err)
 			}
 		}
 		// End of update Memory
@@ -298,12 +298,12 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 		if networksNeedsColdChange {
 			networkConnectionSection, err := networksToConfig(v, vapp)
 			if err != nil {
-				return nil, fmt.Errorf("unable to update network: %s", err)
+				return nil, fmt.Errorf("unable to update network: %w", err)
 			}
 
 			err = vm.UpdateNetworkConnectionSection(&networkConnectionSection)
 			if err != nil {
-				return nil, fmt.Errorf("unable to update network: %s", err)
+				return nil, fmt.Errorf("unable to update network: %w", err)
 			}
 		}
 		// End of update Network
@@ -312,7 +312,7 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 		if !v.Plan.ExposeHardwareVirtualization.Equal(v.State.ExposeHardwareVirtualization) {
 			task, err := vm.ToggleHardwareVirtualization(v.Plan.ExposeHardwareVirtualization.ValueBool())
 			if err != nil {
-				return nil, fmt.Errorf("error changing hardware assisted virtualization: %s", err)
+				return nil, fmt.Errorf("error changing hardware assisted virtualization: %w", err)
 			}
 
 			err = task.WaitTaskCompletion()
@@ -341,12 +341,12 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 		if vmSpecSectionUpdate {
 			task, err := vm.UpdateVmSpecSectionAsync(vmSpecSection, description)
 			if err != nil {
-				return nil, fmt.Errorf("unable to update VM spec section: %s", err)
+				return nil, fmt.Errorf("unable to update VM spec section: %w", err)
 			}
 
 			err = task.WaitTaskCompletion()
 			if err != nil {
-				return nil, fmt.Errorf("unable to update VM spec section: %s", err)
+				return nil, fmt.Errorf("unable to update VM spec section: %w", err)
 			}
 		}
 		// End of update VM spec section and description
@@ -356,7 +356,7 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 			!resource.MemoryHotAddEnabled.Equal(resourceState.MemoryHotAddEnabled) {
 			_, err := vm.UpdateVmCpuAndMemoryHotAdd(resource.CPUHotAddEnabled.ValueBool(), resource.MemoryHotAddEnabled.ValueBool())
 			if err != nil {
-				return nil, fmt.Errorf("unable to update CPU/Memory Hot Add: %s", err)
+				return nil, fmt.Errorf("unable to update CPU/Memory Hot Add: %w", err)
 			}
 		}
 		// End of update CPU/Memory Hot Add
@@ -367,18 +367,18 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 	if v.Plan.PowerON.ValueBool() {
 		vmStatus, err := vm.GetStatus()
 		if err != nil {
-			return nil, fmt.Errorf("unable to get VM status: %s", err)
+			return nil, fmt.Errorf("unable to get VM status: %w", err)
 		}
 
 		if !customizationNeeded && vmStatus != "POWERED_ON" {
 			task, err := vm.PowerOn()
 			if err != nil {
-				return nil, fmt.Errorf("unable to power on VM: %s", err)
+				return nil, fmt.Errorf("unable to power on VM: %w", err)
 			}
 
 			err = task.WaitTaskCompletion()
 			if err != nil {
-				return nil, fmt.Errorf("unable to power on VM: %s", err)
+				return nil, fmt.Errorf("unable to power on VM: %w", err)
 			}
 		}
 
@@ -386,18 +386,18 @@ func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:go
 			if vmStatus != "POWERED_OFF" {
 				task, err := vm.Undeploy()
 				if err != nil {
-					return nil, fmt.Errorf("unable to undeploy VM: %s", err)
+					return nil, fmt.Errorf("unable to undeploy VM: %w", err)
 				}
 
 				err = task.WaitTaskCompletion()
 				if err != nil {
-					return nil, fmt.Errorf("unable to undeploy VM: %s", err)
+					return nil, fmt.Errorf("unable to undeploy VM: %w", err)
 				}
 			}
 
 			err = vm.PowerOnAndForceCustomization()
 			if err != nil {
-				return nil, fmt.Errorf("unable to power on and force customization: %s", err)
+				return nil, fmt.Errorf("unable to power on and force customization: %w", err)
 			}
 		}
 	}
