@@ -28,13 +28,13 @@ func readVM(v *VMClient) (*govcd.VM, error) {
 	// Get vcd object
 	_, vdc, err = v.Client.GetOrgAndVDC(v.Client.GetOrg(), v.State.VDC.ValueString())
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving VDC %s: %s", v.State.VDC.ValueString(), err)
+		return nil, fmt.Errorf("error retrieving VDC %s: %w", v.State.VDC.ValueString(), err)
 	}
 
 	// Get vApp
 	vapp, err = vdc.GetVAppByName(v.State.VappName.ValueString(), true)
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving vApp %s: %s", v.State.VappName.ValueString(), err)
+		return nil, fmt.Errorf("error retrieving vApp %s: %w", v.State.VappName.ValueString(), err)
 	}
 
 	// Get VM
@@ -43,7 +43,7 @@ func readVM(v *VMClient) (*govcd.VM, error) {
 		if govcd.IsNotFound(err) {
 			return nil, errRemoveResource
 		}
-		return nil, fmt.Errorf("error retrieving VM %s (ID:%s): %s", v.State.VMName.ValueString(), v.State.ID.ValueString(), err)
+		return nil, fmt.Errorf("error retrieving VM %s (ID:%s): %w", v.State.VMName.ValueString(), v.State.ID.ValueString(), err)
 	}
 
 	return vm, nil

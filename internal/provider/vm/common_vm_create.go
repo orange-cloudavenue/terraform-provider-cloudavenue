@@ -47,7 +47,7 @@ func createVM(ctx context.Context, v *VMClient) (vm *govcd.VM, err error) { //no
 	// Get vcd object
 	org, vdc, err = v.Client.GetOrgAndVDC(v.Client.GetOrg(), v.Plan.VDC.ValueString())
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving VDC %s: %s", v.Plan.VDC.ValueString(), err)
+		return nil, fmt.Errorf("error retrieving VDC %s: %w", v.Plan.VDC.ValueString(), err)
 	}
 
 	if !v.Plan.VappTemplateID.IsNull() && !v.Plan.VappTemplateID.IsUnknown() {
@@ -55,36 +55,36 @@ func createVM(ctx context.Context, v *VMClient) (vm *govcd.VM, err error) { //no
 		// first one in vApp
 		vmTemplate, err = lookupvAppTemplateforVM(v, org, vdc)
 		if err != nil {
-			return nil, fmt.Errorf("error finding vApp template: %s", err)
+			return nil, fmt.Errorf("error finding vApp template: %w", err)
 		}
 	}
 
 	// Get vApp
 	vapp, err = vdc.GetVAppByName(v.Plan.VappName.ValueString(), false)
 	if err != nil {
-		return nil, fmt.Errorf("[VM create] error finding vApp %s: %s", v.Plan.VappName.ValueString(), err)
+		return nil, fmt.Errorf("[VM create] error finding vApp %s: %w", v.Plan.VappName.ValueString(), err)
 	}
 
 	// Build up network configuration
 	networkConnectionSection, err := networksToConfig(v, vapp)
 	if err != nil {
-		return nil, fmt.Errorf("unable to process network configuration: %s", err)
+		return nil, fmt.Errorf("unable to process network configuration: %w", err)
 	}
 
 	// Lookup storage profile reference if it was specified
 	storageProfilePtr, err := lookupStorageProfile(v.Plan.StorageProfile.ValueString(), vdc)
 	if err != nil {
-		return nil, fmt.Errorf("error finding storage profile: %s", err)
+		return nil, fmt.Errorf("error finding storage profile: %w", err)
 	}
 
 	// Look up compute policies
 	sizingPolicy, err := lookupComputePolicy(v, v.Plan.SizingPolicyID.ValueString())
 	if err != nil {
-		return nil, fmt.Errorf("error finding sizing policy: %s", err)
+		return nil, fmt.Errorf("error finding sizing policy: %w", err)
 	}
 	placementPolicy, err := lookupComputePolicy(v, v.Plan.PlacementPolicyID.ValueString())
 	if err != nil {
-		return nil, fmt.Errorf("error finding placement policy: %s", err)
+		return nil, fmt.Errorf("error finding placement policy: %w", err)
 	}
 	var vmComputePolicy *govcdtypes.ComputePolicy
 	if sizingPolicy != nil || placementPolicy != nil {
@@ -132,7 +132,7 @@ func createVM(ctx context.Context, v *VMClient) (vm *govcd.VM, err error) { //no
 
 		storageProfilePtr, err := lookupStorageProfile(v.Plan.StorageProfile.ValueString(), vdc)
 		if err != nil {
-			return nil, fmt.Errorf("error finding storage profile: %s", err)
+			return nil, fmt.Errorf("error finding storage profile: %w", err)
 		}
 
 		customizationSection := &govcdtypes.GuestCustomizationSection{}
@@ -156,7 +156,7 @@ func createVM(ctx context.Context, v *VMClient) (vm *govcd.VM, err error) { //no
 			bootMediaIdentifier = v.Plan.BootImageID.ValueString()
 			mediaRecord, err = v.Client.Vmware.QueryMediaById(bootMediaIdentifier)
 			if err != nil {
-				return nil, fmt.Errorf("[VM creation] error getting boot image %s: %s", bootMediaIdentifier, err)
+				return nil, fmt.Errorf("[VM creation] error getting boot image %s: %w", bootMediaIdentifier, err)
 			}
 
 			// This workaround is to check that the Media file is synchronized in catalog, even if it isn't an iso
@@ -200,7 +200,7 @@ func createVM(ctx context.Context, v *VMClient) (vm *govcd.VM, err error) { //no
 
 		vm, err = vapp.AddEmptyVm(vmParams)
 		if err != nil {
-			return nil, fmt.Errorf("[VM creation] error creating VM %s : %s", v.Plan.VMName.ValueString(), err)
+			return nil, fmt.Errorf("[VM creation] error creating VM %s : %w", v.Plan.VMName.ValueString(), err)
 		}
 	}
 
@@ -209,23 +209,23 @@ func createVM(ctx context.Context, v *VMClient) (vm *govcd.VM, err error) { //no
 
 	err = vm.UpdateNetworkConnectionSection(&networkConnectionSection)
 	if err != nil {
-		return nil, fmt.Errorf("unable to setup network configuration for empty VM %s", err)
+		return nil, fmt.Errorf("unable to setup network configuration for empty VM %w", err)
 	}
 
 	// Refresh VM to have the latest structure
 	if err := vm.Refresh(); err != nil {
-		return nil, fmt.Errorf("error refreshing VM %s : %s", v.Plan.VMName.ValueString(), err)
+		return nil, fmt.Errorf("error refreshing VM %s : %w", v.Plan.VMName.ValueString(), err)
 	}
 
 	// OS Type is set only for VMs created from template
 	// * os_type
 	err = updateOsType(v, vm)
 	if err != nil {
-		return nil, fmt.Errorf("error updating hardware version and OS type : %s", err)
+		return nil, fmt.Errorf("error updating hardware version and OS type : %w", err)
 	}
 
 	if err := vm.Refresh(); err != nil {
-		return nil, fmt.Errorf("error refreshing VM %s : %s", v.Plan.VMName.ValueString(), err)
+		return nil, fmt.Errorf("error refreshing VM %s : %w", v.Plan.VMName.ValueString(), err)
 	}
 
 	// Template VMs require CPU/Memory setting
@@ -239,28 +239,28 @@ func createVM(ctx context.Context, v *VMClient) (vm *govcd.VM, err error) { //no
 		cpuCores, cpuCoresPerSocket, memory, err = getCPUMemoryValues(v, nil)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("error getting CPU/Memory compute values: %s", err)
+		return nil, fmt.Errorf("error getting CPU/Memory compute values: %w", err)
 	}
 
 	if cpuCores != nil && cpuCoresPerSocket != nil {
 		err = vm.ChangeCPUAndCoreCount(cpuCores, cpuCoresPerSocket)
 		if err != nil {
-			return nil, fmt.Errorf("error changing CPU settings: %s", err)
+			return nil, fmt.Errorf("error changing CPU settings: %w", err)
 		}
 
 		if err := vm.Refresh(); err != nil {
-			return nil, fmt.Errorf("error refreshing VM %s : %s", v.Plan.VMName.ValueString(), err)
+			return nil, fmt.Errorf("error refreshing VM %s : %w", v.Plan.VMName.ValueString(), err)
 		}
 	}
 
 	if memory != nil {
 		err = vm.ChangeMemory(*memory)
 		if err != nil {
-			return nil, fmt.Errorf("error setting memory size from schema for VM from template: %s", err)
+			return nil, fmt.Errorf("error setting memory size from schema for VM from template: %w", err)
 		}
 
 		if err := vm.Refresh(); err != nil {
-			return nil, fmt.Errorf("error refreshing VM %s : %s", v.Plan.VMName.ValueString(), err)
+			return nil, fmt.Errorf("error refreshing VM %s : %w", v.Plan.VMName.ValueString(), err)
 		}
 	}
 

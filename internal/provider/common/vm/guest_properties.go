@@ -75,7 +75,7 @@ func GuestPropertiesRead(vm *govcd.VM) (m *GuestProperties, err error) {
 	// get guest properties
 	guestProperties, err := vm.GetProductSectionList()
 	if err != nil {
-		return m, fmt.Errorf("unable to read guest properties: %s", err)
+		return m, fmt.Errorf("unable to read guest properties: %w", err)
 	}
 
 	for _, guestProperty := range guestProperties.ProductSection.Property {

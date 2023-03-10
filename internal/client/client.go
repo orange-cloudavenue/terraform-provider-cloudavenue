@@ -50,7 +50,7 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 	c.APIClient = apiclient.NewAPIClient(cfg)
 	_, ret, err := c.APIClient.AuthenticationApi.GetToken(auth)
 	if err != nil {
-		return nil, fmt.Errorf("%w : %v", ErrAuthFailed, err)
+		return nil, fmt.Errorf("%w : %w", ErrAuthFailed, err)
 	}
 	token := ret.Header.Get("x-vmware-vcloud-access-token")
 	if token == "" {
@@ -62,17 +62,17 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 	// API VMWARE
 	err = c.configureVmware()
 	if err != nil {
-		return nil, fmt.Errorf("%w : %v", ErrConfigureVmware, err)
+		return nil, fmt.Errorf("%w : %w", ErrConfigureVmware, err)
 	}
 
 	if c.VCDVersion == "" {
-		return nil, fmt.Errorf("%w : %v", ErrVCDVersionEmpty, err)
+		return nil, fmt.Errorf("%w : %w", ErrVCDVersionEmpty, err)
 	}
 
 	c.Vmware = govcd.NewVCDClient(*c.urlVmware, false, govcd.WithAPIVersion(c.VCDVersion))
 	err = c.Vmware.SetToken(c.GetOrg(), govcd.AuthorizationHeader, token)
 	if err != nil {
-		return nil, fmt.Errorf("%w : %v", ErrConfigureVmware, err)
+		return nil, fmt.Errorf("%w : %w", ErrConfigureVmware, err)
 	}
 
 	return c, nil
