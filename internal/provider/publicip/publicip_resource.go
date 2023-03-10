@@ -267,6 +267,10 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 		if jobStatus.IsDone() {
 			// get all Public IPs and find the new one
 			checkPublicIPs, httpRc, errGet := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
+			defer func() {
+				err = errors.Join(err, httpRc.Body.Close())
+			}()
+
 			if apiErr := helpers.CheckAPIError(errGet, httpRc); apiErr != nil {
 				defer func() {
 					err = errors.Join(err, httpR.Body.Close())
