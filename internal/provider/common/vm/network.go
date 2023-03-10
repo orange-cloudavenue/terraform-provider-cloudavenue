@@ -73,7 +73,7 @@ func (n *Networks) ToPlan() (basetypes.ListValue, diag.Diagnostics) {
 // NetworksFromPlan converts a plan to a Networks struct.
 func NetworksFromPlan(x basetypes.ListValue) (networks *Networks, err error) {
 	if x.IsNull() {
-		return nil, nil
+		return nil, errors.New("the ListValue is null")
 	}
 
 	var net *Networks
