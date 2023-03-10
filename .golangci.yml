@@ -64,9 +64,9 @@ linters:
     - godot # Check if comments end in a period [fast: true, auto-fix: true]
     - unused #(megacheck): Checks Go code for unused constants, variables, functions and types [fast: false, auto-fix: false]
     - unparam # reports unused function parameters
+    - dupl # Tool for code clone detection [fast: true, auto-fix: false]
 
   disable:
-    - dupl # Tool for code clone detection [fast: true, auto-fix: false]
     - containedctx # containedctx is a linter that detects struct contained context.Context field [fast: true, auto-fix: false]
     - thelper # thelper detects golang test helpers without t.Helper() call and checks the consistency of test helpers [fast: false, auto-fix: false]
     - cyclop # checks function and package cyclomatic complexity [fast: false, auto-fix: false]
