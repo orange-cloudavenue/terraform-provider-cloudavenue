@@ -120,7 +120,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 		return
 	}
 
-	v := &VMClient{
+	v := &Client{
 		Client: r.client,
 		Plan:   plan,
 		State:  state,
@@ -252,7 +252,7 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 
 	plan := &vmResourceModel{}
 
-	v := &VMClient{
+	v := &Client{
 		Client: r.client,
 		Plan:   plan,
 		State:  state,
@@ -317,7 +317,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		return
 	}
 
-	v := &VMClient{
+	v := &Client{
 		Client: r.client,
 		Plan:   plan,
 		State:  state,

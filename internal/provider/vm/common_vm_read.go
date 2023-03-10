@@ -8,7 +8,7 @@ import (
 )
 
 // readVM reads the vApp VM configuration from the vApp.
-func readVM(v *VMClient) (*govcd.VM, error) {
+func readVM(v *Client) (*govcd.VM, error) {
 	var (
 		vdc  *govcd.Vdc
 		vapp *govcd.VApp
