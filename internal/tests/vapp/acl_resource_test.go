@@ -1,6 +1,7 @@
 package vapp
 
 import (
+	"os"
 	"regexp"
 	"testing"
 
@@ -9,25 +10,62 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
+//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
 const testAccACLResourceConfig = `
+resource "cloudavenue_iam_user" "example" {
+	user_name   = "exampleuser"
+	description = "An example user"
+	role        = "Organization Administrator"
+	password    = "Th!s1sSecur3P@ssword"
+  }
+
+resource "cloudavenue_iam_group" "example" {
+	name        = "examplegroup"
+	role        = "Organization Administrator"
+	description = "An example group"
+  }
+
+resource "cloudavenue_vapp" "example" {
+	name        = "MyVapp"
+	description = "This is an example vApp"
+  }
+
 resource "cloudavenue_vapp_acl" "example" {
 	vdc                  = "MyVDC" # Optional
-	vapp_name            = "MyVapp"
+	vapp_name            = cloudavenue_vapp.example.name
 	shared_with = [{
 	  access_level = "ReadOnly"
-	  user_id      = "urn:vcloud:user:53665519-7036-43ea-ba97-63fc5a2aabe7"
+	  user_id      = cloudavenue_iam_user.example.id
 	  },
 	  {
 		access_level = "FullControl"
-		group_id     = "urn:vcloud:group:cd04ff68-688a-4ccb-87c1-905bbe4dba7e"
+		group_id     = cloudavenue_iam_group.example.id
 	}]
   }
 `
 
-const testAccACLResourceUpdateConfig = `
+const testACLResourceUpdateConfig = `
+resource "cloudavenue_iam_user" "example" {
+	user_name   = "exampleuser"
+	description = "An example user"
+	role        = "Organization Administrator"
+	password    = "Th!s1sSecur3P@ssword"
+  }
+
+resource "cloudavenue_iam_group" "example" {
+	name        = "examplegroup"
+	role        = "Organization Administrator"
+	description = "An example group"
+  }
+
+resource "cloudavenue_vapp" "example" {
+	name        = "MyVapp"
+	description = "This is an example vApp"
+  }
+
 resource "cloudavenue_vapp_acl" "example" {
 	vdc                   = "MyVDC" # Optional
-	vapp_name             = "MyVapp"
+	vapp_name             = cloudavenue_vapp.example.name
 	everyone_access_level = "Change"
   }
 `
@@ -44,7 +82,7 @@ func TestAccACLResource(t *testing.T) {
 				Config: testAccACLResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:vapp:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
-					resource.TestCheckResourceAttr(resourceName, "vdc", "MyVDC"),
+					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
 					resource.TestCheckResourceAttr(resourceName, "vapp_name", "MyVapp"),
 					resource.TestCheckResourceAttrSet(resourceName, "shared_with.0.subject_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "shared_with.1.subject_name"),
@@ -53,10 +91,10 @@ func TestAccACLResource(t *testing.T) {
 			// Uncomment if you want to test update or delete this block
 			{
 				// Update test
-				Config: testAccACLResourceUpdateConfig,
+				Config: testACLResourceUpdateConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:vapp:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
-					resource.TestCheckResourceAttr(resourceName, "vdc", "MyVDC"),
+					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
 					resource.TestCheckResourceAttr(resourceName, "vapp_name", "MyVapp"),
 					resource.TestCheckResourceAttr(resourceName, "everyone_access_level", "Change"),
 				),

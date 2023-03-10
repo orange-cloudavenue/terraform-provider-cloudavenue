@@ -2,6 +2,7 @@
 package vapp
 
 import (
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -9,15 +10,16 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
+//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
 const testAccEVappResourceConfig = `
-resource "cloudavenue_vapp" "test" {
-	vapp_name = "vapp_name"
-	description = "This is a test vapp"
+resource "cloudavenue_vapp" "example" {
+	name        = "MyVapp"
+	description = "This is an example vApp"
   }
 `
 
 func TestAccVappResource(t *testing.T) {
-	resourceName := "cloudavenue_vapp.test"
+	resourceName := "cloudavenue_vapp.example"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },
@@ -28,15 +30,16 @@ func TestAccVappResource(t *testing.T) {
 				Destroy: false,
 				Config:  testAccEVappResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "vapp_name", "vapp_name"),
-					resource.TestCheckResourceAttr(resourceName, "description", "This is a test vapp"),
+					resource.TestCheckResourceAttr(resourceName, "name", "MyVapp"),
+					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
+					resource.TestCheckResourceAttr(resourceName, "description", "This is an example vApp"),
 				),
 			},
 			// ImportState testing
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateId:     "vapp_name",
+				ImportStateId:     "MyVapp",
 				ImportStateVerify: true,
 				Destroy:           true,
 			},

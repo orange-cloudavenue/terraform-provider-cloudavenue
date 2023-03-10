@@ -13,7 +13,7 @@ The disk resource allows you to manage a disk in the vDC.
 
 ```terraform
 resource "cloudavenue_vapp" "example" {
-  vapp_name   = "vapp_example"
+  name        = "vapp_example"
   description = "This is a example vapp"
 }
 
@@ -41,9 +41,9 @@ resource "cloudavenue_vm_disk" "example-detachable" {
 - `size_in_mb` (Number) The size of the disk in MB.
 - `storage_profile` (String) Storage profile to override the VM default one. Allowed values are: `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
 - `unit_number` (Number) The device number on the controller of the disk.
-- `vapp_id` (String) The ID of the vApp. Required if `vapp_name` is not set.
-- `vapp_name` (String) The name of the vApp. Required if `vapp_id` is not set.
-- `vdc` (String) The name of VDC to use, optional if defined at provider level.
+- `vapp_id` (String) (ForceNew) ID of the vApp. Required if `vapp_name` is not set.
+- `vapp_name` (String) (ForceNew) Name of the vApp. Required if `vapp_id` is not set.
+- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
 - `vm_id` (String) The ID of the VM. If `vm_name` is not set and `ìs_detachable` is set to `true`, the disk will be attached to any VM. This field is required if `is_detachable` is set to `false`.
 - `vm_name` (String) The name of the VM. If `vm_id` is not set and `ìs_detachable` is set to `true`, the disk will be attached to any VM. This field is required if `is_detachable` is set to `false`.
 

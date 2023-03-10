@@ -11,7 +11,7 @@ import (
 
 const testAccVMDiskResourceConfig = `
 resource "cloudavenue_vapp" "example" {
-	vapp_name = "vapp_example"
+	name = "vapp_example"
 	description = "This is a example vapp"
 }
 

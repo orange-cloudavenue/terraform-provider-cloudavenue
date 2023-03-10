@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -25,6 +26,8 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -42,12 +45,12 @@ func NewVappResource() resource.Resource {
 // vappResource is the resource implementation.
 type vappResource struct {
 	client *client.CloudAvenue
+	vdc    vdc.VDC
 }
 
 type vappResourceModel struct {
-	ID              types.String                  `tfsdk:"id"`
-	VappName        types.String                  `tfsdk:"vapp_name"`
-	VappID          types.String                  `tfsdk:"vapp_id"`
+	VAppName        types.String                  `tfsdk:"name"`
+	VAppID          types.String                  `tfsdk:"id"`
 	VDC             types.String                  `tfsdk:"vdc"`
 	Description     types.String                  `tfsdk:"description"`
 	Href            types.String                  `tfsdk:"href"`
@@ -69,35 +72,21 @@ func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 		MarkdownDescription: "The Edge Gateway resource allows you to create and manage Edge Gateways in CloudAvenue.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				CustomType:          types.StringType,
 				Computed:            true,
-				MarkdownDescription: "The ID is a `vapp_id`.",
+				MarkdownDescription: "The ID of the vApp.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
-			"vapp_name": schema.StringAttribute{
+			"name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "A name for the vApp, unique within the VDC. Required if `vapp_id` is not set.",
+				MarkdownDescription: "(ForceNew) Name of the vApp.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"vapp_id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The ID of vApp",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"vdc": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The name of VDC to use, optional if defined at provider level",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
+			"vdc": vdc.Schema(),
 			"description": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -166,6 +155,12 @@ func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 	}
 }
 
+func (r *vappResource) Init(ctx context.Context, rm *vappResourceModel) (diags diag.Diagnostics) {
+	r.vdc, diags = vdc.Init(r.client, rm.VDC)
+
+	return
+}
+
 func (r *vappResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
@@ -199,23 +194,13 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	// If VDC is not defined at data source level, use the one defined at provider level
-	if plan.VDC.IsNull() || plan.VDC.IsUnknown() {
-		if r.client.DefaultVDCExist() {
-			plan.VDC = types.StringValue(r.client.GetDefaultVDC())
-		} else {
-			resp.Diagnostics.AddError("Missing VDC", "VDC is required when not defined at provider level")
-			return
-		}
-	}
-
-	org, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), plan.VDC.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	vapp, err := vdc.CreateRawVApp(plan.VappName.ValueString(), plan.Description.ValueString())
+	vapp, err := r.vdc.CreateRawVApp(plan.VAppName.ValueString(), plan.Description.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating vApp", err.Error())
 		return
@@ -267,7 +252,7 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 		runtimeLease = int(plan.Lease[0].RuntimeLeaseInSec.ValueInt64())
 		storageLease = int(plan.Lease[0].StorageLeaseInSec.ValueInt64())
 	} else {
-		adminOrg, errGetAdminOrg := r.client.Vmware.GetAdminOrgById(org.Org.ID)
+		adminOrg, errGetAdminOrg := r.client.Vmware.GetAdminOrgById(r.vdc.GetOrgID())
 		if errGetAdminOrg != nil {
 			resp.Diagnostics.AddError("Error retrieving Org", errGetAdminOrg.Error())
 			return
@@ -333,7 +318,7 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	// Request vApp
-	vappRefreshed, err := vdc.GetVAppByNameOrId(vapp.VApp.ID, true)
+	vappRefreshed, err := r.vdc.GetVAppByNameOrId(vapp.VApp.ID, true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found after creating", err.Error())
@@ -361,15 +346,14 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	nPlan := &vappResourceModel{
-		ID:          types.StringValue(vappRefreshed.VApp.ID),
-		VappName:    types.StringValue(vappRefreshed.VApp.Name),
-		VappID:      types.StringValue(vappRefreshed.VApp.ID),
+		VAppID:      types.StringValue(vappRefreshed.VApp.ID),
+		VAppName:    types.StringValue(vappRefreshed.VApp.Name),
 		Description: types.StringValue(vappRefreshed.VApp.Description),
 		StatusText:  types.StringValue(statusText),
 		StatusCode:  types.Int64Value(int64(vappRefreshed.VApp.Status)),
 		Href:        types.StringValue(vappRefreshed.VApp.HREF),
 
-		VDC:     types.StringValue(vdc.Vdc.Name),
+		VDC:     types.StringValue(r.vdc.GetName()),
 		PowerON: plan.PowerON,
 	}
 
@@ -389,7 +373,7 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 		}
 	}
 
-	tflog.Info(ctx, fmt.Sprintf("Vapp %s created", nPlan.VappName.ValueString()))
+	tflog.Info(ctx, fmt.Sprintf("Vapp %s created", nPlan.VAppName.ValueString()))
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &nPlan)...)
@@ -408,38 +392,15 @@ func (r *vappResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	// If VDC is not defined at data source level, use the one defined at provider level
-	if state.VDC.IsNull() || state.VDC.IsUnknown() {
-		if r.client.DefaultVDCExist() {
-			state.VDC = types.StringValue(r.client.GetDefaultVDC())
-		} else {
-			resp.Diagnostics.AddError("Missing VDC", "VDC is required when not defined at provider level")
-			return
-		}
-	}
-
-	_, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), state.VDC.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	var vappNameID string
-	if state.VappID.IsNull() || state.VappID.IsUnknown() {
-		vappNameID = state.VappName.ValueString()
-	} else {
-		vappNameID = state.VappID.ValueString()
-	}
-
-	tflog.Info(ctx, fmt.Sprintf("Reading vApp %s", vappNameID))
-	// Request vApp
-	vappRefreshed, err := vdc.GetVAppByNameOrId(vappNameID, true)
-	if err != nil {
-		if errors.Is(err, govcd.ErrorEntityNotFound) {
-			resp.Diagnostics.AddError("vApp not found", err.Error())
-			return
-		}
-		resp.Diagnostics.AddError("Error retrieving vApp", err.Error())
+	vappRefreshed, diags := vapp.Init(r.client, r.vdc, state.VAppID, state.VAppName)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -461,14 +422,13 @@ func (r *vappResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	}
 
 	plan := &vappResourceModel{
-		ID:          types.StringValue(vappRefreshed.VApp.ID),
-		VappName:    types.StringValue(vappRefreshed.VApp.Name),
-		VappID:      types.StringValue(vappRefreshed.VApp.ID),
-		Description: types.StringValue(vappRefreshed.VApp.Description),
+		VAppID:      types.StringValue(vappRefreshed.GetID()),
+		VAppName:    types.StringValue(vappRefreshed.GetName()),
+		Description: types.StringValue(vappRefreshed.GetDescription()),
 		StatusText:  types.StringValue(statusText),
-		StatusCode:  types.Int64Value(int64(vappRefreshed.VApp.Status)),
-		Href:        types.StringValue(vappRefreshed.VApp.HREF),
-		VDC:         types.StringValue(vdc.Vdc.Name),
+		StatusCode:  types.Int64Value(int64(vappRefreshed.GetStatusCode())),
+		Href:        types.StringValue(vappRefreshed.GetHREF()),
+		VDC:         types.StringValue(r.vdc.GetName()),
 
 		PowerON: state.PowerON,
 	}
@@ -507,20 +467,20 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	org, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), plan.VDC.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Request vApp
-	vapp, err := vdc.GetVAppByNameOrId(state.ID.String(), true)
+	vapp, err := r.vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
-			resp.Diagnostics.AddError("vApp not found after creating", err.Error())
+			resp.Diagnostics.AddError("vApp not found", err.Error())
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving vApp after creating", err.Error())
+		resp.Diagnostics.AddError("Error retrieving vApp", err.Error())
 		return
 	}
 
@@ -543,7 +503,7 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		runtimeLease = int(plan.Lease[0].RuntimeLeaseInSec.ValueInt64())
 		storageLease = int(plan.Lease[0].StorageLeaseInSec.ValueInt64())
 	} else {
-		adminOrg, errGetAdminOrg := r.client.Vmware.GetAdminOrgById(org.Org.ID)
+		adminOrg, errGetAdminOrg := r.client.Vmware.GetAdminOrgById(r.vdc.GetOrgID())
 		if errGetAdminOrg != nil {
 			resp.Diagnostics.AddError("Error retrieving Org", errGetAdminOrg.Error())
 			return
@@ -619,7 +579,7 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	// Request vApp
-	vappRefreshed, err := vdc.GetVAppByNameOrId(state.ID.String(), true)
+	vappRefreshed, err := r.vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found after creating", err.Error())
@@ -637,15 +597,14 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	nPlan := &vappResourceModel{
-		ID:          types.StringValue(vappRefreshed.VApp.ID),
-		VappName:    types.StringValue(vappRefreshed.VApp.Name),
-		VappID:      types.StringValue(vappRefreshed.VApp.ID),
+		VAppID:      types.StringValue(vappRefreshed.VApp.ID),
+		VAppName:    types.StringValue(vappRefreshed.VApp.Name),
 		Description: types.StringValue(vappRefreshed.VApp.Description),
 		StatusText:  types.StringValue(statusText),
 		StatusCode:  types.Int64Value(int64(vappRefreshed.VApp.Status)),
 		Href:        types.StringValue(vappRefreshed.VApp.HREF),
 
-		VDC:     types.StringValue(vdc.Vdc.Name),
+		VDC:     types.StringValue(r.vdc.GetName()),
 		PowerON: plan.PowerON,
 	}
 
@@ -665,7 +624,7 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		}
 	}
 
-	tflog.Info(ctx, fmt.Sprintf("Vapp %s created", nPlan.VappName.ValueString()))
+	tflog.Info(ctx, fmt.Sprintf("Vapp %s created", nPlan.VAppName.ValueString()))
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &nPlan)...)
@@ -684,20 +643,20 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	_, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), state.VDC.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Request vApp
-	vapp, err := vdc.GetVAppByNameOrId(state.ID.String(), true)
+	vapp, err := r.vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
-			resp.Diagnostics.AddError("vApp not found after creating", err.Error())
+			resp.Diagnostics.AddError("vApp not found", err.Error())
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving vApp after creating", err.Error())
+		resp.Diagnostics.AddError("Error retrieving vApp", err.Error())
 		return
 	}
 	// to avoid network destroy issues - detach networks from vApp
@@ -733,7 +692,7 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 func (r *vappResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("vapp_id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 
 // getGuestProperties returns the guest properties of a vApp.

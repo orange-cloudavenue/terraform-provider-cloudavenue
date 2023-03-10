@@ -23,6 +23,8 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/boolpm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/stringpm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -40,6 +42,8 @@ func NewIsolatedNetworkResource() resource.Resource {
 // isolatedNetworkResource is the resource implementation.
 type isolatedNetworkResource struct {
 	client *client.CloudAvenue
+	vdc    vdc.VDC
+	vapp   vapp.VApp
 }
 
 type isolatedNetworkResourceModel struct {
@@ -48,6 +52,7 @@ type isolatedNetworkResourceModel struct {
 	Name               types.String `tfsdk:"name"`
 	Description        types.String `tfsdk:"description"`
 	VAppName           types.String `tfsdk:"vapp_name"`
+	VAppID             types.String `tfsdk:"vapp_id"`
 	Netmask            types.String `tfsdk:"netmask"`
 	Gateway            types.String `tfsdk:"gateway"`
 	DNS1               types.String `tfsdk:"dns1"`
@@ -85,15 +90,9 @@ func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaR
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"vdc": schema.StringAttribute{
-				MarkdownDescription: "(ForceNew) The name of vDC to use, optional if defined at provider level.",
-				Optional:            true,
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
+			"vdc":       vdc.Schema(),
+			"vapp_id":   vapp.Schema()["vapp_id"],
+			"vapp_name": vapp.Schema()["vapp_name"],
 			"name": schema.StringAttribute{
 				MarkdownDescription: "(ForceNew) The name of the vApp network.",
 				Required:            true,
@@ -105,19 +104,12 @@ func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaR
 				MarkdownDescription: "Description of the vApp network.",
 				Optional:            true,
 			},
-			"vapp_name": schema.StringAttribute{
-				MarkdownDescription: "(ForceNew) The vApp name this network belongs to.",
-				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
 			"netmask": schema.StringAttribute{
 				MarkdownDescription: "(ForceNew) The netmask for the network. Default is `255.255.255.0`",
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.String{
-					stringvalidator.IsValidIP(),
+					stringvalidator.IsValidNetmask(),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringpm.SetDefault("255.255.255.0"),
@@ -185,6 +177,17 @@ func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaR
 	}
 }
 
+func (r *isolatedNetworkResource) Init(ctx context.Context, rm *isolatedNetworkResourceModel) (diags diag.Diagnostics) {
+	r.vdc, diags = vdc.Init(r.client, rm.VDC)
+	if diags.HasError() {
+		return
+	}
+
+	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
+
+	return
+}
+
 func (r *isolatedNetworkResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
@@ -212,20 +215,24 @@ func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.Creat
 		plan *isolatedNetworkResourceModel
 	)
 
+	// Read the plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	isolatedNetworkRef, errInit := plan.initNetworkQuery(ctx, r.client, true)
-	if errInit != nil {
-		resp.Diagnostics.AddError(errInit.Summary, errInit.Detail)
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if isolatedNetworkRef.VAppLocked {
-		defer isolatedNetworkRef.VAppUnlockF()
+	// Lock vApp
+	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+	defer r.vapp.UnlockParentVApp(ctx)
 
 	// Configure network
 	retainIPMac := plan.RetainIPMacEnabled.ValueBool()
@@ -257,7 +264,7 @@ func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	// Create network
-	vAppNetworkConfig, err := isolatedNetworkRef.VApp.CreateVappNetwork(vappNetworkSettings, nil)
+	vAppNetworkConfig, err := r.vapp.CreateVappNetwork(vappNetworkSettings, nil)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating vApp network", err.Error())
 		return
@@ -283,6 +290,7 @@ func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	plan.ID = types.StringValue(common.NormalizeID("urn:vcloud:network:", networkID))
+	plan.VDC = types.StringValue(r.vdc.GetName())
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -304,20 +312,13 @@ func (r *isolatedNetworkResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	isolatedNetworkRef, errInit := state.initNetworkQuery(ctx, r.client, false)
-	if errInit != nil {
-		if errInit.Summary == ErrVAppNotFound {
-			resp.State.RemoveResource(ctx)
-		}
-		resp.Diagnostics.AddError(errInit.Summary, errInit.Detail)
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if isolatedNetworkRef.VAppLocked {
-		defer isolatedNetworkRef.VAppUnlockF()
-	}
-
-	vAppNetworkConfig, err := isolatedNetworkRef.VApp.GetNetworkConfig()
+	vAppNetworkConfig, err := r.vapp.GetNetworkConfig()
 	if err != nil {
 		resp.Diagnostics.AddError("Error getting vApp networks", err.Error())
 		return
@@ -346,7 +347,7 @@ func (r *isolatedNetworkResource) Read(ctx context.Context, req resource.ReadReq
 
 	plan := &isolatedNetworkResourceModel{
 		ID:                 types.StringValue(id),
-		VDC:                state.VDC,
+		VDC:                types.StringValue(r.vdc.GetName()),
 		Name:               types.StringValue(vAppNetwork.NetworkName),
 		Description:        types.StringValue(vAppNetwork.Description),
 		VAppName:           state.VAppName,
@@ -423,15 +424,18 @@ func (r *isolatedNetworkResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	isolatedNetworkRef, errInit := plan.initNetworkQuery(ctx, r.client, true)
-	if errInit != nil {
-		resp.Diagnostics.AddError(errInit.Summary, errInit.Detail)
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if isolatedNetworkRef.VAppLocked {
-		defer isolatedNetworkRef.VAppUnlockF()
+	// Lock vApp
+	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+	defer r.vapp.UnlockParentVApp(ctx)
 
 	// Configure network
 	retainIPMac := plan.RetainIPMacEnabled.ValueBool()
@@ -464,7 +468,7 @@ func (r *isolatedNetworkResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Update network
-	_, err := isolatedNetworkRef.VApp.UpdateNetwork(vappNetworkSettings, nil)
+	_, err := r.vapp.UpdateNetwork(vappNetworkSettings, nil)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating vApp network", err.Error())
 		return
@@ -487,17 +491,20 @@ func (r *isolatedNetworkResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
-	isolatedNetworkRef, errInit := state.initNetworkQuery(ctx, r.client, true)
-	if errInit != nil {
-		resp.Diagnostics.AddError(errInit.Summary, errInit.Detail)
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if isolatedNetworkRef.VAppLocked {
-		defer isolatedNetworkRef.VAppUnlockF()
+	// Lock vApp
+	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+	defer r.vapp.UnlockParentVApp(ctx)
 
-	_, err := isolatedNetworkRef.VApp.RemoveNetwork(state.ID.String())
+	_, err := r.vapp.RemoveNetwork(state.ID.String())
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting vApp network", err.Error())
 		return

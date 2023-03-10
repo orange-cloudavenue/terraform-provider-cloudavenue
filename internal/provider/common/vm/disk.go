@@ -2,10 +2,8 @@ package vm
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -13,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
@@ -21,6 +18,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm/diskparams"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
@@ -36,8 +34,8 @@ This disk is always detached disk type.
 */
 type Disk struct {
 	ID             types.String `tfsdk:"id"`
-	VappName       types.String `tfsdk:"vapp_name"`
-	VappID         types.String `tfsdk:"vapp_id"`
+	VAppName       types.String `tfsdk:"vapp_name"`
+	VAppID         types.String `tfsdk:"vapp_id"`
 	VMName         types.String `tfsdk:"vm_name"`
 	VMID           types.String `tfsdk:"vm_id"`
 	VDC            types.String `tfsdk:"vdc"`
@@ -74,8 +72,8 @@ attr.Value is a map[string]attr.Value
 func (d *Disk) ToAttrValue() map[string]attr.Value {
 	return map[string]attr.Value{
 		"id":              d.ID,
-		"vapp_name":       d.VappName,
-		"vapp_id":         d.VappID,
+		"vapp_name":       d.VAppName,
+		"vapp_id":         d.VAppID,
 		"vm_name":         d.VMName,
 		"vm_id":           d.VMID,
 		"vdc":             d.VDC,
@@ -188,40 +186,11 @@ func DiskSchema() map[string]schema.Attribute {
 			},
 		},
 
-		"vdc": schema.StringAttribute{
-			MarkdownDescription: "The name of VDC to use, optional if defined at provider level.",
-			Optional:            true,
-			Computed:            true,
-			PlanModifiers: []planmodifier.String{
-				stringplanmodifier.RequiresReplace(),
-				stringplanmodifier.UseStateForUnknown(),
-			},
-		},
+		"vdc": vdc.Schema(),
 
-		"vapp_name": schema.StringAttribute{
-			MarkdownDescription: "The name of the vApp. Required if `vapp_id` is not set.",
-			Optional:            true,
-			Computed:            true,
-			PlanModifiers: []planmodifier.String{
-				stringplanmodifier.RequiresReplace(),
-				stringplanmodifier.UseStateForUnknown(),
-			},
-			Validators: []validator.String{
-				stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_id")),
-			},
-		},
-		"vapp_id": schema.StringAttribute{
-			MarkdownDescription: "The ID of the vApp. Required if `vapp_name` is not set.",
-			Optional:            true,
-			Computed:            true,
-			PlanModifiers: []planmodifier.String{
-				stringplanmodifier.RequiresReplace(),
-				stringplanmodifier.UseStateForUnknown(),
-			},
-			Validators: []validator.String{
-				stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name")),
-			},
-		},
+		"vapp_id": vapp.Schema()["vapp_id"],
+
+		"vapp_name": vapp.Schema()["vapp_name"],
 
 		"vm_name": schema.StringAttribute{
 			MarkdownDescription: "The name of the VM. If `vm_id` is not set and `ìs_detachable` is set to `true`, " +
@@ -279,35 +248,23 @@ DiskCreate
 
 creates a detachable disk
 */
-func DiskCreate(ctx context.Context, vdc *govcd.Vdc, vm *govcd.VM, disk *Disk, goVapp *govcd.VApp, org *govcd.Org) (*Disk, diag.Diagnostics) {
+func DiskCreate(ctx context.Context, inVDC vdc.VDC, vm *govcd.VM, disk *Disk, inVapp vapp.VApp) (*Disk, diag.Diagnostics) {
 	d := diag.Diagnostics{}
 
-	if goVapp.VApp == nil || org.Org == nil || vdc.Vdc == nil {
+	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.Vdc == nil {
 		d.AddError("Error creating disk", "Empty vApp, org or vdc")
 		return nil, d
 	}
 
-	myVApp := vapp.Ref{
-		Name:  goVapp.VApp.Name,
-		Org:   org.Org.Name,
-		VDC:   vdc.Vdc.Name,
-		TFCtx: ctx,
-	}
-
-	if errLock := myVApp.LockParentVApp(); errors.Is(errLock, vapp.ErrVAppRefEmpty) {
-		d.AddError("Error locking vApp", "Empty name, org or vdc in vapp.VAppRef")
+	// Lock vApp
+	d.Append(inVapp.LockParentVApp(ctx)...)
+	if d.HasError() {
 		return nil, d
 	}
-	defer func() {
-		if errUnlock := myVApp.UnLockParentVApp(); errUnlock != nil {
-			// tflog print error is enough ?
-			d.AddError("Error unlocking vApp", errUnlock.Error())
-			return
-		}
-	}()
+	defer d.Append(inVapp.UnlockParentVApp(ctx)...)
 
 	// Checking if the disk name is already existing in the vDC
-	existingDisk, err := vdc.QueryDisk(disk.Name.ValueString())
+	existingDisk, err := inVDC.QueryDisk(disk.Name.ValueString())
 	if existingDisk != (govcd.DiskRecord{}) || err == nil {
 		d.AddError("already exists in the vDC", fmt.Sprintf("The disk %s already exists in the vDC", disk.Name.ValueString()))
 		return nil, d
@@ -330,7 +287,7 @@ func DiskCreate(ctx context.Context, vdc *govcd.Vdc, vm *govcd.VM, disk *Disk, g
 
 	// If the storage profile is set checking if it exists and setting it
 	if !disk.StorageProfile.IsNull() && !disk.StorageProfile.IsUnknown() {
-		storageReference, err := vdc.FindStorageProfileReference(disk.StorageProfile.ValueString())
+		storageReference, err := inVDC.FindStorageProfileReference(disk.StorageProfile.ValueString())
 		if err != nil {
 			d.AddError("storage profile not found", fmt.Sprintf("The storage profile %s does not exist in the vDC", disk.StorageProfile.ValueString()))
 			return nil, d
@@ -339,7 +296,7 @@ func DiskCreate(ctx context.Context, vdc *govcd.Vdc, vm *govcd.VM, disk *Disk, g
 	}
 
 	// Create the disk
-	task, err := vdc.CreateDisk(diskCreateParams)
+	task, err := inVDC.CreateDisk(diskCreateParams)
 	if err != nil {
 		d.AddError("error creating disk", err.Error())
 		return nil, d
@@ -353,7 +310,7 @@ func DiskCreate(ctx context.Context, vdc *govcd.Vdc, vm *govcd.VM, disk *Disk, g
 	}
 
 	// Get the disk by the Href
-	x, err := vdc.GetDiskByHref(task.Task.Owner.HREF)
+	x, err := inVDC.GetDiskByHref(task.Task.Owner.HREF)
 	if err != nil {
 		d.AddError("unable to find disk after creating", fmt.Sprintf("unable to find disk with href %s: %s", task.Task.HREF, err))
 		return nil, d
@@ -381,7 +338,7 @@ func DiskCreate(ctx context.Context, vdc *govcd.Vdc, vm *govcd.VM, disk *Disk, g
 		disk.ID = types.StringValue(x.Disk.Id)
 
 		// Attach the disk to the VM
-		d.Append(DiskAttach(ctx, vdc, &Disk{
+		d.Append(DiskAttach(ctx, inVDC.Vdc, &Disk{
 			ID:         disk.ID,
 			Name:       disk.Name,
 			BusNumber:  busNumber,
@@ -410,7 +367,7 @@ If the disk is not found, returns nil
 if disk and diag.Diagnostics are nil the disk is
 not found and the resource should be removed from state
 */
-func DiskRead(ctx context.Context, client *client.CloudAvenue, vdc *govcd.Vdc, disk *Disk, goVapp *govcd.VApp, org *govcd.Org) (*Disk, diag.Diagnostics) {
+func DiskRead(ctx context.Context, client *client.CloudAvenue, inVDC vdc.VDC, disk *Disk, inVapp vapp.VApp) (*Disk, diag.Diagnostics) {
 	d := diag.Diagnostics{}
 
 	var (
@@ -418,41 +375,29 @@ func DiskRead(ctx context.Context, client *client.CloudAvenue, vdc *govcd.Vdc, d
 		err error
 	)
 
-	if goVapp.VApp == nil || org.Org == nil || vdc.Vdc == nil {
+	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.Vdc == nil {
 		d.AddError("Error read disk", "Empty vApp, org or vdc")
 		return nil, d
 	}
 
-	myVApp := vapp.Ref{
-		Name:  goVapp.VApp.Name,
-		Org:   org.Org.Name,
-		VDC:   vdc.Vdc.Name,
-		TFCtx: ctx,
-	}
-
-	if errLock := myVApp.LockParentVApp(); errors.Is(errLock, vapp.ErrVAppRefEmpty) {
-		d.AddError("Error locking vApp", "Empty name, org or vdc in vapp.VAppRef")
+	// Lock vApp
+	d.Append(inVapp.LockParentVApp(ctx)...)
+	if d.HasError() {
 		return nil, d
 	}
-	defer func() {
-		if errUnlock := myVApp.UnLockParentVApp(); errUnlock != nil {
-			// tflog print error is enough ?
-			d.AddError("Error unlocking vApp", errUnlock.Error())
-			return
-		}
-	}()
+	defer d.Append(inVapp.UnlockParentVApp(ctx)...)
 
 	var r *govcd.VM
 	// VMName is required if VMID is set
 	if disk.VMID.ValueString() != "" {
-		r, err = goVapp.GetVMById(disk.VMID.ValueString(), true)
+		r, err = inVapp.GetVMById(disk.VMID.ValueString(), true)
 		if err != nil {
 			d.AddError("unable to find vm", fmt.Sprintf("unable to find vm with id %s: %s", disk.VMID.ValueString(), err))
 			return nil, d
 		}
 		disk.VMName = types.StringValue(r.VM.Name)
 	} else if disk.VMName.ValueString() != "" {
-		r, err = goVapp.GetVMByName(disk.VMName.ValueString(), true)
+		r, err = inVapp.GetVMByName(disk.VMName.ValueString(), true)
 		if err != nil {
 			d.AddError("unable to find vm", fmt.Sprintf("unable to find vm with name %s: %s", disk.VMName.ValueString(), err))
 			return nil, d
@@ -465,7 +410,7 @@ func DiskRead(ctx context.Context, client *client.CloudAvenue, vdc *govcd.Vdc, d
 	if disk.IsDetachable.ValueBool() {
 		if !disk.ID.IsNull() && !disk.ID.IsUnknown() {
 			// Get the disk by the ID
-			x, err = vdc.GetDiskById(disk.ID.ValueString(), true)
+			x, err = inVDC.GetDiskById(disk.ID.ValueString(), true)
 			if err != nil {
 				if govcd.IsNotFound(err) {
 					return nil, nil
@@ -475,7 +420,7 @@ func DiskRead(ctx context.Context, client *client.CloudAvenue, vdc *govcd.Vdc, d
 			}
 		} else {
 			// Get the disk by the Name
-			disks, err := vdc.GetDisksByName(disk.Name.ValueString(), true)
+			disks, err := inVDC.GetDisksByName(disk.Name.ValueString(), true)
 			if err != nil {
 				if govcd.IsNotFound(err) {
 					return nil, nil
@@ -571,7 +516,7 @@ List of attributes require attach/detach disk to be updated if the disk is detac
   - size_in_mb
   - storage_profile
 */
-func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskState *Disk, vdc *govcd.Vdc, goVapp *govcd.VApp, org *govcd.Org) (*Disk, diag.Diagnostics) { //nolint:gocyclo
+func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskState *Disk, inVDC vdc.VDC, inVapp vapp.VApp) (*Disk, diag.Diagnostics) { //nolint:gocyclo
 	d := diag.Diagnostics{}
 
 	// Preventing nil pointer
@@ -580,29 +525,17 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 		return nil, d
 	}
 
-	if goVapp.VApp == nil || org.Org == nil || vdc.Vdc == nil {
+	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.Vdc == nil {
 		d.AddError("Error read disk", "Empty vApp, org or vdc")
 		return nil, d
 	}
 
-	myVApp := vapp.Ref{
-		Name:  goVapp.VApp.Name,
-		Org:   org.Org.Name,
-		VDC:   vdc.Vdc.Name,
-		TFCtx: ctx,
-	}
-
-	if errLock := myVApp.LockParentVApp(); errors.Is(errLock, vapp.ErrVAppRefEmpty) {
-		d.AddError("Error locking vApp", "Empty name, org or vdc in vapp.VAppRef")
+	// Lock vApp
+	d.Append(inVapp.LockParentVApp(ctx)...)
+	if d.HasError() {
 		return nil, d
 	}
-	defer func() {
-		if errUnlock := myVApp.UnLockParentVApp(); errUnlock != nil {
-			// tflog print error is enough ?
-			d.AddError("Error unlocking vApp", errUnlock.Error())
-			return
-		}
-	}()
+	defer d.Append(inVapp.UnlockParentVApp(ctx)...)
 
 	// If VDC is not defined at resource level, use the one defined at provider level
 	if diskPlan.VDC.IsNull() || diskPlan.VDC.IsUnknown() {
@@ -616,7 +549,7 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 
 	if diskPlan.IsDetachable.ValueBool() {
 		// Get the disk by the ID
-		x, err := vdc.GetDiskById(diskState.ID.ValueString(), true)
+		x, err := inVDC.GetDiskById(diskState.ID.ValueString(), true)
 		if err != nil {
 			d.AddError("unable to find disk", fmt.Sprintf("unable to find disk with id %s: %s", diskState.ID.ValueString(), err))
 			return nil, d
@@ -635,9 +568,9 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 			)
 
 			// Get VM object
-			vapp, err := vdc.GetVAppById(diskState.VappID.ValueString(), true)
+			vapp, err := inVDC.GetVAppById(diskState.VAppID.ValueString(), true)
 			if err != nil {
-				d.AddError("unable to find vapp", fmt.Sprintf("unable to find vapp with id %s: %s", diskState.VappID.ValueString(), err))
+				d.AddError("unable to find vapp", fmt.Sprintf("unable to find vapp with id %s: %s", diskState.VAppID.ValueString(), err))
 				return nil, d
 			}
 
@@ -655,7 +588,7 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 				}
 
 				// Use diskState to get possible OLD VMID
-				d.Append(DiskDetach(ctx, vdc, diskState, vm)...)
+				d.Append(DiskDetach(ctx, inVDC.Vdc, diskState, vm)...)
 				if d.HasError() {
 					return nil, d
 				}
@@ -674,7 +607,7 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 				!diskPlan.StorageProfile.Equal(diskState.StorageProfile) {
 				// If the storage profile is set checking if it exists and setting it
 				if !diskPlan.StorageProfile.Equal(diskState.StorageProfile) {
-					storageReference, err := vdc.FindStorageProfileReference(diskPlan.StorageProfile.ValueString())
+					storageReference, err := inVDC.FindStorageProfileReference(diskPlan.StorageProfile.ValueString())
 					if err != nil {
 						d.AddError("storage profile not found", fmt.Sprintf("The storage profile %s does not exist in the vDC", diskPlan.StorageProfile.ValueString()))
 						return nil, d
@@ -730,7 +663,7 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 					unitNumber = types.Int64Value(int64(u))
 				}
 
-				d.Append(DiskAttach(ctx, vdc, &Disk{
+				d.Append(DiskAttach(ctx, inVDC.Vdc, &Disk{
 					ID:         diskPlan.ID,
 					BusNumber:  busNumber,
 					UnitNumber: unitNumber,
@@ -760,7 +693,7 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 				StorageProfile: diskPlan.StorageProfile,
 				BusNumber:      diskPlan.BusNumber,
 				UnitNumber:     diskPlan.UnitNumber,
-			}, diskPlan.VappName, diskPlan.VMName, diskPlan.VDC)
+			}, diskPlan.VAppName, diskPlan.VMName, diskPlan.VDC)
 			d.Append(diagerr...)
 			if d.HasError() {
 				return nil, d
@@ -780,32 +713,20 @@ delete a disk
 
 if the disk is attached to a VM, it will return an error
 */
-func DiskDelete(ctx context.Context, client *client.CloudAvenue, disk *Disk, vdc *govcd.Vdc, goVapp *govcd.VApp, org *govcd.Org) diag.Diagnostics {
+func DiskDelete(ctx context.Context, client *client.CloudAvenue, disk *Disk, inVDC vdc.VDC, inVapp vapp.VApp) diag.Diagnostics {
 	d := diag.Diagnostics{}
 
-	if goVapp.VApp == nil || org.Org == nil || vdc.Vdc == nil {
+	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.Vdc == nil {
 		d.AddError("Error read disk", "Empty vApp, org or vdc")
 		return d
 	}
 
-	myVApp := vapp.Ref{
-		Name:  goVapp.VApp.Name,
-		Org:   org.Org.Name,
-		VDC:   vdc.Vdc.Name,
-		TFCtx: ctx,
-	}
-
-	if errLock := myVApp.LockParentVApp(); errors.Is(errLock, vapp.ErrVAppRefEmpty) {
-		d.AddError("Error locking vApp", "Empty name, org or vdc in vapp.VAppRef")
+	// Lock vApp
+	d.Append(inVapp.LockParentVApp(ctx)...)
+	if d.HasError() {
 		return d
 	}
-	defer func() {
-		if errUnlock := myVApp.UnLockParentVApp(); errUnlock != nil {
-			// tflog print error is enough ?
-			d.AddError("Error unlocking vApp", errUnlock.Error())
-			return
-		}
-	}()
+	defer d.Append(inVapp.UnlockParentVApp(ctx)...)
 
 	// Get vcd object
 	_, vdc, err := client.GetOrgAndVDC(client.GetOrg(), disk.VDC.ValueString())
@@ -826,7 +747,7 @@ func DiskDelete(ctx context.Context, client *client.CloudAvenue, disk *Disk, vdc
 			} else {
 				vmByNameOrID = disk.VMID
 			}
-			myVM, err := goVapp.GetVMByNameOrId(vmByNameOrID.ValueString(), false)
+			myVM, err := inVapp.GetVMByNameOrId(vmByNameOrID.ValueString(), false)
 			if err != nil {
 				d.AddError("Error retrieving VM", err.Error())
 				return d
@@ -868,7 +789,7 @@ func DiskDelete(ctx context.Context, client *client.CloudAvenue, disk *Disk, vdc
 		} else {
 			vmByNameOrID = disk.VMID
 		}
-		myVM, err := goVapp.GetVMByNameOrId(vmByNameOrID.ValueString(), false)
+		myVM, err := inVapp.GetVMByNameOrId(vmByNameOrID.ValueString(), false)
 		if err != nil {
 			d.AddError("Error retrieving VM", err.Error())
 			return d

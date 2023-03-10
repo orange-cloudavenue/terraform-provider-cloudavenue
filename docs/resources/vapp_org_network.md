@@ -12,9 +12,44 @@ Provides capability to attach an existing Org VDC Network to a vApp and toggle n
 ## Example Usage
 
 ```terraform
+data "cloudavenue_tier0_vrfs" "example" {}
+
+resource "cloudavenue_edgegateway" "example" {
+  owner_name     = "MyVDCGroup"
+  tier0_vrf_name = data.cloudavenue_tier0_vrfs.example.names.0
+  owner_type     = "vdc-group"
+}
+
+resource "cloudavenue_network_routed" "example" {
+  name        = "MyOrgNet"
+  description = "This is an example Net"
+
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+
+  gateway       = "192.168.1.254"
+  prefix_length = 24
+
+  dns1 = "1.1.1.1"
+  dns2 = "8.8.8.8"
+
+  dns_suffix = "example"
+
+  static_ip_pool = [
+    {
+      start_address = "192.168.1.10"
+      end_address   = "192.168.1.20"
+    }
+  ]
+}
+
+resource "cloudavenue_vapp" "example" {
+  name        = "MyVapp"
+  description = "This is an example vApp"
+}
+
 resource "cloudavenue_vapp_org_network" "example" {
-  vapp_name    = "vapp_test3"
-  network_name = "test_remi"
+  vapp_name    = cloudavenue_vapp.example.name
+  network_name = cloudavenue_network_routed.example.name
 }
 ```
 
@@ -24,13 +59,14 @@ resource "cloudavenue_vapp_org_network" "example" {
 ### Required
 
 - `network_name` (String) Organization network name to which vApp network is connected to.
-- `vapp_name` (String)
 
 ### Optional
 
 - `is_fenced` (Boolean) Fencing allows identical virtual machines in different vApp networks connect to organization VDC networks that are accessed in this vApp. Default is `false`.
 - `retain_ip_mac_enabled` (Boolean) Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Default is `false`.
-- `vdc` (String) The name of VDC to use, optional if defined at provider level.
+- `vapp_id` (String) (ForceNew) ID of the vApp. Required if `vapp_name` is not set.
+- `vapp_name` (String) (ForceNew) Name of the vApp. Required if `vapp_id` is not set.
+- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 

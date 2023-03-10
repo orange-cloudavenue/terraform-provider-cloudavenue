@@ -1,6 +1,7 @@
 package vapp
 
 import (
+	"os"
 	"regexp"
 	"testing"
 
@@ -9,11 +10,16 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
+//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
 const testAccIsolatedNetworkResourceConfig = `
+resource "cloudavenue_vapp" "example" {
+	name        = "MyVapp"
+	description = "This is an example vApp"
+  }
+
 resource "cloudavenue_vapp_isolated_network" "example" {
-	vdc        = "MyVDC"
 	name       = "MyVappNet"
-	vapp_name  = "MyVapp"
+	vapp_name  = cloudavenue_vapp.example.name
 	gateway    = "192.168.10.1"
 	netmask	   = "255.255.255.0"
 	dns1       = "192.168.10.1"
@@ -33,18 +39,6 @@ resource "cloudavenue_vapp_isolated_network" "example" {
 }
 `
 
-// const testAccIsolatedNetworkResourceConfigUpdate = `
-// resource "cloudavenue_vapp_isolated_network" "example" {
-// 	vdc        = "MyVDC"
-// 	name       = "MyVappNet"
-// 	vapp_name  = "MyVapp"
-// 	gateway    = "192.168.10.1"
-// 	netmask	   = "255.255.255.0"
-// 	dns1       = "192.168.10.1"
-// 	dns_suffix = "myvapp.biz"
-// }
-// `
-
 func TestAccIsolatedNetworkResource(t *testing.T) {
 	const resourceName = "cloudavenue_vapp_isolated_network.example"
 	resource.Test(t, resource.TestCase{
@@ -56,7 +50,7 @@ func TestAccIsolatedNetworkResource(t *testing.T) {
 				Config: testAccIsolatedNetworkResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:network:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
-					resource.TestCheckResourceAttr(resourceName, "vdc", "MyVDC"),
+					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
 					resource.TestCheckResourceAttr(resourceName, "name", "MyVappNet"),
 					resource.TestCheckResourceAttr(resourceName, "vapp_name", "MyVapp"),
 					resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.10.1"),

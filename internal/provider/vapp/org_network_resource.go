@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -18,6 +19,8 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/boolpm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -35,11 +38,14 @@ func NewOrgNetworkResource() resource.Resource {
 // orgNetworkResource is the resource implementation.
 type orgNetworkResource struct {
 	client *client.CloudAvenue
+	vdc    vdc.VDC
+	vapp   vapp.VApp
 }
 
 type orgNetworkResourceModel struct {
 	ID                 types.String `tfsdk:"id"`
 	VAppName           types.String `tfsdk:"vapp_name"`
+	VAppID             types.String `tfsdk:"vapp_id"`
 	VDC                types.String `tfsdk:"vdc"`
 	NetworkName        types.String `tfsdk:"network_name"`
 	IsFenced           types.Bool   `tfsdk:"is_fenced"`
@@ -60,21 +66,9 @@ func (r *orgNetworkResource) Schema(ctx context.Context, _ resource.SchemaReques
 				Computed:            true,
 				MarkdownDescription: "The ID of the org_network.",
 			},
-			"vapp_name": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"vdc": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
-				},
-				MarkdownDescription: "The name of VDC to use, optional if defined at provider level.",
-			},
+			"vdc":       vdc.Schema(),
+			"vapp_id":   vapp.Schema()["vapp_id"],
+			"vapp_name": vapp.Schema()["vapp_name"],
 			"network_name": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
@@ -100,6 +94,17 @@ func (r *orgNetworkResource) Schema(ctx context.Context, _ resource.SchemaReques
 			},
 		},
 	}
+}
+
+func (r *orgNetworkResource) Init(ctx context.Context, rm *orgNetworkResourceModel) (diags diag.Diagnostics) {
+	r.vdc, diags = vdc.Init(r.client, rm.VDC)
+	if diags.HasError() {
+		return
+	}
+
+	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
+
+	return
 }
 
 func (r *orgNetworkResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -134,18 +139,21 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	orgNetworkRef, errInitOrg := plan.initOrgNetworkQuery(ctx, r.client, true)
-	if errInitOrg != nil {
-		resp.Diagnostics.AddError(errInitOrg.Summary, errInitOrg.Detail)
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if orgNetworkRef.VAppLocked {
-		defer orgNetworkRef.VAppUnlockF()
+	// Lock vApp
+	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+	defer r.vapp.UnlockParentVApp(ctx)
 
 	orgNetworkName := plan.NetworkName.ValueString()
-	orgNetwork, err := orgNetworkRef.VDC.GetOrgVdcNetworkByNameOrId(orgNetworkName, true)
+	orgNetwork, err := r.vdc.GetOrgVdcNetworkByNameOrId(orgNetworkName, true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving org network", err.Error())
 		return
@@ -156,7 +164,7 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 
 	vappNetworkSettings := &govcd.VappNetworkSettings{RetainIpMacEnabled: &retainIPMac}
 
-	vAppNetworkConfig, err := orgNetworkRef.VApp.AddOrgNetwork(vappNetworkSettings, orgNetwork.OrgVDCNetwork, isFenced)
+	vAppNetworkConfig, err := r.vapp.AddOrgNetwork(vappNetworkSettings, orgNetwork.OrgVDCNetwork, isFenced)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating vApp network", err.Error())
 		return
@@ -185,7 +193,7 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 	plan = &orgNetworkResourceModel{
 		ID:                 types.StringValue(id),
 		VAppName:           plan.VAppName,
-		VDC:                plan.VDC,
+		VDC:                types.StringValue(r.vdc.GetName()),
 		NetworkName:        plan.NetworkName,
 		IsFenced:           plan.IsFenced,
 		RetainIPMacEnabled: plan.RetainIPMacEnabled,
@@ -208,28 +216,21 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	orgNetworkRef, errInitOrg := state.initOrgNetworkQuery(ctx, r.client, false)
-	if errInitOrg != nil {
-		if errInitOrg.Summary == ErrVAppNotFound {
-			resp.State.RemoveResource(ctx)
-		}
-		resp.Diagnostics.AddError(errInitOrg.Summary, errInitOrg.Detail)
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if orgNetworkRef.VAppLocked {
-		defer orgNetworkRef.VAppUnlockF()
-	}
-
-	vAppNetworkConfig, err := orgNetworkRef.VApp.GetNetworkConfig()
+	vAppNetworkConfig, err := r.vapp.GetNetworkConfig()
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving vApp network config", err.Error())
 		return
 	}
 
 	vAppNetwork, networkID, errFindNetwork := state.findOrgNetwork(vAppNetworkConfig)
-	if errFindNetwork != nil {
-		resp.Diagnostics.AddError(errFindNetwork.Summary, errFindNetwork.Detail)
+	resp.Diagnostics.Append(errFindNetwork...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -247,7 +248,8 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 	plan := &orgNetworkResourceModel{
 		ID:                 types.StringValue(id),
 		VAppName:           state.VAppName,
-		VDC:                state.VDC,
+		VAppID:             state.VAppID,
+		VDC:                types.StringValue(r.vdc.GetName()),
 		NetworkName:        state.NetworkName,
 		IsFenced:           types.BoolValue(isFenced),
 		RetainIPMacEnabled: types.BoolValue(*vAppNetwork.Configuration.RetainNetInfoAcrossDeployments),
@@ -271,25 +273,28 @@ func (r *orgNetworkResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	orgNetworkRef, errInitOrg := plan.initOrgNetworkQuery(ctx, r.client, true)
-	if errInitOrg != nil {
-		resp.Diagnostics.AddError(errInitOrg.Summary, errInitOrg.Detail)
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if orgNetworkRef.VAppLocked {
-		defer orgNetworkRef.VAppUnlockF()
+	// Lock vApp
+	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+	defer r.vapp.UnlockParentVApp(ctx)
 
-	vAppNetworkConfig, err := orgNetworkRef.VApp.GetNetworkConfig()
+	vAppNetworkConfig, err := r.vapp.GetNetworkConfig()
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving vApp network config", err.Error())
 		return
 	}
 
 	vAppNetwork, _, errFindNetwork := plan.findOrgNetwork(vAppNetworkConfig)
-	if errFindNetwork != nil {
-		resp.Diagnostics.AddError(errFindNetwork.Summary, errFindNetwork.Detail)
+	resp.Diagnostics.Append(errFindNetwork...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -310,7 +315,7 @@ func (r *orgNetworkResource) Update(ctx context.Context, req resource.UpdateRequ
 			ID:                 state.ID.ValueString(),
 			RetainIpMacEnabled: &retainIP,
 		}
-		_, err = orgNetworkRef.VApp.UpdateOrgNetwork(vappNetworkSettings, plan.IsFenced.ValueBool())
+		_, err = r.vapp.UpdateOrgNetwork(vappNetworkSettings, plan.IsFenced.ValueBool())
 		if err != nil {
 			resp.Diagnostics.AddError("Error updating vApp network", err.Error())
 			return
@@ -320,6 +325,7 @@ func (r *orgNetworkResource) Update(ctx context.Context, req resource.UpdateRequ
 	plan = &orgNetworkResourceModel{
 		ID:                 state.ID,
 		VAppName:           state.VAppName,
+		VAppID:             state.VAppID,
 		VDC:                state.VDC,
 		NetworkName:        state.NetworkName,
 		IsFenced:           plan.IsFenced,
@@ -343,16 +349,20 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	orgNetworkRef, errInitOrg := state.initOrgNetworkQuery(ctx, r.client, true)
-	if errInitOrg != nil {
-		resp.Diagnostics.AddError(errInitOrg.Summary, errInitOrg.Detail)
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if orgNetworkRef.VAppLocked {
-		defer orgNetworkRef.VAppUnlockF()
+	// Lock vApp
+	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-	_, err := orgNetworkRef.VApp.RemoveNetwork(state.ID.ValueString())
+	defer r.vapp.UnlockParentVApp(ctx)
+
+	_, err := r.vapp.RemoveNetwork(state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting vApp network", err.Error())
 		return

@@ -8,7 +8,6 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
 const testAccIAMRightDataSourceConfig = `
 data "cloudavenue_iam_right" "example" {
 	name = "Catalog: Add vApp from My Cloud"

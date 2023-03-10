@@ -13,8 +13,8 @@ The Edge Gateway resource allows you to create and manage Edge Gateways in Cloud
 
 ```terraform
 resource "cloudavenue_vapp" "example" {
-  vapp_name = "vapp_name"
-  description = "This is a test vapp"
+  name        = "MyVapp"
+  description = "This is an example vApp"
 }
 ```
 
@@ -23,7 +23,7 @@ resource "cloudavenue_vapp" "example" {
 
 ### Required
 
-- `vapp_name` (String) A name for the vApp, unique within the VDC. Required if `vapp_id` is not set.
+- `name` (String) (ForceNew) Name of the vApp.
 
 ### Optional
 
@@ -31,15 +31,14 @@ resource "cloudavenue_vapp" "example" {
 - `guest_properties` (Map of String) Key/value settings for guest properties
 - `lease` (Block List) Defines lease parameters for this vApp (see [below for nested schema](#nestedblock--lease))
 - `power_on` (Boolean) A boolean value stating if this vApp should be powered on
-- `vdc` (String) The name of VDC to use, optional if defined at provider level
+- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 
 - `href` (String) vApp Hyper Reference
-- `id` (String) The ID is a `vapp_id`.
+- `id` (String) The ID of the vApp.
 - `status_code` (Number) Shows the status code of the vApp
 - `status_text` (String) Shows the status of the vApp
-- `vapp_id` (String) The ID of vApp
 
 <a id="nestedblock--lease"></a>
 ### Nested Schema for `lease`
