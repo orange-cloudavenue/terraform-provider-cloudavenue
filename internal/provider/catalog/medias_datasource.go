@@ -151,6 +151,10 @@ func (d *catalogMediasDataSource) Read(ctx context.Context, req datasource.ReadR
 	medias := make(map[string]catalogMediaDataStruct)
 	mediasName := make([]string, 0)
 	x, err := catalog.QueryMediaList()
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to query media list", err.Error())
+		return
+	}
 	// Get all medias
 	for _, media := range x {
 		s := catalogMediaDataStruct{
