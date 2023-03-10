@@ -239,19 +239,17 @@ func lookupvAppTemplateforVM(v *VMClient, _ *govcd.Org, _ *govcd.Vdc) (govcd.VAp
 			}
 
 			return *returnedVAppTemplate, err
-		} else {
-			// If no VM name was specified - we will pick the first VM inside the vApp Template
-
-			if vAppTemplate.VAppTemplate == nil || vAppTemplate.VAppTemplate.Children == nil || len(vAppTemplate.VAppTemplate.Children.VM) == 0 {
-				return govcd.VAppTemplate{}, fmt.Errorf("vApp Template %s does not contain any VMs", v.Plan.VappTemplateID.ValueString())
-			}
-			returnedVAppTemplate := govcd.NewVAppTemplate(&v.Client.Vmware.Client)
-			returnedVAppTemplate.VAppTemplate = vAppTemplate.VAppTemplate.Children.VM[0]
-			return *returnedVAppTemplate, nil
 		}
-	} else {
-		return govcd.VAppTemplate{}, fmt.Errorf("vApp Template ID is not specified")
+		// If no VM name was specified - we will pick the first VM inside the vApp Template
+
+		if vAppTemplate.VAppTemplate == nil || vAppTemplate.VAppTemplate.Children == nil || len(vAppTemplate.VAppTemplate.Children.VM) == 0 {
+			return govcd.VAppTemplate{}, fmt.Errorf("vApp Template %s does not contain any VMs", v.Plan.VappTemplateID.ValueString())
+		}
+		returnedVAppTemplate := govcd.NewVAppTemplate(&v.Client.Vmware.Client)
+		returnedVAppTemplate.VAppTemplate = vAppTemplate.VAppTemplate.Children.VM[0]
+		return *returnedVAppTemplate, nil
 	}
+	return govcd.VAppTemplate{}, fmt.Errorf("vApp Template ID is not specified")
 }
 
 // networksToConfig converts terraform schema for 'network' to types.NetworkConnectionSection
