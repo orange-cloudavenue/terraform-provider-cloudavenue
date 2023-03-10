@@ -74,7 +74,7 @@ type InternalDisk struct {
 	StorageProfile types.String `tfsdk:"storage_profile"`
 }
 
-// InternalDiskAttrType returns the type map for the internal disk
+// InternalDiskAttrType returns the type map for the internal disk.
 func InternalDiskAttrType() map[string]attr.Type {
 	return map[string]attr.Type{
 		"id":              types.StringType,

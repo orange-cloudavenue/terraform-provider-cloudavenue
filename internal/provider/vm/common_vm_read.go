@@ -7,7 +7,7 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 )
 
-// readVM reads the vApp VM configuration from the vApp
+// readVM reads the vApp VM configuration from the vApp.
 func readVM(v *VMClient) (*govcd.VM, error) {
 	var (
 		vdc  *govcd.Vdc

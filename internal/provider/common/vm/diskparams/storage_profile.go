@@ -10,7 +10,7 @@ import (
 
 type storageProfile string
 
-// String
+// String.
 func (s storageProfile) String() string {
 	return string(s)
 }
@@ -66,7 +66,7 @@ var storageProfileValuesDescription = func() string {
 
 const descriptionStorageProfile = "Storage profile to override the VM default one."
 
-// StorageProfileAttribute returns the schema.Attribute for the storage profile
+// StorageProfileAttribute returns the schema.Attribute for the storage profile.
 func StorageProfileAttribute() schema.Attribute {
 	return schema.StringAttribute{
 		MarkdownDescription: descriptionStorageProfile + " Allowed values are: " + storageProfileValuesDescription + ".",
@@ -81,7 +81,7 @@ func StorageProfileAttribute() schema.Attribute {
 	}
 }
 
-// StorageProfileAttributeComputed returns the schema.Attribute for the storage profile
+// StorageProfileAttributeComputed returns the schema.Attribute for the storage profile.
 func StorageProfileAttributeComputed() schema.Attribute {
 	return schema.StringAttribute{
 		MarkdownDescription: descriptionStorageProfile,
@@ -89,7 +89,7 @@ func StorageProfileAttributeComputed() schema.Attribute {
 	}
 }
 
-// StorageProfileAttributeRequired returns the schema.Attribute for the storage profile
+// StorageProfileAttributeRequired returns the schema.Attribute for the storage profile.
 func StorageProfileAttributeRequired() schema.Attribute {
 	return schema.StringAttribute{
 		MarkdownDescription: descriptionStorageProfile + " Allowed values are: " + storageProfileValuesDescription + ".",

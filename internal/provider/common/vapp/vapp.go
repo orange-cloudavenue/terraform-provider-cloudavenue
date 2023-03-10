@@ -39,7 +39,7 @@ var (
 /*
 Schema
 
-Return the schema for vapp_id and vapp_name with MarkdownDescription, Validators and PlanModifiers
+Return the schema for vapp_id and vapp_name with MarkdownDescription, Validators and PlanModifiers.
 */
 func Schema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
@@ -69,7 +69,7 @@ func Schema() map[string]schema.Attribute {
 /*
 Init
 
-Get vApp name or vApp ID
+Get vApp name or vApp ID.
 */
 func Init(client *client.CloudAvenue, vdc vdc.VDC, vappID, vappName types.String) (vapp VApp, d diag.Diagnostics) {
 	var vappNameID string
@@ -114,12 +114,12 @@ func (v VApp) UnlockParentVApp(ctx context.Context) (d diag.Diagnostics) {
 	return
 }
 
-// GetName give you the name of the vApp
+// GetName give you the name of the vApp.
 func (v VApp) GetName() string {
 	return v.VApp.VApp.Name
 }
 
-// GetID give you the ID of the vApp
+// GetID give you the ID of the vApp.
 func (v VApp) GetID() string {
 	return v.VApp.VApp.ID
 }

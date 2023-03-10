@@ -39,7 +39,7 @@ func ResourceAttrType() map[string]attr.Type {
 	}
 }
 
-// ToAttrValue converts the Customization struct to a map of attr.Value
+// ToAttrValue converts the Customization struct to a map of attr.Value.
 func (r *Resource) ToAttrValue() map[string]attr.Value {
 	return map[string]attr.Value{
 		"cpus":                r.CPUs,

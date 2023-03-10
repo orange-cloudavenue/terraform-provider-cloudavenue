@@ -37,7 +37,7 @@ var errRemoveResource = errors.New("resource is being removed")
 
 */
 
-// addRemoveGuestProperties is responsible for setting guest properties on the VM
+// addRemoveGuestProperties is responsible for setting guest properties on the VM.
 func addRemoveGuestProperties(v *VMClient, vm *govcd.VM) error {
 	// * GuestPropertiers is Optional Value in Terraform Schema.
 	// * If it is not set, we don't need to do anything and return `nil`
@@ -56,7 +56,7 @@ func addRemoveGuestProperties(v *VMClient, vm *govcd.VM) error {
 	return nil
 }
 
-// getGuestProperties returns a struct for setting guest properties
+// getGuestProperties returns a struct for setting guest properties.
 func getGuestProperties(guestProperties types.Map) (*govcdtypes.ProductSectionList, error) {
 	// Init Struct
 	vmProperties := &govcdtypes.ProductSectionList{
@@ -98,7 +98,7 @@ func getGuestProperties(guestProperties types.Map) (*govcdtypes.ProductSectionLi
 
 */
 
-// updateGuestCustomizationSetting is responsible for setting all the data related to VM customization
+// updateGuestCustomizationSetting is responsible for setting all the data related to VM customization.
 func updateGuestCustomizationSetting(v *VMClient, vm *govcd.VM) error {
 	// Retrieve existing customization section to only customize what was throughout this function
 	customizationSection, err := vm.GetGuestCustomizationSection()
@@ -117,7 +117,7 @@ func updateGuestCustomizationSetting(v *VMClient, vm *govcd.VM) error {
 	return nil
 }
 
-// updateCustomizationSection is responsible for setting all the data related to VM customization
+// updateCustomizationSection is responsible for setting all the data related to VM customization.
 func updateCustomizationSection(v *VMClient, customizationSection *govcdtypes.GuestCustomizationSection) {
 	if v.Plan.ComputerName.IsNull() {
 		// for back compatibility we allow to set computer name from `name` if computer_name isn't provided
@@ -192,7 +192,7 @@ func updateCustomizationSection(v *VMClient, customizationSection *govcdtypes.Gu
 }
 
 // isForcedCustomization checks "customization" block in resource and checks if the value of field "force"
-// is set to "true". It returns false if the value is not set or is set to false
+// is set to "true". It returns false if the value is not set or is set to false.
 func isForcedCustomization(v *VMClient) bool {
 	if v.Plan.Customization.IsNull() {
 		return false
@@ -217,7 +217,7 @@ func isForcedCustomization(v *VMClient) bool {
 // * It will look up the exact VM with given `vm_name_in_template` inside `vapp_template_id`
 //
 // If `vm_name_in_template` was not specified:
-// * Return error
+// * Return error.
 func lookupvAppTemplateforVM(v *VMClient, org *govcd.Org, vdc *govcd.Vdc) (govcd.VAppTemplate, error) {
 	if !v.Plan.VappTemplateID.IsNull() && !v.Plan.VappTemplateID.IsUnknown() {
 		// Lookup of vApp Template using URN
@@ -259,7 +259,7 @@ func lookupvAppTemplateforVM(v *VMClient, org *govcd.Org, vdc *govcd.Vdc) (govcd
 //
 // The `vapp` parameter does not play critical role in the code, but adds additional validations:
 // * `org` type of networks will be checked if they are already attached to the vApp
-// * `vapp` type networks will be checked for existence inside the vApp
+// * `vapp` type networks will be checked for existence inside the vApp.
 func networksToConfig(v *VMClient, vapp *govcd.VApp) (govcdtypes.NetworkConnectionSection, error) {
 	networkConnectionSection := govcdtypes.NetworkConnectionSection{}
 
@@ -343,7 +343,7 @@ func networksToConfig(v *VMClient, vapp *govcd.VApp) (govcdtypes.NetworkConnecti
 	return networkConnectionSection, nil
 }
 
-// isItVappOrgNetwork checks if it is a vApp Org network (not vApp Network)
+// isItVappOrgNetwork checks if it is a vApp Org network (not vApp Network).
 func isItVappOrgNetwork(vAppNetworkName string, vapp govcd.VApp) (bool, error) {
 	vAppNetworkConfig, err := vapp.GetNetworkConfig()
 	if err != nil {
@@ -360,7 +360,7 @@ func isItVappOrgNetwork(vAppNetworkName string, vapp govcd.VApp) (bool, error) {
 	return false, fmt.Errorf("configured vApp Org network isn't found: %s", vAppNetworkName)
 }
 
-// isItVappNetwork checks if it is a vApp network (not vApp Org Network)
+// isItVappNetwork checks if it is a vApp network (not vApp Org Network).
 func isItVappNetwork(vAppNetworkName string, vapp govcd.VApp) (bool, error) {
 	vAppNetworkConfig, err := vapp.GetNetworkConfig()
 	if err != nil {
@@ -425,7 +425,7 @@ func updateOsType(v *VMClient, vm *govcd.VM) error {
 }
 
 // getCpuMemoryValues returns CPU, CPU core count and Memory variables. Priority comes from HCL
-// schema configuration and then whatever is present in compute policy (if it was specified at all)
+// schema configuration and then whatever is present in compute policy (if it was specified at all).
 func getCPUMemoryValues(v *VMClient, vdcComputePolicy *govcdtypes.VdcComputePolicyV2) (cpu, cores *int, memory *int64, err error) {
 	var (
 		setCPU    *int

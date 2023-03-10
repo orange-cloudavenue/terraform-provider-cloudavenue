@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	// Used when a task fails. The placeholder is for the error
+	// Used when a task fails. The placeholder is for the error.
 	errorCompletingTask = "error completing tasks: %s"
 )
 

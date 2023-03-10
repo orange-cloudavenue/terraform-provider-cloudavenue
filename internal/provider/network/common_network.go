@@ -9,7 +9,7 @@ import (
 
 var networkMutexKV = mutex.NewKV()
 
-// TODO: refactor -> go to common
+// TODO: refactor -> go to common.
 type diagnosticError struct {
 	Summary string
 	Detail  string

@@ -38,7 +38,7 @@ type Customization struct {
 	InitScript                     types.String `tfsdk:"init_script"`
 }
 
-// ToAttrValue converts the Customization struct to a map of attr.Value
+// ToAttrValue converts the Customization struct to a map of attr.Value.
 func (c *Customization) ToAttrValue() map[string]attr.Value {
 	return map[string]attr.Value{
 		"enabled":                             c.Enabled,
@@ -59,7 +59,7 @@ func (c *Customization) ToAttrValue() map[string]attr.Value {
 	}
 }
 
-// CustomizationAttrType
+// CustomizationAttrType.
 func CustomizationAttrType() map[string]attr.Type {
 	return map[string]attr.Type{
 		"enabled":                             types.BoolType,
@@ -80,7 +80,7 @@ func CustomizationAttrType() map[string]attr.Type {
 	}
 }
 
-// CustomizationFromPlan converts the terraform plan to a Customization struct
+// CustomizationFromPlan converts the terraform plan to a Customization struct.
 func CustomizationFromPlan(ctx context.Context, x types.Object) (*Customization, diag.Diagnostics) {
 	if x.IsNull() || x.IsUnknown() {
 		return &Customization{}, diag.Diagnostics{}
@@ -96,7 +96,7 @@ func CustomizationFromPlan(ctx context.Context, x types.Object) (*Customization,
 	return c, d
 }
 
-// ToPlan converts the Customization struct to a terraform plan
+// ToPlan converts the Customization struct to a terraform plan.
 func (c *Customization) ToPlan() basetypes.ObjectValue {
 	if c == nil {
 		return types.ObjectNull(CustomizationAttrType())
