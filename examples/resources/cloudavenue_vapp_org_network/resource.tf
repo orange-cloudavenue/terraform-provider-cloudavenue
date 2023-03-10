@@ -1,9 +1,9 @@
 data "cloudavenue_tier0_vrfs" "example" {}
 
 resource "cloudavenue_edgegateway" "example" {
-  owner_name     = "MyVDCGroup"
+  owner_name     = "MyVDC"
   tier0_vrf_name = data.cloudavenue_tier0_vrfs.example.names.0
-  owner_type     = "vdc-group"
+  owner_type     = "vdc"
 }
 
 resource "cloudavenue_network_routed" "example" {

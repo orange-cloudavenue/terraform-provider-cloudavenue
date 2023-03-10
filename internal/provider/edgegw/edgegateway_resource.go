@@ -220,6 +220,13 @@ func (r *edgeGatewaysResource) Create(
 
 	switch plan.OwnerType.ValueString() {
 	case "vdc":
+		// Check if vDC exist
+		if _, _, err := r.client.GetOrgAndVDC(r.client.GetOrg(), plan.OwnerName.ValueString()); err != nil {
+			resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+			return
+		}
+
+		// Create Edge Gateway
 		job, httpR, err = r.client.APIClient.EdgeGatewaysApi.CreateVdcEdge(
 			auth,
 			body,
@@ -235,6 +242,18 @@ func (r *edgeGatewaysResource) Create(
 			}
 		}
 	case "vdc-group":
+		// Check if vDC Group exist
+		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving Org", err.Error())
+			return
+		}
+		if _, err := adminOrg.GetVdcGroupByName(plan.OwnerName.ValueString()); err != nil {
+			resp.Diagnostics.AddError("Error retrieving vDC Group", err.Error())
+			return
+		}
+
+		// Create Edge Gateway
 		job, httpR, err = r.client.APIClient.EdgeGatewaysApi.CreateVdcGroupEdge(
 			auth,
 			body,
