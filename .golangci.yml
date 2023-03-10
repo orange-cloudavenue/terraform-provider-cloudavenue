@@ -120,6 +120,9 @@ linters-settings:
     ignore-generated-header: true
     severity: error
     rules:
+      - name: exported
+        severity: warning
+        disabled: false
       - name: indent-error-flow
         severity: warning
         disabled: false

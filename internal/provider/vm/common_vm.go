@@ -16,7 +16,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
-type VMClient struct {
+type Client struct {
 	Client *client.CloudAvenue
 	Plan   *vmResourceModel
 	State  *vmResourceModel
@@ -38,7 +38,7 @@ var errRemoveResource = errors.New("resource is being removed")
 */
 
 // addRemoveGuestProperties is responsible for setting guest properties on the VM.
-func addRemoveGuestProperties(v *VMClient, vm *govcd.VM) error {
+func addRemoveGuestProperties(v *Client, vm *govcd.VM) error {
 	// * GuestPropertiers is Optional Value in Terraform Schema.
 	// * If it is not set, we don't need to do anything and return `nil`
 
@@ -99,7 +99,7 @@ func getGuestProperties(guestProperties types.Map) (*govcdtypes.ProductSectionLi
 */
 
 // updateGuestCustomizationSetting is responsible for setting all the data related to VM customization.
-func updateGuestCustomizationSetting(v *VMClient, vm *govcd.VM) error {
+func updateGuestCustomizationSetting(v *Client, vm *govcd.VM) error {
 	// Retrieve existing customization section to only customize what was throughout this function
 	customizationSection, err := vm.GetGuestCustomizationSection()
 	if err != nil {
@@ -118,7 +118,7 @@ func updateGuestCustomizationSetting(v *VMClient, vm *govcd.VM) error {
 }
 
 // updateCustomizationSection is responsible for setting all the data related to VM customization.
-func updateCustomizationSection(v *VMClient, customizationSection *govcdtypes.GuestCustomizationSection) {
+func updateCustomizationSection(v *Client, customizationSection *govcdtypes.GuestCustomizationSection) {
 	if v.Plan.ComputerName.IsNull() {
 		// for back compatibility we allow to set computer name from `name` if computer_name isn't provided
 		customizationSection.ComputerName = v.Plan.VMName.ValueString()
@@ -193,7 +193,7 @@ func updateCustomizationSection(v *VMClient, customizationSection *govcdtypes.Gu
 
 // isForcedCustomization checks "customization" block in resource and checks if the value of field "force"
 // is set to "true". It returns false if the value is not set or is set to false.
-func isForcedCustomization(v *VMClient) bool {
+func isForcedCustomization(v *Client) bool {
 	if v.Plan.Customization.IsNull() {
 		return false
 	}
@@ -218,7 +218,7 @@ func isForcedCustomization(v *VMClient) bool {
 //
 // If `vm_name_in_template` was not specified:
 // * Return error.
-func lookupvAppTemplateforVM(v *VMClient, _ *govcd.Org, _ *govcd.Vdc) (govcd.VAppTemplate, error) {
+func lookupvAppTemplateforVM(v *Client, _ *govcd.Org, _ *govcd.Vdc) (govcd.VAppTemplate, error) {
 	if !v.Plan.VappTemplateID.IsNull() && !v.Plan.VappTemplateID.IsUnknown() {
 		// Lookup of vApp Template using URN
 
@@ -258,7 +258,7 @@ func lookupvAppTemplateforVM(v *VMClient, _ *govcd.Org, _ *govcd.Vdc) (govcd.VAp
 // The `vapp` parameter does not play critical role in the code, but adds additional validations:
 // * `org` type of networks will be checked if they are already attached to the vApp
 // * `vapp` type networks will be checked for existence inside the vApp.
-func networksToConfig(v *VMClient, vapp *govcd.VApp) (govcdtypes.NetworkConnectionSection, error) {
+func networksToConfig(v *Client, vapp *govcd.VApp) (govcdtypes.NetworkConnectionSection, error) {
 	networkConnectionSection := govcdtypes.NetworkConnectionSection{}
 
 	if v.Plan.Networks.IsNull() {
@@ -391,7 +391,7 @@ func lookupStorageProfile(storageProfileName string, vdc *govcd.Vdc) (*govcdtype
 
 // lookupComputePolicy returns the Compute Policy associated to the value of the given Compute Policy attribute. If the
 // attribute is not set, the returned policy will be nil. If the obtained policy is incorrect, it will return an error.
-func lookupComputePolicy(v *VMClient, value string) (*govcd.VdcComputePolicyV2, error) {
+func lookupComputePolicy(v *Client, value string) (*govcd.VdcComputePolicyV2, error) {
 	if value == "" {
 		return nil, errors.New("value is an empty string")
 	}
@@ -406,7 +406,7 @@ func lookupComputePolicy(v *VMClient, value string) (*govcd.VdcComputePolicyV2, 
 	return computePolicy, nil
 }
 
-func updateOsType(v *VMClient, vm *govcd.VM) error {
+func updateOsType(v *Client, vm *govcd.VM) error {
 	var err error
 
 	vmSpecSection := vm.VM.VmSpecSection
@@ -424,7 +424,7 @@ func updateOsType(v *VMClient, vm *govcd.VM) error {
 
 // getCpuMemoryValues returns CPU, CPU core count and Memory variables. Priority comes from HCL
 // schema configuration and then whatever is present in compute policy (if it was specified at all).
-func getCPUMemoryValues(v *VMClient, _ *govcdtypes.VdcComputePolicyV2) (cpu, cores *int, memory *int64, err error) {
+func getCPUMemoryValues(v *Client, _ *govcdtypes.VdcComputePolicyV2) (cpu, cores *int, memory *int64, err error) {
 	var (
 		setCPU    *int
 		setCores  *int

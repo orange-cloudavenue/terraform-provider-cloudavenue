@@ -12,7 +12,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
-func updateVM(ctx context.Context, v *VMClient) (*govcd.VM, error) { //nolint:gocyclo
+func updateVM(ctx context.Context, v *Client) (*govcd.VM, error) { //nolint:gocyclo
 	var (
 		vdc  *govcd.Vdc
 		vapp *govcd.VApp
