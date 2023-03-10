@@ -1,7 +1,5 @@
 package vm
 
-import "sort"
-
 type osType struct {
 	name        string
 	description string
@@ -164,21 +162,21 @@ func getOsTypeOther() osTypes {
 }
 
 // sortByName sorts the list of osTypes by name.
-func (o *osTypes) sortByName() {
-	x := []string{}
-	for k := range *o {
-		x = append(x, k)
-	}
-
-	sort.Strings(x)
-
-	y := map[string]osType{}
-	for _, k := range x {
-		y[k] = (*o)[k]
-	}
-
-	*o = y
-}
+// func (o *osTypes) sortByName() {
+// 	x := []string{}
+// 	for k := range *o {
+// 		x = append(x, k)
+// 	}
+//
+// 	sort.Strings(x)
+//
+// 	y := map[string]osType{}
+// 	for _, k := range x {
+// 		y[k] = (*o)[k]
+// 	}
+//
+// 	*o = y
+// }
 
 // getAllOsTypes returns all osTypes name.
 func GetAllOsTypes() []string {

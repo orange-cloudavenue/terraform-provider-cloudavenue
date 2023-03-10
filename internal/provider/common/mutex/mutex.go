@@ -18,7 +18,6 @@ import (
 type KV struct {
 	lock  sync.Mutex
 	store map[string]*sync.Mutex
-	tfCtx context.Context
 }
 
 // NewKV is an implementation of KV.
