@@ -85,6 +85,7 @@ func getOsTypeLinux() osTypes {
 	}
 }
 
+// //nolint:dupl
 // getOsTypeWindows returns the osType for the given name.
 func getOsTypeWindows() osTypes {
 	return map[string]osType{
@@ -121,6 +122,7 @@ func getOsTypeWindows() osTypes {
 	}
 }
 
+// //nolint:dupl
 // getOsTypeOther returns the osType for the given name.
 func getOsTypeOther() osTypes {
 	// allowVMReboot := true
