@@ -1,6 +1,7 @@
 package network
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
@@ -8,12 +9,6 @@ import (
 )
 
 var networkMutexKV = mutex.NewKV()
-
-// TODO: refactor -> go to common.
-type diagnosticError struct {
-	Summary string
-	Detail  string
-}
 
 func processIPRanges(pool []staticIPPool) []govcdtypes.ExternalNetworkV2IPRange {
 	subnetRng := make([]govcdtypes.ExternalNetworkV2IPRange, len(pool))
@@ -27,13 +22,13 @@ func processIPRanges(pool []staticIPPool) []govcdtypes.ExternalNetworkV2IPRange 
 	return subnetRng
 }
 
-func getParentEdgeGatewayID(org *govcd.Org, edgeGatewayID string) (*string, *diagnosticError) {
+func getParentEdgeGatewayID(org *govcd.Org, edgeGatewayID string) (*string, diag.Diagnostic) {
 	anyEdgeGateway, err := org.GetAnyTypeEdgeGatewayById(edgeGatewayID)
 	if err != nil {
-		return nil, &diagnosticError{Summary: "Error retrieving edge gateway", Detail: err.Error()}
+		return nil, diag.NewErrorDiagnostic("error retrieving edge gateway", err.Error())
 	}
 	if anyEdgeGateway == nil {
-		return nil, &diagnosticError{Summary: "Edge gateway not found", Detail: "anyEdgeGateway object is nil"}
+		return nil, diag.NewErrorDiagnostic("error retrieving edge gateway", "edge gateway is a nil object")
 	}
 	id := anyEdgeGateway.EdgeGateway.OwnerRef.ID
 
