@@ -152,8 +152,14 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 	defer r.vapp.UnlockParentVApp(ctx)
 
+	vdc, errGetVDC := r.vdc.GetVDC()
+	resp.Diagnostics.Append(errGetVDC...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	orgNetworkName := plan.NetworkName.ValueString()
-	orgNetwork, err := r.vdc.GetOrgVdcNetworkByNameOrId(orgNetworkName, true)
+	orgNetwork, err := vdc.GetOrgVdcNetworkByNameOrId(orgNetworkName, true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving org network", err.Error())
 		return

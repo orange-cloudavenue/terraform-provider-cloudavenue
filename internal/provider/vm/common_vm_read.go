@@ -26,9 +26,14 @@ func readVM(v *Client) (*govcd.VM, error) {
 	}
 
 	// Get vcd object
-	_, vdc, err = v.Client.GetOrgAndVDC(v.Client.GetOrg(), v.State.VDC.ValueString())
+	_, vdcHandler, err := v.Client.GetOrgAndVDC(v.Client.GetOrg(), v.State.VDC.ValueString())
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving VDC %s: %w", v.State.VDC.ValueString(), err)
+	}
+
+	vdc, isVDC := vdcHandler.(*govcd.Vdc)
+	if !isVDC {
+		return nil, fmt.Errorf("expected *govcd.Vdc type, have %T", vdcHandler)
 	}
 
 	// Get vApp

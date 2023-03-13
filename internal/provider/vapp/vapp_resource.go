@@ -200,7 +200,13 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	vapp, err := r.vdc.CreateRawVApp(plan.VAppName.ValueString(), plan.Description.ValueString())
+	vdc, errGetVDC := r.vdc.GetVDC()
+	resp.Diagnostics.Append(errGetVDC...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	vapp, err := vdc.CreateRawVApp(plan.VAppName.ValueString(), plan.Description.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating vApp", err.Error())
 		return
@@ -318,7 +324,7 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	// Request vApp
-	vappRefreshed, err := r.vdc.GetVAppByNameOrId(vapp.VApp.ID, true)
+	vappRefreshed, err := vdc.GetVAppByNameOrId(vapp.VApp.ID, true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found after creating", err.Error())
@@ -472,9 +478,14 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	vdc, errGetVDC := r.vdc.GetVDC()
+	resp.Diagnostics.Append(errGetVDC...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Request vApp
-	vapp, err := r.vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
+	vapp, err := vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found", err.Error())
@@ -579,7 +590,7 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	// Request vApp
-	vappRefreshed, err := r.vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
+	vappRefreshed, err := vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found after creating", err.Error())
@@ -649,8 +660,14 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
+	vdc, errGetVDC := r.vdc.GetVDC()
+	resp.Diagnostics.Append(errGetVDC...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Request vApp
-	vapp, err := r.vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
+	vapp, err := vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found", err.Error())

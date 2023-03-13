@@ -29,7 +29,6 @@ import (
 // Note. VM Power ON (if it wasn't disabled in HCL configuration) occurs as last step after all configuration is done.
 func createVM(_ context.Context, v *Client) (vm *govcd.VM, err error) { //nolint:gocyclo
 	var (
-		vdc        *govcd.Vdc
 		org        *govcd.Org
 		vapp       *govcd.VApp
 		vmTemplate govcd.VAppTemplate
@@ -45,9 +44,14 @@ func createVM(_ context.Context, v *Client) (vm *govcd.VM, err error) { //nolint
 	}
 
 	// Get vcd object
-	org, vdc, err = v.Client.GetOrgAndVDC(v.Client.GetOrg(), v.Plan.VDC.ValueString())
+	org, vdcHandler, err := v.Client.GetOrgAndVDC(v.Client.GetOrg(), v.Plan.VDC.ValueString())
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving VDC %s: %w", v.Plan.VDC.ValueString(), err)
+	}
+
+	vdc, isVDC := vdcHandler.(*govcd.Vdc)
+	if !isVDC {
+		return nil, fmt.Errorf("expected *govcd.Vdc type, have %T", vdcHandler)
 	}
 
 	if !v.Plan.VappTemplateID.IsNull() && !v.Plan.VappTemplateID.IsUnknown() {

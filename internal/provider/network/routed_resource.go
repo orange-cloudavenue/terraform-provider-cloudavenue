@@ -492,7 +492,7 @@ func (r *networkRoutedResource) ImportState(ctx context.Context, req resource.Im
 
 	vdcOrVDCGroupName, networkName := resourceURI[0], resourceURI[1]
 
-	org, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), r.client.GetDefaultVDC())
+	_, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), vdcOrVDCGroupName)
 	if err != nil && govcd.ContainsNotFound(err) {
 		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
 		return
@@ -505,21 +505,8 @@ func (r *networkRoutedResource) ImportState(ctx context.Context, req resource.Im
 	}
 
 	if orgNetwork == nil {
-		adminOrg, err := r.client.Vmware.GetAdminOrgByName(org.Org.Name)
-		if err != nil {
-			resp.Diagnostics.AddError("Error retrieving Admin Org", err.Error())
-			return
-		}
-		vdcgroup, err := adminOrg.GetVdcGroupByName(vdcOrVDCGroupName)
-		if err != nil {
-			resp.Diagnostics.AddError("Error retrieving VDC group", err.Error())
-			return
-		}
-		orgNetwork, err = vdcgroup.GetOpenApiOrgVdcNetworkByName(networkName)
-		if err != nil && govcd.ContainsNotFound(err) {
-			resp.Diagnostics.AddError("Error retrieving org vdc_group network by name", err.Error())
-			return
-		}
+		resp.Diagnostics.AddError("Error retrieving org network by name", err.Error())
+		return
 	}
 
 	if !orgNetwork.IsRouted() {

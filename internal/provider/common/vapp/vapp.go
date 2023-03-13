@@ -71,12 +71,17 @@ Init
 
 Get vApp name or vApp ID.
 */
-func Init(client *client.CloudAvenue, vdc vdc.VDC, vappID, vappName types.String) (vapp VApp, d diag.Diagnostics) {
+func Init(_ *client.CloudAvenue, vdcHandler vdc.VDC, vappID, vappName types.String) (vapp VApp, d diag.Diagnostics) {
 	var vappNameID string
 	if vappID.IsNull() || vappID.IsUnknown() {
 		vappNameID = vappName.ValueString()
 	} else {
 		vappNameID = vappID.ValueString()
+	}
+
+	vdc, errGetVDC := vdcHandler.GetVDC()
+	if errGetVDC.HasError() {
+		return
 	}
 
 	// Request vApp
@@ -89,7 +94,7 @@ func Init(client *client.CloudAvenue, vdc vdc.VDC, vappID, vappName types.String
 		d.AddError("Error retrieving vApp", err.Error())
 		return
 	}
-	return VApp{VApp: vappOut, vdc: vdc}, nil
+	return VApp{VApp: vappOut, vdc: vdcHandler}, nil
 }
 
 // LockParentVApp locks the parent vApp.
