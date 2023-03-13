@@ -205,8 +205,8 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 	}
 
 	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(org, plan.EdgeGatewayID.ValueString())
-	if errGet != nil {
-		resp.Diagnostics.AddError(errGet.Summary, errGet.Detail)
+	resp.Diagnostics.Append(errGet)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -349,8 +349,8 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(org, plan.EdgeGatewayID.ValueString())
-	if errGet != nil {
-		resp.Diagnostics.AddError(errGet.Summary, errGet.Detail)
+	resp.Diagnostics.Append(errGet)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -453,8 +453,8 @@ func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(org, state.EdgeGatewayID.ValueString())
-	if errGet != nil {
-		resp.Diagnostics.AddError(errGet.Summary, errGet.Detail)
+	resp.Diagnostics.Append(errGet)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
