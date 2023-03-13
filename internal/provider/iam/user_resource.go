@@ -173,7 +173,7 @@ func (r *iamUserResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	// user creation is accessible only for administator account
+	// user creation is accessible only for administrator account
 	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
@@ -238,7 +238,7 @@ func (r *iamUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	// user creation is accessible only for administator account
+	// user creation is accessible only for administrator account
 	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
@@ -288,7 +288,7 @@ func (r *iamUserResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	// user update is accessible only for administator account
+	// user update is accessible only for administrator account
 	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
@@ -356,7 +356,7 @@ func (r *iamUserResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
-	// user delete is accessible only for administator account
+	// user delete is accessible only for administrator account
 	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())

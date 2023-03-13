@@ -305,7 +305,7 @@ func (r *aclResource) createOrUpdateACL(ctx context.Context, plan *aclResourceMo
 
 	var accessSettings []*govcdtypes.AccessSetting
 
-	isSharedWithEveryone := !(plan.EveryoneAccessLevel.IsNull() || plan.EveryoneAccessLevel.IsUnknown())
+	isSharedWithEveryone := !plan.EveryoneAccessLevel.IsNull() && !plan.EveryoneAccessLevel.IsUnknown()
 	if isSharedWithEveryone {
 		accessControl.IsSharedToEveryone = true
 		accessControl.EveryoneAccessLevel = &everyoneAccessLevel

@@ -265,7 +265,7 @@ func (r *aclResource) createOrUpdateACL(ctx context.Context, plan *aclResourceMo
 	sharedListOutput := []*acl.SharedWithModel{}
 
 	// treat the shared_with
-	isSharedWithEveryone := !(plan.EveryoneAccessLevel.IsNull() || plan.EveryoneAccessLevel.IsUnknown())
+	isSharedWithEveryone := !plan.EveryoneAccessLevel.IsNull() && !plan.EveryoneAccessLevel.IsUnknown()
 	if !isSharedWithEveryone {
 		everyoneAccessLevel = ""
 

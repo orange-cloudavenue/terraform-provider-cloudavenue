@@ -117,7 +117,7 @@ func (r *iamGroupResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	// group creation is accessible only for administator account
+	// group creation is accessible only for administrator account
 	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())

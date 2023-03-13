@@ -240,10 +240,7 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 
 	id := common.NormalizeID("urn:vcloud:network:", *networkID)
-	isFenced := false
-	if vAppNetwork.Configuration.FenceMode == govcdtypes.FenceModeNAT {
-		isFenced = true
-	}
+	isFenced := vAppNetwork.Configuration.FenceMode == govcdtypes.FenceModeNAT
 
 	plan := &orgNetworkResourceModel{
 		ID:                 types.StringValue(id),
@@ -303,10 +300,7 @@ func (r *orgNetworkResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	isFenced := false
-	if vAppNetwork.Configuration.FenceMode == govcdtypes.FenceModeNAT {
-		isFenced = true
-	}
+	isFenced := vAppNetwork.Configuration.FenceMode == govcdtypes.FenceModeNAT
 
 	if plan.IsFenced.ValueBool() != isFenced || plan.RetainIPMacEnabled.ValueBool() != *vAppNetwork.Configuration.RetainNetInfoAcrossDeployments {
 		tflog.Debug(ctx, "updating vApp network")
