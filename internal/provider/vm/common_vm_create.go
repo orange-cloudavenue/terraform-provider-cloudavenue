@@ -9,6 +9,7 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -29,7 +30,6 @@ import (
 // Note. VM Power ON (if it wasn't disabled in HCL configuration) occurs as last step after all configuration is done.
 func createVM(_ context.Context, v *Client) (vm *govcd.VM, err error) { //nolint:gocyclo
 	var (
-		org        *govcd.Org
 		vapp       *govcd.VApp
 		vmTemplate govcd.VAppTemplate
 	)
@@ -44,20 +44,16 @@ func createVM(_ context.Context, v *Client) (vm *govcd.VM, err error) { //nolint
 	}
 
 	// Get vcd object
-	org, vdcHandler, err := v.Client.GetOrgAndVDC(v.Client.GetOrg(), v.Plan.VDC.ValueString())
+	// org, vdcHandler, err := v.Client.GetOrgAndVDC(v.Client.GetOrg(), v.Plan.VDC.ValueString())
+	vdc, err := v.Client.GetVDC(client.WithVDCName(v.Plan.VDC.ValueString()))
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving VDC %s: %w", v.Plan.VDC.ValueString(), err)
-	}
-
-	vdc, isVDC := vdcHandler.(*govcd.Vdc)
-	if !isVDC {
-		return nil, fmt.Errorf("expected *govcd.Vdc type, have %T", vdcHandler)
 	}
 
 	if !v.Plan.VappTemplateID.IsNull() && !v.Plan.VappTemplateID.IsUnknown() {
 		// Look up VM template inside vApp template - either specified by `vm_name_in_template` or the
 		// first one in vApp
-		vmTemplate, err = lookupvAppTemplateforVM(v, org, vdc)
+		vmTemplate, err = lookupvAppTemplateforVM(v)
 		if err != nil {
 			return nil, fmt.Errorf("error finding vApp template: %w", err)
 		}

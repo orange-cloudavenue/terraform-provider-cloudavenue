@@ -5,12 +5,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
 
 // readVM reads the vApp VM configuration from the vApp.
 func readVM(v *Client) (*govcd.VM, error) {
 	var (
-		vdc  *govcd.Vdc
 		vapp *govcd.VApp
 		vm   *govcd.VM
 		err  error
@@ -26,14 +27,9 @@ func readVM(v *Client) (*govcd.VM, error) {
 	}
 
 	// Get vcd object
-	_, vdcHandler, err := v.Client.GetOrgAndVDC(v.Client.GetOrg(), v.State.VDC.ValueString())
+	vdc, err := v.Client.GetVDC(client.WithVDCName(v.State.VDC.ValueString()))
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving VDC %s: %w", v.State.VDC.ValueString(), err)
-	}
-
-	vdc, isVDC := vdcHandler.(*govcd.Vdc)
-	if !isVDC {
-		return nil, fmt.Errorf("expected *govcd.Vdc type, have %T", vdcHandler)
 	}
 
 	// Get vApp

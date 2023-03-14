@@ -12,6 +12,7 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
@@ -31,8 +32,9 @@ func NewDiskResource() resource.Resource {
 // diskResource is the resource implementation.
 type diskResource struct {
 	client *client.CloudAvenue
-	vapp   vapp.VApp
+	vapp   vapp.VAPP
 	vdc    vdc.VDC
+	org    org.Org
 }
 
 type diskResourceModel vm.Disk
@@ -51,6 +53,11 @@ func (r *diskResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 }
 
 func (r *diskResource) Init(ctx context.Context, rm *vm.Disk) (diags diag.Diagnostics) {
+	r.org, diags = org.Init(r.client)
+	if diags.HasError() {
+		return
+	}
+
 	r.vdc, diags = vdc.Init(r.client, rm.VDC)
 	if diags.HasError() {
 		return
@@ -167,7 +174,7 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	if plan.IsDetachable.ValueBool() {
 		// Create a detachable disk
-		disk, d := vm.DiskCreate(ctx, r.vdc, myVM, plan, r.vapp)
+		disk, d := vm.DiskCreate(ctx, r.org, r.vdc, myVM, plan, r.vapp)
 		resp.Diagnostics.Append(d...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -226,7 +233,7 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	disk, d := vm.DiskRead(ctx, r.client, r.vdc, state, r.vapp)
+	disk, d := vm.DiskRead(ctx, r.client, r.org, r.vdc, state, r.vapp)
 	if disk == nil && d != nil {
 		// Disk not found, remove from state
 		resp.State.RemoveResource(ctx)
@@ -265,7 +272,7 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	disk, d := vm.DiskUpdate(ctx, r.client, plan, state, r.vdc, r.vapp)
+	disk, d := vm.DiskUpdate(ctx, r.client, plan, state, r.org, r.vdc, r.vapp)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -293,7 +300,7 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	resp.Diagnostics.Append(vm.DiskDelete(ctx, r.client, state, r.vdc, r.vapp)...)
+	resp.Diagnostics.Append(vm.DiskDelete(ctx, r.client, state, r.org, r.vdc, r.vapp)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

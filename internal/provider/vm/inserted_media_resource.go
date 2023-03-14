@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
@@ -32,7 +33,8 @@ func NewVMInsertedMediaResource() resource.Resource {
 type vmInsertedMediaResource struct {
 	client *client.CloudAvenue
 	vdc    vdc.VDC
-	vapp   vapp.VApp
+	vapp   vapp.VAPP
+	org    org.Org
 }
 
 type vmInsertedMediaResourceModel struct {
@@ -96,6 +98,11 @@ func (r *vmInsertedMediaResource) Schema(ctx context.Context, _ resource.SchemaR
 }
 
 func (r *vmInsertedMediaResource) Init(ctx context.Context, rm *vmInsertedMediaResourceModel) (diags diag.Diagnostics) {
+	r.org, diags = org.Init(r.client)
+	if diags.HasError() {
+		return
+	}
+
 	r.vdc, diags = vdc.Init(r.client, rm.VDC)
 	if diags.HasError() {
 		return
@@ -147,11 +154,11 @@ func (r *vmInsertedMediaResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockParentVApp(ctx)
+	defer r.vapp.UnlockVAPP(ctx)
 
 	// Check if VM exists
 	vm, err := r.vapp.GetVMByName(plan.VMName.ValueString(), true)
@@ -161,7 +168,7 @@ func (r *vmInsertedMediaResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	// Insert media
-	task, err := vm.HandleInsertMedia(r.vdc.GetOrg(), plan.Catalog.ValueString(), plan.Name.ValueString())
+	task, err := vm.HandleInsertMedia(r.org.Org.Org, plan.Catalog.ValueString(), plan.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error inserting media", err.Error())
 		return
@@ -267,11 +274,11 @@ func (r *vmInsertedMediaResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockParentVApp(ctx)
+	defer r.vapp.UnlockVAPP(ctx)
 
 	// Check if VM exists
 	vm, err := r.vapp.GetVMByName(state.VMName.ValueString(), true)
@@ -315,11 +322,11 @@ func (r *vmInsertedMediaResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockParentVApp(ctx)
+	defer r.vapp.UnlockVAPP(ctx)
 
 	// Check if VM exists
 	vm, err := r.vapp.GetVMByName(state.VMName.ValueString(), true)
@@ -329,7 +336,7 @@ func (r *vmInsertedMediaResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	// Eject media
-	_, err = vm.HandleEjectMediaAndAnswer(r.vdc.GetOrg(), state.Catalog.ValueString(), state.Name.ValueString(), true)
+	_, err = vm.HandleEjectMediaAndAnswer(r.org.Org.Org, state.Catalog.ValueString(), state.Name.ValueString(), true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error ejecting media", err.Error())
 		return
