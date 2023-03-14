@@ -63,7 +63,7 @@ func (r *vcdaIPResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4})`),
-						"must be a valide ipv4 address",
+						"must be a valid ipv4 address",
 					),
 				},
 				PlanModifiers: []planmodifier.String{

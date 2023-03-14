@@ -149,7 +149,7 @@ func (r *catalogResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	// catalog creation is accessible only for administator account
+	// catalog creation is accessible only for administrator account
 	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())

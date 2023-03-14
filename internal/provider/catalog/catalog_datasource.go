@@ -142,7 +142,7 @@ func (d *catalogDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	// catalog creation is accessible only for administator account
+	// catalog creation is accessible only for administrator account
 	adminOrg, err := d.client.Vmware.GetAdminOrgByNameOrId(d.client.GetOrg())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
