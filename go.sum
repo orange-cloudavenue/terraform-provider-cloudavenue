@@ -1,6 +1,6 @@
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
-github.com/FrangipaneTeam/terraform-plugin-framework-validators v0.0.0-20230309070523-86a8219b2eae h1:goj3vGKMKeZa+TunrV11VgbTCYJIKRRRKRS75yVEN4g=
-github.com/FrangipaneTeam/terraform-plugin-framework-validators v0.0.0-20230309070523-86a8219b2eae/go.mod h1:adSDKHqEGbCnCthXGrQl8UurJzX/RO9bod8OeMJ58o8=
+github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.0.0 h1:uIpY11Z4ElztSMz/fwYlGtW31qGSf6yCUo2Sf+3jwY8=
+github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.0.0/go.mod h1:adSDKHqEGbCnCthXGrQl8UurJzX/RO9bod8OeMJ58o8=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
 github.com/Masterminds/goutils v1.1.1/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
