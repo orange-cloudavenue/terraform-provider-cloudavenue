@@ -123,8 +123,9 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		vm.NewVMResource,
 		vm.NewVMInsertedMediaResource,
 
-		// Network
+		// NETWORK
 		network.NewNetworkRoutedResource,
+		network.NewNetworkIsolatedResource,
 	}
 }
 
