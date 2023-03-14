@@ -2,6 +2,7 @@
 package catalog
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -35,7 +36,19 @@ func TestAccCatalogResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "delete_force", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "href"),
-					resource.TestCheckResourceAttrSet(resourceName, "catalog_version"),
+					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "created_at"),
+				),
+			},
+			{
+				Config: testAccCatalogResourceUpdate(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "catalog_name", "test-catalog"),
+					resource.TestCheckResourceAttr(resourceName, "description", "catalog for ISO"),
+					resource.TestCheckResourceAttr(resourceName, "delete_recursive", "true"),
+					resource.TestCheckResourceAttr(resourceName, "delete_force", "true"),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "href"),
 					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "created_at"),
 				),
@@ -51,4 +64,8 @@ func TestAccCatalogResource(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccCatalogResourceUpdate() string {
+	return strings.Replace(testAccCatalogResourceConfig, "catalog for files", "catalog for ISO", 1)
 }
