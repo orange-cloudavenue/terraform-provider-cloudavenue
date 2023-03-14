@@ -118,7 +118,7 @@ func (r *iamGroupResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	// group creation is accessible only for administrator account
-	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
 		return
@@ -175,7 +175,7 @@ func (r *iamGroupResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
-	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
 		return
@@ -231,7 +231,7 @@ func (r *iamGroupResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
 		return
@@ -289,7 +289,7 @@ func (r *iamGroupResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
 		return

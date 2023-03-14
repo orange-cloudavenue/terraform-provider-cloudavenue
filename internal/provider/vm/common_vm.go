@@ -218,7 +218,7 @@ func isForcedCustomization(v *Client) bool {
 //
 // If `vm_name_in_template` was not specified:
 // * Return error.
-func lookupvAppTemplateforVM(v *Client, _ *govcd.Org, _ client.VDCOrVDCGroupHandler) (govcd.VAppTemplate, error) {
+func lookupvAppTemplateforVM(v *Client) (govcd.VAppTemplate, error) {
 	if !v.Plan.VappTemplateID.IsNull() && !v.Plan.VappTemplateID.IsUnknown() {
 		// Lookup of vApp Template using URN
 
@@ -375,15 +375,10 @@ func isItVappNetwork(vAppNetworkName string, vapp govcd.VApp) (bool, error) {
 	return false, fmt.Errorf("configured vApp network isn't found: %s", vAppNetworkName)
 }
 
-func lookupStorageProfile(storageProfileName string, vdcHandler client.VDCOrVDCGroupHandler) (*govcdtypes.Reference, error) {
+func lookupStorageProfile(storageProfileName string, vdc *client.VDC) (*govcdtypes.Reference, error) {
 	// If no storage profile lookup was requested - bail out early and return nil reference
 	if storageProfileName == "" {
 		return nil, errors.New("storageProfileName is an empty string")
-	}
-
-	vdc, isVDC := vdcHandler.(*govcd.Vdc)
-	if !isVDC {
-		return nil, fmt.Errorf("expected *govcd.Vdc type, have %T", vdcHandler)
 	}
 
 	storageProfile, err := vdc.FindStorageProfileReference(storageProfileName)

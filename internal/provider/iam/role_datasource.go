@@ -109,7 +109,7 @@ func (d *iamRoleDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	// role read is accessible only in administrator
-	adminOrg, err := d.client.Vmware.GetAdminOrgByNameOrId(d.client.GetOrg())
+	adminOrg, err := d.client.Vmware.GetAdminOrgByNameOrId(d.client.GetOrgName())
 	if err != nil {
 		resp.Diagnostics.AddError("[role read] Error retrieving Org", err.Error())
 		return

@@ -352,17 +352,12 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 	}
 
 	// Get vcd object
-	_, vdcHandler, err := r.client.GetOrgAndVDC(r.client.GetOrg(), state.VDC.ValueString())
+	vdc, err := r.client.GetVDC(client.WithVDCName(state.VDC.ValueString()))
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
 		return
 	}
 
-	vdc, isVDC := vdcHandler.(*govcd.Vdc)
-	if !isVDC {
-		resp.Diagnostics.AddError(fmt.Sprintf("Expected *govcd.Vdc, got %T", vdcHandler), err.Error())
-		return
-	}
 	// Get vApp
 	vapp, err := vdc.GetVAppByName(state.VappName.ValueString(), true)
 	if err != nil {

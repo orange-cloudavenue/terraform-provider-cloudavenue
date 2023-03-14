@@ -70,7 +70,7 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 	}
 
 	c.Vmware = govcd.NewVCDClient(*c.urlVmware, false, govcd.WithAPIVersion(c.VCDVersion))
-	err = c.Vmware.SetToken(c.GetOrg(), govcd.AuthorizationHeader, token)
+	err = c.Vmware.SetToken(c.Org, govcd.AuthorizationHeader, token)
 	if err != nil {
 		return nil, fmt.Errorf("%w : %w", ErrConfigureVmware, err)
 	}
@@ -116,11 +116,6 @@ func createTokenInContext(token string) context.Context {
 	return context.WithValue(context.Background(), apiclient.ContextAccessToken, token)
 }
 
-// GetOrg returns the default Org.
-func (c *CloudAvenue) GetOrg() string {
-	return c.Org
-}
-
 // DefaultVDCExist returns true if the default VDC exists.
 func (c *CloudAvenue) DefaultVDCExist() bool {
 	return c.VDC != ""
@@ -134,4 +129,10 @@ func (c *CloudAvenue) GetDefaultVDC() string {
 // GetURL returns the base path of the API.
 func (c *CloudAvenue) GetURL() string {
 	return c.URL
+}
+
+// GetOrgName() returns the name of the organization.
+// Deprecated: use GetOrg instead.
+func (c *CloudAvenue) GetOrgName() string {
+	return c.Org
 }
