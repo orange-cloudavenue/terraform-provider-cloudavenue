@@ -1,6 +1,8 @@
 package vdc
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -12,7 +14,7 @@ import (
 )
 
 type VDC struct {
-	*govcd.Vdc
+	VDCOrVDCGroup client.VDCOrVDCGroupHandler
 	*govcd.Org
 }
 
@@ -57,17 +59,31 @@ func Init(client *client.CloudAvenue, vdc types.String) (VDC, diag.Diagnostics) 
 		d.AddError("Error retrieving VDC", err.Error())
 		return VDC{}, d
 	}
-	return VDC{Vdc: vdcOut, Org: orgOut}, nil
+	return VDC{VDCOrVDCGroup: vdcOut, Org: orgOut}, nil
 }
 
 // GetName give you the name of the vDC.
 func (v VDC) GetName() string {
-	return v.Vdc.Vdc.Name
+	name := ""
+	switch vdc := v.VDCOrVDCGroup.(type) {
+	case *govcd.Vdc:
+		name = vdc.Vdc.Name
+	case *govcd.VdcGroup:
+		name = vdc.VdcGroup.Name
+	}
+	return name
 }
 
 // GetID give you the ID of the vDC.
 func (v VDC) GetID() string {
-	return v.Vdc.Vdc.ID
+	id := ""
+	switch vdc := v.VDCOrVDCGroup.(type) {
+	case *govcd.Vdc:
+		id = vdc.Vdc.ID
+	case *govcd.VdcGroup:
+		id = vdc.VdcGroup.Id
+	}
+	return id
 }
 
 // GetOrg give you the Org of the vDC.
@@ -78,4 +94,14 @@ func (v VDC) GetOrg() *govcd.Org {
 // OrgID give you the ID of the Org of the vDC.
 func (v VDC) GetOrgID() string {
 	return v.Org.Org.ID
+}
+
+// GetVDC	return the vDC.
+func (v VDC) GetVDC() (*govcd.Vdc, diag.Diagnostics) {
+	d := diag.Diagnostics{}
+	vdc, isVDC := v.VDCOrVDCGroup.(*govcd.Vdc)
+	if !isVDC {
+		d.AddError("error retrieving VDC", fmt.Sprintf("expected *govcd.Vdc type, have %T", v.VDCOrVDCGroup))
+	}
+	return vdc, d
 }

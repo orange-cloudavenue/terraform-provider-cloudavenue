@@ -30,9 +30,14 @@ func updateVM(ctx context.Context, v *Client) (*govcd.VM, error) { //nolint:gocy
 	}
 
 	// Get vcd object
-	_, vdc, err = v.Client.GetOrgAndVDC(v.Client.GetOrg(), v.Plan.VDC.ValueString())
+	_, vdcHandler, err := v.Client.GetOrgAndVDC(v.Client.GetOrg(), v.Plan.VDC.ValueString())
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving VDC %s: %w", v.Plan.VDC.ValueString(), err)
+	}
+
+	vdc, isVDC := vdcHandler.(*govcd.Vdc)
+	if !isVDC {
+		return nil, fmt.Errorf("expected *govcd.Vdc type, have %T", vdcHandler)
 	}
 
 	// Get vApp

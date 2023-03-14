@@ -251,9 +251,14 @@ creates a detachable disk.
 func DiskCreate(ctx context.Context, inVDC vdc.VDC, vm *govcd.VM, disk *Disk, inVapp vapp.VApp) (*Disk, diag.Diagnostics) {
 	d := diag.Diagnostics{}
 
-	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.Vdc == nil {
+	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.VDCOrVDCGroup == nil {
 		d.AddError("Error creating disk", "Empty vApp, org or vdc")
 		return nil, d
+	}
+
+	vdc, errGetVDC := inVDC.GetVDC()
+	if errGetVDC.HasError() {
+		return nil, errGetVDC
 	}
 
 	// Lock vApp
@@ -264,7 +269,7 @@ func DiskCreate(ctx context.Context, inVDC vdc.VDC, vm *govcd.VM, disk *Disk, in
 	defer d.Append(inVapp.UnlockParentVApp(ctx)...)
 
 	// Checking if the disk name is already existing in the vDC
-	existingDisk, err := inVDC.QueryDisk(disk.Name.ValueString())
+	existingDisk, err := vdc.QueryDisk(disk.Name.ValueString())
 	if existingDisk != (govcd.DiskRecord{}) || err == nil {
 		d.AddError("already exists in the vDC", fmt.Sprintf("The disk %s already exists in the vDC", disk.Name.ValueString()))
 		return nil, d
@@ -287,7 +292,7 @@ func DiskCreate(ctx context.Context, inVDC vdc.VDC, vm *govcd.VM, disk *Disk, in
 
 	// If the storage profile is set checking if it exists and setting it
 	if !disk.StorageProfile.IsNull() && !disk.StorageProfile.IsUnknown() {
-		storageReference, err := inVDC.FindStorageProfileReference(disk.StorageProfile.ValueString())
+		storageReference, err := vdc.FindStorageProfileReference(disk.StorageProfile.ValueString())
 		if err != nil {
 			d.AddError("storage profile not found", fmt.Sprintf("The storage profile %s does not exist in the vDC", disk.StorageProfile.ValueString()))
 			return nil, d
@@ -296,7 +301,7 @@ func DiskCreate(ctx context.Context, inVDC vdc.VDC, vm *govcd.VM, disk *Disk, in
 	}
 
 	// Create the disk
-	task, err := inVDC.CreateDisk(diskCreateParams)
+	task, err := vdc.CreateDisk(diskCreateParams)
 	if err != nil {
 		d.AddError("error creating disk", err.Error())
 		return nil, d
@@ -310,7 +315,7 @@ func DiskCreate(ctx context.Context, inVDC vdc.VDC, vm *govcd.VM, disk *Disk, in
 	}
 
 	// Get the disk by the Href
-	x, err := inVDC.GetDiskByHref(task.Task.Owner.HREF)
+	x, err := vdc.GetDiskByHref(task.Task.Owner.HREF)
 	if err != nil {
 		d.AddError("unable to find disk after creating", fmt.Sprintf("unable to find disk with href %s: %s", task.Task.HREF, err))
 		return nil, d
@@ -338,7 +343,7 @@ func DiskCreate(ctx context.Context, inVDC vdc.VDC, vm *govcd.VM, disk *Disk, in
 		disk.ID = types.StringValue(x.Disk.Id)
 
 		// Attach the disk to the VM
-		d.Append(DiskAttach(ctx, inVDC.Vdc, &Disk{
+		d.Append(DiskAttach(ctx, vdc, &Disk{
 			ID:         disk.ID,
 			Name:       disk.Name,
 			BusNumber:  busNumber,
@@ -375,9 +380,14 @@ func DiskRead(ctx context.Context, client *client.CloudAvenue, inVDC vdc.VDC, di
 		err error
 	)
 
-	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.Vdc == nil {
+	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.VDCOrVDCGroup == nil {
 		d.AddError("Error read disk", "Empty vApp, org or vdc")
 		return nil, d
+	}
+
+	vdc, errGetVDC := inVDC.GetVDC()
+	if errGetVDC.HasError() {
+		return nil, errGetVDC
 	}
 
 	// Lock vApp
@@ -410,7 +420,7 @@ func DiskRead(ctx context.Context, client *client.CloudAvenue, inVDC vdc.VDC, di
 	if disk.IsDetachable.ValueBool() {
 		if !disk.ID.IsNull() && !disk.ID.IsUnknown() {
 			// Get the disk by the ID
-			x, err = inVDC.GetDiskById(disk.ID.ValueString(), true)
+			x, err = vdc.GetDiskById(disk.ID.ValueString(), true)
 			if err != nil {
 				if govcd.IsNotFound(err) {
 					return nil, nil
@@ -420,7 +430,7 @@ func DiskRead(ctx context.Context, client *client.CloudAvenue, inVDC vdc.VDC, di
 			}
 		} else {
 			// Get the disk by the Name
-			disks, err := inVDC.GetDisksByName(disk.Name.ValueString(), true)
+			disks, err := vdc.GetDisksByName(disk.Name.ValueString(), true)
 			if err != nil {
 				if govcd.IsNotFound(err) {
 					return nil, nil
@@ -525,9 +535,13 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 		return nil, d
 	}
 
-	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.Vdc == nil {
+	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.VDCOrVDCGroup == nil {
 		d.AddError("Error read disk", "Empty vApp, org or vdc")
 		return nil, d
+	}
+	vdc, errGetVDC := inVDC.GetVDC()
+	if errGetVDC.HasError() {
+		return nil, errGetVDC
 	}
 
 	// Lock vApp
@@ -549,7 +563,7 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 
 	if diskPlan.IsDetachable.ValueBool() {
 		// Get the disk by the ID
-		x, err := inVDC.GetDiskById(diskState.ID.ValueString(), true)
+		x, err := vdc.GetDiskById(diskState.ID.ValueString(), true)
 		if err != nil {
 			d.AddError("unable to find disk", fmt.Sprintf("unable to find disk with id %s: %s", diskState.ID.ValueString(), err))
 			return nil, d
@@ -568,7 +582,7 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 			)
 
 			// Get VM object
-			vapp, err := inVDC.GetVAppById(diskState.VAppID.ValueString(), true)
+			vapp, err := vdc.GetVAppById(diskState.VAppID.ValueString(), true)
 			if err != nil {
 				d.AddError("unable to find vapp", fmt.Sprintf("unable to find vapp with id %s: %s", diskState.VAppID.ValueString(), err))
 				return nil, d
@@ -588,7 +602,7 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 				}
 
 				// Use diskState to get possible OLD VMID
-				d.Append(DiskDetach(ctx, inVDC.Vdc, diskState, vm)...)
+				d.Append(DiskDetach(ctx, vdc, diskState, vm)...)
 				if d.HasError() {
 					return nil, d
 				}
@@ -607,7 +621,7 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 				!diskPlan.StorageProfile.Equal(diskState.StorageProfile) {
 				// If the storage profile is set checking if it exists and setting it
 				if !diskPlan.StorageProfile.Equal(diskState.StorageProfile) {
-					storageReference, err := inVDC.FindStorageProfileReference(diskPlan.StorageProfile.ValueString())
+					storageReference, err := vdc.FindStorageProfileReference(diskPlan.StorageProfile.ValueString())
 					if err != nil {
 						d.AddError("storage profile not found", fmt.Sprintf("The storage profile %s does not exist in the vDC", diskPlan.StorageProfile.ValueString()))
 						return nil, d
@@ -663,7 +677,7 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 					unitNumber = types.Int64Value(int64(u))
 				}
 
-				d.Append(DiskAttach(ctx, inVDC.Vdc, &Disk{
+				d.Append(DiskAttach(ctx, vdc, &Disk{
 					ID:         diskPlan.ID,
 					BusNumber:  busNumber,
 					UnitNumber: unitNumber,
@@ -716,7 +730,7 @@ if the disk is attached to a VM, it will return an error.
 func DiskDelete(ctx context.Context, client *client.CloudAvenue, disk *Disk, inVDC vdc.VDC, inVapp vapp.VApp) diag.Diagnostics {
 	d := diag.Diagnostics{}
 
-	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.Vdc == nil {
+	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.VDCOrVDCGroup == nil {
 		d.AddError("Error read disk", "Empty vApp, org or vdc")
 		return d
 	}
@@ -729,11 +743,16 @@ func DiskDelete(ctx context.Context, client *client.CloudAvenue, disk *Disk, inV
 	defer d.Append(inVapp.UnlockParentVApp(ctx)...)
 
 	// Get vcd object
-	_, vdc, err := client.GetOrgAndVDC(client.GetOrg(), disk.VDC.ValueString())
+	_, vdcHandler, err := client.GetOrgAndVDC(client.GetOrg(), disk.VDC.ValueString())
 	if err != nil {
 		d.AddError("error retrieving VDC", fmt.Sprintf("error retrieving VDC %s: %s", disk.VDC.ValueString(), err))
 	}
 
+	vdc, isVDC := vdcHandler.(*govcd.Vdc)
+	if !isVDC {
+		d.AddError("error retrieving VDC", fmt.Sprintf("expected *govcd.Vdc type, have %T", vdcHandler))
+		return d
+	}
 	if disk.IsDetachable.ValueBool() {
 		diskRecord, err := vdc.QueryDisk(disk.Name.ValueString())
 		if err != nil {
