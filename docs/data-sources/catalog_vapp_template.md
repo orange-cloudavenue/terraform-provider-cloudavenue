@@ -2,19 +2,19 @@
 page_title: "cloudavenue_catalog_vapp_template Data Source - cloudavenue"
 subcategory: "Catalog"
 description: |-
-  The catalogvapptemplate datasource provides information about a vApp Template in a catalog.
+  The catalog_vapp_template datasource provides information about a vApp Template in a catalog.
 ---
 
 # cloudavenue_catalog_vapp_template (Data Source)
 
-The catalog_vapp_template datasource provides information about a vApp Template in a catalog.
+The `catalog_vapp_template` datasource provides information about a vApp Template in a catalog.
 
 ## Example Usage
 
 ```terraform
 data "cloudavenue_catalog_vapp_template" "example" {
-  catalog_name = "Orange-Linux"
-  vapp_name    = "debian_10_X64"
+  catalog_name  = "Orange-Linux"
+  template_name = "UBUNTU_20.04"
 }
 ```
 
@@ -23,15 +23,15 @@ data "cloudavenue_catalog_vapp_template" "example" {
 
 ### Optional
 
-- `catalog_id` (String) ID of the catalog containing the vApp Template. Required if `catalog_name` is not set.
-- `catalog_name` (String) Name of the catalog containing the vApp Template. Required if `catalog_id` is not set.
-- `vapp_id` (String) ID of the vApp Template. Required if `vapp_name` is not set.
-- `vapp_name` (String) Name of the vApp Template. Required if `vapp_id` is not set.
+- `catalog_id` (String) The ID of the catalog. Required if `catalog_name` is not set.
+- `catalog_name` (String) The name of the catalog. Required if `catalog_id` is not set.
+- `template_id` (String) ID of the vApp Template. Required if `template_name` is not set.
+- `template_name` (String) Name of the vApp Template. Required if `template_id` is not set.
 
 ### Read-Only
 
 - `created_at` (String) Creation date of the vApp Template
 - `description` (String) Description of the vApp Template
-- `id` (String) ID is a `vapp_id` of the vApp Template
+- `id` (String) ID of the vApp Template
 - `vm_names` (List of String) Set of VM names within the vApp template
 

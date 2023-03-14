@@ -25,3 +25,32 @@ func ExtractUUID(input string) string {
 	}
 	return ""
 }
+
+type AttributeStruct struct {
+	Computed bool
+	Optional bool
+	Required bool
+}
+
+type AttributeOpts func(*AttributeStruct)
+
+// IsComputed sets the storage profile attribute as computed.
+func IsComputed() AttributeOpts {
+	return func(a *AttributeStruct) {
+		a.Computed = true
+	}
+}
+
+// IsOptional sets the storage profile attribute as optional.
+func IsOptional() AttributeOpts {
+	return func(a *AttributeStruct) {
+		a.Optional = true
+	}
+}
+
+// IsRequired sets the storage profile attribute as required.
+func IsRequired() AttributeOpts {
+	return func(a *AttributeStruct) {
+		a.Required = true
+	}
+}

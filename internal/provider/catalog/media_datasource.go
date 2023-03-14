@@ -5,20 +5,21 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
 
 var (
 	_ datasource.DataSource              = &catalogMediaDataSource{}
 	_ datasource.DataSourceWithConfigure = &catalogMediaDataSource{}
+	_ catalog                            = &catalogMediaDataSource{}
 )
 
 func NewCatalogMediaDataSource() datasource.DataSource {
@@ -26,7 +27,9 @@ func NewCatalogMediaDataSource() datasource.DataSource {
 }
 
 type catalogMediaDataSource struct {
-	client *client.CloudAvenue
+	client   *client.CloudAvenue
+	adminOrg adminorg.AdminOrg
+	catalog  base
 }
 
 type catalogMediaDataSourceModel struct {
@@ -44,6 +47,17 @@ type catalogMediaDataSourceModel struct {
 	StorageProfile types.String `tfsdk:"storage_profile"`
 }
 
+func (d *catalogMediaDataSource) Init(ctx context.Context, rm *catalogMediaDataSourceModel) (diags diag.Diagnostics) {
+	d.catalog = base{
+		name: rm.CatalogName.ValueString(),
+		id:   rm.CatalogID.ValueString(),
+	}
+
+	d.adminOrg, diags = adminorg.Init(d.client)
+
+	return
+}
+
 func (d *catalogMediaDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "media"
 }
@@ -57,20 +71,8 @@ func (d *catalogMediaDataSource) Schema(ctx context.Context, req datasource.Sche
 				Computed:            true,
 				MarkdownDescription: "The ID of the catalog media.",
 			},
-			"catalog_id": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The ID of the catalog to which media file belongs.",
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("catalog_name")),
-				},
-			},
-			"catalog_name": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The name of the catalog to which media file belongs.",
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("catalog_id")),
-				},
-			},
+			schemaName: schemaCatalogName(common.IsOptional()),
+			schemaID:   schemaCatalogID(common.IsOptional()),
 			"name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The name of the media.",
@@ -132,82 +134,87 @@ func (d *catalogMediaDataSource) Configure(ctx context.Context, req datasource.C
 }
 
 func (d *catalogMediaDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data catalogMediaDataSourceModel
-	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	state := &catalogMediaDataSourceModel{}
 
+	// Read Terraform configuration data into the model
+	resp.Diagnostics.Append(req.Config.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	var (
-		catalog *govcd.Catalog
-		err     error
-		media   *govcd.Media
-	)
-
-	// Check if catalog_id is set
-	if data.CatalogID.IsNull() || data.CatalogID.IsUnknown() {
-		// If not, try to find it using catalog_name
-		catalog, err = d.client.Vmware.Client.GetCatalogByName(d.client.Org, data.CatalogName.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError("Unable to find catalog", err.Error())
-			return
-		}
-		data.CatalogID = types.StringValue(catalog.Catalog.ID)
-	} else {
-		catalog, err = d.client.Vmware.Client.GetCatalogById(data.CatalogID.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError("Unable to find catalog", err.Error())
-			return
-		}
-		data.CatalogName = types.StringValue(catalog.Catalog.Name)
+	resp.Diagnostics.Append(d.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	media, err = catalog.GetMediaByNameOrId(data.Name.ValueString(), false)
+	// Get catalog
+	catalog, err := d.GetCatalog()
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to find catalog", err.Error())
+		return
+	}
+
+	// Get media by name (This is use only for getting the media Description)
+	media, err := catalog.GetMediaByNameOrId(state.Name.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to find media", err.Error())
 		return
 	}
 
-	data.ID = types.StringValue(media.Media.ID)
-
-	mediaRecord, err := catalog.QueryMedia(media.Media.Name)
+	// Query media
+	mediaRecord, err := catalog.QueryMedia(state.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to query media", err.Error())
 		return
 	}
+
 	// Check if mediaRecord.MediaRecord is nil
 	if mediaRecord.MediaRecord == nil {
 		resp.Diagnostics.AddError("Unable to find media record", "mediaRecord.MediaRecord is nil")
 		return
 	}
-	// Check if catalog.Catalog is nil
-	if catalog.Catalog == nil {
-		resp.Diagnostics.AddError("Unable to find catalog ID", "catalog.Catalog.ID is nil")
-		return
-	}
-	// Check if media.Media is nil
-	if media.Media == nil {
-		resp.Diagnostics.AddError("Unable to find media ID", "media.Media.ID is nil")
-		return
-	}
 
-	data.CatalogName = types.StringValue(catalog.Catalog.Name)
-	data.CatalogID = types.StringValue(catalog.Catalog.ID)
-	data.Name = types.StringValue(media.Media.Name)
-	data.Description = types.StringValue(media.Media.Description)
-	data.IsISO = types.BoolValue(mediaRecord.MediaRecord.IsIso)
-	data.OwnerName = types.StringValue(mediaRecord.MediaRecord.OwnerName)
-	data.IsPublished = types.BoolValue(mediaRecord.MediaRecord.IsPublished)
-	data.CreatedAt = types.StringValue(mediaRecord.MediaRecord.CreationDate)
-	data.Size = types.Int64Value(mediaRecord.MediaRecord.StorageB)
-	data.Status = types.StringValue(mediaRecord.MediaRecord.Status)
-	data.StorageProfile = types.StringValue(mediaRecord.MediaRecord.StorageProfileName)
+	updatedState := &catalogMediaDataSourceModel{
+		CatalogName: state.CatalogName,
+		CatalogID:   state.CatalogID,
+
+		ID:             types.StringValue(media.Media.ID),
+		Name:           types.StringValue(media.Media.Name),
+		Description:    types.StringValue(media.Media.Description),
+		IsISO:          types.BoolValue(mediaRecord.MediaRecord.IsIso),
+		OwnerName:      types.StringValue(mediaRecord.MediaRecord.OwnerName),
+		IsPublished:    types.BoolValue(mediaRecord.MediaRecord.IsPublished),
+		CreatedAt:      types.StringValue(mediaRecord.MediaRecord.CreationDate),
+		Size:           types.Int64Value(mediaRecord.MediaRecord.StorageB),
+		Status:         types.StringValue(mediaRecord.MediaRecord.Status),
+		StorageProfile: types.StringValue(mediaRecord.MediaRecord.StorageProfileName),
+	}
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func (d *catalogMediaDataSource) GetID() string {
+	return d.catalog.name
+}
+
+// GetName returns the name of the catalog.
+func (d *catalogMediaDataSource) GetName() string {
+	return d.catalog.id
+}
+
+// GetIDOrName returns the ID if it is set, otherwise it returns the name.
+func (d *catalogMediaDataSource) GetIDOrName() string {
+	if d.GetID() != "" {
+		return d.GetID()
+	}
+	return d.GetName()
+}
+
+// GetCatalog returns the govcd.Catalog.
+func (d *catalogMediaDataSource) GetCatalog() (*govcd.AdminCatalog, error) {
+	return d.adminOrg.GetAdminCatalogByNameOrId(d.GetIDOrName(), true)
 }

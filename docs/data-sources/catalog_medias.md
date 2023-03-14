@@ -25,8 +25,8 @@ data "cloudavenue_catalog_medias" "example" {
 
 ### Optional
 
-- `catalog_id` (String) The ID of the catalog to which media file belongs. Required if `catalog_name` is not set.
-- `catalog_name` (String) The name of the catalog to which media file belongs. Required if `catalog_id` is not set.
+- `catalog_id` (String) The ID of the catalog. Required if `catalog_name` is not set.
+- `catalog_name` (String) The name of the catalog. Required if `catalog_id` is not set.
 
 ### Read-Only
 

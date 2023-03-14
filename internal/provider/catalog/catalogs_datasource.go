@@ -10,11 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -28,13 +30,19 @@ func NewCatalogsDataSource() datasource.DataSource {
 }
 
 type catalogsDataSource struct {
-	client *client.CloudAvenue
+	client   *client.CloudAvenue
+	adminOrg adminorg.AdminOrg
 }
 
 type catalogsDataSourceModel struct {
 	ID           types.String                       `tfsdk:"id"`
 	Catalogs     map[string]catalogDataSourceStruct `tfsdk:"catalogs"`
 	CatalogsName types.List                         `tfsdk:"catalogs_name"`
+}
+
+func (d *catalogsDataSource) Init(ctx context.Context, rm *catalogsDataSourceModel) (diags diag.Diagnostics) {
+	d.adminOrg, diags = adminorg.Init(d.client)
+	return
 }
 
 func (d *catalogsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -86,26 +94,18 @@ func (d *catalogsDataSource) Configure(ctx context.Context, req datasource.Confi
 }
 
 func (d *catalogsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data catalogsDataSourceModel
+	state := &catalogsDataSourceModel{}
 
-	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
+	resp.Diagnostics.Append(d.Init(ctx, state)...)
 	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	adminOrg, err := d.client.Vmware.GetAdminOrgByNameOrId(d.client.GetOrgName())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
 		return
 	}
 
 	catalogs := make(map[string]catalogDataSourceStruct)
 	catalogsName := make([]string, 0)
 
-	for _, x := range adminOrg.AdminOrg.Catalogs.Catalog {
-		catalog, err := adminOrg.GetAdminCatalogByNameOrId(x.Name, false)
+	for _, x := range d.adminOrg.ListCatalogs().Catalog {
+		catalog, err := d.adminOrg.GetAdminCatalogByNameOrId(x.Name, false)
 		if err != nil {
 			if govcd.ContainsNotFound(err) {
 				return
@@ -132,13 +132,21 @@ func (d *catalogsDataSource) Read(ctx context.Context, req datasource.ReadReques
 			}
 
 			if catalog.AdminCatalog.PublishExternalCatalogParams != nil {
-				s.IsCached = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsCachedEnabled)
-				s.IsShared = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsPublishedExternally)
-				s.PreserveIdentityInformation = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.PreserveIdentityInfoFlag)
+				if catalog.AdminCatalog.PublishExternalCatalogParams.IsCachedEnabled != nil {
+					s.IsCached = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsCachedEnabled)
+				}
+				if catalog.AdminCatalog.PublishExternalCatalogParams.IsPublishedExternally != nil {
+					s.IsShared = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsPublishedExternally)
+				}
+				if catalog.AdminCatalog.PublishExternalCatalogParams.PreserveIdentityInfoFlag != nil {
+					s.PreserveIdentityInformation = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.PreserveIdentityInfoFlag)
+				}
 			}
 
-			var rawMediaItemsList []attr.Value
-			var mediaItemList []string
+			var (
+				rawMediaItemsList []attr.Value
+				mediaItemList     []string
+			)
 
 			filter := fmt.Sprintf("catalog==%s", url.QueryEscape(catalog.AdminCatalog.HREF))
 			mediaResults, err := d.client.Vmware.QueryWithNotEncodedParams(nil, map[string]string{"type": "media", "filter": filter, "filterEncoded": "true"})
@@ -166,21 +174,20 @@ func (d *catalogsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	}
 
 	sort.Strings(catalogsName)
-
 	cn, diag := types.ListValueFrom(ctx, types.StringType, catalogsName)
 	resp.Diagnostics.Append(diag...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	state := &catalogsDataSourceModel{
+	updatedState := &catalogsDataSourceModel{
 		ID:           utils.GenerateUUID("catalogs"),
 		Catalogs:     catalogs,
 		CatalogsName: cn,
 	}
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

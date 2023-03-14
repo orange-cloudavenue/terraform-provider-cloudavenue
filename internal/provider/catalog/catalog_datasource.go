@@ -9,17 +9,19 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
 
 var (
 	_ datasource.DataSource              = &catalogDataSource{}
 	_ datasource.DataSourceWithConfigure = &catalogDataSource{}
+	_ catalog                            = &catalogDataSource{}
 )
 
 // NewCatalogDataSource returns a new resource implementing the catalog data source.
@@ -28,23 +30,20 @@ func NewCatalogDataSource() datasource.DataSource {
 }
 
 type catalogDataSource struct {
-	client *client.CloudAvenue
+	client   *client.CloudAvenue
+	adminOrg adminorg.AdminOrg
+	catalog  base
 }
 
-type catalogDataSourceModel struct {
-	ID                          types.String `tfsdk:"id"`
-	CatalogName                 types.String `tfsdk:"catalog_name"`
-	CreatedAt                   types.String `tfsdk:"created_at"`
-	Description                 types.String `tfsdk:"description"`
-	PreserveIdentityInformation types.Bool   `tfsdk:"preserve_identity_information"`
-	Href                        types.String `tfsdk:"href"`
-	OwnerName                   types.String `tfsdk:"owner_name"`
-	NumberOfMedia               types.Int64  `tfsdk:"number_of_media"`
-	MediaItemList               types.List   `tfsdk:"media_item_list"`
-	IsShared                    types.Bool   `tfsdk:"is_shared"`
-	IsPublished                 types.Bool   `tfsdk:"is_published"`
-	IsLocal                     types.Bool   `tfsdk:"is_local"`
-	IsCached                    types.Bool   `tfsdk:"is_cached"`
+func (d *catalogDataSource) Init(ctx context.Context, rm *catalogDataSourceModel) (diags diag.Diagnostics) {
+	d.catalog = base{
+		name: rm.CatalogName.ValueString(),
+		id:   rm.CatalogID.ValueString(),
+	}
+
+	d.adminOrg, diags = adminorg.Init(d.client)
+
+	return
 }
 
 func (d *catalogDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -52,64 +51,7 @@ func (d *catalogDataSource) Metadata(ctx context.Context, req datasource.Metadat
 }
 
 func (d *catalogDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The catalog data source show the details of the catalog.",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"catalog_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Name of the catalog.",
-			},
-			"created_at": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Time stamp of when the catalog was created",
-			},
-			"description": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Description of the catalog.",
-			},
-			"preserve_identity_information": schema.BoolAttribute{
-				Computed:            true,
-				MarkdownDescription: "Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Preserving the identity information limits the portability of the package and you should use it only when necessary.",
-			},
-			"href": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Catalog HREF",
-			},
-			"owner_name": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Owner name from the catalog.",
-			},
-			"number_of_media": schema.Int64Attribute{
-				Computed:            true,
-				MarkdownDescription: "Number of Medias this catalog contains.",
-			},
-			"media_item_list": schema.ListAttribute{
-				Computed:            true,
-				ElementType:         types.StringType,
-				MarkdownDescription: "List of Media items in this catalog",
-			},
-			"is_shared": schema.BoolAttribute{
-				Computed:            true,
-				MarkdownDescription: "True if this catalog is shared.",
-			},
-			"is_local": schema.BoolAttribute{
-				Computed:            true,
-				MarkdownDescription: "True if this catalog belongs to the current organization.",
-			},
-			"is_published": schema.BoolAttribute{
-				Computed:            true,
-				MarkdownDescription: "True if this catalog is shared to all organizations.",
-			},
-			"is_cached": schema.BoolAttribute{
-				Computed:            true,
-				MarkdownDescription: "True if this catalog is cached.",
-			},
-		},
-	}
+	resp.Schema = catalogSchema(withDataSource()).GetDataSource()
 }
 
 func (d *catalogDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -133,54 +75,47 @@ func (d *catalogDataSource) Configure(ctx context.Context, req datasource.Config
 }
 
 func (d *catalogDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data catalogDataSourceModel
+	state := &catalogDataSourceModel{}
 
 	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
+	resp.Diagnostics.Append(req.Config.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// catalog creation is accessible only for administrator account
-	adminOrg, err := d.client.Vmware.GetAdminOrgByNameOrId(d.client.GetOrgName())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
+	resp.Diagnostics.Append(d.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	catalog, err := adminOrg.GetAdminCatalogByNameOrId(data.CatalogName.ValueString(), false)
+	catalog, err := d.GetCatalog()
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("Unable to query catalog records", fmt.Sprintf("Unable to query catalog records: %s", err))
+		resp.Diagnostics.AddError("Unable to find catalog", err.Error())
 		return
 	}
 
-	state := catalogDataSourceModel{
-		ID:          types.StringValue(catalog.AdminCatalog.ID),
-		CatalogName: types.StringValue(catalog.AdminCatalog.Name),
-		CreatedAt:   types.StringValue(catalog.AdminCatalog.DateCreated),
-		Description: types.StringValue(catalog.AdminCatalog.Description),
-		Href:        types.StringValue(catalog.AdminCatalog.HREF),
-		IsPublished: types.BoolValue(catalog.AdminCatalog.IsPublished),
-		IsLocal:     types.BoolValue(!catalog.AdminCatalog.IsPublished),
-	}
+	updatedState := state
+	updatedState.ID = types.StringValue(catalog.AdminCatalog.ID)
+	updatedState.CreatedAt = types.StringValue(catalog.AdminCatalog.DateCreated)
+	updatedState.Description = types.StringValue(catalog.AdminCatalog.Description)
+	updatedState.Href = types.StringValue(catalog.AdminCatalog.HREF)
+	updatedState.IsPublished = types.BoolValue(catalog.AdminCatalog.IsPublished)
+	updatedState.IsLocal = types.BoolValue(!catalog.AdminCatalog.IsPublished)
 
 	if catalog.AdminCatalog.Owner != nil && catalog.AdminCatalog.Owner.User != nil {
-		state.OwnerName = types.StringValue(catalog.AdminCatalog.Owner.User.Name)
+		updatedState.OwnerName = types.StringValue(catalog.AdminCatalog.Owner.User.Name)
 	}
 
 	if catalog.AdminCatalog.PublishExternalCatalogParams != nil {
-		state.IsCached = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsCachedEnabled)
-		state.IsShared = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsPublishedExternally)
-		state.PreserveIdentityInformation = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.PreserveIdentityInfoFlag)
+		updatedState.IsCached = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsCachedEnabled)
+		updatedState.IsShared = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsPublishedExternally)
+		updatedState.PreserveIdentityInformation = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.PreserveIdentityInfoFlag)
 	}
 
-	var rawMediaItemsList []attr.Value
-	var mediaItemList []string
+	var (
+		rawMediaItemsList = make([]attr.Value, 0)
+		mediaItemList     = make([]string, 0)
+	)
 
 	filter := fmt.Sprintf("catalog==%s", url.QueryEscape(catalog.AdminCatalog.HREF))
 	mediaResults, err := d.client.Vmware.QueryWithNotEncodedParams(nil, map[string]string{"type": "media", "filter": filter, "filterEncoded": "true"})
@@ -195,18 +130,42 @@ func (d *catalogDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	for _, media := range mediaResults.Results.MediaRecord {
 		mediaItemList = append(mediaItemList, media.Name)
 	}
+
 	// Sort the lists, so that they will always match in state
 	sort.Strings(mediaItemList)
 	for _, mediaName := range mediaItemList {
 		rawMediaItemsList = append(rawMediaItemsList, types.StringValue(mediaName))
 	}
 
-	state.MediaItemList = basetypes.NewListValueMust(types.StringType, rawMediaItemsList)
-	state.NumberOfMedia = types.Int64Value(int64(len(mediaItemList)))
+	updatedState.MediaItemList = basetypes.NewListValueMust(types.StringType, rawMediaItemsList)
+	updatedState.NumberOfMedia = types.Int64Value(int64(len(mediaItemList)))
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+// GetID returns the ID of the catalog.
+func (d *catalogDataSource) GetID() string {
+	return d.catalog.name
+}
+
+// GetName returns the name of the catalog.
+func (d *catalogDataSource) GetName() string {
+	return d.catalog.id
+}
+
+// GetIDOrName returns the ID if it is set, otherwise it returns the name.
+func (d *catalogDataSource) GetIDOrName() string {
+	if d.GetID() != "" {
+		return d.GetID()
+	}
+	return d.GetName()
+}
+
+// GetCatalog returns the govcd.Catalog.
+func (d *catalogDataSource) GetCatalog() (*govcd.AdminCatalog, error) {
+	return d.adminOrg.GetAdminCatalogByNameOrId(d.GetIDOrName(), true)
 }

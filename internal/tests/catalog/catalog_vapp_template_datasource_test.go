@@ -12,8 +12,8 @@ import (
 //go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
 const testAccCatalogVappTemplateDataSourceConfig = `
 data "cloudavenue_catalog_vapp_template" "example" {
-	catalog_name = "Orange-Linux"
-	vapp_name    = "debian_10_X64"
+	catalog_name  	= "Orange-Linux"
+	template_name 	= "UBUNTU_20.04"
 }
 `
 
@@ -29,10 +29,8 @@ func TestAccCatalogVappTemplateDataSource(t *testing.T) {
 				Config: testAccCatalogVappTemplateDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "catalog_name", "Orange-Linux"),
-					resource.TestCheckResourceAttr(dataSourceName, "vapp_name", "debian_10_X64"),
+					resource.TestCheckResourceAttr(dataSourceName, "template_name", "UBUNTU_20.04"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "vapp_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "catalog_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "created_at"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "vm_names.#"),
 				),
