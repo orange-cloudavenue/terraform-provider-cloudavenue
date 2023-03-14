@@ -123,7 +123,7 @@ func (r *iamRoleResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// role creation is accessible only in administrator API part
 	// (only administrator, organization administrator and Catalog author are allowed)
-	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 	if err != nil {
 		resp.Diagnostics.AddError("[role create] Error retrieving Org", err.Error())
 		return
@@ -210,7 +210,7 @@ func (r *iamRoleResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// role read is accessible only in administrator
-	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 	if err != nil {
 		resp.Diagnostics.AddError("[role read] Error retrieving Org", err.Error())
 		return
@@ -281,7 +281,7 @@ func (r *iamRoleResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	// Get Org and role deletion is accessible only in administrator
-	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 	if err != nil {
 		resp.Diagnostics.AddError("[role update] Error retrieving Org", err.Error())
 		return
@@ -324,7 +324,7 @@ func (r *iamRoleResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Get Org and role update is accessible only in administrator
-	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 	if err != nil {
 		resp.Diagnostics.AddError("[role update] Error retrieving Org", err.Error())
 		return

@@ -8,13 +8,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	commonvm "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 func updateVM(ctx context.Context, v *Client) (*govcd.VM, error) { //nolint:gocyclo
 	var (
-		vdc  *govcd.Vdc
 		vapp *govcd.VApp
 		vm   *govcd.VM
 		err  error
@@ -30,14 +30,9 @@ func updateVM(ctx context.Context, v *Client) (*govcd.VM, error) { //nolint:gocy
 	}
 
 	// Get vcd object
-	_, vdcHandler, err := v.Client.GetOrgAndVDC(v.Client.GetOrg(), v.Plan.VDC.ValueString())
+	vdc, err := v.Client.GetVDC(client.WithVDCName(v.State.VDC.ValueString()))
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving VDC %s: %w", v.Plan.VDC.ValueString(), err)
-	}
-
-	vdc, isVDC := vdcHandler.(*govcd.Vdc)
-	if !isVDC {
-		return nil, fmt.Errorf("expected *govcd.Vdc type, have %T", vdcHandler)
 	}
 
 	// Get vApp

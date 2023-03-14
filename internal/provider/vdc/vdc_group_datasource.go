@@ -200,7 +200,7 @@ func (d *vdcGroupDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	adminOrg, err := d.client.Vmware.GetAdminOrgByNameOrId(d.client.GetOrg())
+	adminOrg, err := d.client.Vmware.GetAdminOrgByNameOrId(d.client.GetOrgName())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
 		return

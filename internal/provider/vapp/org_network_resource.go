@@ -39,7 +39,7 @@ func NewOrgNetworkResource() resource.Resource {
 type orgNetworkResource struct {
 	client *client.CloudAvenue
 	vdc    vdc.VDC
-	vapp   vapp.VApp
+	vapp   vapp.VAPP
 }
 
 type orgNetworkResourceModel struct {
@@ -146,20 +146,14 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockParentVApp(ctx)
-
-	vdc, errGetVDC := r.vdc.GetVDC()
-	resp.Diagnostics.Append(errGetVDC...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	defer r.vapp.UnlockVAPP(ctx)
 
 	orgNetworkName := plan.NetworkName.ValueString()
-	orgNetwork, err := vdc.GetOrgVdcNetworkByNameOrId(orgNetworkName, true)
+	orgNetwork, err := r.vdc.GetOrgVdcNetworkByNameOrId(orgNetworkName, true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving org network", err.Error())
 		return
@@ -283,11 +277,11 @@ func (r *orgNetworkResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockParentVApp(ctx)
+	defer r.vapp.UnlockVAPP(ctx)
 
 	vAppNetworkConfig, err := r.vapp.GetNetworkConfig()
 	if err != nil {
@@ -356,11 +350,11 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockParentVApp(ctx)
+	defer r.vapp.UnlockVAPP(ctx)
 
 	_, err := r.vapp.RemoveNetwork(state.ID.ValueString())
 	if err != nil {

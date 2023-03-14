@@ -43,7 +43,7 @@ func NewIsolatedNetworkResource() resource.Resource {
 type isolatedNetworkResource struct {
 	client *client.CloudAvenue
 	vdc    vdc.VDC
-	vapp   vapp.VApp
+	vapp   vapp.VAPP
 }
 
 type isolatedNetworkResourceModel struct {
@@ -228,11 +228,11 @@ func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockParentVApp(ctx)
+	defer r.vapp.UnlockVAPP(ctx)
 
 	// Configure network
 	retainIPMac := plan.RetainIPMacEnabled.ValueBool()
@@ -431,11 +431,11 @@ func (r *isolatedNetworkResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockParentVApp(ctx)
+	defer r.vapp.UnlockVAPP(ctx)
 
 	// Configure network
 	retainIPMac := plan.RetainIPMacEnabled.ValueBool()
@@ -498,11 +498,11 @@ func (r *isolatedNetworkResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockParentVApp(ctx)
+	defer r.vapp.UnlockVAPP(ctx)
 
 	_, err := r.vapp.RemoveNetwork(state.ID.String())
 	if err != nil {

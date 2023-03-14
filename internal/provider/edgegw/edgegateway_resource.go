@@ -221,7 +221,7 @@ func (r *edgeGatewaysResource) Create(
 	switch plan.OwnerType.ValueString() {
 	case "vdc":
 		// Check if vDC exist
-		if _, _, err := r.client.GetOrgAndVDC(r.client.GetOrg(), plan.OwnerName.ValueString()); err != nil {
+		if _, _, err := r.client.GetOrgAndVDC(r.client.GetOrgName(), plan.OwnerName.ValueString()); err != nil {
 			resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
 			return
 		}
@@ -243,7 +243,7 @@ func (r *edgeGatewaysResource) Create(
 		}
 	case "vdc-group":
 		// Check if vDC Group exist
-		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 		if err != nil {
 			resp.Diagnostics.AddError("Error retrieving Org", err.Error())
 			return

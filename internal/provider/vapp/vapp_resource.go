@@ -26,6 +26,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
@@ -46,6 +47,7 @@ func NewVappResource() resource.Resource {
 type vappResource struct {
 	client *client.CloudAvenue
 	vdc    vdc.VDC
+	org    org.Org
 }
 
 type vappResourceModel struct {
@@ -156,6 +158,11 @@ func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 }
 
 func (r *vappResource) Init(ctx context.Context, rm *vappResourceModel) (diags diag.Diagnostics) {
+	r.org, diags = org.Init(r.client)
+	if diags.HasError() {
+		return
+	}
+
 	r.vdc, diags = vdc.Init(r.client, rm.VDC)
 
 	return
@@ -200,13 +207,7 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	vdc, errGetVDC := r.vdc.GetVDC()
-	resp.Diagnostics.Append(errGetVDC...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	vapp, err := vdc.CreateRawVApp(plan.VAppName.ValueString(), plan.Description.ValueString())
+	vapp, err := r.vdc.CreateRawVApp(plan.VAppName.ValueString(), plan.Description.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating vApp", err.Error())
 		return
@@ -258,7 +259,7 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 		runtimeLease = int(plan.Lease[0].RuntimeLeaseInSec.ValueInt64())
 		storageLease = int(plan.Lease[0].StorageLeaseInSec.ValueInt64())
 	} else {
-		adminOrg, errGetAdminOrg := r.client.Vmware.GetAdminOrgById(r.vdc.GetOrgID())
+		adminOrg, errGetAdminOrg := r.client.Vmware.GetAdminOrgById(r.org.GetID())
 		if errGetAdminOrg != nil {
 			resp.Diagnostics.AddError("Error retrieving Org", errGetAdminOrg.Error())
 			return
@@ -324,7 +325,7 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	// Request vApp
-	vappRefreshed, err := vdc.GetVAppByNameOrId(vapp.VApp.ID, true)
+	vappRefreshed, err := r.vdc.GetVAppByNameOrId(vapp.VApp.ID, true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found after creating", err.Error())
@@ -478,14 +479,9 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	vdc, errGetVDC := r.vdc.GetVDC()
-	resp.Diagnostics.Append(errGetVDC...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 
 	// Request vApp
-	vapp, err := vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
+	vapp, err := r.vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found", err.Error())
@@ -514,7 +510,7 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		runtimeLease = int(plan.Lease[0].RuntimeLeaseInSec.ValueInt64())
 		storageLease = int(plan.Lease[0].StorageLeaseInSec.ValueInt64())
 	} else {
-		adminOrg, errGetAdminOrg := r.client.Vmware.GetAdminOrgById(r.vdc.GetOrgID())
+		adminOrg, errGetAdminOrg := r.client.Vmware.GetAdminOrgById(r.org.GetID())
 		if errGetAdminOrg != nil {
 			resp.Diagnostics.AddError("Error retrieving Org", errGetAdminOrg.Error())
 			return
@@ -590,7 +586,7 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	// Request vApp
-	vappRefreshed, err := vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
+	vappRefreshed, err := r.vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found after creating", err.Error())
@@ -660,14 +656,8 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	vdc, errGetVDC := r.vdc.GetVDC()
-	resp.Diagnostics.Append(errGetVDC...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	// Request vApp
-	vapp, err := vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
+	vapp, err := r.vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found", err.Error())
