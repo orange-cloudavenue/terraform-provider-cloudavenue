@@ -62,6 +62,9 @@ func (r *catalogResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The ID is a unique identifier for the catalog",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"catalog_name": schema.StringAttribute{
 				// Not ForceNew, to allow the resource name to be updated
@@ -69,13 +72,12 @@ func (r *catalogResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "A name for the Catalog",
 			},
 			"description": schema.StringAttribute{
-				// Not ForceNew, to allow the resource name to be updated
+				// Not ForceNew, to allow the resource description to be updated
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "Optional description of the catalog",
 			},
 			"storage_profile_id": schema.StringAttribute{
-				// Not ForceNew, to allow the resource name to be updated
 				Optional:            true,
 				MarkdownDescription: "The ID of the storage profile",
 				PlanModifiers: []planmodifier.String{
@@ -85,6 +87,9 @@ func (r *catalogResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 			"created_at": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The creation date of the catalog",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"delete_force": schema.BoolAttribute{
 				// Not ForceNew, to allow the resource name to be updated
@@ -105,10 +110,16 @@ func (r *catalogResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 			"href": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The HREF of the catalog",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"owner_name": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The name of the owner of the catalog",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -156,11 +167,13 @@ func (r *catalogResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	// Get storage profile
-	storageProfiles, err = r.getStorageProfile(adminOrg, plan.StorageProfileID.ValueString(), false)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Storage Profile", err.Error())
-		return
+	if !plan.StorageProfileID.IsNull() && !plan.StorageProfileID.IsUnknown() {
+		// Get storage profile
+		storageProfiles, err = r.getStorageProfile(adminOrg, plan.StorageProfileID.ValueString(), false)
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving Storage Profile", err.Error())
+			return
+		}
 	}
 
 	// Create catalog
@@ -170,17 +183,10 @@ func (r *catalogResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	plan = &catalogResourceModel{
-		ID:               types.StringValue(c.AdminCatalog.ID),
-		CatalogName:      types.StringValue(c.AdminCatalog.Name),
-		Description:      types.StringValue(c.AdminCatalog.Description),
-		CreatedAt:        types.StringValue(c.AdminCatalog.DateCreated),
-		Href:             types.StringValue(c.AdminCatalog.HREF),
-		OwnerName:        types.StringValue(c.AdminCatalog.Owner.User.Name),
-		DeleteForce:      plan.DeleteForce,
-		DeleteRecursive:  plan.DeleteRecursive,
-		StorageProfileID: plan.StorageProfileID,
-	}
+	plan.ID = types.StringValue(c.AdminCatalog.ID)
+	plan.Href = types.StringValue(c.AdminCatalog.HREF)
+	plan.OwnerName = types.StringValue(c.AdminCatalog.Owner.User.Name)
+	plan.CreatedAt = types.StringValue(c.AdminCatalog.DateCreated)
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -225,28 +231,22 @@ func (r *catalogResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	var storageProfileID string
-	// Check if storage profile is set. Although storage profile structure accepts a list, in UI only one can be picked
-	if adminCatalog.AdminCatalog.CatalogStorageProfiles != nil && len(adminCatalog.AdminCatalog.CatalogStorageProfiles.VdcStorageProfile) > 0 {
-		// By default, API does not return Storage Profile Name in response. It has ID and HREF, but not Name so name
-		// must be looked up
-		storageProfileID = adminCatalog.AdminCatalog.CatalogStorageProfiles.VdcStorageProfile[0].ID
-	}
+	// var storageProfileID string
+	// // Check if storage profile is set. Although storage profile structure accepts a list, in UI only one can be picked
+	// if adminCatalog.AdminCatalog.CatalogStorageProfiles != nil && len(adminCatalog.AdminCatalog.CatalogStorageProfiles.VdcStorageProfile) > 0 {
+	// 	// By default, API does not return Storage Profile Name in response. It has ID and HREF, but not Name so name
+	// 	// must be looked up
+	// 	storageProfileID = adminCatalog.AdminCatalog.CatalogStorageProfiles.VdcStorageProfile[0].ID
+	// }
 
-	plan := &catalogResourceModel{
-		ID:              types.StringValue(adminCatalog.AdminCatalog.ID),
-		CatalogName:     types.StringValue(adminCatalog.AdminCatalog.Name),
-		Description:     types.StringValue(adminCatalog.AdminCatalog.Description),
-		CreatedAt:       types.StringValue(adminCatalog.AdminCatalog.DateCreated),
-		Href:            types.StringValue(adminCatalog.AdminCatalog.HREF),
-		OwnerName:       types.StringValue(adminCatalog.AdminCatalog.Owner.User.Name),
-		DeleteForce:     state.DeleteForce,
-		DeleteRecursive: state.DeleteRecursive,
-	}
+	plan := state
 
-	if storageProfileID != "" {
-		plan.StorageProfileID = types.StringValue(storageProfileID)
-	}
+	plan.ID = types.StringValue(adminCatalog.AdminCatalog.ID)
+	plan.CatalogName = types.StringValue(adminCatalog.AdminCatalog.Name)
+	plan.Description = types.StringValue(adminCatalog.AdminCatalog.Description)
+	plan.CreatedAt = types.StringValue(adminCatalog.AdminCatalog.DateCreated)
+	plan.Href = types.StringValue(adminCatalog.AdminCatalog.HREF)
+	plan.OwnerName = types.StringValue(adminCatalog.AdminCatalog.Owner.User.Name)
 
 	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -310,34 +310,34 @@ func (r *catalogResource) Update(ctx context.Context, req resource.UpdateRequest
 		}
 	}
 
-	c, err := r.getCatalog(adminOrg, state.ID.ValueString(), true)
-	if err != nil {
-		resp.State.RemoveResource(ctx)
-		return
-	}
+	// c, err := r.getCatalog(adminOrg, state.ID.ValueString(), true)
+	// if err != nil {
+	// 	resp.State.RemoveResource(ctx)
+	// 	return
+	// }
 
-	var storageProfileID string
-	// Check if storage profile is set. Although storage profile structure accepts a list, in UI only one can be picked
-	if c.AdminCatalog.CatalogStorageProfiles != nil && len(c.AdminCatalog.CatalogStorageProfiles.VdcStorageProfile) > 0 {
-		// By default, API does not return Storage Profile Name in response. It has ID and HREF, but not Name so name
-		// must be looked up
-		storageProfileID = c.AdminCatalog.CatalogStorageProfiles.VdcStorageProfile[0].ID
-	}
+	// var storageProfileID string
+	// // Check if storage profile is set. Although storage profile structure accepts a list, in UI only one can be picked
+	// if c.AdminCatalog.CatalogStorageProfiles != nil && len(c.AdminCatalog.CatalogStorageProfiles.VdcStorageProfile) > 0 {
+	// 	// By default, API does not return Storage Profile Name in response. It has ID and HREF, but not Name so name
+	// 	// must be looked up
+	// 	storageProfileID = c.AdminCatalog.CatalogStorageProfiles.VdcStorageProfile[0].ID
+	// }
 
-	plan = &catalogResourceModel{
-		ID:              types.StringValue(c.AdminCatalog.ID),
-		CatalogName:     types.StringValue(c.AdminCatalog.Name),
-		Description:     types.StringValue(c.AdminCatalog.Description),
-		CreatedAt:       types.StringValue(c.AdminCatalog.DateCreated),
-		Href:            types.StringValue(c.AdminCatalog.HREF),
-		OwnerName:       types.StringValue(c.AdminCatalog.Owner.User.Name),
-		DeleteForce:     plan.DeleteForce,
-		DeleteRecursive: plan.DeleteRecursive,
-	}
+	// plan = &catalogResourceModel{
+	// 	ID:              types.StringValue(c.AdminCatalog.ID),
+	// 	CatalogName:     types.StringValue(c.AdminCatalog.Name),
+	// 	Description:     types.StringValue(c.AdminCatalog.Description),
+	// 	CreatedAt:       types.StringValue(c.AdminCatalog.DateCreated),
+	// 	Href:            types.StringValue(c.AdminCatalog.HREF),
+	// 	OwnerName:       types.StringValue(c.AdminCatalog.Owner.User.Name),
+	// 	DeleteForce:     plan.DeleteForce,
+	// 	DeleteRecursive: plan.DeleteRecursive,
+	// }
 
-	if storageProfileID != "" {
-		plan.StorageProfileID = types.StringValue(storageProfileID)
-	}
+	// if storageProfileID != "" {
+	// 	plan.StorageProfileID = types.StringValue(storageProfileID)
+	// }
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
