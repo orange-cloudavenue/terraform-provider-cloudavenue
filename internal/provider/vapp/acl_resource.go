@@ -37,7 +37,7 @@ func NewACLResource() resource.Resource {
 type aclResource struct {
 	client *client.CloudAvenue
 	vdc    vdc.VDC
-	vapp   vapp.VApp
+	vapp   vapp.VAPP
 }
 
 type aclResourceModel struct {
@@ -252,11 +252,11 @@ func (r *aclResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockParentVApp(ctx)...)
+	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockParentVApp(ctx)
+	defer r.vapp.UnlockVAPP(ctx)
 
 	// Delete vApp access control
 	if err := r.vapp.RemoveAccessControl(false); err != nil {
@@ -297,11 +297,11 @@ func (r *aclResource) createOrUpdateACL(ctx context.Context, plan *aclResourceMo
 	}
 
 	// Lock vApp
-	diags.Append(r.vapp.LockParentVApp(ctx)...)
+	diags.Append(r.vapp.LockVAPP(ctx)...)
 	if diags.HasError() {
 		return nil, diags
 	}
-	defer diags.Append(r.vapp.UnlockParentVApp(ctx)...)
+	defer diags.Append(r.vapp.UnlockVAPP(ctx)...)
 
 	var accessSettings []*govcdtypes.AccessSetting
 
@@ -313,7 +313,7 @@ func (r *aclResource) createOrUpdateACL(ctx context.Context, plan *aclResourceMo
 		var sharedListOutput []*acl.SharedWithModel
 
 		// Get admin Org
-		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 		if err != nil {
 			diags.AddError("Error retrieving Org", err.Error())
 			return nil, diags

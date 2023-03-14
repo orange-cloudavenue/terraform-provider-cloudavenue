@@ -17,6 +17,7 @@ import (
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm/diskparams"
@@ -248,25 +249,20 @@ DiskCreate
 
 creates a detachable disk.
 */
-func DiskCreate(ctx context.Context, inVDC vdc.VDC, vm *govcd.VM, disk *Disk, inVapp vapp.VApp) (*Disk, diag.Diagnostics) {
+func DiskCreate(ctx context.Context, org org.Org, vdc vdc.VDC, vm *govcd.VM, disk *Disk, inVapp vapp.VAPP) (*Disk, diag.Diagnostics) {
 	d := diag.Diagnostics{}
 
-	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.VDCOrVDCGroup == nil {
+	if inVapp.VApp == nil || org.Org == nil || vdc.VDC == nil {
 		d.AddError("Error creating disk", "Empty vApp, org or vdc")
 		return nil, d
 	}
 
-	vdc, errGetVDC := inVDC.GetVDC()
-	if errGetVDC.HasError() {
-		return nil, errGetVDC
-	}
-
 	// Lock vApp
-	d.Append(inVapp.LockParentVApp(ctx)...)
+	d.Append(inVapp.LockVAPP(ctx)...)
 	if d.HasError() {
 		return nil, d
 	}
-	defer d.Append(inVapp.UnlockParentVApp(ctx)...)
+	defer d.Append(inVapp.UnlockVAPP(ctx)...)
 
 	// Checking if the disk name is already existing in the vDC
 	existingDisk, err := vdc.QueryDisk(disk.Name.ValueString())
@@ -372,7 +368,7 @@ If the disk is not found, returns nil
 if disk and diag.Diagnostics are nil the disk is
 not found and the resource should be removed from state.
 */
-func DiskRead(ctx context.Context, client *client.CloudAvenue, inVDC vdc.VDC, disk *Disk, inVapp vapp.VApp) (*Disk, diag.Diagnostics) {
+func DiskRead(ctx context.Context, client *client.CloudAvenue, org org.Org, vdc vdc.VDC, disk *Disk, inVapp vapp.VAPP) (*Disk, diag.Diagnostics) {
 	d := diag.Diagnostics{}
 
 	var (
@@ -380,22 +376,17 @@ func DiskRead(ctx context.Context, client *client.CloudAvenue, inVDC vdc.VDC, di
 		err error
 	)
 
-	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.VDCOrVDCGroup == nil {
+	if inVapp.VApp == nil || org.Org == nil || vdc.VDC == nil {
 		d.AddError("Error read disk", "Empty vApp, org or vdc")
 		return nil, d
 	}
 
-	vdc, errGetVDC := inVDC.GetVDC()
-	if errGetVDC.HasError() {
-		return nil, errGetVDC
-	}
-
 	// Lock vApp
-	d.Append(inVapp.LockParentVApp(ctx)...)
+	d.Append(inVapp.LockVAPP(ctx)...)
 	if d.HasError() {
 		return nil, d
 	}
-	defer d.Append(inVapp.UnlockParentVApp(ctx)...)
+	defer d.Append(inVapp.UnlockVAPP(ctx)...)
 
 	var r *govcd.VM
 	// VMName is required if VMID is set
@@ -526,7 +517,7 @@ List of attributes require attach/detach disk to be updated if the disk is detac
   - size_in_mb
   - storage_profile
 */
-func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskState *Disk, inVDC vdc.VDC, inVapp vapp.VApp) (*Disk, diag.Diagnostics) { //nolint:gocyclo
+func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskState *Disk, org org.Org, vdc vdc.VDC, inVapp vapp.VAPP) (*Disk, diag.Diagnostics) { //nolint:gocyclo
 	d := diag.Diagnostics{}
 
 	// Preventing nil pointer
@@ -535,21 +526,17 @@ func DiskUpdate(ctx context.Context, client *client.CloudAvenue, diskPlan, diskS
 		return nil, d
 	}
 
-	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.VDCOrVDCGroup == nil {
+	if inVapp.VApp == nil || org.Org == nil || vdc.VDC == nil {
 		d.AddError("Error read disk", "Empty vApp, org or vdc")
 		return nil, d
 	}
-	vdc, errGetVDC := inVDC.GetVDC()
-	if errGetVDC.HasError() {
-		return nil, errGetVDC
-	}
 
 	// Lock vApp
-	d.Append(inVapp.LockParentVApp(ctx)...)
+	d.Append(inVapp.LockVAPP(ctx)...)
 	if d.HasError() {
 		return nil, d
 	}
-	defer d.Append(inVapp.UnlockParentVApp(ctx)...)
+	defer d.Append(inVapp.UnlockVAPP(ctx)...)
 
 	// If VDC is not defined at resource level, use the one defined at provider level
 	if diskPlan.VDC.IsNull() || diskPlan.VDC.IsUnknown() {
@@ -727,32 +714,21 @@ delete a disk
 
 if the disk is attached to a VM, it will return an error.
 */
-func DiskDelete(ctx context.Context, client *client.CloudAvenue, disk *Disk, inVDC vdc.VDC, inVapp vapp.VApp) diag.Diagnostics {
+func DiskDelete(ctx context.Context, client *client.CloudAvenue, disk *Disk, org org.Org, vdc vdc.VDC, inVapp vapp.VAPP) diag.Diagnostics {
 	d := diag.Diagnostics{}
 
-	if inVapp.VApp == nil || inVDC.Org == nil || inVDC.VDCOrVDCGroup == nil {
+	if inVapp.VApp == nil || org.Org == nil || vdc.VDC == nil {
 		d.AddError("Error read disk", "Empty vApp, org or vdc")
 		return d
 	}
 
 	// Lock vApp
-	d.Append(inVapp.LockParentVApp(ctx)...)
+	d.Append(inVapp.LockVAPP(ctx)...)
 	if d.HasError() {
 		return d
 	}
-	defer d.Append(inVapp.UnlockParentVApp(ctx)...)
+	defer d.Append(inVapp.UnlockVAPP(ctx)...)
 
-	// Get vcd object
-	_, vdcHandler, err := client.GetOrgAndVDC(client.GetOrg(), disk.VDC.ValueString())
-	if err != nil {
-		d.AddError("error retrieving VDC", fmt.Sprintf("error retrieving VDC %s: %s", disk.VDC.ValueString(), err))
-	}
-
-	vdc, isVDC := vdcHandler.(*govcd.Vdc)
-	if !isVDC {
-		d.AddError("error retrieving VDC", fmt.Sprintf("expected *govcd.Vdc type, have %T", vdcHandler))
-		return d
-	}
 	if disk.IsDetachable.ValueBool() {
 		diskRecord, err := vdc.QueryDisk(disk.Name.ValueString())
 		if err != nil {
@@ -831,7 +807,7 @@ DiskAttach
 
 attach a disk to a VM.
 */
-func DiskAttach(ctx context.Context, vdc *govcd.Vdc, disk *Disk, vm *govcd.VM) diag.Diagnostics {
+func DiskAttach(ctx context.Context, vdc vdc.VDC, disk *Disk, vm *govcd.VM) diag.Diagnostics {
 	d := diag.Diagnostics{}
 
 	// Get disk object
@@ -868,7 +844,7 @@ DiskDetach
 
 detach a disk from a VM.
 */
-func DiskDetach(ctx context.Context, vdc *govcd.Vdc, disk *Disk, vm *govcd.VM) diag.Diagnostics {
+func DiskDetach(ctx context.Context, vdc vdc.VDC, disk *Disk, vm *govcd.VM) diag.Diagnostics {
 	d := diag.Diagnostics{}
 
 	// Get disk object

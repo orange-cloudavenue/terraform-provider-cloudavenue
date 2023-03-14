@@ -3,7 +3,6 @@ package vm
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -142,19 +141,14 @@ InternalDiskCreate
 
 Creates a new internal disk associated with a VM.
 */
-func InternalDiskCreate(ctx context.Context, client *client.CloudAvenue, disk InternalDisk, vAppName, vmName, vdcName types.String) (newDisk *InternalDisk, d diag.Diagnostics) {
-	_, vdcHandler, err := client.GetOrgAndVDC(client.GetOrg(), vdcName.ValueString())
+func InternalDiskCreate(ctx context.Context, c *client.CloudAvenue, disk InternalDisk, vAppName, vmName, vdcName types.String) (newDisk *InternalDisk, d diag.Diagnostics) {
+	vdc, err := c.GetVDC(client.WithVDCName(vdcName.ValueString()))
 	if err != nil {
 		d.AddError("Error retrieving VDC", err.Error())
 		return
 	}
 
-	vdc, isVDC := vdcHandler.(*govcd.Vdc)
-	if !isVDC {
-		d.AddError("error retrieving VDC", fmt.Sprintf("expected *govcd.Vdc type, have %T", vdcHandler))
-		return
-	}
-	myVM, err := GetVM(vdc, vAppName.ValueString(), vmName.ValueString())
+	myVM, err := GetVM(vdc.Vdc, vAppName.ValueString(), vmName.ValueString())
 	if err != nil {
 		d.AddError("Error retrieving VM", err.Error())
 		return
@@ -249,20 +243,14 @@ InternalDiskUpdate
 
 Updates an internal disk associated with a VM.
 */
-func InternalDiskUpdate(ctx context.Context, client *client.CloudAvenue, disk InternalDisk, vAppName, vmName, vdcName types.String) (updatedDisk *InternalDisk, d diag.Diagnostics) {
-	_, vdcHandler, err := client.GetOrgAndVDC(client.GetOrg(), vdcName.ValueString())
+func InternalDiskUpdate(ctx context.Context, c *client.CloudAvenue, disk InternalDisk, vAppName, vmName, vdcName types.String) (updatedDisk *InternalDisk, d diag.Diagnostics) {
+	vdc, err := c.GetVDC(client.WithVDCName(vdcName.ValueString()))
 	if err != nil {
 		d.AddError("Error retrieving VDC", err.Error())
 		return
 	}
 
-	vdc, isVDC := vdcHandler.(*govcd.Vdc)
-	if !isVDC {
-		d.AddError("error retrieving VDC", fmt.Sprintf("expected *govcd.Vdc type, have %T", vdcHandler))
-		return
-	}
-
-	myVM, err := GetVM(vdc, vAppName.ValueString(), vmName.ValueString())
+	myVM, err := GetVM(vdc.Vdc, vAppName.ValueString(), vmName.ValueString())
 	if err != nil {
 		d.AddError("Error retrieving VM", err.Error())
 		return

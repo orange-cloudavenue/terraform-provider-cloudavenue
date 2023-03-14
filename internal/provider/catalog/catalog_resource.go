@@ -161,7 +161,7 @@ func (r *catalogResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// catalog creation is accessible only for administrator account
-	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
 		return
@@ -205,7 +205,7 @@ func (r *catalogResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
 		return
@@ -266,7 +266,7 @@ func (r *catalogResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
 		return
@@ -356,7 +356,7 @@ func (r *catalogResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
-	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+	adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
 		return

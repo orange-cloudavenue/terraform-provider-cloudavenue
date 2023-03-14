@@ -143,14 +143,8 @@ func (r *aclResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
-	vdc, errGetVDC := r.vdc.GetVDC()
-	resp.Diagnostics.Append(errGetVDC...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	// Request acl
-	controlAccessParams, err := vdc.GetControlAccess(true)
+	controlAccessParams, err := r.vdc.GetControlAccess(true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving control access", err.Error())
 		return
@@ -245,14 +239,8 @@ func (r *aclResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	vdc, errGetVDC := r.vdc.GetVDC()
-	resp.Diagnostics.Append(errGetVDC...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	// Delete vDC access control
-	if _, err := vdc.DeleteControlAccess(true); err != nil {
+	if _, err := r.vdc.DeleteControlAccess(true); err != nil {
 		resp.Diagnostics.AddError("Error deleting control access", err.Error())
 		return
 	}
@@ -265,11 +253,6 @@ func (r *aclResource) ImportState(ctx context.Context, req resource.ImportStateR
 
 func (r *aclResource) createOrUpdateACL(ctx context.Context, plan *aclResourceModel) (*aclResourceModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
-
-	vdc, errGetVDC := r.vdc.GetVDC()
-	if errGetVDC.HasError() {
-		return nil, errGetVDC
-	}
 
 	everyoneAccessLevel := plan.EveryoneAccessLevel.ValueString()
 
@@ -288,7 +271,7 @@ func (r *aclResource) createOrUpdateACL(ctx context.Context, plan *aclResourceMo
 		everyoneAccessLevel = ""
 
 		// Get admin Org
-		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrg())
+		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 		if err != nil {
 			diags.AddError("Error retrieving Org", err.Error())
 			return nil, diags
@@ -301,7 +284,7 @@ func (r *aclResource) createOrUpdateACL(ctx context.Context, plan *aclResourceMo
 		}
 	}
 
-	_, err := vdc.SetControlAccess(isSharedWithEveryone, everyoneAccessLevel, accessSettings, true)
+	_, err := r.vdc.SetControlAccess(isSharedWithEveryone, everyoneAccessLevel, accessSettings, true)
 	if err != nil {
 		diags.AddError("Error setting control access", err.Error())
 		return nil, diags

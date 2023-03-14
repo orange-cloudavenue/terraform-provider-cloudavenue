@@ -34,7 +34,7 @@ func NewVappDataSource() datasource.DataSource {
 type vappDataSource struct {
 	client *client.CloudAvenue
 	vdc    vdc.VDC
-	vapp   vapp.VApp
+	vapp   vapp.VAPP
 }
 
 type vappDataSourceModel struct {

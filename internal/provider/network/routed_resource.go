@@ -198,13 +198,13 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	org, _, err := r.client.GetOrgAndVDC(r.client.GetOrg(), r.client.GetDefaultVDC())
+	org, err := r.client.GetOrg()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+		resp.Diagnostics.AddError("Error retrieving ORG", err.Error())
 		return
 	}
 
-	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(org, plan.EdgeGatewayID.ValueString())
+	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(org.Org, plan.EdgeGatewayID.ValueString())
 	resp.Diagnostics.Append(errGet)
 	if resp.Diagnostics.HasError() {
 		return
@@ -281,9 +281,9 @@ func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	org, _, err := r.client.GetOrgAndVDC(r.client.GetOrg(), r.client.GetDefaultVDC())
+	org, err := r.client.GetOrg()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+		resp.Diagnostics.AddError("Error retrieving ORG", err.Error())
 		return
 	}
 
@@ -342,13 +342,13 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	org, _, err := r.client.GetOrgAndVDC(r.client.GetOrg(), r.client.GetDefaultVDC())
+	org, err := r.client.GetOrg()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+		resp.Diagnostics.AddError("Error retrieving ORG", err.Error())
 		return
 	}
 
-	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(org, plan.EdgeGatewayID.ValueString())
+	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(org.Org, plan.EdgeGatewayID.ValueString())
 	resp.Diagnostics.Append(errGet)
 	if resp.Diagnostics.HasError() {
 		return
@@ -446,13 +446,13 @@ func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	org, _, err := r.client.GetOrgAndVDC(r.client.GetOrg(), r.client.GetDefaultVDC())
+	org, err := r.client.GetOrg()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+		resp.Diagnostics.AddError("Error retrieving ORG", err.Error())
 		return
 	}
 
-	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(org, state.EdgeGatewayID.ValueString())
+	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(org.Org, state.EdgeGatewayID.ValueString())
 	resp.Diagnostics.Append(errGet)
 	if resp.Diagnostics.HasError() {
 		return
@@ -492,13 +492,15 @@ func (r *networkRoutedResource) ImportState(ctx context.Context, req resource.Im
 
 	vdcOrVDCGroupName, networkName := resourceURI[0], resourceURI[1]
 
-	_, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), vdcOrVDCGroupName)
+	v, err := r.client.GetVDCOrVDCGroup(vdcOrVDCGroupName)
 	if err != nil && govcd.ContainsNotFound(err) {
 		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
 		return
 	}
 
-	orgNetwork, err := vdc.GetOpenApiOrgVdcNetworkByName(networkName)
+	// _, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), vdcOrVDCGroupName)
+
+	orgNetwork, err := v.GetOpenApiOrgVdcNetworkByName(networkName)
 	if err != nil && !govcd.ContainsNotFound(err) {
 		resp.Diagnostics.AddError("Error retrieving org vdc network by name", err.Error())
 		return

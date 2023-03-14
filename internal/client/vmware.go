@@ -19,15 +19,16 @@ var (
 	ErrEmptyVDCFound        = errors.New("empty VDC found")
 )
 
-// VDCOrVDCGroupHandler is an interface to access some common methods on VDC or VDC Group without
-// explicitly handling exact types.
-type VDCOrVDCGroupHandler interface {
-	GetOpenApiOrgVdcNetworkByName(string) (*govcd.OpenApiOrgVdcNetwork, error)
-}
+// ! Deprecated
+/*
+GetOrgAndVDC
 
-// GetOrgAndVDC finds a pair of org and vdc using the names provided
-// in the args. If the names are empty, it will use the default
-// org and vdc names from the provider.
+finds a pair of org and vdc using the names provided
+in the args. If the names are empty, it will use the default
+org and vdc names from the provider.
+
+	DEPRECATED: use GetOrg, GetVDC, GetVDCGroup or GetVDCOrVDCGroup instead.
+*/
 func (c *CloudAvenue) GetOrgAndVDC(orgName, vdcName string) (org *govcd.Org, vdcOrVDCGroup VDCOrVDCGroupHandler, err error) {
 	if orgName == "" {
 		return nil, nil, fmt.Errorf("%w", ErrEmptyOrgNameProvided)
@@ -45,23 +46,29 @@ func (c *CloudAvenue) GetOrgAndVDC(orgName, vdcName string) (org *govcd.Org, vdc
 		return nil, nil, fmt.Errorf("%w : %s", ErrEmptyOrgFound, orgName)
 	}
 
-	vdcOrVDCGroup, err = org.GetVDCByName(vdcName, false)
-	if err != nil && !govcd.ContainsNotFound(err) {
+	x, err := org.GetVDCByName(vdcName, false)
+	if err != nil && !govcd.ContainsNotFound(err) { //nolint:gocritic
+		// This is an error other than "not found"
 		return nil, nil, fmt.Errorf("%w: %s %w", ErrRetrievingVDC, vdcName, err)
-	}
-
-	if govcd.ContainsNotFound(err) {
+	} else if err != nil && govcd.ContainsNotFound(err) {
+		// VDC Group
 		var adminOrg *govcd.AdminOrg
 		adminOrg, err = c.Vmware.GetAdminOrgByName(orgName)
 		if err != nil {
 			return nil, nil, fmt.Errorf("%w: %s %w", ErrRetrievingOrgAdmin, vdcName, err)
 		}
 
-		vdcOrVDCGroup, err = adminOrg.GetVdcGroupByName(vdcName)
+		xGroup, err := adminOrg.GetVdcGroupByName(vdcName)
 		if err != nil {
 			return nil, nil, fmt.Errorf("%w: %s %w", ErrRetrievingVDCGroup, vdcName, err)
 		}
+
+		vdcOrVDCGroup = VDCGroup{xGroup}
+	} else {
+		// VDC
+		vdcOrVDCGroup = VDC{name: vdcName, Vdc: x}
 	}
+
 	if vdcOrVDCGroup == nil {
 		return nil, nil, fmt.Errorf("error retrieving VDC %s: not found", vdcName)
 	}

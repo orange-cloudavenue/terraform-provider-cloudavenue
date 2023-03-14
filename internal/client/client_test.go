@@ -107,14 +107,14 @@ func TestCloudAvenueClient(t *testing.T) {
 		}
 	})
 
-	t.Run("GetOrg", func(t *testing.T) {
+	t.Run("GetOrgName", func(t *testing.T) {
 		t.Parallel()
 
 		ca := CloudAvenue{
 			Org: "acme",
 		}
 
-		org := ca.GetOrg()
+		org := ca.GetOrgName()
 
 		if org != "acme" {
 			t.Fatalf("expected org to be %q, got %q", "acme", org)

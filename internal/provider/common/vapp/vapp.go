@@ -25,8 +25,8 @@ const (
 	ErrVAppNotFound = "vApp not found"
 )
 
-type VApp struct {
-	*govcd.VApp
+type VAPP struct {
+	*client.VAPP
 	vdc vdc.VDC
 }
 
@@ -71,21 +71,14 @@ Init
 
 Get vApp name or vApp ID.
 */
-func Init(_ *client.CloudAvenue, vdcHandler vdc.VDC, vappID, vappName types.String) (vapp VApp, d diag.Diagnostics) {
-	var vappNameID string
+func Init(_ *client.CloudAvenue, vdc vdc.VDC, vappID, vappName types.String) (vapp VAPP, d diag.Diagnostics) {
+	vappNameID := vappID.ValueString()
 	if vappID.IsNull() || vappID.IsUnknown() {
 		vappNameID = vappName.ValueString()
-	} else {
-		vappNameID = vappID.ValueString()
-	}
-
-	vdc, errGetVDC := vdcHandler.GetVDC()
-	if errGetVDC.HasError() {
-		return
 	}
 
 	// Request vApp
-	vappOut, err := vdc.GetVAppByNameOrId(vappNameID, true)
+	vappOut, err := vdc.GetVAPP(vappNameID, true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			d.AddError(ErrVAppNotFound, err.Error())
@@ -94,11 +87,11 @@ func Init(_ *client.CloudAvenue, vdcHandler vdc.VDC, vappID, vappName types.Stri
 		d.AddError("Error retrieving vApp", err.Error())
 		return
 	}
-	return VApp{VApp: vappOut, vdc: vdcHandler}, nil
+	return VAPP{VAPP: vappOut, vdc: vdc}, nil
 }
 
-// LockParentVApp locks the parent vApp.
-func (v VApp) LockParentVApp(ctx context.Context) (d diag.Diagnostics) {
+// LockVAPP locks the parent vApp.
+func (v VAPP) LockVAPP(ctx context.Context) (d diag.Diagnostics) {
 	if v.vdc.GetName() == "" || v.GetName() == "" || ctx == nil {
 		d.AddError("Incorrect lock args", "vDC: "+v.vdc.GetName()+" vApp: "+v.GetName())
 		return
@@ -108,8 +101,8 @@ func (v VApp) LockParentVApp(ctx context.Context) (d diag.Diagnostics) {
 	return
 }
 
-// UnlockParentVApp unlocks the parent vApp.
-func (v VApp) UnlockParentVApp(ctx context.Context) (d diag.Diagnostics) {
+// UnlockVAPP unlocks the parent vApp.
+func (v VAPP) UnlockVAPP(ctx context.Context) (d diag.Diagnostics) {
 	if v.vdc.GetName() == "" || v.GetName() == "" || ctx == nil {
 		d.AddError("Incorrect lock args", "vDC: "+v.vdc.GetName()+" vApp: "+v.GetName())
 		return
@@ -117,29 +110,4 @@ func (v VApp) UnlockParentVApp(ctx context.Context) (d diag.Diagnostics) {
 	key := fmt.Sprintf("vdc:%s|vapp:%s", v.vdc.GetName(), v.GetName())
 	vcdMutexKV.KvUnlock(ctx, key)
 	return
-}
-
-// GetName give you the name of the vApp.
-func (v VApp) GetName() string {
-	return v.VApp.VApp.Name
-}
-
-// GetID give you the ID of the vApp.
-func (v VApp) GetID() string {
-	return v.VApp.VApp.ID
-}
-
-// GetStatusCode give you the status code of the vApp.
-func (v VApp) GetStatusCode() int {
-	return v.VApp.VApp.Status
-}
-
-// GetHREF give you the HREF of the vApp.
-func (v VApp) GetHREF() string {
-	return v.VApp.VApp.HREF
-}
-
-// GetDescription give you the status code of the vApp.
-func (v VApp) GetDescription() string {
-	return v.VApp.VApp.Description
 }
