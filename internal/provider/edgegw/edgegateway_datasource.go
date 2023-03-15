@@ -110,14 +110,16 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	gateways, httpR, err := d.client.APIClient.EdgeGatewaysApi.GetEdges(d.client.Auth)
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+
+	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
 		}()
+	}
+
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		if resp.Diagnostics.HasError() {
-			return
-		}
+		return
 	}
 
 	found := false

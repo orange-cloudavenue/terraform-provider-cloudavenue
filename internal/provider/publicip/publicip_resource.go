@@ -171,14 +171,16 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	if !plan.EdgeID.IsNull() {
 		// Get Edge Gateway Name
 		edgeGateway, httpR, err := r.client.APIClient.EdgeGatewaysApi.GetEdgeById(auth, common.ExtractUUID(plan.EdgeID.ValueString()))
-		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+
+		if httpR != nil {
 			defer func() {
 				err = errors.Join(err, httpR.Body.Close())
 			}()
+		}
+
+		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-			if resp.Diagnostics.HasError() || apiErr.IsNotFound() {
-				return
-			}
+			return
 		}
 
 		plan.EdgeName = types.StringValue(edgeGateway.EdgeName)
@@ -206,14 +208,16 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	// Store existing Public IP
 	// Get Public IP
 	publicIPs, httpR, err := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+
+	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
 		}()
+	}
+
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		if resp.Diagnostics.HasError() {
-			return
-		}
+		return
 	}
 
 	knowIPs = append(knowIPs, publicIPs.NetworkConfig...)
@@ -245,14 +249,16 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	job, httpR, err = r.client.APIClient.PublicIPApi.CreatePublicIP(auth, &body)
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+
+	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
 		}()
+	}
+
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		if resp.Diagnostics.HasError() {
-			return
-		}
+		return
 	}
 
 	// Wait for job to complete
@@ -267,18 +273,15 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 		if jobStatus.IsDone() {
 			// get all Public IPs and find the new one
 			checkPublicIPs, httpRc, errGet := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
-			defer func() {
-				err = errors.Join(err, httpRc.Body.Close())
-			}()
+			if httpRc != nil {
+				defer func() {
+					err = errors.Join(err, httpRc.Body.Close())
+				}()
+			}
 
 			if apiErr := helpers.CheckAPIError(errGet, httpRc); apiErr != nil {
-				defer func() {
-					err = errors.Join(err, httpR.Body.Close())
-				}()
 				resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-				if resp.Diagnostics.HasError() {
-					return nil, "error", apiErr
-				}
+				return nil, "error", apiErr
 			}
 
 			pubIP, errFind := findIPNotAlreadyExists(checkPublicIPs)
@@ -375,14 +378,14 @@ func (r *publicIPResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	// Get Public IP
 	publicIPs, httpR, err := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
 		}()
+	}
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		if resp.Diagnostics.HasError() {
-			return
-		}
+		return
 	}
 
 	found := false
@@ -448,14 +451,14 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 
 	// Delete the public IP
 	job, httpR, err := r.client.APIClient.PublicIPApi.DeletePublicIP(ctx, state.PublicIP.ValueString())
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
 		}()
+	}
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		if resp.Diagnostics.HasError() {
-			return
-		}
+		return
 	}
 
 	// Wait for job to complete
