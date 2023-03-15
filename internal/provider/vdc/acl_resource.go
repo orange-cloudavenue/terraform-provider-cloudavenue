@@ -117,7 +117,8 @@ func (r *aclResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Create resource
 	plan, diags := r.createOrUpdateACL(ctx, plan)
-	if diags.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 	// Set state to fully populated data
