@@ -7,14 +7,14 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go"
 )
 
 // APIError is an error returned by the CloudAvenue API.
 type APIError struct {
 	lastError  error
 	statusCode int
-	apiclient.ApiError
+	cloudavenue.ApiError
 }
 
 // Error returns the error message.
@@ -67,16 +67,16 @@ func (e *APIError) IsNotFound() bool {
 	return e.GetStatusCode() == http.StatusNotFound
 }
 
-// CheckAPIError checks the HTTP response for errors and returns an APIError
-// if the response code is >= 400.
-// If the response code is < 400, nil is returned.
+// CheckAPIError checks the HTTP response for errors and returns an APIError with
+// statusCode and model is the error is a cloudavenue.GenericSwaggerError type
+// or only the error if not.
 func CheckAPIError(err error, httpR *http.Response) *APIError {
 	if err == nil {
 		return nil
 	}
 
 	if httpR != nil && httpR.StatusCode >= http.StatusBadRequest {
-		var apiErr *apiclient.GenericSwaggerError
+		var apiErr cloudavenue.GenericSwaggerError
 		if errors.As(err, &apiErr) {
 			x := &APIError{
 				lastError:  err,
@@ -84,16 +84,13 @@ func CheckAPIError(err error, httpR *http.Response) *APIError {
 			}
 
 			if apiErr.Model() != nil {
-				if m, ok := apiErr.Model().(apiclient.ApiError); ok {
+				if m, ok := apiErr.Model().(cloudavenue.ApiError); ok {
 					x.ApiError = m
 				}
 			}
 
 			return x
 		}
-	} else {
-		return nil
 	}
-
-	return nil
+	return &APIError{lastError: err}
 }
