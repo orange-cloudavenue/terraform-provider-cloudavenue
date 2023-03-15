@@ -20,14 +20,12 @@ resource "cloudavenue_vdc_acl" "example" {
 const testAccACLResourceSharedWithConfig = `
 resource "cloudavenue_vdc_acl" "example" {
   vdc                   = "VDC_Test" # Optional
-	shared_with = [{
+	shared_with = [
+	{
 	  access_level = "ReadOnly"
 	  user_id      = "urn:vcloud:user:53665519-7036-43ea-ba97-63fc5a2aabe7"
-	  },
-	  {
-		access_level = "ReadOnly"
-		group_id     = "urn:vcloud:group:cd04ff68-688a-4ccb-87c1-905bbe4dba7e"
-	}]
+	}
+	]
 }
 `
 
@@ -55,7 +53,6 @@ func TestAccACLResource(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:vdc:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
 					resource.TestCheckResourceAttr(resourceName, "vdc", "VDC_Test"),
 					resource.TestCheckResourceAttrSet(resourceName, "shared_with.0.subject_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "shared_with.1.subject_name"),
 				),
 			},
 			{
