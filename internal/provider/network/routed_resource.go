@@ -97,6 +97,7 @@ func (r *networkRoutedResource) Schema(ctx context.Context, _ resource.SchemaReq
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 				MarkdownDescription: "Edge gateway ID in which Routed network should be located.",
 			},
@@ -497,8 +498,6 @@ func (r *networkRoutedResource) ImportState(ctx context.Context, req resource.Im
 		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
 		return
 	}
-
-	// _, vdc, err := r.client.GetOrgAndVDC(r.client.GetOrg(), vdcOrVDCGroupName)
 
 	orgNetwork, err := v.GetOpenApiOrgVdcNetworkByName(networkName)
 	if err != nil && !govcd.ContainsNotFound(err) {
