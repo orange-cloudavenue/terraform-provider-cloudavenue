@@ -3,6 +3,7 @@ package vcda
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 
@@ -109,11 +110,14 @@ func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Call API to create the resource and check for errors.
 	_, httpR, err := r.client.APIClient.VCDAApi.CreateVcdaIP(r.client.Auth, plan.IPAddress.ValueString())
+	if httpR != nil {
+		defer func() {
+			err = errors.Join(err, httpR.Body.Close())
+		}()
+	}
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		if resp.Diagnostics.HasError() {
-			return
-		}
+		return
 	}
 
 	// Set the ID
@@ -140,11 +144,14 @@ func (r *vcdaIPResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	// Call API to get list of VCDA and check for errors.
 	vcdaIPList, httpR, err := r.client.APIClient.VCDAApi.GetVcdaIPs(r.client.Auth)
+	if httpR != nil {
+		defer func() {
+			err = errors.Join(err, httpR.Body.Close())
+		}()
+	}
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		if resp.Diagnostics.HasError() {
-			return
-		}
+		return
 	}
 
 	// Check if the VCDA is in the list
@@ -184,11 +191,14 @@ func (r *vcdaIPResource) Delete(ctx context.Context, req resource.DeleteRequest,
 
 	// Call API to delete the resource and check for errors.
 	_, httpR, err := r.client.APIClient.VCDAApi.DeleteVcdaIP(r.client.Auth, state.IPAddress.ValueString())
+	if httpR != nil {
+		defer func() {
+			err = errors.Join(err, httpR.Body.Close())
+		}()
+	}
 	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		if resp.Diagnostics.HasError() {
-			return
-		}
+		return
 	}
 }
 

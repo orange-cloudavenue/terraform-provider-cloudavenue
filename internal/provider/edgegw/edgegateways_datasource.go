@@ -127,15 +127,16 @@ func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRe
 	}
 
 	gateways, httpR, err := d.client.APIClient.EdgeGatewaysApi.GetEdges(d.client.Auth)
-	if x := helpers.CheckAPIError(err, httpR); x != nil {
+	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
 		}()
-		resp.Diagnostics.Append(x.GetTerraformDiagnostic())
-		if resp.Diagnostics.HasError() {
+	}
+	if x := helpers.CheckAPIError(err, httpR); x != nil {
+		if !x.IsNotFound() {
+			resp.Diagnostics.Append(x.GetTerraformDiagnostic())
 			return
 		}
-
 		// Is Not Found
 		data.EdgeGateways = types.ListNull(types.ObjectType{AttrTypes: edgeGatewayDataSourceModelAttrTypes})
 		data.ID = types.StringNull()

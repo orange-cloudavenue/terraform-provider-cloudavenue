@@ -221,8 +221,8 @@ func (r *edgeGatewaysResource) Create(
 	switch plan.OwnerType.ValueString() {
 	case "vdc":
 		// Check if vDC exist
-		if _, _, err := r.client.GetOrgAndVDC(r.client.GetOrgName(), plan.OwnerName.ValueString()); err != nil {
-			resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+		if _, _, errGetOrg := r.client.GetOrgAndVDC(r.client.GetOrgName(), plan.OwnerName.ValueString()); errGetOrg != nil {
+			resp.Diagnostics.AddError("Error retrieving VDC", errGetOrg.Error())
 			return
 		}
 
@@ -232,41 +232,45 @@ func (r *edgeGatewaysResource) Create(
 			body,
 			plan.OwnerName.ValueString(),
 		)
-		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+
+		if httpR != nil {
 			defer func() {
 				err = errors.Join(err, httpR.Body.Close())
 			}()
+		}
+
+		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-			if resp.Diagnostics.HasError() {
-				return
-			}
+			return
 		}
 	case "vdc-group":
 		// Check if vDC Group exist
-		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
-		if err != nil {
-			resp.Diagnostics.AddError("Error retrieving Org", err.Error())
+		adminOrg, errGetAdminOrg := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
+		if errGetAdminOrg != nil {
+			resp.Diagnostics.AddError("Error retrieving Org", errGetAdminOrg.Error())
 			return
 		}
-		if _, err := adminOrg.GetVdcGroupByName(plan.OwnerName.ValueString()); err != nil {
-			resp.Diagnostics.AddError("Error retrieving vDC Group", err.Error())
+		if _, errGetVDCGroup := adminOrg.GetVdcGroupByName(plan.OwnerName.ValueString()); errGetVDCGroup != nil {
+			resp.Diagnostics.AddError("Error retrieving vDC Group", errGetVDCGroup.Error())
 			return
 		}
 
 		// Create Edge Gateway
-		job, httpR, err = r.client.APIClient.EdgeGatewaysApi.CreateVdcGroupEdge(
+		job, httpR, errGetAdminOrg = r.client.APIClient.EdgeGatewaysApi.CreateVdcGroupEdge(
 			auth,
 			body,
 			plan.OwnerName.ValueString(),
 		)
-		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+
+		if httpR != nil {
 			defer func() {
-				err = errors.Join(err, httpR.Body.Close())
+				errGetAdminOrg = errors.Join(errGetAdminOrg, httpR.Body.Close())
 			}()
+		}
+
+		if apiErr := helpers.CheckAPIError(errGetAdminOrg, httpR); apiErr != nil {
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-			if resp.Diagnostics.HasError() {
-				return
-			}
+			return
 		}
 	}
 
@@ -274,7 +278,7 @@ func (r *edgeGatewaysResource) Create(
 	refreshF := func() (interface{}, string, error) {
 		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
 		if errGetJob != nil {
-			return nil, "", err
+			return nil, "", errGetJob
 		}
 
 		edgeGW := apiclient.EdgeGateway{}
@@ -282,12 +286,14 @@ func (r *edgeGatewaysResource) Create(
 		if jobStatus.IsDone() {
 			// get all edge gateways and find the one that matches the tier0_vrf_id and owner_name
 			gateways, httpRc, errEdgesGet := r.client.APIClient.EdgeGatewaysApi.GetEdges(auth)
-			if errEdgesGet != nil {
-				return nil, "err", errEdgesGet
+			if httpRc != nil {
+				defer func() {
+					err = errors.Join(err, httpRc.Body.Close())
+				}()
 			}
-			defer func() {
-				err = errors.Join(err, httpRc.Body.Close())
-			}()
+			if apiErr := helpers.CheckAPIError(errEdgesGet, httpRc); apiErr != nil {
+				return nil, "err", apiErr
+			}
 
 			for _, gw := range gateways {
 				if gw.Tier0VrfId == plan.Tier0VrfID.ValueString() &&
@@ -396,12 +402,16 @@ func (r *edgeGatewaysResource) Read(
 			auth,
 			common.ExtractUUID(state.ID.ValueString()),
 		)
-		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+
+		if httpR != nil {
 			defer func() {
 				err = errors.Join(err, httpR.Body.Close())
 			}()
-			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-			if resp.Diagnostics.HasError() {
+		}
+
+		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+			if !apiErr.IsNotFound() {
+				resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 				return
 			}
 
@@ -410,14 +420,16 @@ func (r *edgeGatewaysResource) Read(
 		}
 	} else {
 		gateways, httpR, err := r.client.APIClient.EdgeGatewaysApi.GetEdges(auth)
-		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+
+		if httpR != nil {
 			defer func() {
 				err = errors.Join(err, httpR.Body.Close())
 			}()
+		}
+
+		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-			if resp.Diagnostics.HasError() {
-				return
-			}
+			return
 		}
 
 		found := false
@@ -502,14 +514,16 @@ func (r *edgeGatewaysResource) Delete(
 		auth,
 		common.ExtractUUID(state.ID.ValueString()),
 	)
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+
+	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
 		}()
+	}
+
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
 		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		if resp.Diagnostics.HasError() {
-			return
-		}
+		return
 	}
 
 	// Wait for job to complete
