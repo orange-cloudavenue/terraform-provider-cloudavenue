@@ -2,17 +2,18 @@
 page_title: "cloudavenue_network_isolated Resource - cloudavenue"
 subcategory: "Network"
 description: |-
-  Provides a Cloud Avenue VDC isolated Network. This can be used to create, modify, and delete isolated VDC networks. An network isolated is not connected to any other network.
+  Provides a VMware Cloud Director Org VDC isolated Network. This can be used to create, modify, and delete isolated VDC networks
 ---
 
 # cloudavenue_network_isolated (Resource)
 
-Provides a Cloud Avenue VDC isolated Network. This can be used to create, modify, and delete isolated VDC networks. An network isolated is not connected to any other network.
+Provides a VMware Cloud Director Org VDC isolated Network. This can be used to create, modify, and delete isolated VDC networks
 
 ## Example Usage
 
 ```terraform
 resource "cloudavenue_network_isolated" "example" {
+  vdc         = "VDC_Test"
   name        = "rsx-example-isolated-network"
   description = "My isolated Org VDC network"
 
@@ -41,18 +42,18 @@ resource "cloudavenue_network_isolated" "example" {
 
 ### Required
 
-- `gateway` (String) The gateway IP address for the network. This value define also the network IP range with the prefix length.
+- `gateway` (String) (Force replacement) The gateway IP address for the network. This value define also the network IP range with the prefix length.
 - `name` (String) The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.
-- `prefix_length` (Number) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. 24 for netmask 255.255.255.0)
+- `prefix_length` (Number) (Force replacement) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. 24 for netmask 255.255.255.0)
 
 ### Optional
 
-- `description` (String) A description of the network. This value is optional.
+- `description` (String) A description of the network.
 - `dns1` (String) The primary DNS server IP address for the network.
 - `dns2` (String) The secondary DNS server IP address for the network.
 - `dns_suffix` (String) The DNS suffix for the network.
-- `owner_id` (String) (ForceNew) The Uuid of the `VDC` or `VDC Group` that owns the network. If not specified, it use the vdc at provider level.
 - `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. (see [below for nested schema](#nestedatt--static_ip_pool))
+- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 

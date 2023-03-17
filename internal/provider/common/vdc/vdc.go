@@ -28,8 +28,8 @@ func Schema() schema.StringAttribute {
 		Optional: true,
 		Computed: true,
 		PlanModifiers: []planmodifier.String{
-			stringplanmodifier.RequiresReplace(),
 			stringplanmodifier.UseStateForUnknown(),
+			stringplanmodifier.RequiresReplace(),
 		},
 		MarkdownDescription: "(ForceNew) The name of vDC to use, optional if defined at provider level.",
 	}

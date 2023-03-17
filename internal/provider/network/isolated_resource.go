@@ -4,7 +4,6 @@ package network
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -23,6 +23,8 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -30,6 +32,7 @@ var (
 	_ resource.Resource                = &networkIsolatedResource{}
 	_ resource.ResourceWithConfigure   = &networkIsolatedResource{}
 	_ resource.ResourceWithImportState = &networkIsolatedResource{}
+	_ resource.ResourceWithModifyPlan  = &networkIsolatedResource{}
 )
 
 // NewNetworkIsolatedResource is a helper function to simplify the provider implementation.
@@ -40,11 +43,13 @@ func NewNetworkIsolatedResource() resource.Resource {
 // networkIsolatedResource is the resource implementation.
 type networkIsolatedResource struct {
 	client *client.CloudAvenue
+	vdc    vdc.VDC
+	org    org.Org
 }
 
 type networkIsolatedResourceModel struct {
 	ID           types.String `tfsdk:"id"`
-	OwnerID      types.String `tfsdk:"owner_id"`
+	VDC          types.String `tfsdk:"vdc"`
 	Name         types.String `tfsdk:"name"`
 	Description  types.String `tfsdk:"description"`
 	Gateway      types.String `tfsdk:"gateway"`
@@ -65,15 +70,41 @@ var staticIPPoolResourceModelAttrTypes = map[string]attr.Type{
 	"end_address":   types.StringType,
 }
 
+func (r *networkIsolatedResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	configVDC := &types.String{}
+	req.Config.GetAttribute(ctx, path.Root("vdc"), configVDC)
+	stateVDC := &types.String{}
+	req.State.GetAttribute(ctx, path.Root("vdc"), stateVDC)
+	if (configVDC.IsNull() || configVDC.IsUnknown()) && !stateVDC.IsNull() {
+		if r.client.GetDefaultVDC() != stateVDC.ValueString() {
+			x := &path.Paths{}
+			resp.RequiresReplace = x.Append(path.Root("vdc"))
+			resp.Plan.SetAttribute(ctx, path.Root("vdc"), r.client.GetDefaultVDC())
+		}
+	}
+}
+
 // Metadata returns the resource type name.
 func (r *networkIsolatedResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "isolated"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_isolated"
+}
+
+// Init resource used to initialize the resource.
+func (r *networkIsolatedResource) Init(_ context.Context, rm *networkIsolatedResourceModel) (diags diag.Diagnostics) {
+	// Init Org
+	r.org, diags = org.Init(r.client)
+	if diags.HasError() {
+		return
+	}
+	// Init Vdc
+	r.vdc, diags = vdc.Init(r.client, rm.VDC)
+	return
 }
 
 // Schema defines the schema for the resource.
 func (r *networkIsolatedResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a Cloud Avenue VDC isolated Network. This can be used to create, modify, and delete isolated VDC networks. An network isolated is not connected to any other network.",
+		MarkdownDescription: "Provides a VMware Cloud Director Org VDC isolated Network. This can be used to create, modify, and delete isolated VDC networks",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -82,37 +113,33 @@ func (r *networkIsolatedResource) Schema(ctx context.Context, _ resource.SchemaR
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"owner_id": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "(ForceNew) The Uuid of the `VDC` or `VDC Group` that owns the network. If not specified, it use the vdc at provider level.",
-				Validators: []validator.String{
-					fstringvalidator.IsValidUUID(),
-				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
+			"vdc": vdc.Schema(),
 			"name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.",
 			},
 			"description": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "A description of the network. This value is optional.",
+				MarkdownDescription: "A description of the network.",
 			},
 			"gateway": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The gateway IP address for the network. This value define also the network IP range with the prefix length.",
+				MarkdownDescription: "(Force replacement) The gateway IP address for the network. This value define also the network IP range with the prefix length.",
 				Validators: []validator.String{
 					fstringvalidator.IsValidIP(),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"prefix_length": schema.Int64Attribute{
 				Required:            true,
-				MarkdownDescription: "The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. 24 for netmask 255.255.255.0)",
+				MarkdownDescription: "(Force replacement) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. 24 for netmask 255.255.255.0)",
 				Validators: []validator.Int64{
 					int64validator.Between(1, 32),
+				},
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplace(),
 				},
 			},
 			"dns1": schema.StringAttribute{
@@ -182,81 +209,43 @@ func (r *networkIsolatedResource) Configure(ctx context.Context, req resource.Co
 // Create creates the resource and sets the initial Terraform state.
 func (r *networkIsolatedResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var (
-		plan     *networkIsolatedResourceModel
-		err      error
-		urn      string
-		isGroup  bool
-		vdcGroup *govcd.VdcGroup
-		vdc      *govcd.Vdc
-	)
-
-	// Read the plan
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	plan := &networkIsolatedResourceModel{}
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get Org and VDC
-	org, err := r.client.GetOrg()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// If VDC is not defined at data source level, use the one defined at provider level
-	if plan.OwnerID.IsNull() || plan.OwnerID.IsUnknown() {
-		if r.client.DefaultVDCExist() {
-			vdc, err = org.GetVDCByName(r.client.GetDefaultVDC(), true)
-			if err != nil {
-				resp.Diagnostics.AddError("Error retrieving VDC from Provider", err.Error())
-				return
-			}
-			// Set the OwnerID with the VDC ID
-			plan.OwnerID = types.StringValue(vdc.Vdc.ID)
-		} else {
-			resp.Diagnostics.AddError("[CREATE] Missing VDC", "OwnerID (VDC) is required when not defined at provider level")
-			return
-		}
-	} else {
-		// OwnerID is not null, so we need to retrieve the URN via Owner_ID (VDC or VDC Group)
-		// First, we need to check if it is a VDC
-		vdc, err = org.GetVDCById(plan.OwnerID.ValueString(), true)
-		if err == nil {
-			plan.OwnerID = types.StringValue(vdc.Vdc.ID)
-		} else { // It is not a VDC, so it may be a VDC Group
-			urn, err = govcd.BuildUrnWithUuid("urn:vcloud:vdcGroup:", plan.OwnerID.ValueString())
-			if err == nil {
-				vdcGroup, err = org.GetVdcGroupById(urn)
-				if err != nil {
-					resp.Diagnostics.AddError("[CREATE] Error retrieving VDC Group from OwnerID", err.Error())
-					return
-				}
-
-				// OwnerId is VDCGroup ID
-				isGroup = true
-				plan.OwnerID = types.StringValue(urn)
-			} else {
-				resp.Diagnostics.AddError("[CREATE] Error retrieving VDC or VDC Group from OwnerID", err.Error())
-				return
-			}
-		}
+	// Define VDC or VDCGroup
+	vdcOrVDCGroup, err := r.client.GetVDCOrVDCGroup(plan.VDC.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving VDC or VDCGroup", err.Error())
+		return
 	}
 
-	// Lock VDC or VDC Group to prevent concurrent access
+	// Lock VDC or VDCGroup
 	vcdMutexKV := mutex.NewKV()
-	vcdMutexKV.KvLock(ctx, urn)
-	defer vcdMutexKV.KvUnlock(ctx, urn)
+	vcdMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer vcdMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
-	// Get network type
+	// Set network type
 	ipPool := []staticIPPoolResourceModel{}
 	resp.Diagnostics.Append(plan.StaticIPPool.ElementsAs(ctx, &ipPool, true)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	myshared := false // Cloudavenue does not support shared networks
 	networkType := &govdctypes.OpenApiOrgVdcNetwork{
 		Name:        plan.Name.ValueString(),
 		Description: plan.Description.ValueString(),
 		Shared:      &myshared,
 		NetworkType: govdctypes.OrgVdcNetworkTypeIsolated,
+		OwnerRef:    &govdctypes.OpenApiReference{ID: vdcOrVDCGroup.GetID()},
 		Subnets: govdctypes.OrgVdcNetworkSubnets{
 			Values: []govdctypes.OrgVdcNetworkSubnetValues{
 				{
@@ -273,33 +262,16 @@ func (r *networkIsolatedResource) Create(ctx context.Context, req resource.Creat
 		},
 	}
 
-	// Set OwnerRef if VDC Group
-	if isGroup {
-		networkType.OwnerRef = &govdctypes.OpenApiReference{ID: vdcGroup.VdcGroup.Id}
-	} else {
-		networkType.OwnerRef = &govdctypes.OpenApiReference{ID: vdc.Vdc.ID}
-	}
-
 	// Create network
-	orgNetwork, err := org.CreateOpenApiOrgVdcNetwork(networkType)
+	orgNetwork, err := r.org.CreateOpenApiOrgVdcNetwork(networkType)
 	if err != nil {
 		resp.Diagnostics.AddError("[CREATE] Error creating isolated network", err.Error())
 		return
 	}
 
-	// set Plan
-	plan = &networkIsolatedResourceModel{
-		ID:           types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
-		OwnerID:      types.StringValue(extractUUID(plan.OwnerID.ValueString())),
-		Name:         plan.Name,
-		Description:  plan.Description,
-		Gateway:      plan.Gateway,
-		PrefixLength: plan.PrefixLength,
-		StaticIPPool: plan.StaticIPPool,
-		PrimaryDNS:   plan.PrimaryDNS,
-		SecondaryDNS: plan.SecondaryDNS,
-		SuffixDNS:    plan.SuffixDNS,
-	}
+	// Set Plan only for compute values
+	plan.ID = types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID)
+	plan.VDC = types.StringValue(vdcOrVDCGroup.GetName())
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -310,28 +282,28 @@ func (r *networkIsolatedResource) Create(ctx context.Context, req resource.Creat
 
 // Read refreshes the Terraform state with the latest data.
 func (r *networkIsolatedResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var (
-		state *networkIsolatedResourceModel
-		err   error
-	)
-
 	// Get current state
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	state := &networkIsolatedResourceModel{}
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get Org and VDC
-	org, err := r.client.GetOrg()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Build URN Network
-	urn := state.ID.ValueString()
+	// Define VDC or VDCGroup
+	vdcOrVDCGroup, err := r.client.GetVDCOrVDCGroup(state.VDC.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving VDC or VDCGroup", err.Error())
+		return
+	}
+
 	// Get network
-	orgNetwork, err := org.GetOpenApiOrgVdcNetworkById(urn)
+	orgNetwork, err := vdcOrVDCGroup.GetOpenApiOrgVdcNetworkByName(state.Name.ValueString())
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			// Network not found, so remove from state
@@ -340,18 +312,6 @@ func (r *networkIsolatedResource) Read(ctx context.Context, req resource.ReadReq
 		}
 		resp.Diagnostics.AddError("[READ] Error retrieving isolated network", err.Error())
 		return
-	}
-
-	plan := &networkIsolatedResourceModel{
-		ID:           types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
-		OwnerID:      types.StringValue(extractUUID(orgNetwork.OpenApiOrgVdcNetwork.OwnerRef.ID)),
-		Name:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Name),
-		Description:  types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
-		Gateway:      types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
-		PrefixLength: types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
-		PrimaryDNS:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
-		SecondaryDNS: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
-		SuffixDNS:    types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
 	}
 
 	// Get network static IP pools
@@ -364,6 +324,21 @@ func (r *networkIsolatedResource) Read(ctx context.Context, req resource.ReadReq
 			})
 		}
 	}
+
+	// Set Plan updated
+	plan := &networkIsolatedResourceModel{
+		ID:           types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
+		Name:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Name),
+		Description:  types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
+		VDC:          types.StringValue(vdcOrVDCGroup.GetName()),
+		Gateway:      types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
+		PrefixLength: types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
+		PrimaryDNS:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
+		SecondaryDNS: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
+		SuffixDNS:    types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
+	}
+
+	// Set static IP pools
 	var diags diag.Diagnostics
 	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolResourceModelAttrTypes}, ipPools)
 	resp.Diagnostics.Append(diags...)
@@ -380,58 +355,66 @@ func (r *networkIsolatedResource) Read(ctx context.Context, req resource.ReadReq
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *networkIsolatedResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var (
-		plan, state *networkIsolatedResourceModel
-		err         error
-		orgNetwork  *govcd.OpenApiOrgVdcNetwork
-	)
-
 	// Get current state
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	plan := &networkIsolatedResourceModel{}
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
+	state := &networkIsolatedResourceModel{}
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get Org and VDC
-	org, err := r.client.GetOrg()
-	if err != nil {
-		resp.Diagnostics.AddError("[UPDATE] Error retrieving Org", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get network
+	// Define VDC or VDCGroup
+	vdcOrVDCGroup, err := r.client.GetVDCOrVDCGroup(state.VDC.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving VDC or VDCGroup", err.Error())
+		return
+	}
 
-	orgNetwork, err = org.GetOpenApiOrgVdcNetworkById(state.ID.ValueString())
+	// Lock VDC or VDCGroup
+	vcdMutexKV := mutex.NewKV()
+	vcdMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer vcdMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+
+	// Get network
+	orgNetwork, err := vdcOrVDCGroup.GetOpenApiOrgVdcNetworkByName(state.Name.ValueString())
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			// Network not found, so remove from state
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("[UPDATE] Error retrieving isolated network", err.Error())
+		resp.Diagnostics.AddError("[READ] Error retrieving isolated network", err.Error())
 		return
 	}
 
 	// Set network type
-	ipPools := []staticIPPoolResourceModel{}
-	diags := plan.StaticIPPool.ElementsAs(ctx, &ipPools, true)
-	resp.Diagnostics.Append(diags...)
+	ipPool := []staticIPPoolResourceModel{}
+	resp.Diagnostics.Append(plan.StaticIPPool.ElementsAs(ctx, &ipPool, true)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	myshared := false // Cloudavenue does not support shared networks
 	networkType := &govdctypes.OpenApiOrgVdcNetwork{
-		ID:          orgNetwork.OpenApiOrgVdcNetwork.ID,
+		ID:          plan.ID.ValueString(),
 		Name:        plan.Name.ValueString(),
 		Description: plan.Description.ValueString(),
-		OwnerRef:    orgNetwork.OpenApiOrgVdcNetwork.OwnerRef,
 		Shared:      &myshared,
 		NetworkType: govdctypes.OrgVdcNetworkTypeIsolated,
+		OwnerRef:    &govdctypes.OpenApiReference{ID: vdcOrVDCGroup.GetID()},
 		Subnets: govdctypes.OrgVdcNetworkSubnets{
 			Values: []govdctypes.OrgVdcNetworkSubnetValues{
 				{
 					Gateway:      plan.Gateway.ValueString(),
 					PrefixLength: int(plan.PrefixLength.ValueInt64()),
 					IPRanges: govdctypes.OrgVdcNetworkSubnetIPRanges{
-						Values: myProcessIPRanges(ipPools),
+						Values: myProcessIPRanges(ipPool),
 					},
 					DNSServer1: plan.PrimaryDNS.ValueString(),
 					DNSServer2: plan.SecondaryDNS.ValueString(),
@@ -440,30 +423,6 @@ func (r *networkIsolatedResource) Update(ctx context.Context, req resource.Updat
 			},
 		},
 	}
-
-	// Check if VdcGroup or Vdc
-	var urn string
-	vdc, err := org.GetVDCById(state.OwnerID.ValueString(), true)
-	if err == nil { // It is a VDC
-		urn, _ = govcd.BuildUrnWithUuid("urn:vcloud:vdc:", vdc.Vdc.ID)
-	} else { // It is not a VDC, so it may be a VDC Group
-		urn, err := govcd.BuildUrnWithUuid("urn:vcloud:vdcGroup:", state.OwnerID.ValueString())
-		if err == nil {
-			_, err := org.GetVdcGroupById(urn)
-			if err != nil {
-				resp.Diagnostics.AddError("[UPDATE] Error retrieving VDC Group from OwnerID", err.Error())
-				return
-			}
-		} else {
-			resp.Diagnostics.AddError("[UPDATE] Error retrieving VDC or VDC Group from OwnerID", err.Error())
-			return
-		}
-	}
-
-	// Lock VDC or VDC Group to prevent concurrent access
-	vcdMutexKV := mutex.NewKV()
-	vcdMutexKV.KvLock(ctx, urn)
-	defer vcdMutexKV.KvUnlock(ctx, urn)
 
 	// Update network
 	_, err = orgNetwork.Update(networkType)
@@ -481,59 +440,42 @@ func (r *networkIsolatedResource) Update(ctx context.Context, req resource.Updat
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *networkIsolatedResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var (
-		state *networkIsolatedResourceModel
-		err   error
-	)
-
 	// Get current state
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	state := &networkIsolatedResourceModel{}
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get Org and VDC
-	org, err := r.client.GetOrg()
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Define VDC or VDCGroup
+	vdcOrVDCGroup, err := r.client.GetVDCOrVDCGroup(state.VDC.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("[DELETE] Error retrieving Org", err.Error())
+		resp.Diagnostics.AddError("Error retrieving VDC or VDCGroup", err.Error())
 		return
 	}
 
 	// Get network
-	orgNetwork, err := org.GetOpenApiOrgVdcNetworkById(state.ID.ValueString())
+	orgNetwork, err := vdcOrVDCGroup.GetOpenApiOrgVdcNetworkByName(state.Name.ValueString())
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			// Network not found, so remove from state
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("[DELETE] Error retrieving isolated network", err.Error())
+		resp.Diagnostics.AddError("[READ] Error retrieving isolated network", err.Error())
 		return
 	}
 
-	// Check if VdcGroup or Vdc
-	var urn string
-	vdc, err := org.GetVDCById(state.OwnerID.ValueString(), true)
-	if err == nil { // It is a VDC
-		urn, _ = govcd.BuildUrnWithUuid("urn:vcloud:vdc:", vdc.Vdc.ID)
-	} else { // It is not a VDC, so it may be a VDC Group
-		urn, err := govcd.BuildUrnWithUuid("urn:vcloud:vdcGroup:", state.OwnerID.ValueString())
-		if err == nil {
-			_, err := org.GetVdcGroupById(urn)
-			if err != nil {
-				resp.Diagnostics.AddError("[DELETE] Error retrieving VDC Group from OwnerID", err.Error())
-				return
-			}
-		} else {
-			resp.Diagnostics.AddError("[DELETE] Error retrieving VDC or VDC Group from OwnerID", err.Error())
-			return
-		}
-	}
-
-	// Lock VDC or VDC Group to prevent concurrent access
+	// Lock VDC or VDCGroup
 	vcdMutexKV := mutex.NewKV()
-	vcdMutexKV.KvLock(ctx, urn)
-	defer vcdMutexKV.KvUnlock(ctx, urn)
+	vcdMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer vcdMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Delete network
 	err = orgNetwork.Delete()
@@ -552,21 +494,16 @@ func (r *networkIsolatedResource) ImportState(ctx context.Context, req resource.
 	}
 	vdcOrVDCGroupName, networkName := resourceURI[0], resourceURI[1]
 
-	// Get VDC
-	v, err := r.client.GetVDCOrVDCGroup(vdcOrVDCGroupName)
-	if err != nil && !govcd.ContainsNotFound(err) {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+	// Get VDC or VDCGroup
+	vdcOrVDCGroup, err := r.client.GetVDCOrVDCGroup(vdcOrVDCGroupName)
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving VDC or VDCGroup", err.Error())
 		return
 	}
 
 	// Get network
-	orgNetwork, err := v.GetOpenApiOrgVdcNetworkByName(networkName)
-	if err != nil && !govcd.ContainsNotFound(err) {
-		resp.Diagnostics.AddError("Error retrieving org vdc network by name", err.Error())
-		return
-	}
-	// If network is not found, return error
-	if orgNetwork == nil {
+	orgNetwork, err := vdcOrVDCGroup.GetOpenApiOrgVdcNetworkByName(networkName)
+	if err != nil { // If network is not found, return error
 		resp.Diagnostics.AddError("Error retrieving org network by name", err.Error())
 		return
 	}
@@ -577,7 +514,43 @@ func (r *networkIsolatedResource) ImportState(ctx context.Context, req resource.
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), orgNetwork.OpenApiOrgVdcNetwork.ID)...)
+	// Get network static IP pools
+	ipPools := []staticIPPoolResourceModel{}
+	if len(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values) > 0 {
+		for _, ipRange := range orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values {
+			ipPools = append(ipPools, staticIPPoolResourceModel{
+				StartAddress: types.StringValue(ipRange.StartAddress),
+				EndAddress:   types.StringValue(ipRange.EndAddress),
+			})
+		}
+	}
+
+	// Set state to fully populated data
+	// Set Plan updated
+	plan := &networkIsolatedResourceModel{
+		ID:           types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
+		Name:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Name),
+		Description:  types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
+		VDC:          types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.OwnerRef.Name),
+		Gateway:      types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
+		PrefixLength: types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
+		PrimaryDNS:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
+		SecondaryDNS: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
+		SuffixDNS:    types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
+	}
+	// Set static IP pools
+	var diags diag.Diagnostics
+	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolResourceModelAttrTypes}, ipPools)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Set refreshed state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 // StaticIPPool is a helper function to get the static IP pool from the resource data.
@@ -588,14 +561,4 @@ func myProcessIPRanges(mystaticIPPool []staticIPPoolResourceModel) []govdctypes.
 		subnetRng[i].EndAddress = ipRange.EndAddress.ValueString()
 	}
 	return subnetRng
-}
-
-// Extract Uuid from urn.
-func extractUUID(input string) string {
-	reGetID := regexp.MustCompile(`([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)
-	matchListID := reGetID.FindAllStringSubmatch(input, -1)
-	if len(matchListID) > 0 && len(matchListID[0]) > 0 {
-		return matchListID[len(matchListID)-1][1]
-	}
-	return ""
 }

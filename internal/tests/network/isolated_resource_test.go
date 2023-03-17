@@ -12,6 +12,7 @@ import (
 //go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
 const testAccNetworkIsolatedResourceConfig = `
 resource "cloudavenue_network_isolated" "example" {
+	vdc 	= "VDC_Test"
 	name        = "rsx-example-isolated-network"
 	description = "My isolated Org VDC network"
   
@@ -37,6 +38,7 @@ resource "cloudavenue_network_isolated" "example" {
 
 const updateAccNetworkIsolatedResourceConfig = `
 resource "cloudavenue_network_isolated" "example" {
+	vdc 	= "VDC_Test"
 	name        = "rsx-example-isolated-network"
 	description = "Example"
   
@@ -72,7 +74,7 @@ func TestAccNetworkIsolatedResource(t *testing.T) {
 				Config: testAccNetworkIsolatedResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:network:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
-					resource.TestCheckResourceAttrSet(resourceName, "owner_id"),
+					resource.TestCheckResourceAttr(resourceName, "vdc", "VDC_Test"),
 					resource.TestCheckResourceAttr(resourceName, "name", "rsx-example-isolated-network"),
 					resource.TestCheckResourceAttr(resourceName, "description", "My isolated Org VDC network"),
 					resource.TestCheckResourceAttr(resourceName, "gateway", "1.1.1.1"),
@@ -89,6 +91,7 @@ func TestAccNetworkIsolatedResource(t *testing.T) {
 				Config: updateAccNetworkIsolatedResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:network:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestCheckResourceAttr(resourceName, "vdc", "VDC_Test"),
 					resource.TestCheckResourceAttr(resourceName, "description", "Example"),
 					resource.TestCheckResourceAttr(resourceName, "dns1", "1.1.1.2"),
 					resource.TestCheckResourceAttr(resourceName, "dns2", "8.8.8.9"),
@@ -101,7 +104,7 @@ func TestAccNetworkIsolatedResource(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateId:     "VDC_Frangipane.rsx-example-isolated-network",
+				ImportStateId:     "VDC_Test.rsx-example-isolated-network",
 			},
 		},
 	})
