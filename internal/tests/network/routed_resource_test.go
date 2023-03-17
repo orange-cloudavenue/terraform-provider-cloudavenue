@@ -71,9 +71,8 @@ const testAccNetworkRoutedResourceOnVDCConfig = `
 	}
 `
 
-const resourceName = "cloudavenue_network_routed.example"
-
 func TestAccNetworkRoutedResource(t *testing.T) {
+	const resourceName = "cloudavenue_network_routed.example"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: tests.TestAccProtoV6ProviderFactories,
