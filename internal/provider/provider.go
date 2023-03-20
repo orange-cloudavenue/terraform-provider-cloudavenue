@@ -76,7 +76,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		// CATALOG
 		catalog.NewCatalogsDataSource,
 		catalog.NewCatalogDataSource,
-		catalog.NewCatalogVappTemplateDataSource,
+		catalog.NewVAppTemplateDataSource,
 		catalog.NewCatalogMediaDataSource,
 		catalog.NewCatalogMediasDataSource,
 

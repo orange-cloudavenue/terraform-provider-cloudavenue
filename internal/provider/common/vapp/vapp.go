@@ -25,6 +25,11 @@ const (
 	ErrVAppNotFound = "vApp not found"
 )
 
+const (
+	SchemaVappID   = "vapp_id"
+	SchemaVappName = "vapp_name"
+)
+
 type VAPP struct {
 	*client.VAPP
 	vdc vdc.VDC

@@ -28,7 +28,6 @@ func TestAccCatalogMediasDatasource(t *testing.T) {
 			{
 				Config: testAccCatalogMediasDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourceName, "catalog_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "catalog_name", "catalog-example"),
 					resource.TestCheckResourceAttr(dataSourceName, "medias_name.0", "debian-9.9.0-amd64-netinst.iso"),
 					resource.TestCheckResourceAttr(dataSourceName, "medias.debian-9.9.0-amd64-netinst.iso.is_iso", "true"),

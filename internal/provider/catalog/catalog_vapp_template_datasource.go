@@ -9,81 +9,85 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
 
 var (
-	_ datasource.DataSource              = &catalogVappTemplateDataSource{}
-	_ datasource.DataSourceWithConfigure = &catalogVappTemplateDataSource{}
+	_ datasource.DataSource              = &vAppTemplateDataSource{}
+	_ datasource.DataSourceWithConfigure = &vAppTemplateDataSource{}
+	_ catalog                            = &vAppTemplateDataSource{}
 )
 
-func NewCatalogVappTemplateDataSource() datasource.DataSource {
-	return &catalogVappTemplateDataSource{}
+func NewVAppTemplateDataSource() datasource.DataSource {
+	return &vAppTemplateDataSource{}
 }
 
-type catalogVappTemplateDataSource struct {
-	client *client.CloudAvenue
+type vAppTemplateDataSource struct {
+	client   *client.CloudAvenue
+	adminOrg adminorg.AdminOrg
+	catalog  base
 }
 
-type catalogVappTemplateDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	VappName    types.String `tfsdk:"vapp_name"`
-	VappID      types.String `tfsdk:"vapp_id"`
-	CatalogID   types.String `tfsdk:"catalog_id"`
-	CatalogName types.String `tfsdk:"catalog_name"`
-	Description types.String `tfsdk:"description"`
-	CreatedAt   types.String `tfsdk:"created_at"`
-	VMNames     types.List   `tfsdk:"vm_names"`
+type vAppTemplateDataSourceModel struct {
+	ID           types.String `tfsdk:"id"`
+	TemplateName types.String `tfsdk:"template_name"`
+	TemplateID   types.String `tfsdk:"template_id"`
+	CatalogID    types.String `tfsdk:"catalog_id"`
+	CatalogName  types.String `tfsdk:"catalog_name"`
+	Description  types.String `tfsdk:"description"`
+	CreatedAt    types.String `tfsdk:"created_at"`
+	VMNames      types.List   `tfsdk:"vm_names"`
 }
 
-func (d *catalogVappTemplateDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *vAppTemplateDataSource) Init(ctx context.Context, rm *vAppTemplateDataSourceModel) (diags diag.Diagnostics) {
+	d.catalog = base{
+		name: rm.CatalogName.ValueString(),
+		id:   rm.CatalogID.ValueString(),
+	}
+
+	d.adminOrg, diags = adminorg.Init(d.client)
+
+	return
+}
+
+func (d *vAppTemplateDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "vapp_template"
 }
 
-func (d *catalogVappTemplateDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *vAppTemplateDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "The catalog_vapp_template datasource provides information about a vApp Template in a catalog.",
+		Description: "The `catalog_vapp_template` datasource provides information about a vApp Template in a catalog.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "ID is a `vapp_id` of the vApp Template",
+				MarkdownDescription: "ID of the vApp Template",
 				Computed:            true,
 			},
-			"vapp_name": schema.StringAttribute{
-				MarkdownDescription: "Name of the vApp Template. Required if `vapp_id` is not set.",
+			"template_name": schema.StringAttribute{
+				MarkdownDescription: "Name of the vApp Template. Required if `template_id` is not set.",
 				Optional:            true,
 				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
+					stringvalidator.ExactlyOneOf(path.MatchRoot("template_name"), path.MatchRoot("template_id")),
 				},
 			},
-			"vapp_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the vApp Template. Required if `vapp_name` is not set.",
+			"template_id": schema.StringAttribute{
+				MarkdownDescription: "ID of the vApp Template. Required if `template_name` is not set.",
 				Optional:            true,
 				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
+					stringvalidator.ExactlyOneOf(path.MatchRoot("template_name"), path.MatchRoot("template_id")),
 				},
 			},
-			"catalog_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the catalog containing the vApp Template. Required if `catalog_name` is not set.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("catalog_id"), path.MatchRoot("catalog_name")),
-				},
-			},
-			"catalog_name": schema.StringAttribute{
-				MarkdownDescription: "Name of the catalog containing the vApp Template. Required if `catalog_id` is not set.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("catalog_id"), path.MatchRoot("catalog_name")),
-				},
-			},
+			schemaName: schemaCatalogName(common.IsOptional()),
+			schemaID:   schemaCatalogID(common.IsOptional()),
 			"description": schema.StringAttribute{
 				MarkdownDescription: "Description of the vApp Template",
 				Computed:            true,
@@ -101,7 +105,7 @@ func (d *catalogVappTemplateDataSource) Schema(ctx context.Context, req datasour
 	}
 }
 
-func (d *catalogVappTemplateDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *vAppTemplateDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -121,51 +125,61 @@ func (d *catalogVappTemplateDataSource) Configure(ctx context.Context, req datas
 	d.client = client
 }
 
-func (d *catalogVappTemplateDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data, state catalogVappTemplateDataSourceModel
+func (d *vAppTemplateDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	state := &vAppTemplateDataSourceModel{}
 
 	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
+	resp.Diagnostics.Append(req.Config.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	adminOrg, err := d.client.Vmware.GetAdminOrgByNameOrId(d.client.GetOrgName())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
+	resp.Diagnostics.Append(d.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get VAPP Template by Catalog ID or Name
-	var (
-		catalog           *govcd.Catalog
-		catalogByNameOrID string
-		vappByNameOrID    string
-	)
-
-	if !data.CatalogID.IsNull() {
-		tflog.Info(ctx, fmt.Sprintf("Catalog ID: %s", data.CatalogID.ValueString()))
-		catalogByNameOrID = data.CatalogID.ValueString()
-	} else {
-		tflog.Info(ctx, fmt.Sprintf("Catalog Name: %s", data.CatalogName.ValueString()))
-		catalogByNameOrID = data.CatalogName.ValueString()
-	}
-
-	catalog, err = adminOrg.GetCatalogByNameOrId(catalogByNameOrID, false)
+	catalog, err := d.GetCatalog()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Catalog", err.Error())
+		resp.Diagnostics.AddError("Error retrieving catalog", err.Error())
 		return
 	}
 
-	if !data.VappID.IsNull() {
-		vappByNameOrID = data.VappID.ValueString()
-	} else {
-		vappByNameOrID = data.VappName.ValueString()
+	if state.TemplateID.IsNull() || state.TemplateID.IsUnknown() {
+		vAppTemplates, err := catalog.QueryVappTemplateList()
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving vApp Templates", err.Error())
+			return
+		}
+
+		var href string
+
+		for _, vAppTemplate := range vAppTemplates {
+			if vAppTemplate.Name == state.TemplateName.ValueString() {
+				state.TemplateID = types.StringValue(vAppTemplate.ID)
+				href = vAppTemplate.HREF
+				break
+			}
+		}
+
+		if state.TemplateID.ValueString() == "" {
+			// govcd.GetUuidFromHref not working here because the href contains vappTemplate- before the uuid
+
+			// get last 36 characters of href
+			uuid := href[len(href)-36:]
+
+			if uuid != "" {
+				state.TemplateID = types.StringValue(uuid)
+			} else {
+				resp.Diagnostics.AddError("Error retrieving vApp Template", fmt.Sprintf("vApp Template '%s' not found", state.TemplateName.ValueString()))
+				return
+			}
+		}
+
+		state.ID = state.TemplateID
 	}
 
-	// catalog.QueryVappTemplateWithName()
-	vappTemplate, err := catalog.GetVAppTemplateByNameOrId(vappByNameOrID, false)
+	vappTemplate, err := d.client.Vmware.GetVAppTemplateById(state.TemplateID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving vApp Template", err.Error())
 		return
@@ -190,20 +204,36 @@ func (d *catalogVappTemplateDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	state = catalogVappTemplateDataSourceModel{
-		ID:          types.StringValue(vappTemplate.VAppTemplate.ID),
-		VappName:    types.StringValue(vappTemplate.VAppTemplate.Name),
-		VappID:      types.StringValue(vappTemplate.VAppTemplate.ID),
-		CatalogID:   types.StringValue(catalog.Catalog.ID),
-		CatalogName: types.StringValue(catalog.Catalog.Name),
-		Description: types.StringValue(vappTemplate.VAppTemplate.Description),
-		CreatedAt:   types.StringValue(vappTemplate.VAppTemplate.DateCreated),
-		VMNames:     vmS,
-	}
+	updatedState := state
+	updatedState.Description = types.StringValue(vappTemplate.VAppTemplate.Description)
+	updatedState.CreatedAt = types.StringValue(vappTemplate.VAppTemplate.DateCreated)
+	updatedState.VMNames = vmS
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func (d *vAppTemplateDataSource) GetID() string {
+	return d.catalog.name
+}
+
+// GetName returns the name of the catalog.
+func (d *vAppTemplateDataSource) GetName() string {
+	return d.catalog.id
+}
+
+// GetIDOrName returns the ID if it is set, otherwise it returns the name.
+func (d *vAppTemplateDataSource) GetIDOrName() string {
+	if d.GetID() != "" {
+		return d.GetID()
+	}
+	return d.GetName()
+}
+
+// GetCatalog returns the govcd.Catalog.
+func (d *vAppTemplateDataSource) GetCatalog() (*govcd.AdminCatalog, error) {
+	return d.adminOrg.GetAdminCatalogByNameOrId(d.GetIDOrName(), true)
 }

@@ -25,7 +25,7 @@ func TestAccCatalogsDataSource(t *testing.T) {
 				Config: testAccCatalogsDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "catalogs.%"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "catalogs_name.%"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "catalogs_name.#"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
 				),
 			},
