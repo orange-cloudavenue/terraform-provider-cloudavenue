@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	fboolplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -17,7 +18,6 @@ import (
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/boolpm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
@@ -80,7 +80,7 @@ func (r *orgNetworkResource) Schema(ctx context.Context, _ resource.SchemaReques
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
-					boolpm.SetDefault(false),
+					fboolplanmodifier.SetDefault(false),
 				},
 				MarkdownDescription: "Fencing allows identical virtual machines in different vApp networks connect to organization VDC networks that are accessed in this vApp. Default is `false`.",
 			},
@@ -88,7 +88,7 @@ func (r *orgNetworkResource) Schema(ctx context.Context, _ resource.SchemaReques
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
-					boolpm.SetDefault(false),
+					fboolplanmodifier.SetDefault(false),
 				},
 				MarkdownDescription: "Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Default is `false`.",
 			},

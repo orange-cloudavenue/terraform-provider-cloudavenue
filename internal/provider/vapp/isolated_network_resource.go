@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
+	fboolplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/boolplanmodifier"
+	fstringplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/stringplanmodifier"
+	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -20,8 +22,6 @@ import (
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/boolpm"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/stringpm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
@@ -109,10 +109,10 @@ func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaR
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.String{
-					stringvalidator.IsValidNetmask(),
+					fstringvalidator.IsNetmask(),
 				},
 				PlanModifiers: []planmodifier.String{
-					stringpm.SetDefault("255.255.255.0"),
+					fstringplanmodifier.SetDefault("255.255.255.0"),
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
@@ -120,21 +120,21 @@ func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaR
 				MarkdownDescription: "The gateway of the network.",
 				Required:            true,
 				Validators: []validator.String{
-					stringvalidator.IsValidIP(),
+					fstringvalidator.IsIP(),
 				},
 			},
 			"dns1": schema.StringAttribute{
 				MarkdownDescription: "First DNS server.",
 				Optional:            true,
 				Validators: []validator.String{
-					stringvalidator.IsValidIP(),
+					fstringvalidator.IsIP(),
 				},
 			},
 			"dns2": schema.StringAttribute{
 				MarkdownDescription: "Second DNS server.",
 				Optional:            true,
 				Validators: []validator.String{
-					stringvalidator.IsValidIP(),
+					fstringvalidator.IsIP(),
 				},
 			},
 			"dns_suffix": schema.StringAttribute{
@@ -146,7 +146,7 @@ func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaR
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
-					boolpm.SetDefault(false),
+					fboolplanmodifier.SetDefault(false),
 				},
 			},
 			"retain_ip_mac_enabled": schema.BoolAttribute{
@@ -154,7 +154,7 @@ func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaR
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
-					boolpm.SetDefault(false),
+					fboolplanmodifier.SetDefault(false),
 				},
 			},
 			"static_ip_pool": schema.SetNestedAttribute{
@@ -165,10 +165,16 @@ func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaR
 						"start_address": schema.StringAttribute{
 							MarkdownDescription: "The first address in the IP Range.",
 							Required:            true,
+							Validators: []validator.String{
+								fstringvalidator.IsIP(),
+							},
 						},
 						"end_address": schema.StringAttribute{
 							MarkdownDescription: "The last address in the IP Range.",
 							Required:            true,
+							Validators: []validator.String{
+								fstringvalidator.IsIP(),
+							},
 						},
 					},
 				},

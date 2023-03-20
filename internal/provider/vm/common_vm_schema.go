@@ -3,6 +3,7 @@ package vm
 import (
 	"regexp"
 
+	fboolplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/boolpm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 )
 
@@ -109,7 +109,7 @@ func vmSchema() schema.Schema {
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
-					boolpm.SetDefault(false),
+					fboolplanmodifier.SetDefault(false),
 				},
 			},
 			"power_on": schema.BoolAttribute{
@@ -117,7 +117,7 @@ func vmSchema() schema.Schema {
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
-					boolpm.SetDefault(true),
+					fboolplanmodifier.SetDefault(true),
 				},
 			},
 			"storage_profile": schema.StringAttribute{
@@ -179,7 +179,7 @@ func vmSchema() schema.Schema {
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
-					boolpm.SetDefault(false),
+					fboolplanmodifier.SetDefault(false),
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
@@ -197,7 +197,7 @@ func vmSchema() schema.Schema {
 				MarkdownDescription: "`true` if the update of resource should fail when virtual machine power off needed. Default is `false`.",
 				Optional:            true,
 				PlanModifiers: []planmodifier.Bool{
-					boolpm.SetDefault(false),
+					fboolplanmodifier.SetDefault(false),
 				},
 			},
 			"sizing_policy_id": schema.StringAttribute{

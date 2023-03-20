@@ -3,10 +3,9 @@ module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 go 1.20
 
 require (
-	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.0.0
+	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.2.1
+	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.1.1
 	github.com/antihax/optional v1.0.0
-	github.com/dchest/uniuri v1.2.0
-	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/terraform-plugin-docs v0.14.1
 	github.com/hashicorp/terraform-plugin-framework v1.1.1
@@ -15,7 +14,6 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.14.3
 	github.com/hashicorp/terraform-plugin-log v0.8.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.25.0
-	github.com/kr/pretty v0.3.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.1.1
 	github.com/vmware/go-vcloud-director/v2 v2.19.0
 )
@@ -31,6 +29,7 @@ require (
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-checkpoint v0.5.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
@@ -50,6 +49,7 @@ require (
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
@@ -66,7 +66,6 @@ require (
 	github.com/russross/blackfriday v1.6.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
-	github.com/stretchr/testify v1.8.1 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/vmihailenco/msgpack/v4 v4.3.12 // indirect
 	github.com/vmihailenco/tagparser v0.1.2 // indirect

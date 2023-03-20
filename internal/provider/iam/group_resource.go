@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	fstringplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -15,7 +16,6 @@ import (
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/stringpm"
 )
 
 var (
@@ -68,7 +68,7 @@ func (r *iamGroupResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 				Optional:            true,
 				MarkdownDescription: "Description of the iam group",
 				PlanModifiers: []planmodifier.String{
-					stringpm.SetDefaultEmptyString(),
+					fstringplanmodifier.SetDefaultEmptyString(),
 				},
 			},
 			"role": schema.StringAttribute{

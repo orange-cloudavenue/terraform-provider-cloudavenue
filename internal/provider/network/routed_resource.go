@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	fstringplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/stringplanmodifier"
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -23,7 +24,6 @@ import (
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/stringpm"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -106,7 +106,7 @@ func (r *networkRoutedResource) Schema(ctx context.Context, _ resource.SchemaReq
 				Computed:            true,
 				MarkdownDescription: "Optional interface type (only for NSX-V networks). One of `INTERNAL` (default), `DISTRIBUTED`, `SUBINTERFACE`",
 				PlanModifiers: []planmodifier.String{
-					stringpm.SetDefault("INTERNAL"),
+					fstringplanmodifier.SetDefault("INTERNAL"),
 				},
 				Validators: []validator.String{
 					stringvalidator.OneOf("INTERNAL", "SUBINTERFACE", "DISTRIBUTED"),
