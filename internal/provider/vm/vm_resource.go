@@ -10,8 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/kr/pretty"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
@@ -273,8 +271,6 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 		resp.Diagnostics.AddError("[READ] Error creating plan", err.Error())
 		return
 	}
-
-	tflog.Info(ctx, pretty.Sprint(newPlan))
 
 	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newPlan)...)

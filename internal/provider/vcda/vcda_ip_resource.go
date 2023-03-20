@@ -5,9 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -62,10 +61,7 @@ func (r *vcdaIPResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 				MarkdownDescription: "On Premise IP address. This is the IP address of our on premise infrastructure which run vCloud Extender.\n" +
 					helpers.ForceNewDescription,
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4})`),
-						"must be a valid ipv4 address",
-					),
+					fstringvalidator.IsIP(),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),

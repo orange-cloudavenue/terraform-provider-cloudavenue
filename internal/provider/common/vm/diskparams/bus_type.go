@@ -3,13 +3,12 @@ package diskparams
 import (
 	"strings"
 
+	fstringplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/stringpm"
 )
 
 var (
@@ -88,7 +87,7 @@ func BusTypeAttribute() schema.Attribute {
 			stringvalidator.OneOf(listOfBusTypes...),
 		},
 		PlanModifiers: []planmodifier.String{
-			stringpm.SetDefault(busTypeSCSI.Name()),
+			fstringplanmodifier.SetDefault(busTypeSCSI.Name()),
 			stringplanmodifier.UseStateForUnknown(),
 		},
 	}

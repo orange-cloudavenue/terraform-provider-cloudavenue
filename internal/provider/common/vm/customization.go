@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	fboolplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -16,8 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/boolpm"
 )
 
 type Customization struct {
@@ -112,7 +111,7 @@ func CustomizationSchema() map[string]schema.Attribute {
 			MarkdownDescription: "`true` value will cause the VM to reboot on every `apply` operation",
 			Optional:            true,
 			PlanModifiers: []planmodifier.Bool{
-				boolpm.SetDefault(false),
+				fboolplanmodifier.SetDefault(false),
 			},
 		},
 		"enabled": schema.BoolAttribute{

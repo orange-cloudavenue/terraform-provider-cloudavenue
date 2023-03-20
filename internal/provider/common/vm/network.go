@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"sort"
 
+	fboolplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/boolplanmodifier"
+	fstringplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/stringplanmodifier"
+	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -16,9 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/boolpm"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/stringpm"
 )
 
 type Networks []Network
@@ -101,14 +101,14 @@ func NetworkSchema() map[string]schema.Attribute {
 				stringvalidator.OneOf("DHCP", "POOL", "MANUAL", "NONE"),
 			},
 			PlanModifiers: []planmodifier.String{
-				stringpm.SetDefaultEmptyString(),
+				fstringplanmodifier.SetDefaultEmptyString(),
 			},
 		},
 		"name": schema.StringAttribute{
 			MarkdownDescription: "Name of the network this VM should connect to. Always required except for `type` `NONE`.",
 			Optional:            true,
 			PlanModifiers: []planmodifier.String{
-				stringpm.SetDefault("none"),
+				fstringplanmodifier.SetDefault("none"),
 			},
 			// Not force new because it can be changed in-place
 			// TODO : Add validator
@@ -117,14 +117,16 @@ func NetworkSchema() map[string]schema.Attribute {
 			MarkdownDescription: "IP of the VM. Settings depend on `ip_allocation_mode`. Omitted or empty for DHCP, POOL, NONE. Required for MANUAL",
 			Optional:            true,
 			Computed:            true,
-			// TODO : Add validator
+			Validators: []validator.String{
+				fstringvalidator.IsIP(),
+			},
 		},
 		"is_primary": schema.BoolAttribute{
 			MarkdownDescription: "Set to true if network interface should be primary. First network card in the list will be primary by default",
 			Optional:            true,
 			Computed:            true,
 			PlanModifiers: []planmodifier.Bool{
-				boolpm.SetDefault(false),
+				fboolplanmodifier.SetDefault(false),
 			},
 		},
 		"mac": schema.StringAttribute{
@@ -146,7 +148,7 @@ func NetworkSchema() map[string]schema.Attribute {
 			Optional:            true,
 			Computed:            true,
 			PlanModifiers: []planmodifier.Bool{
-				boolpm.SetDefault(true),
+				fboolplanmodifier.SetDefault(true),
 			},
 		},
 	}

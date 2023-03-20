@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	fboolplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -13,8 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/boolpm"
 )
 
 type Resource struct {
@@ -106,7 +105,7 @@ func ResourceSchema() map[string]schema.Attribute {
 			MarkdownDescription: "`true` if the virtual machine supports addition of virtual CPUs while powered on. Default is `false`.",
 			Optional:            true,
 			PlanModifiers: []planmodifier.Bool{
-				boolpm.SetDefault(false),
+				fboolplanmodifier.SetDefault(false),
 				boolplanmodifier.UseStateForUnknown(),
 			},
 		},
@@ -123,7 +122,7 @@ func ResourceSchema() map[string]schema.Attribute {
 			MarkdownDescription: "`true` if the virtual machine supports addition of memory resources while powered on. Default is `false`.",
 			Optional:            true,
 			PlanModifiers: []planmodifier.Bool{
-				boolpm.SetDefault(false),
+				fboolplanmodifier.SetDefault(false),
 				boolplanmodifier.UseStateForUnknown(),
 			},
 		},
