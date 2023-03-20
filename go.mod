@@ -3,7 +3,7 @@ module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 go 1.20
 
 require (
-	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.0.0
+	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.1.0
 	github.com/antihax/optional v1.0.0
 	github.com/dchest/uniuri v1.2.0
 	github.com/google/go-cmp v0.5.9
