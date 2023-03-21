@@ -84,6 +84,9 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		iam.NewUserDataSource,
 		iam.NewRoleDataSource,
 		iam.NewIAMRightDataSource,
+
+		// VM
+		vm.NewVMAffinityRuleDatasourceDataSource,
 	}
 }
 
