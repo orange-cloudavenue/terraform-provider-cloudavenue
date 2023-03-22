@@ -19,8 +19,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	sdkResource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	"golang.org/x/exp/slices"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
@@ -262,79 +263,54 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	// Wait for job to complete
-	refreshF := func() (interface{}, string, error) {
-		var publicIP apiclient.PublicIps
-
+	errRetry := retry.RetryContext(ctxTO, createTimeout, func() *retry.RetryError {
 		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
 		if errGetJob != nil {
-			return nil, "", err
+			retry.NonRetryableError(err)
+		}
+		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
+			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))
 		}
 
-		if jobStatus.IsDone() {
-			// get all Public IPs and find the new one
-			checkPublicIPs, httpRc, errGet := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
-			if httpRc != nil {
-				defer func() {
-					err = errors.Join(err, httpRc.Body.Close())
-				}()
-			}
+		return nil
+	})
 
-			if apiErr := helpers.CheckAPIError(errGet, httpRc); apiErr != nil {
-				resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-				return nil, "error", apiErr
-			}
-
-			pubIP, errFind := findIPNotAlreadyExists(checkPublicIPs)
-			if errFind != nil {
-				return nil, "error", err
-			}
-
-			publicIP.NetworkConfig = append(publicIP.NetworkConfig, pubIP.(apiclient.PublicIpsNetworkConfig))
-
-			return publicIP, jobStatus.String(), nil
-		}
-
-		return nil, jobStatus.String(), nil
-	}
-
-	createStateConf := &sdkResource.StateChangeConf{
-		Delay:      10 * time.Second,
-		Refresh:    refreshF,
-		MinTimeout: 5 * time.Second,
-		Timeout:    5 * time.Minute,
-		Pending:    []string{helpers.PENDING.String()},
-		Target:     []string{helpers.DONE.String()},
-	}
-
-	publicIP, err := createStateConf.WaitForStateContext(ctxTO)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating Public IP",
-			"Could not create Public IP, unexpected error: "+err.Error(),
-		)
+	if errRetry != nil {
+		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
 		return
 	}
 
-	// Set the ID
-	ip, ok := publicIP.(apiclient.PublicIps)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Error creating Public IP",
-			"Could not create Public IP, unexpected error: publicIP is not a apiclient.PublicIps",
-		)
+	// get all Public IPs and find the new one
+	checkPublicIPs, httpRc, errGet := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
+	if httpRc != nil {
+		defer func() {
+			err = errors.Join(err, httpRc.Body.Close())
+		}()
+	}
+
+	if apiErr := helpers.CheckAPIError(errGet, httpRc); apiErr != nil {
+		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		return
 	}
 
-	if len(ip.NetworkConfig) == 0 {
+	pubIP, errFind := findIPNotAlreadyExists(checkPublicIPs)
+	if errFind != nil {
+		resp.Diagnostics.AddError("Error finding Public IP", errFind.Error())
+		return
+	}
+	var publicIP apiclient.PublicIps
+	publicIP.NetworkConfig = append(publicIP.NetworkConfig, pubIP.(apiclient.PublicIpsNetworkConfig))
+
+	if len(publicIP.NetworkConfig) == 0 {
 		resp.Diagnostics.AddError(
 			"Error creating Public IP",
 			"Could not create Public IP, unexpected error: no public IP find after creation",
 		)
 		return
 	}
-	plan.ID = types.StringValue(ip.NetworkConfig[0].UplinkIp)
-	plan.EdgeName = types.StringValue(ip.NetworkConfig[0].EdgeGatewayName)
-	plan.PublicIP = types.StringValue(ip.NetworkConfig[0].UplinkIp)
+	plan.ID = types.StringValue(publicIP.NetworkConfig[0].UplinkIp)
+	plan.EdgeName = types.StringValue(publicIP.NetworkConfig[0].EdgeGatewayName)
+	plan.PublicIP = types.StringValue(publicIP.NetworkConfig[0].UplinkIp)
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, &plan)
@@ -462,28 +438,20 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 	}
 
 	// Wait for job to complete
-	deleteStateConf := &sdkResource.StateChangeConf{
-		Delay: 10 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
-			if errGetJob != nil {
-				return nil, "", errGetJob
-			}
+	errRetry := retry.RetryContext(ctxTO, deleteTimeout, func() *retry.RetryError {
+		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
+		if errGetJob != nil {
+			retry.NonRetryableError(err)
+		}
+		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
+			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))
+		}
 
-			return jobStatus, jobStatus.String(), nil
-		},
-		MinTimeout: 5 * time.Second,
-		Timeout:    5 * time.Minute,
-		Pending:    helpers.JobStatePending(),
-		Target:     helpers.JobStateDone(),
-	}
+		return nil
+	})
 
-	_, err = deleteStateConf.WaitForStateContext(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error deleting Public IP",
-			"Could not delete Public IP, unexpected error: "+err.Error(),
-		)
+	if errRetry != nil {
+		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
 		return
 	}
 
