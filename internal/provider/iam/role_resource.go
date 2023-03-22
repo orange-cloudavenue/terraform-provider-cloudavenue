@@ -69,10 +69,12 @@ func (r *iamRoleResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 				Required:            true,
 				MarkdownDescription: "A description for the role",
 			},
+			// * Remove
 			"bundle_key": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Key used for internationalization",
 			},
+			// * Remove in resource
 			"read_only": schema.BoolAttribute{
 				Computed:            true,
 				MarkdownDescription: "Indicates if the role is read only",

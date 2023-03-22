@@ -12,18 +12,16 @@ import (
 
 const testAccOrgUserResourceConfig = `
 resource "cloudavenue_iam_user" "test" {
-	user_name   = "testuser"
-	description = "A test user"
-	role        = "Organization Administrator"
+	name        = "testuser"
+	role_name   = "Organization Administrator"
 	password    = "Th!s1sSecur3P@ssword"
  }
 `
 
 const testAccOrgUserResourceConfigFull = `
 resource "cloudavenue_iam_user" "test" {
-	user_name         = "testuserfull"
-	description       = "A test user"
-	role              = "Organization Administrator"
+	name              = "testuserfull"
+	role_name         = "Organization Administrator"
 	password          = "Th!s1sSecur3P@ssword"
 	enabled           = true
 	email             = "foo@bar.com"
@@ -35,7 +33,7 @@ resource "cloudavenue_iam_user" "test" {
  }
 `
 
-func TestAccOrgUserResource(t *testing.T) {
+func TestAccIAMUserResource(t *testing.T) {
 	resourceName := "cloudavenue_iam_user.test"
 
 	resource.Test(t, resource.TestCase{
@@ -46,18 +44,16 @@ func TestAccOrgUserResource(t *testing.T) {
 			{
 				Config: testAccOrgUserResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "user_name", "testuser"),
-					resource.TestCheckResourceAttr(resourceName, "description", "A test user"),
-					resource.TestCheckResourceAttr(resourceName, "role", "Organization Administrator"),
+					resource.TestCheckResourceAttr(resourceName, "name", "testuser"),
+					resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
 			},
 			{
 				Config: testAccOrgUserResourceConfigFull,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "user_name", "testuserfull"),
-					resource.TestCheckResourceAttr(resourceName, "description", "A test user"),
-					resource.TestCheckResourceAttr(resourceName, "role", "Organization Administrator"),
+					resource.TestCheckResourceAttr(resourceName, "name", "testuserfull"),
+					resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "email", "foo@bar.com"),
 					resource.TestCheckResourceAttr(resourceName, "telephone", "1234567890"),

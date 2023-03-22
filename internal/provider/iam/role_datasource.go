@@ -58,6 +58,7 @@ func (d *iamRoleDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				Computed:            true,
 				MarkdownDescription: "A description for the role",
 			},
+			// * Remove
 			"bundle_key": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Key used for internationalization",

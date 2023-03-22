@@ -1,3 +1,5 @@
+// ! REMOVE THIS RESOURCE
+
 package iam
 
 import (

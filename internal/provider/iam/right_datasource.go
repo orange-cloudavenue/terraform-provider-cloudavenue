@@ -41,6 +41,8 @@ func (d *iamRightDataSource) Metadata(ctx context.Context, req datasource.Metada
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "right"
 }
 
+// ! Convert to iam_rightS
+
 func (d *iamRightDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Provides a data source for available rights in Cloud Avenue.",
@@ -62,6 +64,7 @@ func (d *iamRightDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 				Computed:            true,
 				MarkdownDescription: "The category id for the right.",
 			},
+			// * Remove
 			"bundle_key": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The bundle key for the right.",
