@@ -21,8 +21,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	sdkResource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	"golang.org/x/exp/slices"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
@@ -296,27 +297,20 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	// Wait for job to complete
-	createStateConf := &sdkResource.StateChangeConf{
-		Delay: 10 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
-			if errGetJob != nil {
-				return nil, "", err
-			}
-			return jobStatus, jobStatus.String(), nil
-		},
-		MinTimeout: 5 * time.Second,
-		Timeout:    5 * time.Minute,
-		Pending:    helpers.JobStatePending(),
-		Target:     helpers.JobStateDone(),
-	}
+	errRetry := retry.RetryContext(ctxTO, createTimeout, func() *retry.RetryError {
+		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
+		if errGetJob != nil {
+			retry.NonRetryableError(err)
+		}
+		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
+			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))
+		}
 
-	_, err = createStateConf.WaitForStateContext(ctxTO)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating VDC",
-			"Could not create vdc, unexpected error: "+err.Error(),
-		)
+		return nil
+	})
+
+	if errRetry != nil {
+		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
 		return
 	}
 
@@ -536,27 +530,20 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 
 	// Wait for job to complete
-	updateStateConf := &sdkResource.StateChangeConf{
-		Delay: 10 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
-			if errGetJob != nil {
-				return nil, "", err
-			}
-			return jobStatus, jobStatus.String(), nil
-		},
-		MinTimeout: 5 * time.Second,
-		Timeout:    5 * time.Minute,
-		Pending:    helpers.JobStatePending(),
-		Target:     helpers.JobStateDone(),
-	}
+	errRetry := retry.RetryContext(ctxTO, updateTimeout, func() *retry.RetryError {
+		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
+		if errGetJob != nil {
+			retry.NonRetryableError(err)
+		}
+		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
+			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))
+		}
 
-	_, err = updateStateConf.WaitForStateContext(ctxTO)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error updating VDC",
-			"Could not update vdc, unexpected error: "+err.Error(),
-		)
+		return nil
+	})
+
+	if errRetry != nil {
+		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
 		return
 	}
 
@@ -617,28 +604,20 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 
 	// Wait for job to complete
-	deleteStateConf := &sdkResource.StateChangeConf{
-		Delay: 10 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
-			if errGetJob != nil {
-				return nil, "", errGetJob
-			}
+	errRetry := retry.RetryContext(ctxTO, deleteTimeout, func() *retry.RetryError {
+		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
+		if errGetJob != nil {
+			retry.NonRetryableError(err)
+		}
+		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
+			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))
+		}
 
-			return jobStatus, jobStatus.String(), nil
-		},
-		MinTimeout: 5 * time.Second,
-		Timeout:    5 * time.Minute,
-		Pending:    helpers.JobStatePending(),
-		Target:     helpers.JobStateDone(),
-	}
+		return nil
+	})
 
-	_, err = deleteStateConf.WaitForStateContext(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error deleting vdc",
-			"Could not delete vdc, unexpected error: "+err.Error(),
-		)
+	if errRetry != nil {
+		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
 		return
 	}
 

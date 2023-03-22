@@ -20,12 +20,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	sdkResource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
@@ -214,29 +213,18 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	// Wait for job to complete
-	createStateConf := &sdkResource.StateChangeConf{
-		Delay: 5 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			currentStatus, _ := vapp.GetStatus()
-			tflog.Debug(ctx, fmt.Sprintf("Creating Vapp status: %s", currentStatus))
-			if currentStatus == "UNRESOLVED" {
-				return nil, helpers.PENDING.String(), nil
-			}
-			return helpers.DONE.String(), helpers.DONE.String(), nil
-		},
-		MinTimeout: 5 * time.Second,
-		Timeout:    90 * time.Second,
-		Pending:    []string{helpers.PENDING.String()},
-		Target:     []string{helpers.DONE.String()},
-	}
+	errRetry := retry.RetryContext(ctx, 90*time.Second, func() *retry.RetryError {
+		currentStatus, _ := vapp.GetStatus()
+		tflog.Debug(ctx, fmt.Sprintf("Creating Vapp status: %s", currentStatus))
+		if currentStatus == "UNRESOLVED" {
+			return retry.RetryableError(fmt.Errorf("expected vapp status != UNRESOLVED"))
+		}
 
-	// Wait vapp status is not UNRESOLVED
-	_, err = createStateConf.WaitForStateContext(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating VDC",
-			"Could not create vdc, unexpected error: "+err.Error(),
-		)
+		return nil
+	})
+
+	if errRetry != nil {
+		resp.Diagnostics.AddError("Error waiting vapp to complete", errRetry.Error())
 		return
 	}
 

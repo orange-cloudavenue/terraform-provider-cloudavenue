@@ -18,8 +18,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	sdkResource "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	"golang.org/x/exp/slices"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
@@ -275,64 +276,45 @@ func (r *edgeGatewaysResource) Create(
 	}
 
 	// Wait for job to complete
-	refreshF := func() (interface{}, string, error) {
+	errRetry := retry.RetryContext(ctxTO, createTimeout, func() *retry.RetryError {
 		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
 		if errGetJob != nil {
-			return nil, "", errGetJob
+			retry.NonRetryableError(err)
+		}
+		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
+			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))
 		}
 
-		edgeGW := apiclient.EdgeGateway{}
+		return nil
+	})
 
-		if jobStatus.IsDone() {
-			// get all edge gateways and find the one that matches the tier0_vrf_id and owner_name
-			gateways, httpRc, errEdgesGet := r.client.APIClient.EdgeGatewaysApi.GetEdges(auth)
-			if httpRc != nil {
-				defer func() {
-					err = errors.Join(err, httpRc.Body.Close())
-				}()
-			}
-			if apiErr := helpers.CheckAPIError(errEdgesGet, httpRc); apiErr != nil {
-				return nil, "err", apiErr
-			}
-
-			for _, gw := range gateways {
-				if gw.Tier0VrfId == plan.Tier0VrfID.ValueString() &&
-					gw.OwnerName == plan.OwnerName.ValueString() {
-					edgeGW = gw
-					break
-				}
-			}
-		}
-
-		return edgeGW, jobStatus.String(), nil
+	if errRetry != nil {
+		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
+		return
 	}
-
-	createStateConf := &sdkResource.StateChangeConf{
-		Delay:      r.CheckJobDelay,
-		Refresh:    refreshF,
-		MinTimeout: 5 * time.Second,
-		Timeout:    5 * time.Minute,
-		Pending:    helpers.JobStatePending(),
-		Target:     helpers.JobStateDone(),
+	// Job done, retrieve edge gateway
+	// get all edge gateways and find the one that matches the tier0_vrf_id and owner_name
+	gateways, httpRc, errEdgesGet := r.client.APIClient.EdgeGatewaysApi.GetEdges(auth)
+	if httpRc != nil {
+		defer func() {
+			err = errors.Join(err, httpRc.Body.Close())
+		}()
 	}
-
-	edgeGW, err := createStateConf.WaitForStateContext(ctxTO)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating edge gateway",
-			"Could not create edge gateway, unexpected error: "+err.Error(),
-		)
+	if apiErr := helpers.CheckAPIError(errEdgesGet, httpRc); apiErr != nil {
+		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
 		return
 	}
 
-	// Set the ID
+	var newEdgeGW apiclient.EdgeGateway
+	for _, gw := range gateways {
+		if gw.Tier0VrfId == plan.Tier0VrfID.ValueString() && gw.OwnerName == plan.OwnerName.ValueString() {
+			newEdgeGW = gw
+			break
+		}
+	}
 
-	newEdgeGW, isEdgeGW := edgeGW.(apiclient.EdgeGateway)
-	if !isEdgeGW {
-		resp.Diagnostics.AddError(
-			"Error creating edge gateway",
-			"Could not create edge gateway, unexpected error: edge gateway is not of type apiclient.EdgeGateway",
-		)
+	if newEdgeGW == (apiclient.EdgeGateway{}) {
+		resp.Diagnostics.AddError("Error retrieving edge gateway", "edge gateway not found after the create action")
 		return
 	}
 
@@ -508,7 +490,6 @@ func (r *edgeGatewaysResource) Delete(
 		)
 		return
 	}
-
 	// Delete the edge gateway
 	job, httpR, err := r.client.APIClient.EdgeGatewaysApi.DeleteEdge(
 		auth,
@@ -527,29 +508,20 @@ func (r *edgeGatewaysResource) Delete(
 	}
 
 	// Wait for job to complete
-	deleteStateConf := &sdkResource.StateChangeConf{
-		Delay: r.CheckJobDelay,
-		Refresh: func() (interface{}, string, error) {
-			jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
-			if errGetJob != nil {
-				return nil, "", errGetJob
-			}
+	errRetry := retry.RetryContext(ctxTO, deleteTimeout, func() *retry.RetryError {
+		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
+		if errGetJob != nil {
+			retry.NonRetryableError(err)
+		}
+		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
+			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))
+		}
 
-			return jobStatus, jobStatus.String(), nil
-		},
-		MinTimeout: 5 * time.Second,
-		Timeout:    5 * time.Minute,
-		Pending:    helpers.JobStatePending(),
-		Target:     helpers.JobStateDone(),
-	}
+		return nil
+	})
 
-	_, err = deleteStateConf.WaitForStateContext(ctxTO)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error deleting Edge Gateway",
-			"Could not delete Edge Gateway, unexpected error: "+err.Error(),
-		)
-		return
+	if errRetry != nil {
+		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
 	}
 }
 
