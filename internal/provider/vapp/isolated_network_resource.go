@@ -25,6 +25,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -295,8 +296,8 @@ func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	plan.ID = types.StringValue(common.NormalizeID("urn:vcloud:network:", networkID))
-	plan.VDC = types.StringValue(r.vdc.GetName())
+	plan.ID = utils.StringValueOrNull(common.NormalizeID("urn:vcloud:network:", networkID))
+	plan.VDC = utils.StringValueOrNull(r.vdc.GetName())
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -352,46 +353,26 @@ func (r *isolatedNetworkResource) Read(ctx context.Context, req resource.ReadReq
 	id := common.NormalizeID("urn:vcloud:network:", networkID)
 
 	plan := &isolatedNetworkResourceModel{
-		ID:                 types.StringValue(id),
-		VDC:                types.StringValue(r.vdc.GetName()),
-		Name:               types.StringValue(vAppNetwork.NetworkName),
-		Description:        types.StringValue(vAppNetwork.Description),
+		ID:                 utils.StringValueOrNull(id),
+		VDC:                utils.StringValueOrNull(r.vdc.GetName()),
+		Name:               utils.StringValueOrNull(vAppNetwork.NetworkName),
+		Description:        utils.StringValueOrNull(vAppNetwork.Description),
 		VAppName:           state.VAppName,
-		Netmask:            types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].Netmask),
-		Gateway:            types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].Gateway),
-		DNS1:               types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].DNS1),
-		DNS2:               types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].DNS2),
-		DNSSuffix:          types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].DNSSuffix),
+		Netmask:            types.StringNull(),
+		Gateway:            types.StringNull(),
+		DNS1:               types.StringNull(),
+		DNS2:               types.StringNull(),
+		DNSSuffix:          types.StringNull(),
 		GuestVLANAllowed:   types.BoolValue(*vAppNetwork.Configuration.GuestVlanAllowed),
 		RetainIPMacEnabled: types.BoolValue(*vAppNetwork.Configuration.RetainNetInfoAcrossDeployments),
 	}
 
-	if len(vAppNetwork.Configuration.IPScopes.IPScope) == 0 {
-		plan.Netmask = types.StringNull()
-		plan.Gateway = types.StringNull()
-		plan.DNS1 = types.StringNull()
-		plan.DNS2 = types.StringNull()
-		plan.DNSSuffix = types.StringNull()
-	} else {
-		plan.Netmask = types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].Netmask)
-		plan.Gateway = types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].Gateway)
-		plan.DNS1 = types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].DNS1)
-		plan.DNS2 = types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].DNS2)
-		plan.DNSSuffix = types.StringValue(vAppNetwork.Configuration.IPScopes.IPScope[0].DNSSuffix)
-	}
-
-	// Fix empty string as StringNull for optional attributes
-	if plan.Description.ValueString() == "" {
-		plan.Description = types.StringNull()
-	}
-	if plan.DNS1.ValueString() == "" {
-		plan.DNS1 = types.StringNull()
-	}
-	if plan.DNS2.ValueString() == "" {
-		plan.DNS2 = types.StringNull()
-	}
-	if plan.DNSSuffix.ValueString() == "" {
-		plan.DNSSuffix = types.StringNull()
+	if len(vAppNetwork.Configuration.IPScopes.IPScope) > 0 {
+		plan.Netmask = utils.StringValueOrNull(vAppNetwork.Configuration.IPScopes.IPScope[0].Netmask)
+		plan.Gateway = utils.StringValueOrNull(vAppNetwork.Configuration.IPScopes.IPScope[0].Gateway)
+		plan.DNS1 = utils.StringValueOrNull(vAppNetwork.Configuration.IPScopes.IPScope[0].DNS1)
+		plan.DNS2 = utils.StringValueOrNull(vAppNetwork.Configuration.IPScopes.IPScope[0].DNS2)
+		plan.DNSSuffix = utils.StringValueOrNull(vAppNetwork.Configuration.IPScopes.IPScope[0].DNSSuffix)
 	}
 
 	// Loop on static_ip_pool if it is not nil
@@ -399,8 +380,8 @@ func (r *isolatedNetworkResource) Read(ctx context.Context, req resource.ReadReq
 	if vAppNetwork.Configuration.IPScopes.IPScope[0].IPRanges != nil {
 		for _, staticIPRange := range vAppNetwork.Configuration.IPScopes.IPScope[0].IPRanges.IPRange {
 			staticIPRanges = append(staticIPRanges, staticIPPoolModel{
-				StartAddress: types.StringValue(staticIPRange.StartAddress),
-				EndAddress:   types.StringValue(staticIPRange.EndAddress),
+				StartAddress: utils.StringValueOrNull(staticIPRange.StartAddress),
+				EndAddress:   utils.StringValueOrNull(staticIPRange.EndAddress),
 			})
 		}
 		plan.StaticIPPool, diag = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolModelAttrTypes}, staticIPRanges)

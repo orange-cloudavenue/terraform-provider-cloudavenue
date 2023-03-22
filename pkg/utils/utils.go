@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 type tfValuesForUUID interface {
@@ -48,4 +49,12 @@ func TakeIntPointer(x int) *int {
 // TakeInt64Pointer accepts an int64 and returns a pointer to this value.
 func TakeInt64Pointer(x int64) *int64 {
 	return &x
+}
+
+// StringValueOrNull return a null StringValue if value is "" or return StringValue(value) if not.
+func StringValueOrNull(value string) basetypes.StringValue {
+	if value == "" {
+		return types.StringNull()
+	}
+	return types.StringValue(value)
 }

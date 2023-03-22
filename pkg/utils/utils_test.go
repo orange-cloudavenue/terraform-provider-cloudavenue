@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 func Test_generateUUID(t *testing.T) {
@@ -165,6 +166,39 @@ func TestTakeInt64Pointer(t *testing.T) {
 			got := TakeInt64Pointer(tt.args.x)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("TakeInt64Pointer() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestStringValueOrNull(t *testing.T) {
+	type args struct {
+		value string
+	}
+	tests := []struct {
+		name string
+		args args
+		want basetypes.StringValue
+	}{
+		{
+			name: "StringValue",
+			args: args{
+				value: "string",
+			},
+			want: types.StringValue("string"),
+		},
+		{
+			name: "StringNull",
+			args: args{
+				value: "",
+			},
+			want: types.StringNull(),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := StringValueOrNull(tt.args.value); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("StringValueOrNull() = %v, want %v", got, tt.want)
 			}
 		})
 	}
