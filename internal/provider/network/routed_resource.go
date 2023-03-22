@@ -12,24 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	fstringplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/stringplanmodifier"
-	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -80,97 +69,7 @@ func (r *networkRoutedResource) Metadata(_ context.Context, req resource.Metadat
 
 // Schema defines the schema for the resource.
 func (r *networkRoutedResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a CloudAvenue Org VDC routed Network. This can be used to create, modify, and delete routed VDC networks.",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The ID of the routed network.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Network name.",
-			},
-			"description": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Network description.",
-			},
-			"edge_gateway_id": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-					stringplanmodifier.UseStateForUnknown(),
-				},
-				MarkdownDescription: "Edge gateway ID in which Routed network should be located.",
-			},
-			"interface_type": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Optional interface type (only for NSX-V networks). One of `INTERNAL` (default), `DISTRIBUTED`, `SUBINTERFACE`",
-				PlanModifiers: []planmodifier.String{
-					fstringplanmodifier.SetDefault("INTERNAL"),
-				},
-				Validators: []validator.String{
-					stringvalidator.OneOf("INTERNAL", "SUBINTERFACE", "DISTRIBUTED"),
-				},
-			},
-			"gateway": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					fstringvalidator.IsValidIP(),
-				},
-				MarkdownDescription: "Gateway IP address.",
-			},
-			"prefix_length": schema.Int64Attribute{
-				Required: true,
-				Validators: []validator.Int64{
-					int64validator.Between(1, 32),
-				},
-				MarkdownDescription: "Network prefix length.",
-			},
-			"dns1": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "DNS server 1.",
-			},
-			"dns2": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "DNS server 2.",
-			},
-			"dns_suffix": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "DNS suffix.",
-			},
-			"static_ip_pool": schema.SetNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "IP ranges used for static pool allocation in the network.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"start_address": schema.StringAttribute{
-							Required: true,
-							Validators: []validator.String{
-								fstringvalidator.IsValidIP(),
-							},
-							MarkdownDescription: "Start address of the IP range.",
-						},
-						"end_address": schema.StringAttribute{
-							Required: true,
-							Validators: []validator.String{
-								fstringvalidator.IsValidIP(),
-							},
-							MarkdownDescription: "End address of the IP range.",
-						},
-					},
-				},
-			},
-		},
-	}
+	resp.Schema = network.GetSchema(network.SetRouted()).GetResource()
 }
 
 func (r *networkRoutedResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

@@ -75,30 +75,30 @@ resource "cloudavenue_network_routed" "example" {
 ### Required
 
 - `edge_gateway_id` (String) Edge gateway ID in which Routed network should be located.
-- `gateway` (String) Gateway IP address.
-- `name` (String) Network name.
-- `prefix_length` (Number) Network prefix length.
+- `gateway` (String) (Force replacement) The gateway IP address for the network. This value define also the network IP range with the prefix length.
+- `name` (String) The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.
+- `prefix_length` (Number) (Force replacement) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. 24 for netmask 255.255.255.0)
 
 ### Optional
 
-- `description` (String) Network description.
-- `dns1` (String) DNS server 1.
-- `dns2` (String) DNS server 2.
-- `dns_suffix` (String) DNS suffix.
+- `description` (String) A description of the network.
+- `dns1` (String) The primary DNS server IP address for the network.
+- `dns2` (String) The secondary DNS server IP address for the network.
+- `dns_suffix` (String) The DNS suffix for the network.
 - `interface_type` (String) Optional interface type (only for NSX-V networks). One of `INTERNAL` (default), `DISTRIBUTED`, `SUBINTERFACE`
-- `static_ip_pool` (Attributes Set) IP ranges used for static pool allocation in the network. (see [below for nested schema](#nestedatt--static_ip_pool))
+- `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. (see [below for nested schema](#nestedatt--static_ip_pool))
 
 ### Read-Only
 
-- `id` (String) The ID of the routed network.
+- `id` (String) The ID of the network. This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.
 
 <a id="nestedatt--static_ip_pool"></a>
 ### Nested Schema for `static_ip_pool`
 
 Required:
 
-- `end_address` (String) End address of the IP range.
-- `start_address` (String) Start address of the IP range.
+- `end_address` (String) The end address of the IP pool. This value must be a valid IP address in the network IP range.
+- `start_address` (String) The start address of the IP pool. This value must be a valid IP address in the network IP range.
 
 ## Import
 

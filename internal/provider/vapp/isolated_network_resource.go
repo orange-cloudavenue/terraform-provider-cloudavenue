@@ -6,27 +6,23 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
-
+	fboolplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-
-	fboolplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/boolplanmodifier"
-	fstringplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/stringplanmodifier"
-	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/vmware/go-vcloud-director/v2/govcd"
+	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -85,67 +81,12 @@ func (r *isolatedNetworkResource) Metadata(_ context.Context, req resource.Metad
 
 // Schema defines the schema for the resource.
 func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	commonSchema := network.GetSchema(network.SetIsolatedVapp()).GetResource()
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a Cloud Avenue isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network.",
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the vApp network.",
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
 			"vdc":       vdc.Schema(),
 			"vapp_id":   vapp.Schema()["vapp_id"],
 			"vapp_name": vapp.Schema()["vapp_name"],
-			"name": schema.StringAttribute{
-				MarkdownDescription: "(ForceNew) The name of the vApp network.",
-				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Description of the vApp network.",
-				Optional:            true,
-			},
-			"netmask": schema.StringAttribute{
-				MarkdownDescription: "(ForceNew) The netmask for the network. Default is `255.255.255.0`",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.String{
-					fstringvalidator.IsNetmask(),
-				},
-				PlanModifiers: []planmodifier.String{
-					fstringplanmodifier.SetDefault("255.255.255.0"),
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"gateway": schema.StringAttribute{
-				MarkdownDescription: "The gateway of the network.",
-				Required:            true,
-				Validators: []validator.String{
-					fstringvalidator.IsIP(),
-				},
-			},
-			"dns1": schema.StringAttribute{
-				MarkdownDescription: "First DNS server.",
-				Optional:            true,
-				Validators: []validator.String{
-					fstringvalidator.IsIP(),
-				},
-			},
-			"dns2": schema.StringAttribute{
-				MarkdownDescription: "Second DNS server.",
-				Optional:            true,
-				Validators: []validator.String{
-					fstringvalidator.IsIP(),
-				},
-			},
-			"dns_suffix": schema.StringAttribute{
-				MarkdownDescription: "A FQDN for the virtual machines on this network.",
-				Optional:            true,
-			},
 			"guest_vlan_allowed": schema.BoolAttribute{
 				MarkdownDescription: "True if Network allows guest VLAN. Default to `false`.",
 				Optional:            true,
@@ -162,29 +103,11 @@ func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaR
 					fboolplanmodifier.SetDefault(false),
 				},
 			},
-			"static_ip_pool": schema.SetNestedAttribute{
-				MarkdownDescription: "Range(s) of IPs permitted to be used as static IPs for virtual machines",
-				Optional:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"start_address": schema.StringAttribute{
-							MarkdownDescription: "The first address in the IP Range.",
-							Required:            true,
-							Validators: []validator.String{
-								fstringvalidator.IsIP(),
-							},
-						},
-						"end_address": schema.StringAttribute{
-							MarkdownDescription: "The last address in the IP Range.",
-							Required:            true,
-							Validators: []validator.String{
-								fstringvalidator.IsIP(),
-							},
-						},
-					},
-				},
-			},
 		},
+	}
+	// Add common attributes network
+	for k, v := range commonSchema.Attributes {
+		resp.Schema.Attributes[k] = v
 	}
 }
 

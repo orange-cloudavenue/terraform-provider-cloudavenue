@@ -12,22 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-
-	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
@@ -108,87 +99,7 @@ func (r *networkIsolatedResource) Init(_ context.Context, rm *networkIsolatedRes
 
 // Schema defines the schema for the resource.
 func (r *networkIsolatedResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a VMware Cloud Director Org VDC isolated Network. This can be used to create, modify, and delete isolated VDC networks",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The ID of the network. This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"vdc": vdc.Schema(),
-			"name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.",
-			},
-			"description": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "A description of the network.",
-			},
-			"gateway": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "(Force replacement) The gateway IP address for the network. This value define also the network IP range with the prefix length.",
-				Validators: []validator.String{
-					fstringvalidator.IsValidIP(),
-				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"prefix_length": schema.Int64Attribute{
-				Required:            true,
-				MarkdownDescription: "(Force replacement) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. 24 for netmask 255.255.255.0)",
-				Validators: []validator.Int64{
-					int64validator.Between(1, 32),
-				},
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.RequiresReplace(),
-				},
-			},
-			"dns1": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The primary DNS server IP address for the network.",
-				Validators: []validator.String{
-					fstringvalidator.IsValidIP(),
-				},
-			},
-			"dns2": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The secondary DNS server IP address for the network.",
-				Validators: []validator.String{
-					fstringvalidator.IsValidIP(),
-				},
-			},
-			"dns_suffix": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The DNS suffix for the network.",
-			},
-			"static_ip_pool": schema.SetNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "A set of static IP pools to be used for this network.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"start_address": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The start address of the IP pool. This value must be a valid IP address in the network IP range.",
-							Validators: []validator.String{
-								fstringvalidator.IsValidIP(),
-							},
-						},
-						"end_address": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The end address of the IP pool. This value must be a valid IP address in the network IP range.",
-							Validators: []validator.String{
-								fstringvalidator.IsValidIP(),
-							},
-						},
-					},
-				},
-			},
-		},
-	}
+	resp.Schema = network.GetSchema(network.SetIsolated()).GetResource()
 }
 
 func (r *networkIsolatedResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

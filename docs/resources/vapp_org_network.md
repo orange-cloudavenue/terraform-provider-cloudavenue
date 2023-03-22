@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vapp_org_network Resource - cloudavenue"
 subcategory: "vApp (Virtual Appliance)"
 description: |-
-  Provides capability to attach an existing Org VDC Network to a vApp and toggle network features.
+  
 ---
 
 # cloudavenue_vapp_org_network (Resource)
 
-Provides capability to attach an existing Org VDC Network to a vApp and toggle network features.
+
 
 ## Example Usage
 
@@ -70,7 +70,7 @@ resource "cloudavenue_vapp_org_network" "example" {
 
 ### Read-Only
 
-- `id` (String) The ID of the org_network.
+- `id` (String) The ID of the network. This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.
 
 ## Import
 
