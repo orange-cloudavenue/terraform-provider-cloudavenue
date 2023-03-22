@@ -9,7 +9,6 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -19,6 +18,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -36,6 +36,7 @@ func NewNetworkRoutedResource() resource.Resource {
 // networkRoutedResource is the resource implementation.
 type networkRoutedResource struct {
 	client *client.CloudAvenue
+	org    org.Org
 }
 
 type networkRoutedResourceModel struct {
@@ -52,16 +53,6 @@ type networkRoutedResourceModel struct {
 	StaticIPPool  types.Set    `tfsdk:"static_ip_pool"`
 }
 
-type staticIPPool struct {
-	StartAddress types.String `tfsdk:"start_address"`
-	EndAddress   types.String `tfsdk:"end_address"`
-}
-
-var staticIPPoolAttrTypes = map[string]attr.Type{
-	"start_address": types.StringType,
-	"end_address":   types.StringType,
-}
-
 // Metadata returns the resource type name.
 func (r *networkRoutedResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "routed"
@@ -70,6 +61,13 @@ func (r *networkRoutedResource) Metadata(_ context.Context, req resource.Metadat
 // Schema defines the schema for the resource.
 func (r *networkRoutedResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = network.GetSchema(network.SetRouted()).GetResource()
+}
+
+// Init resource used to initialize the resource.
+func (r *networkRoutedResource) Init(_ context.Context, rm *networkRoutedResourceModel) (diags diag.Diagnostics) {
+	// Init Org
+	r.org, diags = org.Init(r.client)
+	return
 }
 
 func (r *networkRoutedResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -99,28 +97,30 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 		plan *networkRoutedResourceModel
 	)
 
+	// Get Plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	org, err := r.client.GetOrg()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving ORG", err.Error())
-		return
-	}
-
-	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(org.Org, plan.EdgeGatewayID.ValueString())
-	resp.Diagnostics.Append(errGet)
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Get Parent Edge Gateway ID to define the owner (VDC or VDC Group)
+	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(r.org, plan.EdgeGatewayID.ValueString())
+	resp.Diagnostics.Append(errGet)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	if parentEdgeGatewayOwnerID == nil {
 		resp.Diagnostics.AddError("Error retrieving Edge Gateway", "parentEdgeGatewayOwnerID is nil")
 		return
 	}
 
+	// Lock the parent Edge Gateway
 	if govcd.OwnerIsVdcGroup(*parentEdgeGatewayOwnerID) {
 		networkMutexKV.KvLock(ctx, *parentEdgeGatewayOwnerID)
 		defer networkMutexKV.KvUnlock(ctx, *parentEdgeGatewayOwnerID)
@@ -129,16 +129,14 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 		defer networkMutexKV.KvUnlock(ctx, plan.EdgeGatewayID.ValueString())
 	}
 
+	// Set Network
 	ipPool := []staticIPPool{}
 	resp.Diagnostics.Append(plan.StaticIPPool.ElementsAs(ctx, &ipPool, true)...)
-
 	orgVDCNetworkConfig := &govcdtypes.OpenApiOrgVdcNetwork{
 		Name:        plan.Name.ValueString(),
 		Description: plan.Description.ValueString(),
 		OwnerRef:    &govcdtypes.OpenApiReference{ID: *parentEdgeGatewayOwnerID},
-
 		NetworkType: govcdtypes.OrgVdcNetworkTypeRouted,
-
 		// Connection is used for "routed" network
 		Connection: &govcdtypes.Connection{
 			RouterRef: govcdtypes.OpenApiReference{
@@ -163,12 +161,14 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 		},
 	}
 
-	orgNetwork, err := org.CreateOpenApiOrgVdcNetwork(orgVDCNetworkConfig)
+	// Create Network
+	orgNetwork, err := r.org.CreateOpenApiOrgVdcNetwork(orgVDCNetworkConfig)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating routing network", err.Error())
 		return
 	}
 
+	// Set ID
 	plan.ID = types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID)
 
 	// Set state to fully populated data
@@ -187,13 +187,14 @@ func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	org, err := r.client.GetOrg()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving ORG", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	orgNetwork, err := org.GetOpenApiOrgVdcNetworkById(state.ID.ValueString())
+	// Get Parent Edge Gateway ID to define the owner (VDC or VDC Group)
+	orgNetwork, err := r.org.GetOpenApiOrgVdcNetworkById(state.ID.ValueString())
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			tflog.Debug(ctx, "Network not found, removing resource from state")
@@ -203,6 +204,7 @@ func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
+	// Set Plan updated
 	plan := &networkRoutedResourceModel{
 		ID:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
 		Name:          types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Name),
@@ -216,8 +218,8 @@ func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadReque
 		DNSSuffix:     types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
 	}
 
+	// Set Static IP Pool
 	ipPools := []staticIPPool{}
-
 	if len(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values) > 0 {
 		for _, ipRange := range orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values {
 			ipPool := staticIPPool{
@@ -248,18 +250,20 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	org, err := r.client.GetOrg()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving ORG", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(org.Org, plan.EdgeGatewayID.ValueString())
+	// Get Parent Edge Gateway ID to define the owner (VDC or VDC Group)
+	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(r.org, plan.EdgeGatewayID.ValueString())
 	resp.Diagnostics.Append(errGet)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Lock parent Edge Gateway
 	if govcd.OwnerIsVdcGroup(*parentEdgeGatewayOwnerID) {
 		networkMutexKV.KvLock(ctx, *parentEdgeGatewayOwnerID)
 		defer networkMutexKV.KvUnlock(ctx, *parentEdgeGatewayOwnerID)
@@ -268,7 +272,8 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 		defer networkMutexKV.KvUnlock(ctx, plan.EdgeGatewayID.ValueString())
 	}
 
-	orgNetwork, err := org.GetOpenApiOrgVdcNetworkById(plan.ID.ValueString())
+	// Get current network
+	orgNetwork, err := r.org.GetOpenApiOrgVdcNetworkById(plan.ID.ValueString())
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			tflog.Debug(ctx, "Network not found, removing resource from state")
@@ -277,11 +282,11 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 		resp.Diagnostics.AddError("Error retrieving routing network", err.Error())
 		return
 	}
-
 	ipPool := []staticIPPool{}
 	diags := plan.StaticIPPool.ElementsAs(ctx, &ipPool, true)
 	resp.Diagnostics.Append(diags...)
 
+	// Set network
 	newOrgNetwork := &govcdtypes.OpenApiOrgVdcNetwork{
 		ID:          orgNetwork.OpenApiOrgVdcNetwork.ID,
 		Name:        plan.Name.ValueString(),
@@ -313,6 +318,8 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 			},
 		},
 	}
+
+	// Update network
 	_, err = orgNetwork.Update(newOrgNetwork)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating routing network", err.Error())
@@ -332,6 +339,7 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 		DNSSuffix:     plan.DNSSuffix,
 	}
 
+	// Set state to fully populated data
 	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolAttrTypes}, ipPool)
 	resp.Diagnostics.Append(diags...)
 
@@ -352,18 +360,20 @@ func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	org, err := r.client.GetOrg()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving ORG", err.Error())
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(org.Org, state.EdgeGatewayID.ValueString())
+	// Get Parent Edge Gateway ID to define the owner (VDC or VDC Group)
+	parentEdgeGatewayOwnerID, errGet := getParentEdgeGatewayID(r.org, state.EdgeGatewayID.ValueString())
 	resp.Diagnostics.Append(errGet)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Lock parent Edge Gateway
 	if govcd.OwnerIsVdcGroup(*parentEdgeGatewayOwnerID) {
 		networkMutexKV.KvLock(ctx, *parentEdgeGatewayOwnerID)
 		defer networkMutexKV.KvUnlock(ctx, *parentEdgeGatewayOwnerID)
@@ -372,7 +382,8 @@ func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteR
 		defer networkMutexKV.KvUnlock(ctx, state.EdgeGatewayID.ValueString())
 	}
 
-	orgNetwork, err := org.GetOpenApiOrgVdcNetworkById(state.ID.ValueString())
+	// Get current network
+	orgNetwork, err := r.org.GetOpenApiOrgVdcNetworkById(state.ID.ValueString())
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			tflog.Debug(ctx, "Network not found, removing resource from state")

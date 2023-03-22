@@ -2,12 +2,12 @@
 page_title: "cloudavenue_network_routed Resource - cloudavenue"
 subcategory: "Network"
 description: |-
-  Provides a CloudAvenue Org VDC routed Network. This can be used to create, modify, and delete routed VDC networks.
+  Provides a Cloud Avenue Org VDC routed Network. This can be used to create, modify, and delete routed VDC networks.
 ---
 
 # cloudavenue_network_routed (Resource)
 
-Provides a CloudAvenue Org VDC routed Network. This can be used to create, modify, and delete routed VDC networks.
+Provides a Cloud Avenue Org VDC routed Network. This can be used to create, modify, and delete routed VDC networks.
 
 ## Example Usage
 
@@ -77,7 +77,7 @@ resource "cloudavenue_network_routed" "example" {
 - `edge_gateway_id` (String) Edge gateway ID in which Routed network should be located.
 - `gateway` (String) (Force replacement) The gateway IP address for the network. This value define also the network IP range with the prefix length.
 - `name` (String) The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.
-- `prefix_length` (Number) (Force replacement) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. 24 for netmask 255.255.255.0)
+- `prefix_length` (Number) (Force replacement) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. /24 for netmask 255.255.255.0)
 
 ### Optional
 

@@ -9,7 +9,6 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govdctypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -54,16 +53,6 @@ type networkIsolatedResourceModel struct {
 	SecondaryDNS types.String `tfsdk:"dns2"`
 	SuffixDNS    types.String `tfsdk:"dns_suffix"`
 	StaticIPPool types.Set    `tfsdk:"static_ip_pool"`
-}
-
-type staticIPPoolResourceModel struct {
-	StartAddress types.String `tfsdk:"start_address"`
-	EndAddress   types.String `tfsdk:"end_address"`
-}
-
-var staticIPPoolResourceModelAttrTypes = map[string]attr.Type{
-	"start_address": types.StringType,
-	"end_address":   types.StringType,
 }
 
 func (r *networkIsolatedResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
@@ -150,7 +139,7 @@ func (r *networkIsolatedResource) Create(ctx context.Context, req resource.Creat
 	defer vcdMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Set network type
-	ipPool := []staticIPPoolResourceModel{}
+	ipPool := []staticIPPool{}
 	resp.Diagnostics.Append(plan.StaticIPPool.ElementsAs(ctx, &ipPool, true)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -168,7 +157,7 @@ func (r *networkIsolatedResource) Create(ctx context.Context, req resource.Creat
 					Gateway:      plan.Gateway.ValueString(),
 					PrefixLength: int(plan.PrefixLength.ValueInt64()),
 					IPRanges: govdctypes.OrgVdcNetworkSubnetIPRanges{
-						Values: myProcessIPRanges(ipPool),
+						Values: processIPRanges(ipPool),
 					},
 					DNSServer1: plan.PrimaryDNS.ValueString(),
 					DNSServer2: plan.SecondaryDNS.ValueString(),
@@ -231,10 +220,10 @@ func (r *networkIsolatedResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	// Get network static IP pools
-	ipPools := []staticIPPoolResourceModel{}
+	ipPools := []staticIPPool{}
 	if len(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values) > 0 {
 		for _, ipRange := range orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values {
-			ipPools = append(ipPools, staticIPPoolResourceModel{
+			ipPools = append(ipPools, staticIPPool{
 				StartAddress: types.StringValue(ipRange.StartAddress),
 				EndAddress:   types.StringValue(ipRange.EndAddress),
 			})
@@ -256,7 +245,7 @@ func (r *networkIsolatedResource) Read(ctx context.Context, req resource.ReadReq
 
 	// Set static IP pools
 	var diags diag.Diagnostics
-	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolResourceModelAttrTypes}, ipPools)
+	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolAttrTypes}, ipPools)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -311,7 +300,7 @@ func (r *networkIsolatedResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Set network type
-	ipPool := []staticIPPoolResourceModel{}
+	ipPool := []staticIPPool{}
 	resp.Diagnostics.Append(plan.StaticIPPool.ElementsAs(ctx, &ipPool, true)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -330,7 +319,7 @@ func (r *networkIsolatedResource) Update(ctx context.Context, req resource.Updat
 					Gateway:      plan.Gateway.ValueString(),
 					PrefixLength: int(plan.PrefixLength.ValueInt64()),
 					IPRanges: govdctypes.OrgVdcNetworkSubnetIPRanges{
-						Values: myProcessIPRanges(ipPool),
+						Values: processIPRanges(ipPool),
 					},
 					DNSServer1: plan.PrimaryDNS.ValueString(),
 					DNSServer2: plan.SecondaryDNS.ValueString(),
@@ -431,10 +420,10 @@ func (r *networkIsolatedResource) ImportState(ctx context.Context, req resource.
 	}
 
 	// Get network static IP pools
-	ipPools := []staticIPPoolResourceModel{}
+	ipPools := []staticIPPool{}
 	if len(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values) > 0 {
 		for _, ipRange := range orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values {
-			ipPools = append(ipPools, staticIPPoolResourceModel{
+			ipPools = append(ipPools, staticIPPool{
 				StartAddress: types.StringValue(ipRange.StartAddress),
 				EndAddress:   types.StringValue(ipRange.EndAddress),
 			})
@@ -456,7 +445,7 @@ func (r *networkIsolatedResource) ImportState(ctx context.Context, req resource.
 	}
 	// Set static IP pools
 	var diags diag.Diagnostics
-	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolResourceModelAttrTypes}, ipPools)
+	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolAttrTypes}, ipPools)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -467,14 +456,4 @@ func (r *networkIsolatedResource) ImportState(ctx context.Context, req resource.
 	if resp.Diagnostics.HasError() {
 		return
 	}
-}
-
-// StaticIPPool is a helper function to get the static IP pool from the resource data.
-func myProcessIPRanges(mystaticIPPool []staticIPPoolResourceModel) []govdctypes.ExternalNetworkV2IPRange {
-	subnetRng := make([]govdctypes.ExternalNetworkV2IPRange, len(mystaticIPPool))
-	for i, ipRange := range mystaticIPPool {
-		subnetRng[i].StartAddress = ipRange.StartAddress.ValueString()
-		subnetRng[i].EndAddress = ipRange.EndAddress.ValueString()
-	}
-	return subnetRng
 }

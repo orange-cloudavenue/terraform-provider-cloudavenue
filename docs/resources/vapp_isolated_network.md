@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vapp_isolated_network Resource - cloudavenue"
 subcategory: "vApp (Virtual Appliance)"
 description: |-
-  
+  Provides capability to attach an existing Org VDC Network to a vApp and toggle network features.
 ---
 
 # cloudavenue_vapp_isolated_network (Resource)
 
-
+Provides capability to attach an existing Org VDC Network to a vApp and toggle network features.
 
 ## Example Usage
 

@@ -113,7 +113,7 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 		},
 		"prefix_length": schema.Int64Attribute{
 			Required:            true,
-			MarkdownDescription: "(Force replacement) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. 24 for netmask 255.255.255.0)",
+			MarkdownDescription: "(Force replacement) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. /24 for netmask 255.255.255.0)",
 			Validators: []validator.Int64{
 				int64validator.Between(1, 32),
 			},
@@ -166,7 +166,7 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 	switch params.typeNetwork {
 	case Routed:
 		// Add routed network specific attributes to the schema
-		_schema.MarkdownDescription = "Provides a CloudAvenue Org VDC routed Network. This can be used to create, modify, and delete routed VDC networks."
+		_schema.MarkdownDescription = "Provides a Cloud Avenue Org VDC routed Network. This can be used to create, modify, and delete routed VDC networks."
 		_schema.Attributes["edge_gateway_id"] = schema.StringAttribute{
 			Required: true,
 			PlanModifiers: []planmodifier.String{
@@ -189,12 +189,11 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 
 	case Isolated:
 		// Add isolated network specific attributes to the schema
-		_schema.MarkdownDescription = "Provides a VMware Cloud Director Org VDC isolated Network. This can be used to create, modify, and delete isolated VDC networks"
+		_schema.MarkdownDescription = "Provides a Cloud Avenue Org VDC isolated Network. This can be used to create, modify, and delete isolated VDC networks"
 		_schema.Attributes["vdc"] = vdc.Schema()
 
 	case IsolatedVapp:
 		// Add isolated vApp network specific attributes to the schema
-		_schema.MarkdownDescription = "Provides a Cloud Avenue isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network."
 		delete(_schema.Attributes, "prefix_length")
 		_schema.Attributes["netmask"] = schema.StringAttribute{
 			MarkdownDescription: "(ForceNew) The netmask for the network. Default is `255.255.255.0`",
@@ -211,7 +210,6 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 
 	case RoutedVapp:
 		// Add routed vApp network specific attributes to the schema
-		_schema.MarkdownDescription = "Provides capability to attach an existing Org VDC Network to a vApp and toggle network features."
 		delete(_schema.Attributes, "description")
 		delete(_schema.Attributes, "prefix_length")
 		delete(_schema.Attributes, "gateway")

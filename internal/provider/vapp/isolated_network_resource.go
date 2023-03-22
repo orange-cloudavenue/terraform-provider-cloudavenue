@@ -83,6 +83,7 @@ func (r *isolatedNetworkResource) Metadata(_ context.Context, req resource.Metad
 func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	commonSchema := network.GetSchema(network.SetIsolatedVapp()).GetResource()
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Provides capability to attach an existing Org VDC Network to a vApp and toggle network features.",
 		Attributes: map[string]schema.Attribute{
 			"vdc":       vdc.Schema(),
 			"vapp_id":   vapp.Schema()["vapp_id"],
