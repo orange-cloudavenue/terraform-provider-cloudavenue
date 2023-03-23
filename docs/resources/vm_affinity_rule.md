@@ -30,7 +30,7 @@ resource "cloudavenue_vm_affinity_rule" "example" {
 
 - `name` (String) VM affinity rule name.
 - `polarity` (String) One of `Affinity`, `Anti-Affinity`
-- `vm_ids` (List of String) Set of VM IDs assigned to this rule.
+- `vm_ids` (List of String) List of VM IDs to apply the affinity rule to.
 
 ### Optional
 
