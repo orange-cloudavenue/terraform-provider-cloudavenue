@@ -18,35 +18,35 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &iamUserResource{}
-	_ resource.ResourceWithConfigure   = &iamUserResource{}
-	_ resource.ResourceWithImportState = &iamUserResource{}
-	_ user                             = &iamUserResource{}
+	_ resource.Resource                = &userResource{}
+	_ resource.ResourceWithConfigure   = &userResource{}
+	_ resource.ResourceWithImportState = &userResource{}
+	_ user                             = &userResource{}
 )
 
-// NewiamUserResource is a helper function to simplify the provider implementation.
+// NewuserResource is a helper function to simplify the provider implementation.
 func NewIAMUserResource() resource.Resource {
-	return &iamUserResource{}
+	return &userResource{}
 }
 
-// iamUserResource is the resource implementation.
-type iamUserResource struct {
+// userResource is the resource implementation.
+type userResource struct {
 	client   *client.CloudAvenue
 	adminOrg adminorg.AdminOrg
 	user     commonUser
 }
 
 // Metadata returns the resource type name.
-func (r *iamUserResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *userResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_user"
 }
 
 // Schema defines the schema for the resource.
-func (r *iamUserResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *userResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = userSchema().GetResource()
 }
 
-func (r *iamUserResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *userResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -66,7 +66,7 @@ func (r *iamUserResource) Configure(ctx context.Context, req resource.ConfigureR
 	r.client = client
 }
 
-func (r *iamUserResource) Init(_ context.Context, rm *iamUserResourceModel) (diags diag.Diagnostics) {
+func (r *userResource) Init(_ context.Context, rm *userResourceModel) (diags diag.Diagnostics) {
 	r.user = commonUser{
 		ID:   rm.ID,
 		Name: rm.Name,
@@ -78,8 +78,8 @@ func (r *iamUserResource) Init(_ context.Context, rm *iamUserResourceModel) (dia
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *iamUserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	plan := &iamUserResourceModel{}
+func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	plan := &userResourceModel{}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
@@ -120,8 +120,8 @@ func (r *iamUserResource) Create(ctx context.Context, req resource.CreateRequest
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *iamUserResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	state := &iamUserResourceModel{}
+func (r *userResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	state := &userResourceModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -144,7 +144,7 @@ func (r *iamUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	plan := &iamUserResourceModel{
+	plan := &userResourceModel{
 		ID:              types.StringValue(user.User.ID),
 		Name:            types.StringValue(user.User.Name),
 		RoleName:        types.StringValue(user.User.Role.Name),
@@ -166,8 +166,8 @@ func (r *iamUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *iamUserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	plan := &iamUserResourceModel{}
+func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	plan := &userResourceModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -211,8 +211,8 @@ func (r *iamUserResource) Update(ctx context.Context, req resource.UpdateRequest
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *iamUserResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	state := &iamUserResourceModel{}
+func (r *userResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	state := &userResourceModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -240,10 +240,10 @@ func (r *iamUserResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 }
 
-func (r *iamUserResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *userResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 
-func (r *iamUserResource) GetUser(refresh bool) (*govcd.OrgUser, error) {
+func (r *userResource) GetUser(refresh bool) (*govcd.OrgUser, error) {
 	return r.user.GetUser(r.adminOrg, refresh)
 }

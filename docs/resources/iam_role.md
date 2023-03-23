@@ -2,12 +2,12 @@
 page_title: "cloudavenue_iam_role Resource - cloudavenue"
 subcategory: "IAM (Identity & Access Management)"
 description: |-
-  The Role resource allows you to manage a role in CloudAvenue.
+  The role resource allows you to manage local role in Cloud Avenue.
 ---
 
 # cloudavenue_iam_role (Resource)
 
-The Role resource allows you to manage a role in CloudAvenue.
+The role resource allows you to manage local role in Cloud Avenue.
 
 ## Example Usage
 
@@ -32,14 +32,12 @@ resource "cloudavenue_iam_role" "example" {
 ### Required
 
 - `description` (String) A description for the role
-- `name` (String) A name for the role
+- `name` (String) The name of the role.
 - `rights` (Set of String) A list of rights for the role
 
 ### Read-Only
 
-- `bundle_key` (String) Key used for internationalization
-- `id` (String) The ID is a unique identifier for the role
-- `read_only` (Boolean) Indicates if the role is read only
+- `id` (String) The ID is a unique identifier for the role.
 
 ## Import
 

@@ -2,12 +2,12 @@
 page_title: "cloudavenue_iam_user Resource - cloudavenue"
 subcategory: "IAM (Identity & Access Management)"
 description: |-
-  Manages a user.
+  The user resource allows you to manage local users in Cloud Avenue.
 ---
 
 # cloudavenue_iam_user (Resource)
 
-Manages a user.
+The user resource allows you to manage local users in Cloud Avenue.
 
 ## Example Usage
 
@@ -25,19 +25,18 @@ resource "cloudavenue_iam_user" "example" {
 
 ### Required
 
-- `role` (String) The role of the user in the organization
-- `user_name` (String) User name. Only lowercase letters allowed. Cannot be changed after creation
+- `name` (String) The name of the user.
+- `password` (String, Sensitive) The user's password. This value is never returned on read.
+- `role_name` (String) The role assigned to the user.
 
 ### Optional
 
 - `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota.
-- `description` (String) Optional description of the catalog
 - `email` (String) The user's email address
-- `enabled` (Boolean) `true` if the user is enabled and can log in. Default is `true`
+- `enabled` (Boolean) `true` if the user is enabled and can log in. Defaults to `true`.
 - `full_name` (String) The user's full name
-- `password` (String, Sensitive) The user's password. This value is never returned on read.
 - `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.
-- `take_ownership` (Boolean) Take ownership of user's objects on deletion.
+- `take_ownership` (Boolean) `true` if the user should take ownership of all vApps and media that are currently owned by the user that is being deleted.
 - `telephone` (String) The user's telephone number
 
 ### Read-Only

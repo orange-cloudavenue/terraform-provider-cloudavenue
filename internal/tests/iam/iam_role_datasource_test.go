@@ -9,7 +9,7 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-const testAccOrgRoleDataSourceConfig = `
+const testAccRoleDataSourceConfig = `
 resource "cloudavenue_iam_role" "example" {
   name        = "roletest"
   description = "A test role"
@@ -28,7 +28,7 @@ data "cloudavenue_iam_role" "example" {
 }
 `
 
-func TestAccOrgRoleDataSource(t *testing.T) {
+func TestAccRoleDataSource(t *testing.T) {
 	resourceName := "cloudavenue_iam_role.example"
 
 	resource.Test(t, resource.TestCase{
@@ -37,7 +37,7 @@ func TestAccOrgRoleDataSource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: testAccOrgRoleDataSourceConfig,
+				Config: testAccRoleDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", "roletest"),

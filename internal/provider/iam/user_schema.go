@@ -16,7 +16,7 @@ import (
 	superschema "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/schema"
 )
 
-type iamUserResourceModel struct {
+type userResourceModel struct {
 	// Base
 	ID              types.String `tfsdk:"id"`
 	Name            types.String `tfsdk:"name"`
@@ -33,7 +33,7 @@ type iamUserResourceModel struct {
 	TakeOwnership types.Bool   `tfsdk:"take_ownership"`
 }
 
-type iamUserDataSourceModel struct {
+type userDataSourceModel struct {
 	// Base
 	ID              types.String `tfsdk:"id"`
 	Name            types.String `tfsdk:"name"`
@@ -98,7 +98,7 @@ func userSchema(opts ...userSchemaOpts) superschema.Schema {
 		MarkdownDescription: "The role assigned to the user.",
 	}
 
-	enabledAttriute := schema.BoolAttribute{
+	enabledAttribute := schema.BoolAttribute{
 		MarkdownDescription: "`true` if the user is enabled and can log in.",
 	}
 
@@ -171,13 +171,13 @@ func userSchema(opts ...userSchemaOpts) superschema.Schema {
 		_schema.Attributes["role_name"] = roleNameAttribute
 
 		// * Enabled
-		enabledAttriute.MarkdownDescription += " Defaults to `true`."
-		enabledAttriute.Optional = true
-		enabledAttriute.Computed = true
-		enabledAttriute.PlanModifiers = []planmodifier.Bool{
+		enabledAttribute.MarkdownDescription += " Defaults to `true`."
+		enabledAttribute.Optional = true
+		enabledAttribute.Computed = true
+		enabledAttribute.PlanModifiers = []planmodifier.Bool{
 			fboolplanmodifier.SetDefault(true),
 		}
-		_schema.Attributes["enabled"] = enabledAttriute
+		_schema.Attributes["enabled"] = enabledAttribute
 
 		// * Password
 		_schema.Attributes["password"] = schema.StringAttribute{
@@ -198,7 +198,7 @@ func userSchema(opts ...userSchemaOpts) superschema.Schema {
 
 	if params.datasource {
 		// * Settings schema
-		_schema.MarkdownDescription = "The user resource allows you to read users in Cloud Avenue."
+		_schema.MarkdownDescription = "The user data source allows you to read users in Cloud Avenue."
 
 		// * Settings attributes
 
@@ -221,8 +221,8 @@ func userSchema(opts ...userSchemaOpts) superschema.Schema {
 		_schema.Attributes["name"] = nameAttribute
 
 		// * Enabled
-		enabledAttriute.Computed = true
-		_schema.Attributes["enabled"] = enabledAttriute
+		enabledAttribute.Computed = true
+		_schema.Attributes["enabled"] = enabledAttribute
 
 		// * Role Name
 		roleNameAttribute.Computed = true

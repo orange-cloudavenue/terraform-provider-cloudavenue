@@ -15,24 +15,24 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ datasource.DataSource              = &iamUserDataSource{}
-	_ datasource.DataSourceWithConfigure = &iamUserDataSource{}
-	_ user                               = &iamUserDataSource{}
+	_ datasource.DataSource              = &userDataSource{}
+	_ datasource.DataSourceWithConfigure = &userDataSource{}
+	_ user                               = &userDataSource{}
 )
 
-// NewiamUserDataSource returns a new Org User data source.
-func NewIAMUserDataSource() datasource.DataSource {
-	return &iamUserDataSource{}
+// NewuserDataSource returns a new Org User data source.
+func NewUserDataSource() datasource.DataSource {
+	return &userDataSource{}
 }
 
-// iamUserDataSource implements the DataSource interface.
-type iamUserDataSource struct {
+// userDataSource implements the DataSource interface.
+type userDataSource struct {
 	client   *client.CloudAvenue
 	adminOrg adminorg.AdminOrg
 	user     commonUser
 }
 
-func (r *iamUserDataSource) Init(_ context.Context, rm *iamUserDataSourceModel) (diags diag.Diagnostics) {
+func (r *userDataSource) Init(_ context.Context, rm *userDataSourceModel) (diags diag.Diagnostics) {
 	r.user = commonUser{
 		ID:   rm.ID,
 		Name: rm.Name,
@@ -44,17 +44,17 @@ func (r *iamUserDataSource) Init(_ context.Context, rm *iamUserDataSourceModel) 
 }
 
 // Metadata returns the resource type name.
-func (d *iamUserDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *userDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_user"
 }
 
 // Schema defines the schema for the data source.
-func (d *iamUserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *userDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = userSchema(withDataSource()).GetDataSource()
 }
 
 // Configure configures the data source.
-func (d *iamUserDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *userDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -74,8 +74,8 @@ func (d *iamUserDataSource) Configure(ctx context.Context, req datasource.Config
 }
 
 // Read reads the data source.
-func (d *iamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	config := &iamUserDataSourceModel{}
+func (d *userDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	config := &userDataSourceModel{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
@@ -101,7 +101,7 @@ func (d *iamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 	// Populate the data source model with the user data
 
-	state := &iamUserDataSourceModel{
+	state := &userDataSourceModel{
 		ID:              types.StringValue(user.User.ID),
 		Name:            types.StringValue(user.User.Name),
 		FullName:        types.StringValue(user.User.FullName),
@@ -121,6 +121,6 @@ func (d *iamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 }
 
-func (r *iamUserDataSource) GetUser(refresh bool) (*govcd.OrgUser, error) {
+func (r *userDataSource) GetUser(refresh bool) (*govcd.OrgUser, error) {
 	return r.user.GetUser(r.adminOrg, refresh)
 }
