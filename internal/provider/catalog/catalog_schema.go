@@ -1,26 +1,25 @@
 package catalog
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	superschema "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/schema"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/storageprofile"
 )
 
 type catalogDataSourceModel struct {
 	// BASE
 	ID          types.String `tfsdk:"id"`
-	CatalogName types.String `tfsdk:"catalog_name"`
-	CatalogID   types.String `tfsdk:"catalog_id"`
+	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
 	CreatedAt   types.String `tfsdk:"created_at"`
 	OwnerName   types.String `tfsdk:"owner_name"`
-	Href        types.String `tfsdk:"href"`
 
 	// SPECIFIC DATA SOURCE
 	PreserveIdentityInformation types.Bool  `tfsdk:"preserve_identity_information"`
@@ -35,12 +34,10 @@ type catalogDataSourceModel struct {
 type catalogResourceModel struct {
 	// BASE
 	ID          types.String `tfsdk:"id"`
-	CatalogName types.String `tfsdk:"catalog_name"`
-	CatalogID   types.String `tfsdk:"catalog_id"`
+	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
 	CreatedAt   types.String `tfsdk:"created_at"`
 	OwnerName   types.String `tfsdk:"owner_name"`
-	Href        types.String `tfsdk:"href"`
 
 	// SPECIFIC RESOURCE
 	StorageProfile  types.String `tfsdk:"storage_profile"`
@@ -48,131 +45,156 @@ type catalogResourceModel struct {
 	DeleteRecursive types.Bool   `tfsdk:"delete_recursive"`
 }
 
-type catalogSchemaOpts func(*catalogSchemaParams)
-
-type catalogSchemaParams struct {
-	resource   bool
-	datasource bool
-}
-
-func withDataSource() catalogSchemaOpts {
-	return func(params *catalogSchemaParams) {
-		params.datasource = true
-	}
-}
-
 /*
 catalogSchema
 
 This function is used to create the schema for the catalog resource and datasource.
-Default is to create a resource schema.  If you want to create a datasource schema
-you must pass in the withDataSource() option.
 */
-func catalogSchema(opts ...catalogSchemaOpts) superschema.Schema {
-	params := &catalogSchemaParams{}
-
-	if len(opts) > 0 {
-		for _, opt := range opts {
-			opt(params)
-		}
-	} else {
-		params.resource = true
+func catalogSchema() superschema.Schema {
+	return superschema.Schema{
+		Common: superschema.SchemaDetails{
+			MarkdownDescription: "The Catalog allows you to",
+		},
+		Resource: superschema.SchemaDetails{
+			MarkdownDescription: " manage a catalog in Cloud Avenue.",
+		},
+		DataSource: superschema.SchemaDetails{
+			MarkdownDescription: " retrieve information about a catalog in Cloud Avenue.",
+		},
+		Attributes: map[string]superschema.Attribute{
+			"id": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The ID of the catalog.",
+				},
+				Resource: &schemaR.StringAttribute{
+					Computed: true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+				DataSource: &schemaD.StringAttribute{
+					MarkdownDescription: " Required if `name` is not set.",
+					Optional:            true,
+					Computed:            true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
+					},
+				},
+			},
+			"name": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The name of the catalog.",
+				},
+				Resource: &schemaR.StringAttribute{
+					Required: true,
+				},
+				DataSource: &schemaD.StringAttribute{
+					MarkdownDescription: " Required if `id` is not set.",
+					Optional:            true,
+					Computed:            true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
+					},
+				},
+			},
+			"created_at": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The creation date of the catalog.",
+					Computed:            true,
+				},
+				Resource: &schemaR.StringAttribute{
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+			},
+			"description": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The description of the catalog.",
+				},
+				Resource: &schemaR.StringAttribute{
+					Required: true,
+				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+				},
+			},
+			"owner_name": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The owner name of the catalog.",
+					Computed:            true,
+				},
+				Resource: &schemaR.StringAttribute{
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+			},
+			"preserve_identity_information": superschema.BoolAttribute{
+				DataSource: &schemaD.BoolAttribute{
+					MarkdownDescription: "Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Preserving the identity information limits the portability of the package and you should use it only when necessary.",
+					Computed:            true,
+				},
+			},
+			"number_of_media": superschema.Int64Attribute{
+				DataSource: &schemaD.Int64Attribute{
+					MarkdownDescription: "The number of media in the catalog.",
+					Computed:            true,
+				},
+			},
+			"media_item_list": superschema.ListAttribute{
+				DataSource: &schemaD.ListAttribute{
+					MarkdownDescription: "The list of media items in the catalog.",
+					Computed:            true,
+					ElementType:         types.StringType,
+				},
+			},
+			"is_shared": superschema.BoolAttribute{
+				DataSource: &schemaD.BoolAttribute{
+					MarkdownDescription: "Indicates whether the catalog is shared.",
+					Computed:            true,
+				},
+			},
+			"is_local": superschema.BoolAttribute{
+				DataSource: &schemaD.BoolAttribute{
+					MarkdownDescription: "Indicates whether the catalog is local.",
+					Computed:            true,
+				},
+			},
+			"is_published": superschema.BoolAttribute{
+				DataSource: &schemaD.BoolAttribute{
+					MarkdownDescription: "Indicates whether the catalog is published.",
+					Computed:            true,
+				},
+			},
+			"is_cached": superschema.BoolAttribute{
+				DataSource: &schemaD.BoolAttribute{
+					MarkdownDescription: "Indicates whether the catalog is cached.",
+					Computed:            true,
+				},
+			},
+			"storage_profile": superschema.StringAttribute{
+				// TODO - this is a reference to a storage profile, not a string
+				Resource: &schemaR.StringAttribute{
+					MarkdownDescription: "Storage profile to override the VM default one.",
+					Optional:            true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+			},
+			"delete_force": superschema.BoolAttribute{
+				Resource: &schemaR.BoolAttribute{
+					Required:            true,
+					MarkdownDescription: "When destroying use `delete_force=True` with `delete_recursive=True` to remove a catalog and any objects it contains, regardless of their state.",
+				},
+			},
+			"delete_recursive": superschema.BoolAttribute{
+				Resource: &schemaR.BoolAttribute{
+					Required:            true,
+					MarkdownDescription: "When destroying use `delete_recursive=True` to remove a catalog and any objects it contains that are in a state that normally allows removal.",
+				},
+			},
+		},
 	}
-
-	_schema := superschema.Schema{}
-
-	_schema.Attributes = map[string]schema.Attribute{
-		"id": schema.StringAttribute{
-			Computed: true,
-			PlanModifiers: []planmodifier.String{
-				stringplanmodifier.UseStateForUnknown(),
-			},
-		},
-		"created_at": schema.StringAttribute{
-			Computed:            true,
-			MarkdownDescription: "The creation date of the catalog.",
-			PlanModifiers: []planmodifier.String{
-				stringplanmodifier.UseStateForUnknown(),
-			},
-		},
-		"description": schema.StringAttribute{
-			Optional:            params.resource,
-			Computed:            true,
-			MarkdownDescription: "The description of the catalog.",
-		},
-		"href": schema.StringAttribute{
-			Computed:            true,
-			MarkdownDescription: "The catalog HREF.",
-			PlanModifiers: []planmodifier.String{
-				stringplanmodifier.UseStateForUnknown(),
-			},
-		},
-		"owner_name": schema.StringAttribute{
-			Computed:            true,
-			MarkdownDescription: "The name of the owner of the catalog.",
-			PlanModifiers: []planmodifier.String{
-				stringplanmodifier.UseStateForUnknown(),
-			},
-		},
-	}
-
-	if params.datasource {
-		_schema.MarkdownDescription = "The catalog data source show the details of the catalog."
-
-		_schema.Attributes[schemaName] = schemaCatalogName(common.IsOptional())
-		_schema.Attributes[schemaID] = schemaCatalogID(common.IsOptional())
-		_schema.Attributes["preserve_identity_information"] = schema.BoolAttribute{
-			Computed:            true,
-			MarkdownDescription: "Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Preserving the identity information limits the portability of the package and you should use it only when necessary.",
-		}
-		_schema.Attributes["number_of_media"] = schema.Int64Attribute{
-			Computed:            true,
-			MarkdownDescription: "Number of Medias this catalog contains.",
-		}
-		_schema.Attributes["media_item_list"] = schema.ListAttribute{
-			Computed:            true,
-			ElementType:         types.StringType,
-			MarkdownDescription: "List of Media items in this catalog.",
-		}
-		_schema.Attributes["is_shared"] = schema.BoolAttribute{
-			Computed:            true,
-			MarkdownDescription: "True if this catalog is shared.",
-		}
-		_schema.Attributes["is_local"] = schema.BoolAttribute{
-			Computed:            true,
-			MarkdownDescription: "True if this catalog belongs to the current organization.",
-		}
-		_schema.Attributes["is_published"] = schema.BoolAttribute{
-			Computed:            true,
-			MarkdownDescription: "True if this catalog is shared to all organizations.",
-		}
-		_schema.Attributes["is_cached"] = schema.BoolAttribute{
-			Computed:            true,
-			MarkdownDescription: "True if this catalog is cached.",
-		}
-	}
-
-	if params.resource {
-		_schema.MarkdownDescription = "The Catalog resource allows you to manage a catalog in CloudAvenue."
-
-		_schema.Attributes[schemaName] = schemaCatalogName()
-		_schema.Attributes[schemaID] = schemaCatalogID(common.IsComputed())
-		_schema.Attributes[storageprofile.SchemaStorageProfile] = storageprofile.Schema()
-		_schema.Attributes["delete_force"] = schema.BoolAttribute{
-			Required:            true,
-			MarkdownDescription: "When destroying use `delete_force=True` with `delete_recursive=True` to remove a catalog and any objects it contains, regardless of their state.",
-			PlanModifiers: []planmodifier.Bool{
-				boolplanmodifier.UseStateForUnknown(),
-			},
-		}
-		_schema.Attributes["delete_recursive"] = schema.BoolAttribute{
-			Required:            true,
-			MarkdownDescription: "When destroying use `delete_recursive=True` to remove the catalog and any objects it contains that are in a state that normally allows removal.",
-			PlanModifiers: []planmodifier.Bool{
-				boolplanmodifier.UseStateForUnknown(),
-			},
-		}
-	}
-
-	return _schema
 }

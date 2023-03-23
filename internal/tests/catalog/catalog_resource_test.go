@@ -12,7 +12,7 @@ import (
 
 const testAccCatalogResourceConfig = `
 resource "cloudavenue_catalog" "test" {
-	catalog_name     = "test-catalog"
+	name             = "test-catalog"
 	description      = "catalog for files"
 	delete_recursive = true
 	delete_force     = true
@@ -30,12 +30,11 @@ func TestAccCatalogResource(t *testing.T) {
 			{
 				Config: testAccCatalogResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "catalog_name", "test-catalog"),
+					resource.TestCheckResourceAttr(resourceName, "name", "test-catalog"),
 					resource.TestCheckResourceAttr(resourceName, "description", "catalog for files"),
 					resource.TestCheckResourceAttr(resourceName, "delete_recursive", "true"),
 					resource.TestCheckResourceAttr(resourceName, "delete_force", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "href"),
 					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "created_at"),
 				),
@@ -43,12 +42,11 @@ func TestAccCatalogResource(t *testing.T) {
 			{
 				Config: testAccCatalogResourceUpdate(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "catalog_name", "test-catalog"),
+					resource.TestCheckResourceAttr(resourceName, "name", "test-catalog"),
 					resource.TestCheckResourceAttr(resourceName, "description", "catalog for ISO"),
 					resource.TestCheckResourceAttr(resourceName, "delete_recursive", "true"),
 					resource.TestCheckResourceAttr(resourceName, "delete_force", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "href"),
 					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "created_at"),
 				),
