@@ -6,6 +6,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+type Param int
+
 const (
 	Required Param = iota
 	Optional
@@ -13,7 +15,12 @@ const (
 	Computed
 )
 
-type Param int
+type SchemaType int
+
+const (
+	Resource SchemaType = iota
+	DataSource
+)
 
 type Schema struct {
 	MarkdownDescription string
