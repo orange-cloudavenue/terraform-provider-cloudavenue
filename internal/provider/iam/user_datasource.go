@@ -50,7 +50,7 @@ func (d *userDataSource) Metadata(_ context.Context, req datasource.MetadataRequ
 
 // Schema defines the schema for the data source.
 func (d *userDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = userSchema(withDataSource()).GetDataSource()
+	resp.Schema = userSchema().GetDataSource()
 }
 
 // Configure configures the data source.

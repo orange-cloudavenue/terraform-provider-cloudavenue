@@ -33,7 +33,7 @@ resource "cloudavenue_iam_user" "test" {
  }
 `
 
-func TestAccIAMUserResource(t *testing.T) {
+func TestAccUserResource(t *testing.T) {
 	resourceName := "cloudavenue_iam_user.test"
 
 	resource.Test(t, resource.TestCase{
