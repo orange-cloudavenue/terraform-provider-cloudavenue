@@ -2,12 +2,12 @@
 page_title: "cloudavenue_catalog Data Source - cloudavenue"
 subcategory: "Catalog"
 description: |-
-  The catalog data source show the details of the catalog.
+  The Catalog allows you to retrieve information about a catalog in Cloud Avenue.
 ---
 
 # cloudavenue_catalog (Data Source)
 
-The catalog data source show the details of the catalog.
+The Catalog allows you to retrieve information about a catalog in Cloud Avenue.
 
 ## Example Usage
 
@@ -22,21 +22,19 @@ data "cloudavenue_catalog" "example" {
 
 ### Optional
 
-- `catalog_id` (String) The ID of the catalog. Required if `catalog_name` is not set.
-- `catalog_name` (String) The name of the catalog. Required if `catalog_id` is not set.
+- `id` (String) The ID of the catalog. Required if `name` is not set.
+- `name` (String) The name of the catalog. Required if `id` is not set.
 
 ### Read-Only
 
 - `created_at` (String) The creation date of the catalog.
 - `description` (String) The description of the catalog.
-- `href` (String) The catalog HREF.
-- `id` (String) The ID of this resource.
-- `is_cached` (Boolean) True if this catalog is cached.
-- `is_local` (Boolean) True if this catalog belongs to the current organization.
-- `is_published` (Boolean) True if this catalog is shared to all organizations.
-- `is_shared` (Boolean) True if this catalog is shared.
-- `media_item_list` (List of String) List of Media items in this catalog.
-- `number_of_media` (Number) Number of Medias this catalog contains.
-- `owner_name` (String) The name of the owner of the catalog.
+- `is_cached` (Boolean) Indicates whether the catalog is cached.
+- `is_local` (Boolean) Indicates whether the catalog is local.
+- `is_published` (Boolean) Indicates whether the catalog is published.
+- `is_shared` (Boolean) Indicates whether the catalog is shared.
+- `media_item_list` (List of String) The list of media items in the catalog.
+- `number_of_media` (Number) The number of media in the catalog.
+- `owner_name` (String) The owner name of the catalog.
 - `preserve_identity_information` (Boolean) Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Preserving the identity information limits the portability of the package and you should use it only when necessary.
 

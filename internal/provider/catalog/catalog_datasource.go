@@ -37,8 +37,8 @@ type catalogDataSource struct {
 
 func (d *catalogDataSource) Init(ctx context.Context, rm *catalogDataSourceModel) (diags diag.Diagnostics) {
 	d.catalog = base{
-		name: rm.CatalogName.ValueString(),
-		id:   rm.CatalogID.ValueString(),
+		name: rm.Name.ValueString(),
+		id:   rm.ID.ValueString(),
 	}
 
 	d.adminOrg, diags = adminorg.Init(d.client)
@@ -51,7 +51,7 @@ func (d *catalogDataSource) Metadata(ctx context.Context, req datasource.Metadat
 }
 
 func (d *catalogDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = catalogSchema(withDataSource()).GetDataSource()
+	resp.Schema = catalogSchema().GetDataSource()
 }
 
 func (d *catalogDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -98,7 +98,6 @@ func (d *catalogDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	updatedState.ID = types.StringValue(catalog.AdminCatalog.ID)
 	updatedState.CreatedAt = types.StringValue(catalog.AdminCatalog.DateCreated)
 	updatedState.Description = types.StringValue(catalog.AdminCatalog.Description)
-	updatedState.Href = types.StringValue(catalog.AdminCatalog.HREF)
 	updatedState.IsPublished = types.BoolValue(catalog.AdminCatalog.IsPublished)
 	updatedState.IsLocal = types.BoolValue(!catalog.AdminCatalog.IsPublished)
 

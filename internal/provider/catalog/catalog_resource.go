@@ -38,7 +38,7 @@ type catalogResource struct {
 
 func (r *catalogResource) Init(_ context.Context, rm *catalogResourceModel) (diags diag.Diagnostics) {
 	r.catalog = base{
-		name: rm.CatalogName.ValueString(),
+		name: rm.Name.ValueString(),
 		id:   "",
 	}
 
@@ -114,8 +114,6 @@ func (r *catalogResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	plan.ID = types.StringValue(c.AdminCatalog.ID)
-	plan.CatalogID = types.StringValue(c.AdminCatalog.ID)
-	plan.Href = types.StringValue(c.AdminCatalog.HREF)
 	plan.OwnerName = types.StringValue(c.AdminCatalog.Owner.User.Name)
 	plan.CreatedAt = types.StringValue(c.AdminCatalog.DateCreated)
 
@@ -153,12 +151,10 @@ func (r *catalogResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	plan := state
-	plan.CatalogID = types.StringValue(adminCatalog.AdminCatalog.ID)
 	plan.ID = types.StringValue(adminCatalog.AdminCatalog.ID)
-	plan.CatalogName = types.StringValue(adminCatalog.AdminCatalog.Name)
+	plan.Name = types.StringValue(adminCatalog.AdminCatalog.Name)
 	plan.Description = types.StringValue(adminCatalog.AdminCatalog.Description)
 	plan.CreatedAt = types.StringValue(adminCatalog.AdminCatalog.DateCreated)
-	plan.Href = types.StringValue(adminCatalog.AdminCatalog.HREF)
 	plan.OwnerName = types.StringValue(adminCatalog.AdminCatalog.Owner.User.Name)
 
 	// Set refreshed state
@@ -193,7 +189,7 @@ func (r *catalogResource) Update(ctx context.Context, req resource.UpdateRequest
 	newAdminCatalog := govcd.NewAdminCatalogWithParent(&r.client.Vmware.Client, r.adminOrg)
 	newAdminCatalog.AdminCatalog.ID = adminCatalog.AdminCatalog.ID
 	newAdminCatalog.AdminCatalog.HREF = adminCatalog.AdminCatalog.HREF
-	newAdminCatalog.AdminCatalog.Name = plan.CatalogName.ValueString()
+	newAdminCatalog.AdminCatalog.Name = plan.Name.ValueString()
 	newAdminCatalog.AdminCatalog.Description = plan.Description.ValueString()
 
 	// Check if StorageProfileID has changed
@@ -218,7 +214,7 @@ func (r *catalogResource) Update(ctx context.Context, req resource.UpdateRequest
 		}
 	}
 
-	if !plan.StorageProfile.Equal(state.StorageProfile) || !plan.Description.Equal(state.Description) || !plan.CatalogName.Equal(state.CatalogName) {
+	if !plan.StorageProfile.Equal(state.StorageProfile) || !plan.Description.Equal(state.Description) || !plan.Name.Equal(state.Name) {
 		// If field has changed, update it
 		err = newAdminCatalog.Update()
 		if err != nil {
@@ -268,12 +264,12 @@ func (r *catalogResource) Delete(ctx context.Context, req resource.DeleteRequest
 }
 
 func (r *catalogResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("catalog_name"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 
 // createCatalogStorageProfile creates a storage profile reference.
 func (r *catalogResource) createCatalogStorageProfile(plan *catalogResourceModel, storageProfiles *govcdtypes.CatalogStorageProfiles) (*govcd.AdminCatalog, error) {
-	return r.adminOrg.CreateCatalogWithStorageProfile(plan.CatalogName.ValueString(), plan.Description.ValueString(), storageProfiles)
+	return r.adminOrg.CreateCatalogWithStorageProfile(plan.Name.ValueString(), plan.Description.ValueString(), storageProfiles)
 }
 
 func (r *catalogResource) GetID() string {

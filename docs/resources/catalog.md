@@ -2,12 +2,12 @@
 page_title: "cloudavenue_catalog Resource - cloudavenue"
 subcategory: "Catalog"
 description: |-
-  The Catalog resource allows you to manage a catalog in CloudAvenue.
+  The Catalog allows you to manage a catalog in Cloud Avenue.
 ---
 
 # cloudavenue_catalog (Resource)
 
-The Catalog resource allows you to manage a catalog in CloudAvenue.
+The Catalog allows you to manage a catalog in Cloud Avenue.
 
 ## Example Usage
 
@@ -25,22 +25,20 @@ resource "cloudavenue_catalog" "example" {
 
 ### Required
 
-- `catalog_name` (String) The name of the catalog.
 - `delete_force` (Boolean) When destroying use `delete_force=True` with `delete_recursive=True` to remove a catalog and any objects it contains, regardless of their state.
-- `delete_recursive` (Boolean) When destroying use `delete_recursive=True` to remove the catalog and any objects it contains that are in a state that normally allows removal.
+- `delete_recursive` (Boolean) When destroying use `delete_recursive=True` to remove a catalog and any objects it contains that are in a state that normally allows removal.
+- `description` (String) The description of the catalog.
+- `name` (String) The name of the catalog.
 
 ### Optional
 
-- `description` (String) The description of the catalog.
-- `storage_profile` (String) Storage profile to override the VM default one. Allowed values are: `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
+- `storage_profile` (String) Storage profile to override the VM default one.
 
 ### Read-Only
 
-- `catalog_id` (String) The ID of the catalog.
 - `created_at` (String) The creation date of the catalog.
-- `href` (String) The catalog HREF.
-- `id` (String) The ID of this resource.
-- `owner_name` (String) The name of the owner of the catalog.
+- `id` (String) The ID of the catalog.
+- `owner_name` (String) The owner name of the catalog.
 
 ## Import
 

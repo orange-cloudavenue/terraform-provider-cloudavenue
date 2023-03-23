@@ -11,14 +11,14 @@ import (
 
 const testAccCatalogDataSourceConfig = `
 resource "cloudavenue_catalog" "test" {
-	catalog_name     = "test-catalog"
+	name             = "test-catalog"
 	description      = "catalog for files"
 	delete_recursive = true
 	delete_force     = true
 }
 
 data "cloudavenue_catalog" "test" {
-	catalog_name = cloudavenue_catalog.test.catalog_name
+	name = cloudavenue_catalog.test.name
 }
 `
 
@@ -33,10 +33,9 @@ func TestAccCatalogDataSource(t *testing.T) {
 			{
 				Config: testAccCatalogDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "catalog_name", "test-catalog"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", "test-catalog"),
 					resource.TestCheckResourceAttr(dataSourceName, "description", "catalog for files"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "href"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "owner_name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "created_at"),
 				),
