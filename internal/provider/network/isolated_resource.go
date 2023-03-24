@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
+	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 	govdctypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -14,6 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/vmware/go-vcloud-director/v2/govcd"
+	govdctypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
@@ -28,7 +32,8 @@ var (
 	_ resource.ResourceWithConfigure   = &networkIsolatedResource{}
 	_ resource.ResourceWithImportState = &networkIsolatedResource{}
 	_ resource.ResourceWithModifyPlan  = &networkIsolatedResource{}
-	_ vcdNetworkIsolatedOrRouted       = &networkIsolatedResource{}
+	_ network.Network                  = &networkIsolatedResource{}
+	// _ vcdNetworkIsolatedOrRouted       = &networkIsolatedResource{}
 )
 
 // NewNetworkIsolatedResource is a helper function to simplify the provider implementation.
@@ -38,9 +43,10 @@ func NewNetworkIsolatedResource() resource.Resource {
 
 // networkIsolatedResource is the resource implementation.
 type networkIsolatedResource struct {
-	client *client.CloudAvenue
-	vdc    vdc.VDC
-	org    org.Org
+	client  *client.CloudAvenue
+	vdc     vdc.VDC
+	org     org.Org
+	network network.Common
 }
 
 type networkIsolatedResourceModel struct {
@@ -77,6 +83,8 @@ func (r *networkIsolatedResource) Metadata(_ context.Context, req resource.Metad
 
 // Init resource used to initialize the resource.
 func (r *networkIsolatedResource) Init(_ context.Context, rm *networkIsolatedResourceModel) (diags diag.Diagnostics) {
+	r.network.TypeOfNetwork = network.ISOLATED
+
 	// Init Org
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
@@ -133,6 +141,8 @@ func (r *networkIsolatedResource) Create(ctx context.Context, req resource.Creat
 		resp.Diagnostics.AddError("Error retrieving VDC or VDCGroup", err.Error())
 		return
 	}
+
+	r.ConstructNetworkAPIObject(ctx, plan)
 
 	// Lock VDC or VDCGroup
 	vcdMutexKV := mutex.NewKV()
@@ -435,4 +445,22 @@ func (r *networkIsolatedResource) ImportState(ctx context.Context, req resource.
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func (r *networkIsolatedResource) ConstructNetworkAPIObject(ctx context.Context, plan any) (*govcdtypes.OpenApiOrgVdcNetwork, diag.Diagnostics) {
+	d := diag.Diagnostics{}
+
+	p, ok := plan.(*networkIsolatedResourceModel)
+	if !ok {
+		d.AddError("Error", "Error converting plan to network isolated resource model")
+		return nil, d
+	}
+
+	rM := network.CommonResourceModel{
+		Name:        p.Name,
+		Description: p.Description,
+	}
+
+	return r.network.ConstructNetworkAPIObject(ctx, rM)
+
 }

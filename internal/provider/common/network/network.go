@@ -20,13 +20,13 @@ type networkSchemaOpts func(*networkSchemaParams)
 type networkSchemaParams struct {
 	resource bool
 
-	typeNetwork networkType
+	typeNetwork Type
 }
 
-type networkType int
+type Type int
 
 const (
-	ISOLATED networkType = iota
+	ISOLATED Type = iota
 	NAT_ROUTED
 	ISOLATEDVAPP
 	ROUTEDVAPP
