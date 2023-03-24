@@ -45,6 +45,32 @@ type catalogResourceModel struct {
 	DeleteRecursive types.Bool   `tfsdk:"delete_recursive"`
 }
 
+func catalogDatasourceAttributes() map[string]schemaD.Attribute {
+	attr := catalogSchema().GetDataSource().Attributes
+
+	for k, v := range attr {
+		switch val := v.(type) {
+		case schemaD.StringAttribute:
+			val.Computed = true
+			val.Optional = false
+			val.Required = false
+			attr[k] = val
+		case schemaD.BoolAttribute:
+			val.Computed = true
+			val.Optional = false
+			val.Required = false
+			attr[k] = val
+		case schemaD.Int64Attribute:
+			val.Computed = true
+			val.Optional = false
+			val.Required = false
+			attr[k] = val
+		}
+	}
+
+	return attr
+}
+
 /*
 catalogSchema
 

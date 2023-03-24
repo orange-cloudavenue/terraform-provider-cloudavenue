@@ -35,9 +35,9 @@ type catalogsDataSource struct {
 }
 
 type catalogsDataSourceModel struct {
-	ID           types.String                       `tfsdk:"id"`
-	Catalogs     map[string]catalogDataSourceStruct `tfsdk:"catalogs"`
-	CatalogsName types.List                         `tfsdk:"catalogs_name"`
+	ID           types.String                      `tfsdk:"id"`
+	Catalogs     map[string]catalogDataSourceModel `tfsdk:"catalogs"`
+	CatalogsName types.List                        `tfsdk:"catalogs_name"`
 }
 
 func (d *catalogsDataSource) Init(ctx context.Context, rm *catalogsDataSourceModel) (diags diag.Diagnostics) {
@@ -66,7 +66,7 @@ func (d *catalogsDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 				MarkdownDescription: "Map of catalogs.",
 				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
-					Attributes: schemaDataSource(),
+					Attributes: catalogDatasourceAttributes(),
 				},
 			},
 		},
@@ -95,13 +95,12 @@ func (d *catalogsDataSource) Configure(ctx context.Context, req datasource.Confi
 
 func (d *catalogsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	state := &catalogsDataSourceModel{}
-
 	resp.Diagnostics.Append(d.Init(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	catalogs := make(map[string]catalogDataSourceStruct)
+	catalogs := make(map[string]catalogDataSourceModel)
 	catalogsName := make([]string, 0)
 
 	for _, x := range d.adminOrg.ListCatalogs().Catalog {
@@ -113,12 +112,11 @@ func (d *catalogsDataSource) Read(ctx context.Context, req datasource.ReadReques
 			resp.Diagnostics.AddError("Unable to get catalog", err.Error())
 			continue
 		} else {
-			s := catalogDataSourceStruct{
+			s := catalogDataSourceModel{
 				ID:          types.StringValue(catalog.AdminCatalog.ID),
-				CatalogName: types.StringValue(catalog.AdminCatalog.Name),
+				Name:        types.StringValue(catalog.AdminCatalog.Name),
 				CreatedAt:   types.StringValue(catalog.AdminCatalog.DateCreated),
 				Description: types.StringValue(catalog.AdminCatalog.Description),
-				Href:        types.StringValue(catalog.AdminCatalog.HREF),
 				IsPublished: types.BoolValue(catalog.AdminCatalog.IsPublished),
 				IsLocal:     types.BoolValue(!catalog.AdminCatalog.IsPublished),
 			}
@@ -180,7 +178,7 @@ func (d *catalogsDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	updatedState := &catalogsDataSourceModel{
+	updatedState := catalogsDataSourceModel{
 		ID:           utils.GenerateUUID("catalogs"),
 		Catalogs:     catalogs,
 		CatalogsName: cn,
