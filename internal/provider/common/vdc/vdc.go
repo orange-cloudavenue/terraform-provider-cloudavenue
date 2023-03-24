@@ -1,13 +1,15 @@
 package vdc
 
 import (
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	superschema "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/schema"
 )
 
 type VDC struct {
@@ -23,8 +25,8 @@ Schema
 	RequiresReplace
 	UseStateForUnknown
 */
-func Schema() schema.StringAttribute {
-	return schema.StringAttribute{
+func Schema() schemaR.StringAttribute {
+	return schemaR.StringAttribute{
 		Optional: true,
 		Computed: true,
 		PlanModifiers: []planmodifier.String{
@@ -32,6 +34,36 @@ func Schema() schema.StringAttribute {
 			stringplanmodifier.RequiresReplace(),
 		},
 		MarkdownDescription: "(ForceNew) The name of vDC to use, optional if defined at provider level.",
+	}
+}
+
+/*
+SuperSchema
+
+	For the resource :
+	Optional: true
+	Computed: true
+	RequiresReplace
+	UseStateForUnknown
+
+	For the data source :
+	Optional: true
+*/
+func SuperSchema() superschema.StringAttribute {
+	return superschema.StringAttribute{
+		Resource: &schemaR.StringAttribute{
+			Optional: true,
+			Computed: true,
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+				stringplanmodifier.RequiresReplace(),
+			},
+			MarkdownDescription: "(ForceNew) The name of vDC to use, optional if defined at provider level.",
+		},
+		DataSource: &schemaD.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "The name of vDC to use, optional if defined at provider level.",
+		},
 	}
 }
 
