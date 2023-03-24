@@ -47,7 +47,7 @@ func (d *roleDataSource) Metadata(ctx context.Context, req datasource.MetadataRe
 }
 
 func (d *roleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = roleSchema().GetDataSource()
+	resp.Schema = roleSchema().GetDataSource(ctx)
 }
 
 func (d *roleDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {

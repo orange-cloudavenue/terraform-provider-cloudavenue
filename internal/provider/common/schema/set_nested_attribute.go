@@ -1,6 +1,8 @@
 package superschema //nolint:dupl
 
 import (
+	"context"
+
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
@@ -23,7 +25,7 @@ func (s SetNestedAttribute) IsDataSource() bool {
 	return s.DataSource != nil || s.Common != nil
 }
 
-func (s SetNestedAttribute) GetResource() schemaR.Attribute {
+func (s SetNestedAttribute) GetResource(_ context.Context) schemaR.Attribute {
 	var a schemaR.SetNestedAttribute
 
 	if s.Common != nil {
@@ -81,7 +83,7 @@ func (s SetNestedAttribute) GetResource() schemaR.Attribute {
 	return a
 }
 
-func (s SetNestedAttribute) GetDataSource() schemaD.Attribute {
+func (s SetNestedAttribute) GetDataSource(_ context.Context) schemaD.Attribute {
 	var a schemaD.SetNestedAttribute
 
 	if s.Common != nil {

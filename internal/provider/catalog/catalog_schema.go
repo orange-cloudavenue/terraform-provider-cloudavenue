@@ -1,6 +1,8 @@
 package catalog
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -46,7 +48,7 @@ type catalogResourceModel struct {
 }
 
 func catalogDatasourceAttributes() map[string]schemaD.Attribute {
-	attr := catalogSchema().GetDataSource().Attributes
+	attr := catalogSchema().GetDataSource(context.Background()).Attributes
 
 	for k, v := range attr {
 		switch val := v.(type) {

@@ -51,7 +51,7 @@ func (d *catalogDataSource) Metadata(ctx context.Context, req datasource.Metadat
 }
 
 func (d *catalogDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = catalogSchema().GetDataSource()
+	resp.Schema = catalogSchema().GetDataSource(ctx)
 }
 
 func (d *catalogDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
