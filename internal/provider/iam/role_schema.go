@@ -71,7 +71,7 @@ func roleSchema() superschema.Schema {
 					MarkdownDescription: "The name of the role.",
 				},
 				Resource: &schemaR.StringAttribute{
-					Computed: true,
+					Required: true,
 				},
 				DataSource: &schemaD.StringAttribute{
 					MarkdownDescription: " Required if `id` is not set.",
@@ -99,7 +99,7 @@ func roleSchema() superschema.Schema {
 					ElementType:         types.StringType,
 				},
 				Resource: &schemaR.SetAttribute{
-					Required: true,
+					Optional: true,
 				},
 				DataSource: &schemaD.SetAttribute{
 					Computed: true,

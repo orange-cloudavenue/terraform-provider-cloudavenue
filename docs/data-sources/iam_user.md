@@ -13,11 +13,11 @@ The user data source allows you to read users in Cloud Avenue.
 
 ```terraform
 data "cloudavenue_iam_user" "example" {
-  user_name = "example-user"
+  name = "example-user"
 }
 
 output "example_user_id" {
-  value = data.cloudavenue_iam_user.example.id
+  value = data.cloudavenue_iam_user.example
 }
 ```
 
@@ -31,12 +31,12 @@ output "example_user_id" {
 
 ### Read-Only
 
-- `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota.
+- `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota. (Default to `0`)
 - `email` (String) The user's email address.
-- `enabled` (Boolean) `true` if the user is enabled and can log in.
+- `enabled` (Boolean) `true` if the user is enabled and can log in. (Default to `true`)
 - `full_name` (String) The user's full name.
 - `provider_type` (String) Identity provider type for this this user. One of: `INTEGRATED`, `SAML`, `OAUTH`.
 - `role_name` (String) The role assigned to the user.
-- `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.
+- `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota. (Default to `0`)
 - `telephone` (String) The user's telephone number.
 

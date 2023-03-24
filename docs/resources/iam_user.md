@@ -13,10 +13,16 @@ The user resource allows you to manage local users in Cloud Avenue.
 
 ```terraform
 resource "cloudavenue_iam_user" "example" {
-  user_name   = "exampleuser"
-  description = "A example user"
-  role        = "Organization Administrator"
-  password    = "Th!s1sSecur3P@ssword"
+  name              = "exampleuserfull"
+  role_name         = "Organization Administrator"
+  password          = "Th!s1sSecur3P@ssword"
+  enabled           = true # Default true
+  email             = "foo@bar.com"
+  telephone         = "1234567890"
+  full_name         = "Test User"
+  take_ownership    = true # Default true
+  deployed_vm_quota = 10   # Default 0
+  stored_vm_quota   = 5    # Default 0
 }
 ```
 
@@ -25,18 +31,18 @@ resource "cloudavenue_iam_user" "example" {
 
 ### Required
 
-- `name` (String) The name of the user.
+- `name` (String) (ForceNew) The name of the user.
 - `password` (String) The user's password. This value is never returned on read.
 - `role_name` (String) The role assigned to the user.
 
 ### Optional
 
-- `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota.
+- `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota. (Default to `0`)
 - `email` (String) The user's email address.
-- `enabled` (Boolean) `true` if the user is enabled and can log in.
+- `enabled` (Boolean) `true` if the user is enabled and can log in. (Default to `true`)
 - `full_name` (String) The user's full name.
-- `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.
-- `take_ownership` (Boolean) `true` if the user should take ownership of all vApps and media that are currently owned by the user that is being deleted.
+- `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota. (Default to `0`)
+- `take_ownership` (Boolean) `true` if the user should take ownership of all vApps and media that are currently owned by the user that is being deleted. (Default to `true`)
 - `telephone` (String) The user's telephone number.
 
 ### Read-Only

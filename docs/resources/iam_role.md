@@ -32,12 +32,15 @@ resource "cloudavenue_iam_role" "example" {
 ### Required
 
 - `description` (String) A description of the role.
+- `name` (String) The name of the role.
+
+### Optional
+
 - `rights` (Set of String) A list of rights for the role.
 
 ### Read-Only
 
 - `id` (String) The ID of the role.
-- `name` (String) The name of the role.
 
 ## Import
 

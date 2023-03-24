@@ -3,7 +3,6 @@ package iam
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -19,6 +18,7 @@ import (
 var (
 	_ datasource.DataSource              = &roleDataSource{}
 	_ datasource.DataSourceWithConfigure = &roleDataSource{}
+	_ role                               = &roleDataSource{}
 )
 
 func NewRoleDataSource() datasource.DataSource {
@@ -28,9 +28,15 @@ func NewRoleDataSource() datasource.DataSource {
 type roleDataSource struct {
 	client   *client.CloudAvenue
 	adminOrg adminorg.AdminOrg
+	role     commonRole
 }
 
 func (d *roleDataSource) Init(_ context.Context, rm *roleDataSourceModel) (diags diag.Diagnostics) {
+	d.role = commonRole{
+		ID:   rm.ID,
+		Name: rm.Name,
+	}
+
 	d.adminOrg, diags = adminorg.Init(d.client)
 
 	return
@@ -79,33 +85,13 @@ func (d *roleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	}
 
 	// Get Role
-	data, err := getRole(d.adminOrg, data.Name, data.ID)
+	role, err := d.GetRole()
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("[role read] Error retrieving role", err.Error())
-		return
-	}
-
-	// Save data into Terraform data
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-}
-
-func getRole(adminOrg adminorg.AdminOrg, name, id types.String) (r *roleDataSourceModel, err error) {
-	var role *govcd.Role
-
-	// Get the role
-	if id.IsNull() {
-		role, err = adminOrg.GetRoleByName(name.ValueString())
-	} else {
-		role, err = adminOrg.GetRoleById(id.ValueString())
-	}
-	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving role", err.Error())
 		return
 	}
 
@@ -119,7 +105,7 @@ func getRole(adminOrg adminorg.AdminOrg, name, id types.String) (r *roleDataSour
 		assignedRights = append(assignedRights, types.StringValue(right.Name))
 	}
 
-	r = &roleDataSourceModel{
+	data = &roleDataSourceModel{
 		ID:          types.StringValue(role.Role.ID),
 		Name:        types.StringValue(role.Role.Name),
 		ReadOnly:    types.BoolValue(role.Role.ReadOnly),
@@ -129,11 +115,19 @@ func getRole(adminOrg adminorg.AdminOrg, name, id types.String) (r *roleDataSour
 
 	var y diag.Diagnostics
 	if len(assignedRights) > 0 {
-		r.Rights, y = types.SetValue(types.StringType, assignedRights)
+		data.Rights, y = types.SetValue(types.StringType, assignedRights)
 		if y.HasError() {
-			return nil, errors.New("unable to set rights value")
+			return
 		}
 	}
 
-	return r, nil
+	// Save data into Terraform data
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+}
+
+func (d *roleDataSource) GetRole() (*govcd.Role, error) {
+	return d.role.GetRole(d.adminOrg)
 }

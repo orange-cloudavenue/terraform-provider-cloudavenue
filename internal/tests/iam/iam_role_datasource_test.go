@@ -29,7 +29,7 @@ data "cloudavenue_iam_role" "example" {
 `
 
 func TestAccRoleDataSource(t *testing.T) {
-	resourceName := "cloudavenue_iam_role.example"
+	resourceName := "data.cloudavenue_iam_role.example"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },

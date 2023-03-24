@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -22,6 +23,7 @@ var (
 	_ resource.Resource                = &roleResource{}
 	_ resource.ResourceWithConfigure   = &roleResource{}
 	_ resource.ResourceWithImportState = &roleResource{}
+	_ role                             = &roleResource{}
 )
 
 // NewroleResource is a helper function to simplify the provider implementation.
@@ -33,9 +35,14 @@ func NewRoleResource() resource.Resource {
 type roleResource struct {
 	client   *client.CloudAvenue
 	adminOrg adminorg.AdminOrg
+	role     commonRole
 }
 
 func (r *roleResource) Init(_ context.Context, rm *roleResourceModel) (diags diag.Diagnostics) {
+	r.role = commonRole{
+		ID:   rm.ID,
+		Name: rm.Name,
+	}
 	r.adminOrg, diags = adminorg.Init(r.client)
 
 	return
@@ -93,7 +100,7 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 		rg := strings.Trim(right.String(), "\"")
 		x, err := r.adminOrg.GetRightByName(rg)
 		if err != nil {
-			resp.Diagnostics.AddError("[role create] Error retrieving right", err.Error())
+			resp.Diagnostics.AddError("Error retrieving right", err.Error())
 			return
 		}
 		rights = append(rights, govcdtypes.OpenApiReference{Name: rg, ID: x.ID})
@@ -102,7 +109,7 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 	// Add implied rights
 	missingImpliedRights, err := govcd.FindMissingImpliedRights(&r.client.Vmware.Client, rights)
 	if err != nil {
-		resp.Diagnostics.AddError("[role create] Error retrieving implied rights", err.Error())
+		resp.Diagnostics.AddError("Error retrieving implied rights", err.Error())
 		return
 	}
 
@@ -124,13 +131,13 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 		BundleKey:   govcdtypes.VcloudUndefinedKey,
 	})
 	if err != nil {
-		resp.Diagnostics.AddError("[role create] Error creating role", err.Error())
+		resp.Diagnostics.AddError("Error creating role", err.Error())
 		return
 	}
 	if len(rights) > 0 {
 		err = role.AddRights(rights)
 		if err != nil {
-			resp.Diagnostics.AddError("[role create] Error adding rights to role", err.Error())
+			resp.Diagnostics.AddError("Error adding rights to role", err.Error())
 			return
 		}
 	}
@@ -162,21 +169,40 @@ func (r *roleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	role, err := getRole(r.adminOrg, state.Name, state.ID)
+	// Get Role
+	role, err := r.GetRole()
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("[role read] Error retrieving role", err.Error())
+		resp.Diagnostics.AddError("Error retrieving role", err.Error())
 		return
 	}
 
+	// Get rights
+	rights, err := role.GetRights(nil)
+	if err != nil {
+		return
+	}
+	assignedRights := []attr.Value{}
+	for _, right := range rights {
+		assignedRights = append(assignedRights, types.StringValue(right.Name))
+	}
+
 	plan := &roleResourceModel{
-		ID:          role.ID,
-		Name:        role.Name,
-		Description: role.Description,
-		Rights:      role.Rights,
+		ID:          types.StringValue(role.Role.ID),
+		Name:        types.StringValue(role.Role.Name),
+		Description: types.StringValue(role.Role.Description),
+		Rights:      types.SetNull(types.StringType),
+	}
+
+	var y diag.Diagnostics
+	if len(assignedRights) > 0 {
+		plan.Rights, y = types.SetValue(types.StringType, assignedRights)
+		if y.HasError() {
+			return
+		}
 	}
 
 	// Set refreshed state
@@ -205,23 +231,19 @@ func (r *roleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	}
 
 	// Get the role
-	if state.ID.IsNull() {
-		role, err = r.adminOrg.GetRoleByName(state.Name.ValueString())
-	} else {
-		role, err = r.adminOrg.GetRoleById(state.ID.ValueString())
-	}
+	role, err = r.GetRole()
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
-			tflog.Info(ctx, "[DEBUG] Unable to find role. Removing from tfstate")
+			tflog.Debug(ctx, "Unable to find role. Removing from tfstate")
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("[role delete] Error retrieving role", err.Error())
+		resp.Diagnostics.AddError("Error retrieving role", err.Error())
 		return
 	}
 	err = role.Delete()
 	if err != nil {
-		resp.Diagnostics.AddError("[role delete] Error deleting role", err.Error())
+		resp.Diagnostics.AddError("Error deleting role", err.Error())
 		return
 	}
 }
@@ -246,14 +268,9 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	// Get the role
-	role, err = r.adminOrg.GetRoleById(state.ID.ValueString())
+	role, err = r.GetRole()
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
-			tflog.Info(ctx, "[DEBUG] Unable to find role. Removing from tfstate")
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("[role update] Error retrieving role", err.Error())
+		resp.Diagnostics.AddError("Error retrieving role", err.Error())
 		return
 	}
 
@@ -263,7 +280,7 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		role.Role.Description = plan.Description.ValueString()
 		_, err = role.Update()
 		if err != nil {
-			resp.Diagnostics.AddError("[role update] Error updating role", err.Error())
+			resp.Diagnostics.AddError("Error updating role", err.Error())
 			return
 		}
 	}
@@ -274,7 +291,7 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		rg := strings.Trim(right.String(), "\"")
 		x, err := r.adminOrg.GetRightByName(rg)
 		if err != nil {
-			resp.Diagnostics.AddError("[role update] Error retrieving right", err.Error())
+			resp.Diagnostics.AddError("Error retrieving right", err.Error())
 			return
 		}
 		rights = append(rights, govcdtypes.OpenApiReference{Name: rg, ID: x.ID})
@@ -282,7 +299,7 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// Add implied rights
 	missingImpliedRights, err := govcd.FindMissingImpliedRights(&r.client.Vmware.Client, rights)
 	if err != nil {
-		resp.Diagnostics.AddError("[role create] Error retrieving implied rights", err.Error())
+		resp.Diagnostics.AddError("Error retrieving implied rights", err.Error())
 		return
 	}
 	// Print missing implied rights
@@ -299,19 +316,19 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	if len(rights) > 0 {
 		err = role.UpdateRights(rights)
 		if err != nil {
-			resp.Diagnostics.AddError("[role update] Error updating role rights", err.Error())
+			resp.Diagnostics.AddError("Error updating role rights", err.Error())
 			return
 		}
 	} else {
 		currentRights, err := role.GetRights(nil)
 		if err != nil {
-			resp.Diagnostics.AddError("[role update] Error retrieving role rights", err.Error())
+			resp.Diagnostics.AddError("Error retrieving role rights", err.Error())
 			return
 		}
 		if len(currentRights) > 0 {
 			err = role.RemoveAllRights()
 			if err != nil {
-				resp.Diagnostics.AddError("[role update] Error removing role rights", err.Error())
+				resp.Diagnostics.AddError("Error removing role rights", err.Error())
 				return
 			}
 		}
@@ -335,4 +352,8 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 //go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -resource
 func (r *roleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
+}
+
+func (r *roleResource) GetRole() (*govcd.Role, error) {
+	return r.role.GetRole(r.adminOrg)
 }

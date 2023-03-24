@@ -85,14 +85,15 @@ func userSchema() superschema.Schema {
 				},
 			},
 			"name": superschema.StringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the user.",
-				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
+					MarkdownDescription: "(ForceNew) The name of the user.",
+					Required:            true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplace(),
+					},
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " Required if `id` is not set.",
+					MarkdownDescription: "The name of the user. Required if `id` is not set.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
@@ -146,7 +147,7 @@ func userSchema() superschema.Schema {
 			},
 			"enabled": superschema.BoolAttribute{
 				Common: &schemaR.BoolAttribute{
-					MarkdownDescription: "`true` if the user is enabled and can log in.",
+					MarkdownDescription: "`true` if the user is enabled and can log in. (Default to `true`)",
 				},
 				Resource: &schemaR.BoolAttribute{
 					Optional: true,
@@ -159,7 +160,7 @@ func userSchema() superschema.Schema {
 			},
 			"deployed_vm_quota": superschema.Int64Attribute{
 				Common: &schemaR.Int64Attribute{
-					MarkdownDescription: "Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota.",
+					MarkdownDescription: "Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota. (Default to `0`)",
 				},
 				Resource: &schemaR.Int64Attribute{
 					Optional: true,
@@ -172,7 +173,7 @@ func userSchema() superschema.Schema {
 			},
 			"stored_vm_quota": superschema.Int64Attribute{
 				Common: &schemaR.Int64Attribute{
-					MarkdownDescription: "Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.",
+					MarkdownDescription: "Quota of vApps that this user can store. A value of `0` specifies an unlimited quota. (Default to `0`)",
 				},
 				Resource: &schemaR.Int64Attribute{
 					Optional: true,
@@ -192,7 +193,7 @@ func userSchema() superschema.Schema {
 			},
 			"take_ownership": superschema.BoolAttribute{
 				Resource: &schemaR.BoolAttribute{
-					MarkdownDescription: "`true` if the user should take ownership of all vApps and media that are currently owned by the user that is being deleted.",
+					MarkdownDescription: "`true` if the user should take ownership of all vApps and media that are currently owned by the user that is being deleted. (Default to `true`)",
 					Optional:            true,
 					Computed:            true,
 					Default:             booldefault.StaticBool(true),
