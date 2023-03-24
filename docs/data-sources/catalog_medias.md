@@ -16,7 +16,7 @@ The `catalog_medias` datasource allows you to list all the medias of a catalog.
 data "cloudavenue_catalogs" "test" {}
 
 data "cloudavenue_catalog_medias" "example" {
-  catalog_name = data.cloudavenue_catalogs.test.catalogs["catalog-example"].catalog_name
+  catalog_name = data.cloudavenue_catalogs.test.catalogs["catalog-example"].name
 }
 ```
 
@@ -37,20 +37,19 @@ data "cloudavenue_catalog_medias" "example" {
 <a id="nestedatt--medias"></a>
 ### Nested Schema for `medias`
 
-Required:
-
-- `name` (String) The name of the media.
-
 Read-Only:
 
-- `created_at` (String) The creation date of the media.
+- `catalog_id` (String) The ID of the catalog. Required if `catalog_name` is not set.
+- `catalog_name` (String) The name of the catalog. Required if `catalog_id` is not set.
+- `created_at` (String) The date and time when the media was created.
 - `description` (String) The description of the media.
-- `id` (String) The ID of the catalog media.
-- `is_iso` (Boolean) True if this media file is an Iso.
-- `is_published` (Boolean) True if this media file is in a published catalog.
-- `owner_name` (String) The name of the owner.
+- `id` (String) The ID of the media. Required if `name` is not set.
+- `is_iso` (Boolean) `True` if the media is an ISO.
+- `is_published` (Boolean) `True` if the media is published.
+- `name` (String) The name of the media. Required if `id` is not set.
+- `owner_name` (String) The name of the owner of the media.
 - `size` (Number) The size of the media in bytes.
-- `status` (String) The media status.
-- `storage_profile` (String) The name of the storage profile.
+- `status` (String) The status of the media.
+- `storage_profile` (String) The storage profile of the media.
 
 

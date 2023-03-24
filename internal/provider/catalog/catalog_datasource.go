@@ -148,12 +148,12 @@ func (d *catalogDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 // GetID returns the ID of the catalog.
 func (d *catalogDataSource) GetID() string {
-	return d.catalog.name
+	return d.catalog.id
 }
 
 // GetName returns the name of the catalog.
 func (d *catalogDataSource) GetName() string {
-	return d.catalog.id
+	return d.catalog.name
 }
 
 // GetIDOrName returns the ID if it is set, otherwise it returns the name.

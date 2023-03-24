@@ -17,7 +17,6 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
 
@@ -63,7 +62,7 @@ func (d *vAppTemplateDataSource) Metadata(ctx context.Context, req datasource.Me
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "vapp_template"
 }
 
-func (d *vAppTemplateDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *vAppTemplateDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "The `catalog_vapp_template` datasource provides information about a vApp Template in a catalog.",
 
@@ -86,8 +85,8 @@ func (d *vAppTemplateDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 					stringvalidator.ExactlyOneOf(path.MatchRoot("template_name"), path.MatchRoot("template_id")),
 				},
 			},
-			schemaName: schemaCatalogName(common.IsOptional()),
-			schemaID:   schemaCatalogID(common.IsOptional()),
+			catalogID:   mediaSchema().GetDataSource(ctx).Attributes[catalogID],
+			catalogName: mediaSchema().GetDataSource(ctx).Attributes[catalogName],
 			"description": schema.StringAttribute{
 				MarkdownDescription: "Description of the vApp Template",
 				Computed:            true,
@@ -217,12 +216,12 @@ func (d *vAppTemplateDataSource) Read(ctx context.Context, req datasource.ReadRe
 }
 
 func (d *vAppTemplateDataSource) GetID() string {
-	return d.catalog.name
+	return d.catalog.id
 }
 
 // GetName returns the name of the catalog.
 func (d *vAppTemplateDataSource) GetName() string {
-	return d.catalog.id
+	return d.catalog.name
 }
 
 // GetIDOrName returns the ID if it is set, otherwise it returns the name.
