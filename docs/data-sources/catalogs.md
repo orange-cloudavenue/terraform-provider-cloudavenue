@@ -35,22 +35,18 @@ output "catalog_Orange-Linux" {
 <a id="nestedatt--catalogs"></a>
 ### Nested Schema for `catalogs`
 
-Required:
-
-- `catalog_name` (String) Name of the catalog.
-
 Read-Only:
 
-- `created_at` (String) Time stamp of when the catalog was created
-- `description` (String) Description of the catalog.
-- `href` (String) Catalog HREF
-- `id` (String)
-- `is_cached` (Boolean) True if this catalog is cached.
-- `is_local` (Boolean) True if this catalog belongs to the current organization.
-- `is_published` (Boolean) True if this catalog is shared to all organizations.
-- `is_shared` (Boolean) True if this catalog is shared.
-- `media_item_list` (List of String) List of Media items in this catalog
-- `number_of_media` (Number) Number of Medias this catalog contains.
-- `owner_name` (String) Owner name from the catalog.
+- `created_at` (String) The creation date of the catalog.
+- `description` (String) The description of the catalog.
+- `id` (String) The ID of the catalog. Required if `name` is not set.
+- `is_cached` (Boolean) Indicates whether the catalog is cached.
+- `is_local` (Boolean) Indicates whether the catalog is local.
+- `is_published` (Boolean) Indicates whether the catalog is published.
+- `is_shared` (Boolean) Indicates whether the catalog is shared.
+- `media_item_list` (List of String) The list of media items in the catalog.
+- `name` (String) The name of the catalog. Required if `id` is not set.
+- `number_of_media` (Number) The number of media in the catalog.
+- `owner_name` (String) The owner name of the catalog.
 - `preserve_identity_information` (Boolean) Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Preserving the identity information limits the portability of the package and you should use it only when necessary.
 
