@@ -14,6 +14,7 @@ import (
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -31,17 +32,11 @@ func NewRoleResource() resource.Resource {
 // roleResource is the resource implementation.
 type roleResource struct {
 	client   *client.CloudAvenue
-	adminOrg *govcd.AdminOrg
+	adminOrg adminorg.AdminOrg
 }
 
 func (r *roleResource) Init(_ context.Context, rm *roleResourceModel) (diags diag.Diagnostics) {
-	var err error
-
-	r.adminOrg, err = r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
-	if err != nil {
-		diags.AddError("[role create] Error retrieving Org", err.Error())
-		return
-	}
+	r.adminOrg, diags = adminorg.Init(r.client)
 
 	return
 }
@@ -79,13 +74,10 @@ func (r *roleResource) Configure(ctx context.Context, req resource.ConfigureRequ
 // Create creates the resource and sets the initial Terraform state.
 func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var (
-		plan *roleResourceModel
-		err  error
-	)
+	plan := &roleResourceModel{}
 
 	// Read the plan
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -144,15 +136,12 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	// Set Plan state
-	plan = &roleResourceModel{
-		ID:          types.StringValue(role.Role.ID),
-		Name:        types.StringValue(role.Role.Name),
-		Description: types.StringValue(role.Role.Description),
-		Rights:      plan.Rights,
-	}
+	plan.ID = types.StringValue(role.Role.ID)
+	plan.Name = types.StringValue(role.Role.Name)
+	plan.Description = types.StringValue(role.Role.Description)
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

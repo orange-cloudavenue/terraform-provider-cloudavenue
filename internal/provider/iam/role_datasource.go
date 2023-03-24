@@ -13,6 +13,7 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
 
 var (
@@ -26,17 +27,11 @@ func NewRoleDataSource() datasource.DataSource {
 
 type roleDataSource struct {
 	client   *client.CloudAvenue
-	adminOrg *govcd.AdminOrg
+	adminOrg adminorg.AdminOrg
 }
 
 func (d *roleDataSource) Init(_ context.Context, rm *roleDataSourceModel) (diags diag.Diagnostics) {
-	var err error
-
-	d.adminOrg, err = d.client.Vmware.GetAdminOrgByNameOrId(d.client.GetOrgName())
-	if err != nil {
-		diags.AddError("[role create] Error retrieving Org", err.Error())
-		return
-	}
+	d.adminOrg, diags = adminorg.Init(d.client)
 
 	return
 }
@@ -101,7 +96,7 @@ func (d *roleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	}
 }
 
-func getRole(adminOrg *govcd.AdminOrg, name, id types.String) (r *roleDataSourceModel, err error) {
+func getRole(adminOrg adminorg.AdminOrg, name, id types.String) (r *roleDataSourceModel, err error) {
 	var role *govcd.Role
 
 	// Get the role

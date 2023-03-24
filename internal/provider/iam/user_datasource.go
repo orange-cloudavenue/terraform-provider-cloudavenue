@@ -120,6 +120,6 @@ func (d *userDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	}
 }
 
-func (r *userDataSource) GetUser(refresh bool) (*govcd.OrgUser, error) {
-	return r.user.GetUser(r.adminOrg, refresh)
+func (d *userDataSource) GetUser(refresh bool) (*govcd.OrgUser, error) {
+	return d.user.GetUser(d.adminOrg, refresh)
 }
