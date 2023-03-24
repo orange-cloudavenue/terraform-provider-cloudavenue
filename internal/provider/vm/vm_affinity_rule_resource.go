@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
@@ -135,7 +134,7 @@ func (r *vmAffinityRuleResource) Read(ctx context.Context, req resource.ReadRequ
 	vmAffinityRule, err := getVMAffinityRule(r.vdc, state.Name.ValueString(), state.ID.ValueString())
 	if err != nil {
 		if govcd.IsNotFound(err) {
-			tflog.Debug(ctx, fmt.Sprintf("Affinity rule not found with id %s and name %s", state.ID.ValueString(), state.Name.ValueString()))
+			resp.Diagnostics.AddError("Affinity rule not found", fmt.Sprintf("Affinity rule not found with id %s or name %s", state.ID.String(), state.Name.String()))
 			resp.State.RemoveResource(ctx)
 			return
 		}
