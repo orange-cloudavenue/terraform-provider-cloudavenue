@@ -26,10 +26,10 @@ type networkSchemaParams struct {
 type networkType int
 
 const (
-	Isolated networkType = iota
-	Routed
-	IsolatedVapp
-	RoutedVapp
+	ISOLATED networkType = iota
+	NAT_ROUTED
+	ISOLATEDVAPP
+	ROUTEDVAPP
 )
 
 // TODO - plan to use this to create a datasource schema
@@ -42,27 +42,27 @@ const (
 // Set bool to true to create a schema for a routed network.
 func SetRouted() networkSchemaOpts {
 	return func(params *networkSchemaParams) {
-		params.typeNetwork = Routed
+		params.typeNetwork = NAT_ROUTED
 	}
 }
 
 // Set bool to true to create a schema for an isolated network.
 func SetIsolated() networkSchemaOpts {
 	return func(params *networkSchemaParams) {
-		params.typeNetwork = Isolated
+		params.typeNetwork = ISOLATED
 	}
 }
 
 // Set bool to true to create a schema for an isolated vApp network.
 func SetIsolatedVapp() networkSchemaOpts {
 	return func(params *networkSchemaParams) {
-		params.typeNetwork = IsolatedVapp
+		params.typeNetwork = ISOLATEDVAPP
 	}
 }
 
 func SetRoutedVapp() networkSchemaOpts {
 	return func(params *networkSchemaParams) {
-		params.typeNetwork = RoutedVapp
+		params.typeNetwork = ROUTEDVAPP
 	}
 }
 
@@ -164,7 +164,7 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 	}
 
 	switch params.typeNetwork {
-	case Routed:
+	case NAT_ROUTED:
 		// Add routed network specific attributes to the schema
 		_schema.MarkdownDescription = "Provides a Cloud Avenue Org VDC routed Network. This can be used to create, modify, and delete routed VDC networks."
 		_schema.Attributes["edge_gateway_id"] = schema.StringAttribute{
@@ -187,12 +187,12 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 			},
 		}
 
-	case Isolated:
+	case ISOLATED:
 		// Add isolated network specific attributes to the schema
 		_schema.MarkdownDescription = "Provides a Cloud Avenue Org VDC isolated Network. This can be used to create, modify, and delete isolated VDC networks"
 		_schema.Attributes["vdc"] = vdc.Schema()
 
-	case IsolatedVapp:
+	case ISOLATEDVAPP:
 		// Add isolated vApp network specific attributes to the schema
 		delete(_schema.Attributes, "prefix_length")
 		_schema.Attributes["netmask"] = schema.StringAttribute{
@@ -208,7 +208,7 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 			},
 		}
 
-	case RoutedVapp:
+	case ROUTEDVAPP:
 		// Add routed vApp network specific attributes to the schema
 		delete(_schema.Attributes, "description")
 		delete(_schema.Attributes, "prefix_length")

@@ -26,6 +26,7 @@ var (
 	_ resource.Resource                = &networkRoutedResource{}
 	_ resource.ResourceWithConfigure   = &networkRoutedResource{}
 	_ resource.ResourceWithImportState = &networkRoutedResource{}
+	_ vcdNetworkIsolatedOrRouted       = &networkRoutedResource{}
 )
 
 // NewNetworkRoutedResource is a helper function to simplify the provider implementation.
@@ -130,35 +131,11 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 	}
 
 	// Set Network
-	ipPool := []staticIPPool{}
-	resp.Diagnostics.Append(plan.StaticIPPool.ElementsAs(ctx, &ipPool, true)...)
-	orgVDCNetworkConfig := &govcdtypes.OpenApiOrgVdcNetwork{
-		Name:        plan.Name.ValueString(),
-		Description: plan.Description.ValueString(),
-		OwnerRef:    &govcdtypes.OpenApiReference{ID: *parentEdgeGatewayOwnerID},
-		NetworkType: govcdtypes.OrgVdcNetworkTypeRouted,
-		// Connection is used for "routed" network
-		Connection: &govcdtypes.Connection{
-			RouterRef: govcdtypes.OpenApiReference{
-				ID: plan.EdgeGatewayID.ValueString(),
-			},
-			// API requires interface type in upper case, but we accept any case
-			ConnectionType: plan.InterfaceType.ValueString(),
-		},
-		Subnets: govcdtypes.OrgVdcNetworkSubnets{
-			Values: []govcdtypes.OrgVdcNetworkSubnetValues{
-				{
-					Gateway:      plan.Gateway.ValueString(),
-					PrefixLength: int(plan.PrefixLength.ValueInt64()),
-					DNSServer1:   plan.DNS1.ValueString(),
-					DNSServer2:   plan.DNS2.ValueString(),
-					DNSSuffix:    plan.DNSSuffix.ValueString(),
-					IPRanges: govcdtypes.OrgVdcNetworkSubnetIPRanges{
-						Values: processIPRanges(ipPool),
-					},
-				},
-			},
-		},
+	id := *parentEdgeGatewayOwnerID
+	orgVDCNetworkConfig, diag := r.SetVCDNetwork(ctx, id, *plan)
+	if diag.HasError() {
+		resp.Diagnostics.Append(diag...)
+		return
 	}
 
 	// Create Network

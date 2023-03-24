@@ -28,6 +28,7 @@ var (
 	_ resource.ResourceWithConfigure   = &networkIsolatedResource{}
 	_ resource.ResourceWithImportState = &networkIsolatedResource{}
 	_ resource.ResourceWithModifyPlan  = &networkIsolatedResource{}
+	_ vcdNetworkIsolatedOrRouted       = &networkIsolatedResource{}
 )
 
 // NewNetworkIsolatedResource is a helper function to simplify the provider implementation.
@@ -49,9 +50,9 @@ type networkIsolatedResourceModel struct {
 	Description  types.String `tfsdk:"description"`
 	Gateway      types.String `tfsdk:"gateway"`
 	PrefixLength types.Int64  `tfsdk:"prefix_length"`
-	PrimaryDNS   types.String `tfsdk:"dns1"`
-	SecondaryDNS types.String `tfsdk:"dns2"`
-	SuffixDNS    types.String `tfsdk:"dns_suffix"`
+	DNS1         types.String `tfsdk:"dns1"`
+	DNS2         types.String `tfsdk:"dns2"`
+	DNSSuffix    types.String `tfsdk:"dns_suffix"`
 	StaticIPPool types.Set    `tfsdk:"static_ip_pool"`
 }
 
@@ -139,32 +140,10 @@ func (r *networkIsolatedResource) Create(ctx context.Context, req resource.Creat
 	defer vcdMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Set network type
-	ipPool := []staticIPPool{}
-	resp.Diagnostics.Append(plan.StaticIPPool.ElementsAs(ctx, &ipPool, true)...)
+	networkType, diag := r.SetVCDNetwork(ctx, vdcOrVDCGroup.GetID(), *plan)
+	resp.Diagnostics.Append(diag...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-	myshared := false // Cloudavenue does not support shared networks
-	networkType := &govdctypes.OpenApiOrgVdcNetwork{
-		Name:        plan.Name.ValueString(),
-		Description: plan.Description.ValueString(),
-		Shared:      &myshared,
-		NetworkType: govdctypes.OrgVdcNetworkTypeIsolated,
-		OwnerRef:    &govdctypes.OpenApiReference{ID: vdcOrVDCGroup.GetID()},
-		Subnets: govdctypes.OrgVdcNetworkSubnets{
-			Values: []govdctypes.OrgVdcNetworkSubnetValues{
-				{
-					Gateway:      plan.Gateway.ValueString(),
-					PrefixLength: int(plan.PrefixLength.ValueInt64()),
-					IPRanges: govdctypes.OrgVdcNetworkSubnetIPRanges{
-						Values: processIPRanges(ipPool),
-					},
-					DNSServer1: plan.PrimaryDNS.ValueString(),
-					DNSServer2: plan.SecondaryDNS.ValueString(),
-					DNSSuffix:  plan.SuffixDNS.ValueString(),
-				},
-			},
-		},
 	}
 
 	// Create network
@@ -238,9 +217,9 @@ func (r *networkIsolatedResource) Read(ctx context.Context, req resource.ReadReq
 		VDC:          types.StringValue(vdcOrVDCGroup.GetName()),
 		Gateway:      types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
 		PrefixLength: types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
-		PrimaryDNS:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
-		SecondaryDNS: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
-		SuffixDNS:    types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
+		DNS1:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
+		DNS2:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
+		DNSSuffix:    types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
 	}
 
 	// Set static IP pools
@@ -321,9 +300,9 @@ func (r *networkIsolatedResource) Update(ctx context.Context, req resource.Updat
 					IPRanges: govdctypes.OrgVdcNetworkSubnetIPRanges{
 						Values: processIPRanges(ipPool),
 					},
-					DNSServer1: plan.PrimaryDNS.ValueString(),
-					DNSServer2: plan.SecondaryDNS.ValueString(),
-					DNSSuffix:  plan.SuffixDNS.ValueString(),
+					DNSServer1: plan.DNS1.ValueString(),
+					DNSServer2: plan.DNS2.ValueString(),
+					DNSSuffix:  plan.DNSSuffix.ValueString(),
 				},
 			},
 		},
@@ -439,9 +418,9 @@ func (r *networkIsolatedResource) ImportState(ctx context.Context, req resource.
 		VDC:          types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.OwnerRef.Name),
 		Gateway:      types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
 		PrefixLength: types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
-		PrimaryDNS:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
-		SecondaryDNS: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
-		SuffixDNS:    types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
+		DNS1:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
+		DNS2:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
+		DNSSuffix:    types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
 	}
 	// Set static IP pools
 	var diags diag.Diagnostics
