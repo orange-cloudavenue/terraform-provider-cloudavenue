@@ -20,6 +20,7 @@ resource "cloudavenue_edgegateway" "example_with_vdc" {
   owner_name     = "MyVDC"
   tier0_vrf_name = data.cloudavenue_tier0_vrfs.example_with_vdc.names.0
   owner_type     = "vdc"
+  lb_enabled     = false
 }
 `
 
@@ -85,6 +86,7 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameVDCGroup, "owner_name", "MyVDCGroup"),
 					resource.TestCheckResourceAttr(resourceNameVDCGroup, "tier0_vrf_name", "prvrf01eocb0006205allsp01"),
 					resource.TestMatchResourceAttr(resourceNameVDCGroup, "name", regexp.MustCompile(`tn01e02ocb0006205spt[0-9]{3}`)),
+					resource.TestCheckResourceAttr(resourceNameVDCGroup, "lb_enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceNameVDCGroup, "description"),
 				),
 			},

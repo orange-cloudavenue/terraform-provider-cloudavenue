@@ -2,12 +2,12 @@
 page_title: "cloudavenue_edgegateway Resource - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  The Edge Gateway resource allows you to create and delete Edge Gateways in CloudAvenue.
+  The Edge Gateway  resource allows you to create and delete Edge Gateways in CloudAvenue.
 ---
 
 # cloudavenue_edgegateway (Resource)
 
-The Edge Gateway resource allows you to create and delete Edge Gateways in CloudAvenue.
+The Edge Gateway  resource allows you to create and delete Edge Gateways in CloudAvenue.
 
 ## Example Usage
 
@@ -18,6 +18,7 @@ resource "cloudavenue_edgegateway" "example_with_vdc" {
   owner_name     = "MyVDC"
   tier0_vrf_name = data.cloudavenue_tier0_vrfs.example_with_vdc.names.0
   owner_type     = "vdc"
+  lb_enabled     = false
 }
 
 data "cloudavenue_tier0_vrfs" "example_with_group" {}
@@ -34,22 +35,18 @@ resource "cloudavenue_edgegateway" "example_with_group" {
 
 ### Required
 
-- `owner_name` (String) The name of the owner of the Edge Gateway.
-Changes to this field will force a new resource to be created.
-- `owner_type` (String) The type of the owner of the Edge Gateway (vdc|vdc-group).
-Changes to this field will force a new resource to be created.
-- `tier0_vrf_name` (String) The name of the Tier0 VRF to which the Edge Gateway will be attached.
-Changes to this field will force a new resource to be created.
+- `owner_name` (String) The name of the owner of the Edge Gateway.Changes to this field will force a new resource to be created.
+- `owner_type` (String) The type of the owner of the Edge Gateway (vdc|vdc-group).Changes to this field will force a new resource to be created.
+- `tier0_vrf_name` (String) The name of the Tier0 VRF to which the Edge Gateway is attached.Changes to this field will force a new resource to be created.
 
 ### Optional
 
+- `lb_enabled` (Boolean) Load Balancing state on the Edge Gateway. Default to `true`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
-- `description` (String) The description of the Edge Gateway.
-- `enable_load_balancing` (Boolean) Enable load balancing on the Edge Gateway.
-Always set to true for now.
+- `description` (String) The description of the owner of the Edge Gateway.
 - `id` (String) The ID of the Edge Gateway.
 - `name` (String) The name of the Edge Gateway.
 
@@ -61,6 +58,7 @@ Optional:
 - `create` (String)
 - `delete` (String)
 - `read` (String)
+- `update` (String)
 
 ## Import
 

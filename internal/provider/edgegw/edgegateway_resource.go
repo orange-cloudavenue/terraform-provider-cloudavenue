@@ -6,17 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -25,7 +18,6 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/boolpm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 )
@@ -66,17 +58,6 @@ type edgeGatewaysResource struct {
 	EdgeGatewayConfig
 }
 
-type edgeGatewaysResourceModel struct {
-	Timeouts            timeouts.Value `tfsdk:"timeouts"`
-	ID                  types.String   `tfsdk:"id"`
-	Tier0VrfID          types.String   `tfsdk:"tier0_vrf_name"`
-	Name                types.String   `tfsdk:"name"`
-	OwnerType           types.String   `tfsdk:"owner_type"`
-	OwnerName           types.String   `tfsdk:"owner_name"`
-	Description         types.String   `tfsdk:"description"`
-	EnableLoadBalancing types.Bool     `tfsdk:"lb_enabled"`
-}
-
 // Metadata returns the resource type name.
 func (r *edgeGatewaysResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
@@ -84,77 +65,7 @@ func (r *edgeGatewaysResource) Metadata(_ context.Context, req resource.Metadata
 
 // Schema defines the schema for the resource.
 func (r *edgeGatewaysResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Edge Gateway resource allows you to create and delete Edge Gateways in CloudAvenue.",
-		Attributes: map[string]schema.Attribute{
-			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Create: true,
-				Read:   true,
-				Delete: true,
-				Update: true,
-			}),
-			"tier0_vrf_name": schema.StringAttribute{
-				Required: true,
-				MarkdownDescription: "The name of the Tier0 VRF to which the Edge Gateway will be attached.\n" +
-					helpers.ForceNewDescription,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "The name of the Edge Gateway.",
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The ID of the Edge Gateway.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"owner_type": schema.StringAttribute{
-				Required: true,
-				MarkdownDescription: "The type of the owner of the Edge Gateway (vdc|vdc-group).\n" +
-					helpers.ForceNewDescription,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^(vdc|vdc-group)$`),
-						"must be vdc or vdc-group",
-					),
-				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"owner_name": schema.StringAttribute{
-				Required: true,
-				MarkdownDescription: "The name of the owner of the Edge Gateway.\n" +
-					helpers.ForceNewDescription,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"description": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The description of the Edge Gateway.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"lb_enabled": schema.BoolAttribute{
-				MarkdownDescription: "Enable load balancing on the Edge Gateway.\n" +
-					"Default to `false`.",
-				Optional: true,
-				Computed: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolpm.SetDefault(false),
-				},
-			},
-		},
-	}
+	resp.Schema = edgegwSchema().GetResource(ctx)
 }
 
 func (r *edgeGatewaysResource) Configure(
@@ -532,27 +443,20 @@ func (r *edgeGatewaysResource) Update(
 	}
 
 	// Wait for job to complete
-	updateStateConf := &sdkResource.StateChangeConf{
-		Delay: 10 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
-			if errGetJob != nil {
-				return nil, "", err
-			}
-			return jobStatus, jobStatus.String(), nil
-		},
-		MinTimeout: 5 * time.Second,
-		Timeout:    5 * time.Minute,
-		Pending:    helpers.JobStatePending(),
-		Target:     helpers.JobStateDone(),
-	}
+	errRetry := retry.RetryContext(ctxTO, updateTimeout, func() *retry.RetryError {
+		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
+		if errGetJob != nil {
+			retry.NonRetryableError(err)
+		}
+		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
+			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))
+		}
 
-	_, err = updateStateConf.WaitForStateContext(ctxTO)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error updating Edge Gateway",
-			"Could not update Edge Gateway, unexpected error: "+err.Error(),
-		)
+		return nil
+	})
+
+	if errRetry != nil {
+		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
 		return
 	}
 

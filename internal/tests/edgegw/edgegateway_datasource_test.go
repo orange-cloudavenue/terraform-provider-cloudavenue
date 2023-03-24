@@ -28,6 +28,12 @@ func TestAccEdgeGatewayDataSource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Verify placeholder id attribute
 					resource.TestMatchResourceAttr(dataSourceName, "id", regexp.MustCompile(`(urn:vcloud:gateway:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "tier0_vrf_name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "owner_type"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "owner_name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "lb_enabled"),
 				),
 			},
 		},

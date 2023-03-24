@@ -42,7 +42,7 @@ func (s TimeoutAttribute) GetResource(ctx context.Context) schemaR.Attribute {
 	if s.Resource != nil {
 		a = timeoutsR.Attributes(ctx, timeoutsR.Opts{
 			Create: s.Resource.Create,
-			Read:   s.DataSource.Read,
+			Read:   s.Resource.Read,
 			Delete: s.Resource.Delete,
 			Update: s.Resource.Update,
 		})
