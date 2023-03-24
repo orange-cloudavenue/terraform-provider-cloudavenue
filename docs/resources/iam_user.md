@@ -2,21 +2,27 @@
 page_title: "cloudavenue_iam_user Resource - cloudavenue"
 subcategory: "IAM (Identity & Access Management)"
 description: |-
-  Manages a user.
+  The user resource allows you to manage local users in Cloud Avenue.
 ---
 
 # cloudavenue_iam_user (Resource)
 
-Manages a user.
+The user resource allows you to manage local users in Cloud Avenue.
 
 ## Example Usage
 
 ```terraform
 resource "cloudavenue_iam_user" "example" {
-  user_name   = "exampleuser"
-  description = "A example user"
-  role        = "Organization Administrator"
-  password    = "Th!s1sSecur3P@ssword"
+  name              = "exampleuserfull"
+  role_name         = "Organization Administrator"
+  password          = "Th!s1sSecur3P@ssword"
+  enabled           = true # Default true
+  email             = "foo@bar.com"
+  telephone         = "1234567890"
+  full_name         = "Test User"
+  take_ownership    = true # Default true
+  deployed_vm_quota = 10   # Default 0
+  stored_vm_quota   = 5    # Default 0
 }
 ```
 
@@ -25,24 +31,23 @@ resource "cloudavenue_iam_user" "example" {
 
 ### Required
 
-- `role` (String) The role of the user in the organization
-- `user_name` (String) User name. Only lowercase letters allowed. Cannot be changed after creation
+- `name` (String) (ForceNew) The name of the user.
+- `password` (String) The user's password. This value is never returned on read.
+- `role_name` (String) The role assigned to the user.
 
 ### Optional
 
-- `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota.
-- `description` (String) Optional description of the catalog
-- `email` (String) The user's email address
-- `enabled` (Boolean) `true` if the user is enabled and can log in. Default is `true`
-- `full_name` (String) The user's full name
-- `password` (String, Sensitive) The user's password. This value is never returned on read.
-- `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.
-- `take_ownership` (Boolean) Take ownership of user's objects on deletion.
-- `telephone` (String) The user's telephone number
+- `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota. (Default to `0`)
+- `email` (String) The user's email address.
+- `enabled` (Boolean) `true` if the user is enabled and can log in. (Default to `true`)
+- `full_name` (String) The user's full name.
+- `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota. (Default to `0`)
+- `take_ownership` (Boolean) `true` if the user should take ownership of all vApps and media that are currently owned by the user that is being deleted. (Default to `true`)
+- `telephone` (String) The user's telephone number.
 
 ### Read-Only
 
-- `id` (String) The ID is a unique identifier for the user.
+- `id` (String) The ID of the user.
 
 ## Import
 

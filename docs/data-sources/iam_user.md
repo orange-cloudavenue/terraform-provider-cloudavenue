@@ -2,22 +2,22 @@
 page_title: "cloudavenue_iam_user Data Source - cloudavenue"
 subcategory: "IAM (Identity & Access Management)"
 description: |-
-  Provides a Cloud Avenue iam User data source. This can be used to read users.
+  The user data source allows you to read users in Cloud Avenue.
 ---
 
 # cloudavenue_iam_user (Data Source)
 
-Provides a Cloud Avenue iam User data source. This can be used to read users.
+The user data source allows you to read users in Cloud Avenue.
 
 ## Example Usage
 
 ```terraform
 data "cloudavenue_iam_user" "example" {
-  user_name = "example-user"
+  name = "example-user"
 }
 
 output "example_user_id" {
-  value = data.cloudavenue_iam_user.example.id
+  value = data.cloudavenue_iam_user.example
 }
 ```
 
@@ -26,22 +26,17 @@ output "example_user_id" {
 
 ### Optional
 
-- `user_id` (String) The ID of the user. Required if `user_name` is not set.
-- `user_name` (String) The name of the user. Required if `user_id` is not set.
+- `id` (String) The ID of the user. Required if `name` is not set.
+- `name` (String) The name of the user. Required if `id` is not set.
 
 ### Read-Only
 
-- `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of 0 specifies an unlimited quota.
-- `description` (String) The user's description
-- `email` (String) The user's email address
-- `enabled` (Boolean) True if the user is enabled and can log in.
-- `full_name` (String) The user's full name
-- `group_names` (List of String) List of group names that this user is a member of.
-- `id` (String) The ID is a `user_id`.
-- `is_group_role` (Boolean) True if this user has a group role.
-- `is_locked` (Boolean) True if the user account has been locked due to too many invalid login attempts.
-- `provider_type` (String) Identity provider type for this this user. One of: 'INTEGRATED', 'SAML', 'OAUTH'.
-- `role` (String) Role within the organization
-- `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of 0 specifies an unlimited quota.
-- `telephone` (String) The user's telephone number
+- `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota. (Default to `0`)
+- `email` (String) The user's email address.
+- `enabled` (Boolean) `true` if the user is enabled and can log in. (Default to `true`)
+- `full_name` (String) The user's full name.
+- `provider_type` (String) Identity provider type for this this user. One of: `INTEGRATED`, `SAML`, `OAUTH`.
+- `role_name` (String) The role assigned to the user.
+- `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota. (Default to `0`)
+- `telephone` (String) The user's telephone number.
 
