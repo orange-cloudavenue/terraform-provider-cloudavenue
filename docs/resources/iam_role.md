@@ -2,12 +2,12 @@
 page_title: "cloudavenue_iam_role Resource - cloudavenue"
 subcategory: "IAM (Identity & Access Management)"
 description: |-
-  The role resource allows you to manage local role in Cloud Avenue.
+  The role resource allows you to manage local users in Cloud Avenue.
 ---
 
 # cloudavenue_iam_role (Resource)
 
-The role resource allows you to manage local role in Cloud Avenue.
+The role resource allows you to manage local users in Cloud Avenue.
 
 ## Example Usage
 
@@ -31,13 +31,13 @@ resource "cloudavenue_iam_role" "example" {
 
 ### Required
 
-- `description` (String) A description for the role
-- `name` (String) The name of the role.
-- `rights` (Set of String) A list of rights for the role
+- `description` (String) A description of the role.
+- `rights` (Set of String) A list of rights for the role.
 
 ### Read-Only
 
-- `id` (String) The ID is a unique identifier for the role.
+- `id` (String) The ID of the role.
+- `name` (String) The name of the role.
 
 ## Import
 

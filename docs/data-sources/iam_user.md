@@ -26,17 +26,17 @@ output "example_user_id" {
 
 ### Optional
 
-- `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota.
-- `email` (String) The user's email address
-- `full_name` (String) The user's full name
-- `id` (String) The ID is a unique identifier for the user. Required if `name` is not set.
+- `id` (String) The ID of the user. Required if `name` is not set.
 - `name` (String) The name of the user. Required if `id` is not set.
-- `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.
-- `telephone` (String) The user's telephone number
 
 ### Read-Only
 
+- `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota.
+- `email` (String) The user's email address.
 - `enabled` (Boolean) `true` if the user is enabled and can log in.
-- `provider_type` (String) The type of provider used to authenticate the user.
+- `full_name` (String) The user's full name.
+- `provider_type` (String) Identity provider type for this this user. One of: `INTEGRATED`, `SAML`, `OAUTH`.
 - `role_name` (String) The role assigned to the user.
+- `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.
+- `telephone` (String) The user's telephone number.
 

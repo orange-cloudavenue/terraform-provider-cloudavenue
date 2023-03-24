@@ -26,22 +26,22 @@ resource "cloudavenue_iam_user" "example" {
 ### Required
 
 - `name` (String) The name of the user.
-- `password` (String, Sensitive) The user's password. This value is never returned on read.
+- `password` (String) The user's password. This value is never returned on read.
 - `role_name` (String) The role assigned to the user.
 
 ### Optional
 
 - `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota.
-- `email` (String) The user's email address
-- `enabled` (Boolean) `true` if the user is enabled and can log in. Defaults to `true`.
-- `full_name` (String) The user's full name
+- `email` (String) The user's email address.
+- `enabled` (Boolean) `true` if the user is enabled and can log in.
+- `full_name` (String) The user's full name.
 - `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.
 - `take_ownership` (Boolean) `true` if the user should take ownership of all vApps and media that are currently owned by the user that is being deleted.
-- `telephone` (String) The user's telephone number
+- `telephone` (String) The user's telephone number.
 
 ### Read-Only
 
-- `id` (String) The ID is a unique identifier for the user.
+- `id` (String) The ID of the user.
 
 ## Import
 

@@ -2,12 +2,12 @@
 page_title: "cloudavenue_iam_role Data Source - cloudavenue"
 subcategory: "IAM (Identity & Access Management)"
 description: |-
-  The user data source allows you to read local role in Cloud Avenue.
+  The role data source allows you to read users in Cloud Avenue.
 ---
 
 # cloudavenue_iam_role (Data Source)
 
-The user data source allows you to read local role in Cloud Avenue.
+The role data source allows you to read users in Cloud Avenue.
 
 ## Example Usage
 
@@ -22,12 +22,12 @@ data "cloudavenue_iam_role" "example" {
 
 ### Optional
 
-- `id` (String) The ID is a unique identifier for the role. Required if `name` is not set.
+- `id` (String) The ID of the role. Required if `name` is not set.
 - `name` (String) The name of the role. Required if `id` is not set.
 
 ### Read-Only
 
-- `description` (String) A description for the role
+- `description` (String) A description of the role.
 - `read_only` (Boolean) Indicates if the role is read only
-- `rights` (Set of String) A list of rights for the role
+- `rights` (Set of String) A list of rights for the role.
 
