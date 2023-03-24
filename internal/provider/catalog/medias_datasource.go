@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -13,7 +12,6 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
@@ -42,21 +40,6 @@ type catalogMediasDataSourceModel struct {
 	CatalogID   types.String `tfsdk:"catalog_id"`
 }
 
-func catalogMediasAttrType() map[string]attr.Type {
-	return map[string]attr.Type{
-		"id":              types.StringType,
-		"name":            types.StringType,
-		"description":     types.StringType,
-		"is_iso":          types.BoolType,
-		"owner_name":      types.StringType,
-		"is_published":    types.BoolType,
-		"created_at":      types.StringType,
-		"size":            types.Int64Type,
-		"status":          types.StringType,
-		"storage_profile": types.StringType,
-	}
-}
-
 func (d *catalogMediasDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "medias"
 }
@@ -73,7 +56,7 @@ func (d *catalogMediasDataSource) Schema(ctx context.Context, req datasource.Sch
 				MarkdownDescription: "The map of medias.",
 				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
-					Attributes: schemaCatalogDataSource(),
+					Attributes: mediaDatasourceAttributes(),
 				},
 			},
 			"medias_name": schema.ListAttribute{
@@ -81,8 +64,8 @@ func (d *catalogMediasDataSource) Schema(ctx context.Context, req datasource.Sch
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
-			schemaName: schemaCatalogName(common.IsOptional()),
-			schemaID:   schemaCatalogID(common.IsOptional()),
+			catalogName: mediaSchema().GetDataSource(ctx).Attributes[catalogName],
+			catalogID:   mediaSchema().GetDataSource(ctx).Attributes[catalogID],
 		},
 	}
 }
@@ -121,6 +104,12 @@ func (d *catalogMediasDataSource) Configure(ctx context.Context, req datasource.
 func (d *catalogMediasDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	state := &catalogMediasDataSourceModel{}
 
+	// Read Terraform configuration data into the model
+	resp.Diagnostics.Append(req.Config.Get(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	resp.Diagnostics.Append(d.Init(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -133,7 +122,7 @@ func (d *catalogMediasDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	var (
-		medias     = make(map[string]catalogMediaDataStruct)
+		medias     = make(map[string]catalogMediaDataSourceModel)
 		mediasName = make([]string, 0)
 	)
 
@@ -145,9 +134,11 @@ func (d *catalogMediasDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	for _, media := range mediaList {
-		s := catalogMediaDataStruct{
+		s := catalogMediaDataSourceModel{
 			ID:             types.StringValue(media.ID),
 			Name:           types.StringValue(media.Name),
+			CatalogID:      state.CatalogID,
+			CatalogName:    state.CatalogName,
 			IsISO:          types.BoolValue(media.IsIso),
 			OwnerName:      types.StringValue(media.OwnerName),
 			IsPublished:    types.BoolValue(media.IsPublished),
@@ -166,16 +157,18 @@ func (d *catalogMediasDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	listMedias, diag := types.MapValueFrom(ctx, types.ObjectType{AttrTypes: catalogMediasAttrType()}, medias)
+	listMedias, diag := types.MapValueFrom(ctx, types.ObjectType{AttrTypes: catalogMediaDataSourceModelType()}, medias)
 	resp.Diagnostics.Append(diag...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	updateState := &catalogMediasDataSourceModel{
-		ID:         utils.GenerateUUID("catalog_medias"),
-		Medias:     listMedias,
-		MediasName: listMediasName,
+	updateState := catalogMediasDataSourceModel{
+		ID:          utils.GenerateUUID("catalog_medias"),
+		Medias:      listMedias,
+		MediasName:  listMediasName,
+		CatalogName: state.CatalogName,
+		CatalogID:   state.CatalogID,
 	}
 
 	// Save data into Terraform state
@@ -186,12 +179,12 @@ func (d *catalogMediasDataSource) Read(ctx context.Context, req datasource.ReadR
 }
 
 func (d *catalogMediasDataSource) GetID() string {
-	return d.catalog.name
+	return d.catalog.id
 }
 
 // GetName returns the name of the catalog.
 func (d *catalogMediasDataSource) GetName() string {
-	return d.catalog.id
+	return d.catalog.name
 }
 
 // GetIDOrName returns the ID if it is set, otherwise it returns the name.
