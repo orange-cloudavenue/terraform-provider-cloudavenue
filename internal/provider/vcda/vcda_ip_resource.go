@@ -18,6 +18,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -104,6 +105,9 @@ func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
+	cloudavenue.Lock(ctx)
+	defer cloudavenue.Unlock(ctx)
+
 	// Call API to create the resource and check for errors.
 	_, httpR, err := r.client.APIClient.VCDAApi.CreateVcdaIP(r.client.Auth, plan.IPAddress.ValueString())
 	if httpR != nil {
@@ -184,6 +188,9 @@ func (r *vcdaIPResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	cloudavenue.Lock(ctx)
+	defer cloudavenue.Unlock(ctx)
 
 	// Call API to delete the resource and check for errors.
 	_, httpR, err := r.client.APIClient.VCDAApi.DeleteVcdaIP(r.client.Auth, state.IPAddress.ValueString())

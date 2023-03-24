@@ -26,6 +26,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -167,6 +168,9 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 		)
 		return
 	}
+
+	cloudavenue.Lock(ctx)
+	defer cloudavenue.Unlock(ctx)
 
 	// if edge_id is provided, get edge_name
 	if !plan.EdgeID.IsNull() {
@@ -424,6 +428,9 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 		)
 		return
 	}
+
+	cloudavenue.Lock(ctx)
+	defer cloudavenue.Unlock(ctx)
 
 	// Delete the public IP
 	job, httpR, err := r.client.APIClient.PublicIPApi.DeletePublicIP(ctx, state.PublicIP.ValueString())

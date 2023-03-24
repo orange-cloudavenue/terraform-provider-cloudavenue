@@ -28,6 +28,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -282,6 +283,9 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	var job apiclient.Jobcreated
 	var httpR *http.Response
 
+	cloudavenue.Lock(ctx)
+	defer cloudavenue.Unlock(ctx)
+
 	// Call API to create the resource and test for errors.
 	job, httpR, err = r.client.APIClient.VDCApi.CreateOrgVdc(auth, body)
 
@@ -515,6 +519,9 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	var job apiclient.Jobcreated
 	var httpR *http.Response
 
+	cloudavenue.Lock(ctx)
+	defer cloudavenue.Unlock(ctx)
+
 	// Call API to update the resource and test for errors.
 	job, httpR, err = r.client.APIClient.VDCApi.UpdateOrgVdc(auth, body, body.Vdc.Name)
 
@@ -588,6 +595,9 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		)
 		return
 	}
+
+	cloudavenue.Lock(ctx)
+	defer cloudavenue.Unlock(ctx)
 
 	// Delete the VDC
 	job, httpR, err := r.client.APIClient.VDCApi.DeleteOrgVdc(auth, state.Name.ValueString())

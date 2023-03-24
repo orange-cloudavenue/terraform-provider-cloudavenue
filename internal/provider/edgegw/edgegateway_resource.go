@@ -25,6 +25,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 )
 
 const (
@@ -214,6 +215,9 @@ func (r *edgeGatewaysResource) Create(
 		Tier0VrfId:          plan.Tier0VrfID.ValueString(),
 		EnableLoadBalancing: plan.EnableLoadBalancing.ValueBool(),
 	}
+
+	cloudavenue.Lock(ctx)
+	defer cloudavenue.Unlock(ctx)
 
 	var err error
 	var job apiclient.Jobcreated
@@ -468,6 +472,9 @@ func (r *edgeGatewaysResource) Delete(
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	cloudavenue.Lock(ctx)
+	defer cloudavenue.Unlock(ctx)
 
 	// Delete timeout
 	deleteTimeout, errTO := state.Timeouts.Delete(ctx, 8*time.Minute)
