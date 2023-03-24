@@ -32,13 +32,13 @@ type userDataSource struct {
 	user     commonUser
 }
 
-func (r *userDataSource) Init(_ context.Context, rm *userDataSourceModel) (diags diag.Diagnostics) {
-	r.user = commonUser{
+func (d *userDataSource) Init(_ context.Context, rm *userDataSourceModel) (diags diag.Diagnostics) {
+	d.user = commonUser{
 		ID:   rm.ID,
 		Name: rm.Name,
 	}
 
-	r.adminOrg, diags = adminorg.Init(r.client)
+	d.adminOrg, diags = adminorg.Init(d.client)
 
 	return
 }
@@ -100,7 +100,6 @@ func (d *userDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	}
 
 	// Populate the data source model with the user data
-
 	state := &userDataSourceModel{
 		ID:              types.StringValue(user.User.ID),
 		Name:            types.StringValue(user.User.Name),

@@ -198,8 +198,7 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		StoredVmQuota:   int(plan.StoredVMQuota.ValueInt64()),
 	}
 
-	err = user.UpdateSimple(userData)
-	if err != nil {
+	if err = user.UpdateSimple(userData); err != nil {
 		resp.Diagnostics.AddError("Error updating user", err.Error())
 	}
 

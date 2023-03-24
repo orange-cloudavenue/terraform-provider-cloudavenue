@@ -52,8 +52,6 @@ type userDataSourceModel struct {
 userSchema
 
 This function is used to create the schema for the user resource and datasource.
-Default is to create a resource schema. If you want to create a datasource schema
-you must pass in the withDataSource() option.
 */
 func userSchema() superschema.Schema {
 	return superschema.Schema{

@@ -82,7 +82,6 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 
 		// IAM
 		iam.NewUserDataSource,
-		// iam.NewIAMGroupDataSource,
 		iam.NewRoleDataSource,
 		iam.NewIAMRightDataSource,
 	}
@@ -115,7 +114,6 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 
 		// IAM
 		iam.NewIAMUserResource,
-		// iam.NewIAMGroupResource,
 		iam.NewRoleResource,
 
 		// VM
