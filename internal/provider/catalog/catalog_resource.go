@@ -54,7 +54,7 @@ func (r *catalogResource) Metadata(_ context.Context, req resource.MetadataReque
 
 // Schema defines the schema for the resource.
 func (r *catalogResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = catalogSchema().GetResource()
+	resp.Schema = catalogSchema().GetResource(ctx)
 }
 
 func (r *catalogResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

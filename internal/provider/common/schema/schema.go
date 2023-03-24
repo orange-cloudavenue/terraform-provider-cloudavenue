@@ -1,6 +1,8 @@
 package superschema
 
 import (
+	"context"
+
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
@@ -17,7 +19,7 @@ type SchemaDetails struct {
 	DeprecationMessage  string
 }
 
-func (s Schema) GetResource() schemaR.Schema {
+func (s Schema) GetResource(ctx context.Context) schemaR.Schema {
 	if s.Resource.MarkdownDescription != "" {
 		s.Common.MarkdownDescription += s.Resource.MarkdownDescription
 	}
@@ -29,11 +31,11 @@ func (s Schema) GetResource() schemaR.Schema {
 	return schemaR.Schema{
 		MarkdownDescription: s.Common.MarkdownDescription,
 		DeprecationMessage:  s.Common.DeprecationMessage,
-		Attributes:          s.Attributes.process(resource).(map[string]schemaR.Attribute),
+		Attributes:          s.Attributes.process(ctx, resource).(map[string]schemaR.Attribute),
 	}
 }
 
-func (s Schema) GetDataSource() schemaD.Schema {
+func (s Schema) GetDataSource(ctx context.Context) schemaD.Schema {
 	if s.DataSource.MarkdownDescription != "" {
 		s.Common.MarkdownDescription += s.DataSource.MarkdownDescription
 	}
@@ -45,6 +47,6 @@ func (s Schema) GetDataSource() schemaD.Schema {
 	return schemaD.Schema{
 		MarkdownDescription: s.Common.MarkdownDescription,
 		DeprecationMessage:  s.Common.DeprecationMessage,
-		Attributes:          s.Attributes.process(dataSource).(map[string]schemaD.Attribute),
+		Attributes:          s.Attributes.process(ctx, dataSource).(map[string]schemaD.Attribute),
 	}
 }

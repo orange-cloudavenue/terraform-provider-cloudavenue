@@ -1,20 +1,22 @@
 package superschema
 
 import (
+	"context"
+
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
 type Attributes map[string]Attribute
 
-func (a Attributes) process(s schemaType) any {
+func (a Attributes) process(ctx context.Context, s schemaType) any {
 	switch s {
 	case resource:
 		attributes := make(map[string]schemaR.Attribute)
 
 		for k, v := range a {
 			if v.IsResource() {
-				attributes[k] = v.GetResource()
+				attributes[k] = v.GetResource(ctx)
 			}
 		}
 		return attributes
@@ -24,7 +26,7 @@ func (a Attributes) process(s schemaType) any {
 
 		for k, v := range a {
 			if v.IsDataSource() {
-				attributes[k] = v.GetDataSource()
+				attributes[k] = v.GetDataSource(ctx)
 			}
 		}
 		return attributes
@@ -36,6 +38,6 @@ func (a Attributes) process(s schemaType) any {
 type Attribute interface {
 	IsResource() bool
 	IsDataSource() bool
-	GetResource() schemaR.Attribute
-	GetDataSource() schemaD.Attribute
+	GetResource(ctx context.Context) schemaR.Attribute
+	GetDataSource(ctx context.Context) schemaD.Attribute
 }

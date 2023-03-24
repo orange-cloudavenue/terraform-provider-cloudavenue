@@ -1,6 +1,8 @@
 package superschema
 
 import (
+	"context"
+
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
@@ -23,7 +25,7 @@ func (s ListAttribute) IsDataSource() bool {
 	return s.DataSource != nil || s.Common != nil
 }
 
-func (s ListAttribute) GetResource() schemaR.Attribute {
+func (s ListAttribute) GetResource(_ context.Context) schemaR.Attribute {
 	var a schemaR.ListAttribute
 
 	if s.Common != nil {
@@ -86,7 +88,7 @@ func (s ListAttribute) GetResource() schemaR.Attribute {
 	return a
 }
 
-func (s ListAttribute) GetDataSource() schemaD.Attribute {
+func (s ListAttribute) GetDataSource(_ context.Context) schemaD.Attribute {
 	var a schemaD.ListAttribute
 
 	if s.Common != nil {

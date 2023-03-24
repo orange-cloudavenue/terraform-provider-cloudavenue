@@ -45,7 +45,7 @@ func (r *vmAffinityRuleResource) Metadata(_ context.Context, req resource.Metada
 
 // Schema defines the schema for the resource.
 func (r *vmAffinityRuleResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = vmAffinityRuleSchema().GetResource()
+	resp.Schema = vmAffinityRuleSchema().GetResource(ctx)
 }
 
 func (r *vmAffinityRuleResource) Init(ctx context.Context, rm *vmAffinityRuleResourceModel) (diags diag.Diagnostics) {
