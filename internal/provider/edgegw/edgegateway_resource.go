@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 	"golang.org/x/exp/slices"
@@ -373,7 +372,7 @@ func (r *edgeGatewaysResource) Read(
 		OwnerType:           types.StringValue(gateway.OwnerType),
 		OwnerName:           types.StringValue(gateway.OwnerName),
 		Description:         types.StringValue(gateway.Description),
-		EnableLoadBalancing: types.BoolValue((gatewaysLoadBalancing.Enabled)),
+		EnableLoadBalancing: types.BoolValue(gatewaysLoadBalancing.Enabled),
 		Timeouts:            state.Timeouts,
 	}
 
@@ -459,9 +458,6 @@ func (r *edgeGatewaysResource) Update(
 		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
 		return
 	}
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "Edge Gateway updated")
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

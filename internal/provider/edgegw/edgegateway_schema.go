@@ -49,10 +49,10 @@ func edgegwSchema() superschema.Schema {
 			MarkdownDescription: "The Edge Gateway ",
 		},
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: " resource allows you to create and delete Edge Gateways in CloudAvenue.",
+			MarkdownDescription: "resource allows you to create and delete Edge Gateways in Cloud Avenue.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: " data source allows you to show the details of an Edge Gateways in CloudAvenue.",
+			MarkdownDescription: "data source allows you to show the details of an Edge Gateways in Cloud Avenue.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"timeouts": &superschema.TimeoutAttribute{
@@ -72,9 +72,6 @@ func edgegwSchema() superschema.Schema {
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.UseStateForUnknown(),
 					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
 				},
 			},
 			"name": &superschema.StringAttribute{
@@ -108,7 +105,7 @@ func edgegwSchema() superschema.Schema {
 			},
 			"owner_type": &superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The type of the owner of the Edge Gateway (vdc|vdc-group).",
+					MarkdownDescription: "The type of the Edge Gateway owner (vdc|vdc-group).",
 				},
 				Resource: &schemaR.StringAttribute{
 					MarkdownDescription: helpers.ForceNewDescription,
@@ -129,7 +126,7 @@ func edgegwSchema() superschema.Schema {
 			},
 			"owner_name": &superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the owner of the Edge Gateway.",
+					MarkdownDescription: "The name of the Edge Gateway owner.",
 				},
 				Resource: &schemaR.StringAttribute{
 					MarkdownDescription: helpers.ForceNewDescription,
@@ -144,7 +141,7 @@ func edgegwSchema() superschema.Schema {
 			},
 			"description": &superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The description of the owner of the Edge Gateway.",
+					MarkdownDescription: "The description of the Edge Gateway.",
 					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{

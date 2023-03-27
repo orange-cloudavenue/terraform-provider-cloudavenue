@@ -2,12 +2,12 @@
 page_title: "cloudavenue_edgegateway Data Source - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  The Edge Gateway  data source allows you to show the details of an Edge Gateways in CloudAvenue.
+  The Edge Gateway data source allows you to show the details of an Edge Gateways in Cloud Avenue.
 ---
 
 # cloudavenue_edgegateway (Data Source)
 
-The Edge Gateway  data source allows you to show the details of an Edge Gateways in CloudAvenue.
+The Edge Gateway data source allows you to show the details of an Edge Gateways in Cloud Avenue.
 
 ## Example Usage
 
@@ -30,10 +30,10 @@ output "gateway" {
 
 ### Read-Only
 
-- `description` (String) The description of the owner of the Edge Gateway.
+- `description` (String) The description of the Edge Gateway.
 - `id` (String) The ID of the Edge Gateway.
 - `lb_enabled` (Boolean) Load Balancing state on the Edge Gateway.
-- `owner_name` (String) The name of the owner of the Edge Gateway.
-- `owner_type` (String) The type of the owner of the Edge Gateway (vdc|vdc-group).
+- `owner_name` (String) The name of the Edge Gateway owner.
+- `owner_type` (String) The type of the Edge Gateway owner (vdc|vdc-group).
 - `tier0_vrf_name` (String) The name of the Tier0 VRF to which the Edge Gateway is attached.
 

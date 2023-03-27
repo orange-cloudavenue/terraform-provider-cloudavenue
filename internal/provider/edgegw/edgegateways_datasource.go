@@ -64,34 +64,16 @@ func (d *edgeGatewaysDataSource) Schema(ctx context.Context, req datasource.Sche
 				Description: "A list of Edge Gateways.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"tier0_vrf_name": schema.StringAttribute{
-							MarkdownDescription: "The name of the Tier0 VRF to which the Edge Gateway is attached.",
-							Computed:            true,
-						},
+						"tier0_vrf_name": edgegwSchema().GetDataSource(ctx).Attributes["tier0_vrf_name"],
 						"name": schema.StringAttribute{
 							MarkdownDescription: "The name of the Edge Gateway.",
 							Computed:            true,
 						},
-						"id": schema.StringAttribute{
-							MarkdownDescription: "The ID of the Edge Gateway.",
-							Computed:            true,
-						},
-						"owner_type": schema.StringAttribute{
-							MarkdownDescription: "The type of the owner of the Edge Gateway (vdc|vdc-group).",
-							Computed:            true,
-						},
-						"owner_name": schema.StringAttribute{
-							MarkdownDescription: "The name of the owner of the Edge Gateway.",
-							Computed:            true,
-						},
-						"description": schema.StringAttribute{
-							MarkdownDescription: "The description of the Edge Gateway.",
-							Computed:            true,
-						},
-						"lb_enabled": schema.BoolAttribute{
-							MarkdownDescription: "Load Balancing state on the Edge Gateway.",
-							Computed:            true,
-						},
+						"id":          edgegwSchema().GetDataSource(ctx).Attributes["id"],
+						"owner_type":  edgegwSchema().GetDataSource(ctx).Attributes["owner_type"],
+						"owner_name":  edgegwSchema().GetDataSource(ctx).Attributes["owner_name"],
+						"description": edgegwSchema().GetDataSource(ctx).Attributes["description"],
+						"lb_enabled":  edgegwSchema().GetDataSource(ctx).Attributes["lb_enabled"],
 					},
 				},
 			},

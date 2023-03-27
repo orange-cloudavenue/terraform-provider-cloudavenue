@@ -2,12 +2,12 @@
 page_title: "cloudavenue_edgegateway Resource - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  The Edge Gateway  resource allows you to create and delete Edge Gateways in CloudAvenue.
+  The Edge Gateway resource allows you to create and delete Edge Gateways in Cloud Avenue.
 ---
 
 # cloudavenue_edgegateway (Resource)
 
-The Edge Gateway  resource allows you to create and delete Edge Gateways in CloudAvenue.
+The Edge Gateway resource allows you to create and delete Edge Gateways in Cloud Avenue.
 
 ## Example Usage
 
@@ -35,8 +35,8 @@ resource "cloudavenue_edgegateway" "example_with_group" {
 
 ### Required
 
-- `owner_name` (String) The name of the owner of the Edge Gateway.Changes to this field will force a new resource to be created.
-- `owner_type` (String) The type of the owner of the Edge Gateway (vdc|vdc-group).Changes to this field will force a new resource to be created.
+- `owner_name` (String) The name of the Edge Gateway owner.Changes to this field will force a new resource to be created.
+- `owner_type` (String) The type of the Edge Gateway owner (vdc|vdc-group).Changes to this field will force a new resource to be created.
 - `tier0_vrf_name` (String) The name of the Tier0 VRF to which the Edge Gateway is attached.Changes to this field will force a new resource to be created.
 
 ### Optional
@@ -46,7 +46,7 @@ resource "cloudavenue_edgegateway" "example_with_group" {
 
 ### Read-Only
 
-- `description` (String) The description of the owner of the Edge Gateway.
+- `description` (String) The description of the Edge Gateway.
 - `id` (String) The ID of the Edge Gateway.
 - `name` (String) The name of the Edge Gateway.
 

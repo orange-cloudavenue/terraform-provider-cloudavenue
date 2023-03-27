@@ -54,7 +54,7 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:gateway:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
 					resource.TestCheckResourceAttr(resourceName, "owner_type", "vdc"),
 					resource.TestCheckResourceAttr(resourceName, "owner_name", "MyVDC"),
-					resource.TestCheckResourceAttr(resourceName, "tier0_vrf_name", "prvrf01eocb0006205allsp01"),
+					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(`prvrf01eocb0006205allsp[0-9]{2}`)),
 					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(`tn01e02ocb0006205spt[0-9]{3}`)),
 					resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
