@@ -6,17 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
@@ -64,17 +57,6 @@ type edgeGatewaysResource struct {
 	EdgeGatewayConfig
 }
 
-type edgeGatewaysResourceModel struct {
-	Timeouts            timeouts.Value `tfsdk:"timeouts"`
-	ID                  types.String   `tfsdk:"id"`
-	Tier0VrfID          types.String   `tfsdk:"tier0_vrf_name"`
-	Name                types.String   `tfsdk:"name"`
-	OwnerType           types.String   `tfsdk:"owner_type"`
-	OwnerName           types.String   `tfsdk:"owner_name"`
-	Description         types.String   `tfsdk:"description"`
-	EnableLoadBalancing types.Bool     `tfsdk:"enable_load_balancing"`
-}
-
 // Metadata returns the resource type name.
 func (r *edgeGatewaysResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
@@ -82,66 +64,7 @@ func (r *edgeGatewaysResource) Metadata(_ context.Context, req resource.Metadata
 
 // Schema defines the schema for the resource.
 func (r *edgeGatewaysResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Edge Gateway resource allows you to create and delete Edge Gateways in CloudAvenue.",
-		Attributes: map[string]schema.Attribute{
-			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Create: true,
-				Read:   true,
-				Delete: true,
-			}),
-			"tier0_vrf_name": schema.StringAttribute{
-				Required: true,
-				MarkdownDescription: "The name of the Tier0 VRF to which the Edge Gateway will be attached.\n" +
-					helpers.ForceNewDescription,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "The name of the Edge Gateway.",
-				Computed:            true,
-			},
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The ID of the Edge Gateway.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"owner_type": schema.StringAttribute{
-				Required: true,
-				MarkdownDescription: "The type of the owner of the Edge Gateway (vdc|vdc-group).\n" +
-					helpers.ForceNewDescription,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^(vdc|vdc-group)$`),
-						"must be vdc or vdc-group",
-					),
-				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"owner_name": schema.StringAttribute{
-				Required: true,
-				MarkdownDescription: "The name of the owner of the Edge Gateway.\n" +
-					helpers.ForceNewDescription,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"description": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The description of the Edge Gateway.",
-			},
-			"enable_load_balancing": schema.BoolAttribute{
-				MarkdownDescription: "Enable load balancing on the Edge Gateway.\n" +
-					"Always set to true for now.",
-				Computed: true,
-			},
-		},
-	}
+	resp.Schema = edgegwSchema().GetResource(ctx)
 }
 
 func (r *edgeGatewaysResource) Configure(
@@ -330,7 +253,7 @@ func (r *edgeGatewaysResource) Create(
 		OwnerName:           plan.OwnerName,
 		OwnerType:           plan.OwnerType,
 		Timeouts:            plan.Timeouts,
-		EnableLoadBalancing: types.BoolValue(true),
+		EnableLoadBalancing: plan.EnableLoadBalancing,
 	}
 
 	// Set state to fully populated data
@@ -432,6 +355,16 @@ func (r *edgeGatewaysResource) Read(
 		}
 	}
 
+	// Get LoadBalancing state.
+	gatewaysLoadBalancing, httpR, err := r.client.APIClient.EdgeGatewaysApi.GetEdgeLoadBalancing(auth, gateway.EdgeId)
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+		defer httpR.Body.Close()
+		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	state = &edgeGatewaysResourceModel{
 		ID:                  types.StringValue(common.NormalizeID("urn:vcloud:gateway:", gateway.EdgeId)),
 		Tier0VrfID:          types.StringValue(gateway.Tier0VrfId),
@@ -439,7 +372,7 @@ func (r *edgeGatewaysResource) Read(
 		OwnerType:           types.StringValue(gateway.OwnerType),
 		OwnerName:           types.StringValue(gateway.OwnerName),
 		Description:         types.StringValue(gateway.Description),
-		EnableLoadBalancing: types.BoolValue(true),
+		EnableLoadBalancing: types.BoolValue(gatewaysLoadBalancing.Enabled),
 		Timeouts:            state.Timeouts,
 	}
 
@@ -457,6 +390,77 @@ func (r *edgeGatewaysResource) Update(
 	req resource.UpdateRequest,
 	resp *resource.UpdateResponse,
 ) {
+	var plan *edgeGatewaysResourceModel
+
+	// Read Terraform plan data into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Update() is passed a default timeout to use if no value
+	// has been supplied in the Terraform configuration.
+	updateTimeout, errTO := plan.Timeouts.Update(ctx, 8*time.Minute)
+	if errTO != nil {
+		resp.Diagnostics.AddError(
+			"Error creating timeout",
+			"Could not create timeout, unexpected error",
+		)
+		return
+	}
+
+	ctxTO, cancel := context.WithTimeout(ctx, updateTimeout)
+	defer cancel()
+
+	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
+	if errCtx != nil {
+		resp.Diagnostics.AddError(
+			"Error creating context",
+			"Could not create context, context value token is not a string ?",
+		)
+		return
+	}
+
+	// Convert from Terraform data model into API data model
+	body := apiclient.EdgeGatewayLoadBalancing{
+		Enabled: plan.EnableLoadBalancing.ValueBool(),
+	}
+
+	var err error
+	var job apiclient.Jobcreated
+	var httpR *http.Response
+
+	// Call API to update the resource and test for errors.
+	job, httpR, err = r.client.APIClient.EdgeGatewaysApi.UpdateEdgeLoadBalancing(auth, body, common.ExtractUUID(plan.ID.ValueString()))
+	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+		defer httpR.Body.Close()
+		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	// Wait for job to complete
+	errRetry := retry.RetryContext(ctxTO, updateTimeout, func() *retry.RetryError {
+		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
+		if errGetJob != nil {
+			retry.NonRetryableError(err)
+		}
+		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
+			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))
+		}
+
+		return nil
+	})
+
+	if errRetry != nil {
+		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
+		return
+	}
+
+	// Save updated data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.

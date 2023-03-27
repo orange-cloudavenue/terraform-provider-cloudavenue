@@ -38,12 +38,13 @@ type edgeGatewaysDataSourceModel struct {
 }
 
 var edgeGatewayDataSourceModelAttrTypes = map[string]attr.Type{
-	"tier0_vrf_id": types.StringType,
-	"name":         types.StringType,
-	"id":           types.StringType,
-	"owner_type":   types.StringType,
-	"owner_name":   types.StringType,
-	"description":  types.StringType,
+	"tier0_vrf_name": types.StringType,
+	"name":           types.StringType,
+	"id":             types.StringType,
+	"owner_type":     types.StringType,
+	"owner_name":     types.StringType,
+	"description":    types.StringType,
+	"lb_enabled":     types.BoolType,
 }
 
 func (d *edgeGatewaysDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -63,30 +64,16 @@ func (d *edgeGatewaysDataSource) Schema(ctx context.Context, req datasource.Sche
 				Description: "A list of Edge Gateways.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"tier0_vrf_id": schema.StringAttribute{
-							Description: "The ID of the Tier-0 VRF.",
-							Computed:    true,
-						},
+						"tier0_vrf_name": edgegwSchema().GetDataSource(ctx).Attributes["tier0_vrf_name"],
 						"name": schema.StringAttribute{
-							Description: "The name of the Edge Gateway.",
-							Computed:    true,
+							MarkdownDescription: "The name of the Edge Gateway.",
+							Computed:            true,
 						},
-						"id": schema.StringAttribute{
-							Description: "The ID of the Edge Gateway.",
-							Computed:    true,
-						},
-						"owner_type": schema.StringAttribute{
-							Description: "The type of the owner of the Edge Gateway.",
-							Computed:    true,
-						},
-						"owner_name": schema.StringAttribute{
-							Description: "The name of the owner of the Edge Gateway.",
-							Computed:    true,
-						},
-						"description": schema.StringAttribute{
-							Description: "The description of the Edge Gateway.",
-							Computed:    true,
-						},
+						"id":          edgegwSchema().GetDataSource(ctx).Attributes["id"],
+						"owner_type":  edgegwSchema().GetDataSource(ctx).Attributes["owner_type"],
+						"owner_name":  edgegwSchema().GetDataSource(ctx).Attributes["owner_name"],
+						"description": edgegwSchema().GetDataSource(ctx).Attributes["description"],
+						"lb_enabled":  edgegwSchema().GetDataSource(ctx).Attributes["lb_enabled"],
 					},
 				},
 			},
@@ -144,13 +131,23 @@ func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRe
 		var diag diag.Diagnostics
 		gws := make([]edgeGatewayDataSourceModel, 0)
 		for _, gw := range gateways {
+			// Get LoadBalancing state.
+			gatewaysLoadBalancing, httpR, err := d.client.APIClient.EdgeGatewaysApi.GetEdgeLoadBalancing(d.client.Auth, gw.EdgeId)
+			if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+				defer httpR.Body.Close()
+				resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+				if resp.Diagnostics.HasError() {
+					return
+				}
+			}
 			gws = append(gws, edgeGatewayDataSourceModel{
-				Tier0VrfID:  types.StringValue(gw.Tier0VrfId),
-				Name:        types.StringValue(gw.EdgeName),
-				ID:          types.StringValue(common.NormalizeID("urn:vcloud:gateway:", gw.EdgeId)),
-				OwnerType:   types.StringValue(gw.OwnerType),
-				OwnerName:   types.StringValue(gw.OwnerName),
-				Description: types.StringValue(gw.Description),
+				Tier0VrfID:          types.StringValue(gw.Tier0VrfId),
+				Name:                types.StringValue(gw.EdgeName),
+				ID:                  types.StringValue(common.NormalizeID("urn:vcloud:gateway:", gw.EdgeId)),
+				OwnerType:           types.StringValue(gw.OwnerType),
+				OwnerName:           types.StringValue(gw.OwnerName),
+				Description:         types.StringValue(gw.Description),
+				EnableLoadBalancing: types.BoolValue((gatewaysLoadBalancing.Enabled)),
 			})
 
 			names = append(names, gw.EdgeName)

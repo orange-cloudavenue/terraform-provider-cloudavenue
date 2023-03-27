@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 
@@ -30,50 +29,12 @@ type edgeGatewayDataSource struct {
 	client *client.CloudAvenue
 }
 
-type edgeGatewayDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Tier0VrfID  types.String `tfsdk:"tier0_vrf_id"`
-	Name        types.String `tfsdk:"name"`
-	OwnerType   types.String `tfsdk:"owner_type"`
-	OwnerName   types.String `tfsdk:"owner_name"`
-	Description types.String `tfsdk:"description"`
-}
-
 func (d *edgeGatewayDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
 func (d *edgeGatewayDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "The edge gateway data source show the details of the edge gateway.",
-
-		Attributes: map[string]schema.Attribute{
-			"tier0_vrf_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the Tier-0 VRF.",
-				Computed:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "The name of the Edge Gateway.",
-				Required:            true,
-			},
-			"id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the Edge Gateway.",
-				Computed:            true,
-			},
-			"owner_type": schema.StringAttribute{
-				MarkdownDescription: "The type of the owner of the Edge Gateway.",
-				Computed:            true,
-			},
-			"owner_name": schema.StringAttribute{
-				MarkdownDescription: "The name of the owner of the Edge Gateway.",
-				Computed:            true,
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "The description of the Edge Gateway.",
-				Computed:            true,
-			},
-		},
-	}
+	resp.Schema = edgegwSchema().GetDataSource(ctx)
 }
 
 func (d *edgeGatewayDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -133,13 +94,24 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 	if !found {
 		data.ID = types.StringValue("")
 	} else {
+		// Get LoadBalancing state.
+		gatewaysLoadBalancing, httpR, err := d.client.APIClient.EdgeGatewaysApi.GetEdgeLoadBalancing(d.client.Auth, gateway.EdgeId)
+		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
+			defer httpR.Body.Close()
+			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+			if resp.Diagnostics.HasError() {
+				return
+			}
+		}
+
 		data = edgeGatewayDataSourceModel{
-			Tier0VrfID:  types.StringValue(gateway.Tier0VrfId),
-			Name:        types.StringValue(gateway.EdgeName),
-			ID:          types.StringValue(common.NormalizeID("urn:vcloud:gateway:", gateway.EdgeId)),
-			OwnerType:   types.StringValue(gateway.OwnerType),
-			OwnerName:   types.StringValue(gateway.OwnerName),
-			Description: types.StringValue(gateway.Description),
+			Tier0VrfID:          types.StringValue(gateway.Tier0VrfId),
+			Name:                types.StringValue(gateway.EdgeName),
+			ID:                  types.StringValue(common.NormalizeID("urn:vcloud:gateway:", gateway.EdgeId)),
+			OwnerType:           types.StringValue(gateway.OwnerType),
+			OwnerName:           types.StringValue(gateway.OwnerName),
+			Description:         types.StringValue(gateway.Description),
+			EnableLoadBalancing: types.BoolValue((gatewaysLoadBalancing.Enabled)),
 		}
 	}
 

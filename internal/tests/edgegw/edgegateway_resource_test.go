@@ -20,6 +20,7 @@ resource "cloudavenue_edgegateway" "example_with_vdc" {
   owner_name     = "MyVDC"
   tier0_vrf_name = data.cloudavenue_tier0_vrfs.example_with_vdc.names.0
   owner_type     = "vdc"
+  lb_enabled     = false
 }
 `
 
@@ -53,8 +54,9 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:gateway:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
 					resource.TestCheckResourceAttr(resourceName, "owner_type", "vdc"),
 					resource.TestCheckResourceAttr(resourceName, "owner_name", "MyVDC"),
-					resource.TestCheckResourceAttr(resourceName, "tier0_vrf_name", "prvrf01eocb0006205allsp01"),
+					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(`prvrf01eocb0006205allsp[0-9]{2}`)),
 					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(`tn01e02ocb0006205spt[0-9]{3}`)),
+					resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				),
 			},
@@ -63,12 +65,12 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 				Config:  testAccEdgeGatewayResourceConfig,
 			},
 			// ImportState testing
-			// {
-			// 	ResourceName:      resourceName,
-			// 	ImportState:       true,
-			// 	ImportStateId:     "edgeName",
-			// 	ImportStateVerify: true,
-			// },
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateId:     "tn01e02ocb0006205spt101",
+				ImportStateVerify: true,
+			},
 			// check bad owner_type
 			// https://github.com/hashicorp/terraform-plugin-sdk/issues/609
 			// {
@@ -84,6 +86,7 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameVDCGroup, "owner_name", "MyVDCGroup"),
 					resource.TestCheckResourceAttr(resourceNameVDCGroup, "tier0_vrf_name", "prvrf01eocb0006205allsp01"),
 					resource.TestMatchResourceAttr(resourceNameVDCGroup, "name", regexp.MustCompile(`tn01e02ocb0006205spt[0-9]{3}`)),
+					resource.TestCheckResourceAttr(resourceNameVDCGroup, "lb_enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceNameVDCGroup, "description"),
 				),
 			},
