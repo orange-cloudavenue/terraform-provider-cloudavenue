@@ -68,6 +68,7 @@ func SetRoutedVapp() networkSchemaOpts {
 
 /*
 networkSchema
+
 This function is used to create the schema for the catalog resource and datasource.
 Default is to create a resource schema.  If you want to create a datasource schema
 you must pass in the withDataSource() option.
@@ -83,79 +84,129 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 		params.resource = true
 	}
 
-	_schema := superschema.Schema{}
-	_schema.Attributes = map[string]schema.Attribute{
-		"id": schema.StringAttribute{
-			Computed:            true,
-			MarkdownDescription: "The ID of the network. This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.",
-			PlanModifiers: []planmodifier.String{
-				stringplanmodifier.UseStateForUnknown(),
+	//_schema := superschema.Schema{}
+	superschema.Schema{
+		Common: superschema.SchemaDetails{
+			MarkdownDescription: "Provides a Cloud Avenue routed VDC Network ",
+		},
+		Resource: superschema.SchemaDetails{
+			MarkdownDescription: "resource. This can be used to create, modify, and delete routed VDC networks.",
+		},
+		Attributes: map[string]schema.Attribute{
+			"timeouts": &superschema.TimeoutAttribute{
+				Resource: &superschema.ResourceTimeoutAttribute{
+					Create: true,
+					Read:   true,
+					Delete: true,
+					Update: true,
+				},
 			},
-		},
-
-		"name": schema.StringAttribute{
-			Required:            true,
-			MarkdownDescription: "The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.",
-		},
-		"description": schema.StringAttribute{
-			Optional:            true,
-			MarkdownDescription: "A description of the network.",
-		},
-		"gateway": schema.StringAttribute{
-			Required:            true,
-			MarkdownDescription: "(Force replacement) The gateway IP address for the network. This value define also the network IP range with the prefix length.",
-			Validators: []validator.String{
-				fstringvalidator.IsIP(),
-			},
-			PlanModifiers: []planmodifier.String{
-				stringplanmodifier.RequiresReplace(),
-			},
-		},
-		"prefix_length": schema.Int64Attribute{
-			Required:            true,
-			MarkdownDescription: "(Force replacement) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. /24 for netmask 255.255.255.0)",
-			Validators: []validator.Int64{
-				int64validator.Between(1, 32),
-			},
-			PlanModifiers: []planmodifier.Int64{
-				int64planmodifier.RequiresReplace(),
-			},
-		},
-		"dns1": schema.StringAttribute{
-			Optional:            true,
-			MarkdownDescription: "The primary DNS server IP address for the network.",
-			Validators: []validator.String{
-				fstringvalidator.IsIP(),
-			},
-		},
-		"dns2": schema.StringAttribute{
-			Optional:            true,
-			MarkdownDescription: "The secondary DNS server IP address for the network.",
-			Validators: []validator.String{
-				fstringvalidator.IsIP(),
-			},
-		},
-		"dns_suffix": schema.StringAttribute{
-			Optional:            true,
-			MarkdownDescription: "The DNS suffix for the network.",
-		},
-		"static_ip_pool": schema.SetNestedAttribute{
-			Optional:            true,
-			MarkdownDescription: "A set of static IP pools to be used for this network.",
-			NestedObject: schema.NestedAttributeObject{
-				Attributes: map[string]schema.Attribute{
-					"start_address": schema.StringAttribute{
-						Required:            true,
-						MarkdownDescription: "The start address of the IP pool. This value must be a valid IP address in the network IP range.",
-						Validators: []validator.String{
-							fstringvalidator.IsIP(),
-						},
+			"id": superschema.StringAttribute{
+				Common: &schemaR.AttributeCommon{
+					Computed:            true,
+					MarkdownDescription: "The ID of the network.",
+				},
+				Resource: &schemaR.AttributeResource{
+					MarkdownDescription: "This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.",
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
 					},
-					"end_address": schema.StringAttribute{
-						Required:            true,
-						MarkdownDescription: "The end address of the IP pool. This value must be a valid IP address in the network IP range.",
-						Validators: []validator.String{
-							fstringvalidator.IsIP(),
+				},
+			},
+			"name": superschema.StringAttribute{
+				Common: &schemaR.AttributeCommon{
+					MarkdownDescription: "The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.",
+				},
+				Resource: &schemaR.AttributeResource{
+					Required: true,
+				},
+			},
+			"description": superschema.StringAttribute{
+				Common: &schemaR.AttributeCommon{
+					MarkdownDescription: "A description of the network.",
+				},
+				Resource: &schemaR.AttributeResource{
+					Optional: true,
+				},
+			},
+			"gateway": superschema.StringAttribute{
+				Common: &schemaR.AttributeCommon{
+					MarkdownDescription: "The gateway IP address for the network. This value define also the network IP range with the prefix length.",
+				},
+				Resource: &schemaR.AttributeResource{
+					Required: true,
+					Validators: []validator.String{
+						fstringvalidator.IsIP(),
+					},
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplace(),
+					},
+				},
+			},
+			"prefix_length": superschema.Int64Attribute{
+				Common: &schemaR.AttributeCommon{
+					MarkdownDescription: "(Force replacement) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. /24 for netmask 255.255.255.0)",
+				},
+				Resource: &schemaR.AttributeResource{
+					Required: true,
+					Validators: []validator.Int64{
+						int64validator.Between(1, 32),
+					},
+					PlanModifiers: []planmodifier.Int64{
+						int64planmodifier.RequiresReplace(),
+					},
+				},
+			},
+			"dns1": superschema.StringAttribute{
+				Common: &schemaR.AttributeCommon{
+					MarkdownDescription: "The primary DNS server IP address for the network.",
+				},
+				Resource: &schemaR.AttributeResource{
+					Optional: true,
+					Validators: []validator.String{
+						fstringvalidator.IsIP(),
+					},
+				},
+			},
+			"dns2": superschema.StringAttribute{
+				Common: &schemaR.AttributeCommon{
+					MarkdownDescription: "The secondary DNS server IP address for the network.",
+				},
+				Resource: &schemaR.AttributeResource{
+					Optional: true,
+					Validators: []validator.String{
+						fstringvalidator.IsIP(),
+					},
+				},
+			},
+			"dns_suffix": superschema.StringAttribute{
+				Common: &schemaR.AttributeCommon{
+					MarkdownDescription: "The DNS suffix for the network.",
+				},
+				Resource: &schemaR.AttributeResource{
+					Optional: true,
+				},
+			},
+			"static_ip_pool": superschema.SetNestedAttribute{
+				Resource: &schemaR.AttributeResource{
+					Optional:            true,
+					MarkdownDescription: "A set of static IP pools to be used for this network.",
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: map[string]schema.Attribute{
+							"start_address": schema.StringAttribute{
+								Required:            true,
+								MarkdownDescription: "The start address of the IP pool. This value must be a valid IP address in the network IP range.",
+								Validators: []validator.String{
+									fstringvalidator.IsIP(),
+								},
+							},
+							"end_address": schema.StringAttribute{
+								Required:            true,
+								MarkdownDescription: "The end address of the IP pool. This value must be a valid IP address in the network IP range.",
+								Validators: []validator.String{
+									fstringvalidator.IsIP(),
+								},
+							},
 						},
 					},
 				},

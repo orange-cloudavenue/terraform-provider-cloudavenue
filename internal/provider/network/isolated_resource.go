@@ -8,7 +8,6 @@ import (
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
-	govdctypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -17,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
-	govdctypes "github.com/vmware/go-vcloud-director/v2/types/v56"
+	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
@@ -33,7 +32,6 @@ var (
 	_ resource.ResourceWithImportState = &networkIsolatedResource{}
 	_ resource.ResourceWithModifyPlan  = &networkIsolatedResource{}
 	_ network.Network                  = &networkIsolatedResource{}
-	// _ vcdNetworkIsolatedOrRouted       = &networkIsolatedResource{}
 )
 
 // NewNetworkIsolatedResource is a helper function to simplify the provider implementation.
@@ -46,7 +44,7 @@ type networkIsolatedResource struct {
 	client  *client.CloudAvenue
 	vdc     vdc.VDC
 	org     org.Org
-	network network.Common
+	network network.Kind
 }
 
 type networkIsolatedResourceModel struct {
@@ -66,8 +64,10 @@ func (r *networkIsolatedResource) ModifyPlan(ctx context.Context, req resource.M
 	configVDC := &types.String{}
 	req.Config.GetAttribute(ctx, path.Root("vdc"), configVDC)
 	stateVDC := &types.String{}
+	planVDC := &types.String{}
+	req.Plan.GetAttribute(ctx, path.Root("vdc"), planVDC)
 	req.State.GetAttribute(ctx, path.Root("vdc"), stateVDC)
-	if (configVDC.IsNull() || configVDC.IsUnknown()) && !stateVDC.IsNull() {
+	if (configVDC.IsNull() || configVDC.IsUnknown()) && !stateVDC.IsNull() && !planVDC.IsNull() {
 		if r.client.GetDefaultVDC() != stateVDC.ValueString() {
 			x := &path.Paths{}
 			resp.RequiresReplace = x.Append(path.Root("vdc"))
@@ -83,8 +83,8 @@ func (r *networkIsolatedResource) Metadata(_ context.Context, req resource.Metad
 
 // Init resource used to initialize the resource.
 func (r *networkIsolatedResource) Init(_ context.Context, rm *networkIsolatedResourceModel) (diags diag.Diagnostics) {
+	// Set Network Type
 	r.network.TypeOfNetwork = network.ISOLATED
-
 	// Init Org
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
@@ -142,15 +142,13 @@ func (r *networkIsolatedResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	r.ConstructNetworkAPIObject(ctx, plan)
-
 	// Lock VDC or VDCGroup
 	vcdMutexKV := mutex.NewKV()
 	vcdMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
 	defer vcdMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Set network type
-	networkType, diag := r.SetVCDNetwork(ctx, vdcOrVDCGroup.GetID(), *plan)
+	networkType, diag := r.SetNetworkAPIObject(ctx, plan)
 	resp.Diagnostics.Append(diag...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -289,33 +287,10 @@ func (r *networkIsolatedResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Set network type
-	ipPool := []staticIPPool{}
-	resp.Diagnostics.Append(plan.StaticIPPool.ElementsAs(ctx, &ipPool, true)...)
+	networkType, diag := r.SetNetworkAPIObject(ctx, plan)
+	resp.Diagnostics.Append(diag...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-	myshared := false // Cloudavenue does not support shared networks
-	networkType := &govdctypes.OpenApiOrgVdcNetwork{
-		ID:          plan.ID.ValueString(),
-		Name:        plan.Name.ValueString(),
-		Description: plan.Description.ValueString(),
-		Shared:      &myshared,
-		NetworkType: govdctypes.OrgVdcNetworkTypeIsolated,
-		OwnerRef:    &govdctypes.OpenApiReference{ID: vdcOrVDCGroup.GetID()},
-		Subnets: govdctypes.OrgVdcNetworkSubnets{
-			Values: []govdctypes.OrgVdcNetworkSubnetValues{
-				{
-					Gateway:      plan.Gateway.ValueString(),
-					PrefixLength: int(plan.PrefixLength.ValueInt64()),
-					IPRanges: govdctypes.OrgVdcNetworkSubnetIPRanges{
-						Values: processIPRanges(ipPool),
-					},
-					DNSServer1: plan.DNS1.ValueString(),
-					DNSServer2: plan.DNS2.ValueString(),
-					DNSSuffix:  plan.DNSSuffix.ValueString(),
-				},
-			},
-		},
 	}
 
 	// Update network
@@ -447,7 +422,7 @@ func (r *networkIsolatedResource) ImportState(ctx context.Context, req resource.
 	}
 }
 
-func (r *networkIsolatedResource) ConstructNetworkAPIObject(ctx context.Context, plan any) (*govcdtypes.OpenApiOrgVdcNetwork, diag.Diagnostics) {
+func (r *networkIsolatedResource) SetNetworkAPIObject(ctx context.Context, plan any) (*govcdtypes.OpenApiOrgVdcNetwork, diag.Diagnostics) {
 	d := diag.Diagnostics{}
 
 	p, ok := plan.(*networkIsolatedResourceModel)
@@ -455,12 +430,19 @@ func (r *networkIsolatedResource) ConstructNetworkAPIObject(ctx context.Context,
 		d.AddError("Error", "Error converting plan to network isolated resource model")
 		return nil, d
 	}
+	vdcOrVDCGroup, _ := r.client.GetVDCOrVDCGroup(p.VDC.ValueString())
 
-	rM := network.CommonResourceModel{
-		Name:        p.Name,
-		Description: p.Description,
+	rG := network.GlobalResourceModel{
+		ID:                p.ID,
+		Name:              p.Name,
+		Description:       p.Description,
+		Gateway:           p.Gateway,
+		PrefixLength:      p.PrefixLength,
+		DNS1:              p.DNS1,
+		DNS2:              p.DNS2,
+		DNSSuffix:         p.DNSSuffix,
+		StaticIPPool:      p.StaticIPPool,
+		VDCIDOrVDCGroupID: types.StringValue(vdcOrVDCGroup.GetID()),
 	}
-
-	return r.network.ConstructNetworkAPIObject(ctx, rM)
-
+	return r.network.SetNetworkAPIObject(ctx, rG)
 }

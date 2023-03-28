@@ -50,6 +50,10 @@ resource "cloudavenue_network_routed" "example" {
     {
       start_address = "192.168.1.10"
       end_address   = "192.168.1.20"
+    },
+    {
+      start_address = "192.168.1.50"
+      end_address   = "192.168.1.55"
     }
   ]
 }
