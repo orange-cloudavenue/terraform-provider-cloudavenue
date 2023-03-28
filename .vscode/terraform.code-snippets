@@ -4,7 +4,7 @@
 		"prefix": "tf-templates",
 		"body": [
 			"//tfname: my_tfname",
-			"// Usage: terraform-templates -filename internal/provider/CATEGORY/FILE.go",
+			"// Usage: terraform-templates -filename $RELATIVE_FILEPATH",
 			"package myPkgName"
 		],
 		"description": "Boilerplate for resource or data source terraform provider"
@@ -13,15 +13,15 @@
 		"scope": "go",
 		"prefix": "tf-generate-example-import",
 		"body": [
-			"//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -resource"
+			"//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename \\$GOFILE -example-dir ../../../examples -resource"
 		],
 		"description": "Boilerplate for resource or data source terraform provider"
 	},
 	"Go Generate Resource example": {
 		"scope": "go",
-		"prefix": "tf-generate-example-import",
+		"prefix": "tf-generate-example-resource",
 		"body": [
-			"//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../examples -test"
+			"//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename \\$GOFILE -example-dir ../../examples -test"
 		],
 		"description": "Boilerplate for resource or data source terraform provider"
 	},
@@ -29,7 +29,16 @@
 		"scope": "go",
 		"prefix": "tf-block-init-resource",
 		"body": [
-			"func (r *$struct) Init(_ context.Context, rm *$structModel) (diags diag.Diagnostics) {",
+			"func (r *$struct) Init(ctx context.Context, rm *${struct}Model) (diags diag.Diagnostics) {",
+			"    return",
+			"}",
+		],
+	},
+	"Terraform Block Init Datasource": {
+		"scope": "go",
+		"prefix": "tf-block-init-datasource",
+		"body": [
+			"func (d *$struct) Init(ctx context.Context, dm *${struct}Model) (diags diag.Diagnostics) {",
 			"    return",
 			"}",
 		],
