@@ -1,3 +1,3 @@
 resource "cloudavenue_vcda_ip" "example" {
-  ip_address = "your.on.premise.ip"
+  ip_address = "10.0.0.1"
 }

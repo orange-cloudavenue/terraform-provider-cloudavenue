@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"golang.org/x/exp/slices"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
@@ -29,7 +30,7 @@ var (
 )
 
 // NewVcdaIPResource is a helper function to simplify the provider implementation.
-func NewVcdaIPResource() resource.Resource {
+func NewVCDAIPResource() resource.Resource {
 	return &vcdaIPResource{}
 }
 
@@ -154,18 +155,13 @@ func (r *vcdaIPResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
+	found := slices.Contains(vcdaIPList, state.IPAddress.ValueString())
 	// Check if the VCDA is in the list
-	found := false
-	for _, vcdaIP := range vcdaIPList {
-		if vcdaIP == state.IPAddress.ValueString() {
-			found = true
-			state.ID = types.StringValue(vcdaIP)
-			break
-		}
-	}
-
-	// If the VCDA is not in the list, remove it from the state
-	if !found {
+	if found {
+		// Set the ID
+		state.ID = state.IPAddress
+	} else {
+		// If the VCDA is not in the list, remove it from the state
 		resp.State.RemoveResource(ctx)
 		return
 	}
