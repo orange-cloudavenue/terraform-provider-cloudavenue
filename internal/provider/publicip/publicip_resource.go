@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"github.com/antihax/optional"
+	"github.com/vmware/go-vcloud-director/v2/govcd"
 	"golang.org/x/exp/slices"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -28,10 +30,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -48,7 +53,8 @@ func NewPublicIPResource() resource.Resource {
 
 // publicIPResource is the resource implementation.
 type publicIPResource struct {
-	client *client.CloudAvenue
+	client   *client.CloudAvenue
+	adminOrg adminorg.AdminOrg
 }
 
 type publicIPResourceModel struct {
@@ -65,8 +71,16 @@ func (r *publicIPResource) Metadata(_ context.Context, req resource.MetadataRequ
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
+// Init.
+func (r *publicIPResource) Init(_ context.Context, rm *publicIPResourceModel) (diags diag.Diagnostics) {
+	r.adminOrg, diags = adminorg.Init(r.client)
+
+	return
+}
+
 // Schema defines the schema for the resource.
 func (r *publicIPResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	// resp.Schema = publicIPSchema().GetResource(ctx)
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "The public IP resource allows you to manage a public IP on your Organization.",
 		Attributes: map[string]schema.Attribute{
@@ -139,14 +153,20 @@ func (r *publicIPResource) Configure(ctx context.Context, req resource.Configure
 // Create creates the resource and sets the initial Terraform state.
 func (r *publicIPResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
+	plan := &publicIPResourceModel{}
+
 	var (
-		plan                   *publicIPResourceModel
+		edgeGateway            *govcd.NsxtEdgeGateway
 		findIPNotAlreadyExists func(IPs apiclient.PublicIps) (interface{}, error)
-		body                   apiclient.PublicIPApiCreatePublicIPOpts
 	)
 
-	diags := req.Plan.Get(ctx, &plan)
+	diags := req.Plan.Get(ctx, plan)
 	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(r.Init(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -177,11 +197,25 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
 
+	edgeGateway, err := r.adminOrg.GetEdgeGateway(edgegw.EdgeGW{
+		Name: plan.EdgeName,
+		ID:   plan.EdgeID,
+	})
+	if err != nil {
+		resp.Diagnostics.AddError("Error getting Edge Gateway", err.Error())
+		return
+	}
+
+	body := apiclient.PublicIPApiCreatePublicIPOpts{
+		XNattedIP:    optional.NewString(plan.PublicIP.ValueString()),
+		XVDCEdgeName: optional.NewString(edgeGateway.EdgeGateway.Name),
+		XVDCName:     optional.EmptyString(),
+	}
+
 	// if edge_id is provided, get edge_name
 	if !plan.EdgeID.IsNull() {
 		// Get Edge Gateway Name
 		edgeGateway, httpR, err := r.client.APIClient.EdgeGatewaysApi.GetEdgeById(auth, common.ExtractUUID(plan.EdgeID.ValueString()))
-
 		if httpR != nil {
 			defer func() {
 				err = errors.Join(err, httpR.Body.Close())
