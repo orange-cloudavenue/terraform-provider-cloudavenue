@@ -24,5 +24,34 @@
 			"//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../examples -test"
 		],
 		"description": "Boilerplate for resource or data source terraform provider"
-	}
+	},
+	"Terraform Block Init Resource": {
+		"scope": "go",
+		"prefix": "tf-block-init-resource",
+		"body": [
+			"func (r *$struct) Init(_ context.Context, rm *$structModel) (diags diag.Diagnostics) {",
+			"    return",
+			"}",
+		],
+	},
+	"Terraform Use Init Resource": {
+		"scope": "go",
+		"prefix": "tf-use-init-resource",
+		"body": [
+			"resp.Diagnostics.Append(r.Init(ctx, $struct)...)",
+			"if resp.Diagnostics.HasError() {",
+			"    return",
+			"}"
+		],
+	},
+	"Terraform Use Init Datasource": {
+		"scope": "go",
+		"prefix": "tf-use-init-datasource",
+		"body": [
+			"resp.Diagnostics.Append(d.Init(ctx, $struct)...)",
+			"if resp.Diagnostics.HasError() {",
+			"    return",
+			"}"
+		],
+	},
 }
