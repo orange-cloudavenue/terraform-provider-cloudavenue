@@ -24,7 +24,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/publicip"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vapp"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vcda"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vm"
 	tier0 "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vrf"
@@ -101,7 +100,8 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		vdc.NewACLResource,
 
 		// VCDA
-		vcda.NewVcdaIPResource,
+		// https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/pull/232
+		// vcda.NewVCDAIPResource,
 
 		// PUBLICIP
 		publicip.NewPublicIPResource,

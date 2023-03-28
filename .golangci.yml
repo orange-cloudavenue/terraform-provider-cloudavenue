@@ -177,5 +177,6 @@ linters-settings:
               "VDC",
               "DFW",
               "VLAN",
-              "IAM"
+              "IAM",
+              "VCDA",
             ] 
