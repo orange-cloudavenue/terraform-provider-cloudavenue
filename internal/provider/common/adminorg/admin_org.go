@@ -8,13 +8,16 @@ import (
 
 type AdminOrg struct {
 	*client.AdminOrg
+	c *client.CloudAvenue
 }
 
 // Init.
 func Init(c *client.CloudAvenue) (AdminOrg, diag.Diagnostics) {
 	var (
-		d   = diag.Diagnostics{}
-		o   = AdminOrg{}
+		d = diag.Diagnostics{}
+		o = AdminOrg{
+			c: c,
+		}
 		err error
 	)
 
