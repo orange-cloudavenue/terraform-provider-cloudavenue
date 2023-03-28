@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vdcs Data Source - cloudavenue"
 subcategory: "vDC (Virtual Datacenter)"
 description: |-
-  List all VDC inside an Organization.
+  List all vDC inside an Organization.
 ---
 
 # cloudavenue_vdcs (Data Source)
 
-List all VDC inside an Organization.
+List all vDC inside an Organization.
 
 ## Example Usage
 

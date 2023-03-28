@@ -1,4 +1,4 @@
-package superschema //nolint:dupl
+package superschema
 
 import (
 	"context"
@@ -13,6 +13,7 @@ type ListNestedAttribute struct {
 	Common     *schemaR.ListNestedAttribute
 	Resource   *schemaR.ListNestedAttribute
 	DataSource *schemaD.ListNestedAttribute
+	Attributes Attributes
 }
 
 // IsResource returns true if the attribute is a resource attribute.
@@ -25,23 +26,26 @@ func (s ListNestedAttribute) IsDataSource() bool {
 	return s.DataSource != nil || s.Common != nil
 }
 
-func (s ListNestedAttribute) GetResource(_ context.Context) schemaR.Attribute {
-	var a schemaR.ListNestedAttribute
-
-	if s.Common != nil {
-		a = schemaR.ListNestedAttribute{
-			Required:            s.Common.Required,
-			Optional:            s.Common.Optional,
-			Computed:            s.Common.Computed,
-			MarkdownDescription: s.Common.MarkdownDescription,
-			Description:         s.Common.Description,
-			DeprecationMessage:  s.Common.DeprecationMessage,
-			Validators:          s.Common.Validators,
-			PlanModifiers:       s.Common.PlanModifiers,
-			Default:             s.Common.Default,
-		}
+func (s ListNestedAttribute) GetResource(ctx context.Context) schemaR.Attribute {
+	a := schemaR.ListNestedAttribute{
+		NestedObject: schemaR.NestedAttributeObject{
+			Attributes: s.Attributes.process(ctx, resource).(map[string]schemaR.Attribute),
+		},
 	}
 
+	if s.Common != nil {
+		a.Required = s.Common.Required
+		a.Optional = s.Common.Optional
+		a.Computed = s.Common.Computed
+		a.Sensitive = s.Common.Sensitive
+		a.MarkdownDescription = s.Common.MarkdownDescription
+		a.Description = s.Common.Description
+		a.DeprecationMessage = s.Common.DeprecationMessage
+		a.Validators = s.Common.Validators
+		a.PlanModifiers = s.Common.PlanModifiers
+		a.Default = s.Common.Default
+	}
+	//nolint:dupl
 	if s.Resource != nil {
 		if s.Resource.Required {
 			a.Required = true
@@ -53,6 +57,10 @@ func (s ListNestedAttribute) GetResource(_ context.Context) schemaR.Attribute {
 
 		if s.Resource.Computed {
 			a.Computed = true
+		}
+
+		if s.Resource.Sensitive {
+			a.Sensitive = true
 		}
 
 		if s.Resource.MarkdownDescription != "" {
@@ -83,19 +91,22 @@ func (s ListNestedAttribute) GetResource(_ context.Context) schemaR.Attribute {
 	return a
 }
 
-func (s ListNestedAttribute) GetDataSource(_ context.Context) schemaD.Attribute {
-	var a schemaD.ListNestedAttribute
+func (s ListNestedAttribute) GetDataSource(ctx context.Context) schemaD.Attribute {
+	a := schemaD.ListNestedAttribute{
+		NestedObject: schemaD.NestedAttributeObject{
+			Attributes: s.Attributes.process(ctx, dataSource).(map[string]schemaD.Attribute),
+		},
+	}
 
 	if s.Common != nil {
-		a = schemaD.ListNestedAttribute{
-			Required:            s.Common.Required,
-			Optional:            s.Common.Optional,
-			Computed:            s.Common.Computed,
-			MarkdownDescription: s.Common.MarkdownDescription,
-			Description:         s.Common.Description,
-			DeprecationMessage:  s.Common.DeprecationMessage,
-			Validators:          s.Common.Validators,
-		}
+		a.Required = s.Common.Required
+		a.Optional = s.Common.Optional
+		a.Computed = s.Common.Computed
+		a.Sensitive = s.Common.Sensitive
+		a.MarkdownDescription = s.Common.MarkdownDescription
+		a.Description = s.Common.Description
+		a.DeprecationMessage = s.Common.DeprecationMessage
+		a.Validators = s.Common.Validators
 	}
 
 	if s.DataSource != nil {
@@ -109,6 +120,10 @@ func (s ListNestedAttribute) GetDataSource(_ context.Context) schemaD.Attribute 
 
 		if s.DataSource.Computed {
 			a.Computed = true
+		}
+
+		if s.DataSource.Sensitive {
+			a.Sensitive = true
 		}
 
 		if s.DataSource.MarkdownDescription != "" {

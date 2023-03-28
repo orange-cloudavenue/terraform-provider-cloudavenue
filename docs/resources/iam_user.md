@@ -32,7 +32,7 @@ resource "cloudavenue_iam_user" "example" {
 ### Required
 
 - `name` (String) (ForceNew) The name of the user.
-- `password` (String) The user's password. This value is never returned on read.
+- `password` (String, Sensitive) The user's password. This value is never returned on read.
 - `role_name` (String) The role assigned to the user.
 
 ### Optional
