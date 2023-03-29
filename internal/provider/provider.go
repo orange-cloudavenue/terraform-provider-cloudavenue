@@ -107,7 +107,8 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		// vcda.NewVCDAIPResource,
 
 		// PUBLICIP
-		publicip.NewPublicIPResource,
+		// Bug in the API, we can't delete a public IP. Waiting for a fix.
+		// publicip.NewPublicIPResource,
 
 		// VAPP
 		vapp.NewVappResource,

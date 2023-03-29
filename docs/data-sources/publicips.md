@@ -32,6 +32,8 @@ output "public_ips" {
 
 Read-Only:
 
-- `edge_gateway_name` (String) The name of the edge gateway related to the public ip. This properties is only present for NGP.
-- `id` (String) The public IP address.
+- `edge_gateway_id` (String) The ID of the Edge Gateway.
+- `edge_gateway_name` (String) The name of the Edge Gateway.
+- `id` (String) The ID of the Public IP.
+- `public_ip` (String) The Public IP Address.
 

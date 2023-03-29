@@ -9,31 +9,20 @@ import (
 	"time"
 
 	"github.com/antihax/optional"
-	"github.com/vmware/go-vcloud-director/v2/govcd"
 	"golang.org/x/exp/slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
@@ -57,15 +46,6 @@ type publicIPResource struct {
 	adminOrg adminorg.AdminOrg
 }
 
-type publicIPResourceModel struct {
-	Timeouts timeouts.Value `tfsdk:"timeouts"`
-	ID       types.String   `tfsdk:"id"`
-	PublicIP types.String   `tfsdk:"public_ip"`
-	EdgeName types.String   `tfsdk:"edge_name"`
-	EdgeID   types.String   `tfsdk:"edge_id"`
-	VDC      types.String   `tfsdk:"vdc"`
-}
-
 // Metadata returns the resource type name.
 func (r *publicIPResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
@@ -80,56 +60,7 @@ func (r *publicIPResource) Init(_ context.Context, rm *publicIPResourceModel) (d
 
 // Schema defines the schema for the resource.
 func (r *publicIPResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	// resp.Schema = publicIPSchema().GetResource(ctx)
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The public IP resource allows you to manage a public IP on your Organization.",
-		Attributes: map[string]schema.Attribute{
-			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Create: true,
-				Read:   true,
-				Delete: true,
-			}),
-			"id": schema.StringAttribute{
-				MarkdownDescription: "The ID is the public IP address.",
-				Computed:            true,
-			},
-			"public_ip": schema.StringAttribute{
-				MarkdownDescription: "Public IP address.",
-				Computed:            true,
-			},
-			"edge_name": schema.StringAttribute{
-				MarkdownDescription: "The name of the Edge Gateway.",
-				Optional:            true,
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("vdc"), path.MatchRoot("edge_id")),
-				},
-			},
-			"edge_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the Edge Gateway.",
-				Optional:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("edge_name"), path.MatchRoot("vdc")),
-				},
-			},
-			"vdc": schema.StringAttribute{
-				MarkdownDescription: "Public IP is natted toward the INET VDC Edge in the specified VDC Name. This parameter helps to find target VDC Edge in case of multiples INET VDC Edges with same names",
-				Optional:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("edge_name"), path.MatchRoot("edge_id")),
-				},
-			},
-		},
-	}
+	resp.Schema = publicIPSchema().GetResource(ctx)
 }
 
 func (r *publicIPResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -156,12 +87,11 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	plan := &publicIPResourceModel{}
 
 	var (
-		edgeGateway            *govcd.NsxtEdgeGateway
+		edgeGateway            edgegw.EdgeGateway
 		findIPNotAlreadyExists func(IPs apiclient.PublicIps) (interface{}, error)
 	)
 
-	diags := req.Plan.Get(ctx, plan)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -197,9 +127,9 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
 
-	edgeGateway, err := r.adminOrg.GetEdgeGateway(edgegw.EdgeGW{
-		Name: plan.EdgeName,
-		ID:   plan.EdgeID,
+	edgeGateway, err := r.adminOrg.GetEdgeGateway(edgegw.BaseEdgeGW{
+		Name: plan.EdgeGatewayName,
+		ID:   plan.EdgeGatewayID,
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("Error getting Edge Gateway", err.Error())
@@ -207,43 +137,14 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	body := apiclient.PublicIPApiCreatePublicIPOpts{
-		XNattedIP:    optional.NewString(plan.PublicIP.ValueString()),
-		XVDCEdgeName: optional.NewString(edgeGateway.EdgeGateway.Name),
+		XNattedIP:    optional.EmptyString(),
+		XVDCEdgeName: optional.NewString(edgeGateway.GetName()),
 		XVDCName:     optional.EmptyString(),
 	}
-
-	// if edge_id is provided, get edge_name
-	if !plan.EdgeID.IsNull() {
-		// Get Edge Gateway Name
-		edgeGateway, httpR, err := r.client.APIClient.EdgeGatewaysApi.GetEdgeById(auth, common.ExtractUUID(plan.EdgeID.ValueString()))
-		if httpR != nil {
-			defer func() {
-				err = errors.Join(err, httpR.Body.Close())
-			}()
-		}
-
-		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-			return
-		}
-
-		plan.EdgeName = types.StringValue(edgeGateway.EdgeName)
-		body.XVDCEdgeName = optional.NewString(plan.EdgeName.ValueString())
-		body.XVDCName = optional.EmptyString()
-	}
-
-	// if vdc is provided
-	if !plan.VDC.IsNull() {
-		body.XVDCName = optional.NewString(plan.VDC.ValueString())
-		body.XVDCEdgeName = optional.EmptyString()
-	}
-
-	body.XNattedIP = optional.EmptyString()
 
 	// Create new Public IP
 	// Set vars
 	var (
-		err     error
 		job     apiclient.Jobcreated
 		httpR   *http.Response
 		knowIPs []apiclient.PublicIpsNetworkConfig
@@ -252,7 +153,6 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	// Store existing Public IP
 	// Get Public IP
 	publicIPs, httpR, err := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
-
 	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
@@ -293,7 +193,6 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	job, httpR, err = r.client.APIClient.PublicIPApi.CreatePublicIP(auth, &body)
-
 	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
@@ -343,32 +242,33 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	}
 	var publicIP apiclient.PublicIps
 	publicIP.NetworkConfig = append(publicIP.NetworkConfig, pubIP.(apiclient.PublicIpsNetworkConfig))
-
 	if len(publicIP.NetworkConfig) == 0 {
 		resp.Diagnostics.AddError(
 			"Error creating Public IP",
-			"Could not create Public IP, unexpected error: no public IP find after creation",
+			"Could not create Public IP, unexpected error: no public IP found after creation",
 		)
 		return
 	}
+
 	plan.ID = types.StringValue(publicIP.NetworkConfig[0].UplinkIp)
-	plan.EdgeName = types.StringValue(publicIP.NetworkConfig[0].EdgeGatewayName)
+	plan.EdgeGatewayID = types.StringValue(edgeGateway.GetID())
+	plan.EdgeGatewayName = types.StringValue(edgeGateway.GetName())
 	plan.PublicIP = types.StringValue(publicIP.NetworkConfig[0].UplinkIp)
 
 	// Set state to fully populated data
-	diags = resp.State.Set(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (r *publicIPResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	// Get current state
-	var state *publicIPResourceModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+	state := &publicIPResourceModel{}
+
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -410,7 +310,7 @@ func (r *publicIPResource) Read(ctx context.Context, req resource.ReadRequest, r
 	found := false
 	for _, ip := range publicIPs.NetworkConfig {
 		if state.ID.Equal(types.StringValue(ip.UplinkIp)) {
-			state.EdgeName = types.StringValue(ip.EdgeGatewayName)
+			state.EdgeGatewayName = types.StringValue(ip.EdgeGatewayName)
 			state.PublicIP = types.StringValue(ip.UplinkIp)
 
 			found = true
@@ -423,9 +323,21 @@ func (r *publicIPResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
+	edgeGateway, err := r.adminOrg.GetEdgeGateway(edgegw.BaseEdgeGW{
+		Name: state.EdgeGatewayName,
+	})
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error getting Edge Gateway",
+			fmt.Sprintf("Could not get Edge Gateway, unexpected error: %s", err),
+		)
+		return
+	}
+
+	state.EdgeGatewayID = types.StringValue(edgeGateway.GetID())
+
 	// Set refreshed state
-	diags = resp.State.Set(ctxTO, &state)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(resp.State.Set(ctxTO, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -437,10 +349,13 @@ func (r *publicIPResource) Update(ctx context.Context, req resource.UpdateReques
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// Get current state
-	var state *publicIPResourceModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	state := &publicIPResourceModel{}
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
