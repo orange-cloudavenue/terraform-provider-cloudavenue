@@ -6,10 +6,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+
+	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"

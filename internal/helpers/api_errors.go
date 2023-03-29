@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go"
 )
 

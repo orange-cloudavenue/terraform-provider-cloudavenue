@@ -1,12 +1,14 @@
 package diskparams
 
 import (
+	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 )
 
 const busNumberDescription = "The number of the controller itself."

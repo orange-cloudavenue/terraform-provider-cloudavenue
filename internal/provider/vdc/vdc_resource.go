@@ -8,13 +8,16 @@ import (
 	"net/http"
 	"time"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
-	"golang.org/x/exp/slices"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
