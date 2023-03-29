@@ -33,6 +33,7 @@ func (s ListAttribute) GetResource(_ context.Context) schemaR.Attribute {
 			Required:            s.Common.Required,
 			Optional:            s.Common.Optional,
 			Computed:            s.Common.Computed,
+			Sensitive:           s.Common.Sensitive,
 			MarkdownDescription: s.Common.MarkdownDescription,
 			Description:         s.Common.Description,
 			DeprecationMessage:  s.Common.DeprecationMessage,
@@ -54,6 +55,10 @@ func (s ListAttribute) GetResource(_ context.Context) schemaR.Attribute {
 
 		if s.Resource.Computed {
 			a.Computed = true
+		}
+
+		if s.Resource.Sensitive {
+			a.Sensitive = true
 		}
 
 		if s.Resource.MarkdownDescription != "" {
@@ -96,6 +101,7 @@ func (s ListAttribute) GetDataSource(_ context.Context) schemaD.Attribute {
 			Required:            s.Common.Required,
 			Optional:            s.Common.Optional,
 			Computed:            s.Common.Computed,
+			Sensitive:           s.Common.Sensitive,
 			MarkdownDescription: s.Common.MarkdownDescription,
 			Description:         s.Common.Description,
 			DeprecationMessage:  s.Common.DeprecationMessage,
@@ -115,6 +121,10 @@ func (s ListAttribute) GetDataSource(_ context.Context) schemaD.Attribute {
 
 		if s.DataSource.Computed {
 			a.Computed = true
+		}
+
+		if s.DataSource.Sensitive {
+			a.Sensitive = true
 		}
 
 		if s.DataSource.MarkdownDescription != "" {

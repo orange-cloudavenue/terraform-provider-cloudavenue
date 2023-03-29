@@ -1,4 +1,4 @@
-package superschema //nolint:dupl
+package superschema
 
 import (
 	"context"
@@ -25,6 +25,7 @@ func (s BoolAttribute) IsDataSource() bool {
 	return s.DataSource != nil || s.Common != nil
 }
 
+//nolint:dupl
 func (s BoolAttribute) GetResource(_ context.Context) schemaR.Attribute {
 	var a schemaR.BoolAttribute
 
@@ -33,6 +34,7 @@ func (s BoolAttribute) GetResource(_ context.Context) schemaR.Attribute {
 			Required:            s.Common.Required,
 			Optional:            s.Common.Optional,
 			Computed:            s.Common.Computed,
+			Sensitive:           s.Common.Sensitive,
 			MarkdownDescription: s.Common.MarkdownDescription,
 			Description:         s.Common.Description,
 			DeprecationMessage:  s.Common.DeprecationMessage,
@@ -53,6 +55,10 @@ func (s BoolAttribute) GetResource(_ context.Context) schemaR.Attribute {
 
 		if s.Resource.Computed {
 			a.Computed = true
+		}
+
+		if s.Resource.Sensitive {
+			a.Sensitive = true
 		}
 
 		if s.Resource.MarkdownDescription != "" {
@@ -109,6 +115,10 @@ func (s BoolAttribute) GetDataSource(_ context.Context) schemaD.Attribute {
 
 		if s.DataSource.Computed {
 			a.Computed = true
+		}
+
+		if s.DataSource.Sensitive {
+			a.Sensitive = true
 		}
 
 		if s.DataSource.MarkdownDescription != "" {

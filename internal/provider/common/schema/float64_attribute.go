@@ -7,46 +7,41 @@ import (
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
-var _ Attribute = SetNestedAttribute{}
+var _ Attribute = Float64Attribute{}
 
-type SetNestedAttribute struct {
-	Common     *schemaR.SetNestedAttribute
-	Resource   *schemaR.SetNestedAttribute
-	DataSource *schemaD.SetNestedAttribute
-	Attributes Attributes
+type Float64Attribute struct {
+	Common     *schemaR.Float64Attribute
+	Resource   *schemaR.Float64Attribute
+	DataSource *schemaD.Float64Attribute
 }
 
 // IsResource returns true if the attribute is a resource attribute.
-func (s SetNestedAttribute) IsResource() bool {
+func (s Float64Attribute) IsResource() bool {
 	return s.Resource != nil || s.Common != nil
 }
 
 // IsDataSource returns true if the attribute is a data source attribute.
-func (s SetNestedAttribute) IsDataSource() bool {
+func (s Float64Attribute) IsDataSource() bool {
 	return s.DataSource != nil || s.Common != nil
 }
 
-func (s SetNestedAttribute) GetResource(ctx context.Context) schemaR.Attribute {
-	a := schemaR.SetNestedAttribute{
-		NestedObject: schemaR.NestedAttributeObject{
-			Attributes: s.Attributes.process(ctx, resource).(map[string]schemaR.Attribute),
-		},
-	}
+func (s Float64Attribute) GetResource(_ context.Context) schemaR.Attribute {
+	var a schemaR.Float64Attribute
 
 	if s.Common != nil {
-		a.Required = s.Common.Required
-		a.Optional = s.Common.Optional
-		a.Computed = s.Common.Computed
-		a.Sensitive = s.Common.Sensitive
-		a.MarkdownDescription = s.Common.MarkdownDescription
-		a.Description = s.Common.Description
-		a.DeprecationMessage = s.Common.DeprecationMessage
-		a.Validators = s.Common.Validators
-		a.PlanModifiers = s.Common.PlanModifiers
-		a.Default = s.Common.Default
+		a = schemaR.Float64Attribute{
+			Required:            s.Common.Required,
+			Optional:            s.Common.Optional,
+			Computed:            s.Common.Computed,
+			MarkdownDescription: s.Common.MarkdownDescription,
+			Description:         s.Common.Description,
+			DeprecationMessage:  s.Common.DeprecationMessage,
+			Validators:          s.Common.Validators,
+			PlanModifiers:       s.Common.PlanModifiers,
+			Default:             s.Common.Default,
+		}
 	}
 
-	//nolint:dupl
 	if s.Resource != nil {
 		if s.Resource.Required {
 			a.Required = true
@@ -58,10 +53,6 @@ func (s SetNestedAttribute) GetResource(ctx context.Context) schemaR.Attribute {
 
 		if s.Resource.Computed {
 			a.Computed = true
-		}
-
-		if s.Resource.Sensitive {
-			a.Sensitive = true
 		}
 
 		if s.Resource.MarkdownDescription != "" {
@@ -92,22 +83,19 @@ func (s SetNestedAttribute) GetResource(ctx context.Context) schemaR.Attribute {
 	return a
 }
 
-func (s SetNestedAttribute) GetDataSource(ctx context.Context) schemaD.Attribute {
-	a := schemaD.SetNestedAttribute{
-		NestedObject: schemaD.NestedAttributeObject{
-			Attributes: s.Attributes.process(ctx, dataSource).(map[string]schemaD.Attribute),
-		},
-	}
+func (s Float64Attribute) GetDataSource(_ context.Context) schemaD.Attribute {
+	var a schemaD.Float64Attribute
 
 	if s.Common != nil {
-		a.Required = s.Common.Required
-		a.Optional = s.Common.Optional
-		a.Computed = s.Common.Computed
-		a.Sensitive = s.Common.Sensitive
-		a.MarkdownDescription = s.Common.MarkdownDescription
-		a.Description = s.Common.Description
-		a.DeprecationMessage = s.Common.DeprecationMessage
-		a.Validators = s.Common.Validators
+		a = schemaD.Float64Attribute{
+			Required:            s.Common.Required,
+			Optional:            s.Common.Optional,
+			Computed:            s.Common.Computed,
+			MarkdownDescription: s.Common.MarkdownDescription,
+			Description:         s.Common.Description,
+			DeprecationMessage:  s.Common.DeprecationMessage,
+			Validators:          s.Common.Validators,
+		}
 	}
 
 	if s.DataSource != nil {
@@ -121,10 +109,6 @@ func (s SetNestedAttribute) GetDataSource(ctx context.Context) schemaD.Attribute
 
 		if s.DataSource.Computed {
 			a.Computed = true
-		}
-
-		if s.DataSource.Sensitive {
-			a.Sensitive = true
 		}
 
 		if s.DataSource.MarkdownDescription != "" {

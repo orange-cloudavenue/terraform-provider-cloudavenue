@@ -44,7 +44,7 @@ func (d *vdcsDataSource) Metadata(ctx context.Context, req datasource.MetadataRe
 
 func (d *vdcsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "List all VDC inside an Organization.",
+		MarkdownDescription: "List all vDC inside an Organization.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

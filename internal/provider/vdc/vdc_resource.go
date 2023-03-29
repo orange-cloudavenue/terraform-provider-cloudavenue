@@ -8,17 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -48,22 +39,6 @@ type vdcResource struct {
 	client *client.CloudAvenue
 }
 
-type vdcResourceModel struct {
-	Timeouts               timeouts.Value           `tfsdk:"timeouts"`
-	ID                     types.String             `tfsdk:"id"`
-	Name                   types.String             `tfsdk:"name"`
-	Description            types.String             `tfsdk:"description"`
-	VDCServiceClass        types.String             `tfsdk:"service_class"`
-	VDCDisponibilityClass  types.String             `tfsdk:"disponibility_class"`
-	VDCBillingModel        types.String             `tfsdk:"billing_model"`
-	VcpuInMhz2             types.Float64            `tfsdk:"cpu_speed_in_mhz"`
-	CPUAllocated           types.Float64            `tfsdk:"cpu_allocated"`
-	MemoryAllocated        types.Float64            `tfsdk:"memory_allocated"`
-	VDCStorageBillingModel types.String             `tfsdk:"storage_billing_model"`
-	VDCStorageProfiles     []vdcStorageProfileModel `tfsdk:"storage_profiles"`
-	VDCGroup               types.String             `tfsdk:"vdc_group"`
-}
-
 // Metadata returns the resource type name.
 func (r *vdcResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
@@ -71,132 +46,7 @@ func (r *vdcResource) Metadata(_ context.Context, req resource.MetadataRequest, 
 
 // Schema defines the schema for the resource.
 func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a Cloud Avenue Organization vDC resource. This can be used to create, update and delete an Organization VDC.\n\n" +
-			" -> Note: For more information about Organization vDC, please refer to the [Cloud Avenue documentation](https://wiki.cloudavenue.orange-business.com/w/index.php/Datacenter_virtuel).",
-		Attributes: map[string]schema.Attribute{
-			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Create: true,
-				Read:   true,
-				Delete: true,
-				Update: true,
-			}),
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The ID of the vDC.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				Required: true,
-				MarkdownDescription: "(ForceNew) The name of the org vDC. It must be unique in the organization.\n" +
-					"The length must be between 2 and 27 characters.\n" +
-					helpers.ForceNewDescription,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(2, 27),
-				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"description": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The description of the org vDC.",
-			},
-			"cpu_speed_in_mhz": schema.Float64Attribute{
-				Required: true,
-				MarkdownDescription: "Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM.\n" +
-					"It must be at least 1200.",
-				Validators: []validator.Float64{
-					float64validator.AtLeast(1200),
-				},
-			},
-			"cpu_allocated": schema.Float64Attribute{
-				Required: true,
-				MarkdownDescription: "CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.\n" +
-					"It must be at least 5 * `cpu_speed_in_mhz`.\n\n" +
-					" -> Note: Reserved capacity is automatically set according to the service class.",
-			},
-			"memory_allocated": schema.Float64Attribute{
-				Required: true,
-				MarkdownDescription: "Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode.\n" +
-					"It must be between 1 and 5000.",
-				Validators: []validator.Float64{
-					float64validator.AtLeast(1),
-					float64validator.AtMost(5000),
-				},
-			},
-			"vdc_group": schema.StringAttribute{
-				Required: true,
-				MarkdownDescription: "(ForceNew) Name of an existing vDC group or a new one. This allows you to isolate your vDC.\n" +
-					"VMs of vDCs which belong to the same vDC group can communicate together.\n" +
-					helpers.ForceNewDescription,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"service_class": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The service class of the org vDC. It can be `ECO`, `STD`, `HP` or `VOIP`.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("ECO", "STD", "HP", "VOIP"),
-				},
-			},
-			"disponibility_class": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The disponibility class of the org vDC. It can be `ONE-ROOM`, `DUAL-ROOM` or `HA-DUAL-ROOM`.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("ONE-ROOM", "DUAL-ROOM", "HA-DUAL-ROOM"),
-				},
-			},
-			"billing_model": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Choose Billing model of compute resources. It can be `PAYG`, `DRAAS` or `RESERVED`.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("PAYG", "DRAAS", "RESERVED"),
-				},
-			},
-			"storage_billing_model": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Choose Billing model of storage resources. It can be `PAYG` or `RESERVED`.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("PAYG", "RESERVED"),
-				},
-			},
-			"storage_profiles": schema.SetNestedAttribute{
-				Required:            true,
-				MarkdownDescription: "List of storage profiles for this vDC.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"class": schema.StringAttribute{
-							Required: true,
-							MarkdownDescription: "The storage class of the storage profile.\n" +
-								"It can be `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.",
-							Validators: []validator.String{
-								stringvalidator.OneOf("silver", "silver_r1", "silver_r2", "gold", "gold_r1", "gold_r2", "gold_hm", "platinum3k", "platinum3k_r1", "platinum3k_r2", "platinum3k_hm", "platinum7k", "platinum7k_r1", "platinum7k_r2", "platinum7k_hm"),
-							},
-						},
-						"limit": schema.Int64Attribute{
-							Required:            true,
-							MarkdownDescription: "Max number of units allocated for this storage profile. In Gb. It must be between 500 and 10000.",
-							Validators: []validator.Int64{
-								int64validator.AtLeast(500),
-								int64validator.AtMost(10000),
-							},
-						},
-						"default": schema.BoolAttribute{
-							Required:            true,
-							MarkdownDescription: "Set this storage profile as default for this vDC. Only one storage profile can be default per vDC.",
-						},
-					},
-				},
-				Validators: []validator.Set{
-					setvalidator.SizeAtLeast(1),
-				},
-			},
-		},
-	}
+	resp.Schema = vdcSchema().GetResource(ctx)
 }
 
 // Configure configures the resource.
