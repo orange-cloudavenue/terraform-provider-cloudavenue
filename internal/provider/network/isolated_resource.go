@@ -97,7 +97,7 @@ func (r *networkIsolatedResource) Init(_ context.Context, rm *networkIsolatedRes
 
 // Schema defines the schema for the resource.
 func (r *networkIsolatedResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = network.GetSchema(network.SetIsolated()).GetResource()
+	resp.Schema = network.GetSchema(network.SetIsolated()).GetResource(ctx)
 }
 
 func (r *networkIsolatedResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

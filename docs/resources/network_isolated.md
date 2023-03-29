@@ -2,12 +2,12 @@
 page_title: "cloudavenue_network_isolated Resource - cloudavenue"
 subcategory: "Network"
 description: |-
-  Provides a Cloud Avenue Org VDC isolated Network. This can be used to create, modify, and delete isolated VDC networks
+  Provides a Cloud Avenue VDC isolated Network This can be used to create, modify, and delete VDC isolated networks.
 ---
 
 # cloudavenue_network_isolated (Resource)
 
-Provides a Cloud Avenue Org VDC isolated Network. This can be used to create, modify, and delete isolated VDC networks
+Provides a Cloud Avenue VDC isolated Network This can be used to create, modify, and delete VDC isolated networks.
 
 ## Example Usage
 
@@ -42,9 +42,9 @@ resource "cloudavenue_network_isolated" "example" {
 
 ### Required
 
-- `gateway` (String) (Force replacement) The gateway IP address for the network. This value define also the network IP range with the prefix length.
+- `gateway` (String) The gateway IP address for the network. This value define also the network IP range with the prefix length.
 - `name` (String) The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.
-- `prefix_length` (Number) (Force replacement) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. /24 for netmask 255.255.255.0)
+- `prefix_length` (Number) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. /24 for netmask 255.255.255.0)
 
 ### Optional
 

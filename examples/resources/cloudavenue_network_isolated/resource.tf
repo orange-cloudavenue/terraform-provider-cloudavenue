@@ -1,4 +1,5 @@
 resource "cloudavenue_network_isolated" "example" {
+  vdc         = "VDC_Test"
   name        = "rsx-example-isolated-network"
   description = "My isolated Org VDC network"
 

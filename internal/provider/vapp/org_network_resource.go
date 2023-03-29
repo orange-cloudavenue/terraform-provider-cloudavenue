@@ -64,7 +64,7 @@ func (r *orgNetworkResource) Metadata(_ context.Context, req resource.MetadataRe
 
 // Schema defines the schema for the resource.
 func (r *orgNetworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	commonSchema := network.GetSchema(network.SetRoutedVapp()).GetResource()
+	commonSchema := network.GetSchema(network.SetRoutedVapp()).GetResource(ctx)
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Provides a Cloud Avenue isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network.",
 		Attributes: map[string]schema.Attribute{

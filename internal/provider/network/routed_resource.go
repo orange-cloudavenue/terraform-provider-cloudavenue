@@ -62,7 +62,7 @@ func (r *networkRoutedResource) Metadata(_ context.Context, req resource.Metadat
 
 // Schema defines the schema for the resource.
 func (r *networkRoutedResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = network.GetSchema(network.SetRouted()).GetResource()
+	resp.Schema = network.GetSchema(network.SetRouted()).GetResource(ctx)
 }
 
 // Init resource used to initialize the resource.
