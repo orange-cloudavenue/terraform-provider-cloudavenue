@@ -4,8 +4,11 @@ import (
 	fstringplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/stringplanmodifier"
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -85,14 +88,14 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 	}
 
 	//_schema := superschema.Schema{}
-	superschema.Schema{
+	_schema := superschema.Schema{
 		Common: superschema.SchemaDetails{
 			MarkdownDescription: "Provides a Cloud Avenue routed VDC Network ",
 		},
 		Resource: superschema.SchemaDetails{
 			MarkdownDescription: "resource. This can be used to create, modify, and delete routed VDC networks.",
 		},
-		Attributes: map[string]schema.Attribute{
+		Attributes: map[string]superschema.Attribute{
 			"timeouts": &superschema.TimeoutAttribute{
 				Resource: &superschema.ResourceTimeoutAttribute{
 					Create: true,
@@ -102,11 +105,11 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 				},
 			},
 			"id": superschema.StringAttribute{
-				Common: &schemaR.AttributeCommon{
+				Common: &schemaR.StringAttribute{
 					Computed:            true,
 					MarkdownDescription: "The ID of the network.",
 				},
-				Resource: &schemaR.AttributeResource{
+				Resource: &schemaR.StringAttribute{
 					MarkdownDescription: "This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.",
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.UseStateForUnknown(),
@@ -114,26 +117,26 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 				},
 			},
 			"name": superschema.StringAttribute{
-				Common: &schemaR.AttributeCommon{
+				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.",
 				},
-				Resource: &schemaR.AttributeResource{
+				Resource: &schemaR.StringAttribute{
 					Required: true,
 				},
 			},
 			"description": superschema.StringAttribute{
-				Common: &schemaR.AttributeCommon{
+				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "A description of the network.",
 				},
-				Resource: &schemaR.AttributeResource{
+				Resource: &schemaR.StringAttribute{
 					Optional: true,
 				},
 			},
 			"gateway": superschema.StringAttribute{
-				Common: &schemaR.AttributeCommon{
+				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The gateway IP address for the network. This value define also the network IP range with the prefix length.",
 				},
-				Resource: &schemaR.AttributeResource{
+				Resource: &schemaR.StringAttribute{
 					Required: true,
 					Validators: []validator.String{
 						fstringvalidator.IsIP(),
@@ -144,10 +147,10 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 				},
 			},
 			"prefix_length": superschema.Int64Attribute{
-				Common: &schemaR.AttributeCommon{
+				Common: &schemaR.Int64Attribute{
 					MarkdownDescription: "(Force replacement) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. /24 for netmask 255.255.255.0)",
 				},
-				Resource: &schemaR.AttributeResource{
+				Resource: &schemaR.Int64Attribute{
 					Required: true,
 					Validators: []validator.Int64{
 						int64validator.Between(1, 32),
@@ -158,10 +161,10 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 				},
 			},
 			"dns1": superschema.StringAttribute{
-				Common: &schemaR.AttributeCommon{
+				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The primary DNS server IP address for the network.",
 				},
-				Resource: &schemaR.AttributeResource{
+				Resource: &schemaR.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
 						fstringvalidator.IsIP(),
@@ -169,10 +172,10 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 				},
 			},
 			"dns2": superschema.StringAttribute{
-				Common: &schemaR.AttributeCommon{
+				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The secondary DNS server IP address for the network.",
 				},
-				Resource: &schemaR.AttributeResource{
+				Resource: &schemaR.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
 						fstringvalidator.IsIP(),
@@ -180,32 +183,43 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 				},
 			},
 			"dns_suffix": superschema.StringAttribute{
-				Common: &schemaR.AttributeCommon{
+				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The DNS suffix for the network.",
 				},
-				Resource: &schemaR.AttributeResource{
+				Resource: &schemaR.StringAttribute{
 					Optional: true,
 				},
 			},
 			"static_ip_pool": superschema.SetNestedAttribute{
-				Resource: &schemaR.AttributeResource{
+				Common: &schemaR.SetNestedAttribute{
 					Optional:            true,
 					MarkdownDescription: "A set of static IP pools to be used for this network.",
-					NestedObject: schema.NestedAttributeObject{
-						Attributes: map[string]schema.Attribute{
-							"start_address": schema.StringAttribute{
-								Required:            true,
-								MarkdownDescription: "The start address of the IP pool. This value must be a valid IP address in the network IP range.",
-								Validators: []validator.String{
-									fstringvalidator.IsIP(),
-								},
+				},
+				Resource: &schemaR.SetNestedAttribute{
+					Validators: []validator.Set{
+						setvalidator.SizeAtLeast(1),
+					},
+				},
+				Attributes: map[string]superschema.Attribute{
+					"start_address": superschema.StringAttribute{
+						Common: &schemaR.StringAttribute{
+							MarkdownDescription: " The start address of the IP pool. This value must be a valid IP address in the network IP range.",
+						},
+						Resource: &schemaR.StringAttribute{
+							Required: true,
+							Validators: []validator.String{
+								fstringvalidator.IsIP(),
 							},
-							"end_address": schema.StringAttribute{
-								Required:            true,
-								MarkdownDescription: "The end address of the IP pool. This value must be a valid IP address in the network IP range.",
-								Validators: []validator.String{
-									fstringvalidator.IsIP(),
-								},
+						},
+					},
+					"end_address": superschema.StringAttribute{
+						Common: &schemaR.StringAttribute{
+							MarkdownDescription: "The end address of the IP pool. This value must be a valid IP address in the network IP range.",
+						},
+						Resource: &schemaR.StringAttribute{
+							Required: true,
+							Validators: []validator.String{
+								fstringvalidator.IsIP(),
 							},
 						},
 					},
@@ -214,7 +228,7 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 		},
 	}
 
-	switch params.typeNetwork {
+	switch networkSchemaParams.NetworkType {
 	case NAT_ROUTED:
 		// Add routed network specific attributes to the schema
 		_schema.MarkdownDescription = "Provides a Cloud Avenue Org VDC routed Network. This can be used to create, modify, and delete routed VDC networks."
