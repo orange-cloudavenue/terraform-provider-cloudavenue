@@ -5,8 +5,10 @@ import (
 
 	timeoutsD "github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
 	timeoutsR "github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
 var _ Attribute = TimeoutAttribute{}

@@ -1,9 +1,10 @@
 package vapp
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 )

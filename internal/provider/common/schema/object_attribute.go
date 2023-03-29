@@ -3,8 +3,9 @@ package superschema //nolint:dupl
 import (
 	"context"
 
-	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
 var _ Attribute = ObjectAttribute{}
