@@ -3,12 +3,11 @@ package superschema
 import (
 	"context"
 
-	timeoutsD "github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
-	timeoutsR "github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
-	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	timeoutsD "github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
+	timeoutsR "github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 )
 
 var _ Attribute = TimeoutAttribute{}

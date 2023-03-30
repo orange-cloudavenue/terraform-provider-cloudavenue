@@ -3,9 +3,8 @@ package superschema //nolint:dupl
 import (
 	"context"
 
-	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
 var _ Attribute = Int64Attribute{}
