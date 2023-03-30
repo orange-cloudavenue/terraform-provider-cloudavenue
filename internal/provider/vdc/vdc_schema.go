@@ -224,13 +224,16 @@ func vdcSchema() superschema.Schema {
 			},
 			"storage_profiles": superschema.SetNestedAttribute{
 				Common: &schemaR.SetNestedAttribute{
-					Required:            true,
 					MarkdownDescription: "List of storage profiles for this vDC.",
 				},
 				Resource: &schemaR.SetNestedAttribute{
+					Required: true,
 					Validators: []validator.Set{
 						setvalidator.SizeAtLeast(1),
 					},
+				},
+				DataSource: &schemaD.SetNestedAttribute{
+					Computed: true,
 				},
 				Attributes: map[string]superschema.Attribute{
 					"class": superschema.StringAttribute{
