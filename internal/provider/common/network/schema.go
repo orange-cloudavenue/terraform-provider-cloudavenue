@@ -8,16 +8,16 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
-	fstringplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/stringplanmodifier"
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
-	superschema "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/schema"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
@@ -105,7 +105,6 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 					MarkdownDescription: "The ID of the network.",
 				},
 				Resource: &schemaR.StringAttribute{
-					MarkdownDescription: "This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.",
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.UseStateForUnknown(),
 					},
@@ -226,7 +225,7 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 	switch params.typeNetwork {
 	case NAT_ROUTED:
 		// Add routed network specific attributes to the schema
-		_schema.Common.MarkdownDescription = "Provides a Cloud Avenue VDC routed Network "
+		_schema.Common.MarkdownDescription = "Provides a Cloud Avenue VDC routed Network."
 		_schema.Resource.MarkdownDescription = "This can be used to create, modify, and delete VDC routed networks."
 		_schema.Attributes["edge_gateway_id"] = superschema.StringAttribute{
 			Common: &schemaR.StringAttribute{
@@ -263,14 +262,12 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 
 		_schema.Attributes["interface_type"] = superschema.StringAttribute{
 			Common: &schemaR.StringAttribute{
-				MarkdownDescription: "Optional interface type (only for NSX-V networks). One of `INTERNAL` (default), `DISTRIBUTED`, `SUBINTERFACE`",
+				MarkdownDescription: "Optional interface type.",
 			},
 			Resource: &schemaR.StringAttribute{
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					fstringplanmodifier.SetDefault("INTERNAL"),
-				},
+				Default:  stringdefault.StaticString("INTERNAL"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("INTERNAL", "SUBINTERFACE", "DISTRIBUTED"),
 				},
@@ -279,7 +276,7 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 
 	case ISOLATED:
 		// Add isolated network specific attributes to the schema
-		_schema.Common.MarkdownDescription = "Provides a Cloud Avenue VDC isolated Network "
+		_schema.Common.MarkdownDescription = "Provides a Cloud Avenue VDC isolated Network."
 		_schema.Resource.MarkdownDescription = "This can be used to create, modify, and delete VDC isolated networks."
 		_schema.Attributes["vdc"] = vdc.SuperSchema()
 
@@ -288,14 +285,14 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 		delete(_schema.Attributes, "prefix_length")
 		_schema.Attributes["netmask"] = superschema.StringAttribute{
 			Resource: &schemaR.StringAttribute{
-				MarkdownDescription: "The netmask for the network. Default is `255.255.255.0`",
+				MarkdownDescription: "The netmask for the network.",
 				Optional:            true,
 				Computed:            true,
+				Default:             stringdefault.StaticString("255.255.255.0"),
 				Validators: []validator.String{
 					fstringvalidator.IsNetmask(),
 				},
 				PlanModifiers: []planmodifier.String{
-					fstringplanmodifier.SetDefault("255.255.255.0"),
 					stringplanmodifier.RequiresReplace(),
 				},
 			},

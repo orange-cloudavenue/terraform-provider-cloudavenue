@@ -2,12 +2,12 @@
 page_title: "cloudavenue_network_isolated Resource - cloudavenue"
 subcategory: "Network"
 description: |-
-  Provides a Cloud Avenue VDC isolated Network This can be used to create, modify, and delete VDC isolated networks.
+  Provides a Cloud Avenue VDC isolated Network. This can be used to create, modify, and delete VDC isolated networks.
 ---
 
 # cloudavenue_network_isolated (Resource)
 
-Provides a Cloud Avenue VDC isolated Network This can be used to create, modify, and delete VDC isolated networks.
+Provides a Cloud Avenue VDC isolated Network. This can be used to create, modify, and delete VDC isolated networks.
 
 ## Example Usage
 
@@ -42,30 +42,30 @@ resource "cloudavenue_network_isolated" "example" {
 
 ### Required
 
-- `gateway` (String) The gateway IP address for the network. This value define also the network IP range with the prefix length.
+- `gateway` (String) (ForceNew) The gateway IP address for the network. This value define also the network IP range with the prefix length. Must be a valid IP with net.ParseIP.
 - `name` (String) The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.
-- `prefix_length` (Number) The prefix length for the network. This value must be a valid prefix length for the network IP range. (e.g. /24 for netmask 255.255.255.0)
+- `prefix_length` (Number) (ForceNew) The prefix length for the network. This value must be a valid prefix length for the network IP range. (e.g. /24 for netmask 255.255.255.0). Value must be between 1 and 32.
 
 ### Optional
 
 - `description` (String) A description of the network.
-- `dns1` (String) The primary DNS server IP address for the network.
-- `dns2` (String) The secondary DNS server IP address for the network.
+- `dns1` (String) The primary DNS server IP address for the network. Must be a valid IP with net.ParseIP.
+- `dns2` (String) The secondary DNS server IP address for the network. Must be a valid IP with net.ParseIP.
 - `dns_suffix` (String) The DNS suffix for the network.
-- `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. (see [below for nested schema](#nestedatt--static_ip_pool))
+- `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. Set must contain at least 1 elements. (see [below for nested schema](#nestedatt--static_ip_pool))
 - `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 
-- `id` (String) The ID of the network.This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.
+- `id` (String) The ID of the network.
 
 <a id="nestedatt--static_ip_pool"></a>
 ### Nested Schema for `static_ip_pool`
 
 Required:
 
-- `end_address` (String) The end address of the IP pool. This value must be a valid IP address in the network IP range.
-- `start_address` (String) The start address of the IP pool. This value must be a valid IP address in the network IP range.
+- `end_address` (String) The end address of the IP pool. This value must be a valid IP address in the network IP range. Must be a valid IP with net.ParseIP.
+- `start_address` (String) The start address of the IP pool. This value must be a valid IP address in the network IP range. Must be a valid IP with net.ParseIP.
 
 ## Import
 

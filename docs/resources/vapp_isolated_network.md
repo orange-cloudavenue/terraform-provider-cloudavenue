@@ -44,34 +44,34 @@ resource "cloudavenue_vapp_isolated_network" "example" {
 
 ### Required
 
-- `gateway` (String) The gateway IP address for the network. This value define also the network IP range with the prefix length.
+- `gateway` (String) (ForceNew) The gateway IP address for the network. This value define also the network IP range with the prefix length. Must be a valid IP with net.ParseIP.
 - `name` (String) The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.
 
 ### Optional
 
 - `description` (String) A description of the network.
-- `dns1` (String) The primary DNS server IP address for the network.
-- `dns2` (String) The secondary DNS server IP address for the network.
+- `dns1` (String) The primary DNS server IP address for the network. Must be a valid IP with net.ParseIP.
+- `dns2` (String) The secondary DNS server IP address for the network. Must be a valid IP with net.ParseIP.
 - `dns_suffix` (String) The DNS suffix for the network.
 - `guest_vlan_allowed` (Boolean) True if Network allows guest VLAN. Default to `false`.
-- `netmask` (String) The netmask for the network. Default is `255.255.255.0`
+- `netmask` (String) (ForceNew) The netmask for the network. Must be a valid netmask. Value defaults to `255.255.255.0`.
 - `retain_ip_mac_enabled` (Boolean) Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Default to `false`.
-- `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. (see [below for nested schema](#nestedatt--static_ip_pool))
+- `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. Set must contain at least 1 elements. (see [below for nested schema](#nestedatt--static_ip_pool))
 - `vapp_id` (String) (ForceNew) ID of the vApp. Required if `vapp_name` is not set.
 - `vapp_name` (String) (ForceNew) Name of the vApp. Required if `vapp_id` is not set.
 - `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 
-- `id` (String) The ID of the network.This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.
+- `id` (String) The ID of the network.
 
 <a id="nestedatt--static_ip_pool"></a>
 ### Nested Schema for `static_ip_pool`
 
 Required:
 
-- `end_address` (String) The end address of the IP pool. This value must be a valid IP address in the network IP range.
-- `start_address` (String) The start address of the IP pool. This value must be a valid IP address in the network IP range.
+- `end_address` (String) The end address of the IP pool. This value must be a valid IP address in the network IP range. Must be a valid IP with net.ParseIP.
+- `start_address` (String) The start address of the IP pool. This value must be a valid IP address in the network IP range. Must be a valid IP with net.ParseIP.
 
 ## Import
 

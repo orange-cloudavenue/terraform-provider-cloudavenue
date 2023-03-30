@@ -58,7 +58,7 @@ resource "cloudavenue_vapp_org_network" "example" {
 
 ### Required
 
-- `network_name` (String) Organization network name to which vApp network is connected to.
+- `network_name` (String) (ForceNew) Organization network name to which vApp network is connected to.
 
 ### Optional
 
@@ -70,7 +70,7 @@ resource "cloudavenue_vapp_org_network" "example" {
 
 ### Read-Only
 
-- `id` (String) The ID of the network.This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.
+- `id` (String) The ID of the network.
 
 ## Import
 
