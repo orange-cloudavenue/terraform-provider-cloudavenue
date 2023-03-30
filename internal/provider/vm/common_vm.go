@@ -262,7 +262,7 @@ func lookupvAppTemplateforVM(v *Client) (govcd.VAppTemplate, error) {
 func networksToConfig(v *Client, vapp *govcd.VApp) (govcdtypes.NetworkConnectionSection, error) {
 	networkConnectionSection := govcdtypes.NetworkConnectionSection{}
 
-	if v.Plan.Networks.IsNull() {
+	if v.Plan.Networks.IsNull() || v.Plan.Networks.IsUnknown() {
 		return networkConnectionSection, nil
 	}
 
@@ -377,24 +377,19 @@ func isItVappNetwork(vAppNetworkName string, vapp govcd.VApp) (bool, error) {
 }
 
 func lookupStorageProfile(storageProfileName string, vdc *client.VDC) (*govcdtypes.Reference, error) {
-	// If no storage profile lookup was requested - bail out early and return nil reference
 	if storageProfileName == "" {
-		return nil, errors.New("storageProfileName is an empty string")
+		return nil, nil //nolint:nilnil
 	}
 
 	storageProfile, err := vdc.FindStorageProfileReference(storageProfileName)
-	if err != nil {
-		return nil, fmt.Errorf("[vm creation] error retrieving storage profile %s : %w", storageProfileName, err)
-	}
-
-	return &storageProfile, nil
+	return &storageProfile, err
 }
 
 // lookupComputePolicy returns the Compute Policy associated to the value of the given Compute Policy attribute. If the
 // attribute is not set, the returned policy will be nil. If the obtained policy is incorrect, it will return an error.
 func lookupComputePolicy(v *Client, value string) (*govcd.VdcComputePolicyV2, error) {
 	if value == "" {
-		return nil, errors.New("value is an empty string")
+		return nil, nil //nolint:nilnil
 	}
 
 	computePolicy, err := v.Client.Vmware.GetVdcComputePolicyV2ById(value)

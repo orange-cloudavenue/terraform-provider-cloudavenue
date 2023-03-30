@@ -43,7 +43,7 @@ type vmResourceModel struct {
 	VappName       types.String `tfsdk:"vapp_name"`
 	VappTemplateID types.String `tfsdk:"vapp_template_id"`
 
-	VMName           types.String `tfsdk:"vm_name"`
+	VMName           types.String `tfsdk:"name"`
 	VMNameInTemplate types.String `tfsdk:"vm_name_in_template"`
 	ComputerName     types.String `tfsdk:"computer_name"`
 
