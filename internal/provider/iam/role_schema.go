@@ -13,7 +13,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
-	superschema "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/schema"
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
 
 type roleResourceModel struct {
@@ -44,10 +44,10 @@ func roleSchema() superschema.Schema {
 			MarkdownDescription: "The role",
 		},
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: " resource allows you to manage local users in Cloud Avenue.",
+			MarkdownDescription: "resource allows you to manage local users in Cloud Avenue.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: " data source allows you to read users in Cloud Avenue.",
+			MarkdownDescription: "data source allows you to read users in Cloud Avenue.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
@@ -61,9 +61,8 @@ func roleSchema() superschema.Schema {
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " Required if `name` is not set.",
-					Optional:            true,
-					Computed:            true,
+					Optional: true,
+					Computed: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},
@@ -77,9 +76,8 @@ func roleSchema() superschema.Schema {
 					Required: true,
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " Required if `id` is not set.",
-					Optional:            true,
-					Computed:            true,
+					Optional: true,
+					Computed: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},

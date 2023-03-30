@@ -39,13 +39,13 @@ Read-Only:
 
 - `created_at` (String) The creation date of the catalog.
 - `description` (String) The description of the catalog.
-- `id` (String) The ID of the catalog. Required if `name` is not set.
+- `id` (String) The ID of the catalog. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 - `is_cached` (Boolean) Indicates whether the catalog is cached.
 - `is_local` (Boolean) Indicates whether the catalog is local.
 - `is_published` (Boolean) Indicates whether the catalog is published.
 - `is_shared` (Boolean) Indicates whether the catalog is shared.
 - `media_item_list` (List of String) The list of media items in the catalog.
-- `name` (String) The name of the catalog. Required if `id` is not set.
+- `name` (String) The name of the catalog. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 - `number_of_media` (Number) The number of media in the catalog.
 - `owner_name` (String) The owner name of the catalog.
 - `preserve_identity_information` (Boolean) Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Preserving the identity information limits the portability of the package and you should use it only when necessary.

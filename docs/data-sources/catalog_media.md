@@ -24,10 +24,10 @@ data "cloudavenue_catalog_media" "example" {
 
 ### Optional
 
-- `catalog_id` (String) The ID of the catalog. Required if `catalog_name` is not set.
-- `catalog_name` (String) The name of the catalog. Required if `catalog_id` is not set.
-- `id` (String) The ID of the media. Required if `name` is not set.
-- `name` (String) The name of the media. Required if `id` is not set.
+- `catalog_id` (String) The ID of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
+- `catalog_name` (String) The name of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
+- `id` (String) The ID of the media. Ensure that one and only one attribute from this collection is set : `name`, `id`.
+- `name` (String) The name of the media. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 
 ### Read-Only
 

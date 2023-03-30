@@ -22,12 +22,12 @@ data "cloudavenue_iam_role" "example" {
 
 ### Optional
 
-- `id` (String) The ID of the role. Required if `name` is not set.
-- `name` (String) The name of the role. Required if `id` is not set.
+- `id` (String) The ID of the role. Ensure that one and only one attribute from this collection is set : `name`, `id`.
+- `name` (String) The name of the role. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 
 ### Read-Only
 
 - `description` (String) A description of the role.
-- `read_only` (Boolean) Indicates if the role is read only
+- `read_only` (Boolean) Indicates if the role is read only.
 - `rights` (Set of String) A list of rights for the role.
 

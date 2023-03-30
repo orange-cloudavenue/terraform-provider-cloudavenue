@@ -25,8 +25,8 @@ data "cloudavenue_catalog_medias" "example" {
 
 ### Optional
 
-- `catalog_id` (String) The ID of the catalog. Required if `catalog_name` is not set.
-- `catalog_name` (String) The name of the catalog. Required if `catalog_id` is not set.
+- `catalog_id` (String) The ID of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
+- `catalog_name` (String) The name of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
 
 ### Read-Only
 
@@ -39,14 +39,14 @@ data "cloudavenue_catalog_medias" "example" {
 
 Read-Only:
 
-- `catalog_id` (String) The ID of the catalog. Required if `catalog_name` is not set.
-- `catalog_name` (String) The name of the catalog. Required if `catalog_id` is not set.
+- `catalog_id` (String) The ID of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
+- `catalog_name` (String) The name of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
 - `created_at` (String) The date and time when the media was created.
 - `description` (String) The description of the media.
-- `id` (String) The ID of the media. Required if `name` is not set.
+- `id` (String) The ID of the media. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 - `is_iso` (Boolean) `True` if the media is an ISO.
 - `is_published` (Boolean) `True` if the media is published.
-- `name` (String) The name of the media. Required if `id` is not set.
+- `name` (String) The name of the media. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 - `owner_name` (String) The name of the owner of the media.
 - `size` (Number) The size of the media in bytes.
 - `status` (String) The status of the media.

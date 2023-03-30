@@ -15,7 +15,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
-	superschema "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/schema"
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
 
 type userResourceModel struct {
@@ -62,10 +62,10 @@ func userSchema() superschema.Schema {
 			MarkdownDescription: "The user",
 		},
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: " resource allows you to manage local users in Cloud Avenue.",
+			MarkdownDescription: "resource allows you to manage local users in Cloud Avenue.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: " data source allows you to read users in Cloud Avenue.",
+			MarkdownDescription: "data source allows you to read users in Cloud Avenue.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
@@ -79,26 +79,26 @@ func userSchema() superschema.Schema {
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " Required if `name` is not set.",
-					Optional:            true,
-					Computed:            true,
+					Optional: true,
+					Computed: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},
 				},
 			},
 			"name": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The name of the user.",
+				},
 				Resource: &schemaR.StringAttribute{
-					MarkdownDescription: "(ForceNew) The name of the user.",
-					Required:            true,
+					Required: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "The name of the user. Required if `id` is not set.",
-					Optional:            true,
-					Computed:            true,
+					Optional: true,
+					Computed: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},
@@ -150,7 +150,7 @@ func userSchema() superschema.Schema {
 			},
 			"enabled": superschema.BoolAttribute{
 				Common: &schemaR.BoolAttribute{
-					MarkdownDescription: "`true` if the user is enabled and can log in. (Default to `true`)",
+					MarkdownDescription: "`true` if the user is enabled and can log in.",
 				},
 				Resource: &schemaR.BoolAttribute{
 					Optional: true,
@@ -163,7 +163,7 @@ func userSchema() superschema.Schema {
 			},
 			"deployed_vm_quota": superschema.Int64Attribute{
 				Common: &schemaR.Int64Attribute{
-					MarkdownDescription: "Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota. (Default to `0`)",
+					MarkdownDescription: "Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota.",
 				},
 				Resource: &schemaR.Int64Attribute{
 					Optional: true,
@@ -176,7 +176,7 @@ func userSchema() superschema.Schema {
 			},
 			"stored_vm_quota": superschema.Int64Attribute{
 				Common: &schemaR.Int64Attribute{
-					MarkdownDescription: "Quota of vApps that this user can store. A value of `0` specifies an unlimited quota. (Default to `0`)",
+					MarkdownDescription: "Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.",
 				},
 				Resource: &schemaR.Int64Attribute{
 					Optional: true,
@@ -196,7 +196,7 @@ func userSchema() superschema.Schema {
 			},
 			"take_ownership": superschema.BoolAttribute{
 				Resource: &schemaR.BoolAttribute{
-					MarkdownDescription: "`true` if the user should take ownership of all vApps and media that are currently owned by the user that is being deleted. (Default to `true`)",
+					MarkdownDescription: "`true` if the user should take ownership of all vApps and media that are currently owned by the user that is being deleted.",
 					Optional:            true,
 					Computed:            true,
 					Default:             booldefault.StaticBool(true),
@@ -204,7 +204,7 @@ func userSchema() superschema.Schema {
 			},
 			"provider_type": superschema.StringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "Identity provider type for this this user. One of: `INTEGRATED`, `SAML`, `OAUTH`.",
+					MarkdownDescription: "Identity provider type for this this user.",
 					Computed:            true,
 				},
 			},

@@ -35,13 +35,13 @@ resource "cloudavenue_edgegateway" "example_with_group" {
 
 ### Required
 
-- `owner_name` (String) The name of the Edge Gateway owner.Changes to this field will force a new resource to be created.
-- `owner_type` (String) The type of the Edge Gateway owner (vdc|vdc-group).Changes to this field will force a new resource to be created.
-- `tier0_vrf_name` (String) The name of the Tier0 VRF to which the Edge Gateway is attached.Changes to this field will force a new resource to be created.
+- `owner_name` (String) (ForceNew) The name of the Edge Gateway owner.
+- `owner_type` (String) (ForceNew) The type of the Edge Gateway owner. Must be vdc or vdc-group.
+- `tier0_vrf_name` (String) (ForceNew) The name of the Tier0 VRF to which the Edge Gateway is attached.
 
 ### Optional
 
-- `lb_enabled` (Boolean) Load Balancing state on the Edge Gateway. Default to `true`.
+- `lb_enabled` (Boolean) Load Balancing state on the Edge Gateway. Value defaults to `true`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

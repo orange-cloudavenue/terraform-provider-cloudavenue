@@ -46,18 +46,18 @@ resource "cloudavenue_vdc" "example" {
 
 ### Required
 
-- `billing_model` (String) Choose Billing model of compute resources.
-- `cpu_allocated` (Number) CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.
+- `billing_model` (String) Choose Billing model of compute resources. Value must be one of : `PAYG`, `DRAAS`, `RESERVED`.
+- `cpu_allocated` (Number) CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode. 
 
  -> Note: Reserved capacity is automatically set according to the service class.
-- `cpu_speed_in_mhz` (Number) Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM.
-- `disponibility_class` (String) The disponibility class of the vDC.
-- `memory_allocated` (Number) Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode.
-- `name` (String) The name of the vDC.
-- `service_class` (String) The service class of the vDC.
-- `storage_billing_model` (String) Choose Billing model of storage resources.
-- `storage_profiles` (Attributes Set) List of storage profiles for this vDC. (see [below for nested schema](#nestedatt--storage_profiles))
-- `vdc_group` (String) vDC group name.This can be an existing vDC group or a new one. This allows you to isolate your vDC.
+- `cpu_speed_in_mhz` (Number) Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM. Value must be at least 1200.000000.
+- `disponibility_class` (String) The disponibility class of the vDC. Value must be one of : `ONE-ROOM`, `DUAL-ROOM`, `HA-DUAL-ROOM`.
+- `memory_allocated` (Number) Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode. Value must be between 1.000000 and 500.000000.
+- `name` (String) (ForceNew) The name of the vDC. String length must be between 2 and 27.
+- `service_class` (String) The service class of the vDC. Value must be one of : `ECO`, `STD`, `HP`, `VOIP`.
+- `storage_billing_model` (String) Choose Billing model of storage resources. Value must be one of : `PAYG`, `RESERVED`.
+- `storage_profiles` (Attributes Set) List of storage profiles for this vDC. Set must contain at least 1 elements. (see [below for nested schema](#nestedatt--storage_profiles))
+- `vdc_group` (String) (ForceNew) vDC group name. This can be an existing vDC group or a new one. This allows you to isolate your vDC.
 VMs of vDCs which belong to the same vDC group can communicate together.
 
 ### Optional
@@ -74,9 +74,9 @@ VMs of vDCs which belong to the same vDC group can communicate together.
 
 Required:
 
-- `class` (String) The storage class of the storage profile.
+- `class` (String) The storage class of the storage profile. Value must be one of : `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
 - `default` (Boolean) Set this storage profile as default for this vDC. Only one storage profile can be default per vDC.
-- `limit` (Number) Max number in *Gb* of units allocated for this storage profile.
+- `limit` (Number) Max number in *Gb* of units allocated for this storage profile. Value must be between 500 and 10000.
 
 
 <a id="nestedatt--timeouts"></a>

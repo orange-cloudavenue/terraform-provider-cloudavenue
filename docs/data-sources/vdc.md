@@ -28,7 +28,7 @@ output "example" {
 
 ### Required
 
-- `name` (String) The name of the vDC.
+- `name` (String) The name of the vDC. String length must be between 2 and 27.
 
 ### Read-Only
 

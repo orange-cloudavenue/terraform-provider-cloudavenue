@@ -15,7 +15,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
-	superschema "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/schema"
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
 
 type catalogDataSourceModel struct {
@@ -87,10 +87,10 @@ func catalogSchema() superschema.Schema {
 			MarkdownDescription: "The Catalog allows you to",
 		},
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: " manage a catalog in Cloud Avenue.",
+			MarkdownDescription: "manage a catalog in Cloud Avenue.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: " retrieve information about a catalog in Cloud Avenue.",
+			MarkdownDescription: "retrieve information about a catalog in Cloud Avenue.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
@@ -104,9 +104,8 @@ func catalogSchema() superschema.Schema {
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " Required if `name` is not set.",
-					Optional:            true,
-					Computed:            true,
+					Optional: true,
+					Computed: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},
@@ -120,9 +119,8 @@ func catalogSchema() superschema.Schema {
 					Required: true,
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " Required if `id` is not set.",
-					Optional:            true,
-					Computed:            true,
+					Optional: true,
+					Computed: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},

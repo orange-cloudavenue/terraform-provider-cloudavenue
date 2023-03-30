@@ -17,8 +17,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
-	superschema "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/schema"
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
 
 type edgeGatewaysResourceModel struct {
@@ -97,8 +96,7 @@ func edgegwSchema() superschema.Schema {
 					MarkdownDescription: "The name of the Tier0 VRF to which the Edge Gateway is attached.",
 				},
 				Resource: &schemaR.StringAttribute{
-					MarkdownDescription: helpers.ForceNewDescription,
-					Required:            true,
+					Required: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
@@ -109,17 +107,16 @@ func edgegwSchema() superschema.Schema {
 			},
 			"owner_type": &superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The type of the Edge Gateway owner (vdc|vdc-group).",
-				},
-				Resource: &schemaR.StringAttribute{
-					MarkdownDescription: helpers.ForceNewDescription,
-					Required:            true,
+					MarkdownDescription: "The type of the Edge Gateway owner.",
 					Validators: []validator.String{
 						stringvalidator.RegexMatches(
 							regexp.MustCompile(`^(vdc|vdc-group)$`),
 							"must be vdc or vdc-group",
 						),
 					},
+				},
+				Resource: &schemaR.StringAttribute{
+					Required: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
@@ -133,8 +130,7 @@ func edgegwSchema() superschema.Schema {
 					MarkdownDescription: "The name of the Edge Gateway owner.",
 				},
 				Resource: &schemaR.StringAttribute{
-					MarkdownDescription: helpers.ForceNewDescription,
-					Required:            true,
+					Required: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
@@ -160,9 +156,8 @@ func edgegwSchema() superschema.Schema {
 					Computed:            true,
 				},
 				Resource: &schemaR.BoolAttribute{
-					MarkdownDescription: " Default to `true`.",
-					Optional:            true,
-					Default:             booldefault.StaticBool(true),
+					Optional: true,
+					Default:  booldefault.StaticBool(true),
 				},
 			},
 		},

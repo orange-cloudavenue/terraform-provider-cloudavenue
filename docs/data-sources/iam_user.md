@@ -26,17 +26,17 @@ output "example_user_id" {
 
 ### Optional
 
-- `id` (String) The ID of the user. Required if `name` is not set.
-- `name` (String) The name of the user. Required if `id` is not set.
+- `id` (String) The ID of the user. Ensure that one and only one attribute from this collection is set : `name`, `id`.
+- `name` (String) The name of the user. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 
 ### Read-Only
 
-- `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota. (Default to `0`)
+- `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota.
 - `email` (String) The user's email address.
-- `enabled` (Boolean) `true` if the user is enabled and can log in. (Default to `true`)
+- `enabled` (Boolean) `true` if the user is enabled and can log in.
 - `full_name` (String) The user's full name.
-- `provider_type` (String) Identity provider type for this this user. One of: `INTEGRATED`, `SAML`, `OAUTH`.
+- `provider_type` (String) Identity provider type for this this user.
 - `role_name` (String) The role assigned to the user.
-- `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota. (Default to `0`)
+- `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.
 - `telephone` (String) The user's telephone number.
 

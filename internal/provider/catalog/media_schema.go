@@ -16,7 +16,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
-	superschema "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/schema"
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
 
 type catalogMediaDataSourceModel struct {
@@ -83,10 +83,10 @@ func mediaSchema() superschema.Schema {
 			MarkdownDescription: "The Catalog media allows you to",
 		},
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: " manage a media in Cloud Avenue.",
+			MarkdownDescription: "manage a media in Cloud Avenue.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: " retrieve information about a media in Cloud Avenue.",
+			MarkdownDescription: "retrieve information about a media in Cloud Avenue.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
@@ -100,9 +100,8 @@ func mediaSchema() superschema.Schema {
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " Required if `name` is not set.",
-					Optional:            true,
-					Computed:            true,
+					Optional: true,
+					Computed: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},
@@ -113,9 +112,8 @@ func mediaSchema() superschema.Schema {
 					MarkdownDescription: "The ID of the catalog.",
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " Required if `catalog_name` is not set.",
-					Optional:            true,
-					Computed:            true,
+					Optional: true,
+					Computed: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("catalog_name"), path.MatchRoot("catalog_id")),
 					},
@@ -126,9 +124,8 @@ func mediaSchema() superschema.Schema {
 					MarkdownDescription: "The name of the catalog.",
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " Required if `catalog_id` is not set.",
-					Optional:            true,
-					Computed:            true,
+					Optional: true,
+					Computed: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("catalog_name"), path.MatchRoot("catalog_id")),
 					},
@@ -139,9 +136,8 @@ func mediaSchema() superschema.Schema {
 					MarkdownDescription: "The name of the media.",
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " Required if `id` is not set.",
-					Optional:            true,
-					Computed:            true,
+					Optional: true,
+					Computed: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},
@@ -149,7 +145,7 @@ func mediaSchema() superschema.Schema {
 			},
 			"description": superschema.StringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " The description of the media.",
+					MarkdownDescription: "The description of the media.",
 					Computed:            true,
 				},
 			},
@@ -161,7 +157,7 @@ func mediaSchema() superschema.Schema {
 			},
 			"owner_name": superschema.StringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " The name of the owner of the media.",
+					MarkdownDescription: "The name of the owner of the media.",
 					Computed:            true,
 				},
 			},
@@ -173,25 +169,25 @@ func mediaSchema() superschema.Schema {
 			},
 			"created_at": superschema.StringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " The date and time when the media was created.",
+					MarkdownDescription: "The date and time when the media was created.",
 					Computed:            true,
 				},
 			},
 			"size": superschema.Int64Attribute{
 				DataSource: &schemaD.Int64Attribute{
-					MarkdownDescription: " The size of the media in bytes.",
+					MarkdownDescription: "The size of the media in bytes.",
 					Computed:            true,
 				},
 			},
 			"status": superschema.StringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " The status of the media.",
+					MarkdownDescription: "The status of the media.",
 					Computed:            true,
 				},
 			},
 			"storage_profile": superschema.StringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " The storage profile of the media.",
+					MarkdownDescription: "The storage profile of the media.",
 					Computed:            true,
 				},
 			},

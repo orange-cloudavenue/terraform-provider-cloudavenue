@@ -23,8 +23,8 @@ data "cloudavenue_catalog_vapp_template" "example" {
 
 ### Optional
 
-- `catalog_id` (String) The ID of the catalog. Required if `catalog_name` is not set.
-- `catalog_name` (String) The name of the catalog. Required if `catalog_id` is not set.
+- `catalog_id` (String) The ID of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
+- `catalog_name` (String) The name of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
 - `template_id` (String) ID of the vApp Template. Required if `template_name` is not set.
 - `template_name` (String) Name of the vApp Template. Required if `template_id` is not set.
 
