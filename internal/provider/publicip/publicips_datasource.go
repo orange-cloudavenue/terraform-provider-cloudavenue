@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -13,6 +14,8 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -27,7 +30,8 @@ func NewPublicIPDataSource() datasource.DataSource {
 }
 
 type publicIPDataSource struct {
-	client *client.CloudAvenue
+	client   *client.CloudAvenue
+	adminOrg adminorg.AdminOrg
 }
 
 type publicIPDataSourceModel struct {
@@ -37,7 +41,16 @@ type publicIPDataSourceModel struct {
 
 type publicIPNetworkConfigModel struct {
 	ID              types.String `tfsdk:"id"`
+	PublicIP        types.String `tfsdk:"public_ip"`
 	EdgeGatewayName types.String `tfsdk:"edge_gateway_name"`
+	EdgeGatewayID   types.String `tfsdk:"edge_gateway_id"`
+}
+
+// Init.
+func (d *publicIPDataSource) Init(_ context.Context, rm *publicIPDataSourceModel) (diags diag.Diagnostics) {
+	d.adminOrg, diags = adminorg.Init(d.client)
+
+	return
 }
 
 func (d *publicIPDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -57,14 +70,10 @@ func (d *publicIPDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							MarkdownDescription: "The public IP address.",
-							Computed:            true,
-						},
-						"edge_gateway_name": schema.StringAttribute{
-							MarkdownDescription: "The name of the edge gateway related to the public ip. This properties is only present for NGP.",
-							Computed:            true,
-						},
+						"id":                publicIPSchema().GetDataSource(ctx).Attributes["id"],
+						"public_ip":         publicIPSchema().GetDataSource(ctx).Attributes["public_ip"],
+						"edge_gateway_name": publicIPSchema().GetDataSource(ctx).Attributes["edge_gateway_name"],
+						"edge_gateway_id":   publicIPSchema().GetDataSource(ctx).Attributes["edge_gateway_id"],
 					},
 				},
 			},
@@ -93,17 +102,20 @@ func (d *publicIPDataSource) Configure(ctx context.Context, req datasource.Confi
 }
 
 func (d *publicIPDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data publicIPDataSourceModel
+	data := &publicIPDataSourceModel{}
 
 	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
+	resp.Diagnostics.Append(d.Init(ctx, data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	publicIPs, httpR, err := d.client.APIClient.PublicIPApi.GetPublicIPs(d.client.Auth)
-
 	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
@@ -118,18 +130,29 @@ func (d *publicIPDataSource) Read(ctx context.Context, req datasource.ReadReques
 	listOfIps := make([]string, 0)
 
 	for _, cfg := range publicIPs.NetworkConfig {
-		data.PublicIPs = append(data.PublicIPs, publicIPNetworkConfigModel{
-			ID:              types.StringValue(cfg.UplinkIp),
-			EdgeGatewayName: types.StringValue(cfg.EdgeGatewayName),
+		edgeGateway, err := d.adminOrg.GetEdgeGateway(edgegw.BaseEdgeGW{
+			Name: types.StringValue(cfg.EdgeGatewayName),
 		})
+		if err != nil {
+			resp.Diagnostics.AddError("Error while getting edge gateway", err.Error())
+			return
+		}
 
+		x := publicIPNetworkConfigModel{
+			ID:              types.StringValue(cfg.UplinkIp),
+			EdgeGatewayName: types.StringValue(edgeGateway.GetName()),
+			EdgeGatewayID:   types.StringValue(edgeGateway.GetID()),
+			PublicIP:        types.StringValue(cfg.UplinkIp),
+		}
+
+		data.PublicIPs = append(data.PublicIPs, x)
 		listOfIps = append(listOfIps, cfg.UplinkIp)
 	}
 
 	data.ID = utils.GenerateUUID(listOfIps)
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

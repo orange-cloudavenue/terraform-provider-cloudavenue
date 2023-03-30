@@ -50,3 +50,13 @@ func (e BaseEdgeGW) GetIDOrName() string {
 func (e EdgeGateway) GetParent() (client.VDCOrVDCGroupHandler, error) {
 	return e.Client.GetVDCOrVDCGroup(e.EdgeGateway.OwnerRef.Name)
 }
+
+// GetName returns the name of the Edge Gateway.
+func (e EdgeGateway) GetName() string {
+	return e.EdgeGateway.Name
+}
+
+// GetID returns the ID of the Edge Gateway.
+func (e EdgeGateway) GetID() string {
+	return e.EdgeGateway.ID
+}
