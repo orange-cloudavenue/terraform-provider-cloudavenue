@@ -8,16 +8,16 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
-const testAccNetworkIsolatedDataSourceConfig = `
-data "cloudavenue_network_isolated" "example" {
-	  name = "net-isolated"
-	  vdc = "VDC_Test"
+//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../examples -test
+const testAccNetworkRoutedDataSourceConfig = `
+data "cloudavenue_network_routed" "example" {
+	name = "net-routed"
 }
 `
 
-func TestAccNetworkIsolatedDataSource(t *testing.T) {
-	const dataSourceName = "data.cloudavenue_network_isolated.example"
+const dataSourceName = "data.cloudavenue_network_routed.example"
+
+func TestAccNetworkRoutedDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: tests.TestAccProtoV6ProviderFactories,
@@ -25,10 +25,11 @@ func TestAccNetworkIsolatedDataSource(t *testing.T) {
 			// Read testing
 			{
 				// Apply test
-				Config: testAccNetworkIsolatedDataSourceConfig,
+				Config: testAccNetworkRoutedDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "vdc"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "edge_gateway_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "interface_type"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
 				),
 			},

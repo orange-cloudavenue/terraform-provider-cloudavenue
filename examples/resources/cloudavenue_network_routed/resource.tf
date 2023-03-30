@@ -2,7 +2,7 @@ data "cloudavenue_edgegateway" "example" {
   name = "tn01e02ocb0006205spt101"
 }
 
-resource "cloudavenue_network_routed" "example" {
+resource "cloudavenue_network_routed" "examplegroup" {
   name        = "OrgNetExampleOnVDCGroup"
   description = "Org Net Example"
 
