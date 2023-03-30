@@ -6,6 +6,7 @@ testacc:
 	TF_ACC=1 go test ./... -v $(TESTARGS) -timeout 120m
 
 generate:
+	go install github.com/FrangipaneTeam/tf-doc-extractor@latest
 	go generate -run "tf-doc-extractor" ./...
 	# golang 1.20 feature
 	go generate -skip "tf-doc-extractor" ./...

@@ -250,7 +250,7 @@ func (r *aclResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 }
 
-//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -resource
+//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -resource
 func (r *aclResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("vdc"), req, resp)
 }
