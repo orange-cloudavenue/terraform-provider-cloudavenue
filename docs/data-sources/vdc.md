@@ -29,7 +29,6 @@ output "example" {
 ### Required
 
 - `name` (String) The name of the vDC.
-- `storage_profiles` (Attributes Set) List of storage profiles for this vDC. (see [below for nested schema](#nestedatt--storage_profiles))
 
 ### Read-Only
 
@@ -42,6 +41,7 @@ output "example" {
 - `memory_allocated` (Number) Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode.
 - `service_class` (String) The service class of the vDC.
 - `storage_billing_model` (String) Choose Billing model of storage resources.
+- `storage_profiles` (Attributes Set) List of storage profiles for this vDC. (see [below for nested schema](#nestedatt--storage_profiles))
 - `vdc_group` (String) vDC group name.
 
 <a id="nestedatt--storage_profiles"></a>
