@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/alb"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/catalog"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/iam"
@@ -56,6 +57,9 @@ type cloudavenueProviderModel struct {
 // DataSources defines the data sources implemented in the provider.
 func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		// ALB
+		alb.NewAlbPoolDataSource,
+
 		// TIER0
 		tier0.NewTier0VrfsDataSource,
 		tier0.NewTier0VrfDataSource,
