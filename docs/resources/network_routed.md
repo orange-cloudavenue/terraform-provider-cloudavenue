@@ -74,10 +74,9 @@ resource "cloudavenue_network_routed" "example" {
 
 ### Required
 
-- `edge_gateway_id` (String) The ID of the edge gateway in which the routed network should be located.
 - `gateway` (String) The gateway IP address for the network. This value define also the network IP range with the prefix length.
 - `name` (String) The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.
-- `prefix_length` (Number) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. /24 for netmask 255.255.255.0)
+- `prefix_length` (Number) The prefix length for the network. This value must be a valid prefix length for the network IP range. (e.g. /24 for netmask 255.255.255.0)
 
 ### Optional
 
@@ -85,12 +84,14 @@ resource "cloudavenue_network_routed" "example" {
 - `dns1` (String) The primary DNS server IP address for the network.
 - `dns2` (String) The secondary DNS server IP address for the network.
 - `dns_suffix` (String) The DNS suffix for the network.
+- `edge_gateway_id` (String) The ID of the edge gateway in which the routed network should be located.
+- `edge_gateway_name` (String) The name of the edge gateway in which the routed network should be located.
 - `interface_type` (String) Optional interface type (only for NSX-V networks). One of `INTERNAL` (default), `DISTRIBUTED`, `SUBINTERFACE`
 - `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. (see [below for nested schema](#nestedatt--static_ip_pool))
 
 ### Read-Only
 
-- `id` (String) The ID of the network. This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.
+- `id` (String) The ID of the network.This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.
 
 <a id="nestedatt--static_ip_pool"></a>
 ### Nested Schema for `static_ip_pool`

@@ -63,7 +63,7 @@ resource "cloudavenue_vapp_isolated_network" "example" {
 
 ### Read-Only
 
-- `id` (String) The ID of the network. This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.
+- `id` (String) The ID of the network.This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.
 
 <a id="nestedatt--static_ip_pool"></a>
 ### Nested Schema for `static_ip_pool`

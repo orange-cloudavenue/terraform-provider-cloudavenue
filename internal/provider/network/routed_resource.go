@@ -12,11 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -42,17 +44,18 @@ type networkRoutedResource struct {
 }
 
 type networkRoutedResourceModel struct {
-	ID            types.String `tfsdk:"id"`
-	Name          types.String `tfsdk:"name"`
-	Description   types.String `tfsdk:"description"`
-	EdgeGatewayID types.String `tfsdk:"edge_gateway_id"`
-	InterfaceType types.String `tfsdk:"interface_type"`
-	Gateway       types.String `tfsdk:"gateway"`
-	PrefixLength  types.Int64  `tfsdk:"prefix_length"`
-	DNS1          types.String `tfsdk:"dns1"`
-	DNS2          types.String `tfsdk:"dns2"`
-	DNSSuffix     types.String `tfsdk:"dns_suffix"`
-	StaticIPPool  types.Set    `tfsdk:"static_ip_pool"`
+	ID              types.String `tfsdk:"id"`
+	Name            types.String `tfsdk:"name"`
+	Description     types.String `tfsdk:"description"`
+	EdgeGatewayID   types.String `tfsdk:"edge_gateway_id"`
+	EdgegatewayName types.String `tfsdk:"edge_gateway_name"`
+	InterfaceType   types.String `tfsdk:"interface_type"`
+	Gateway         types.String `tfsdk:"gateway"`
+	PrefixLength    types.Int64  `tfsdk:"prefix_length"`
+	DNS1            types.String `tfsdk:"dns1"`
+	DNS2            types.String `tfsdk:"dns2"`
+	DNSSuffix       types.String `tfsdk:"dns_suffix"`
+	StaticIPPool    types.Set    `tfsdk:"static_ip_pool"`
 }
 
 // Metadata returns the resource type name.
@@ -97,12 +100,10 @@ func (r *networkRoutedResource) Configure(ctx context.Context, req resource.Conf
 // Create creates the resource and sets the initial Terraform state.
 func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var (
-		plan *networkRoutedResourceModel
-	)
+	plan := &networkRoutedResourceModel{}
 
 	// Get Plan
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -113,25 +114,23 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	// Get Parent Edge Gateway ID (VDC Group or VDC)
-	parentEdgeGatewayOwnerID, errGet := GetParentEdgeGatewayID(r.org, plan.EdgeGatewayID.ValueString())
-	resp.Diagnostics.Append(errGet)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	if parentEdgeGatewayOwnerID == nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway", "parentEdgeGatewayOwnerID is nil")
+	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+		ID:   plan.EdgeGatewayID,
+		Name: plan.EdgegatewayName,
+	})
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
 		return
 	}
 
-	// Lock the parent Edge Gateway
-	if govcd.OwnerIsVdcGroup(*parentEdgeGatewayOwnerID) {
-		networkMutexKV.KvLock(ctx, *parentEdgeGatewayOwnerID)
-		defer networkMutexKV.KvUnlock(ctx, *parentEdgeGatewayOwnerID)
-	} else {
-		networkMutexKV.KvLock(ctx, plan.EdgeGatewayID.ValueString())
-		defer networkMutexKV.KvUnlock(ctx, plan.EdgeGatewayID.ValueString())
+	vdcOrVDCGroup, err := edgegw.GetParent()
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+		return
 	}
+
+	networkMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer networkMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Set Network
 	orgVDCNetworkConfig, diag := r.SetNetworkAPIObject(ctx, plan)
@@ -149,19 +148,18 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 
 	// Set ID
 	plan.ID = types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID)
+	plan.EdgeGatewayID = types.StringValue(edgegw.EdgeGateway.ID)
+	plan.EdgegatewayName = types.StringValue(edgegw.EdgeGateway.Name)
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state *networkRoutedResourceModel
+	state := &networkRoutedResourceModel{}
 	// Get current state
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -178,6 +176,7 @@ func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadReque
 		if govcd.ContainsNotFound(err) {
 			tflog.Debug(ctx, "Network not found, removing resource from state")
 			resp.State.RemoveResource(ctx)
+			return
 		}
 		resp.Diagnostics.AddError("Error retrieving routing network", err.Error())
 		return
@@ -185,16 +184,17 @@ func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadReque
 
 	// Set Plan updated
 	plan := &networkRoutedResourceModel{
-		ID:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
-		Name:          types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Name),
-		Description:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
-		EdgeGatewayID: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.ID),
-		InterfaceType: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.ConnectionType),
-		Gateway:       types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
-		PrefixLength:  types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
-		DNS1:          types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
-		DNS2:          types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
-		DNSSuffix:     types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
+		ID:              types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
+		Name:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Name),
+		Description:     types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
+		EdgeGatewayID:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.ID),
+		EdgegatewayName: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.Name),
+		InterfaceType:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.ConnectionType),
+		Gateway:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
+		PrefixLength:    types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
+		DNS1:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
+		DNS2:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
+		DNSSuffix:       types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
 	}
 
 	// Set Static IP Pool
@@ -213,18 +213,15 @@ func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadReque
 	resp.Diagnostics.Append(diags...)
 
 	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan *networkRoutedResourceModel
+	plan := &networkRoutedResourceModel{}
 
 	// Get current state
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -236,20 +233,23 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	// Get Parent Edge Gateway ID to define the owner (VDC or VDC Group)
-	parentEdgeGatewayOwnerID, errGet := GetParentEdgeGatewayID(r.org, plan.EdgeGatewayID.ValueString())
-	resp.Diagnostics.Append(errGet)
-	if resp.Diagnostics.HasError() {
+	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+		ID:   plan.EdgeGatewayID,
+		Name: plan.EdgegatewayName,
+	})
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
 		return
 	}
 
-	// Lock parent Edge Gateway
-	if govcd.OwnerIsVdcGroup(*parentEdgeGatewayOwnerID) {
-		networkMutexKV.KvLock(ctx, *parentEdgeGatewayOwnerID)
-		defer networkMutexKV.KvUnlock(ctx, *parentEdgeGatewayOwnerID)
-	} else {
-		networkMutexKV.KvLock(ctx, plan.EdgeGatewayID.ValueString())
-		defer networkMutexKV.KvUnlock(ctx, plan.EdgeGatewayID.ValueString())
+	vdcOrVDCGroup, err := edgegw.GetParent()
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+		return
 	}
+
+	networkMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer networkMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Get current network
 	orgNetwork, err := r.org.GetOpenApiOrgVdcNetworkById(plan.ID.ValueString())
@@ -277,18 +277,15 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state *networkRoutedResourceModel
+	state := &networkRoutedResourceModel{}
 
 	// Get current state
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -300,20 +297,23 @@ func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	// Get Parent Edge Gateway ID to define the owner (VDC or VDC Group)
-	parentEdgeGatewayOwnerID, errGet := GetParentEdgeGatewayID(r.org, state.EdgeGatewayID.ValueString())
-	resp.Diagnostics.Append(errGet)
-	if resp.Diagnostics.HasError() {
+	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+		ID:   state.EdgeGatewayID,
+		Name: state.EdgegatewayName,
+	})
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
 		return
 	}
 
-	// Lock parent Edge Gateway
-	if govcd.OwnerIsVdcGroup(*parentEdgeGatewayOwnerID) {
-		networkMutexKV.KvLock(ctx, *parentEdgeGatewayOwnerID)
-		defer networkMutexKV.KvUnlock(ctx, *parentEdgeGatewayOwnerID)
-	} else {
-		networkMutexKV.KvLock(ctx, state.EdgeGatewayID.ValueString())
-		defer networkMutexKV.KvUnlock(ctx, state.EdgeGatewayID.ValueString())
+	vdcOrVDCGroup, err := edgegw.GetParent()
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+		return
 	}
+
+	networkMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer networkMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Get current network
 	orgNetwork, err := r.org.GetOpenApiOrgVdcNetworkById(state.ID.ValueString())
@@ -321,14 +321,15 @@ func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteR
 		if govcd.ContainsNotFound(err) {
 			tflog.Debug(ctx, "Network not found, removing resource from state")
 			resp.State.RemoveResource(ctx)
+			return
 		}
 		resp.Diagnostics.AddError("Error retrieving routing network", err.Error())
 		return
 	}
+
 	err = orgNetwork.Delete()
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting routing network", err.Error())
-		return
 	}
 }
 
@@ -349,13 +350,8 @@ func (r *networkRoutedResource) ImportState(ctx context.Context, req resource.Im
 	}
 
 	orgNetwork, err := v.GetOpenApiOrgVdcNetworkByName(networkName)
-	if err != nil && !govcd.ContainsNotFound(err) {
+	if err != nil && !govcd.ContainsNotFound(err) || orgNetwork == nil {
 		resp.Diagnostics.AddError("Error retrieving org vdc network by name", err.Error())
-		return
-	}
-
-	if orgNetwork == nil {
-		resp.Diagnostics.AddError("Error retrieving org network by name", err.Error())
 		return
 	}
 
@@ -376,11 +372,24 @@ func (r *networkRoutedResource) SetNetworkAPIObject(ctx context.Context, plan an
 		return nil, d
 	}
 
-	// Get Parent Edge Gateway ID
-	parentEdgeGatewayOwnerID, _ := GetParentEdgeGatewayID(r.org, p.EdgeGatewayID.ValueString())
+	// Get Parent Edge Gateway ID to define the owner (VDC or VDC Group)
+	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+		ID:   p.EdgeGatewayID,
+		Name: p.EdgegatewayName,
+	})
+	if err != nil {
+		d.AddError("Error retrieving Edge Gateway", err.Error())
+		return nil, d
+	}
+
+	vdcOrVDCGroup, err := edgegw.GetParent()
+	if err != nil {
+		d.AddError("Error retrieving Edge Gateway parent", err.Error())
+		return nil, d
+	}
 
 	// Set global resource model
-	rG := network.GlobalResourceModel{
+	return r.network.SetNetworkAPIObject(ctx, network.GlobalResourceModel{
 		ID:                p.ID,
 		Name:              p.Name,
 		Description:       p.Description,
@@ -390,9 +399,8 @@ func (r *networkRoutedResource) SetNetworkAPIObject(ctx context.Context, plan an
 		DNS2:              p.DNS2,
 		DNSSuffix:         p.DNSSuffix,
 		StaticIPPool:      p.StaticIPPool,
-		VDCIDOrVDCGroupID: types.StringValue(*parentEdgeGatewayOwnerID),
+		VDCIDOrVDCGroupID: types.StringValue(vdcOrVDCGroup.GetID()),
 		EdgeGatewayID:     p.EdgeGatewayID,
 		InterfaceType:     p.InterfaceType,
-	}
-	return r.network.SetNetworkAPIObject(ctx, rG)
+	})
 }

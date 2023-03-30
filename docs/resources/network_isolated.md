@@ -44,7 +44,7 @@ resource "cloudavenue_network_isolated" "example" {
 
 - `gateway` (String) The gateway IP address for the network. This value define also the network IP range with the prefix length.
 - `name` (String) The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.
-- `prefix_length` (Number) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. /24 for netmask 255.255.255.0)
+- `prefix_length` (Number) The prefix length for the network. This value must be a valid prefix length for the network IP range. (e.g. /24 for netmask 255.255.255.0)
 
 ### Optional
 
@@ -57,7 +57,7 @@ resource "cloudavenue_network_isolated" "example" {
 
 ### Read-Only
 
-- `id` (String) The ID of the network. This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.
+- `id` (String) The ID of the network.This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.
 
 <a id="nestedatt--static_ip_pool"></a>
 ### Nested Schema for `static_ip_pool`

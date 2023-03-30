@@ -1,16 +1,21 @@
 package network
 
 import (
-	fstringplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/stringplanmodifier"
-	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+
+	fstringplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/stringplanmodifier"
+	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/schema"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
@@ -97,7 +102,7 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 			"id": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					Computed:            true,
-					MarkdownDescription: "The ID of the network. ",
+					MarkdownDescription: "The ID of the network.",
 				},
 				Resource: &schemaR.StringAttribute{
 					MarkdownDescription: "This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.",
@@ -138,7 +143,7 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 			},
 			"prefix_length": superschema.Int64Attribute{
 				Common: &schemaR.Int64Attribute{
-					MarkdownDescription: "The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. /24 for netmask 255.255.255.0)",
+					MarkdownDescription: "The prefix length for the network. This value must be a valid prefix length for the network IP range. (e.g. /24 for netmask 255.255.255.0)",
 				},
 				Resource: &schemaR.Int64Attribute{
 					Required: true,
@@ -193,7 +198,7 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 				Attributes: map[string]superschema.Attribute{
 					"start_address": superschema.StringAttribute{
 						Common: &schemaR.StringAttribute{
-							MarkdownDescription: " The start address of the IP pool. This value must be a valid IP address in the network IP range.",
+							MarkdownDescription: "The start address of the IP pool. This value must be a valid IP address in the network IP range.",
 						},
 						Resource: &schemaR.StringAttribute{
 							Required: true,
@@ -228,13 +233,34 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 				MarkdownDescription: "The ID of the edge gateway in which the routed network should be located.",
 			},
 			Resource: &schemaR.StringAttribute{
-				Required: true,
+				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 					stringplanmodifier.UseStateForUnknown(),
 				},
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
+				},
 			},
 		}
+		_schema.Attributes["edge_gateway_name"] = superschema.StringAttribute{
+			Common: &schemaR.StringAttribute{
+				MarkdownDescription: "The name of the edge gateway in which the routed network should be located.",
+			},
+			Resource: &schemaR.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
+				},
+			},
+		}
+
 		_schema.Attributes["interface_type"] = superschema.StringAttribute{
 			Common: &schemaR.StringAttribute{
 				MarkdownDescription: "Optional interface type (only for NSX-V networks). One of `INTERNAL` (default), `DISTRIBUTED`, `SUBINTERFACE`",
