@@ -126,7 +126,7 @@ func createVM(_ context.Context, v *Client) (vm *govcd.VM, err error) { //nolint
 
 		vm, err = vapp.AddRawVM(vmFromTemplateParams)
 		if err != nil {
-			return nil, errRemoveResource
+			return nil, fmt.Errorf("error creating VM from template: %w", err)
 		}
 	} else {
 		var bootImage *govcdtypes.Media

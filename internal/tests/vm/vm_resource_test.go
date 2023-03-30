@@ -15,7 +15,7 @@ const resourceNameVM = "cloudavenue_vm.example"
 const testAccVMResourceConfigFromVappTemplate = `
 data "cloudavenue_catalog_vapp_template" "example" {
 	catalog_name = "Orange-Linux"
-	vapp_name    = "debian_10_X64"
+	template_name    = "debian_10_X64"
 }
 
 resource "cloudavenue_vapp" "example" {
@@ -24,10 +24,10 @@ resource "cloudavenue_vapp" "example" {
 }
 
 resource "cloudavenue_vm" "example" {
-	vm_name         	= "example-vm"
+	name         	    = "example-vm"
 	description 		= "This is a example vm"
 	accept_all_eulas 	= true
-	vapp_name 			= cloudavenue_vapp.example.vapp_name
+	vapp_name 			= cloudavenue_vapp.example.name
 	vapp_template_id 	= data.cloudavenue_catalog_vapp_template.example.id
 }
 `
@@ -44,7 +44,7 @@ func TestAccVMResource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceNameVM, "id"),
 					resource.TestCheckResourceAttr(resourceNameVM, "vapp_name", "vapp_example"),
-					resource.TestCheckResourceAttr(resourceNameVM, "vm_name", "example-vm"),
+					resource.TestCheckResourceAttr(resourceNameVM, "name", "example-vm"),
 					resource.TestCheckResourceAttr(resourceNameVM, "accept_all_eulas", "true"),
 					resource.TestCheckResourceAttr(resourceNameVM, "expose_hardware_virtualization", "false"),
 					resource.TestCheckResourceAttr(resourceNameVM, "os_type", "debian10_64Guest"),
