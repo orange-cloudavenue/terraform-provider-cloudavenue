@@ -22,8 +22,8 @@ data "cloudavenue_catalog" "example" {
 
 ### Optional
 
-- `id` (String) The ID of the catalog. Required if `name` is not set.
-- `name` (String) The name of the catalog. Required if `id` is not set.
+- `id` (String) The ID of the catalog. Ensure that one and only one attribute from this collection is set : `name`, `id`.
+- `name` (String) The name of the catalog. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 
 ### Read-Only
 

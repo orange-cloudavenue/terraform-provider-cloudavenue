@@ -21,14 +21,14 @@ data "cloudavenue_vm_affinity_rule" "example" {
 
 ### Optional
 
-- `id` (String) The ID of the affinity rule. Required if `name` is not set.
-- `name` (String) VM affinity rule name. Required if `id` is not set.
+- `id` (String) The ID of the affinity rule. Ensure that one and only one attribute from this collection is set : `name`, `id`.
+- `name` (String) VM affinity rule name. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 - `vdc` (String) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 
 - `enabled` (Boolean) `True` if this affinity rule is enabled.
-- `polarity` (String) One of `Affinity`, `Anti-Affinity`
+- `polarity` (String) The polarity of the affinity rule.
 - `required` (Boolean) `True` if this affinity rule is required. When a rule is mandatory, a host failover will not power on the VM if doing so would violate the rule.
 - `vm_ids` (List of String) List of VM IDs associated to the affinity rule.
 

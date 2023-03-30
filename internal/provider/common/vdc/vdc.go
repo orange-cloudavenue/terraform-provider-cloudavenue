@@ -10,8 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	superschema "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/schema"
 )
 
 type VDC struct {
@@ -53,6 +54,9 @@ SuperSchema
 */
 func SuperSchema() superschema.StringAttribute {
 	return superschema.StringAttribute{
+		Common: &schemaR.StringAttribute{
+			MarkdownDescription: "The name of vDC to use, optional if defined at provider level.",
+		},
 		Resource: &schemaR.StringAttribute{
 			Optional: true,
 			Computed: true,
@@ -60,11 +64,9 @@ func SuperSchema() superschema.StringAttribute {
 				stringplanmodifier.UseStateForUnknown(),
 				stringplanmodifier.RequiresReplace(),
 			},
-			MarkdownDescription: "(ForceNew) The name of vDC to use, optional if defined at provider level.",
 		},
 		DataSource: &schemaD.StringAttribute{
-			Optional:            true,
-			MarkdownDescription: "The name of vDC to use, optional if defined at provider level.",
+			Optional: true,
 		},
 	}
 }

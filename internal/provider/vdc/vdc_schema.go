@@ -17,7 +17,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 
-	superschema "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/schema"
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
 
 type vdcDataSourceModel struct {
@@ -261,8 +261,7 @@ func vdcSchema() superschema.Schema {
 						Resource: &schemaR.Int64Attribute{
 							Required: true,
 							Validators: []validator.Int64{
-								int64validator.AtLeast(500),
-								int64validator.AtMost(10000),
+								int64validator.Between(500, 10000),
 							},
 						},
 						DataSource: &schemaD.Int64Attribute{

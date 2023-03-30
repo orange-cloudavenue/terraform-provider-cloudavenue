@@ -1,5 +1,15 @@
 github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.2.1 h1:6GgNcZs0yEp+QmXJX094VGcneHO4O5MFaoDFGgBlPco=
 github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.2.1/go.mod h1:WutXu+VfsQinnCaimRsRaYJMjW/oTaZMJqxl8cElKzc=
+github.com/FrangipaneTeam/terraform-plugin-framework-superschema v0.0.0-20230330093944-9fdac5b6a7fb h1:nkq8A8wLuPuawZtrEEYUuR3aT+ACfEAgTJw2QdzvDEQ=
+github.com/FrangipaneTeam/terraform-plugin-framework-superschema v0.0.0-20230330093944-9fdac5b6a7fb/go.mod h1:jbxSq05WCNHPXtKsCJDAiy1WtmlN8Gpb1mQMPINGXwQ=
+github.com/FrangipaneTeam/terraform-plugin-framework-superschema v0.0.0-20230330114205-5b70824b50d2 h1:LoMOk29FOBPGIHP9F1tbbmM0mubv8Ik/G4vAkf9Gc6A=
+github.com/FrangipaneTeam/terraform-plugin-framework-superschema v0.0.0-20230330114205-5b70824b50d2/go.mod h1:zogs6Y7wbD4dZUd2qvIFIqsIMeFa3kxeAH8CssLro4w=
+github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.0.0 h1:uCpi4he0YxtP38iRlanejmr/7nx3RG9DMLDm8SWVeXA=
+github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.0.0/go.mod h1:zogs6Y7wbD4dZUd2qvIFIqsIMeFa3kxeAH8CssLro4w=
+github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.0.1-0.20230330125010-5f32b9b89a88 h1:XVl2Ab901qWLD6gIBQSSIJxxef9y0wSNabic/uVg5IA=
+github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.0.1-0.20230330125010-5f32b9b89a88/go.mod h1:zogs6Y7wbD4dZUd2qvIFIqsIMeFa3kxeAH8CssLro4w=
+github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.0.1 h1:rxVA/Vq3mc9PlV3NWbdYQ4OcCt1NWFUgD/wCCd31kL4=
+github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.0.1/go.mod h1:zogs6Y7wbD4dZUd2qvIFIqsIMeFa3kxeAH8CssLro4w=
 github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.2.0 h1:BgL2ttP4uHajYO1aHBLpRZVpISTh4qTJP5C0s3zfZLg=
 github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.2.0/go.mod h1:adSDKHqEGbCnCthXGrQl8UurJzX/RO9bod8OeMJ58o8=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
@@ -159,6 +169,8 @@ github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27k
 github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
 github.com/mattn/go-isatty v0.0.17 h1:BTarxUcIeDqL27Mc+vyvdWYSL28zpIhv3RoTdsLMPng=
 github.com/mattn/go-isatty v0.0.17/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
+github.com/mattn/go-isatty v0.0.18 h1:DOKFKCQ7FNG2L1rbrmstDN4QVRdS89Nkh85u68Uwp98=
+github.com/mattn/go-isatty v0.0.18/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-runewidth v0.0.10/go.mod h1:RAqKPSqVFrSLVXbA8x7dzmKdmGzieGRCM46jaSJTDAk=
 github.com/mitchellh/cli v1.1.5 h1:OxRIeJXpAMztws/XHlN2vu6imG5Dpq+j61AzAX5fLng=
 github.com/mitchellh/cli v1.1.5/go.mod h1:v8+iFts2sPIKUV1ltktPXMCC8fumSKFItNcD2cLtRR4=
@@ -220,6 +232,7 @@ github.com/vmihailenco/msgpack v4.0.4+incompatible h1:dSLoQfGFAo3F6OoNhwUmLwVgaU
 github.com/vmihailenco/msgpack v4.0.4+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
 github.com/vmihailenco/msgpack/v5 v5.3.5 h1:5gO0H1iULLWGhs2H5tbAHIZTV8/cYafcFOr9znI5mJU=
 github.com/vmihailenco/msgpack/v5 v5.3.5/go.mod h1:7xyJ9e+0+9SaZT0Wt1RGleJXzli6Q/V5KbhBonMG9jc=
+github.com/vmihailenco/tagparser v0.1.2 h1:gnjoVuB/kljJ5wICEEOpx98oXMWPLj22G67Vbd1qPqc=
 github.com/vmihailenco/tagparser/v2 v2.0.0 h1:y09buUbR+b5aycVFQs/g70pqKVZNBmxwAhO7/IwNM9g=
 github.com/vmihailenco/tagparser/v2 v2.0.0/go.mod h1:Wri+At7QHww0WTrCBeu4J6bNtoV6mEfg5OIWRZA9qds=
 github.com/vmware/go-vcloud-director/v2 v2.19.0 h1:A9p95VLn50dm7JbXqg5q+VmQxu3RxoMH6OD5ZeLK9EQ=

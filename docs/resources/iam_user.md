@@ -37,12 +37,12 @@ resource "cloudavenue_iam_user" "example" {
 
 ### Optional
 
-- `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota. (Default to `0`)
+- `deployed_vm_quota` (Number) Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota. Value defaults to `0`.
 - `email` (String) The user's email address.
-- `enabled` (Boolean) `true` if the user is enabled and can log in. (Default to `true`)
+- `enabled` (Boolean) `true` if the user is enabled and can log in. Value defaults to `true`.
 - `full_name` (String) The user's full name.
-- `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota. (Default to `0`)
-- `take_ownership` (Boolean) `true` if the user should take ownership of all vApps and media that are currently owned by the user that is being deleted. (Default to `true`)
+- `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota. Value defaults to `0`.
+- `take_ownership` (Boolean) `true` if the user should take ownership of all vApps and media that are currently owned by the user that is being deleted. Value defaults to `true`.
 - `telephone` (String) The user's telephone number.
 
 ### Read-Only

@@ -1,8 +1,6 @@
 package vm
 
 import (
-	"fmt"
-
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -19,9 +17,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
-	superschema "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/schema"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
@@ -57,10 +55,10 @@ func vmAffinityRuleSchema() superschema.Schema {
 			MarkdownDescription: "Provides a Cloud Avenue VM Affinity Rule.",
 		},
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: " This can be used to create, modify and delete VM affinity and anti-affinity rules.",
+			MarkdownDescription: "This can be used to create, modify and delete VM affinity and anti-affinity rules.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: " This can be used to read VM affinity and anti-affinity rules.",
+			MarkdownDescription: "This can be used to read VM affinity and anti-affinity rules.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
@@ -74,8 +72,7 @@ func vmAffinityRuleSchema() superschema.Schema {
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " Required if `name` is not set.",
-					Optional:            true,
+					Optional: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},
@@ -90,8 +87,7 @@ func vmAffinityRuleSchema() superschema.Schema {
 					Required: true,
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " Required if `id` is not set.",
-					Optional:            true,
+					Optional: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},
@@ -99,7 +95,7 @@ func vmAffinityRuleSchema() superschema.Schema {
 			},
 			"polarity": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: fmt.Sprintf("One of `%s`, `%s`", govcdtypes.PolarityAffinity, govcdtypes.PolarityAntiAffinity),
+					MarkdownDescription: "The polarity of the affinity rule.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,
@@ -116,7 +112,7 @@ func vmAffinityRuleSchema() superschema.Schema {
 			},
 			"enabled": superschema.BoolAttribute{
 				Resource: &schemaR.BoolAttribute{
-					MarkdownDescription: "`True` if this affinity rule is enabled. Default is `true`.",
+					MarkdownDescription: "`True` if this affinity rule is enabled.",
 					Optional:            true,
 					Computed:            true,
 					Default:             booldefault.StaticBool(true),
@@ -132,10 +128,9 @@ func vmAffinityRuleSchema() superschema.Schema {
 						"a host failover will not power on the VM if doing so would violate the rule.",
 				},
 				Resource: &schemaR.BoolAttribute{
-					MarkdownDescription: " Default is `true`.",
-					Optional:            true,
-					Computed:            true,
-					Default:             booldefault.StaticBool(true),
+					Optional: true,
+					Computed: true,
+					Default:  booldefault.StaticBool(true),
 				},
 				DataSource: &schemaD.BoolAttribute{
 					Computed: true,
@@ -147,7 +142,7 @@ func vmAffinityRuleSchema() superschema.Schema {
 					ElementType:         types.StringType,
 				},
 				Resource: &schemaR.ListAttribute{
-					MarkdownDescription: " to apply the affinity rule to.",
+					MarkdownDescription: "to apply the affinity rule to.",
 					Required:            true,
 					Validators: []validator.List{
 						listvalidator.SizeAtMost(2),
@@ -155,7 +150,7 @@ func vmAffinityRuleSchema() superschema.Schema {
 					},
 				},
 				DataSource: &schemaD.ListAttribute{
-					MarkdownDescription: " associated to the affinity rule.",
+					MarkdownDescription: "associated to the affinity rule.",
 					Computed:            true,
 				},
 			},
