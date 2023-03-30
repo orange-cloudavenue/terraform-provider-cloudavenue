@@ -7,27 +7,17 @@ import (
 	"strings"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
-	govdctypes "github.com/vmware/go-vcloud-director/v2/types/v56"
+	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-
-	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
@@ -38,6 +28,7 @@ var (
 	_ resource.ResourceWithConfigure   = &networkIsolatedResource{}
 	_ resource.ResourceWithImportState = &networkIsolatedResource{}
 	_ resource.ResourceWithModifyPlan  = &networkIsolatedResource{}
+	_ network.Network                  = &networkIsolatedResource{}
 )
 
 // NewNetworkIsolatedResource is a helper function to simplify the provider implementation.
@@ -47,9 +38,10 @@ func NewNetworkIsolatedResource() resource.Resource {
 
 // networkIsolatedResource is the resource implementation.
 type networkIsolatedResource struct {
-	client *client.CloudAvenue
-	vdc    vdc.VDC
-	org    org.Org
+	client  *client.CloudAvenue
+	vdc     vdc.VDC
+	org     org.Org
+	network network.Kind
 }
 
 type networkIsolatedResourceModel struct {
@@ -59,28 +51,20 @@ type networkIsolatedResourceModel struct {
 	Description  types.String `tfsdk:"description"`
 	Gateway      types.String `tfsdk:"gateway"`
 	PrefixLength types.Int64  `tfsdk:"prefix_length"`
-	PrimaryDNS   types.String `tfsdk:"dns1"`
-	SecondaryDNS types.String `tfsdk:"dns2"`
-	SuffixDNS    types.String `tfsdk:"dns_suffix"`
+	DNS1         types.String `tfsdk:"dns1"`
+	DNS2         types.String `tfsdk:"dns2"`
+	DNSSuffix    types.String `tfsdk:"dns_suffix"`
 	StaticIPPool types.Set    `tfsdk:"static_ip_pool"`
-}
-
-type staticIPPoolResourceModel struct {
-	StartAddress types.String `tfsdk:"start_address"`
-	EndAddress   types.String `tfsdk:"end_address"`
-}
-
-var staticIPPoolResourceModelAttrTypes = map[string]attr.Type{
-	"start_address": types.StringType,
-	"end_address":   types.StringType,
 }
 
 func (r *networkIsolatedResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	configVDC := &types.String{}
 	req.Config.GetAttribute(ctx, path.Root("vdc"), configVDC)
 	stateVDC := &types.String{}
+	planVDC := &types.String{}
+	req.Plan.GetAttribute(ctx, path.Root("vdc"), planVDC)
 	req.State.GetAttribute(ctx, path.Root("vdc"), stateVDC)
-	if (configVDC.IsNull() || configVDC.IsUnknown()) && !stateVDC.IsNull() {
+	if (configVDC.IsNull() || configVDC.IsUnknown()) && !stateVDC.IsNull() && !planVDC.IsNull() {
 		if r.client.GetDefaultVDC() != stateVDC.ValueString() {
 			x := &path.Paths{}
 			resp.RequiresReplace = x.Append(path.Root("vdc"))
@@ -96,6 +80,8 @@ func (r *networkIsolatedResource) Metadata(_ context.Context, req resource.Metad
 
 // Init resource used to initialize the resource.
 func (r *networkIsolatedResource) Init(_ context.Context, rm *networkIsolatedResourceModel) (diags diag.Diagnostics) {
+	// Set Network Type
+	r.network.TypeOfNetwork = network.ISOLATED
 	// Init Org
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
@@ -108,87 +94,7 @@ func (r *networkIsolatedResource) Init(_ context.Context, rm *networkIsolatedRes
 
 // Schema defines the schema for the resource.
 func (r *networkIsolatedResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a VMware Cloud Director Org VDC isolated Network. This can be used to create, modify, and delete isolated VDC networks",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The ID of the network. This is a generated value and cannot be specified during creation. This value is used to identify the network in other resources.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"vdc": vdc.Schema(),
-			"name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.",
-			},
-			"description": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "A description of the network.",
-			},
-			"gateway": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "(Force replacement) The gateway IP address for the network. This value define also the network IP range with the prefix length.",
-				Validators: []validator.String{
-					fstringvalidator.IsValidIP(),
-				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"prefix_length": schema.Int64Attribute{
-				Required:            true,
-				MarkdownDescription: "(Force replacement) The prefix length for the network. This value must be a valid prefix length for the network IP range.(e.g. 24 for netmask 255.255.255.0)",
-				Validators: []validator.Int64{
-					int64validator.Between(1, 32),
-				},
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.RequiresReplace(),
-				},
-			},
-			"dns1": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The primary DNS server IP address for the network.",
-				Validators: []validator.String{
-					fstringvalidator.IsValidIP(),
-				},
-			},
-			"dns2": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The secondary DNS server IP address for the network.",
-				Validators: []validator.String{
-					fstringvalidator.IsValidIP(),
-				},
-			},
-			"dns_suffix": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The DNS suffix for the network.",
-			},
-			"static_ip_pool": schema.SetNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "A set of static IP pools to be used for this network.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"start_address": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The start address of the IP pool. This value must be a valid IP address in the network IP range.",
-							Validators: []validator.String{
-								fstringvalidator.IsValidIP(),
-							},
-						},
-						"end_address": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The end address of the IP pool. This value must be a valid IP address in the network IP range.",
-							Validators: []validator.String{
-								fstringvalidator.IsValidIP(),
-							},
-						},
-					},
-				},
-			},
-		},
-	}
+	resp.Schema = network.GetSchema(network.SetIsolated()).GetResource(ctx)
 }
 
 func (r *networkIsolatedResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -239,32 +145,10 @@ func (r *networkIsolatedResource) Create(ctx context.Context, req resource.Creat
 	defer vcdMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Set network type
-	ipPool := []staticIPPoolResourceModel{}
-	resp.Diagnostics.Append(plan.StaticIPPool.ElementsAs(ctx, &ipPool, true)...)
+	networkType, diag := r.SetNetworkAPIObject(ctx, plan)
+	resp.Diagnostics.Append(diag...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-	myshared := false // Cloudavenue does not support shared networks
-	networkType := &govdctypes.OpenApiOrgVdcNetwork{
-		Name:        plan.Name.ValueString(),
-		Description: plan.Description.ValueString(),
-		Shared:      &myshared,
-		NetworkType: govdctypes.OrgVdcNetworkTypeIsolated,
-		OwnerRef:    &govdctypes.OpenApiReference{ID: vdcOrVDCGroup.GetID()},
-		Subnets: govdctypes.OrgVdcNetworkSubnets{
-			Values: []govdctypes.OrgVdcNetworkSubnetValues{
-				{
-					Gateway:      plan.Gateway.ValueString(),
-					PrefixLength: int(plan.PrefixLength.ValueInt64()),
-					IPRanges: govdctypes.OrgVdcNetworkSubnetIPRanges{
-						Values: myProcessIPRanges(ipPool),
-					},
-					DNSServer1: plan.PrimaryDNS.ValueString(),
-					DNSServer2: plan.SecondaryDNS.ValueString(),
-					DNSSuffix:  plan.SuffixDNS.ValueString(),
-				},
-			},
-		},
 	}
 
 	// Create network
@@ -320,10 +204,10 @@ func (r *networkIsolatedResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	// Get network static IP pools
-	ipPools := []staticIPPoolResourceModel{}
+	ipPools := []staticIPPool{}
 	if len(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values) > 0 {
 		for _, ipRange := range orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values {
-			ipPools = append(ipPools, staticIPPoolResourceModel{
+			ipPools = append(ipPools, staticIPPool{
 				StartAddress: types.StringValue(ipRange.StartAddress),
 				EndAddress:   types.StringValue(ipRange.EndAddress),
 			})
@@ -338,14 +222,14 @@ func (r *networkIsolatedResource) Read(ctx context.Context, req resource.ReadReq
 		VDC:          types.StringValue(vdcOrVDCGroup.GetName()),
 		Gateway:      types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
 		PrefixLength: types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
-		PrimaryDNS:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
-		SecondaryDNS: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
-		SuffixDNS:    types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
+		DNS1:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
+		DNS2:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
+		DNSSuffix:    types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
 	}
 
 	// Set static IP pools
 	var diags diag.Diagnostics
-	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolResourceModelAttrTypes}, ipPools)
+	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolAttrTypes}, ipPools)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -400,33 +284,10 @@ func (r *networkIsolatedResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Set network type
-	ipPool := []staticIPPoolResourceModel{}
-	resp.Diagnostics.Append(plan.StaticIPPool.ElementsAs(ctx, &ipPool, true)...)
+	networkType, diag := r.SetNetworkAPIObject(ctx, plan)
+	resp.Diagnostics.Append(diag...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-	myshared := false // Cloudavenue does not support shared networks
-	networkType := &govdctypes.OpenApiOrgVdcNetwork{
-		ID:          plan.ID.ValueString(),
-		Name:        plan.Name.ValueString(),
-		Description: plan.Description.ValueString(),
-		Shared:      &myshared,
-		NetworkType: govdctypes.OrgVdcNetworkTypeIsolated,
-		OwnerRef:    &govdctypes.OpenApiReference{ID: vdcOrVDCGroup.GetID()},
-		Subnets: govdctypes.OrgVdcNetworkSubnets{
-			Values: []govdctypes.OrgVdcNetworkSubnetValues{
-				{
-					Gateway:      plan.Gateway.ValueString(),
-					PrefixLength: int(plan.PrefixLength.ValueInt64()),
-					IPRanges: govdctypes.OrgVdcNetworkSubnetIPRanges{
-						Values: myProcessIPRanges(ipPool),
-					},
-					DNSServer1: plan.PrimaryDNS.ValueString(),
-					DNSServer2: plan.SecondaryDNS.ValueString(),
-					DNSSuffix:  plan.SuffixDNS.ValueString(),
-				},
-			},
-		},
 	}
 
 	// Update network
@@ -520,10 +381,10 @@ func (r *networkIsolatedResource) ImportState(ctx context.Context, req resource.
 	}
 
 	// Get network static IP pools
-	ipPools := []staticIPPoolResourceModel{}
+	ipPools := []staticIPPool{}
 	if len(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values) > 0 {
 		for _, ipRange := range orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values {
-			ipPools = append(ipPools, staticIPPoolResourceModel{
+			ipPools = append(ipPools, staticIPPool{
 				StartAddress: types.StringValue(ipRange.StartAddress),
 				EndAddress:   types.StringValue(ipRange.EndAddress),
 			})
@@ -539,13 +400,13 @@ func (r *networkIsolatedResource) ImportState(ctx context.Context, req resource.
 		VDC:          types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.OwnerRef.Name),
 		Gateway:      types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
 		PrefixLength: types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
-		PrimaryDNS:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
-		SecondaryDNS: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
-		SuffixDNS:    types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
+		DNS1:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
+		DNS2:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
+		DNSSuffix:    types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
 	}
 	// Set static IP pools
 	var diags diag.Diagnostics
-	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolResourceModelAttrTypes}, ipPools)
+	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolAttrTypes}, ipPools)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -558,12 +419,27 @@ func (r *networkIsolatedResource) ImportState(ctx context.Context, req resource.
 	}
 }
 
-// StaticIPPool is a helper function to get the static IP pool from the resource data.
-func myProcessIPRanges(mystaticIPPool []staticIPPoolResourceModel) []govdctypes.ExternalNetworkV2IPRange {
-	subnetRng := make([]govdctypes.ExternalNetworkV2IPRange, len(mystaticIPPool))
-	for i, ipRange := range mystaticIPPool {
-		subnetRng[i].StartAddress = ipRange.StartAddress.ValueString()
-		subnetRng[i].EndAddress = ipRange.EndAddress.ValueString()
+func (r *networkIsolatedResource) SetNetworkAPIObject(ctx context.Context, plan any) (*govcdtypes.OpenApiOrgVdcNetwork, diag.Diagnostics) {
+	d := diag.Diagnostics{}
+
+	p, ok := plan.(*networkIsolatedResourceModel)
+	if !ok {
+		d.AddError("Error", "Error converting plan to network isolated resource model")
+		return nil, d
 	}
-	return subnetRng
+	vdcOrVDCGroup, _ := r.client.GetVDCOrVDCGroup(p.VDC.ValueString())
+
+	rG := network.GlobalResourceModel{
+		ID:                p.ID,
+		Name:              p.Name,
+		Description:       p.Description,
+		Gateway:           p.Gateway,
+		PrefixLength:      p.PrefixLength,
+		DNS1:              p.DNS1,
+		DNS2:              p.DNS2,
+		DNSSuffix:         p.DNSSuffix,
+		StaticIPPool:      p.StaticIPPool,
+		VDCIDOrVDCGroupID: types.StringValue(vdcOrVDCGroup.GetID()),
+	}
+	return r.network.SetNetworkAPIObject(ctx, rG)
 }

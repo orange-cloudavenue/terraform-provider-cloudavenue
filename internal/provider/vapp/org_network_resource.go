@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -24,6 +23,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
@@ -64,23 +64,13 @@ func (r *orgNetworkResource) Metadata(_ context.Context, req resource.MetadataRe
 
 // Schema defines the schema for the resource.
 func (r *orgNetworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	commonSchema := network.GetSchema(network.SetRoutedVapp()).GetResource(ctx)
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides capability to attach an existing Org VDC Network to a vApp and toggle network features.",
+		MarkdownDescription: "Provides a Cloud Avenue isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network.",
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The ID of the org_network.",
-			},
 			"vdc":       vdc.Schema(),
 			"vapp_id":   vapp.Schema()["vapp_id"],
 			"vapp_name": vapp.Schema()["vapp_name"],
-			"network_name": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				MarkdownDescription: "Organization network name to which vApp network is connected to.",
-			},
 			"is_fenced": schema.BoolAttribute{
 				Optional: true,
 				Computed: true,
@@ -98,6 +88,10 @@ func (r *orgNetworkResource) Schema(ctx context.Context, _ resource.SchemaReques
 				MarkdownDescription: "Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Default is `false`.",
 			},
 		},
+	}
+	// Add common attributes network
+	for k, v := range commonSchema.Attributes {
+		resp.Schema.Attributes[k] = v
 	}
 }
 
