@@ -5,18 +5,24 @@ import (
 	"context"
 	"fmt"
 
-	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/vmware/go-vcloud-director/v2/govcd"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/vmware/go-vcloud-director/v2/govcd"
+
+	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 var (
@@ -46,18 +52,13 @@ type networkRoutedDataSourceModel struct {
 	StaticIPPool  types.Set    `tfsdk:"static_ip_pool"`
 }
 
-type staticIPPoolDataSourceModel struct {
-	StartAddress types.String `tfsdk:"start_address"`
-	EndAddress   types.String `tfsdk:"end_address"`
-}
-
 func (d *networkRoutedDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + "network_routed"
 }
 
 func (d *networkRoutedDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "The network_routed datasource allows you to manage a ...",
+		Description: "The network_routed datasource provides data about a routed network in CloudAvenue. ",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -79,11 +80,11 @@ func (d *networkRoutedDataSource) Schema(ctx context.Context, req datasource.Sch
 			"edge_gateway_id": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Edge gateway ID in which Routed network should be located.",
+				MarkdownDescription: "Edge gateway ID in which Routed network should be located. This argument is required when a network is included in a VDC Group.",
 			},
 			"interface_type": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Optional interface type (only for NSX-V networks). One of `INTERNAL` (default), `DISTRIBUTED`, `SUBINTERFACE`",
+				MarkdownDescription: "Optional interface type (only for NSX-V networks). One of `INTERNAL` (default), `DISTRIBUTED`, `SUBINTERFACE`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("INTERNAL", "SUBINTERFACE", "DISTRIBUTED"),
 				},
@@ -171,10 +172,8 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	// Get Org
-	org, err := d.client.GetOrg()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving ORG", err.Error())
+	org, mydiag := org.Init(d.client)
+	if mydiag.HasError() {
 		return
 	}
 
@@ -189,16 +188,13 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 	if data.EdgeGatewayID.IsNull() {
 		orgNetwork, err = org.GetOpenApiOrgVdcNetworkByNameAndOwnerId(data.Name.ValueString(), vdc.GetID())
 	} else {
-		parentID, _ := getParentEdgeGatewayID(org.Org, data.EdgeGatewayID.ValueString())
+		parentID, diag := GetParentEdgeGatewayID(org, data.EdgeGatewayID.ValueString())
+		if diag != nil {
+			resp.Diagnostics.Append(diag)
+			return
+		}
 		orgNetwork, err = org.GetOpenApiOrgVdcNetworkByNameAndOwnerId(data.Name.ValueString(), *parentID)
 	}
-
-	// Define VDC or VDCGroup
-	// vdcOrVDCGroup, err := d.client.GetVDCOrVDCGroup(parentName)
-	// if err != nil {
-	//	resp.Diagnostics.AddError("Error retrieving VDC or VDCGroup", err.Error())
-	//	return
-	//}
 
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
@@ -209,9 +205,9 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	plan := &networkRoutedResourceModel{
+	plan := &networkRoutedDataSourceModel{
 		ID:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
-		Name:          types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Name),
+		Name:          types.StringValue(data.Name.ValueString()),
 		Description:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
 		EdgeGatewayID: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.ID),
 		InterfaceType: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.ConnectionType),
@@ -233,6 +229,7 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 			ipPools = append(ipPools, ipPool)
 		}
 	}
+
 	var diags diag.Diagnostics
 	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolAttrTypes}, ipPools)
 	resp.Diagnostics.Append(diags...)
