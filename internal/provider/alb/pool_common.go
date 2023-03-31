@@ -7,6 +7,8 @@ import (
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 var ErrPersistenceProfileIsEmpty = errors.New("persistence profile is empty")
@@ -17,43 +19,33 @@ type albPool interface {
 	GetAlbPool() (*govcd.NsxtAlbPool, error)
 }
 
-func processMembers(poolMembers []govcdtypes.NsxtAlbPoolMember) []member {
-	members := []member{}
-	if len(poolMembers) > 0 {
-		for _, poolMember := range poolMembers {
-			members = append(members, member{
-				Enabled:   types.BoolValue(poolMember.Enabled),
-				IPAddress: types.StringValue(poolMember.IpAddress),
-				Port:      types.Int64Value(int64(poolMember.Port)),
-				Ratio:     types.Int64Value(int64(*poolMember.Ratio)),
-			})
-		}
+func processMembers(poolMembers []govcdtypes.NsxtAlbPoolMember) (members []member) {
+	for _, poolMember := range poolMembers {
+		members = append(members, member{
+			Enabled:   types.BoolValue(poolMember.Enabled),
+			IPAddress: types.StringValue(poolMember.IpAddress),
+			Port:      types.Int64Value(int64(poolMember.Port)),
+			Ratio:     types.Int64Value(int64(*poolMember.Ratio)),
+		})
 	}
-
-	return members
+	return
 }
 
-func processHealthMonitors(poolHealthMonitors []govcdtypes.NsxtAlbPoolHealthMonitor) []string {
-	var healtMonitors []string
-	if len(poolHealthMonitors) > 0 {
-		for _, poolHealthMonitor := range poolHealthMonitors {
-			healtMonitors = append(healtMonitors, poolHealthMonitor.Type)
-		}
+func processHealthMonitors(poolHealthMonitors []govcdtypes.NsxtAlbPoolHealthMonitor) (healthMonitors []string) {
+	for _, poolHealthMonitor := range poolHealthMonitors {
+		healthMonitors = append(healthMonitors, poolHealthMonitor.Type)
 	}
 
-	return healtMonitors
+	return
 }
 
 func processPersistenceProfile(poolPersistenceProfile *govcdtypes.NsxtAlbPoolPersistenceProfile) persistenceProfile {
-	p := persistenceProfile{}
 	if poolPersistenceProfile != nil {
-		p.Type = types.StringValue(poolPersistenceProfile.Type)
-		if poolPersistenceProfile.Value == "" {
-			p.Value = types.StringNull()
-		} else {
-			p.Value = types.StringValue(poolPersistenceProfile.Value)
-		}
+		return persistenceProfile{}
 	}
 
-	return p
+	return persistenceProfile{
+		Type:  types.StringValue(poolPersistenceProfile.Type),
+		Value: utils.StringValueOrNull(poolPersistenceProfile.Value),
+	}
 }

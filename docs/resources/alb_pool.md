@@ -92,7 +92,7 @@ resource "cloudavenue_alb_pool" "example" {
 
 Required:
 
-- `ip_address` (String) IP address of pool member.
+- `ip_address` (String) IP address of pool member. Must be a valid IP with net.ParseIP.
 - `port` (Number) Member port. Value must be at least 1.
 
 Optional:

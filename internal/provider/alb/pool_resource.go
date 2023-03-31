@@ -108,18 +108,23 @@ func (r *albPoolResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Prepare config.
-	albPoolConfig, err := r.getAlbPoolConfig(plan)
+	albPoolConfig, err := r.getAlbPoolConfig(ctx, plan)
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to prepare ALB Pool Config", err.Error())
 		return
 	}
 
 	// Lock EdgeGW
-	resp.Diagnostics.Append(r.org.LockParentEdgeGW(ctx, r.edgegw)...)
+	edgeGW, err := r.org.GetEdgeGateway(r.edgegw)
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to get Edge Gateway", err.Error())
+		return
+	}
+	resp.Diagnostics.Append(edgeGW.Lock(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer resp.Diagnostics.Append(r.org.UnlockParentEdgeGW(ctx, r.edgegw)...)
+	defer resp.Diagnostics.Append(edgeGW.Unlock(ctx)...)
 
 	// Create ALB Pool
 	createdAlbPool, err := r.client.Vmware.CreateNsxtAlbPool(albPoolConfig)
@@ -133,9 +138,6 @@ func (r *albPoolResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -186,9 +188,7 @@ func (r *albPoolResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Set members
-	members := processMembers(albPool.NsxtAlbPool.Members)
-
-	if len(members) > 0 {
+	if members := processMembers(albPool.NsxtAlbPool.Members); len(members) > 0 {
 		plan.Members, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: memberAttrTypes}, members)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -220,9 +220,6 @@ func (r *albPoolResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -249,18 +246,23 @@ func (r *albPoolResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Prepare config.
-	albPoolConfig, err := r.getAlbPoolConfig(plan)
+	albPoolConfig, err := r.getAlbPoolConfig(ctx, plan)
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to prepare ALB Pool Config", err.Error())
 		return
 	}
 
 	// Lock EdgeGW
-	resp.Diagnostics.Append(r.org.LockParentEdgeGW(ctx, r.edgegw)...)
+	edgeGW, err := r.org.GetEdgeGateway(r.edgegw)
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to get Edge Gateway", err.Error())
+		return
+	}
+	resp.Diagnostics.Append(edgeGW.Lock(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer resp.Diagnostics.Append(r.org.UnlockParentEdgeGW(ctx, r.edgegw)...)
+	defer resp.Diagnostics.Append(edgeGW.Unlock(ctx)...)
 
 	// Update ALB Pool.
 	_, err = albPool.Update(albPoolConfig)
@@ -271,9 +273,6 @@ func (r *albPoolResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -293,11 +292,16 @@ func (r *albPoolResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	// Lock EdgeGW
-	resp.Diagnostics.Append(r.org.LockParentEdgeGW(ctx, r.edgegw)...)
+	edgeGW, err := r.org.GetEdgeGateway(r.edgegw)
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to get Edge Gateway", err.Error())
+		return
+	}
+	resp.Diagnostics.Append(edgeGW.Lock(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer resp.Diagnostics.Append(r.org.UnlockParentEdgeGW(ctx, r.edgegw)...)
+	defer resp.Diagnostics.Append(edgeGW.Unlock(ctx)...)
 
 	// Get albPool
 	albPool, err := r.GetAlbPool()
@@ -366,8 +370,8 @@ func (r *albPoolResource) GetAlbPool() (*govcd.NsxtAlbPool, error) {
 
 // getAlbPoolConfig is the main function for getting *govcdtypes.NsxtAlbPool for API request. It nests multiple smaller
 // functions for smaller types.
-func (r *albPoolResource) getAlbPoolConfig(d *albPoolModel) (*govcdtypes.NsxtAlbPool, error) {
-	edgeID, err := r.org.GetEdgeGatewayID(r.edgegw)
+func (r *albPoolResource) getAlbPoolConfig(ctx context.Context, d *albPoolModel) (*govcdtypes.NsxtAlbPool, error) {
+	edge, err := r.org.GetEdgeGateway(r.edgegw)
 	if err != nil {
 		return nil, err
 	}
@@ -378,7 +382,7 @@ func (r *albPoolResource) getAlbPoolConfig(d *albPoolModel) (*govcdtypes.NsxtAlb
 		Description: d.Description.ValueString(),
 		Enabled:     d.Enabled.ValueBoolPointer(),
 		GatewayRef: govcdtypes.OpenApiReference{
-			ID: edgeID,
+			ID: edge.GetID(),
 		},
 		Algorithm:                d.Algorithm.ValueString(),
 		DefaultPort:              utils.TakeIntPointer(int(d.DefaultPort.ValueInt64())),
@@ -386,19 +390,19 @@ func (r *albPoolResource) getAlbPoolConfig(d *albPoolModel) (*govcdtypes.NsxtAlb
 		PassiveMonitoringEnabled: d.PassiveMonitoringEnabled.ValueBoolPointer(),
 	}
 
-	poolMembers, err := r.getAlbPoolMembersType(d)
+	poolMembers, err := r.getAlbPoolMembersType(ctx, d)
 	if err != nil {
 		return nil, fmt.Errorf("error defining pool members: %w", err)
 	}
 	albPoolConfig.Members = poolMembers
 
-	persistenceProfile, err := r.getAlbPoolPersistenceProfileType(d)
+	persistenceProfile, err := r.getAlbPoolPersistenceProfileType(ctx, d)
 	if err != nil && !errors.Is(err, ErrPersistenceProfileIsEmpty) {
 		return nil, fmt.Errorf("error defining persistence profile: %w", err)
 	}
 	albPoolConfig.PersistenceProfile = persistenceProfile
 
-	healthMonitors, err := r.getAlbPoolHealthMonitorType(d)
+	healthMonitors, err := r.getAlbPoolHealthMonitorType(ctx, d)
 	if err != nil {
 		return nil, fmt.Errorf("error defining health monitors: %w", err)
 	}
@@ -408,9 +412,9 @@ func (r *albPoolResource) getAlbPoolConfig(d *albPoolModel) (*govcdtypes.NsxtAlb
 }
 
 // getAlbPoolMembersType.
-func (r *albPoolResource) getAlbPoolMembersType(d *albPoolModel) ([]govcdtypes.NsxtAlbPoolMember, error) {
+func (r *albPoolResource) getAlbPoolMembersType(ctx context.Context, d *albPoolModel) ([]govcdtypes.NsxtAlbPoolMember, error) {
 	var members []member
-	diags := d.Members.ElementsAs(context.Background(), &members, true)
+	diags := d.Members.ElementsAs(ctx, &members, true)
 	if diags.HasError() {
 		return nil, errors.New(diags[0].Detail())
 	}
@@ -427,13 +431,13 @@ func (r *albPoolResource) getAlbPoolMembersType(d *albPoolModel) ([]govcdtypes.N
 }
 
 // getAlbPoolPersistenceProfileType.
-func (r *albPoolResource) getAlbPoolPersistenceProfileType(d *albPoolModel) (*govcdtypes.NsxtAlbPoolPersistenceProfile, error) {
+func (r *albPoolResource) getAlbPoolPersistenceProfileType(ctx context.Context, d *albPoolModel) (*govcdtypes.NsxtAlbPoolPersistenceProfile, error) {
 	if d.PersistenceProfile.IsNull() {
 		return nil, ErrPersistenceProfileIsEmpty
 	}
 
 	p := &persistenceProfile{}
-	diags := d.PersistenceProfile.As(context.Background(), p, basetypes.ObjectAsOptions{
+	diags := d.PersistenceProfile.As(ctx, p, basetypes.ObjectAsOptions{
 		UnhandledNullAsEmpty:    false,
 		UnhandledUnknownAsEmpty: false,
 	})
@@ -449,9 +453,9 @@ func (r *albPoolResource) getAlbPoolPersistenceProfileType(d *albPoolModel) (*go
 }
 
 // getAlbPoolHealthMonitorType.
-func (r *albPoolResource) getAlbPoolHealthMonitorType(d *albPoolModel) ([]govcdtypes.NsxtAlbPoolHealthMonitor, error) {
+func (r *albPoolResource) getAlbPoolHealthMonitorType(ctx context.Context, d *albPoolModel) ([]govcdtypes.NsxtAlbPoolHealthMonitor, error) {
 	var healthMonitors []string
-	diags := d.HealthMonitors.ElementsAs(context.Background(), &healthMonitors, true)
+	diags := d.HealthMonitors.ElementsAs(ctx, &healthMonitors, true)
 	if diags.HasError() {
 		return nil, errors.New(diags[0].Detail())
 	}

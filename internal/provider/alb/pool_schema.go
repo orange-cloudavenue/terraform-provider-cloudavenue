@@ -107,13 +107,13 @@ func albPoolSchema() superschema.Schema {
 					},
 				},
 				Resource: &schemaR.StringAttribute{
-					MarkdownDescription: " should be created.",
+					MarkdownDescription: "should be created.",
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " was created.",
+					MarkdownDescription: "was created.",
 				},
 			},
 			"edge_gateway_name": superschema.StringAttribute{
@@ -125,13 +125,13 @@ func albPoolSchema() superschema.Schema {
 					},
 				},
 				Resource: &schemaR.StringAttribute{
-					MarkdownDescription: " should be created.",
+					MarkdownDescription: "should be created.",
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: " was created.",
+					MarkdownDescription: "was created.",
 				},
 			},
 			"enabled": superschema.BoolAttribute{
@@ -215,6 +215,9 @@ func albPoolSchema() superschema.Schema {
 						},
 						Resource: &schemaR.StringAttribute{
 							Required: true,
+							Validators: []validator.String{
+								fstringvalidator.IsIP(),
+							},
 						},
 						DataSource: &schemaD.StringAttribute{
 							Computed: true,
