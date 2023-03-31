@@ -2,6 +2,7 @@ package alb
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -15,27 +16,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
+	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 )
 
 type albPoolModel struct {
 	ID                       types.String `tfsdk:"id"`
-	VDC                      types.String `tfsdk:"vdc"`
 	EdgeGatewayID            types.String `tfsdk:"edge_gateway_id"`
+	EdgeGatewayName          types.String `tfsdk:"edge_gateway_name"`
 	Name                     types.String `tfsdk:"name"`
 	Enabled                  types.Bool   `tfsdk:"enabled"`
 	Description              types.String `tfsdk:"description"`
 	Algorithm                types.String `tfsdk:"algorithm"`
 	DefaultPort              types.Int64  `tfsdk:"default_port"`
 	GracefulTimeoutPeriod    types.Int64  `tfsdk:"graceful_timeout_period"`
-	Member                   types.Set    `tfsdk:"member"`
-	HealthMonitor            types.Set    `tfsdk:"health_monitor"`
-	PersistenceProfile       types.List   `tfsdk:"persistence_profile"`
+	Members                  types.Set    `tfsdk:"members"`
+	HealthMonitors           types.Set    `tfsdk:"health_monitors"`
+	PersistenceProfile       types.Object `tfsdk:"persistence_profile"`
 	PassiveMonitoringEnabled types.Bool   `tfsdk:"passive_monitoring_enabled"`
 
 	// CACertificateIDs         types.Set    `tfsdk:"ca_certificate_ids"`
@@ -55,16 +55,6 @@ var memberAttrTypes = map[string]attr.Type{
 	"ip_address": types.StringType,
 	"port":       types.Int64Type,
 	"ratio":      types.Int64Type,
-}
-
-type healthMonitor struct {
-	Type types.String `tfsdk:"type"`
-	Name types.String `tfsdk:"name"`
-}
-
-var healthMonitorAttrTypes = map[string]attr.Type{
-	"type": types.StringType,
-	"name": types.StringType,
 }
 
 type persistenceProfile struct {
@@ -96,6 +86,11 @@ func albPoolSchema() superschema.Schema {
 					MarkdownDescription: "ID of ALB Pool.",
 					Computed:            true,
 				},
+				Resource: &schemaR.StringAttribute{
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
 			},
 			"name": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
@@ -103,11 +98,31 @@ func albPoolSchema() superschema.Schema {
 					Required:            true,
 				},
 			},
-			"vdc": vdc.SuperSchema(),
 			"edge_gateway_id": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Edge gateway ID in which ALB Pool",
-					Required:            true,
+					Optional:            true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
+					},
+				},
+				Resource: &schemaR.StringAttribute{
+					MarkdownDescription: " should be created.",
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplace(),
+					},
+				},
+				DataSource: &schemaD.StringAttribute{
+					MarkdownDescription: " was created.",
+				},
+			},
+			"edge_gateway_name": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "Edge gateway Name in which ALB Pool",
+					Optional:            true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
+					},
 				},
 				Resource: &schemaR.StringAttribute{
 					MarkdownDescription: " should be created.",
@@ -173,13 +188,12 @@ func albPoolSchema() superschema.Schema {
 					Default:  int64default.StaticInt64(1),
 				},
 			},
-			"member": superschema.SetNestedAttribute{
+			"members": superschema.SetNestedAttribute{
 				Common: &schemaR.SetNestedAttribute{
-					MarkdownDescription: "ALB Pool Member.",
+					MarkdownDescription: "ALB Pool Member(s).",
 				},
 				Resource: &schemaR.SetNestedAttribute{
-					MarkdownDescription: " Multiple can be used.",
-					Optional:            true,
+					Optional: true,
 				},
 				DataSource: &schemaD.SetNestedAttribute{
 					Computed: true,
@@ -235,51 +249,29 @@ func albPoolSchema() superschema.Schema {
 					},
 				},
 			},
-			"health_monitor": superschema.SetNestedAttribute{
-				Common: &schemaR.SetNestedAttribute{
-					MarkdownDescription: "Define health monitor.",
+			"health_monitors": superschema.SetAttribute{
+				Common: &schemaR.SetAttribute{
+					MarkdownDescription: "List of health monitors type to activate.",
+					ElementType:         types.StringType,
 				},
-				Resource: &schemaR.SetNestedAttribute{
-					MarkdownDescription: " Multiple can be used.",
-					Optional:            true,
+				Resource: &schemaR.SetAttribute{
+					Optional: true,
+					Validators: []validator.Set{
+						setvalidator.ValueStringsAre(stringvalidator.OneOf("HTTP", "HTTPS", "TCP", "UDP", "PING")),
+					},
 				},
-				DataSource: &schemaD.SetNestedAttribute{
+				DataSource: &schemaD.SetAttribute{
 					Computed: true,
 				},
-				Attributes: map[string]superschema.Attribute{
-					"type": superschema.StringAttribute{
-						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "Type of health monitor.",
-						},
-						Resource: &schemaR.StringAttribute{
-							Required: true,
-							Validators: []validator.String{
-								stringvalidator.OneOf("HTTP", "HTTPS", "TCP", "UDP", "PING"),
-							},
-						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
-						},
-					},
-					"name": superschema.StringAttribute{
-						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "System generated name of Health monitor.",
-							Computed:            true,
-						},
-					},
-				},
 			},
-			"persistence_profile": superschema.ListNestedAttribute{
-				Common: &schemaR.ListNestedAttribute{
+			"persistence_profile": superschema.SingleNestedAttribute{
+				Common: &schemaR.SingleNestedAttribute{
 					MarkdownDescription: "Persistence profile will ensure that the same user sticks to the same server for a desired duration of time. If the persistence profile is unmanaged by Cloud Avenue, updates that leave the values unchanged will continue to use the same unmanaged profile. Any changes made to the persistence profile will cause Cloud Avenue to switch the pool to a profile managed by Cloud Avenue.",
 				},
-				Resource: &schemaR.ListNestedAttribute{
+				Resource: &schemaR.SingleNestedAttribute{
 					Optional: true,
-					Validators: []validator.List{
-						listvalidator.SizeAtMost(1),
-					},
 				},
-				DataSource: &schemaD.ListNestedAttribute{
+				DataSource: &schemaD.SingleNestedAttribute{
 					Computed: true,
 				},
 				Attributes: map[string]superschema.Attribute{
@@ -303,7 +295,9 @@ func albPoolSchema() superschema.Schema {
 						},
 						Resource: &schemaR.StringAttribute{
 							Optional: true,
-							// TODO : Make a validator "if type==value"
+							Validators: []validator.String{
+								fstringvalidator.RequireIfAttributeIsOneOf(path.MatchRoot("persistence_profile").AtName("type"), []attr.Value{types.StringValue("HTTP_COOKIE")}),
+							},
 						},
 						DataSource: &schemaD.StringAttribute{
 							Computed: true,

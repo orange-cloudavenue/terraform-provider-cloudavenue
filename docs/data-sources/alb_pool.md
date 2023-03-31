@@ -13,6 +13,8 @@ Provides a data source to manage Advanced Load Balancer Pools. Pools maintain th
 
 ```terraform
 data "cloudavenue_alb_pool" "example" {
+  edge_gateway_name = "MyEdgeGatewayName"
+  name              = "MyAlbPoolName"
 }
 ```
 
@@ -21,12 +23,12 @@ data "cloudavenue_alb_pool" "example" {
 
 ### Required
 
-- `edge_gateway_id` (String) Edge gateway ID in which ALB Pool was created.
 - `name` (String) Name of ALB Pool.
 
 ### Optional
 
-- `vdc` (String) The name of vDC to use, optional if defined at provider level.
+- `edge_gateway_id` (String) Edge gateway ID in which ALB Pool was created. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
+- `edge_gateway_name` (String) Edge gateway Name in which ALB Pool was created. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
 
 ### Read-Only
 
@@ -34,24 +36,15 @@ data "cloudavenue_alb_pool" "example" {
 - `default_port` (Number) Default Port defines destination server port used by the traffic sent to the member.
 - `description` (String) Description of ALB Pool.
 - `enabled` (Boolean) Define if ALB Pool is enabled or not.
-- `graceful_time_period` (Number) Maximum time in minutes to gracefully disable pool member.
-- `health_monitor` (Attributes Set) Define health monitor. (see [below for nested schema](#nestedatt--health_monitor))
+- `graceful_timeout_period` (Number) Maximum time in minutes to gracefully disable pool member.
+- `health_monitors` (Set of String) List of health monitors type to activate.
 - `id` (String) ID of ALB Pool.
-- `member` (Attributes Set) ALB Pool Member. (see [below for nested schema](#nestedatt--member))
+- `members` (Attributes Set) ALB Pool Member(s). (see [below for nested schema](#nestedatt--members))
 - `passive_monitoring_enabled` (Boolean) Monitors if the traffic is accepted by node.
-- `persistence_profile` (Attributes List) Persistence profile will ensure that the same user sticks to the same server for a desired duration of time. If the persistence profile is unmanaged by Cloud Avenue, updates that leave the values unchanged will continue to use the same unmanaged profile. Any changes made to the persistence profile will cause Cloud Avenue to switch the pool to a profile managed by Cloud Avenue. (see [below for nested schema](#nestedatt--persistence_profile))
+- `persistence_profile` (Attributes) Persistence profile will ensure that the same user sticks to the same server for a desired duration of time. If the persistence profile is unmanaged by Cloud Avenue, updates that leave the values unchanged will continue to use the same unmanaged profile. Any changes made to the persistence profile will cause Cloud Avenue to switch the pool to a profile managed by Cloud Avenue. (see [below for nested schema](#nestedatt--persistence_profile))
 
-<a id="nestedatt--health_monitor"></a>
-### Nested Schema for `health_monitor`
-
-Read-Only:
-
-- `name` (String) System generated name of Health monitor.
-- `type` (String) Type of health monitor.
-
-
-<a id="nestedatt--member"></a>
-### Nested Schema for `member`
+<a id="nestedatt--members"></a>
+### Nested Schema for `members`
 
 Read-Only:
 

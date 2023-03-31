@@ -8,9 +8,10 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
 const testAccAlbPoolDataSourceConfig = `
 data "cloudavenue_alb_pool" "example" {
+	edge_gateway_name = "tn01e02ocb0006205spt102"
+	name              = "Test"
 }
 `
 
@@ -26,6 +27,7 @@ func TestAccAlbPoolDataSource(t *testing.T) {
 				Config: testAccAlbPoolDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
 				),
 			},
 		},

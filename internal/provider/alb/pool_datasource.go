@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
 var (
@@ -30,7 +30,7 @@ func NewAlbPoolDataSource() datasource.DataSource {
 type albPoolDataSource struct {
 	client  *client.CloudAvenue
 	org     org.Org
-	vdc     vdc.VDC
+	edgegw  edgegw.BaseEdgeGW
 	albPool base
 }
 
@@ -48,9 +48,9 @@ func (d *albPoolDataSource) Init(ctx context.Context, dm *albPoolModel) (diags d
 		id:   dm.ID.ValueString(),
 	}
 
-	d.vdc, diags = vdc.Init(d.client, dm.VDC)
-	if diags.HasError() {
-		return
+	d.edgegw = edgegw.BaseEdgeGW{
+		ID:   dm.EdgeGatewayID,
+		Name: dm.EdgeGatewayName,
 	}
 
 	d.org, diags = org.Init(d.client)
@@ -95,7 +95,7 @@ func (d *albPoolDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	// Get albPool.
-	albPool, err := d.GetAlbPool(data.EdgeGatewayID.ValueString())
+	albPool, err := d.GetAlbPool()
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to find ALB Pool", err.Error())
 		return
@@ -110,57 +110,28 @@ func (d *albPoolDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	data.GracefulTimeoutPeriod = types.Int64Value(int64(*albPool.NsxtAlbPool.GracefulTimeoutPeriod))
 	data.PassiveMonitoringEnabled = types.BoolValue(*albPool.NsxtAlbPool.PassiveMonitoringEnabled)
 
-	// Init Set and List type
-	data.Member = types.SetNull(types.ObjectType{AttrTypes: memberAttrTypes})
-	data.HealthMonitor = types.SetNull(types.ObjectType{AttrTypes: healthMonitorAttrTypes})
-	data.PersistenceProfile = types.ListNull(types.ObjectType{AttrTypes: persistenceProfileAttrTypes})
-
 	// Set members
-	members := []member{}
-	if len(albPool.NsxtAlbPool.Members) > 0 {
-		for _, albMember := range albPool.NsxtAlbPool.Members {
-			members = append(members, member{
-				Enabled:   types.BoolValue(albMember.Enabled),
-				IPAddress: types.StringValue(albMember.IpAddress),
-				Port:      types.Int64Value(int64(albMember.Port)),
-				Ratio:     types.Int64Value(int64(*albMember.Ratio)),
-			})
-		}
-	}
+	members := processMembers(albPool.NsxtAlbPool.Members)
 
-	data.Member, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: memberAttrTypes}, members)
+	data.Members, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: memberAttrTypes}, members)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Set health monitors.
-	healtMonitors := []healthMonitor{}
-	if len(albPool.NsxtAlbPool.HealthMonitors) > 0 {
-		for _, albHealthMonitor := range albPool.NsxtAlbPool.HealthMonitors {
-			healtMonitors = append(healtMonitors, healthMonitor{
-				Type: types.StringValue(albHealthMonitor.Type),
-				Name: types.StringValue(albHealthMonitor.Name),
-			})
-		}
-	}
+	healtMonitors := processHealthMonitors(albPool.NsxtAlbPool.HealthMonitors)
 
-	data.HealthMonitor, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: healthMonitorAttrTypes}, healtMonitors)
+	data.HealthMonitors, diags = types.SetValueFrom(ctx, types.StringType, healtMonitors)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Set persistence profile
-	persistenceProfiles := []persistenceProfile{}
-	if albPool.NsxtAlbPool.PersistenceProfile != nil {
-		persistenceProfiles = append(persistenceProfiles, persistenceProfile{
-			Type:  types.StringValue(albPool.NsxtAlbPool.PersistenceProfile.Type),
-			Value: types.StringValue(albPool.NsxtAlbPool.PersistenceProfile.Value),
-		})
-	}
+	p := processPersistenceProfile(albPool.NsxtAlbPool.PersistenceProfile)
 
-	data.PersistenceProfile, diags = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: persistenceProfileAttrTypes}, persistenceProfiles)
+	data.PersistenceProfile, diags = types.ObjectValueFrom(ctx, persistenceProfileAttrTypes, p)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -184,15 +155,27 @@ func (d *albPoolDataSource) GetName() string {
 }
 
 // GetAlbPool returns the govcd.NsxtAlbPool.
-func (d *albPoolDataSource) GetAlbPool(edgegwID string) (albPool *govcd.NsxtAlbPool, err error) {
+func (d *albPoolDataSource) GetAlbPool() (*govcd.NsxtAlbPool, error) {
+	var (
+		albPool *govcd.NsxtAlbPool
+		err     error
+	)
+
 	if d.GetID() != "" {
 		albPool, err = d.client.Vmware.GetAlbPoolById(d.GetID())
-	} else {
-		nsxtEdge, err := d.org.GetNsxtEdgeGatewayById(edgegwID)
 		if err != nil {
-			return nil, fmt.Errorf("could not retrieve Edge gateway with ID '%s'", edgegwID)
+			return nil, err
+		}
+	} else {
+		nsxtEdge, err := d.org.GetEdgeGateway(d.edgegw)
+		if err != nil {
+			return nil, fmt.Errorf("could not retrieve Edge gateway '%s'", d.edgegw.GetIDOrName())
 		}
 		albPool, err = d.client.Vmware.GetAlbPoolByName(nsxtEdge.EdgeGateway.ID, d.GetName())
+		if err != nil {
+			return nil, err
+		}
 	}
-	return
+
+	return albPool, err
 }
