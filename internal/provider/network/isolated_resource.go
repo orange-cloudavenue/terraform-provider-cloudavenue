@@ -44,19 +44,6 @@ type networkIsolatedResource struct {
 	network network.Kind
 }
 
-type networkIsolatedResourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	VDC          types.String `tfsdk:"vdc"`
-	Name         types.String `tfsdk:"name"`
-	Description  types.String `tfsdk:"description"`
-	Gateway      types.String `tfsdk:"gateway"`
-	PrefixLength types.Int64  `tfsdk:"prefix_length"`
-	DNS1         types.String `tfsdk:"dns1"`
-	DNS2         types.String `tfsdk:"dns2"`
-	DNSSuffix    types.String `tfsdk:"dns_suffix"`
-	StaticIPPool types.Set    `tfsdk:"static_ip_pool"`
-}
-
 func (r *networkIsolatedResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	configVDC := &types.String{}
 	req.Config.GetAttribute(ctx, path.Root("vdc"), configVDC)
@@ -79,7 +66,7 @@ func (r *networkIsolatedResource) Metadata(_ context.Context, req resource.Metad
 }
 
 // Init resource used to initialize the resource.
-func (r *networkIsolatedResource) Init(_ context.Context, rm *networkIsolatedResourceModel) (diags diag.Diagnostics) {
+func (r *networkIsolatedResource) Init(_ context.Context, rm *networkIsolatedModel) (diags diag.Diagnostics) {
 	// Set Network Type
 	r.network.TypeOfNetwork = network.ISOLATED
 	// Init Org
@@ -120,7 +107,7 @@ func (r *networkIsolatedResource) Configure(ctx context.Context, req resource.Co
 // Create creates the resource and sets the initial Terraform state.
 func (r *networkIsolatedResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	plan := &networkIsolatedResourceModel{}
+	plan := &networkIsolatedModel{}
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -172,7 +159,7 @@ func (r *networkIsolatedResource) Create(ctx context.Context, req resource.Creat
 // Read refreshes the Terraform state with the latest data.
 func (r *networkIsolatedResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	state := &networkIsolatedResourceModel{}
+	state := &networkIsolatedModel{}
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -215,7 +202,7 @@ func (r *networkIsolatedResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	// Set Plan updated
-	plan := &networkIsolatedResourceModel{
+	plan := &networkIsolatedModel{
 		ID:           types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
 		Name:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Name),
 		Description:  types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
@@ -245,9 +232,9 @@ func (r *networkIsolatedResource) Read(ctx context.Context, req resource.ReadReq
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *networkIsolatedResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Get current state
-	plan := &networkIsolatedResourceModel{}
+	plan := &networkIsolatedModel{}
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
-	state := &networkIsolatedResourceModel{}
+	state := &networkIsolatedModel{}
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -307,7 +294,7 @@ func (r *networkIsolatedResource) Update(ctx context.Context, req resource.Updat
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *networkIsolatedResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Get current state
-	state := &networkIsolatedResourceModel{}
+	state := &networkIsolatedModel{}
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -393,7 +380,7 @@ func (r *networkIsolatedResource) ImportState(ctx context.Context, req resource.
 
 	// Set state to fully populated data
 	// Set Plan updated
-	plan := &networkIsolatedResourceModel{
+	plan := &networkIsolatedModel{
 		ID:           types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
 		Name:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Name),
 		Description:  types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
@@ -422,7 +409,7 @@ func (r *networkIsolatedResource) ImportState(ctx context.Context, req resource.
 func (r *networkIsolatedResource) SetNetworkAPIObject(ctx context.Context, plan any) (*govcdtypes.OpenApiOrgVdcNetwork, diag.Diagnostics) {
 	d := diag.Diagnostics{}
 
-	p, ok := plan.(*networkIsolatedResourceModel)
+	p, ok := plan.(*networkIsolatedModel)
 	if !ok {
 		d.AddError("Error", "Error converting plan to network isolated resource model")
 		return nil, d

@@ -19,6 +19,19 @@ var staticIPPoolAttrTypes = map[string]attr.Type{
 	"end_address":   types.StringType,
 }
 
+type networkIsolatedModel struct {
+	ID           types.String `tfsdk:"id"`
+	VDC          types.String `tfsdk:"vdc"`
+	Name         types.String `tfsdk:"name"`
+	Description  types.String `tfsdk:"description"`
+	Gateway      types.String `tfsdk:"gateway"`
+	PrefixLength types.Int64  `tfsdk:"prefix_length"`
+	DNS1         types.String `tfsdk:"dns1"`
+	DNS2         types.String `tfsdk:"dns2"`
+	DNSSuffix    types.String `tfsdk:"dns_suffix"`
+	StaticIPPool types.Set    `tfsdk:"static_ip_pool"`
+}
+
 var networkMutexKV = mutex.NewKV()
 
 func GetParentEdgeGatewayID(org org.Org, edgeGatewayID string) (*string, diag.Diagnostic) {

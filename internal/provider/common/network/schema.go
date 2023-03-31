@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
@@ -92,12 +93,6 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 
 	// _schema := superschema.Schema{}
 	_schema := superschema.Schema{
-		// Common: superschema.SchemaDetails{
-		//	MarkdownDescription: "Provides a Cloud Avenue VDC isolated Network ",
-		// },
-		// Resource: superschema.SchemaDetails{
-		//	MarkdownDescription: "resource. This can be used to create, modify, and delete VDC isolated networks.",
-		// },
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
@@ -113,9 +108,7 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 			"name": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.",
-				},
-				Resource: &schemaR.StringAttribute{
-					Required: true,
+					Required:            true,
 				},
 			},
 			"description": superschema.StringAttribute{
@@ -124,6 +117,9 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
+				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
 				},
 			},
 			"gateway": superschema.StringAttribute{
@@ -139,6 +135,9 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 						stringplanmodifier.RequiresReplace(),
 					},
 				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+				},
 			},
 			"prefix_length": superschema.Int64Attribute{
 				Common: &schemaR.Int64Attribute{
@@ -153,6 +152,9 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 						int64planmodifier.RequiresReplace(),
 					},
 				},
+				DataSource: &schemaD.Int64Attribute{
+					Computed: true,
+				},
 			},
 			"dns1": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
@@ -163,6 +165,9 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 					Validators: []validator.String{
 						fstringvalidator.IsIP(),
 					},
+				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
 				},
 			},
 			"dns2": superschema.StringAttribute{
@@ -175,6 +180,9 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 						fstringvalidator.IsIP(),
 					},
 				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+				},
 			},
 			"dns_suffix": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
@@ -183,16 +191,22 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
 				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+				},
 			},
 			"static_ip_pool": superschema.SetNestedAttribute{
 				Common: &schemaR.SetNestedAttribute{
-					Optional:            true,
 					MarkdownDescription: "A set of static IP pools to be used for this network.",
 				},
 				Resource: &schemaR.SetNestedAttribute{
+					Optional: true,
 					Validators: []validator.Set{
 						setvalidator.SizeAtLeast(1),
 					},
+				},
+				DataSource: &schemaD.SetNestedAttribute{
+					Computed: true,
 				},
 				Attributes: map[string]superschema.Attribute{
 					"start_address": superschema.StringAttribute{
@@ -205,6 +219,9 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 								fstringvalidator.IsIP(),
 							},
 						},
+						DataSource: &schemaD.StringAttribute{
+							Computed: true,
+						},
 					},
 					"end_address": superschema.StringAttribute{
 						Common: &schemaR.StringAttribute{
@@ -215,6 +232,9 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 							Validators: []validator.String{
 								fstringvalidator.IsIP(),
 							},
+						},
+						DataSource: &schemaD.StringAttribute{
+							Computed: true,
 						},
 					},
 				},
@@ -276,8 +296,8 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 
 	case ISOLATED:
 		// Add isolated network specific attributes to the schema
-		_schema.Common.MarkdownDescription = "Provides a Cloud Avenue VDC isolated Network."
-		_schema.Resource.MarkdownDescription = "This can be used to create, modify, and delete VDC isolated networks."
+		_schema.Resource.MarkdownDescription = "Provides a Cloud Avenue VDC isolated Network. This can be used to create, modify, and delete VDC isolated networks."
+		_schema.DataSource.MarkdownDescription = "Provides a Cloud Avenue VDC isolated Network data source to read data or reference existing network."
 		_schema.Attributes["vdc"] = vdc.SuperSchema()
 
 	case ISOLATEDVAPP:
