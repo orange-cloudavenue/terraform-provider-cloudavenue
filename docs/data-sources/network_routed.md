@@ -38,7 +38,11 @@ data "cloudavenue_network_routed" "example" {
 - `dns1` (String) DNS server 1.
 - `gateway` (String) Gateway IP address.
 - `id` (String) The ID of the routed network.
+<<<<<<< HEAD
 - `interface_type` (String) Optional interface type (only for NSX-V networks). One of `INTERNAL` (default), `DISTRIBUTED`, `SUBINTERFACE`.
+=======
+- `interface_type` (String) Optional interface type (only for NSX-V networks). One of `INTERNAL` (default), `DISTRIBUTED`, `SUBINTERFACE`
+>>>>>>> e477994 (feat(network): Update routed datasource)
 - `prefix_length` (Number) Network prefix length.
 - `static_ip_pool` (Attributes Set) IP ranges used for static pool allocation in the network. (see [below for nested schema](#nestedatt--static_ip_pool))
 

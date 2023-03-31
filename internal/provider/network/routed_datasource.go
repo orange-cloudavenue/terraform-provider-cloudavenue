@@ -8,20 +8,14 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
@@ -53,94 +47,12 @@ type networkRoutedDataSourceModel struct {
 }
 
 func (d *networkRoutedDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + "network_routed"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_routed"
 }
 
+// TODO - use SuperShema.
 func (d *networkRoutedDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "The network_routed datasource provides data about a routed network in CloudAvenue. ",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The ID of the routed network.",
-
-				//	PlanModifiers: []planmodifier.String{
-				//		stringplanmodifier.UseStateForUnknown(),
-				//	},
-			},
-			"name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Network name.",
-			},
-			"description": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Network description.",
-			},
-			"edge_gateway_id": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Edge gateway ID in which Routed network should be located. This argument is required when a network is included in a VDC Group.",
-			},
-			"interface_type": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Optional interface type (only for NSX-V networks). One of `INTERNAL` (default), `DISTRIBUTED`, `SUBINTERFACE`.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("INTERNAL", "SUBINTERFACE", "DISTRIBUTED"),
-				},
-			},
-			"gateway": schema.StringAttribute{
-				Computed: true,
-				Validators: []validator.String{
-					fstringvalidator.IsValidIP(),
-				},
-				MarkdownDescription: "Gateway IP address.",
-			},
-			"prefix_length": schema.Int64Attribute{
-				Computed: true,
-				Validators: []validator.Int64{
-					int64validator.Between(1, 32),
-				},
-				MarkdownDescription: "Network prefix length.",
-			},
-			"dns1": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "DNS server 1.",
-			},
-			"dns2": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "DNS server 2.",
-			},
-			"dns_suffix": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "DNS suffix.",
-			},
-			"static_ip_pool": schema.SetNestedAttribute{
-				Computed:            true,
-				MarkdownDescription: "IP ranges used for static pool allocation in the network.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"start_address": schema.StringAttribute{
-							Computed: true,
-							Validators: []validator.String{
-								fstringvalidator.IsValidIP(),
-							},
-							MarkdownDescription: "Start address of the IP range.",
-						},
-						"end_address": schema.StringAttribute{
-							Computed: true,
-							Validators: []validator.String{
-								fstringvalidator.IsValidIP(),
-							},
-							MarkdownDescription: "End address of the IP range.",
-						},
-					},
-				},
-			},
-		},
-	}
+	resp.Schema = network.GetSchema(network.SetRouted()).GetDataSource(ctx)
 }
 
 func (d *networkRoutedDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -156,7 +68,6 @@ func (d *networkRoutedDataSource) Configure(ctx context.Context, req datasource.
 			"Unexpected Data Source Configure Type",
 			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
-
 		return
 	}
 
@@ -172,6 +83,8 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
+	// TODO - include ORG and VDC in client and use INIT
+	// Get Org
 	org, mydiag := org.Init(d.client)
 	if mydiag.HasError() {
 		return
@@ -205,6 +118,7 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
+	// TODO - Add a Function to GET NETWORK ROUTED
 	plan := &networkRoutedDataSourceModel{
 		ID:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
 		Name:          types.StringValue(data.Name.ValueString()),
@@ -218,6 +132,7 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 		DNSSuffix:     types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
 	}
 
+	// TODO - Add a Function to GET staticIPPOOL
 	ipPools := []staticIPPool{}
 
 	if len(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values) > 0 {
@@ -229,7 +144,6 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 			ipPools = append(ipPools, ipPool)
 		}
 	}
-
 	var diags diag.Diagnostics
 	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolAttrTypes}, ipPools)
 	resp.Diagnostics.Append(diags...)
