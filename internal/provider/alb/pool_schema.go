@@ -230,7 +230,7 @@ func albPoolSchema() superschema.Schema {
 						Resource: &schemaR.Int64Attribute{
 							Required: true,
 							Validators: []validator.Int64{
-								int64validator.AtLeast(1),
+								int64validator.Between(1, 65535),
 							},
 						},
 						DataSource: &schemaD.Int64Attribute{

@@ -139,9 +139,6 @@ func (d *albPoolDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 // GetID returns the ID of the albPool.
