@@ -1,0 +1,31 @@
+name: Generate CHANGELOG
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+jobs:
+  GenerateChangelog:
+    if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: '.ci/tools/go.mod'
+      - run: go generate -tags tools .ci/tools/tools.go
+      - run: ./.ci/scripts/generate-changelog.sh
+      - run: |
+          if [[ `git status --porcelain` ]]; then
+            if ${{github.event_name == 'workflow_dispatch'}}; then
+              MSG="Update CHANGELOG.md (Manual Trigger)"
+            else
+              MSG="Update CHANGELOG.md for #${{ github.event.pull_request.number }}"
+            fi
+            git config --local user.email changelogbot@frangipane.io
+            git config --local user.name changelogbot
+            git add CHANGELOG.md
+            git commit -m "$MSG"
+            git push
+          fi
