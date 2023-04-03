@@ -1,6 +1,6 @@
 ---
 page_title: "cloudavenue_vm_disk Resource - cloudavenue"
-subcategory: "VM"
+subcategory: "VM (Virtual Machine)"
 description: |-
   The disk resource allows you to manage a disk in the vDC.
 ---

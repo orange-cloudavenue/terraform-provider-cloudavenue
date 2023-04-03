@@ -1,6 +1,6 @@
 ---
 page_title: "cloudavenue_tier0_vrfs Data Source - cloudavenue"
-subcategory: "tier-0 VRF Gateways"
+subcategory: "Provider Gateway (Tier-0)"
 description: |-
   The Tier-0 VRFs data source allow access to a list of Tier-0 that can be accessed by the user.
 ---
