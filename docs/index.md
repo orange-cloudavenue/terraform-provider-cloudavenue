@@ -2,22 +2,22 @@
 page_title: "Cloud Avenue Provider"
 subcategory: ""
 description: |-
-    This provider provides utilities for working with Cloud Avenue platform.
+    This provider offers utilities for working with the Cloud Avenue platform.
 ---
 
 # Cloud Avenue Provider
 
-This Provider provides utilities for working with Cloud Avenue platform.
+This provider offers utilities for working with the Cloud Avenue platform.
 
-Documentation regarding Data Sources and Resources can be found in the sidebar to the left.
+Documentation regarding data sources and resources can be found in the left sidebar.
 
  -> Note : If you need more information about Cloud Avenue, please visit [Cloud Avenue documentation](https://wiki.cloudavenue.orange-business.com/w/index.php/Accueil).
 
 ## Authentication
 
-The provider needs to be configured with the proper credentials before it can be used.
+The provider must to be configured with the appropriate credentials before it can be used.
 
-Cloud Avenue support authentication with username, password and organization.
+Cloud Avenue supports authentication with a username, password and organization.
 
 ## Example Usage
 

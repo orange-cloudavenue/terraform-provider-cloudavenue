@@ -161,7 +161,7 @@ func (p *cloudavenueProvider) Schema(
 	resp *provider.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "This provider provides utilities for working with Cloud Avenue platform.",
+		MarkdownDescription: "This provider offers utilities for working with the Cloud Avenue platform.",
 		Attributes: map[string]schema.Attribute{
 			"url": schema.StringAttribute{
 				MarkdownDescription: "The URL of the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_URL` environment variable.",
