@@ -15,7 +15,7 @@ Documentation regarding data sources and resources can be found in the left side
 
 ## Authentication
 
-The provider must to be configured with the appropriate credentials before it can be used.
+The provider must be configured with the appropriate credentials before it can be used.
 
 Cloud Avenue supports authentication with a username, password and organization.
 
