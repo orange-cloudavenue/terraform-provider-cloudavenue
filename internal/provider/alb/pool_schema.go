@@ -68,9 +68,9 @@ var persistenceProfileAttrTypes = map[string]attr.Type{
 }
 
 /*
-userSchema
+albPoolSchema
 
-This function is used to create the schema for the user resource and datasource.
+This function is used to create the schema for the ALB Pool resource and datasource.
 */
 func albPoolSchema() superschema.Schema {
 	return superschema.Schema{
@@ -176,6 +176,9 @@ func albPoolSchema() superschema.Schema {
 				Resource: &schemaR.Int64Attribute{
 					Optional: true,
 					Default:  int64default.StaticInt64(80),
+					Validators: []validator.Int64{
+						int64validator.Between(1, 65535),
+					},
 				},
 			},
 			"graceful_timeout_period": superschema.Int64Attribute{

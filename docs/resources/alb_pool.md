@@ -72,7 +72,7 @@ resource "cloudavenue_alb_pool" "example" {
 ### Optional
 
 - `algorithm` (String) Algorithm for choosing pool members. Value must be one of : `ROUND_ROBIN`, `CONSISTENT_HASH`, `LEAST_CONNECTIONS`. Value defaults to `LEAST_CONNECTIONS`.
-- `default_port` (Number) Default Port defines destination server port used by the traffic sent to the member. Value defaults to `80`.
+- `default_port` (Number) Default Port defines destination server port used by the traffic sent to the member. Value must be between 1 and 65535. Value defaults to `80`.
 - `description` (String) Description of ALB Pool.
 - `edge_gateway_id` (String) (ForceNew) Edge gateway ID in which ALB Pool should be created. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
 - `edge_gateway_name` (String) (ForceNew) Edge gateway Name in which ALB Pool should be created. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.

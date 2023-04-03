@@ -335,28 +335,15 @@ func (r *albPoolResource) GetName() string {
 
 // GetAlbPool returns the govcd.NsxtAlbPool.
 func (r *albPoolResource) GetAlbPool() (*govcd.NsxtAlbPool, error) {
-	var (
-		albPool *govcd.NsxtAlbPool
-		err     error
-	)
-
 	if r.GetID() != "" {
-		albPool, err = r.client.Vmware.GetAlbPoolById(r.GetID())
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		nsxtEdge, err := r.org.GetEdgeGateway(r.edgegw)
-		if err != nil {
-			return nil, fmt.Errorf("could not retrieve Edge gateway '%s'", r.edgegw.GetIDOrName())
-		}
-		albPool, err = r.client.Vmware.GetAlbPoolByName(nsxtEdge.EdgeGateway.ID, r.GetName())
-		if err != nil {
-			return nil, err
-		}
+		return r.client.Vmware.GetAlbPoolById(r.GetID())
 	}
 
-	return albPool, err
+	nsxtEdge, err := r.org.GetEdgeGateway(r.edgegw)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve Edge gateway '%s'", r.edgegw.GetIDOrName())
+	}
+	return r.client.Vmware.GetAlbPoolByName(nsxtEdge.EdgeGateway.ID, r.GetName())
 }
 
 // getAlbPoolConfig is the main function for getting *govcdtypes.NsxtAlbPool for API request. It nests multiple smaller
@@ -428,36 +415,32 @@ func (r *albPoolResource) getAlbPoolPersistenceProfileType(ctx context.Context, 
 	}
 
 	p := &persistenceProfile{}
-	diags := d.PersistenceProfile.As(ctx, p, basetypes.ObjectAsOptions{
+	if diags := d.PersistenceProfile.As(ctx, p, basetypes.ObjectAsOptions{
 		UnhandledNullAsEmpty:    false,
 		UnhandledUnknownAsEmpty: false,
-	})
-	if diags.HasError() {
+	}); diags.HasError() {
 		return nil, errors.New(diags[0].Detail())
 	}
 
-	persistenceProfile := &govcdtypes.NsxtAlbPoolPersistenceProfile{}
-	persistenceProfile.Type = p.Type.ValueString()
-	persistenceProfile.Value = p.Value.ValueString()
-
-	return persistenceProfile, nil
+	return &govcdtypes.NsxtAlbPoolPersistenceProfile{
+		Type:  p.Type.ValueString(),
+		Value: p.Value.ValueString(),
+	}, nil
 }
 
 // getAlbPoolHealthMonitorType.
-func (r *albPoolResource) getAlbPoolHealthMonitorType(ctx context.Context, d *albPoolModel) ([]govcdtypes.NsxtAlbPoolHealthMonitor, error) {
-	var healthMonitors []string
-	diags := d.HealthMonitors.ElementsAs(ctx, &healthMonitors, true)
-	if diags.HasError() {
+func (r *albPoolResource) getAlbPoolHealthMonitorType(ctx context.Context, d *albPoolModel) (healthMonitors []govcdtypes.NsxtAlbPoolHealthMonitor, err error) {
+	var healthMonitorsSlice []string
+
+	if diags := d.HealthMonitors.ElementsAs(ctx, &healthMonitorsSlice, true); diags.HasError() {
 		return nil, errors.New(diags[0].Detail())
 	}
 
-	healthMonitorSlice := make([]govcdtypes.NsxtAlbPoolHealthMonitor, 0)
-
-	for _, healthMonitor := range healthMonitors {
-		healthMonitorSlice = append(healthMonitorSlice, govcdtypes.NsxtAlbPoolHealthMonitor{
+	for _, healthMonitor := range healthMonitorsSlice {
+		healthMonitors = append(healthMonitors, govcdtypes.NsxtAlbPoolHealthMonitor{
 			Type: healthMonitor,
 		})
 	}
 
-	return healthMonitorSlice, nil
+	return
 }

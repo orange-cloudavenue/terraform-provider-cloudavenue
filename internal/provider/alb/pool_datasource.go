@@ -153,26 +153,13 @@ func (d *albPoolDataSource) GetName() string {
 
 // GetAlbPool returns the govcd.NsxtAlbPool.
 func (d *albPoolDataSource) GetAlbPool() (*govcd.NsxtAlbPool, error) {
-	var (
-		albPool *govcd.NsxtAlbPool
-		err     error
-	)
-
 	if d.GetID() != "" {
-		albPool, err = d.client.Vmware.GetAlbPoolById(d.GetID())
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		nsxtEdge, err := d.org.GetEdgeGateway(d.edgegw)
-		if err != nil {
-			return nil, fmt.Errorf("could not retrieve Edge gateway '%s'", d.edgegw.GetIDOrName())
-		}
-		albPool, err = d.client.Vmware.GetAlbPoolByName(nsxtEdge.EdgeGateway.ID, d.GetName())
-		if err != nil {
-			return nil, err
-		}
+		return d.client.Vmware.GetAlbPoolById(d.GetID())
 	}
 
-	return albPool, err
+	nsxtEdge, err := d.org.GetEdgeGateway(d.edgegw)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve Edge gateway '%s'", d.edgegw.GetIDOrName())
+	}
+	return d.client.Vmware.GetAlbPoolByName(nsxtEdge.GetID(), d.GetName())
 }
