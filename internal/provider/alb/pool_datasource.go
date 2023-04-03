@@ -120,9 +120,9 @@ func (d *albPoolDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	// Set health monitors.
-	healtMonitors := processHealthMonitors(albPool.NsxtAlbPool.HealthMonitors)
+	healthMonitors := processHealthMonitors(albPool.NsxtAlbPool.HealthMonitors)
 
-	data.HealthMonitors, diags = types.SetValueFrom(ctx, types.StringType, healtMonitors)
+	data.HealthMonitors, diags = types.SetValueFrom(ctx, types.StringType, healthMonitors)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

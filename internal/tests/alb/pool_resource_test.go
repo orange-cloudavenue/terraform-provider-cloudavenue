@@ -55,16 +55,16 @@ func TestAccAlbPoolResource(t *testing.T) {
 				// Apply test
 				Config: testAccAlbPoolResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:loadBalancerPool:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`urn:vcloud:loadBalancerPool:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttr(resourceName, "name", "Example"),
+					resource.TestCheckResourceAttr(resourceName, "persistence_profile.type", "CLIENT_IP"),
 				),
 			},
-			// Uncomment if you want to test update or delete this block
 			{
 				// Update test
 				Config: testAccAlbPoolResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:loadBalancerPool:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`urn:vcloud:loadBalancerPool:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttr(resourceName, "name", "Example"),
 					resource.TestCheckNoResourceAttr(resourceName, "persistence_profile"),
 					resource.TestCheckNoResourceAttr(resourceName, "members"),
