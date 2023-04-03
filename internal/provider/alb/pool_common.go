@@ -40,7 +40,7 @@ func processHealthMonitors(poolHealthMonitors []govcdtypes.NsxtAlbPoolHealthMoni
 }
 
 func processPersistenceProfile(poolPersistenceProfile *govcdtypes.NsxtAlbPoolPersistenceProfile) persistenceProfile {
-	if poolPersistenceProfile != nil {
+	if poolPersistenceProfile == nil {
 		return persistenceProfile{}
 	}
 

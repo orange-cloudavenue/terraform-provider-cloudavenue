@@ -6,7 +6,6 @@ import (
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
@@ -67,13 +66,11 @@ func (e EdgeGateway) GetID() string {
 }
 
 // Lock locks the Edge Gateway.
-func (e EdgeGateway) Lock(ctx context.Context) (d diag.Diagnostics) {
+func (e EdgeGateway) Lock(ctx context.Context) {
 	gwMutexKV.KvLock(ctx, e.GetID())
-	return
 }
 
 // Unlock unlocks the Edge Gateway.
-func (e EdgeGateway) Unlock(ctx context.Context) (d diag.Diagnostics) {
+func (e EdgeGateway) Unlock(ctx context.Context) {
 	gwMutexKV.KvUnlock(ctx, e.GetID())
-	return
 }

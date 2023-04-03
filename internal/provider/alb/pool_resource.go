@@ -120,11 +120,8 @@ func (r *albPoolResource) Create(ctx context.Context, req resource.CreateRequest
 		resp.Diagnostics.AddError("Unable to get Edge Gateway", err.Error())
 		return
 	}
-	resp.Diagnostics.Append(edgeGW.Lock(ctx)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	defer resp.Diagnostics.Append(edgeGW.Unlock(ctx)...)
+	edgeGW.Lock(ctx)
+	defer edgeGW.Unlock(ctx)
 
 	// Create ALB Pool
 	createdAlbPool, err := r.client.Vmware.CreateNsxtAlbPool(albPoolConfig)
@@ -197,10 +194,10 @@ func (r *albPoolResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Set health monitors.
-	healtMonitors := processHealthMonitors(albPool.NsxtAlbPool.HealthMonitors)
+	healthMonitors := processHealthMonitors(albPool.NsxtAlbPool.HealthMonitors)
 
-	if len(healtMonitors) > 0 {
-		plan.HealthMonitors, diags = types.SetValueFrom(ctx, types.StringType, healtMonitors)
+	if len(healthMonitors) > 0 {
+		plan.HealthMonitors, diags = types.SetValueFrom(ctx, types.StringType, healthMonitors)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -258,11 +255,8 @@ func (r *albPoolResource) Update(ctx context.Context, req resource.UpdateRequest
 		resp.Diagnostics.AddError("Unable to get Edge Gateway", err.Error())
 		return
 	}
-	resp.Diagnostics.Append(edgeGW.Lock(ctx)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	defer resp.Diagnostics.Append(edgeGW.Unlock(ctx)...)
+	edgeGW.Lock(ctx)
+	defer edgeGW.Unlock(ctx)
 
 	// Update ALB Pool.
 	_, err = albPool.Update(albPoolConfig)
@@ -297,11 +291,8 @@ func (r *albPoolResource) Delete(ctx context.Context, req resource.DeleteRequest
 		resp.Diagnostics.AddError("Unable to get Edge Gateway", err.Error())
 		return
 	}
-	resp.Diagnostics.Append(edgeGW.Lock(ctx)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	defer resp.Diagnostics.Append(edgeGW.Unlock(ctx)...)
+	edgeGW.Lock(ctx)
+	defer edgeGW.Unlock(ctx)
 
 	// Get albPool
 	albPool, err := r.GetAlbPool()
