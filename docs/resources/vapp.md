@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vapp Resource - cloudavenue"
 subcategory: "vApp (Virtual Appliance)"
 description: |-
-  The Edge Gateway resource allows you to create and manage Edge Gateways in CloudAvenue.
+  Provides a Cloud Avenue vApp resource. This can be used to create, modify, and delete vApps.
 ---
 
 # cloudavenue_vapp (Resource)
 
-The Edge Gateway resource allows you to create and manage Edge Gateways in CloudAvenue.
+Provides a Cloud Avenue vApp resource. This can be used to create, modify, and delete vApps.
 
 ## Example Usage
 

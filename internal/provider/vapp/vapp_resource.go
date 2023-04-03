@@ -75,7 +75,7 @@ func (r *vappResource) Metadata(_ context.Context, req resource.MetadataRequest,
 // Schema defines the schema for the resource.
 func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Edge Gateway resource allows you to create and manage Edge Gateways in CloudAvenue.",
+		MarkdownDescription: "Provides a Cloud Avenue vApp resource. This can be used to create, modify, and delete vApps.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

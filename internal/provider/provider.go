@@ -161,10 +161,10 @@ func (p *cloudavenueProvider) Schema(
 	resp *provider.SchemaResponse,
 ) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Cloudavenue provider provides utilities for working with Cloud Avenue platform.",
+		MarkdownDescription: "This provider offers utilities for working with the Cloud Avenue platform.",
 		Attributes: map[string]schema.Attribute{
 			"url": schema.StringAttribute{
-				MarkdownDescription: "The URL of the CloudAvenue API. Can also be set with the `CLOUDAVENUE_URL` environment variable.",
+				MarkdownDescription: "The URL of the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_URL` environment variable.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
@@ -174,20 +174,20 @@ func (p *cloudavenueProvider) Schema(
 				},
 			},
 			"user": schema.StringAttribute{
-				MarkdownDescription: "The username to use to connect to the CloudAvenue API. Can also be set with the `CLOUDAVENUE_USER` environment variable.",
+				MarkdownDescription: "The username to use to connect to the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_USER` environment variable.",
 				Optional:            true,
 			},
 			"password": schema.StringAttribute{
-				MarkdownDescription: "The password to use to connect to the CloudAvenue API. Can also be set with the `CLOUDAVENUE_PASSWORD` environment variable.",
+				MarkdownDescription: "The password to use to connect to the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_PASSWORD` environment variable.",
 				Sensitive:           true,
 				Optional:            true,
 			},
 			"org": schema.StringAttribute{
-				MarkdownDescription: "The organization used on CloudAvenue API. Can also be set with the `CLOUDAVENUE_ORG` environment variable.",
+				MarkdownDescription: "The organization used on Cloud Avenue API. Can also be set with the `CLOUDAVENUE_ORG` environment variable.",
 				Optional:            true,
 			},
 			"vdc": schema.StringAttribute{
-				MarkdownDescription: "The VDC used on CloudAvenue API. Can also be set with the `CLOUDAVENUE_VDC` environment variable.",
+				MarkdownDescription: "The VDC used on Cloud Avenue API. Can also be set with the `CLOUDAVENUE_VDC` environment variable.",
 				Optional:            true,
 			},
 		},
@@ -199,7 +199,7 @@ func (p *cloudavenueProvider) Configure(
 	req provider.ConfigureRequest,
 	resp *provider.ConfigureResponse,
 ) {
-	tflog.Info(ctx, "Configuring CloudAvenue client")
+	tflog.Info(ctx, "Configuring Cloud Avenue client")
 	var config cloudavenueProviderModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
@@ -235,7 +235,7 @@ func (p *cloudavenueProvider) Configure(
 		vdc = config.VDC.ValueString()
 	}
 
-	// Default URL to the public CloudAvenue API if not set.
+	// Default URL to the public Cloud Avenue API if not set.
 	if urlCloudAvenue == "" {
 		urlCloudAvenue = "https://console1.cloudavenue.orange-business.com"
 	}
@@ -244,8 +244,8 @@ func (p *cloudavenueProvider) Configure(
 	if user == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("user"),
-			"Missing CloudAvenue API User",
-			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API user. "+
+			"Missing Cloud Avenue API User",
+			"The provider cannot create the Cloud Avenue API client as there is a missing or empty value for the Cloud Avenue API user. "+
 				"Set the host value in the configuration or use the CLOUDAVENUE_USER environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
@@ -253,8 +253,8 @@ func (p *cloudavenueProvider) Configure(
 	if password == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("password"),
-			"Missing CloudAvenue API Password",
-			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API password. "+
+			"Missing Cloud Avenue API Password",
+			"The provider cannot create the Cloud Avenue API client as there is a missing or empty value for the Cloud Avenue API password. "+
 				"Set the host value in the configuration or use the CLOUDAVENUE_PASWWORD environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
@@ -262,8 +262,8 @@ func (p *cloudavenueProvider) Configure(
 	if org == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("org"),
-			"Missing CloudAvenue API Org",
-			"The provider cannot create the CloudAvenue API client as there is a missing or empty value for the CloudAvenue API org. "+
+			"Missing Cloud Avenue API Org",
+			"The provider cannot create the Cloud Avenue API client as there is a missing or empty value for the Cloud Avenue API org. "+
 				"Set the host value in the configuration or use the CLOUDAVENUE_ORG environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
@@ -297,18 +297,18 @@ func (p *cloudavenueProvider) Configure(
 		switch {
 		case errors.Is(err, client.ErrAuthFailed):
 			resp.Diagnostics.AddError(
-				"Unable to Create CloudAvenue API Client",
-				"An unexpected error occurred when creating the CloudAvenue API client. "+
+				"Unable to Create Cloud Avenue API Client",
+				"An unexpected error occurred when creating the Cloud Avenue API client. "+
 					"If the error is not clear, please contact the provider developers.\n\n"+
-					"CloudAvenue Client Error: "+err.Error(),
+					"Cloud Avenue Client Error: "+err.Error(),
 			)
 			return
 		case errors.Is(err, client.ErrTokenEmpty):
 			resp.Diagnostics.AddError(
-				"Unable to Create CloudAvenue API Client",
-				"An unexpected error occurred when creating the CloudAvenue API client. "+
+				"Unable to Create Cloud Avenue API Client",
+				"An unexpected error occurred when creating the Cloud Avenue API client. "+
 					"If the error is not clear, please contact the provider developers.\n\n"+
-					"CloudAvenue Client Error: empty token",
+					"Cloud Avenue Client Error: empty token",
 			)
 			return
 		case errors.Is(err, client.ErrConfigureVmware):
@@ -329,8 +329,8 @@ func (p *cloudavenueProvider) Configure(
 			return
 		default:
 			resp.Diagnostics.AddError(
-				"Unable to Create CloudAvenue API Client",
-				"An unexpected error occurred when creating the CloudAvenue API client. "+
+				"Unable to Create Cloud Avenue API Client",
+				"An unexpected error occurred when creating the Cloud Avenue API client. "+
 					"If the error is not clear, please contact the provider developers.\n\n"+
 					"unknown error: "+err.Error(),
 			)
@@ -343,5 +343,5 @@ func (p *cloudavenueProvider) Configure(
 	resp.DataSourceData = cA
 	resp.ResourceData = cA
 
-	tflog.Info(ctx, "Configured CloudAvenue client", map[string]any{"success": true})
+	tflog.Info(ctx, "Configured Cloud Avenue client", map[string]any{"success": true})
 }

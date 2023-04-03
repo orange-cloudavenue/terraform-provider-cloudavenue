@@ -50,7 +50,7 @@ func (d *catalogMediaDataSource) Metadata(ctx context.Context, req datasource.Me
 func (d *catalogMediaDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = mediaSchema().GetDataSource(ctx)
 	// schema.Schema{
-	// 	Description: "The `catalog_media` datasource provides a CloudAvenue Catalog media data source.",
+	// 	Description: "The `catalog_media` datasource provides a Cloud Avenue Catalog media data source.",
 
 	// 	Attributes: map[string]schema.Attribute{
 	// 		"id": schema.StringAttribute{

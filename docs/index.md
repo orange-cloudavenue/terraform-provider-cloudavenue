@@ -1,21 +1,23 @@
 ---
-page_title: "CloudAvenue Provider"
+page_title: "Cloud Avenue Provider"
 subcategory: ""
 description: |-
-    The Cloudavenue provider provides utilities for working with Cloud Avenue platform.
+    This provider offers utilities for working with the Cloud Avenue platform.
 ---
 
-# CloudAvenue Provider
+# Cloud Avenue Provider
 
-The CloudAvenue Provider provides utilities for working with Cloud Avenue platform.
-The provider needs to be configured with the proper credentials before it can be used.
+This provider offers utilities for working with the Cloud Avenue platform.
 
-Documentation regarding Data Sources and Resources can be found in the sidebar to the left.
+Documentation regarding data sources and resources can be found in the left sidebar.
 
  -> Note : If you need more information about Cloud Avenue, please visit [Cloud Avenue documentation](https://wiki.cloudavenue.orange-business.com/w/index.php/Accueil).
+
 ## Authentication
 
-Cloud Avenue support authentication with username, password and organization.
+The provider must to be configured with the appropriate credentials before it can be used.
+
+Cloud Avenue supports authentication with a username, password and organization.
 
 ## Example Usage
 
@@ -33,8 +35,8 @@ provider "cloudavenue" {
 
 ### Optional
 
-- `org` (String) The organization used on CloudAvenue API. Can also be set with the `CLOUDAVENUE_ORG` environment variable.
-- `password` (String, Sensitive) The password to use to connect to the CloudAvenue API. Can also be set with the `CLOUDAVENUE_PASSWORD` environment variable.
-- `url` (String) The URL of the CloudAvenue API. Can also be set with the `CLOUDAVENUE_URL` environment variable.
-- `user` (String) The username to use to connect to the CloudAvenue API. Can also be set with the `CLOUDAVENUE_USER` environment variable.
-- `vdc` (String) The VDC used on CloudAvenue API. Can also be set with the `CLOUDAVENUE_VDC` environment variable.
+- `org` (String) The organization used on Cloud Avenue API. Can also be set with the `CLOUDAVENUE_ORG` environment variable.
+- `password` (String, Sensitive) The password to use to connect to the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_PASSWORD` environment variable.
+- `url` (String) The URL of the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_URL` environment variable.
+- `user` (String) The username to use to connect to the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_USER` environment variable.
+- `vdc` (String) The VDC used on Cloud Avenue API. Can also be set with the `CLOUDAVENUE_VDC` environment variable.
