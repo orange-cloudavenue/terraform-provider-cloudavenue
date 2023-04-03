@@ -1,0 +1,7 @@
+```release-note:new-resource
+cloudavenue_alb_pool
+```
+
+```release-note:new-data-source
+cloudavenue_alb_pool
+```
