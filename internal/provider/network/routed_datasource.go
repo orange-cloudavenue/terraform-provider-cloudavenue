@@ -50,7 +50,6 @@ func (d *networkRoutedDataSource) Metadata(ctx context.Context, req datasource.M
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_routed"
 }
 
-// TODO - use SuperShema.
 func (d *networkRoutedDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = network.GetSchema(network.SetRouted()).GetDataSource(ctx)
 }
@@ -118,7 +117,6 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	// TODO - Add a Function to GET NETWORK ROUTED
 	plan := &networkRoutedDataSourceModel{
 		ID:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
 		Name:          types.StringValue(data.Name.ValueString()),
