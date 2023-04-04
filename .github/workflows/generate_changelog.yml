@@ -20,9 +20,9 @@ jobs:
       - run: |
           if [[ `git status --porcelain` ]]; then
             if ${{github.event_name == 'workflow_dispatch'}}; then
-              MSG="Update CHANGELOG.md (Manual Trigger)"
+              MSG="chore: update CHANGELOG.md (Manual Trigger)"
             else
-              MSG="Update CHANGELOG.md for #${{ github.event.pull_request.number }}"
+              MSG="chore: update CHANGELOG.md for #${{ github.event.pull_request.number }}"
             fi
             git config --local user.email changelogbot@frangipane.io
             git config --local user.name changelogbot

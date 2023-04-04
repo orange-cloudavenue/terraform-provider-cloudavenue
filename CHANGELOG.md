@@ -1,5 +1,10 @@
 ## 0.2.0 (Unreleased)
 
+FEATURES:
+* **New Data Source:** cloudavenue_alb_pool ([GH-246](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/246))
+* **New Data Source:** cloudavenue_network_isolated ([GH-248](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/248))
+* **New Resource:** cloudavenue_alb_pool ([GH-246](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/246))
+
 ## 0.1.1 (April 3, 2023)
 
 IMPROVEMENTS:
