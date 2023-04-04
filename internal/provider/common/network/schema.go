@@ -245,15 +245,15 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 	switch params.typeNetwork {
 	case NAT_ROUTED:
 		// Add routed network specific attributes to the schema
-		_schema.Common.MarkdownDescription = "Provides a Cloud Avenue VDC routed Network."
-		_schema.Resource.MarkdownDescription = "This can be used to create, modify, and delete VDC routed networks."
+		_schema.Resource.MarkdownDescription = "Provides a Cloud Avenue VDC routed Network. This can be used to create, modify, and delete VDC routed networks."
+		_schema.DataSource.MarkdownDescription = "Provides a Cloud Avenue VDC routed Network data source to read data or reference existing network"
 		_schema.Attributes["edge_gateway_id"] = superschema.StringAttribute{
 			Common: &schemaR.StringAttribute{
 				MarkdownDescription: "The ID of the edge gateway in which the routed network should be located.",
+				Optional:            true,
+				Computed:            true,
 			},
 			Resource: &schemaR.StringAttribute{
-				Optional: true,
-				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 					stringplanmodifier.UseStateForUnknown(),
@@ -264,12 +264,10 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 			},
 		}
 		_schema.Attributes["edge_gateway_name"] = superschema.StringAttribute{
-			Common: &schemaR.StringAttribute{
-				MarkdownDescription: "The name of the edge gateway in which the routed network should be located.",
-			},
 			Resource: &schemaR.StringAttribute{
-				Optional: true,
-				Computed: true,
+				MarkdownDescription: "The name of the edge gateway in which the routed network should be located.",
+				Computed:            true,
+				Optional:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 					stringplanmodifier.UseStateForUnknown(),
@@ -279,14 +277,13 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 				},
 			},
 		}
-
 		_schema.Attributes["interface_type"] = superschema.StringAttribute{
 			Common: &schemaR.StringAttribute{
-				MarkdownDescription: "Optional interface type.",
+				MarkdownDescription: "An interface for the network",
+				Computed:            true,
 			},
 			Resource: &schemaR.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Default:  stringdefault.StaticString("INTERNAL"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("INTERNAL", "SUBINTERFACE", "DISTRIBUTED"),

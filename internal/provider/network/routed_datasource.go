@@ -30,6 +30,7 @@ func NewNetworkRoutedDataSource() datasource.DataSource {
 
 type networkRoutedDataSource struct {
 	client *client.CloudAvenue
+	org    org.Org
 }
 
 type networkRoutedDataSourceModel struct {
@@ -52,6 +53,13 @@ func (d *networkRoutedDataSource) Metadata(ctx context.Context, req datasource.M
 
 func (d *networkRoutedDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = network.GetSchema(network.SetRouted()).GetDataSource(ctx)
+}
+
+// Init resource used to initialize the resource.
+func (d *networkRoutedDataSource) Init(_ context.Context, rm *networkRoutedDataSourceModel) (diags diag.Diagnostics) {
+	// Init Org
+	d.org, diags = org.Init(d.client)
+	return
 }
 
 func (d *networkRoutedDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -82,10 +90,9 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	// TODO - include ORG and VDC in client and use INIT
-	// Get Org
-	org, mydiag := org.Init(d.client)
-	if mydiag.HasError() {
+	// Init resource
+	resp.Diagnostics.Append(d.Init(ctx, data)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -98,14 +105,14 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 
 	var orgNetwork *govcd.OpenApiOrgVdcNetwork
 	if data.EdgeGatewayID.IsNull() {
-		orgNetwork, err = org.GetOpenApiOrgVdcNetworkByNameAndOwnerId(data.Name.ValueString(), vdc.GetID())
+		orgNetwork, err = d.org.GetOpenApiOrgVdcNetworkByNameAndOwnerId(data.Name.ValueString(), vdc.GetID())
 	} else {
-		parentID, diag := GetParentEdgeGatewayID(org, data.EdgeGatewayID.ValueString())
+		parentID, diag := GetParentEdgeGatewayID(d.org, data.EdgeGatewayID.ValueString())
 		if diag != nil {
 			resp.Diagnostics.Append(diag)
 			return
 		}
-		orgNetwork, err = org.GetOpenApiOrgVdcNetworkByNameAndOwnerId(data.Name.ValueString(), *parentID)
+		orgNetwork, err = d.org.GetOpenApiOrgVdcNetworkByNameAndOwnerId(data.Name.ValueString(), *parentID)
 	}
 
 	if err != nil {
@@ -130,7 +137,6 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 		DNSSuffix:     types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
 	}
 
-	// TODO - Add a Function to GET staticIPPOOL
 	ipPools := []staticIPPool{}
 
 	if len(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values) > 0 {
@@ -148,7 +154,4 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
