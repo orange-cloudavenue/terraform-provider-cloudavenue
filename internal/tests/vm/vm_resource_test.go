@@ -12,6 +12,7 @@ import (
 
 const resourceNameVM = "cloudavenue_vm.example"
 
+//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
 const testAccVMResourceConfigFromVappTemplate = `
 data "cloudavenue_catalog_vapp_template" "example" {
 	catalog_name = "Orange-Linux"

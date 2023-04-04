@@ -6,11 +6,3 @@ resource "cloudavenue_edgegateway" "example_with_vdc" {
   owner_type     = "vdc"
   lb_enabled     = false
 }
-
-data "cloudavenue_tier0_vrfs" "example_with_group" {}
-
-resource "cloudavenue_edgegateway" "example_with_group" {
-  owner_name     = "MyVDCGroup"
-  tier0_vrf_name = data.cloudavenue_tier0_vrfs.example_with_group.names.0
-  owner_type     = "vdc-group"
-}
