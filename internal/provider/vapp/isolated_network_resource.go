@@ -177,6 +177,9 @@ func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.Creat
 
 	var staticIPPools []*staticIPPoolModel
 	resp.Diagnostics.Append(plan.StaticIPPool.ElementsAs(ctx, &staticIPPools, true)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	staticIPRanges := make([]*govcdtypes.IPRange, 0)
 	for _, staticIPPool := range staticIPPools {
