@@ -12,10 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/acl"
@@ -40,13 +36,6 @@ type aclResource struct {
 	vdc    vdc.VDC
 }
 
-type aclResourceModel struct {
-	ID                  types.String `tfsdk:"id"`
-	VDC                 types.String `tfsdk:"vdc"`
-	EveryoneAccessLevel types.String `tfsdk:"everyone_access_level"`
-	SharedWith          types.Set    `tfsdk:"shared_with"`
-}
-
 // Metadata returns the resource type name.
 func (r *aclResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "acl"
@@ -54,21 +43,7 @@ func (r *aclResource) Metadata(_ context.Context, req resource.MetadataRequest, 
 
 // Schema defines the schema for the resource.
 func (r *aclResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a Cloud Avenue vDC access control resource. This can be used to share vDC across users and/or groups.",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The ID of the resource.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"vdc":                   vdc.Schema(),
-			"everyone_access_level": acl.Schema(true)["everyone_access_level"],
-			"shared_with":           acl.Schema(true)["shared_with"],
-		},
-	}
+	resp.Schema = aclSchema().GetResource(ctx)
 }
 
 func (r *aclResource) Init(ctx context.Context, rm *aclResourceModel) (diags diag.Diagnostics) {
