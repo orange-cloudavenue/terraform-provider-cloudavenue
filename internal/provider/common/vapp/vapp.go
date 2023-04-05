@@ -23,9 +23,12 @@ import (
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
+	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 )
 
 const (
@@ -183,3 +186,36 @@ func (v VAPP) UnlockVAPP(ctx context.Context) (d diag.Diagnostics) {
 	vcdMutexKV.KvUnlock(ctx, key)
 	return
 }
+
+// CreateVMWithTemplate
+func (v VAPP) CreateVMWithTemplate() (vm vm.VM, d diag.Diagnostics) {
+
+	vmFromTemplateParams := &govcdtypes.ReComposeVAppParams{
+		Ovf:              govcdtypes.XMLNamespaceOVF,
+		Xsi:              govcdtypes.XMLNamespaceXSI,
+		Xmlns:            govcdtypes.XMLNamespaceVCloud,
+		AllEULAsAccepted: v.Plan.AcceptAllEulas.ValueBool(),
+		Name:             vapp.VApp.Name,
+		PowerOn:          false, // VM will be powered on after all configuration is done
+		SourcedItem: &govcdtypes.SourcedCompositionItemParam{
+			Source: &govcdtypes.Reference{
+				HREF: vmTemplate.VAppTemplate.HREF,
+				Name: v.Plan.VMName.ValueString(), // This VM name defines the VM name after creation
+			},
+			VMGeneralParams: &govcdtypes.VMGeneralParams{
+				Description: v.Plan.Description.ValueString(),
+			},
+			InstantiationParams: &govcdtypes.InstantiationParams{
+				// If a MAC address is specified for NIC - it does not get set with this call,
+				// therefore an additional `vm.UpdateNetworkConnectionSection` is required.
+				NetworkConnectionSection: &networkConnectionSection,
+			},
+			ComputePolicy:  vmComputePolicy,
+			StorageProfile: storageProfilePtr,
+		},
+	}
+
+	return
+}
+
+// CreateVMWithBootImage

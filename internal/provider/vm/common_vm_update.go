@@ -95,7 +95,7 @@ func updateVM(ctx context.Context, v *Client) (*govcd.VM, error) { //nolint:gocy
 	// End of Update Resource
 
 	// Update Networks
-	if v.Plan.Networks.Equal(v.State.Networks) {
+	if !v.Plan.Networks.Equal(v.State.Networks) {
 		var (
 			requireUpdate = false
 			isPrimaryNic  = false
@@ -265,6 +265,8 @@ func updateVM(ctx context.Context, v *Client) (*govcd.VM, error) { //nolint:gocy
 			if v.Plan.PreventUpdatePowerOff.IsNull() || v.Plan.PreventUpdatePowerOff.IsUnknown() || v.Plan.PreventUpdatePowerOff.ValueBool() {
 				return nil, fmt.Errorf("update stopped: VM needs to power off to change properties, but `prevent_update_power_off` is `true`")
 			}
+
+			// Try Shutdown
 
 			task, err := vm.Undeploy()
 			if err != nil {

@@ -40,3 +40,17 @@ func (v VAPP) GetDeploymentLeaseInSeconds() int {
 func (v VAPP) GetStorageLeaseInSeconds() int {
 	return v.VApp.VApp.LeaseSettingsSection.StorageLeaseInSeconds
 }
+
+// GetVM give you the VM of the vApp.
+func (v VAPP) GetVM(nameOrID string, refresh bool) (*VM, error) {
+	vm, err := v.VApp.GetVMByNameOrId(nameOrID, refresh)
+	if err != nil {
+		return nil, err
+	}
+
+	return &VM{
+		name: vm.VM.Name,
+		id:   vm.VM.ID,
+		VM:   vm,
+	}, nil
+}
