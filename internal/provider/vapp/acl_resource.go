@@ -13,10 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/acl"
@@ -43,15 +39,6 @@ type aclResource struct {
 	vapp   vapp.VAPP
 }
 
-type aclResourceModel struct {
-	ID                  types.String `tfsdk:"id"`
-	VDC                 types.String `tfsdk:"vdc"`
-	VAppID              types.String `tfsdk:"vapp_id"`
-	VAppName            types.String `tfsdk:"vapp_name"`
-	EveryoneAccessLevel types.String `tfsdk:"everyone_access_level"`
-	SharedWith          types.Set    `tfsdk:"shared_with"`
-}
-
 // Metadata returns the resource type name.
 func (r *aclResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "acl"
@@ -59,23 +46,7 @@ func (r *aclResource) Metadata(_ context.Context, req resource.MetadataRequest, 
 
 // Schema defines the schema for the resource.
 func (r *aclResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a Cloud Avenue Access Control structure for a vApp. This can be used to create, update, and delete access control structures for a vApp.",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the resource",
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"vdc":                   vdc.Schema(),
-			"vapp_id":               vapp.Schema()["vapp_id"],
-			"vapp_name":             vapp.Schema()["vapp_name"],
-			"everyone_access_level": acl.Schema(false)["everyone_access_level"],
-			"shared_with":           acl.Schema(false)["shared_with"],
-		},
-	}
+	resp.Schema = aclSchema().GetResource(ctx)
 }
 
 func (r *aclResource) Init(ctx context.Context, rm *aclResourceModel) (diags diag.Diagnostics) {

@@ -13,12 +13,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
@@ -50,9 +52,9 @@ Schema
 
 Return the schema for vapp_id and vapp_name with MarkdownDescription, Validators and PlanModifiers.
 */
-func Schema() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		"vapp_id": schema.StringAttribute{
+func Schema() map[string]schemaR.Attribute {
+	return map[string]schemaR.Attribute{
+		"vapp_id": schemaR.StringAttribute{
 			MarkdownDescription: "(ForceNew) ID of the vApp. Required if `vapp_name` is not set.",
 			Optional:            true,
 			PlanModifiers: []planmodifier.String{
@@ -62,7 +64,7 @@ func Schema() map[string]schema.Attribute {
 				stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
 			},
 		},
-		"vapp_name": schema.StringAttribute{
+		"vapp_name": schemaR.StringAttribute{
 			MarkdownDescription: "(ForceNew) Name of the vApp. Required if `vapp_id` is not set.",
 			Optional:            true,
 			PlanModifiers: []planmodifier.String{
@@ -70,6 +72,44 @@ func Schema() map[string]schema.Attribute {
 			},
 			Validators: []validator.String{
 				stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_id"), path.MatchRoot("vapp_name")),
+			},
+		},
+	}
+}
+
+/*
+SuperSchema
+
+Return the superschema for vapp_id and vapp_name with MarkdownDescription, Validators and PlanModifiers.
+*/
+func SuperSchema() map[string]superschema.Attribute {
+	return map[string]superschema.Attribute{
+		"vapp_id": superschema.StringAttribute{
+			Common: &schemaR.StringAttribute{
+				MarkdownDescription: "ID of the vApp.",
+			},
+			Resource: &schemaR.StringAttribute{
+				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
+				},
+			},
+		},
+		"vapp_name": superschema.StringAttribute{
+			Common: &schemaR.StringAttribute{
+				MarkdownDescription: "Name of the vApp.",
+			},
+			Resource: &schemaR.StringAttribute{
+				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_id"), path.MatchRoot("vapp_name")),
+				},
 			},
 		},
 	}
