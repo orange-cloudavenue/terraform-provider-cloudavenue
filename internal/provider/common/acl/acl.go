@@ -11,10 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 )
@@ -34,61 +36,77 @@ var SharedWithModelAttrTypes = map[string]attr.Type{
 }
 
 /*
-Schema
+SuperSchema is the superschema for ACL.
 
 If readOnly is false, returns ACL attributes with 3 rights : "ReadOnly", "Change", "FullControl".
 If readOnly is true, returns ACL attributes with only "ReadOnly".
 */
-func Schema(readOnly bool) map[string]schema.Attribute {
+func SuperSchema(readOnly bool) map[string]superschema.Attribute {
 	validatorACL := stringvalidator.OneOf("ReadOnly", "Change", "FullControl")
-	descriptionACL := "one of `ReadOnly`, `Change`, `FullControl`"
 	if readOnly {
 		validatorACL = stringvalidator.OneOf("ReadOnly")
-		descriptionACL = "only `ReadOnly` is available"
 	}
 
-	return map[string]schema.Attribute{
-		"everyone_access_level": schema.StringAttribute{
-			MarkdownDescription: "Access level when the vApp is shared with everyone (" + descriptionACL + ").\n" +
-				"Only one of `everyone_access_level` or `shared_with` can be set.",
-			Optional: true,
-			Validators: []validator.String{
-				validatorACL,
-				stringvalidator.ExactlyOneOf(path.MatchRoot("shared_with"), path.MatchRoot("everyone_access_level")),
+	return map[string]superschema.Attribute{
+		"everyone_access_level": superschema.StringAttribute{
+			Common: &schemaR.StringAttribute{
+				MarkdownDescription: "Access level when the vApp is shared with everyone.",
+			},
+			Resource: &schemaR.StringAttribute{
+				Optional: true,
+				Validators: []validator.String{
+					validatorACL,
+					stringvalidator.ExactlyOneOf(path.MatchRoot("shared_with"), path.MatchRoot("everyone_access_level")),
+				},
 			},
 		},
-		"shared_with": schema.SetNestedAttribute{
-			MarkdownDescription: "One or more blocks defining a subject to which we are sharing.\n" +
-				"Only one of `everyone_access_level` or `shared_with` can be set.",
-			Optional: true,
-			Validators: []validator.Set{
-				setvalidator.ExactlyOneOf(path.MatchRoot("everyone_access_level"), path.MatchRoot("shared_with")),
+		"shared_with": superschema.SetNestedAttribute{
+			Common: &schemaR.SetNestedAttribute{
+				MarkdownDescription: "One or more blocks defining a subject to which we are sharing.",
 			},
-			NestedObject: schema.NestedAttributeObject{
-				Attributes: map[string]schema.Attribute{
-					"user_id": schema.StringAttribute{
+			Resource: &schemaR.SetNestedAttribute{
+				Optional: true,
+				Validators: []validator.Set{
+					setvalidator.ExactlyOneOf(path.MatchRoot("everyone_access_level"), path.MatchRoot("shared_with")),
+				},
+			},
+			Attributes: map[string]superschema.Attribute{
+				"user_id": superschema.StringAttribute{
+					Common: &schemaR.StringAttribute{
+						MarkdownDescription: "ID of the user to which we are sharing.",
+					},
+					Resource: &schemaR.StringAttribute{
 						Optional: true,
-						MarkdownDescription: "ID of the user to which we are sharing.\n" +
-							"Only one of `group_id` or `user_id` can be set.",
 						Validators: []validator.String{
 							stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("group_id")),
 						},
 					},
-					"group_id": schema.StringAttribute{
+				},
+				"group_id": superschema.StringAttribute{
+					Common: &schemaR.StringAttribute{
+						MarkdownDescription: "ID of the group to which we are sharing.",
+					},
+					Resource: &schemaR.StringAttribute{
 						Optional: true,
-						MarkdownDescription: "ID of the group to which we are sharing.\n" +
-							"Only one of `group_id` or `user_id` can be set.",
 						Validators: []validator.String{
 							stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("user_id")),
 						},
 					},
-					"subject_name": schema.StringAttribute{
+				},
+				"subject_name": superschema.StringAttribute{
+					Common: &schemaR.StringAttribute{
 						MarkdownDescription: "Name of the subject (group or user) with which we are sharing",
-						Computed:            true,
 					},
-					"access_level": schema.StringAttribute{
-						MarkdownDescription: "Access level for the user or group to which we are sharing (" + descriptionACL + ").",
-						Required:            true,
+					Resource: &schemaR.StringAttribute{
+						Computed: true,
+					},
+				},
+				"access_level": superschema.StringAttribute{
+					Common: &schemaR.StringAttribute{
+						MarkdownDescription: "Access level for the user or group to which we are sharing.",
+					},
+					Resource: &schemaR.StringAttribute{
+						Required: true,
 						Validators: []validator.String{
 							validatorACL,
 						},
@@ -99,7 +117,7 @@ func Schema(readOnly bool) map[string]schema.Attribute {
 	}
 }
 
-func SharedSetToAccessControl(client *govcd.VCDClient, org *govcd.AdminOrg, input []SharedWithModel) ([]*govcdtypes.AccessSetting, []*SharedWithModel, error) {
+func SharedSetToAccessControl(_ *govcd.VCDClient, org *govcd.AdminOrg, input []SharedWithModel) ([]*govcdtypes.AccessSetting, []*SharedWithModel, error) {
 	var output []*govcdtypes.AccessSetting
 	var outputModel []*SharedWithModel
 
