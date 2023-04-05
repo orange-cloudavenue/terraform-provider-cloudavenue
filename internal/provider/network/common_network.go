@@ -1,6 +1,8 @@
 package network
 
 import (
+	"github.com/vmware/go-vcloud-director/v2/govcd"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -45,4 +47,19 @@ func GetParentEdgeGatewayID(org org.Org, edgeGatewayID string) (*string, diag.Di
 	id := anyEdgeGateway.EdgeGateway.OwnerRef.ID
 
 	return &id, nil
+}
+
+func GetIPRanges(network *govcd.OpenApiOrgVdcNetwork) []staticIPPool {
+	ipPools := []staticIPPool{}
+
+	if len(network.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values) > 0 {
+		for _, ipRange := range network.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values {
+			ipPool := staticIPPool{
+				StartAddress: types.StringValue(ipRange.StartAddress),
+				EndAddress:   types.StringValue(ipRange.EndAddress),
+			}
+			ipPools = append(ipPools, ipPool)
+		}
+	}
+	return ipPools
 }

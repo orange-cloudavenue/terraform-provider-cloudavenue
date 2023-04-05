@@ -12,9 +12,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -103,25 +102,32 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
+	// Get Network from Parent VDC or Edge Gateway
 	var orgNetwork *govcd.OpenApiOrgVdcNetwork
-	if data.EdgeGatewayID.IsNull() {
+	if data.EdgeGatewayID.IsNull() { // Get Network from default VDC
 		orgNetwork, err = d.org.GetOpenApiOrgVdcNetworkByNameAndOwnerId(data.Name.ValueString(), vdc.GetID())
-	} else {
-		parentID, diag := GetParentEdgeGatewayID(d.org, data.EdgeGatewayID.ValueString())
-		if diag != nil {
-			resp.Diagnostics.Append(diag)
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving Network of VDC", err.Error())
 			return
 		}
-		orgNetwork, err = d.org.GetOpenApiOrgVdcNetworkByNameAndOwnerId(data.Name.ValueString(), *parentID)
-	}
-
-	if err != nil {
-		if govcd.ContainsNotFound(err) {
-			tflog.Debug(ctx, "Network not found, removing resource from state")
-			resp.State.RemoveResource(ctx)
+	} else { // Get Network from Parent Edge Gateway
+		// Get Edge Gateway
+		egw, err := d.org.GetEdgeGateway(edgegw.BaseEdgeGW{ID: data.EdgeGatewayID})
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
+			return
 		}
-		resp.Diagnostics.AddError("Error retrieving routing network", err.Error())
-		return
+		// Get Parent Edge Gateway
+		parent, err := egw.GetParent()
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving parent Edge Gateway", err.Error())
+			return
+		}
+		orgNetwork, err = d.org.GetOpenApiOrgVdcNetworkByNameAndOwnerId(data.Name.ValueString(), parent.GetID())
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving Network of parent Edge Gateway", err.Error())
+			return
+		}
 	}
 
 	plan := &networkRoutedDataSourceModel{
@@ -137,19 +143,8 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 		DNSSuffix:     types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
 	}
 
-	ipPools := []staticIPPool{}
-
-	if len(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values) > 0 {
-		for _, ipRange := range orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values {
-			ipPool := staticIPPool{
-				StartAddress: types.StringValue(ipRange.StartAddress),
-				EndAddress:   types.StringValue(ipRange.EndAddress),
-			}
-			ipPools = append(ipPools, ipPool)
-		}
-	}
 	var diags diag.Diagnostics
-	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolAttrTypes}, ipPools)
+	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolAttrTypes}, GetIPRanges(orgNetwork))
 	resp.Diagnostics.Append(diags...)
 
 	// Save data into Terraform state

@@ -245,8 +245,8 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 	switch params.typeNetwork {
 	case NAT_ROUTED:
 		// Add routed network specific attributes to the schema
-		_schema.Resource.MarkdownDescription = "Provides a Cloud Avenue VDC routed Network. This can be used to create, modify, and delete VDC routed networks."
-		_schema.DataSource.MarkdownDescription = "Provides a Cloud Avenue VDC routed Network data source to read data or reference existing network"
+		_schema.Resource.MarkdownDescription = "Provides a Cloud Avenue vDC routed Network. This can be used to create, modify, and delete VDC routed networks."
+		_schema.DataSource.MarkdownDescription = "Provides a Cloud Avenue vDC routed Network data source to read data or reference existing network"
 		_schema.Attributes["edge_gateway_id"] = superschema.StringAttribute{
 			Common: &schemaR.StringAttribute{
 				MarkdownDescription: "The ID of the edge gateway in which the routed network should be located.",

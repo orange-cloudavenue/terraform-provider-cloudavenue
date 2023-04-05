@@ -2,12 +2,12 @@
 page_title: "cloudavenue_network_routed Data Source - cloudavenue"
 subcategory: "Network"
 description: |-
-  Provides a Cloud Avenue VDC routed Network data source to read data or reference existing network
+  Provides a Cloud Avenue vDC routed Network data source to read data or reference existing network
 ---
 
 # cloudavenue_network_routed (Data Source)
 
-Provides a Cloud Avenue VDC routed Network data source to read data or reference existing network
+Provides a Cloud Avenue vDC routed Network data source to read data or reference existing network
 
 ## Example Usage
 

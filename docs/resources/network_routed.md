@@ -2,12 +2,12 @@
 page_title: "cloudavenue_network_routed Resource - cloudavenue"
 subcategory: "Network"
 description: |-
-  Provides a Cloud Avenue VDC routed Network. This can be used to create, modify, and delete VDC routed networks.
+  Provides a Cloud Avenue vDC routed Network. This can be used to create, modify, and delete VDC routed networks.
 ---
 
 # cloudavenue_network_routed (Resource)
 
-Provides a Cloud Avenue VDC routed Network. This can be used to create, modify, and delete VDC routed networks.
+Provides a Cloud Avenue vDC routed Network. This can be used to create, modify, and delete VDC routed networks.
 
 ## Example Usage
 
