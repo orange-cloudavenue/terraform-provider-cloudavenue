@@ -5,7 +5,13 @@ import (
 	"log"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
+
+type VM struct {
+	*client.VM
+}
 
 const (
 	// Used when a task fails. The placeholder is for the error.

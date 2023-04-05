@@ -19,6 +19,45 @@ var (
 	ErrEmptyVDCFound        = errors.New("empty VDC found")
 )
 
+func (c *CloudAvenue) getTemplate(iD string) (vAppTemplate *govcd.VAppTemplate, err error) {
+	return c.Vmware.GetVAppTemplateById(iD)
+}
+
+// GetTemplate retrieves a vApp template by name or ID.
+func (c *CloudAvenue) GetTemplate(iD string) (vAppTemplate *govcd.VAppTemplate, err error) {
+	vAppTemplate = govcd.NewVAppTemplate(&c.Vmware.Client)
+	template, err := c.getTemplate(iD)
+	if err != nil || len(template.VAppTemplate.Children.VM) == 0 {
+		return nil, fmt.Errorf("error retrieving vApp template %s: %w", iD, err)
+	}
+
+	vAppTemplate.VAppTemplate = template.VAppTemplate.Children.VM[0]
+	return
+}
+
+// GetTemplateWithVMName retrieves a vApp template with a VM name.
+func (c *CloudAvenue) GetTemplateWithVMName(iD, vmName string) (vAppTemplate *govcd.VAppTemplate, err error) {
+	vAppTemplate = govcd.NewVAppTemplate(&c.Vmware.Client)
+	template, err := c.getTemplate(iD)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving vApp template %s: %w", iD, err)
+	}
+
+	for i, vm := range template.VAppTemplate.Children.VM {
+		if vm.Name == vmName {
+			vAppTemplate.VAppTemplate = template.VAppTemplate.Children.VM[i]
+			return
+		}
+	}
+
+	return nil, fmt.Errorf("error retrieving vApp template %s: %w", iD, err)
+}
+
+// getAffinityRule retrieves an affinity rule by name.
+func (c *CloudAvenue) GetAffinityRule(iD string) (affinityRule *govcd.VdcComputePolicyV2, err error) {
+	return c.Vmware.GetVdcComputePolicyV2ById(iD)
+}
+
 // ! Deprecated
 /*
 GetOrgAndVDC
