@@ -28,4 +28,3 @@ resource "cloudavenue_vapp_acl" "example" {
       group_id     = cloudavenue_iam_group.example.id
   }]
 }
-vapp_name = cloudavenue_vapp.example.name
