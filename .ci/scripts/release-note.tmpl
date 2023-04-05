@@ -1,9 +1,3 @@
 {{- define "note" -}}
-{{- if eq "new-resource" .Type -}}
-* **New Resource:** `{{.Body}}` ([#{{- .Issue -}}](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/{{- .Issue -}}))
-{{- else if eq "new-data-source" .Type -}}
-* **New Data Source:** `{{.Body}}` ([#{{- .Issue -}}](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/{{- .Issue -}}))
-{{- else -}}
-* {{.Body}} ([#{{- .Issue -}}](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/{{- .Issue -}}))
-{{- end -}}
+{{if eq "new-resource" .Type}}**New Resource:** {{else if eq "new-data-source" .Type}}**New Data Source:** {{ end }}{{.Body}} ([GH-{{- .Issue -}}](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/{{- .Issue -}}))
 {{- end -}}

@@ -8,8 +8,9 @@ jobs:
     if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
+      - uses: actions/checkout@v3
         with:
+          token: ${{ secrets.CHANGELOG_PAT }}
           fetch-depth: 0
       - uses: actions/setup-go@v4
         with:
@@ -19,9 +20,9 @@ jobs:
       - run: |
           if [[ `git status --porcelain` ]]; then
             if ${{github.event_name == 'workflow_dispatch'}}; then
-              MSG="Update CHANGELOG.md (Manual Trigger)"
+              MSG="chore: update CHANGELOG.md (Manual Trigger)"
             else
-              MSG="Update CHANGELOG.md for #${{ github.event.pull_request.number }}"
+              MSG="chore: update CHANGELOG.md for #${{ github.event.pull_request.number }}"
             fi
             git config --local user.email changelogbot@frangipane.io
             git config --local user.name changelogbot
