@@ -1,6 +1,10 @@
 package client
 
-import "github.com/vmware/go-vcloud-director/v2/govcd"
+import (
+	"fmt"
+
+	"github.com/vmware/go-vcloud-director/v2/govcd"
+)
 
 type VAPP struct {
 	*govcd.VApp
@@ -41,16 +45,25 @@ func (v VAPP) GetStorageLeaseInSeconds() int {
 	return v.VApp.VApp.LeaseSettingsSection.StorageLeaseInSeconds
 }
 
-// GetVM give you the VM of the vApp.
-func (v VAPP) GetVM(nameOrID string, refresh bool) (*VM, error) {
-	vm, err := v.VApp.GetVMByNameOrId(nameOrID, refresh)
+// IsVAPPOrgNetwork check if it is a vApp Org Network (not vApp network).
+func (v VAPP) IsVAPPOrgNetwork(networkName string) (bool, error) {
+	vAppNetworkConfig, err := v.GetNetworkConfig()
 	if err != nil {
-		return nil, err
+		return false, fmt.Errorf("error getting vApp networks: %w", err)
 	}
 
-	return &VM{
-		name: vm.VM.Name,
-		id:   vm.VM.ID,
-		VM:   vm,
-	}, nil
+	for _, networkConfig := range vAppNetworkConfig.NetworkConfig {
+		if networkConfig.NetworkName == networkName &&
+			!govcd.IsVappNetwork(networkConfig.Configuration) {
+			return true, nil
+		}
+	}
+
+	return false, fmt.Errorf("configured vApp Org network isn't found: %s", networkName)
+}
+
+// IsVAPPNetwork check if it is a vApp network (not vApp Org Network).
+func (v VAPP) IsVAPPNetwork(networkName string) (bool, error) {
+	x, err := v.IsVAPPOrgNetwork(networkName)
+	return !x, err
 }

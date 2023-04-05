@@ -23,9 +23,9 @@ resource "cloudavenue_vm_disk" "example-detachable" {
 	is_detachable = true
 }
 `
-const resourceName = "cloudavenue_vm_disk.example-detachable"
 
 func TestAccVMDiskResource(t *testing.T) {
+	const resourceName = "cloudavenue_vm_disk.example-detachable"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: tests.TestAccProtoV6ProviderFactories,
@@ -36,7 +36,6 @@ func TestAccVMDiskResource(t *testing.T) {
 				Config: testAccVMDiskResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "vapp_name", "vapp_example"),
 					resource.TestCheckResourceAttr(resourceName, "name", "disk-example"),
 					resource.TestCheckResourceAttr(resourceName, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceName, "storage_profile", "gold"),

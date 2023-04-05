@@ -38,7 +38,7 @@ func (m removeStateIfConfigIsUnsetModifier) PlanModifyString(ctx context.Context
 
 	// Fields are empty in Config
 	if vmName.ValueString() == "" && vmID.ValueString() == "" {
-		resp.PlanValue = types.StringValue("")
+		resp.PlanValue = types.StringNull()
 		return
 	}
 
