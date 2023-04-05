@@ -22,8 +22,6 @@ import (
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
@@ -142,6 +140,35 @@ func Init(_ *client.CloudAvenue, vdc vdc.VDC, vappID, vappName types.String) (va
 	return VAPP{VAPP: vappOut, vdc: vdc}, nil
 }
 
+type GetVMOpts struct {
+	ID   types.String
+	Name types.String
+}
+
+// vmIDOrName returns the ID or name of the VM.
+func (v GetVMOpts) vmIDOrName() string {
+	if v.ID.IsNull() || v.ID.IsUnknown() {
+		return v.Name.ValueString()
+	}
+	return v.ID.ValueString()
+}
+
+// GetVM returns a VM from a vApp.
+func (v VAPP) GetVM(vmInfo GetVMOpts, refresh bool) (vm.VM, diag.Diagnostics) {
+	var d diag.Diagnostics
+
+	vmOut, err := v.GetVMByNameOrId(vmInfo.vmIDOrName(), refresh)
+	if err != nil {
+		if errors.Is(err, govcd.ErrorEntityNotFound) {
+			d.AddError("VM not found", err.Error())
+			return vm.VM{}, nil
+		}
+		d.AddError("Error retrieving VM", err.Error())
+		return vm.VM{}, nil
+	}
+	return vm.VM{VM: &client.VM{VM: vmOut}}, nil
+}
+
 // LockVAPP locks the parent vApp.
 func (v VAPP) LockVAPP(ctx context.Context) (d diag.Diagnostics) {
 	if v.vdc.GetName() == "" || v.GetName() == "" || ctx == nil {
@@ -164,33 +191,32 @@ func (v VAPP) UnlockVAPP(ctx context.Context) (d diag.Diagnostics) {
 	return
 }
 
-// CreateVMWithTemplate
+// CreateVMWithTemplate.
 func (v VAPP) CreateVMWithTemplate() (vm vm.VM, d diag.Diagnostics) {
-
-	vmFromTemplateParams := &govcdtypes.ReComposeVAppParams{
-		Ovf:              govcdtypes.XMLNamespaceOVF,
-		Xsi:              govcdtypes.XMLNamespaceXSI,
-		Xmlns:            govcdtypes.XMLNamespaceVCloud,
-		AllEULAsAccepted: v.Plan.AcceptAllEulas.ValueBool(),
-		Name:             vapp.VApp.Name,
-		PowerOn:          false, // VM will be powered on after all configuration is done
-		SourcedItem: &govcdtypes.SourcedCompositionItemParam{
-			Source: &govcdtypes.Reference{
-				HREF: vmTemplate.VAppTemplate.HREF,
-				Name: v.Plan.VMName.ValueString(), // This VM name defines the VM name after creation
-			},
-			VMGeneralParams: &govcdtypes.VMGeneralParams{
-				Description: v.Plan.Description.ValueString(),
-			},
-			InstantiationParams: &govcdtypes.InstantiationParams{
-				// If a MAC address is specified for NIC - it does not get set with this call,
-				// therefore an additional `vm.UpdateNetworkConnectionSection` is required.
-				NetworkConnectionSection: &networkConnectionSection,
-			},
-			ComputePolicy:  vmComputePolicy,
-			StorageProfile: storageProfilePtr,
-		},
-	}
+	// vmFromTemplateParams := &govcdtypes.ReComposeVAppParams{
+	// 	Ovf:              govcdtypes.XMLNamespaceOVF,
+	// 	Xsi:              govcdtypes.XMLNamespaceXSI,
+	// 	Xmlns:            govcdtypes.XMLNamespaceVCloud,
+	// 	AllEULAsAccepted: v.Plan.AcceptAllEulas.ValueBool(),
+	// 	Name:             vapp.VApp.Name,
+	// 	PowerOn:          false, // VM will be powered on after all configuration is done
+	// 	SourcedItem: &govcdtypes.SourcedCompositionItemParam{
+	// 		Source: &govcdtypes.Reference{
+	// 			HREF: vmTemplate.VAppTemplate.HREF,
+	// 			Name: v.Plan.VMName.ValueString(), // This VM name defines the VM name after creation
+	// 		},
+	// 		VMGeneralParams: &govcdtypes.VMGeneralParams{
+	// 			Description: v.Plan.Description.ValueString(),
+	// 		},
+	// 		InstantiationParams: &govcdtypes.InstantiationParams{
+	// 			// If a MAC address is specified for NIC - it does not get set with this call,
+	// 			// therefore an additional `vm.UpdateNetworkConnectionSection` is required.
+	// 			NetworkConnectionSection: &networkConnectionSection,
+	// 		},
+	// 		ComputePolicy:  vmComputePolicy,
+	// 		StorageProfile: storageProfilePtr,
+	// 	},
+	// }
 
 	return
 }

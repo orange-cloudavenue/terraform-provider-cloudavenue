@@ -304,17 +304,17 @@ func InternalDiskUpdate(ctx context.Context, c *client.CloudAvenue, disk Interna
 	return updatedDisk, nil
 }
 
-/*
-InternalDiskDelete
+// /*
+// InternalDiskDelete
 
-Deletes an internal disk associated with a VM.
-*/
-func InternalDiskDelete(ctx context.Context, disk *InternalDisk, vm *govcd.VM) (d diag.Diagnostics) {
-	errDelete := vm.DeleteInternalDisk(disk.ID.ValueString())
-	if errDelete != nil {
-		d.AddError("Error deleting disk", errDelete.Error())
-		return
-	}
+// Deletes an internal disk associated with a VM.
+// */
+// func InternalDiskDelete(ctx context.Context, disk *InternalDisk, vm *govcd.VM) (d diag.Diagnostics) {
+// 	errDelete := vm.DeleteInternalDisk(disk.ID.ValueString())
+// 	if errDelete != nil {
+// 		d.AddError("Error deleting disk", errDelete.Error())
+// 		return
+// 	}
 
-	return
-}
+// 	return
+// }

@@ -30,17 +30,3 @@ func (v VAPP) GetHREF() string {
 func (v VAPP) GetDescription() string {
 	return v.VApp.VApp.Description
 }
-
-// GetVM give you the VM of the vApp.
-func (v VAPP) GetVM(nameOrID string, refresh bool) (*VM, error) {
-	vm, err := v.VApp.GetVMByNameOrId(nameOrID, refresh)
-	if err != nil {
-		return nil, err
-	}
-
-	return &VM{
-		name: vm.VM.Name,
-		id:   vm.VM.ID,
-		VM:   vm,
-	}, nil
-}
