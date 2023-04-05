@@ -267,10 +267,11 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 		_schema.Attributes["edge_gateway_name"] = superschema.StringAttribute{
 			Common: &schemaR.StringAttribute{
 				MarkdownDescription: "The name of the edge gateway in which the routed network should be located.",
-				Optional:            true,
 				Computed:            true,
 			},
 			Resource: &schemaR.StringAttribute{
+				MarkdownDescription: "The name of the edge gateway in which the routed network should be located.",
+				Optional:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 					stringplanmodifier.UseStateForUnknown(),

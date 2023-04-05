@@ -33,21 +33,6 @@ type networkRoutedDataSource struct {
 	network network.Kind
 }
 
-type networkRoutedDataSourceModel struct {
-	ID              types.String `tfsdk:"id"`
-	Name            types.String `tfsdk:"name"`
-	Description     types.String `tfsdk:"description"`
-	EdgeGatewayID   types.String `tfsdk:"edge_gateway_id"`
-	EdgeGatewayName types.String `tfsdk:"edge_gateway_name"`
-	InterfaceType   types.String `tfsdk:"interface_type"`
-	Gateway         types.String `tfsdk:"gateway"`
-	PrefixLength    types.Int64  `tfsdk:"prefix_length"`
-	DNS1            types.String `tfsdk:"dns1"`
-	DNS2            types.String `tfsdk:"dns2"`
-	DNSSuffix       types.String `tfsdk:"dns_suffix"`
-	StaticIPPool    types.Set    `tfsdk:"static_ip_pool"`
-}
-
 func (d *networkRoutedDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_routed"
 }
@@ -57,7 +42,7 @@ func (d *networkRoutedDataSource) Schema(ctx context.Context, req datasource.Sch
 }
 
 // Init resource used to initialize the resource.
-func (d *networkRoutedDataSource) Init(_ context.Context, rm *networkRoutedDataSourceModel) (diags diag.Diagnostics) {
+func (d *networkRoutedDataSource) Init(_ context.Context, rm *networkRoutedModel) (diags diag.Diagnostics) {
 	// Init Network
 	d.network.TypeOfNetwork = network.NAT_ROUTED
 	// Init Org
@@ -85,7 +70,7 @@ func (d *networkRoutedDataSource) Configure(ctx context.Context, req datasource.
 }
 
 func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data *networkRoutedDataSourceModel
+	var data networkRoutedModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -94,7 +79,7 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	// Init resource
-	resp.Diagnostics.Append(d.Init(ctx, data)...)
+	resp.Diagnostics.Append(d.Init(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -122,24 +107,31 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	plan := &networkRoutedDataSourceModel{
-		ID:              types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
-		Name:            types.StringValue(data.Name.ValueString()),
-		Description:     types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
-		EdgeGatewayID:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.ID),
-		EdgeGatewayName: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.Name),
-		InterfaceType:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.ConnectionType),
-		Gateway:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
-		PrefixLength:    types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
-		DNS1:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
-		DNS2:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
-		DNSSuffix:       types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
+	// Set data into the model
+	data = SetDataToNetworkRoutedModel(orgNetwork)
+
+	// data = networkRoutedModel{
+	// 	ID:              types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
+	// 	Name:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Name),
+	// 	Description:     types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
+	// 	EdgeGatewayID:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.ID),
+	// 	EdgeGatewayName: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.Name),
+	// 	InterfaceType:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.ConnectionType),
+	// 	Gateway:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
+	// 	PrefixLength:    types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
+	// 	DNS1:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
+	// 	DNS2:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
+	// 	DNSSuffix:       types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
+	// }
+
+	// Set static IP pool
+	var diags diag.Diagnostics
+	data.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolAttrTypes}, GetIPRanges(orgNetwork))
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	var diags diag.Diagnostics
-	plan.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolAttrTypes}, GetIPRanges(orgNetwork))
-	resp.Diagnostics.Append(diags...)
-
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

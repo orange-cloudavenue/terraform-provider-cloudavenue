@@ -43,21 +43,6 @@ type networkRoutedResource struct {
 	network network.Kind
 }
 
-type networkRoutedResourceModel struct {
-	ID              types.String `tfsdk:"id"`
-	Name            types.String `tfsdk:"name"`
-	Description     types.String `tfsdk:"description"`
-	EdgeGatewayID   types.String `tfsdk:"edge_gateway_id"`
-	EdgeGatewayName types.String `tfsdk:"edge_gateway_name"`
-	InterfaceType   types.String `tfsdk:"interface_type"`
-	Gateway         types.String `tfsdk:"gateway"`
-	PrefixLength    types.Int64  `tfsdk:"prefix_length"`
-	DNS1            types.String `tfsdk:"dns1"`
-	DNS2            types.String `tfsdk:"dns2"`
-	DNSSuffix       types.String `tfsdk:"dns_suffix"`
-	StaticIPPool    types.Set    `tfsdk:"static_ip_pool"`
-}
-
 // Metadata returns the resource type name.
 func (r *networkRoutedResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "routed"
@@ -69,7 +54,7 @@ func (r *networkRoutedResource) Schema(ctx context.Context, _ resource.SchemaReq
 }
 
 // Init resource used to initialize the resource.
-func (r *networkRoutedResource) Init(_ context.Context, rm *networkRoutedResourceModel) (diags diag.Diagnostics) {
+func (r *networkRoutedResource) Init(_ context.Context, rm *networkRoutedModel) (diags diag.Diagnostics) {
 	// Set Network Type
 	r.network.TypeOfNetwork = network.NAT_ROUTED
 	// Init Org
@@ -100,7 +85,7 @@ func (r *networkRoutedResource) Configure(ctx context.Context, req resource.Conf
 // Create creates the resource and sets the initial Terraform state.
 func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	plan := &networkRoutedResourceModel{}
+	plan := &networkRoutedModel{}
 
 	// Get Plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -157,7 +142,7 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 
 // Read refreshes the Terraform state with the latest data.
 func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	state := &networkRoutedResourceModel{}
+	state := &networkRoutedModel{}
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
@@ -182,20 +167,8 @@ func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	// Set Plan updated
-	plan := &networkRoutedResourceModel{
-		ID:              types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
-		Name:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Name),
-		Description:     types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
-		EdgeGatewayID:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.ID),
-		EdgeGatewayName: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.Name),
-		InterfaceType:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.ConnectionType),
-		Gateway:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
-		PrefixLength:    types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
-		DNS1:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
-		DNS2:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
-		DNSSuffix:       types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
-	}
+	// Set data into the network model
+	plan := SetDataToNetworkRoutedModel(orgNetwork)
 
 	// Set Static IP Pool
 	ipPools := []staticIPPool{}
@@ -218,7 +191,7 @@ func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadReque
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	plan := &networkRoutedResourceModel{}
+	plan := &networkRoutedModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -282,7 +255,7 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	state := &networkRoutedResourceModel{}
+	state := &networkRoutedModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -366,7 +339,7 @@ func (r *networkRoutedResource) ImportState(ctx context.Context, req resource.Im
 func (r *networkRoutedResource) SetNetworkAPIObject(ctx context.Context, plan any) (*govcdtypes.OpenApiOrgVdcNetwork, diag.Diagnostics) {
 	d := diag.Diagnostics{}
 
-	p, ok := plan.(*networkRoutedResourceModel)
+	p, ok := plan.(*networkRoutedModel)
 	if !ok {
 		d.AddError("Error", "Error converting plan to network routed resource model")
 		return nil, d
@@ -401,6 +374,7 @@ func (r *networkRoutedResource) SetNetworkAPIObject(ctx context.Context, plan an
 		StaticIPPool:      p.StaticIPPool,
 		VDCIDOrVDCGroupID: types.StringValue(vdcOrVDCGroup.GetID()),
 		EdgeGatewayID:     p.EdgeGatewayID,
+		EdgegatewayName:   p.EdgeGatewayName,
 		InterfaceType:     p.InterfaceType,
 	})
 }

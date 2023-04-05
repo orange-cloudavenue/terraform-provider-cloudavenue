@@ -12,16 +12,31 @@ Provides a Cloud Avenue vDC routed Network data source to read data or reference
 ## Example Usage
 
 ```terraform
+data "cloudavenue_edgegateway" "example" {
+  name = "tn01e02ocb0006205spt101"
+}
+
 resource "cloudavenue_network_routed" "example" {
   name            = "ExampleNetworkRouted"
   gateway         = "192.168.10.254"
   prefix_length   = 24
-  edge_gateway_id = "urn:vcloud:gateway:dde5d31a-2f32-43ef-b3b3-127245958298"
+  edge_gateway_id = data.cloudavenue_edgegateway.example.id
+  dns1            = "1.1.1.1"
+  dns2            = "8.8.8.8"
+
+  dns_suffix = "example"
+
+  static_ip_pool = [
+    {
+      start_address = "192.168.10.10"
+      end_address   = "192.168.10.20"
+    }
+  ]
 }
 
 data "cloudavenue_network_routed" "example" {
-  name            = "ExampleNetworkRouted"
-  edge_gateway_id = "urn:vcloud:gateway:dde5d31a-2f32-43ef-b3b3-127245958298"
+  name            = cloudavenue_network_routed.example.name
+  edge_gateway_id = cloudavenue_network_routed.example.edge_gateway_id
 }
 ```
 
@@ -35,7 +50,6 @@ data "cloudavenue_network_routed" "example" {
 ### Optional
 
 - `edge_gateway_id` (String) The ID of the edge gateway in which the routed network should be located.
-- `edge_gateway_name` (String) The name of the edge gateway in which the routed network should be located.
 
 ### Read-Only
 
@@ -43,6 +57,7 @@ data "cloudavenue_network_routed" "example" {
 - `dns1` (String) The primary DNS server IP address for the network.
 - `dns2` (String) The secondary DNS server IP address for the network.
 - `dns_suffix` (String) The DNS suffix for the network.
+- `edge_gateway_name` (String) The name of the edge gateway in which the routed network should be located.
 - `gateway` (String) The gateway IP address for the network. This value define also the network IP range with the prefix length.
 - `id` (String) The ID of the network.
 - `interface_type` (String) An interface for the network.
