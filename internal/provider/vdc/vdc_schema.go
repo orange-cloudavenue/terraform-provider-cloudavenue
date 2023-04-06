@@ -52,9 +52,9 @@ type vdcResourceModel struct {
 }
 
 /*
-roleSchema
+vdcSchema
 
-This function is used to create the schema for the role resource and datasource.
+This function is used to create the schema for the vdc resource and datasource.
 Default is to create a resource schema. If you want to create a datasource schema
 you must pass in the withDataSource() option.
 */
