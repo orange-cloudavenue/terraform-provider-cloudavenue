@@ -33,6 +33,16 @@ func (v VDC) GetVAPP(nameOrID string, refresh bool) (*VAPP, error) {
 	return &VAPP{vapp}, nil
 }
 
+// CreateVAPP create new vApp.
+func (v VDC) CreateVAPP(name, description string) (*VAPP, error) {
+	vapp, err := v.CreateRawVApp(name, description)
+	if err != nil {
+		return nil, err
+	}
+
+	return &VAPP{vapp}, nil
+}
+
 // * VDCGroup
 
 type VDCGroup struct {

@@ -33,9 +33,7 @@ func TestAccVappDataSource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", "MyVapp"),
-					resource.TestCheckResourceAttr(dataSourceName, "status_text", "RESOLVED"),
 					resource.TestCheckResourceAttr(dataSourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
-					resource.TestCheckResourceAttrSet(dataSourceName, "href"),
 				),
 			},
 		},

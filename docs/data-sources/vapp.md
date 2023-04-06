@@ -22,24 +22,22 @@ data "cloudavenue_vapp" "example" {
 
 ### Optional
 
-- `id` (String) The ID of vApp to use, unique within the VDC. Required if `name` is not set.
-- `name` (String) A name for the vApp, unique within the VDC. Required if `id` is not set.
-- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
+- `id` (String) ID of the vApp. Ensure that one and only one attribute from this collection is set : `name`, `id`.
+- `name` (String) Name of the vApp. Ensure that one and only one attribute from this collection is set : `name`, `id`.
+- `vdc` (String) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 
-- `description` (String) Optional description of the vApp
-- `guest_properties` (Map of String) Key/value settings for guest properties
-- `href` (String) vApp Hyper Reference
-- `lease` (Block, Read-only) (see [below for nested schema](#nestedblock--lease))
-- `status_code` (Number) Shows the status code of the vApp
-- `status_text` (String) Shows the status of the vApp
+- `description` (String) Description of the vApp.
+- `guest_properties` (Map of String) Key/value settings for guest properties.
+- `lease` (Attributes) Informations about vApp lease. (see [below for nested schema](#nestedatt--lease))
+- `power_on` (Boolean) A boolean value stating if this vApp is powered on.
 
-<a id="nestedblock--lease"></a>
+<a id="nestedatt--lease"></a>
 ### Nested Schema for `lease`
 
 Read-Only:
 
-- `runtime_lease_in_sec` (Number) How long any of the VMs in the vApp can run before the vApp is automatically powered off or suspended. 0 means never expires
-- `storage_lease_in_sec` (Number) How long the vApp is available before being automatically deleted or marked as expired. 0 means never expires
+- `runtime_lease_in_sec` (Number) How long any of the VMs in the vApp can run before the vApp is automatically powered off or suspended. 0 means never expires.
+- `storage_lease_in_sec` (Number) How long the vApp is available before being automatically deleted or marked as expired. 0 means never expires.
 

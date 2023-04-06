@@ -29,3 +29,7 @@ Get the catalogs list from the admin org.
 func (ao *AdminOrg) ListCatalogs() *govcdtypes.CatalogsList {
 	return ao.AdminOrg.AdminOrg.Catalogs
 }
+
+func (ao *AdminOrg) GetOrgVAppLeaseSettings() *govcdtypes.VAppLeaseSettings {
+	return ao.AdminOrg.AdminOrg.OrgSettings.OrgVAppLeaseSettings
+}

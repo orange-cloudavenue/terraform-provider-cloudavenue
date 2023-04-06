@@ -15,6 +15,16 @@ Provides a Cloud Avenue vApp resource. This can be used to create, modify, and d
 resource "cloudavenue_vapp" "example" {
   name        = "MyVapp"
   description = "This is an example vApp"
+  power_on    = true
+
+  lease = {
+    runtime_lease_in_sec = 3600
+    storage_lease_in_sec = 7200
+  }
+
+  guest_properties = {
+    "key" = "Value"
+  }
 }
 ```
 
@@ -27,26 +37,23 @@ resource "cloudavenue_vapp" "example" {
 
 ### Optional
 
-- `description` (String) Optional description of the vApp
-- `guest_properties` (Map of String) Key/value settings for guest properties
-- `lease` (Block List) Defines lease parameters for this vApp (see [below for nested schema](#nestedblock--lease))
-- `power_on` (Boolean) A boolean value stating if this vApp should be powered on
+- `description` (String) Description of the vApp.
+- `guest_properties` (Map of String) Key/value settings for guest properties.
+- `lease` (Attributes) Informations about vApp lease. Value defaults to `{"runtime_lease_in_sec":0,"storage_lease_in_sec":0}`. (see [below for nested schema](#nestedatt--lease))
+- `power_on` (Boolean) A boolean value stating if this vApp is powered on. Value defaults to `false`.
 - `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 
-- `href` (String) vApp Hyper Reference
-- `id` (String) The ID of the vApp.
-- `status_code` (Number) Shows the status code of the vApp
-- `status_text` (String) Shows the status of the vApp
+- `id` (String) ID of the vApp.
 
-<a id="nestedblock--lease"></a>
+<a id="nestedatt--lease"></a>
 ### Nested Schema for `lease`
 
 Optional:
 
-- `runtime_lease_in_sec` (Number) How long any of the VMs in the vApp can run before the vApp is automatically powered off or suspended. 0 means never expires. Max value is 3600
-- `storage_lease_in_sec` (Number) How long the vApp is available before being automatically deleted or marked as expired. 0 means never expires. Max value is 3600
+- `runtime_lease_in_sec` (Number) How long any of the VMs in the vApp can run before the vApp is automatically powered off or suspended. 0 means never expires. Value must be between 0 and 3600. Value defaults to `0`.
+- `storage_lease_in_sec` (Number) How long the vApp is available before being automatically deleted or marked as expired. 0 means never expires. Value must be between 0 and 3600. Value defaults to `0`.
 
 ## Import
 
