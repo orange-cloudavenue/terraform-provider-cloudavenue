@@ -1,21 +1,65 @@
 package vm
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm/diskparams"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 type VM struct {
 	*client.VM
+	vApp vapp.VAPP
+}
+
+type GetVMOpts struct {
+	ID   types.String
+	Name types.String
+}
+
+// vmIDOrName returns the ID or name of the VM.
+func (v GetVMOpts) vmIDOrName() string {
+	if v.ID.IsNull() || v.ID.IsUnknown() {
+		return v.Name.ValueString()
+	}
+	return v.ID.ValueString()
+}
+
+// ConstructObject is a special function that is used to construct the VM object from the govcd.VM.
+func ConstructObject(vApp vapp.VAPP, vm *govcd.VM) VM {
+	return VM{VM: &client.VM{VM: vm}, vApp: vApp}
+}
+
+/*
+Init
+
+Initializes a VM struct with a VM and a vApp.
+*/
+func Init(_ *client.CloudAvenue, vApp vapp.VAPP, vmInfo GetVMOpts) (vm VM, d diag.Diagnostics) {
+	vmOut, err := vApp.GetVMByNameOrId(vmInfo.vmIDOrName(), true)
+	if err != nil {
+		if errors.Is(err, govcd.ErrorEntityNotFound) {
+			d.AddError("VM not found", err.Error())
+			return VM{}, nil
+		}
+		d.AddError("Error retrieving VM", err.Error())
+		return VM{}, nil
+	}
+	return VM{VM: &client.VM{VM: vmOut}, vApp: vApp}, nil
+}
+
+func Get(vApp vapp.VAPP, vmInfo GetVMOpts) (vm VM, d diag.Diagnostics) {
+	return Init(nil, vApp, vmInfo)
 }
 
 // GetName returns the name of the VM.
@@ -28,12 +72,43 @@ func (v VM) GetID() string {
 	return v.VM.VM.VM.ID
 }
 
+// GetDescription returns the description of the VM.
+func (v VM) GetDescription() string {
+	return v.VM.VM.VM.Description
+}
+
+// GetDiskSettings returns the disk settings of the VM.
+func (v VM) GetDiskSettings() []*govcdtypes.DiskSettings {
+	return v.VM.VM.VM.VmSpecSection.DiskSection.DiskSettings
+}
+
+// IsPoweredOn returns true if the VM is powered on.
+func (v VM) IsPoweredON() bool {
+	// 4 is the status code for powered on
+	return v.VM.VM.VM.Status == 4
+}
+
+// GetCPUCount returns the number of CPUs of the VM.
+func (v VM) GetCPUCount() int64 {
+	return int64(*v.VM.VM.VM.VmSpecSection.NumCpus)
+}
+
+// GetCPUCoresCount returns the number of CPU cores of the VM.
+func (v VM) GetCPUCoresCount() int64 {
+	return int64(*v.VM.VM.VM.VmSpecSection.NumCoresPerSocket)
+}
+
+// IsCPUHotAddEnabled returns true if CPU hot add is enabled.
+func (v VM) IsCPUHotAddEnabled() bool {
+	return v.VM.VM.VM.VMCapabilities.CPUHotAddEnabled
+}
+
 // AttachDiskSettings represents the settings for attaching a disk to a VM.
 func (v VM) AttachDiskSettings(busNumber, unitNumber types.Int64, diskHREF string) *govcdtypes.DiskAttachOrDetachParams {
 	var b, u int
 
 	if busNumber.IsNull() || unitNumber.IsNull() {
-		b, u = diskparams.ComputeBusAndUnitNumber(v.VM.VM.VM.VmSpecSection.DiskSection.DiskSettings)
+		b, u = diskparams.ComputeBusAndUnitNumber(v.GetDiskSettings())
 	} else {
 		b = int(busNumber.ValueInt64())
 		u = int(unitNumber.ValueInt64())
@@ -46,6 +121,72 @@ func (v VM) AttachDiskSettings(busNumber, unitNumber types.Int64, diskHREF strin
 	}
 }
 
+type NetworkConnection struct {
+	Name             types.String
+	Connected        types.Bool
+	IPAllocationMode types.String
+	IP               types.String
+	Type             types.String
+	Mac              types.String
+	AdapterType      types.String
+	IsPrimary        types.Bool
+}
+
+func ConstructNetworksConnectionWithoutVM(vApp vapp.VAPP, networks []NetworkConnection) (networkConnection govcdtypes.NetworkConnectionSection, err error) {
+	x := VM{
+		vApp: vApp,
+	}
+	return x.ConstructNetworksConnection(networks)
+}
+
+// ConstructNetworksConnection constructs a NetworkConnectionSection from a list of NetworkConnection.
+func (v VM) ConstructNetworksConnection(networks []NetworkConnection) (networkConnection govcdtypes.NetworkConnectionSection, err error) {
+	for index, network := range networks {
+		netCon := &govcdtypes.NetworkConnection{
+			Network:                 network.Name.ValueString(),
+			IsConnected:             network.Connected.ValueBool(),
+			IPAddressAllocationMode: network.IPAllocationMode.ValueString(),
+			IPAddress:               network.IP.ValueString(),
+			NetworkConnectionIndex:  index,
+		}
+
+		if v.vApp.VAPP == nil {
+			return govcdtypes.NetworkConnectionSection{}, fmt.Errorf("vApp is not initialized")
+		}
+
+		switch network.Type.ValueString() {
+		case "vapp":
+			if ok, err := v.vApp.IsVAPPNetwork(network.Name.ValueString()); err != nil {
+				return govcdtypes.NetworkConnectionSection{}, err
+			} else if !ok {
+				return govcdtypes.NetworkConnectionSection{}, fmt.Errorf("vApp network : %s is not found", network.Name.ValueString())
+			}
+		case "org":
+			if ok, err := v.vApp.IsVAPPOrgNetwork(network.Name.ValueString()); err != nil {
+				return govcdtypes.NetworkConnectionSection{}, err
+			} else if !ok {
+				return govcdtypes.NetworkConnectionSection{}, fmt.Errorf("org network : %s is not found", network.Name.ValueString())
+			}
+		}
+
+		if network.Mac.ValueString() != "" {
+			netCon.MACAddress = network.Mac.ValueString()
+		}
+
+		if network.AdapterType.ValueString() != "" {
+			netCon.NetworkAdapterType = network.AdapterType.ValueString()
+		}
+
+		networkConnection.NetworkConnection = append(networkConnection.NetworkConnection, netCon)
+
+		if network.IsPrimary.ValueBool() {
+			networkConnection.PrimaryNetworkConnectionIndex = index
+		}
+	}
+
+	return networkConnection, nil
+}
+
 // ! LEGACY
 
 const (
@@ -54,7 +195,7 @@ const (
 )
 
 // GetVM returns a VM by name.
-func GetVM(vdc *govcd.Vdc, vappNameOrID, vmNameOrID string) (*govcd.VM, error) {
+func GetVMOLD(vdc *govcd.Vdc, vappNameOrID, vmNameOrID string) (*govcd.VM, error) {
 	vapp, err := vdc.GetVAppByNameOrId(vappNameOrID, true)
 	if err != nil {
 		return nil, fmt.Errorf("[getVm] failed to get vApp: %w", err)

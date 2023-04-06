@@ -95,6 +95,7 @@ func Init(c *client.CloudAvenue, vdc types.String) (VDC, diag.Diagnostics) {
 	v.VDC, err = c.GetVDC(opts...)
 	if err != nil {
 		d.AddError("Unable to get VDC", err.Error())
+		return VDC{}, d
 	}
 
 	return v, nil

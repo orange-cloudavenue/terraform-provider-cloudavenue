@@ -23,6 +23,11 @@ func (v VDC) GetID() string {
 	return v.Vdc.Vdc.ID
 }
 
+// GetDefaultPlacementPolicyID give you the ID of the default placement policy.
+func (v VDC) GetDefaultPlacementPolicyID() string {
+	return v.Vdc.Vdc.DefaultComputePolicy.ID
+}
+
 // GetVAPP give you the vApp using the name provided in the argument.
 func (v VDC) GetVAPP(nameOrID string, refresh bool) (*VAPP, error) {
 	vapp, err := v.GetVAppByNameOrId(nameOrID, refresh)

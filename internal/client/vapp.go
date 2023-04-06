@@ -59,7 +59,7 @@ func (v VAPP) IsVAPPOrgNetwork(networkName string) (bool, error) {
 		}
 	}
 
-	return false, fmt.Errorf("configured vApp Org network isn't found: %s", networkName)
+	return false, nil
 }
 
 // IsVAPPNetwork check if it is a vApp network (not vApp Org Network).

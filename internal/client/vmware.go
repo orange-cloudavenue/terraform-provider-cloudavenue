@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
+	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 )
 
 var (
@@ -55,8 +56,18 @@ func (c *CloudAvenue) GetTemplateWithVMName(iD, vmName string) (vAppTemplate *go
 }
 
 // getAffinityRule retrieves an affinity rule by name.
-func (c *CloudAvenue) GetAffinityRule(iD string) (affinityRule *govcd.VdcComputePolicyV2, err error) {
-	return c.Vmware.GetVdcComputePolicyV2ById(iD)
+func (c *CloudAvenue) GetAffinityRule(affinityRuleID string) (affinityRule *govcd.VdcComputePolicyV2, err error) {
+	return c.Vmware.GetVdcComputePolicyV2ById(affinityRuleID)
+}
+
+// GetBootImage retrieves a boot image by ID.
+func (c *CloudAvenue) GetBootImage(bootImageID string) (bootImage *govcdtypes.Media, err error) {
+	bi, err := c.Vmware.QueryMediaById(bootImageID)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving boot image %s: %w", bootImageID, err)
+	}
+
+	return &govcdtypes.Media{HREF: bi.MediaRecord.HREF}, nil
 }
 
 // ! Deprecated

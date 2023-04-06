@@ -72,10 +72,10 @@ func (r *diskResource) Init(ctx context.Context, rm *vm.Disk) (diags diag.Diagno
 	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
 
 	if rm.VMName.ValueString() != "" || rm.VMID.ValueString() != "" {
-		r.vm, diags = r.vapp.GetVM(vapp.GetVMOpts{
+		r.vm, diags = vm.Get(r.vapp, vm.GetVMOpts{
 			ID:   rm.VMID,
 			Name: rm.VMName,
-		}, false)
+		})
 	}
 	return
 }
@@ -436,7 +436,7 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			!plan.VMID.Equal(state.VMID) ||
 			!plan.VMName.Equal(state.VMName) {
 			var (
-				vm             *govcd.VM
+				vmOld          *govcd.VM
 				diskIsDetached bool
 				vmDiskDetached *govcd.VM
 			)
@@ -445,9 +445,9 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			detachParams := &govcdtypes.DiskAttachOrDetachParams{
 				Disk: &govcdtypes.Reference{HREF: disk.Disk.HREF},
 			}
-
+			// TODO: VM is empty
 			// Detach disk
-			task, err := vm.DetachDisk(detachParams)
+			task, err := vmOld.DetachDisk(detachParams)
 			if err != nil {
 				resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %v", state.Name.ValueString(), err))
 				return
@@ -459,7 +459,7 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			}
 
 			diskIsDetached = true
-			vmDiskDetached = vm
+			vmDiskDetached = vmOld
 
 			err = disk.Refresh()
 			if err != nil {
@@ -496,10 +496,10 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 			if plan.VMName.ValueString() != "" ||
 				plan.VMID.ValueString() != "" {
-				vm, diag := r.vapp.GetVM(vapp.GetVMOpts{
+				vmNew, diag := vm.Get(r.vapp, vm.GetVMOpts{
 					ID:   plan.VMID,
 					Name: plan.VMName,
-				}, true)
+				})
 				if diag.HasError() {
 					resp.Diagnostics.Append(diag...)
 					return
@@ -516,7 +516,7 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 						}
 					}
 				} else if plan.BusNumber.IsNull() || plan.UnitNumber.IsNull() {
-					b, u := diskparams.ComputeBusAndUnitNumber(vm.VM.VM.VM.VmSpecSection.DiskSection.DiskSettings)
+					b, u := diskparams.ComputeBusAndUnitNumber(vmNew.VM.VM.VM.VmSpecSection.DiskSection.DiskSettings)
 					busNumber = types.Int64Value(int64(b))
 					unitNumber = types.Int64Value(int64(u))
 				}
@@ -528,7 +528,7 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 				}
 
 				// Attach disk
-				task, err := vm.AttachDisk(attachParams)
+				task, err := vmNew.AttachDisk(attachParams)
 				if err != nil {
 					resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %v", plan.Name.ValueString(), err))
 					return
@@ -587,17 +587,7 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		}
 
 		if attached != nil {
-			// Detach disk
-			vm, diag := r.vapp.GetVM(vapp.GetVMOpts{
-				ID:   types.StringValue(attached.ID),
-				Name: types.StringValue(attached.Name),
-			}, true)
-			if diag.HasError() {
-				resp.Diagnostics.Append(diag...)
-				return
-			}
-
-			task, err := vm.DetachDisk(&govcdtypes.DiskAttachOrDetachParams{
+			task, err := r.vm.DetachDisk(&govcdtypes.DiskAttachOrDetachParams{
 				Disk: &govcdtypes.Reference{
 					HREF: x.Disk.HREF,
 				},

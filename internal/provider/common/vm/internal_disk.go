@@ -150,7 +150,7 @@ func InternalDiskCreate(ctx context.Context, c *client.CloudAvenue, disk Interna
 		return
 	}
 
-	myVM, err := GetVM(vdc.Vdc, vAppName.ValueString(), vmName.ValueString())
+	myVM, err := GetVMOLD(vdc.Vdc, vAppName.ValueString(), vmName.ValueString())
 	if err != nil {
 		d.AddError("Error retrieving VM", err.Error())
 		return
@@ -252,7 +252,7 @@ func InternalDiskUpdate(ctx context.Context, c *client.CloudAvenue, disk Interna
 		return
 	}
 
-	myVM, err := GetVM(vdc.Vdc, vAppName.ValueString(), vmName.ValueString())
+	myVM, err := GetVMOLD(vdc.Vdc, vAppName.ValueString(), vmName.ValueString())
 	if err != nil {
 		d.AddError("Error retrieving VM", err.Error())
 		return
