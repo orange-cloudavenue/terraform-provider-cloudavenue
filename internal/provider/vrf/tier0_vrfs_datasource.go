@@ -8,9 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -40,20 +41,34 @@ func (d *tier0VrfsDataSource) Metadata(ctx context.Context, req datasource.Metad
 }
 
 func (d *tier0VrfsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Tier-0 VRFs data source allow access to a list of Tier-0 that can be accessed by the user.",
+	resp.Schema = superschema.Schema{
+		Common: superschema.SchemaDetails{
+			MarkdownDescription: "The Tier-0 VRFs",
+		},
+		DataSource: superschema.SchemaDetails{
+			MarkdownDescription: "data source allow access to a list of Tier-0 that can be accessed by the user.",
+		},
 
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
+		Attributes: map[string]superschema.Attribute{
+			"id": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The ID of the Tier-0 VRFs.",
+				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+				},
 			},
-			"names": schema.ListAttribute{
-				ElementType:         types.StringType,
-				Computed:            true,
-				MarkdownDescription: "List of Tier-0 VRFs names.",
+			"names": superschema.ListAttribute{
+				Common: &schemaR.ListAttribute{
+					MarkdownDescription: "List of Tier-0 VRFs names.",
+				},
+				DataSource: &schemaD.ListAttribute{
+					ElementType: types.StringType,
+					Computed:    true,
+				},
 			},
 		},
-	}
+	}.GetDataSource(ctx)
 }
 
 func (d *tier0VrfsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -95,10 +110,6 @@ func (d *tier0VrfsDataSource) Read(ctx context.Context, req datasource.ReadReque
 	for _, name := range tier0vrfs {
 		data.Names = append(data.Names, types.StringValue(name))
 	}
-
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
-	tflog.Trace(ctx, "read a data source")
 
 	// Generate a UUID from the list of names
 	data.ID = utils.GenerateUUID(tier0vrfs)

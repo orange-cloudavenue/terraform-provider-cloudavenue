@@ -8,9 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
@@ -47,43 +48,74 @@ func (d *tier0VrfDataSource) Metadata(ctx context.Context, req datasource.Metada
 }
 
 func (d *tier0VrfDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieve information about a Tier-0 VRF.",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
+	resp.Schema = superschema.Schema{
+		Common: superschema.SchemaDetails{
+			MarkdownDescription: "The Tier-0 VRF",
+		},
+		DataSource: superschema.SchemaDetails{
+			MarkdownDescription: "data source retrieve informations about a Tier-0 VRF.",
+		},
+		Attributes: map[string]superschema.Attribute{
+			"id": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The ID of the Tier-0 VRF.",
+				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+				},
 			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "The name of the Tier-0 VRF.",
-				Required:            true,
+			"name": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The name of the Tier-0 VRF.",
+				},
+				DataSource: &schemaD.StringAttribute{
+					Required: true,
+				},
 			},
-			"tier0_provider": schema.StringAttribute{
-				MarkdownDescription: "Tier-O provider info.",
-				Computed:            true,
+			"tier0_provider": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "Tier-O provider info.",
+				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+				},
 			},
-			"class_service": schema.StringAttribute{
-				MarkdownDescription: "List of tag of the Tier0 VRF.",
-				Computed:            true,
+			"class_service": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "List of tag of the Tier0 VRF.",
+				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+				},
 			},
-			"services": schema.ListNestedAttribute{
-				MarkdownDescription: "Services list of the Tier0-VRF.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"service": schema.StringAttribute{
+			"services": superschema.ListNestedAttribute{
+				Common: &schemaR.ListNestedAttribute{
+					MarkdownDescription: "Services list of the Tier0-VRF.",
+				},
+				DataSource: &schemaD.ListNestedAttribute{
+					Computed: true,
+				},
+				Attributes: superschema.Attributes{
+					"service": superschema.StringAttribute{
+						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "Service of the segment.",
-							Computed:            true,
 						},
-						"vlan_id": schema.StringAttribute{
+						DataSource: &schemaD.StringAttribute{
+							Computed: true,
+						},
+					},
+					"vlan_id": superschema.StringAttribute{
+						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "VLAN ID of the segment.",
-							Computed:            true,
+						},
+						DataSource: &schemaD.StringAttribute{
+							Computed: true,
 						},
 					},
 				},
 			},
 		},
-	}
+	}.GetDataSource(ctx)
 }
 
 func (d *tier0VrfDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -135,10 +167,6 @@ func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadReques
 			})
 		}
 	}
-
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
-	tflog.Trace(ctx, "read a data source")
 
 	// Generate ID for the data source
 	data.ID = data.Name
