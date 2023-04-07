@@ -43,8 +43,9 @@ type VAPP struct {
 
 var (
 	// ErrVAppRefEmpty is returned when a vApp reference is missing information.
-	ErrVAppRefEmpty = errors.New("missing information in vapp ref")
-	vcdMutexKV      = mutex.NewKV()
+	ErrVAppRefEmpty  = errors.New("missing information in vapp ref")
+	vcdMutexKV       = mutex.NewKV()
+	DiagVAppNotFound = diag.NewErrorDiagnostic(ErrVAppNotFound, govcd.ErrorEntityNotFound.Error())
 )
 
 /*
@@ -119,6 +120,7 @@ func SuperSchema() map[string]superschema.Attribute {
 Init
 
 Get vApp name or vApp ID.
+If mustExist is false, returns a warning for non existent vApp.
 */
 func Init(_ *client.CloudAvenue, vdc vdc.VDC, vappID, vappName types.String) (vapp VAPP, d diag.Diagnostics) {
 	vappNameID := vappID.ValueString()
@@ -130,10 +132,24 @@ func Init(_ *client.CloudAvenue, vdc vdc.VDC, vappID, vappName types.String) (va
 	vappOut, err := vdc.GetVAPP(vappNameID, true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
-			d.AddError(ErrVAppNotFound, err.Error())
+			d.Append(diag.Diagnostics{DiagVAppNotFound}...)
 			return
 		}
 		d.AddError("Error retrieving vApp", err.Error())
+		return
+	}
+	return VAPP{VAPP: vappOut, vdc: vdc}, nil
+}
+
+/*
+Create
+
+Create vApp and return VAPP struct.
+*/
+func Create(vdc vdc.VDC, vappName, description string) (vapp VAPP, d diag.Diagnostics) {
+	vappOut, err := vdc.CreateVAPP(vappName, description)
+	if err != nil {
+		d.AddError("Error creating vApp", err.Error())
 		return
 	}
 	return VAPP{VAPP: vappOut, vdc: vdc}, nil

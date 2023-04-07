@@ -4,7 +4,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -51,22 +50,20 @@ SuperSchema
 
 	For the data source :
 	Optional: true
+	Computed: true
 */
 func SuperSchema() superschema.StringAttribute {
 	return superschema.StringAttribute{
 		Common: &schemaR.StringAttribute{
 			MarkdownDescription: "The name of vDC to use, optional if defined at provider level.",
+			Optional:            true,
+			Computed:            true,
 		},
 		Resource: &schemaR.StringAttribute{
-			Optional: true,
-			Computed: true,
 			PlanModifiers: []planmodifier.String{
 				stringplanmodifier.UseStateForUnknown(),
 				stringplanmodifier.RequiresReplace(),
 			},
-		},
-		DataSource: &schemaD.StringAttribute{
-			Optional: true,
 		},
 	}
 }

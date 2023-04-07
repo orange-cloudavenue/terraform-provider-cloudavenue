@@ -30,3 +30,13 @@ func (v VAPP) GetHREF() string {
 func (v VAPP) GetDescription() string {
 	return v.VApp.VApp.Description
 }
+
+// GetDeploymentLeaseInSeconds retrieves the lease duration in seconds for a deployment.
+func (v VAPP) GetDeploymentLeaseInSeconds() int {
+	return v.VApp.VApp.LeaseSettingsSection.DeploymentLeaseInSeconds
+}
+
+// GetStorageLeaseInSeconds retrieves the lease duration in seconds for a storage resource.
+func (v VAPP) GetStorageLeaseInSeconds() int {
+	return v.VApp.VApp.LeaseSettingsSection.StorageLeaseInSeconds
+}

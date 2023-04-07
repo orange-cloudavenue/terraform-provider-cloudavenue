@@ -29,3 +29,8 @@ Get the catalogs list from the admin org.
 func (ao *AdminOrg) ListCatalogs() *govcdtypes.CatalogsList {
 	return ao.AdminOrg.AdminOrg.Catalogs
 }
+
+// GetOrgVAppLeaseSettings retrieves the lease settings for a vApp in the specified organization.
+func (ao *AdminOrg) GetOrgVAppLeaseSettings() *govcdtypes.VAppLeaseSettings {
+	return ao.AdminOrg.AdminOrg.OrgSettings.OrgVAppLeaseSettings
+}

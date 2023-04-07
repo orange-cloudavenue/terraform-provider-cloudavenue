@@ -46,6 +46,6 @@ BUG FIXES:
 DEPENDENCIES:
 
 {{range .NotesByType.dependency | sort -}}
-{{ template "note" . }}
+* {{ template "note" . }}
 {{ end -}}
 {{- end -}}
