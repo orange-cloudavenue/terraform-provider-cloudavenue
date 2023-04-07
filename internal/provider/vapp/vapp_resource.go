@@ -116,7 +116,10 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// Wait for job to complete
 	errRetry := retry.RetryContext(ctx, 90*time.Second, func() *retry.RetryError {
-		currentStatus, _ := r.vapp.GetStatus()
+		currentStatus, errGetStatus := r.vapp.GetStatus()
+		if errGetStatus != nil {
+			retry.NonRetryableError(errGetStatus)
+		}
 		tflog.Debug(ctx, fmt.Sprintf("Creating Vapp status: %s", currentStatus))
 		if currentStatus == "UNRESOLVED" {
 			return retry.RetryableError(fmt.Errorf("expected vapp status != UNRESOLVED"))
@@ -187,10 +190,9 @@ func (r *vappResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	}
 
 	// Status Code 4 means the vApp is On
+	plan.PowerON = types.BoolValue(false)
 	if r.vapp.GetStatusCode() == 4 {
 		plan.PowerON = types.BoolValue(true)
-	} else {
-		plan.PowerON = types.BoolValue(false)
 	}
 
 	// Get guest properties

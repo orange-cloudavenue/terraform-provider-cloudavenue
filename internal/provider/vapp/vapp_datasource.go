@@ -71,10 +71,7 @@ func (d *vappDataSource) Configure(ctx context.Context, req datasource.Configure
 }
 
 func (d *vappDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var (
-		data  vappResourceModel
-		diags diag.Diagnostics
-	)
+	var data vappResourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -95,10 +92,9 @@ func (d *vappDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	data.VAppName = types.StringValue(d.vapp.GetName())
 	data.VDC = types.StringValue(d.vdc.GetName())
 
+	data.PowerON = types.BoolValue(false)
 	if d.vapp.GetStatusCode() == 4 {
 		data.PowerON = types.BoolValue(true)
-	} else {
-		data.PowerON = types.BoolValue(false)
 	}
 
 	// Get guest properties

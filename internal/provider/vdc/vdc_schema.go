@@ -54,9 +54,7 @@ type vdcResourceModel struct {
 /*
 vdcSchema
 
-This function is used to create the schema for the vdc resource and datasource.
-Default is to create a resource schema. If you want to create a datasource schema
-you must pass in the withDataSource() option.
+This function is used to create the superschema for the vdc resource and datasource.
 */
 func vdcSchema() superschema.Schema {
 	return superschema.Schema{

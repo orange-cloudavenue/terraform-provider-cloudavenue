@@ -34,11 +34,9 @@ var vappLeaseAttrTypes = map[string]attr.Type{
 }
 
 /*
-vdcSchema
+vappSchema
 
-This function is used to create the schema for the vdc resource and datasource.
-Default is to create a resource schema. If you want to create a datasource schema
-you must pass in the withDataSource() option.
+This function is used to create the superschema for the vapp resource and datasource.
 */
 func vappSchema() superschema.Schema {
 	return superschema.Schema{
@@ -101,7 +99,7 @@ func vappSchema() superschema.Schema {
 			},
 			"power_on": superschema.BoolAttribute{
 				Common: &schemaR.BoolAttribute{
-					MarkdownDescription: "A boolean value stating if this vApp is powered on.",
+					MarkdownDescription: "A boolean value indicating whether this vApp is powered on or not.",
 					Computed:            true,
 				},
 				Resource: &schemaR.BoolAttribute{
