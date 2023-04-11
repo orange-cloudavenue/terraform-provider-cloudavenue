@@ -35,6 +35,7 @@ data "cloudavenue_network_routed" "example" {
 ### Optional
 
 - `edge_gateway_id` (String) The ID of the edge gateway in which the routed network should be located.
+- `edge_gateway_name` (String) The name of the edge gateway in which the routed network should be located.
 
 ### Read-Only
 

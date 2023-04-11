@@ -48,7 +48,7 @@ type networkRoutedResourceModel struct {
 	Name            types.String `tfsdk:"name"`
 	Description     types.String `tfsdk:"description"`
 	EdgeGatewayID   types.String `tfsdk:"edge_gateway_id"`
-	EdgegatewayName types.String `tfsdk:"edge_gateway_name"`
+	EdgeGatewayName types.String `tfsdk:"edge_gateway_name"`
 	InterfaceType   types.String `tfsdk:"interface_type"`
 	Gateway         types.String `tfsdk:"gateway"`
 	PrefixLength    types.Int64  `tfsdk:"prefix_length"`
@@ -116,7 +116,7 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 
 	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
 		ID:   plan.EdgeGatewayID,
-		Name: plan.EdgegatewayName,
+		Name: plan.EdgeGatewayName,
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
@@ -149,7 +149,7 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 	// Set ID
 	plan.ID = types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID)
 	plan.EdgeGatewayID = types.StringValue(edgegw.EdgeGateway.ID)
-	plan.EdgegatewayName = types.StringValue(edgegw.EdgeGateway.Name)
+	plan.EdgeGatewayName = types.StringValue(edgegw.EdgeGateway.Name)
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
@@ -188,7 +188,7 @@ func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadReque
 		Name:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Name),
 		Description:     types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
 		EdgeGatewayID:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.ID),
-		EdgegatewayName: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.Name),
+		EdgeGatewayName: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.Name),
 		InterfaceType:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.ConnectionType),
 		Gateway:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
 		PrefixLength:    types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
@@ -235,7 +235,7 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 	// Get Parent Edge Gateway ID to define the owner (VDC or VDC Group)
 	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
 		ID:   plan.EdgeGatewayID,
-		Name: plan.EdgegatewayName,
+		Name: plan.EdgeGatewayName,
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
@@ -299,7 +299,7 @@ func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteR
 	// Get Parent Edge Gateway ID to define the owner (VDC or VDC Group)
 	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
 		ID:   state.EdgeGatewayID,
-		Name: state.EdgegatewayName,
+		Name: state.EdgeGatewayName,
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
@@ -375,7 +375,7 @@ func (r *networkRoutedResource) SetNetworkAPIObject(ctx context.Context, plan an
 	// Get Parent Edge Gateway ID to define the owner (VDC or VDC Group)
 	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
 		ID:   p.EdgeGatewayID,
-		Name: p.EdgegatewayName,
+		Name: p.EdgeGatewayName,
 	})
 	if err != nil {
 		d.AddError("Error retrieving Edge Gateway", err.Error())

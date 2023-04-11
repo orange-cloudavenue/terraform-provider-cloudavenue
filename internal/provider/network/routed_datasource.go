@@ -28,22 +28,24 @@ func NewNetworkRoutedDataSource() datasource.DataSource {
 }
 
 type networkRoutedDataSource struct {
-	client *client.CloudAvenue
-	org    org.Org
+	client  *client.CloudAvenue
+	org     org.Org
+	network network.Kind
 }
 
 type networkRoutedDataSourceModel struct {
-	ID            types.String `tfsdk:"id"`
-	Name          types.String `tfsdk:"name"`
-	Description   types.String `tfsdk:"description"`
-	EdgeGatewayID types.String `tfsdk:"edge_gateway_id"`
-	InterfaceType types.String `tfsdk:"interface_type"`
-	Gateway       types.String `tfsdk:"gateway"`
-	PrefixLength  types.Int64  `tfsdk:"prefix_length"`
-	DNS1          types.String `tfsdk:"dns1"`
-	DNS2          types.String `tfsdk:"dns2"`
-	DNSSuffix     types.String `tfsdk:"dns_suffix"`
-	StaticIPPool  types.Set    `tfsdk:"static_ip_pool"`
+	ID              types.String `tfsdk:"id"`
+	Name            types.String `tfsdk:"name"`
+	Description     types.String `tfsdk:"description"`
+	EdgeGatewayID   types.String `tfsdk:"edge_gateway_id"`
+	EdgeGatewayName types.String `tfsdk:"edge_gateway_name"`
+	InterfaceType   types.String `tfsdk:"interface_type"`
+	Gateway         types.String `tfsdk:"gateway"`
+	PrefixLength    types.Int64  `tfsdk:"prefix_length"`
+	DNS1            types.String `tfsdk:"dns1"`
+	DNS2            types.String `tfsdk:"dns2"`
+	DNSSuffix       types.String `tfsdk:"dns_suffix"`
+	StaticIPPool    types.Set    `tfsdk:"static_ip_pool"`
 }
 
 func (d *networkRoutedDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -56,6 +58,8 @@ func (d *networkRoutedDataSource) Schema(ctx context.Context, req datasource.Sch
 
 // Init resource used to initialize the resource.
 func (d *networkRoutedDataSource) Init(_ context.Context, rm *networkRoutedDataSourceModel) (diags diag.Diagnostics) {
+	// Init Network
+	d.network.TypeOfNetwork = network.NAT_ROUTED
 	// Init Org
 	d.org, diags = org.Init(d.client)
 	return
@@ -95,52 +99,41 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	// Get VDC
-	vdc, err := d.client.GetVDC()
+	// Get Network from Parent VDC or Edge Gateway
+	var orgNetwork *govcd.OpenApiOrgVdcNetwork
+	// Get Edge Gateway
+	egw, err := d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+		Name: data.EdgeGatewayName,
+		ID:   data.EdgeGatewayID,
+	})
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
+		return
+	}
+	// Get Parent Edge Gateway
+	parent, err := egw.GetParent()
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving parent Edge Gateway", err.Error())
+		return
+	}
+	orgNetwork, err = d.org.GetOpenApiOrgVdcNetworkByNameAndOwnerId(data.Name.ValueString(), parent.GetID())
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Network of parent Edge Gateway", err.Error())
 		return
 	}
 
-	// Get Network from Parent VDC or Edge Gateway
-	var orgNetwork *govcd.OpenApiOrgVdcNetwork
-	if data.EdgeGatewayID.IsNull() { // Get Network from default VDC
-		orgNetwork, err = d.org.GetOpenApiOrgVdcNetworkByNameAndOwnerId(data.Name.ValueString(), vdc.GetID())
-		if err != nil {
-			resp.Diagnostics.AddError("Error retrieving Network of VDC", err.Error())
-			return
-		}
-	} else { // Get Network from Parent Edge Gateway
-		// Get Edge Gateway
-		egw, err := d.org.GetEdgeGateway(edgegw.BaseEdgeGW{ID: data.EdgeGatewayID})
-		if err != nil {
-			resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
-			return
-		}
-		// Get Parent Edge Gateway
-		parent, err := egw.GetParent()
-		if err != nil {
-			resp.Diagnostics.AddError("Error retrieving parent Edge Gateway", err.Error())
-			return
-		}
-		orgNetwork, err = d.org.GetOpenApiOrgVdcNetworkByNameAndOwnerId(data.Name.ValueString(), parent.GetID())
-		if err != nil {
-			resp.Diagnostics.AddError("Error retrieving Network of parent Edge Gateway", err.Error())
-			return
-		}
-	}
-
 	plan := &networkRoutedDataSourceModel{
-		ID:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
-		Name:          types.StringValue(data.Name.ValueString()),
-		Description:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
-		EdgeGatewayID: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.ID),
-		InterfaceType: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.ConnectionType),
-		Gateway:       types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
-		PrefixLength:  types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
-		DNS1:          types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
-		DNS2:          types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
-		DNSSuffix:     types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
+		ID:              types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
+		Name:            types.StringValue(data.Name.ValueString()),
+		Description:     types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
+		EdgeGatewayID:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.ID),
+		EdgeGatewayName: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.Name),
+		InterfaceType:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.ConnectionType),
+		Gateway:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
+		PrefixLength:    types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
+		DNS1:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
+		DNS2:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
+		DNSSuffix:       types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
 	}
 
 	var diags diag.Diagnostics

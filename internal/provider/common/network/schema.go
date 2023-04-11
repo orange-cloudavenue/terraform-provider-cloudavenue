@@ -260,20 +260,20 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 				},
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
+					stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
 				},
 			},
 		}
 		_schema.Attributes["edge_gateway_name"] = superschema.StringAttribute{
-			Resource: &schemaR.StringAttribute{
+			Common: &schemaR.StringAttribute{
 				MarkdownDescription: "The name of the edge gateway in which the routed network should be located.",
-				Computed:            true,
 				Optional:            true,
+				Computed:            true,
+			},
+			Resource: &schemaR.StringAttribute{
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 					stringplanmodifier.UseStateForUnknown(),
-				},
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
 				},
 			},
 		}

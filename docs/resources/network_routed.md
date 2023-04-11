@@ -55,7 +55,7 @@ resource "cloudavenue_network_routed" "example" {
 - `dns2` (String) The secondary DNS server IP address for the network. Must be a valid IP with net.ParseIP.
 - `dns_suffix` (String) The DNS suffix for the network.
 - `edge_gateway_id` (String) (ForceNew) The ID of the edge gateway in which the routed network should be located. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
-- `edge_gateway_name` (String) (ForceNew) The name of the edge gateway in which the routed network should be located. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
+- `edge_gateway_name` (String) (ForceNew) The name of the edge gateway in which the routed network should be located.
 - `interface_type` (String) An interface for the network. Value must be one of : `INTERNAL`, `SUBINTERFACE`, `DISTRIBUTED`. Value defaults to `INTERNAL`.
 - `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. Set must contain at least 1 elements. (see [below for nested schema](#nestedatt--static_ip_pool))
 
