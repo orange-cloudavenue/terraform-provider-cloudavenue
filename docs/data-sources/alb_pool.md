@@ -2,12 +2,12 @@
 page_title: "cloudavenue_alb_pool Data Source - cloudavenue"
 subcategory: "ALB (Advanced Load Balancer)"
 description: |-
-  Provides a data source to manage Advanced Load Balancer Pools. Pools maintain the list of servers assigned to them and perform health monitoring, load balancing, persistence.
+  Provides a data source to manage Advanced Load Balancer Pools. Pools maintain the list of assigned servers and perform health monitoring, load balancing, and persistence.
 ---
 
 # cloudavenue_alb_pool (Data Source)
 
-Provides a data source to manage Advanced Load Balancer Pools. Pools maintain the list of servers assigned to them and perform health monitoring, load balancing, persistence.
+Provides a data source to manage Advanced Load Balancer Pools. Pools maintain the list of assigned servers and perform health monitoring, load balancing, and persistence.
 
 ## Example Usage
 
@@ -32,24 +32,24 @@ data "cloudavenue_alb_pool" "example" {
 
 ### Read-Only
 
-- `algorithm` (String) Algorithm for choosing pool members.
-- `default_port` (Number) Default Port defines destination server port used by the traffic sent to the member.
+- `algorithm` (String) Algorithm for selecting members within a pool.
+- `default_port` (Number) Destination server port used for traffic sent to a member.
 - `description` (String) Description of ALB Pool.
 - `enabled` (Boolean) Define if ALB Pool is enabled or not.
-- `graceful_timeout_period` (Number) Maximum time in minutes to gracefully disable pool member.
+- `graceful_timeout_period` (Number) Maximum time in minutes allowed for gracefully disabling a pool member.
 - `health_monitors` (Set of String) List of health monitors type to activate.
 - `id` (String) ID of ALB Pool.
 - `members` (Attributes Set) ALB Pool Member(s). (see [below for nested schema](#nestedatt--members))
 - `passive_monitoring_enabled` (Boolean) Monitors if the traffic is accepted by node.
-- `persistence_profile` (Attributes) Persistence profile will ensure that the same user sticks to the same server for a desired duration of time. If the persistence profile is unmanaged by Cloud Avenue, updates that leave the values unchanged will continue to use the same unmanaged profile. Any changes made to the persistence profile will cause Cloud Avenue to switch the pool to a profile managed by Cloud Avenue. (see [below for nested schema](#nestedatt--persistence_profile))
+- `persistence_profile` (Attributes) Persistence profile ensures that a user remains connected to the same server for a specified duration. If the persistence profile is unmanaged by Cloud Avenue, updates with unchanged values will continue using the same unmanaged profile. However, any changes to the persistence profile will prompt Cloud Avenue to switch the pool to a profile it manages. (see [below for nested schema](#nestedatt--persistence_profile))
 
 <a id="nestedatt--members"></a>
 ### Nested Schema for `members`
 
 Read-Only:
 
-- `enabled` (Boolean) Defines if pool member accepts traffic.
-- `ip_address` (String) IP address of pool member.
+- `enabled` (Boolean) Indicates whether a pool member accepts traffic.
+- `ip_address` (String) IP address of a pool member.
 - `port` (Number) Member port.
 - `ratio` (Number) Ratio of selecting eligible servers in the pool.
 
