@@ -13,13 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
@@ -55,27 +54,40 @@ func (r *vcdaIPResource) Metadata(_ context.Context, req resource.MetadataReques
 }
 
 // Schema defines the schema for the resource.
-func (r *vcdaIPResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "VCDa resource permit to declare or remove your On Premise IP address for DRaaS Service." +
-			" -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://wiki.cloudavenue.orange-business.com/w/index.php/DRaaS_avec_VCDA).",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"ip_address": schema.StringAttribute{
-				Required: true,
-				MarkdownDescription: "On Premise IP address. This is the IP address of our on premise infrastructure which run vCloud Extender.\n" +
-					helpers.ForceNewDescription,
-				Validators: []validator.String{
-					fstringvalidator.IsIP(),
+func (r *vcdaIPResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = superschema.Schema{
+		Common: superschema.SchemaDetails{
+			MarkdownDescription: "The VCDa",
+		},
+		Resource: superschema.SchemaDetails{
+			MarkdownDescription: "resource allows you to declare or remove your on-premises IP address for the DRaaS service..\n" +
+				" -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://wiki.cloudavenue.orange-business.com/w/index.php/DRaaS_avec_VCDA).",
+		},
+		Attributes: map[string]superschema.Attribute{
+			"id": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The ID of the VCDa resource.",
 				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+				Resource: &schemaR.StringAttribute{
+					Computed: true,
+				},
+			},
+			"ip_address": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The on-premises IP address refers to the IP address of your local infrastructure running vCloud Extender.",
+				},
+				Resource: &schemaR.StringAttribute{
+					Required: true,
+					Validators: []validator.String{
+						fstringvalidator.IsIP(),
+					},
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplace(),
+					},
 				},
 			},
 		},
-	}
+	}.GetResource(ctx)
 }
 
 // Configure configures the resource.
@@ -129,10 +141,6 @@ func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest,
 	// Set the ID
 	plan.ID = plan.IPAddress
 
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
-	tflog.Trace(ctx, "created a resource")
-
 	// Save plan into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -162,14 +170,13 @@ func (r *vcdaIPResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	found := slices.Contains(vcdaIPList, state.IPAddress.ValueString())
 	// Check if the VCDA is in the list
-	if found {
-		// Set the ID
-		state.ID = state.IPAddress
-	} else {
+	if !found {
 		// If the VCDA is not in the list, remove it from the state
 		resp.State.RemoveResource(ctx)
 		return
 	}
+
+	state.ID = state.IPAddress
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
