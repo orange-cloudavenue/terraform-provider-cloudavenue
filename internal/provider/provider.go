@@ -30,7 +30,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vm"
-	tier0 "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vrf"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vrf"
 )
 
 const VCDVersion = "37.0"
@@ -61,8 +61,8 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		alb.NewAlbPoolDataSource,
 
 		// TIER0
-		tier0.NewTier0VrfsDataSource,
-		tier0.NewTier0VrfDataSource,
+		vrf.NewTier0VrfsDataSource,
+		vrf.NewTier0VrfDataSource,
 
 		// PUBLICIP
 		publicip.NewPublicIPDataSource,

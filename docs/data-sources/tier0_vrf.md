@@ -2,12 +2,12 @@
 page_title: "cloudavenue_tier0_vrf Data Source - cloudavenue"
 subcategory: "Provider Gateway (Tier-0)"
 description: |-
-  Retrieve information about a Tier-0 VRF.
+  The Tier-0 VRF data source retrieve informations about a Tier-0 VRF.
 ---
 
 # cloudavenue_tier0_vrf (Data Source)
 
-Retrieve information about a Tier-0 VRF.
+The Tier-0 VRF data source retrieve informations about a Tier-0 VRF.
 
 ## Example Usage
 
@@ -32,10 +32,10 @@ output "vrf" {
 
 ### Read-Only
 
-- `class_service` (String) List of tag of the Tier0 VRF.
-- `id` (String) The ID of this resource.
-- `services` (Attributes List) Services list of the Tier0-VRF. (see [below for nested schema](#nestedatt--services))
-- `tier0_provider` (String) Tier-O provider info.
+- `class_service` (String) List of Tags for the Tier-0 VRF.
+- `id` (String) The ID of the Tier-0 VRF.
+- `services` (Attributes List) Services list of the Tier-0 VRF. (see [below for nested schema](#nestedatt--services))
+- `tier0_provider` (String) Tier-0 provider info.
 
 <a id="nestedatt--services"></a>
 ### Nested Schema for `services`
