@@ -62,7 +62,7 @@ func SuperSchema(readOnly bool) map[string]superschema.Attribute {
 		},
 		"shared_with": superschema.SetNestedAttribute{
 			Common: &schemaR.SetNestedAttribute{
-				MarkdownDescription: "One or more blocks defining a subject to which we are sharing.",
+				MarkdownDescription: "One or more blocks defining the subjects with whom we are sharing.",
 			},
 			Resource: &schemaR.SetNestedAttribute{
 				Optional: true,
@@ -73,7 +73,7 @@ func SuperSchema(readOnly bool) map[string]superschema.Attribute {
 			Attributes: map[string]superschema.Attribute{
 				"user_id": superschema.StringAttribute{
 					Common: &schemaR.StringAttribute{
-						MarkdownDescription: "ID of the user to which we are sharing.",
+						MarkdownDescription: "ID of the user with whom we are sharing.",
 					},
 					Resource: &schemaR.StringAttribute{
 						Optional: true,
@@ -84,7 +84,7 @@ func SuperSchema(readOnly bool) map[string]superschema.Attribute {
 				},
 				"group_id": superschema.StringAttribute{
 					Common: &schemaR.StringAttribute{
-						MarkdownDescription: "ID of the group to which we are sharing.",
+						MarkdownDescription: "ID of the group with whom we are sharing.",
 					},
 					Resource: &schemaR.StringAttribute{
 						Optional: true,
@@ -95,7 +95,7 @@ func SuperSchema(readOnly bool) map[string]superschema.Attribute {
 				},
 				"subject_name": superschema.StringAttribute{
 					Common: &schemaR.StringAttribute{
-						MarkdownDescription: "Name of the subject (group or user) with which we are sharing",
+						MarkdownDescription: "Name of the subject (group or user) with whom we are sharing",
 					},
 					Resource: &schemaR.StringAttribute{
 						Computed: true,
@@ -103,7 +103,7 @@ func SuperSchema(readOnly bool) map[string]superschema.Attribute {
 				},
 				"access_level": superschema.StringAttribute{
 					Common: &schemaR.StringAttribute{
-						MarkdownDescription: "Access level for the user or group to which we are sharing.",
+						MarkdownDescription: "Access level for the user or group with whom we are sharing.",
 					},
 					Resource: &schemaR.StringAttribute{
 						Required: true,
