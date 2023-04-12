@@ -29,8 +29,9 @@ type GlobalResourceModel struct {
 	// ISOLATED
 
 	// ROUTED
-	EdgeGatewayID types.String
-	InterfaceType types.String
+	EdgeGatewayID   types.String
+	EdgegatewayName types.String
+	InterfaceType   types.String
 }
 
 type Network interface {
@@ -60,7 +61,8 @@ func (k Kind) SetNetworkAPIObject(ctx context.Context, data GlobalResourceModel)
 		apiObject.NetworkType = govcdtypes.OrgVdcNetworkTypeRouted
 		apiObject.Connection = &govcdtypes.Connection{
 			RouterRef: govcdtypes.OpenApiReference{
-				ID: data.EdgeGatewayID.ValueString(),
+				ID:   data.EdgeGatewayID.ValueString(),
+				Name: data.EdgegatewayName.ValueString(),
 			},
 			// API requires interface type in upper case, but we accept any case
 			ConnectionType: data.InterfaceType.ValueString(),

@@ -16,9 +16,8 @@ data "cloudavenue_network_isolated" "example" {
 }
 `
 
-const dataSourceName = "data.cloudavenue_network_isolated.example"
-
 func TestAccNetworkIsolatedDataSource(t *testing.T) {
+	const dataSourceName = "data.cloudavenue_network_isolated.example"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: tests.TestAccProtoV6ProviderFactories,
