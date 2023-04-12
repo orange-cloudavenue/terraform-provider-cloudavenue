@@ -50,7 +50,7 @@ resource "cloudavenue_vapp_acl" "example" {
 ### Optional
 
 - `everyone_access_level` (String) Access level when the vApp is shared with everyone. Ensure that one and only one attribute from this collection is set : `shared_with`, `everyone_access_level`.
-- `shared_with` (Attributes Set) One or more blocks defining a subject to which we are sharing. Ensure that one and only one attribute from this collection is set : `everyone_access_level`, `shared_with`. (see [below for nested schema](#nestedatt--shared_with))
+- `shared_with` (Attributes Set) One or more blocks defining the subjects with whom we are sharing. Ensure that one and only one attribute from this collection is set : `everyone_access_level`, `shared_with`. (see [below for nested schema](#nestedatt--shared_with))
 - `vapp_id` (String) (ForceNew) ID of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
 - `vapp_name` (String) (ForceNew) Name of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_id`, `vapp_name`.
 - `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
@@ -64,16 +64,16 @@ resource "cloudavenue_vapp_acl" "example" {
 
 Required:
 
-- `access_level` (String) Access level for the user or group to which we are sharing. Value must be one of : `ReadOnly`.
+- `access_level` (String) Access level for the user or group with whom we are sharing. Value must be one of : `ReadOnly`.
 
 Optional:
 
-- `group_id` (String) ID of the group to which we are sharing. Ensure that one and only one attribute from this collection is set : `user_id`.
-- `user_id` (String) ID of the user to which we are sharing. Ensure that one and only one attribute from this collection is set : `group_id`.
+- `group_id` (String) ID of the group with whom we are sharing. Ensure that one and only one attribute from this collection is set : `user_id`.
+- `user_id` (String) ID of the user with whom we are sharing. Ensure that one and only one attribute from this collection is set : `group_id`.
 
 Read-Only:
 
-- `subject_name` (String) Name of the subject (group or user) with which we are sharing.
+- `subject_name` (String) Name of the subject (group or user) with whom we are sharing.
 
 ## Import
 
