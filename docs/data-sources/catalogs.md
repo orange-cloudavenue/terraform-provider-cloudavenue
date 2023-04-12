@@ -48,5 +48,5 @@ Read-Only:
 - `name` (String) The name of the catalog. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 - `number_of_media` (Number) The number of media in the catalog.
 - `owner_name` (String) The owner name of the catalog.
-- `preserve_identity_information` (Boolean) Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Preserving the identity information limits the portability of the package and you should use it only when necessary.
+- `preserve_identity_information` (Boolean) Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Keep in mind that preserving this identity information reduces the package's portability, so only include it when necessary.
 
