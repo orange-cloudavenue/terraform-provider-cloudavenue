@@ -75,10 +75,10 @@ This function is used to create the schema for the ALB Pool resource and datasou
 func albPoolSchema() superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "Provides a resource to manage Advanced Load Balancer Pools. Pools maintain the list of servers assigned to them and perform health monitoring, load balancing, persistence. A pool may only be used or referenced by only one virtual service at a time.",
+			MarkdownDescription: "Provides a resource to manage Advanced Load Balancer Pools. Pools maintain the list of assigned servers and perform health monitoring, load balancing, and persistence. A pool may be used or referenced by only one virtual service at a time.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "Provides a data source to manage Advanced Load Balancer Pools. Pools maintain the list of servers assigned to them and perform health monitoring, load balancing, persistence.",
+			MarkdownDescription: "Provides a data source to manage Advanced Load Balancer Pools. Pools maintain the list of assigned servers and perform health monitoring, load balancing, and persistence.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
@@ -157,7 +157,7 @@ func albPoolSchema() superschema.Schema {
 			},
 			"algorithm": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "Algorithm for choosing pool members.",
+					MarkdownDescription: "Algorithm for selecting members within a pool.",
 					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
@@ -170,7 +170,7 @@ func albPoolSchema() superschema.Schema {
 			},
 			"default_port": superschema.Int64Attribute{
 				Common: &schemaR.Int64Attribute{
-					MarkdownDescription: "Default Port defines destination server port used by the traffic sent to the member.",
+					MarkdownDescription: "Destination server port used for traffic sent to a member.",
 					Computed:            true,
 				},
 				Resource: &schemaR.Int64Attribute{
@@ -183,7 +183,7 @@ func albPoolSchema() superschema.Schema {
 			},
 			"graceful_timeout_period": superschema.Int64Attribute{
 				Common: &schemaR.Int64Attribute{
-					MarkdownDescription: "Maximum time in minutes to gracefully disable pool member.",
+					MarkdownDescription: "Maximum time in minutes allowed for gracefully disabling a pool member.",
 					Computed:            true,
 				},
 				Resource: &schemaR.Int64Attribute{
@@ -204,7 +204,7 @@ func albPoolSchema() superschema.Schema {
 				Attributes: map[string]superschema.Attribute{
 					"enabled": superschema.BoolAttribute{
 						Common: &schemaR.BoolAttribute{
-							MarkdownDescription: "Defines if pool member accepts traffic.",
+							MarkdownDescription: "Indicates whether a pool member accepts traffic.",
 							Computed:            true,
 						},
 						Resource: &schemaR.BoolAttribute{
@@ -214,7 +214,7 @@ func albPoolSchema() superschema.Schema {
 					},
 					"ip_address": superschema.StringAttribute{
 						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "IP address of pool member.",
+							MarkdownDescription: "IP address of a pool member.",
 						},
 						Resource: &schemaR.StringAttribute{
 							Required: true,
@@ -272,7 +272,7 @@ func albPoolSchema() superschema.Schema {
 			},
 			"persistence_profile": superschema.SingleNestedAttribute{
 				Common: &schemaR.SingleNestedAttribute{
-					MarkdownDescription: "Persistence profile will ensure that the same user sticks to the same server for a desired duration of time. If the persistence profile is unmanaged by Cloud Avenue, updates that leave the values unchanged will continue to use the same unmanaged profile. Any changes made to the persistence profile will cause Cloud Avenue to switch the pool to a profile managed by Cloud Avenue.",
+					MarkdownDescription: "Persistence profile ensures that a user remains connected to the same server for a specified duration. If the persistence profile is unmanaged by Cloud Avenue, updates with unchanged values will continue using the same unmanaged profile. However, any changes to the persistence profile will prompt Cloud Avenue to switch the pool to a profile it manages.",
 				},
 				Resource: &schemaR.SingleNestedAttribute{
 					Optional: true,

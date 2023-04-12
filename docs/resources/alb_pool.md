@@ -2,12 +2,12 @@
 page_title: "cloudavenue_alb_pool Resource - cloudavenue"
 subcategory: "ALB (Advanced Load Balancer)"
 description: |-
-  Provides a resource to manage Advanced Load Balancer Pools. Pools maintain the list of servers assigned to them and perform health monitoring, load balancing, persistence. A pool may only be used or referenced by only one virtual service at a time.
+  Provides a resource to manage Advanced Load Balancer Pools. Pools maintain the list of assigned servers and perform health monitoring, load balancing, and persistence. A pool may be used or referenced by only one virtual service at a time.
 ---
 
 # cloudavenue_alb_pool (Resource)
 
-Provides a resource to manage Advanced Load Balancer Pools. Pools maintain the list of servers assigned to them and perform health monitoring, load balancing, persistence. A pool may only be used or referenced by only one virtual service at a time.
+Provides a resource to manage Advanced Load Balancer Pools. Pools maintain the list of assigned servers and perform health monitoring, load balancing, and persistence. A pool may be used or referenced by only one virtual service at a time.
 
 ## Example Usage
 
@@ -71,17 +71,17 @@ resource "cloudavenue_alb_pool" "example" {
 
 ### Optional
 
-- `algorithm` (String) Algorithm for choosing pool members. Value must be one of : `ROUND_ROBIN`, `CONSISTENT_HASH`, `LEAST_CONNECTIONS`. Value defaults to `LEAST_CONNECTIONS`.
-- `default_port` (Number) Default Port defines destination server port used by the traffic sent to the member. Value must be between 1 and 65535. Value defaults to `80`.
+- `algorithm` (String) Algorithm for selecting members within a pool. Value must be one of : `ROUND_ROBIN`, `CONSISTENT_HASH`, `LEAST_CONNECTIONS`. Value defaults to `LEAST_CONNECTIONS`.
+- `default_port` (Number) Destination server port used for traffic sent to a member. Value must be between 1 and 65535. Value defaults to `80`.
 - `description` (String) Description of ALB Pool.
 - `edge_gateway_id` (String) (ForceNew) Edge gateway ID in which ALB Pool should be created. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
 - `edge_gateway_name` (String) (ForceNew) Edge gateway Name in which ALB Pool should be created. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
 - `enabled` (Boolean) Define if ALB Pool is enabled or not. Value defaults to `true`.
-- `graceful_timeout_period` (Number) Maximum time in minutes to gracefully disable pool member. Value defaults to `1`.
+- `graceful_timeout_period` (Number) Maximum time in minutes allowed for gracefully disabling a pool member. Value defaults to `1`.
 - `health_monitors` (Set of String) List of health monitors type to activate. Element value must satisfy all validations: value must be one of: ["\"HTTP\"" "\"HTTPS\"" "\"TCP\"" "\"UDP\"" "\"PING\""].
 - `members` (Attributes Set) ALB Pool Member(s). (see [below for nested schema](#nestedatt--members))
 - `passive_monitoring_enabled` (Boolean) Monitors if the traffic is accepted by node. Value defaults to `true`.
-- `persistence_profile` (Attributes) Persistence profile will ensure that the same user sticks to the same server for a desired duration of time. If the persistence profile is unmanaged by Cloud Avenue, updates that leave the values unchanged will continue to use the same unmanaged profile. Any changes made to the persistence profile will cause Cloud Avenue to switch the pool to a profile managed by Cloud Avenue. (see [below for nested schema](#nestedatt--persistence_profile))
+- `persistence_profile` (Attributes) Persistence profile ensures that a user remains connected to the same server for a specified duration. If the persistence profile is unmanaged by Cloud Avenue, updates with unchanged values will continue using the same unmanaged profile. However, any changes to the persistence profile will prompt Cloud Avenue to switch the pool to a profile it manages. (see [below for nested schema](#nestedatt--persistence_profile))
 
 ### Read-Only
 
@@ -92,12 +92,12 @@ resource "cloudavenue_alb_pool" "example" {
 
 Required:
 
-- `ip_address` (String) IP address of pool member. Must be a valid IP with net.ParseIP.
+- `ip_address` (String) IP address of a pool member. Must be a valid IP with net.ParseIP.
 - `port` (Number) Member port. Value must be between 1 and 65535.
 
 Optional:
 
-- `enabled` (Boolean) Defines if pool member accepts traffic. Value defaults to `true`.
+- `enabled` (Boolean) Indicates whether a pool member accepts traffic. Value defaults to `true`.
 - `ratio` (Number) Ratio of selecting eligible servers in the pool. Value must be at least 1. Value defaults to `1`.
 
 
