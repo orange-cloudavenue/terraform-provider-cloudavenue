@@ -161,7 +161,7 @@ func catalogSchema() superschema.Schema {
 			},
 			"preserve_identity_information": superschema.BoolAttribute{
 				DataSource: &schemaD.BoolAttribute{
-					MarkdownDescription: "Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Preserving the identity information limits the portability of the package and you should use it only when necessary.",
+					MarkdownDescription: "Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Keep in mind that preserving this identity information reduces the package's portability, so only include it when necessary.",
 					Computed:            true,
 				},
 			},
@@ -215,13 +215,13 @@ func catalogSchema() superschema.Schema {
 			"delete_force": superschema.BoolAttribute{
 				Resource: &schemaR.BoolAttribute{
 					Required:            true,
-					MarkdownDescription: "When destroying use `delete_force=True` with `delete_recursive=True` to remove a catalog and any objects it contains, regardless of their state.",
+					MarkdownDescription: "When destroying a catalog, use `delete_force=True` along with `delete_recursive=True` to remove the catalog and any contained objects, regardless of their state.",
 				},
 			},
 			"delete_recursive": superschema.BoolAttribute{
 				Resource: &schemaR.BoolAttribute{
 					Required:            true,
-					MarkdownDescription: "When destroying use `delete_recursive=True` to remove a catalog and any objects it contains that are in a state that normally allows removal.",
+					MarkdownDescription: "When destroying a catalog, use `delete_recursive=True to remove the catalog and any contained objects that are in a state permitting removal.",
 				},
 			},
 		},

@@ -25,8 +25,8 @@ resource "cloudavenue_catalog" "example" {
 
 ### Required
 
-- `delete_force` (Boolean) When destroying use `delete_force=True` with `delete_recursive=True` to remove a catalog and any objects it contains, regardless of their state.
-- `delete_recursive` (Boolean) When destroying use `delete_recursive=True` to remove a catalog and any objects it contains that are in a state that normally allows removal.
+- `delete_force` (Boolean) When destroying a catalog, use `delete_force=True` along with `delete_recursive=True` to remove the catalog and any contained objects, regardless of their state.
+- `delete_recursive` (Boolean) When destroying a catalog, use `delete_recursive=True to remove the catalog and any contained objects that are in a state permitting removal.
 - `description` (String) The description of the catalog.
 - `name` (String) The name of the catalog.
 
