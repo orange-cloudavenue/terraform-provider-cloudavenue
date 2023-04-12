@@ -1,4 +1,4 @@
-package tier0
+package vrf
 
 const (
 	categoryName = "tier0"

@@ -1,5 +1,5 @@
 // Package tier0 provides a Terraform resource to manage Tier-0 VRFs.
-package tier0
+package vrf
 
 import (
 	"context"

@@ -32,10 +32,10 @@ output "vrf" {
 
 ### Read-Only
 
-- `class_service` (String) List of tag of the Tier0 VRF.
+- `class_service` (String) List of Tags for the Tier-0 VRF.
 - `id` (String) The ID of the Tier-0 VRF.
-- `services` (Attributes List) Services list of the Tier0-VRF. (see [below for nested schema](#nestedatt--services))
-- `tier0_provider` (String) Tier-O provider info.
+- `services` (Attributes List) Services list of the Tier-0 VRF. (see [below for nested schema](#nestedatt--services))
+- `tier0_provider` (String) Tier-0 provider info.
 
 <a id="nestedatt--services"></a>
 ### Nested Schema for `services`

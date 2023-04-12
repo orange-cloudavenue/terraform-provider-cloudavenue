@@ -1,5 +1,5 @@
-// Package tier0 provides a Terraform resource to manage Tier-0 VRFs.
-package tier0
+// Package vrf provides a Terraform resource to manage Tier-0 VRFs.
+package vrf
 
 import (
 	"context"
@@ -74,7 +74,7 @@ func (d *tier0VrfDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 			},
 			"tier0_provider": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "Tier-O provider info.",
+					MarkdownDescription: "Tier-0 provider info.",
 				},
 				DataSource: &schemaD.StringAttribute{
 					Computed: true,
@@ -82,7 +82,7 @@ func (d *tier0VrfDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 			},
 			"class_service": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "List of tag of the Tier0 VRF.",
+					MarkdownDescription: "List of Tags for the Tier-0 VRF.",
 				},
 				DataSource: &schemaD.StringAttribute{
 					Computed: true,
@@ -90,7 +90,7 @@ func (d *tier0VrfDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 			},
 			"services": superschema.ListNestedAttribute{
 				Common: &schemaR.ListNestedAttribute{
-					MarkdownDescription: "Services list of the Tier0-VRF.",
+					MarkdownDescription: "Services list of the Tier-0 VRF.",
 				},
 				DataSource: &schemaD.ListNestedAttribute{
 					Computed: true,
@@ -150,7 +150,7 @@ func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 	tier0Detail, _, err := d.client.APIClient.Tier0Api.GetTier0VrfByName(d.client.Auth, data.Name.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Tier0 detail, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Tier-0 detail, got error: %s", err))
 		return
 	}
 
