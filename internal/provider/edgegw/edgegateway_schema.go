@@ -93,7 +93,7 @@ func edgegwSchema() superschema.Schema {
 			},
 			"tier0_vrf_name": &superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the Tier0 VRF to which the Edge Gateway is attached.",
+					MarkdownDescription: "The name of the Tier-0 VRF to which the Edge Gateway is attached.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,
