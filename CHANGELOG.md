@@ -1,5 +1,8 @@
 ## 0.3.0 (Unreleased)
 
+FEATURES:
+* **New Data Source:** cloudavenue_network_routed ([GH-249](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/249))
+
 ## 0.2.0 (April 7, 2023)
 
 FEATURES:
