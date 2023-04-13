@@ -75,7 +75,7 @@ func (d *vdcGroupDataSource) Metadata(ctx context.Context, req datasource.Metada
 
 func (d *vdcGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a data source to read vDC group and reference in other resources.",
+		MarkdownDescription: "Provides a data source to read vDC group information and reference it in other resources.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the vDC Group.",
@@ -90,7 +90,7 @@ func (d *vdcGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 				Computed:            true,
 			},
 			"error_message": schema.StringAttribute{
-				MarkdownDescription: "More detailed error message when vDC group has error status.",
+				MarkdownDescription: "A more detailed error message is provided when the vDC group has an error status.",
 				Computed:            true,
 			},
 			"dfw_enabled": schema.BoolAttribute{
