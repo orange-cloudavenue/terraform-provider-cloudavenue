@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vdc_group Data Source - cloudavenue"
 subcategory: "vDC (Virtual Datacenter)"
 description: |-
-  Provides a data source to read vDC group and reference in other resources.
+  Provides a data source to read vDC group information and reference it in other resources.
 ---
 
 # cloudavenue_vdc_group (Data Source)
 
-Provides a data source to read vDC group and reference in other resources.
+Provides a data source to read vDC group information and reference it in other resources.
 
 ## Example Usage
 
@@ -40,7 +40,7 @@ data "cloudavenue_vdc_group" "example" {
 
 - `description` (String) The description of the vDC Group.
 - `dfw_enabled` (Boolean) Distributed firewall status.
-- `error_message` (String) More detailed error message when vDC group has error status.
+- `error_message` (String) A more detailed error message is provided when the vDC group has an error status.
 - `id` (String) The ID of the vDC Group.
 - `local_egress` (Boolean) Status whether local egress is enabled for a universal router belonging to a universal vDC group.
 - `network_pool_id` (String) ID of used network pool of the vDC Group.
