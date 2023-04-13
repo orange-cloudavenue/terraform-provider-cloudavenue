@@ -59,7 +59,7 @@ func (d *publicIPDataSource) Metadata(ctx context.Context, req datasource.Metada
 
 func (d *publicIPDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "The public IP data source show the list of public IP addresses.",
+		Description: "The public IP data source displays the list of public IP addresses.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

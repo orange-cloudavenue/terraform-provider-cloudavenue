@@ -2,12 +2,12 @@
 page_title: "cloudavenue_publicips Data Source - cloudavenue"
 subcategory: "Public IP"
 description: |-
-  The public IP data source show the list of public IP addresses.
+  The public IP data source displays the list of public IP addresses.
 ---
 
 # cloudavenue_publicips (Data Source)
 
-The public IP data source show the list of public IP addresses.
+The public IP data source displays the list of public IP addresses.
 
 ## Example Usage
 
