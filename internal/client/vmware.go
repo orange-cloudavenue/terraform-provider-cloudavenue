@@ -15,6 +15,7 @@ var (
 	ErrRetrievingOrgAdmin   = errors.New("error retrieving Org admin")
 	ErrEmptyOrgFound        = errors.New("empty Org found")
 	ErrRetrievingVDC        = errors.New("error retrieving VDC")
+	ErrRetrievingAdminVDC   = errors.New("error retrieving AdminVDC")
 	ErrRetrievingVDCGroup   = errors.New("error retrieving VDC Group")
 	ErrEmptyVDCFound        = errors.New("empty VDC found")
 )
