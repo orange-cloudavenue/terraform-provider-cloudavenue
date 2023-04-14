@@ -7,6 +7,7 @@ import (
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -19,6 +20,7 @@ import (
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
@@ -38,13 +40,6 @@ const (
 	ISOLATEDVAPP
 	ROUTEDVAPP
 )
-
-// TODO - plan to use this to create a datasource schema
-// func withDataSource() networkSchemaOpts {
-//	return func(params *networkSchemaParams) {
-//		params.datasource = true
-//	}
-// }
 
 // Set bool to true to create a schema for a routed network.
 func SetRouted() networkSchemaOpts {
@@ -326,14 +321,55 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 		delete(_schema.Attributes, "dns_suffix")
 		delete(_schema.Attributes, "static_ip_pool")
 		delete(_schema.Attributes, "name")
+		_schema.Resource.MarkdownDescription = "Provides a Cloud Avenue routed vAPP Org Network resource. This can be used to create, modify, and delete isolated vAPP Network."
+		_schema.DataSource.MarkdownDescription = "Provides a Cloud Avenue routed vAPP Org Network data source to read data or reference existing network."
+		_schema.Attributes["vdc"] = vdc.SuperSchema()
+		_schema.Attributes["vapp_id"] = vapp.SuperSchema()["vapp_id"]
+		_schema.Attributes["vapp_name"] = vapp.SuperSchema()["vapp_name"]
 		_schema.Attributes["network_name"] = superschema.StringAttribute{
+			Common: &schemaR.StringAttribute{
+				MarkdownDescription: "Organization network name to which vApp network is connected to.",
+				Required:            true,
+			},
 			Resource: &schemaR.StringAttribute{
-				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "Organization network name to which vApp network is connected to.",
 			},
+			// DataSource: &schemaD.StringAttribute{
+			// 	Required: true,
+			// },
+		}
+		_schema.Attributes["is_fenced"] = superschema.BoolAttribute{
+			Common: &schemaR.BoolAttribute{
+				MarkdownDescription: "Defines if the network is fenced. Fencing allows identical virtual machines in different vApp networks connect to organization VDC networks that are accessed in this vApp. Default is `false`.",
+				Computed:            true,
+			},
+			Resource: &schemaR.BoolAttribute{
+				Optional: true,
+				Default:  booldefault.StaticBool(false),
+				// PlanModifiers: []planmodifier.Bool{
+				// 	fboolplanmodifier.SetDefault(false),
+				// },
+			},
+			// DataSource: &schemaD.BoolAttribute{
+			// 	Computed: true,
+			// },
+		}
+		_schema.Attributes["retain_ip_mac_enabled"] = superschema.BoolAttribute{
+			Common: &schemaR.BoolAttribute{
+				MarkdownDescription: "Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Default is `false`.",
+				Computed:            true,
+			},
+			Resource: &schemaR.BoolAttribute{
+				Optional: true,
+				Default:  booldefault.StaticBool(false),
+				// PlanModifiers: []planmodifier.Bool{
+				// 	fboolplanmodifier.SetDefault(false),
+				// },
+			},
+			// DataSource: &schemaD.BoolAttribute{
+			// },
 		}
 	}
 	return _schema
