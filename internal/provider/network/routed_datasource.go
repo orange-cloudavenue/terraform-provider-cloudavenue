@@ -110,20 +110,6 @@ func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadR
 	// Set data into the model
 	data = SetDataToNetworkRoutedModel(orgNetwork)
 
-	// data = networkRoutedModel{
-	// 	ID:              types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.ID),
-	// 	Name:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Name),
-	// 	Description:     types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Description),
-	// 	EdgeGatewayID:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.ID),
-	// 	EdgeGatewayName: types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.RouterRef.Name),
-	// 	InterfaceType:   types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Connection.ConnectionType),
-	// 	Gateway:         types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway),
-	// 	PrefixLength:    types.Int64Value(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength)),
-	// 	DNS1:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer1),
-	// 	DNS2:            types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2),
-	// 	DNSSuffix:       types.StringValue(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix),
-	// }
-
 	// Set static IP pool
 	var diags diag.Diagnostics
 	data.StaticIPPool, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolAttrTypes}, GetIPRanges(orgNetwork))

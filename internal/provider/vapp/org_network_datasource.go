@@ -5,15 +5,24 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/k0kubun/pp/v3"
+
+	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 var (
@@ -34,19 +43,8 @@ type orgNetworkDataSource struct {
 	vapp vapp.VAPP
 }
 
-type orgNetworkDataSourceModel struct {
-	ID                 types.String `tfsdk:"id"`
-	VAppName           types.String `tfsdk:"vapp_name"`
-	VAppID             types.String `tfsdk:"vapp_id"`
-	VDC                types.String `tfsdk:"vdc"`
-	NetworkName        types.String `tfsdk:"network_name"`
-	IsFenced           types.Bool   `tfsdk:"is_fenced"`
-	RetainIPMacEnabled types.Bool   `tfsdk:"retain_ip_mac_enabled"`
-}
-
 // Init Initializes the data source.
-func (d *orgNetworkDataSource) Init(ctx context.Context, dm *orgNetworkDataSourceModel) (diags diag.Diagnostics) {
-
+func (d *orgNetworkDataSource) Init(ctx context.Context, dm *orgNetworkModel) (diags diag.Diagnostics) {
 	// Uncomment the following lines if you need to access to the Org
 	d.org, diags = org.Init(d.client)
 	if diags.HasError() {
@@ -59,6 +57,8 @@ func (d *orgNetworkDataSource) Init(ctx context.Context, dm *orgNetworkDataSourc
 		return
 	}
 
+	// Init Network
+
 	// Uncomment the following lines if you need to access to the VAPP
 	d.vapp, diags = vapp.Init(d.client, d.vdc, dm.VAppID, dm.VAppName)
 
@@ -66,19 +66,11 @@ func (d *orgNetworkDataSource) Init(ctx context.Context, dm *orgNetworkDataSourc
 }
 
 func (d *orgNetworkDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_org_network"
 }
 
 func (d *orgNetworkDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "The  datasource allows you to read a ...",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-		},
-	}
+	resp.Schema = network.GetSchema(network.SetRoutedVapp()).GetDataSource(ctx)
 }
 
 func (d *orgNetworkDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -102,24 +94,57 @@ func (d *orgNetworkDataSource) Configure(ctx context.Context, req datasource.Con
 }
 
 func (d *orgNetworkDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	config := &orgNetworkDataSourceModel{}
+	var data *orgNetworkModel
 
 	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(d.Init(ctx, config)...)
+	// Init resource
+	resp.Diagnostics.Append(d.Init(ctx, data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	/*
-		Implement the data source read logic here.
-	*/
+	// Get vApp network config
+	vAppNetworkConfig, err := d.vapp.GetNetworkConfig()
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving vApp network config", err.Error())
+		return
+	}
+
+	tflog.Info(ctx, pp.Sprint(vAppNetworkConfig))
+
+	// Find network
+	vAppNetwork, networkID, errFindNetwork := data.findOrgNetwork(vAppNetworkConfig)
+	resp.Diagnostics.Append(errFindNetwork...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	tflog.Info(ctx, "After findOrgNetwork ************")
+
+	// Remove resource from state if not found
+	if vAppNetwork == (&govcdtypes.VAppNetworkConfiguration{}) {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	// Set Attributes
+	id := common.NormalizeID("urn:vcloud:network:", *networkID)
+
+	// Set data
+	plan := &orgNetworkModel{
+		ID:                 types.StringValue(id),
+		VAppName:           utils.StringValueOrNull(d.vapp.GetName()),
+		VAppID:             utils.StringValueOrNull(d.vapp.GetID()),
+		VDC:                types.StringValue(d.vdc.GetName()),
+		NetworkName:        data.NetworkName,
+		IsFenced:           types.BoolValue(false),
+		RetainIPMacEnabled: types.BoolValue(*vAppNetwork.Configuration.RetainNetInfoAcrossDeployments),
+	}
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 )
 
-func (s *orgNetworkResourceModel) findOrgNetwork(vAppNetworkConfig *govcdtypes.NetworkConfigSection) (*govcdtypes.VAppNetworkConfiguration, *string, diag.Diagnostics) {
+func (s *orgNetworkModel) findOrgNetwork(vAppNetworkConfig *govcdtypes.NetworkConfigSection) (*govcdtypes.VAppNetworkConfiguration, *string, diag.Diagnostics) {
 	var (
 		vAppNetwork govcdtypes.VAppNetworkConfiguration
 		networkID   string
@@ -24,11 +24,14 @@ func (s *orgNetworkResourceModel) findOrgNetwork(vAppNetworkConfig *govcdtypes.N
 				return nil, nil, diags
 			}
 			// name check needed for datasource to find network as don't have ID
-			if common.ExtractUUID(s.ID.ValueString()) == common.ExtractUUID(id) || networkConfig.NetworkName == s.NetworkName.ValueString() {
+			if common.ExtractUUID(s.ID.ValueString()) == common.ExtractUUID(id) || (networkConfig.NetworkName == s.NetworkName.ValueString() && !s.NetworkName.IsNull()) {
 				networkID = id
 				vAppNetwork = networkConfig
 				break
 			}
+		} else {
+			diags.AddError("Unable to get network ID from HREF", "networkConfig.Link is nil")
+			return nil, nil, diags
 		}
 	}
 	return &vAppNetwork, &networkID, nil

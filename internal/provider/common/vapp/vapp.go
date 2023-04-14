@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -98,6 +99,9 @@ func SuperSchema() map[string]superschema.Attribute {
 					stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
 				},
 			},
+			DataSource: &schemaD.StringAttribute{
+				Computed: true,
+			},
 		},
 		"vapp_name": superschema.StringAttribute{
 			Common: &schemaR.StringAttribute{
@@ -111,6 +115,9 @@ func SuperSchema() map[string]superschema.Attribute {
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_id"), path.MatchRoot("vapp_name")),
 				},
+			},
+			DataSource: &schemaD.StringAttribute{
+				Required: true,
 			},
 		},
 	}

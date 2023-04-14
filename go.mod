@@ -15,6 +15,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.15.0
 	github.com/hashicorp/terraform-plugin-log v0.8.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.26.1
+	github.com/k0kubun/pp/v3 v3.2.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.1.1
 	github.com/vmware/go-vcloud-director/v2 v2.19.0
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29

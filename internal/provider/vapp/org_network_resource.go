@@ -13,13 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	fboolplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/boolplanmodifier"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
@@ -47,15 +42,15 @@ type orgNetworkResource struct {
 	vapp   vapp.VAPP
 }
 
-type orgNetworkResourceModel struct {
-	ID                 types.String `tfsdk:"id"`
-	VAppName           types.String `tfsdk:"vapp_name"`
-	VAppID             types.String `tfsdk:"vapp_id"`
-	VDC                types.String `tfsdk:"vdc"`
-	NetworkName        types.String `tfsdk:"network_name"`
-	IsFenced           types.Bool   `tfsdk:"is_fenced"`
-	RetainIPMacEnabled types.Bool   `tfsdk:"retain_ip_mac_enabled"`
-}
+// type orgNetworkModel struct {
+// 	ID                 types.String `tfsdk:"id"`
+// 	VAppName           types.String `tfsdk:"vapp_name"`
+// 	VAppID             types.String `tfsdk:"vapp_id"`
+// 	VDC                types.String `tfsdk:"vdc"`
+// 	NetworkName        types.String `tfsdk:"network_name"`
+// 	IsFenced           types.Bool   `tfsdk:"is_fenced"`
+// 	RetainIPMacEnabled types.Bool   `tfsdk:"retain_ip_mac_enabled"`
+// }
 
 // Metadata returns the resource type name.
 func (r *orgNetworkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -64,38 +59,38 @@ func (r *orgNetworkResource) Metadata(_ context.Context, req resource.MetadataRe
 
 // Schema defines the schema for the resource.
 func (r *orgNetworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	commonSchema := network.GetSchema(network.SetRoutedVapp()).GetResource(ctx)
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a Cloud Avenue isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network.",
-		Attributes: map[string]schema.Attribute{
-			"vdc":       vdc.Schema(),
-			"vapp_id":   vapp.Schema()["vapp_id"],
-			"vapp_name": vapp.Schema()["vapp_name"],
-			"is_fenced": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				PlanModifiers: []planmodifier.Bool{
-					fboolplanmodifier.SetDefault(false),
-				},
-				MarkdownDescription: "Fencing allows identical virtual machines in different vApp networks connect to organization VDC networks that are accessed in this vApp. Default is `false`.",
-			},
-			"retain_ip_mac_enabled": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				PlanModifiers: []planmodifier.Bool{
-					fboolplanmodifier.SetDefault(false),
-				},
-				MarkdownDescription: "Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Default is `false`.",
-			},
-		},
-	}
-	// Add common attributes network
-	for k, v := range commonSchema.Attributes {
-		resp.Schema.Attributes[k] = v
-	}
+	resp.Schema = network.GetSchema(network.SetRoutedVapp()).GetResource(ctx)
+	// resp.Schema = schema.Schema{
+	// 	//MarkdownDescription: "Provides a Cloud Avenue isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network.",
+	// 	Attributes: map[string]schema.Attribute{
+	// 		"vdc":       vdc.Schema(),
+	// 		"vapp_id":   vapp.Schema()["vapp_id"],
+	// 		"vapp_name": vapp.Schema()["vapp_name"],
+	// 		"is_fenced": schema.BoolAttribute{
+	// 			Optional: true,
+	// 			Computed: true,
+	// 			PlanModifiers: []planmodifier.Bool{
+	// 				fboolplanmodifier.SetDefault(false),
+	// 			},
+	// 			MarkdownDescription: "Fencing allows identical virtual machines in different vApp networks connect to organization VDC networks that are accessed in this vApp. Default is `false`.",
+	// 		},
+	// 		"retain_ip_mac_enabled": schema.BoolAttribute{
+	// 			Optional: true,
+	// 			Computed: true,
+	// 			PlanModifiers: []planmodifier.Bool{
+	// 				fboolplanmodifier.SetDefault(false),
+	// 			},
+	// 			MarkdownDescription: "Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Default is `false`.",
+	// 		},
+	// 	},
+	// }
+	// // Add common attributes network
+	// for k, v := range commonSchema.Attributes {
+	// 	resp.Schema.Attributes[k] = v
+	// }
 }
 
-func (r *orgNetworkResource) Init(ctx context.Context, rm *orgNetworkResourceModel) (diags diag.Diagnostics) {
+func (r *orgNetworkResource) Init(ctx context.Context, rm *orgNetworkModel) (diags diag.Diagnostics) {
 	r.vdc, diags = vdc.Init(r.client, rm.VDC)
 	if diags.HasError() {
 		return
@@ -130,7 +125,7 @@ func (r *orgNetworkResource) Configure(ctx context.Context, req resource.Configu
 func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var (
-		plan *orgNetworkResourceModel
+		plan *orgNetworkModel
 	)
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -189,7 +184,7 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 
 	id := common.NormalizeID("urn:vcloud:network:", networkID)
 
-	plan = &orgNetworkResourceModel{
+	plan = &orgNetworkModel{
 		ID:                 types.StringValue(id),
 		VAppName:           plan.VAppName,
 		VDC:                types.StringValue(r.vdc.GetName()),
@@ -207,7 +202,7 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 
 // Read refreshes the Terraform state with the latest data.
 func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state *orgNetworkResourceModel
+	var state *orgNetworkModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -241,7 +236,7 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 	id := common.NormalizeID("urn:vcloud:network:", *networkID)
 	isFenced := vAppNetwork.Configuration.FenceMode == govcdtypes.FenceModeNAT
 
-	plan := &orgNetworkResourceModel{
+	plan := &orgNetworkModel{
 		ID:                 types.StringValue(id),
 		VAppName:           state.VAppName,
 		VAppID:             state.VAppID,
@@ -260,7 +255,7 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *orgNetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state *orgNetworkResourceModel
+	var plan, state *orgNetworkModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -315,7 +310,7 @@ func (r *orgNetworkResource) Update(ctx context.Context, req resource.UpdateRequ
 		}
 	}
 
-	plan = &orgNetworkResourceModel{
+	plan = &orgNetworkModel{
 		ID:                 state.ID,
 		VAppName:           state.VAppName,
 		VAppID:             state.VAppID,
@@ -334,7 +329,7 @@ func (r *orgNetworkResource) Update(ctx context.Context, req resource.UpdateRequ
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state *orgNetworkResourceModel
+	var state *orgNetworkModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -363,7 +358,7 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 }
 
 func (r *orgNetworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	var state *orgNetworkResourceModel
+	var state *orgNetworkModel
 	resourceURI := strings.Split(req.ID, ".")
 
 	if len(resourceURI) != 3 && len(resourceURI) != 2 {
@@ -371,13 +366,13 @@ func (r *orgNetworkResource) ImportState(ctx context.Context, req resource.Impor
 		return
 	}
 
-	state = &orgNetworkResourceModel{
+	state = &orgNetworkModel{
 		VAppName:    types.StringValue(resourceURI[0]),
 		NetworkName: types.StringValue(resourceURI[1]),
 	}
 
 	if len(resourceURI) == 3 {
-		state = &orgNetworkResourceModel{
+		state = &orgNetworkModel{
 			VDC:         types.StringValue(resourceURI[0]),
 			VAppName:    types.StringValue(resourceURI[1]),
 			NetworkName: types.StringValue(resourceURI[2]),
