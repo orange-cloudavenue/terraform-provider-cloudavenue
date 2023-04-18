@@ -5,16 +5,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/k0kubun/pp/v3"
-
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
@@ -37,7 +33,6 @@ func NewOrgNetworkDataSource() datasource.DataSource {
 type orgNetworkDataSource struct {
 	client *client.CloudAvenue
 
-	// Uncomment the following lines if you need to access the resource's.
 	org  org.Org
 	vdc  vdc.VDC
 	vapp vapp.VAPP
@@ -45,21 +40,16 @@ type orgNetworkDataSource struct {
 
 // Init Initializes the data source.
 func (d *orgNetworkDataSource) Init(ctx context.Context, dm *orgNetworkModel) (diags diag.Diagnostics) {
-	// Uncomment the following lines if you need to access to the Org
 	d.org, diags = org.Init(d.client)
 	if diags.HasError() {
 		return
 	}
 
-	// Uncomment the following lines if you need to access to the VDC
 	d.vdc, diags = vdc.Init(d.client, dm.VDC)
 	if diags.HasError() {
 		return
 	}
 
-	// Init Network
-
-	// Uncomment the following lines if you need to access to the VAPP
 	d.vapp, diags = vapp.Init(d.client, d.vdc, dm.VAppID, dm.VAppName)
 
 	return
@@ -108,22 +98,19 @@ func (d *orgNetworkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	// Get vApp network config
+	// Get vApp Network information
 	vAppNetworkConfig, err := d.vapp.GetNetworkConfig()
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving vApp network config", err.Error())
 		return
 	}
 
-	tflog.Info(ctx, pp.Sprint(vAppNetworkConfig))
-
-	// Find network
+	// Get Network Config
 	vAppNetwork, networkID, errFindNetwork := data.findOrgNetwork(vAppNetworkConfig)
 	resp.Diagnostics.Append(errFindNetwork...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	tflog.Info(ctx, "After findOrgNetwork ************")
 
 	// Remove resource from state if not found
 	if vAppNetwork == (&govcdtypes.VAppNetworkConfiguration{}) {
@@ -133,7 +120,14 @@ func (d *orgNetworkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 	// Set Attributes
 	id := common.NormalizeID("urn:vcloud:network:", *networkID)
-
+	var isFenced, retainIPMacEnabled bool
+	if vAppNetwork.Configuration == nil {
+		// Set default value if configuration return is nil
+		vAppNetwork.Configuration = &govcdtypes.NetworkConfiguration{}
+	} else {
+		isFenced = vAppNetwork.Configuration.FenceMode == govcdtypes.FenceModeNAT
+		retainIPMacEnabled = *vAppNetwork.Configuration.RetainNetInfoAcrossDeployments
+	}
 	// Set data
 	plan := &orgNetworkModel{
 		ID:                 types.StringValue(id),
@@ -141,8 +135,8 @@ func (d *orgNetworkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		VAppID:             utils.StringValueOrNull(d.vapp.GetID()),
 		VDC:                types.StringValue(d.vdc.GetName()),
 		NetworkName:        data.NetworkName,
-		IsFenced:           types.BoolValue(false),
-		RetainIPMacEnabled: types.BoolValue(*vAppNetwork.Configuration.RetainNetInfoAcrossDeployments),
+		IsFenced:           types.BoolValue(isFenced),
+		RetainIPMacEnabled: types.BoolValue(retainIPMacEnabled),
 	}
 
 	// Save data into Terraform state

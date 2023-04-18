@@ -8,7 +8,6 @@ resource "cloudavenue_edgegateway" "example" {
 
 resource "cloudavenue_network_routed" "example" {
   name        = "MyOrgNet"
-
   description = "This is an example Net"
 
   edge_gateway_id = cloudavenue_edgegateway.example.id
@@ -42,7 +41,7 @@ resource "cloudavenue_vapp_org_network" "example" {
 }
 
 data "cloudavenue_vapp_org_network" "example" {
-   vapp_name    = cloudavenue_vapp.example.name
-   network_name = cloudavenue_network_routed.example.name
-   vdc          = cloudavenue_vapp.example.vdc
+  vapp_name    = cloudavenue_vapp.example.name
+  network_name = cloudavenue_network_routed.example.name
+  vdc          = cloudavenue_vapp.example.vdc
 }

@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vapp_org_network Resource - cloudavenue"
 subcategory: "vApp (Virtual Appliance)"
 description: |-
-  Provides a Cloud Avenue isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network.
+  Provides a Cloud Avenue routed vAPP Org Network resource. This can be used to create, modify, and delete isolated vAPP Network.
 ---
 
 # cloudavenue_vapp_org_network (Resource)
 
-Provides a Cloud Avenue isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network.
+Provides a Cloud Avenue routed vAPP Org Network resource. This can be used to create, modify, and delete isolated vAPP Network.
 
 ## Example Usage
 
@@ -62,10 +62,10 @@ resource "cloudavenue_vapp_org_network" "example" {
 
 ### Optional
 
-- `is_fenced` (Boolean) Fencing allows identical virtual machines in different vApp networks connect to organization VDC networks that are accessed in this vApp. Default is `false`.
-- `retain_ip_mac_enabled` (Boolean) Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Default is `false`.
-- `vapp_id` (String) (ForceNew) ID of the vApp. Required if `vapp_name` is not set.
-- `vapp_name` (String) (ForceNew) Name of the vApp. Required if `vapp_id` is not set.
+- `is_fenced` (Boolean) Defines if the network is fenced. Fencing allows identical virtual machines in different vApp networks connect to organization VDC networks that are accessed in this vApp. Value defaults to `false`.
+- `retain_ip_mac_enabled` (Boolean) Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Value defaults to `false`.
+- `vapp_id` (String) (ForceNew) ID of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
+- `vapp_name` (String) (ForceNew) Name of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_id`, `vapp_name`.
 - `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only

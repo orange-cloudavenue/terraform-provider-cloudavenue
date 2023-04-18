@@ -336,40 +336,26 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			// DataSource: &schemaD.StringAttribute{
-			// 	Required: true,
-			// },
 		}
 		_schema.Attributes["is_fenced"] = superschema.BoolAttribute{
 			Common: &schemaR.BoolAttribute{
-				MarkdownDescription: "Defines if the network is fenced. Fencing allows identical virtual machines in different vApp networks connect to organization VDC networks that are accessed in this vApp. Default is `false`.",
+				MarkdownDescription: "Defines if the network is fenced. Fencing allows identical virtual machines in different vApp networks connect to organization VDC networks that are accessed in this vApp.",
 				Computed:            true,
 			},
 			Resource: &schemaR.BoolAttribute{
 				Optional: true,
 				Default:  booldefault.StaticBool(false),
-				// PlanModifiers: []planmodifier.Bool{
-				// 	fboolplanmodifier.SetDefault(false),
-				// },
 			},
-			// DataSource: &schemaD.BoolAttribute{
-			// 	Computed: true,
-			// },
 		}
 		_schema.Attributes["retain_ip_mac_enabled"] = superschema.BoolAttribute{
 			Common: &schemaR.BoolAttribute{
-				MarkdownDescription: "Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Default is `false`.",
+				MarkdownDescription: "Specifies whether the network resources such as IP/MAC of router will be retained across deployments.",
 				Computed:            true,
 			},
 			Resource: &schemaR.BoolAttribute{
 				Optional: true,
 				Default:  booldefault.StaticBool(false),
-				// PlanModifiers: []planmodifier.Bool{
-				// 	fboolplanmodifier.SetDefault(false),
-				// },
 			},
-			// DataSource: &schemaD.BoolAttribute{
-			// },
 		}
 	}
 	return _schema
