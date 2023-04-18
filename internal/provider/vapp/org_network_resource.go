@@ -42,16 +42,6 @@ type orgNetworkResource struct {
 	vapp   vapp.VAPP
 }
 
-// type orgNetworkModel struct {
-// 	ID                 types.String `tfsdk:"id"`
-// 	VAppName           types.String `tfsdk:"vapp_name"`
-// 	VAppID             types.String `tfsdk:"vapp_id"`
-// 	VDC                types.String `tfsdk:"vdc"`
-// 	NetworkName        types.String `tfsdk:"network_name"`
-// 	IsFenced           types.Bool   `tfsdk:"is_fenced"`
-// 	RetainIPMacEnabled types.Bool   `tfsdk:"retain_ip_mac_enabled"`
-// }
-
 // Metadata returns the resource type name.
 func (r *orgNetworkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_org_network"
@@ -60,34 +50,6 @@ func (r *orgNetworkResource) Metadata(_ context.Context, req resource.MetadataRe
 // Schema defines the schema for the resource.
 func (r *orgNetworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = network.GetSchema(network.SetRoutedVapp()).GetResource(ctx)
-	// resp.Schema = schema.Schema{
-	// 	//MarkdownDescription: "Provides a Cloud Avenue isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network.",
-	// 	Attributes: map[string]schema.Attribute{
-	// 		"vdc":       vdc.Schema(),
-	// 		"vapp_id":   vapp.Schema()["vapp_id"],
-	// 		"vapp_name": vapp.Schema()["vapp_name"],
-	// 		"is_fenced": schema.BoolAttribute{
-	// 			Optional: true,
-	// 			Computed: true,
-	// 			PlanModifiers: []planmodifier.Bool{
-	// 				fboolplanmodifier.SetDefault(false),
-	// 			},
-	// 			MarkdownDescription: "Fencing allows identical virtual machines in different vApp networks connect to organization VDC networks that are accessed in this vApp. Default is `false`.",
-	// 		},
-	// 		"retain_ip_mac_enabled": schema.BoolAttribute{
-	// 			Optional: true,
-	// 			Computed: true,
-	// 			PlanModifiers: []planmodifier.Bool{
-	// 				fboolplanmodifier.SetDefault(false),
-	// 			},
-	// 			MarkdownDescription: "Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Default is `false`.",
-	// 		},
-	// 	},
-	// }
-	// // Add common attributes network
-	// for k, v := range commonSchema.Attributes {
-	// 	resp.Schema.Attributes[k] = v
-	// }
 }
 
 func (r *orgNetworkResource) Init(ctx context.Context, rm *orgNetworkModel) (diags diag.Diagnostics) {

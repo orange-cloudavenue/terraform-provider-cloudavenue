@@ -17,19 +17,24 @@ func (s *orgNetworkModel) findOrgNetwork(vAppNetworkConfig *govcdtypes.NetworkCo
 	)
 
 	for _, networkConfig := range vAppNetworkConfig.NetworkConfig {
+		// If Link is not nill then we can get the ID from the HREF
 		if networkConfig.Link != nil {
+			// Get the network id from the HREF
 			id, err := govcd.GetUuidFromHref(networkConfig.Link.HREF, false)
 			if err != nil {
 				diags.AddError("Unable to get network ID from HREF", err.Error())
 				return nil, nil, diags
 			}
+			networkID = id
 			// name check needed for datasource to find network as don't have ID
-			if common.ExtractUUID(s.ID.ValueString()) == common.ExtractUUID(id) || (networkConfig.NetworkName == s.NetworkName.ValueString() && !s.NetworkName.IsNull()) {
-				networkID = id
+			if (common.ExtractUUID(s.ID.ValueString()) == common.ExtractUUID(id) && !s.ID.IsNull()) || (networkConfig.NetworkName == s.NetworkName.ValueString() && !s.NetworkName.IsNull()) {
 				vAppNetwork = networkConfig
 				break
+			} else { // return error when networkConfig.NetworkName or networkConfig.NetworkID is unknow
+				diags.AddError("Unable to find network ID or Name", "networkConfig.NetworkName or networkConfig.NetworkID is unknow")
+				return nil, nil, diags
 			}
-		} else {
+		} else { // return error when networkConfig.Link is nil
 			diags.AddError("Unable to get network ID from HREF", "networkConfig.Link is nil")
 			return nil, nil, diags
 		}
