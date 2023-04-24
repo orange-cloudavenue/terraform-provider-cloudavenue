@@ -3,6 +3,10 @@
 FEATURES:
 * **New Data Source:** cloudavenue_network_routed ([GH-249](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/249))
 
+DEPENDENCIES:
+
+* deps: bumps dependabot/fetch-metadata from 1.3.6 to 1.4.0 ([GH-289](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/289))
+
 ## 0.2.0 (April 7, 2023)
 
 FEATURES:
