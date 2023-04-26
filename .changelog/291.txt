@@ -1,0 +1,3 @@
+```release-note:new-data-source
+cloudavenue_vapp_isolated_network
+```

@@ -296,18 +296,37 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 	case ISOLATEDVAPP:
 		// Add isolated vApp network specific attributes to the schema
 		delete(_schema.Attributes, "prefix_length")
+		_schema.Resource.MarkdownDescription = "Provides a Cloud Avenue isolated vAPP Network resource. This can be used to create, modify, and delete isolated vAPP Network."
+		_schema.DataSource.MarkdownDescription = "Provides a Cloud Avenue isolated vAPP Network data source to read data or reference existing network."
 		_schema.Attributes["netmask"] = superschema.StringAttribute{
-			Resource: &schemaR.StringAttribute{
-				MarkdownDescription: "The netmask for the network.",
-				Optional:            true,
+			Common: &schemaR.StringAttribute{
+				MarkdownDescription: "The netmask of the network.",
 				Computed:            true,
-				Default:             stringdefault.StaticString("255.255.255.0"),
+			},
+			Resource: &schemaR.StringAttribute{
+				Optional: true,
+				Default:  stringdefault.StaticString("255.255.255.0"),
 				Validators: []validator.String{
 					fstringvalidator.IsNetmask(),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+			},
+		}
+		_schema.Attributes["vdc"] = vdc.SuperSchema()
+		_schema.Attributes["vapp_id"] = vapp.SuperSchema()["vapp_id"]
+		_schema.Attributes["vapp_name"] = vapp.SuperSchema()["vapp_name"]
+		_schema.Attributes["guest_vlan_allowed"] = superschema.BoolAttribute{
+			DataSource: &schemaD.BoolAttribute{
+				MarkdownDescription: "Return True if Network allows guest VLAN.",
+				Computed:            true,
+			},
+		}
+		_schema.Attributes["retain_ip_mac_enabled"] = superschema.BoolAttribute{
+			DataSource: &schemaD.BoolAttribute{
+				MarkdownDescription: "Return network resources such as IP/MAC of router will be retained across deployments.",
+				Computed:            true,
 			},
 		}
 
@@ -321,7 +340,7 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 		delete(_schema.Attributes, "dns_suffix")
 		delete(_schema.Attributes, "static_ip_pool")
 		delete(_schema.Attributes, "name")
-		_schema.Resource.MarkdownDescription = "Provides a Cloud Avenue routed vAPP Org Network resource. This can be used to create, modify, and delete isolated vAPP Network."
+		_schema.Resource.MarkdownDescription = "Provides a Cloud Avenue routed vAPP Org Network resource. This can be used to create, modify, and delete routed vAPP Network."
 		_schema.DataSource.MarkdownDescription = "Provides a Cloud Avenue routed vAPP Org Network data source to read data or reference existing network."
 		_schema.Attributes["vdc"] = vdc.SuperSchema()
 		_schema.Attributes["vapp_id"] = vapp.SuperSchema()["vapp_id"]
