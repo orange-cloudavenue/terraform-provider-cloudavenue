@@ -16,62 +16,62 @@ import (
 )
 
 var (
-	busTypeIDE  = busType{name: "ide", code: "5", subtype: "ide"}                      // Bus type IDE
-	busTypeSATA = busType{name: "sata", code: "20", subtype: "vmware.sata.ahci"}       // Bus type SATA
-	busTypeSCSI = busType{name: "scsi", code: "6", subtype: "lsilogicsas"}             // Bus type SCSI
-	busTypeNVME = busType{name: "nvme", code: "20", subtype: "vmware.nvme.controller"} // Bus type NVME
+	BusTypeIDE  = BusType{name: "ide", code: "5", subtype: "ide"}                      // Bus type IDE
+	BusTypeSATA = BusType{name: "sata", code: "20", subtype: "vmware.sata.ahci"}       // Bus type SATA
+	BusTypeSCSI = BusType{name: "scsi", code: "6", subtype: "lsilogicsas"}             // Bus type SCSI
+	BusTypeNVME = BusType{name: "nvme", code: "20", subtype: "vmware.nvme.controller"} // Bus type NVME
 )
 
-type busType struct {
+type BusType struct {
 	name    string
 	code    string
 	subtype string
 }
 
-func (b busType) Name() string {
+func (b BusType) Name() string {
 	return strings.ToUpper(b.name)
 }
 
-func (b busType) SubType() string {
+func (b BusType) SubType() string {
 	return b.subtype
 }
 
-func (b busType) Code() string {
+func (b BusType) Code() string {
 	return b.code
 }
 
-func GetBusTypeByCode(code, subtype string) busType {
+func GetBusTypeByCode(code, subtype string) BusType {
 	switch code {
-	case busTypeSATA.code:
+	case BusTypeSATA.code:
 		// SATA and NVME have the same code
 		// Using the subtype to differentiate them
 		switch subtype {
-		case busTypeNVME.subtype:
-			return busTypeNVME
+		case BusTypeNVME.subtype:
+			return BusTypeNVME
 		default:
-			return busTypeSATA
+			return BusTypeSATA
 		}
-	case busTypeSCSI.code:
-		return busTypeSCSI
+	case BusTypeSCSI.code:
+		return BusTypeSCSI
 	default:
-		return busTypeSATA
+		return BusTypeSATA
 	}
 }
 
-func GetBusTypeByName(name string) busType {
+func GetBusTypeByName(name string) BusType {
 	switch strings.ToLower(name) {
-	case busTypeSATA.name:
-		return busTypeSATA
-	case busTypeSCSI.name:
-		return busTypeSCSI
-	case busTypeNVME.name:
-		return busTypeNVME
+	case BusTypeSATA.name:
+		return BusTypeSATA
+	case BusTypeSCSI.name:
+		return BusTypeSCSI
+	case BusTypeNVME.name:
+		return BusTypeNVME
 	default:
-		return busTypeSATA
+		return BusTypeSATA
 	}
 }
 
-var listOfBusTypes = []string{busTypeIDE.Name(), busTypeSATA.Name(), busTypeSCSI.Name(), busTypeNVME.Name()}
+var ListOfBusTypes = []string{BusTypeIDE.Name(), BusTypeSATA.Name(), BusTypeSCSI.Name(), BusTypeNVME.Name()}
 
 const busTypeDescription = "The type of disk controller. Possible values: `scsi`, `sata` or `nvme`. Default value is `scsi`."
 
@@ -88,10 +88,10 @@ func BusTypeAttribute() schema.Attribute {
 		Computed:            true,
 		MarkdownDescription: busTypeDescription,
 		Validators: []validator.String{
-			stringvalidator.OneOf(listOfBusTypes...),
+			stringvalidator.OneOf(ListOfBusTypes...),
 		},
 		PlanModifiers: []planmodifier.String{
-			fstringplanmodifier.SetDefault(busTypeSCSI.Name()),
+			fstringplanmodifier.SetDefault(BusTypeSCSI.Name()),
 			stringplanmodifier.UseStateForUnknown(),
 		},
 	}
@@ -111,7 +111,7 @@ func BusTypeAttributeRequired() schema.Attribute {
 		Required:            true,
 		MarkdownDescription: busTypeDescription,
 		Validators: []validator.String{
-			stringvalidator.OneOf(listOfBusTypes...),
+			stringvalidator.OneOf(ListOfBusTypes...),
 		},
 	}
 }

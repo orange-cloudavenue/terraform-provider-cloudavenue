@@ -367,7 +367,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		var networkChanged bool
 
 		for i, network := range *networkPlan {
-			if *networkState == nil || len(*networkState) == 0 || (*networkState)[i] == (vm.VMResourceModelResourceNetwork{}) || !network.Equal((*networkState)[i]) {
+			if *networkState != nil || len(*networkState) == 0 || (*networkState)[i] == (vm.VMResourceModelResourceNetwork{}) || !network.Equal((*networkState)[i]) {
 				if network.IsPrimary.ValueBool() {
 					needColdChange.network = true
 					break
@@ -508,6 +508,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		if !allStructsPlan.Settings.OsType.Equal(allStructsState.Settings.OsType) {
 			vmSpecSectionUpdate = true
 			description = plan.Description.ValueString()
+			// TODO : Set osType
 		}
 
 		if !plan.Description.Equal(state.Description) {
@@ -625,7 +626,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 				return
 			}
 		}
-	} else if !allStructsPlan.Settings.Customization.Attributes()["force"].(types.Bool).ValueBool() && vmStatus != "POWERED_OFF" {
+	} else if !allStructsPlan.State.PowerON.ValueBool() && vmStatus != "POWERED_OFF" {
 		task, err := r.vm.Undeploy()
 		if err != nil {
 			resp.Diagnostics.AddError("Error undeploying VM", err.Error())
@@ -684,6 +685,7 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 		return
 	}
 
+	// TODO: Check Disk is detached and detachable
 	// Check if all disks are detached
 	for _, disk := range r.vm.GetDiskSettings() {
 		if disk.Disk != nil && disk.Disk.Name != "" {
@@ -730,7 +732,6 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 	}
 }
 
-//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -resource
 func (r *vmResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
@@ -922,9 +923,9 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 	}
 
 	// * VirtualCPU Type
-	virtualCPUType := "VM32"
-	if strings.Contains(settings.OsType.ValueString(), "64") {
-		virtualCPUType = "VM64"
+	virtualCPUType := "VM64"
+	if strings.Contains(settings.OsType.ValueString(), "32") {
+		virtualCPUType = "VM32"
 	}
 
 	bootImage, err := r.client.GetBootImage(deployOS.BootImageID.ValueString())
@@ -1152,8 +1153,7 @@ func (r *vmResource) vmPowerOn(ctx context.Context, rm vm.VMResourceModel) (diag
 
 // read is a common function for VM read. It is called in Update and Read.
 func (r *vmResource) read(ctx context.Context, rm *vm.VMResourceModel) (plan *vm.VMResourceModel, diags diag.Diagnostics) {
-	err := r.vm.Refresh()
-	if err != nil {
+	if err := r.vm.Refresh(); err != nil {
 		diags.AddError("Error refreshing VM", err.Error())
 		return
 	}

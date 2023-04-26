@@ -42,19 +42,19 @@ func (m removeStateIfConfigIsUnsetModifier) PlanModifyString(ctx context.Context
 		return
 	}
 
-	// Actual field is vm_name and vm_id is not empty
-	if req.Path.Equal(path.Root("vm_name")) && vmID.ValueString() != "" {
-		if req.StateValue.ValueString() == "" {
-			resp.PlanValue = types.StringUnknown()
-		}
-		return
-	}
+	// // Actual field is vm_name and vm_id is not empty
+	// if req.Path.Equal(path.Root("vm_name")) && vmID.ValueString() != "" {
+	// 	if req.StateValue.ValueString() == "" {
+	// 		resp.PlanValue = types.StringUnknown()
+	// 	}
+	// 	return
+	// }
 
-	// Actual field is vm_id and vm_name is not empty
-	if req.Path.Equal(path.Root("vm_id")) && vmName.ValueString() != "" {
-		if req.StateValue.ValueString() == "" {
-			resp.PlanValue = types.StringUnknown()
-		}
-		return
-	}
+	// // Actual field is vm_id and vm_name is not empty
+	// if req.Path.Equal(path.Root("vm_id")) && vmName.ValueString() != "" {
+	// 	if req.StateValue.ValueString() == "" {
+	// 		resp.PlanValue = types.StringUnknown()
+	// 	}
+	// 	return
+	// }
 }

@@ -36,7 +36,7 @@ const (
 	storageProfilePlatinum7HM storageProfile = "platinum7k_hm"
 )
 
-var storageProfileValues = []string{
+var StorageProfileValues = []string{
 	storageProfileSilver.String(),
 	storageProfileSilverR1.String(),
 	storageProfileSilverR2.String(),
@@ -56,8 +56,8 @@ var storageProfileValues = []string{
 
 var storageProfileValuesDescription = func() string {
 	var s string
-	countItems := len(storageProfileValues)
-	for i, v := range storageProfileValues {
+	countItems := len(StorageProfileValues)
+	for i, v := range StorageProfileValues {
 		if i == countItems-1 {
 			s += "`" + v + "`"
 		} else {
@@ -79,7 +79,7 @@ func StorageProfileAttribute() schema.Attribute {
 			stringplanmodifier.UseStateForUnknown(),
 		},
 		Validators: []validator.String{
-			stringvalidator.OneOf(storageProfileValues...),
+			stringvalidator.OneOf(StorageProfileValues...),
 		},
 	}
 }
@@ -98,7 +98,7 @@ func StorageProfileAttributeRequired() schema.Attribute {
 		MarkdownDescription: descriptionStorageProfile + " Allowed values are: " + storageProfileValuesDescription + ".",
 		Required:            true,
 		Validators: []validator.String{
-			stringvalidator.OneOf(storageProfileValues...),
+			stringvalidator.OneOf(StorageProfileValues...),
 		},
 	}
 }

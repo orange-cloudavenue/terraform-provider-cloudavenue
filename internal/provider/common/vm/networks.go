@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 type VMResourceModelResourceNetworks []VMResourceModelResourceNetwork //nolint:revive
@@ -134,7 +136,7 @@ func (v VM) NetworksRead() (*VMResourceModelResourceNetworks, error) {
 		for _, vmNet := range v.GetNetworkConnection() {
 			singleNIC := VMResourceModelResourceNetwork{
 				IPAllocationMode: types.StringValue(vmNet.IPAddressAllocationMode),
-				IP:               types.StringValue(vmNet.IPAddress),
+				IP:               utils.StringValueOrNull(vmNet.IPAddress),
 				Mac:              types.StringValue(vmNet.MACAddress),
 				AdapterType:      types.StringValue(vmNet.NetworkAdapterType),
 				Connected:        types.BoolValue(vmNet.IsConnected),

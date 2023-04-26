@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
@@ -52,10 +51,7 @@ func (r *diskResource) Metadata(_ context.Context, req resource.MetadataRequest,
 
 // Schema defines the schema for the resource.
 func (r *diskResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The disk resource allows you to manage a disk in the vDC.",
-		Attributes:          DiskSchema(),
-	}
+	resp.Schema = DiskSuperSchema().GetResource(ctx)
 }
 
 func (r *diskResource) Init(ctx context.Context, rm *vm.Disk) (diags diag.Diagnostics) {
@@ -70,6 +66,9 @@ func (r *diskResource) Init(ctx context.Context, rm *vm.Disk) (diags diag.Diagno
 	}
 
 	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
+	if diags.HasError() {
+		return
+	}
 
 	if rm.VMName.ValueString() != "" || rm.VMID.ValueString() != "" {
 		r.vm, diags = vm.Get(r.vapp, vm.GetVMOpts{
@@ -133,10 +132,6 @@ func (r *diskResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRe
 // Create creates the resource and sets the initial Terraform state.
 func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	plan := &vm.Disk{}
-	// Retrieve values from plan
-	var (
-		myVM *govcd.VM
-	)
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
@@ -168,7 +163,7 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 			resp.Diagnostics.AddError("Disk already exists", "Disk with name "+plan.Name.ValueString()+" already exists")
 			return
 		} else if err != nil {
-			resp.Diagnostics.AddError("Error checking disk", "Error checking if disk with name "+plan.Name.ValueString()+" already exists")
+			resp.Diagnostics.AddError("Error checking disk", "Error checking if disk with name "+plan.Name.ValueString()+" already exists. Error : "+err.Error())
 			return
 		}
 
@@ -237,11 +232,9 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 				return
 			}
 
-			newPlan.VMID = types.StringValue(r.vm.GetID())
-			newPlan.VMName = types.StringValue(r.vm.GetName())
 			newPlan.BusType = types.StringValue(vm.GetBusTypeByCode(disk.Disk.BusType).Name())
 		}
-	} else {
+	} else { // Disk not detachable it's an internal disk
 		// storage profile
 		var (
 			storageProfilePrt *govcdtypes.Reference
@@ -249,7 +242,7 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 		)
 
 		if plan.StorageProfile.IsNull() || plan.StorageProfile.IsUnknown() {
-			storageProfilePrt = myVM.VM.StorageProfile
+			storageProfilePrt = r.vm.VM.VM.VM.StorageProfile
 			overrideVMDefault = false
 		} else {
 			storageProfile, errFindStorage := r.vdc.FindStorageProfileReference(plan.StorageProfile.ValueString())
@@ -267,7 +260,7 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 		var busNumber, unitNumber types.Int64
 
 		if plan.BusNumber.IsNull() || plan.BusNumber.IsUnknown() {
-			b, u := diskparams.ComputeBusAndUnitNumber(myVM.VM.VmSpecSection.DiskSection.DiskSettings)
+			b, u := diskparams.ComputeBusAndUnitNumber(r.vm.GetDiskSettings())
 			busNumber = types.Int64Value(int64(b))
 			unitNumber = types.Int64Value(int64(u))
 		} else {
@@ -294,8 +287,6 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 		newPlan.ID = types.StringValue(diskID)
 		newPlan.BusType = types.StringValue(vm.GetBusTypeByCode(diskSetting.AdapterType).Name())
-		newPlan.BusNumber = busNumber
-		newPlan.UnitNumber = unitNumber
 		newPlan.SizeInMb = types.Int64Value(diskSetting.SizeMb)
 		newPlan.StorageProfile = types.StringValue(storageProfilePrt.Name)
 	}
@@ -350,13 +341,7 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 		// Normally a disk can be attached to only one VM
 		if len(attachedVmsHrefs) > 1 {
-			resp.Diagnostics.AddError("multiple VMs attached", fmt.Sprintf("multiple VMs attached to disk %s", state.Name.ValueString()))
-			return
-		}
-
-		ref, err := x.AttachedVM()
-		if err != nil {
-			resp.Diagnostics.AddError("unable to find attached VM", fmt.Sprintf("unable to find attached VM for disk %s: %v", state.Name.ValueString(), err))
+			resp.Diagnostics.AddError("multiple VMs attached", fmt.Sprintf("multiple VMs attached to disk %s.", state.Name.ValueString()))
 			return
 		}
 
@@ -365,10 +350,6 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		updatedState.SizeInMb = types.Int64Value(x.Disk.SizeMb)
 		updatedState.BusType = types.StringValue(diskparams.GetBusTypeByCode(x.Disk.BusType, x.Disk.BusSubType).Name())
 		updatedState.StorageProfile = types.StringValue(x.Disk.StorageProfile.Name)
-		if ref != nil {
-			updatedState.VMID = types.StringValue(ref.ID)
-			updatedState.VMName = types.StringValue(ref.Name)
-		}
 	} else {
 		// * Internal disk
 		internalDisk, err := r.vm.GetInternalDiskById(state.ID.ValueString(), true)
@@ -383,7 +364,7 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		}
 
 		updatedState.ID = types.StringValue(internalDisk.DiskId)
-		updatedState.Name = types.StringValue(internalDisk.Disk.Name)
+		updatedState.Name = types.StringNull()
 		updatedState.SizeInMb = types.Int64Value(internalDisk.SizeMb)
 		updatedState.StorageProfile = types.StringValue(internalDisk.StorageProfile.Name)
 		updatedState.BusType = types.StringValue(vm.GetBusTypeByCode(internalDisk.AdapterType).Name())
@@ -430,36 +411,47 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			return
 		}
 
+		var (
+			diskIsDetached bool
+			vmDiskDetached vm.VM
+		)
+
 		// Check if size or storage profile has changed
 		if !plan.SizeInMb.Equal(state.SizeInMb) ||
 			!plan.StorageProfile.Equal(state.StorageProfile) ||
 			!plan.VMID.Equal(state.VMID) ||
 			!plan.VMName.Equal(state.VMName) {
-			var (
-				vmOld          *govcd.VM
-				diskIsDetached bool
-				vmDiskDetached *govcd.VM
-			)
 
-			// Detach disk from VM
-			detachParams := &govcdtypes.DiskAttachOrDetachParams{
-				Disk: &govcdtypes.Reference{HREF: disk.Disk.HREF},
-			}
-			// TODO: VM is empty
-			// Detach disk
-			task, err := vmOld.DetachDisk(detachParams)
-			if err != nil {
-				resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %v", state.Name.ValueString(), err))
-				return
-			}
+			// Check if disk is attached to a VM
+			if !(state.VMID.IsNull() && state.VMName.IsNull()) {
+				// Detach disk from VM
+				detachParams := &govcdtypes.DiskAttachOrDetachParams{
+					Disk: &govcdtypes.Reference{HREF: disk.Disk.HREF},
+				}
 
-			if err = task.WaitTaskCompletion(); err != nil {
-				resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %v", state.Name.ValueString(), err))
-				return
-			}
+				vmOld, diag := vm.Get(r.vapp, vm.GetVMOpts{
+					ID:   state.VMID,
+					Name: state.VMName,
+				})
+				resp.Diagnostics.Append(diag...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
 
-			diskIsDetached = true
-			vmDiskDetached = vmOld
+				// Detach disk
+				task, err := vmOld.DetachDisk(detachParams)
+				if err != nil {
+					resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %v", state.Name.ValueString(), err))
+					return
+				}
+
+				if err = task.WaitTaskCompletion(); err != nil {
+					resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %v", state.Name.ValueString(), err))
+					return
+				}
+				vmDiskDetached = vmOld
+				diskIsDetached = true
+			}
 
 			err = disk.Refresh()
 			if err != nil {
@@ -508,7 +500,7 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 				var busNumber, unitNumber types.Int64
 
 				if diskIsDetached {
-					for _, x := range vmDiskDetached.VM.VmSpecSection.DiskSection.DiskSettings {
+					for _, x := range vmDiskDetached.VM.VM.VM.VmSpecSection.DiskSection.DiskSettings {
 						if x.DiskId == disk.Disk.Id {
 							busNumber = types.Int64Value(int64(x.BusNumber))
 							unitNumber = types.Int64Value(int64(x.UnitNumber))
@@ -540,7 +532,7 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 				}
 			}
 		}
-	}
+	} // TODO: else not detachable
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
@@ -623,6 +615,7 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	}
 }
 
+// TODO: ImportState not yet implemented
 // func (r *diskResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 // 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 

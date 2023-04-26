@@ -74,7 +74,6 @@ func (v VM) SettingsRead(ctx context.Context, stateCustomization attr.Value) (se
 		return nil, fmt.Errorf("unable to read guest properties: %w", err)
 	}
 
-	// customization := &VMResourceModelSettingsCustomization{}
 	affinityRuleID, err := v.GetAffinityRuleIDOrDefault()
 	if err != nil {
 		return nil, fmt.Errorf("unable to read affinity rule ID: %w", err)
@@ -86,6 +85,6 @@ func (v VM) SettingsRead(ctx context.Context, stateCustomization attr.Value) (se
 		StorageProfile:               utils.StringValueOrNull(v.GetStorageProfileName()),
 		GuestProperties:              guestProperties.ToPlan(ctx),
 		AffinityRuleID:               utils.StringValueOrNull(affinityRuleID),
-		Customization:                stateCustomization.(types.Object), // Always Use State for Unknown
+		Customization:                stateCustomization.(types.Object),
 	}, nil
 }

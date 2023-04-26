@@ -36,77 +36,32 @@ resource "cloudavenue_vm" "example" {
 
 ### Required
 
-- `name` (String) The name of the VM. Unique within the vApp.
-- `vapp_name` (String) The vApp this VM belongs to.
+- `name` (String) (ForceNew) The name of the VM. Unique within the vApp. Must be between 1 and 80 characters long and can contain only letters, numbers and hyphen. It must not contain only digits.
 
 ### Optional
 
-- `accept_all_eulas` (Boolean) Automatically accept EULA if OVA has it. Default is `false`.
-- `boot_image_id` (String) The ID of the boot image to use for this VM. Required if `vapp_template_id` is not set.
-- `computer_name` (String) Computer name to assign to this virtual machine. Default is `vm_name`.
-- `customization` (Attributes) Guest customization block. (see [below for nested schema](#nestedatt--customization))
-- `description` (String) Description of the VM.
-- `expose_hardware_virtualization` (Boolean) Expose hardware-assisted CPU virtualization to guest OS. Default is `false`.
-- `guest_properties` (Map of String) Key/Value settings for guest properties
-- `network_dhcp_wait_seconds` (Number) Optional number of seconds to try and wait for DHCP IP (valid for `network` block only)
-- `networks` (Attributes List) A block to define network interface. Multiple can be used. (see [below for nested schema](#nestedatt--networks))
-- `os_type` (String) Operating System type.
-- `placement_policy_id` (String) VM placement policy ID. Has to be assigned to Org VDC.
-- `power_on` (Boolean) A boolean value stating if this VM should be powered on. Default is `true`.
-- `prevent_update_power_off` (Boolean) `true` if the update of resource should fail when virtual machine power off needed. Default is `false`.
-- `resource` (Attributes) Resource configuration for the VM. (see [below for nested schema](#nestedatt--resource))
-- `sizing_policy_id` (String) VM placement policy ID. Has to be assigned to Org VDC.
-- `storage_profile` (String) Storage profile to override the default one.
-- `vapp_template_id` (String) The URN of the vApp template to use for this VM. Required if `boot_image_id` is not set.
-- `vdc` (String) The name of the VDC this VM belongs to. If not specified, VDC define in provider will be used.
-- `vm_name_in_template` (String) The name of the VM in vApp Template to use. In cases when vApp template has more than one VM.
+- `deploy_os` (Attributes) . (see [below for nested schema](#nestedatt--deploy_os))
+- `description` (String) The description of the VM.
+- `resource` (Attributes) The resource of the VM. (see [below for nested schema](#nestedatt--resource))
+- `settings` (Attributes) The settings for the VM. (see [below for nested schema](#nestedatt--settings))
+- `state` (Attributes) The state of the VM. (see [below for nested schema](#nestedatt--state))
+- `vapp_id` (String) (ForceNew) The vApp this VM belongs to. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
+- `vapp_name` (String) (ForceNew) The vApp this VM belongs to. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
+- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 
-- `disks` (Attributes Set) A list of disks attached to this VM. (see [below for nested schema](#nestedatt--disks))
-- `href` (String) VM Hyper Reference
 - `id` (String) The ID of the VM.
-- `status_code` (Number) Shows the status code of the VM
-- `status_text` (String) Shows the status text of the VM
 
-<a id="nestedatt--customization"></a>
-### Nested Schema for `customization`
+<a id="nestedatt--deploy_os"></a>
+### Nested Schema for `deploy_os`
 
 Optional:
 
-- `admin_password` (String, Sensitive) Manually specify admin password
-- `allow_local_admin_password` (Boolean) Allow local administrator password
-- `auto_generate_password` (Boolean) Auto generate password
-- `change_sid` (Boolean) `true` value will change the SID of the guest OS. Applicable only for Windows VMs.
-- `enabled` (Boolean) `true` value will enable guest customization. It may occur on first boot or when `force` is used
-- `force` (Boolean) `true` value will cause the VM to reboot on every `apply` operation
-- `init_script` (String) Script to run on initial boot or with `customization.force=true` set
-- `join_domain` (Boolean) Enable this VM to join a domain
-- `join_domain_account_ou` (String) Organizational Unit (OU) for custom domain name join
-- `join_domain_name` (String) Custom domain name for join
-- `join_domain_password` (String, Sensitive) Password for custom domain name join
-- `join_domain_user` (String) Username for custom domain name join
-- `join_org_domain` (Boolean) Use organization's domain for joining
-- `must_change_password_on_first_login` (Boolean) Require Administrator to change password on first login
-- `number_of_auto_logons` (Number) Number of times to log on automatically. `0` is disabled.
-
-
-<a id="nestedatt--networks"></a>
-### Nested Schema for `networks`
-
-Required:
-
-- `type` (String) Network type to use: `vapp`, `org` or `none`. Use `vapp` for vApp network, `org` to attach Org VDC network. `none` for empty NIC.
-
-Optional:
-
-- `adapter_type` (String) The type of vNic to create on this interface. One of: `VMXNET3`, `E1000`, `E1000E`, `PCNet32`, `SRIOVETHERNETCARD`.
-- `connected` (Boolean) Set to true if network should be connected or false otherwise. Default is `true`.
-- `ip` (String) IP of the VM. Settings depend on `ip_allocation_mode`. Omitted or empty for DHCP, POOL, NONE. Required for MANUAL
-- `ip_allocation_mode` (String) IP allocation mode: `DHCP`, `POOL`, `MANUAL` or `NONE`.
-- `is_primary` (Boolean) Set to true if network interface should be primary. First network card in the list will be primary by default
-- `mac` (String) MAC address of the VM. Optional and autogenerated by default.
-- `name` (String) Name of the network this VM should connect to. Always required except for `type` `NONE`.
+- `accept_all_eulas` (Boolean) Automatically accept EULA if OVA has it. Value defaults to `true`.
+- `boot_image_id` (String) (ForceNew) The ID of the boot image to use for the VM.
+- `vapp_template_id` (String) (ForceNew) The ID of the vApp template to use for the VM.
+- `vm_name_in_template` (String) (ForceNew) The name of the VM in the vApp template. Ensure that if an attribute is set, also these are set: "[vapp_template_id]".
 
 
 <a id="nestedatt--resource"></a>
@@ -114,23 +69,76 @@ Optional:
 
 Optional:
 
-- `cpu_cores` (Number) The number of cores per socket.
-- `cpu_hot_add_enabled` (Boolean) `true` if the virtual machine supports addition of virtual CPUs while powered on. Default is `false`.
-- `cpus` (Number) The number of virtual CPUs to allocate to the VM.
-- `memory` (Number) The amount of memory (in MB) to allocate to the VM.
-- `memory_hot_add_enabled` (Boolean) `true` if the virtual machine supports addition of memory resources while powered on. Default is `false`.
+- `cpu_hot_add_enabled` (Boolean) Whether CPU hot add is enabled or not. Value defaults to `true`.
+- `cpus` (Number) The number of virtual CPUs to allocate to the VM. Value must be at most 256. Value defaults to `1`.
+- `cpus_cores` (Number) The number of cores per virtual CPU to allocate to the VM. Value defaults to `1`.
+- `memory` (Number) The amount of memory to allocate to the VM, in MB. Value defaults to `1024`.
+- `memory_hot_add_enabled` (Boolean) Whether memory hot add is enabled or not. Value defaults to `true`.
+- `networks` (Attributes List) The networks to attach to the VM. (see [below for nested schema](#nestedatt--resource--networks))
 
+<a id="nestedatt--resource--networks"></a>
+### Nested Schema for `resource.networks`
 
-<a id="nestedatt--disks"></a>
-### Nested Schema for `disks`
+Required:
+
+- `type` (String) The type of network to attach to the VM. Value must be one of : `vapp`, `org`, `none`.
 
 Optional:
 
-- `bus_number` (Number) The number of the controller itself.
-- `bus_type` (String) The type of disk controller. Possible values: `scsi`, `sata` or `nvme`. Default value is `scsi`.
-- `id` (String) The ID of the disk.
-- `name` (String) The name of the disk.
-- `size_in_mb` (Number) The size of the disk in MB.
-- `storage_profile` (String) Storage profile to override the VM default one. Allowed values are: `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
-- `unit_number` (Number) The device number on the controller of the disk.
+- `adapter_type` (String) The type of vNic to create on this interface. Value must be one of : `VMXNET3`, `E1000E`, `VMXNET3VRDMA`, `SRIOVETHERNETCARD`. Value defaults to `VMXNET3`.
+- `connected` (Boolean) Whether the network interface is connected or not. Value defaults to `true`.
+- `ip` (String) The IP address to assign to this VM on this network.
+- `ip_allocation_mode` (String) The IP allocation mode for this network. Value must be one of : `DHCP`, `POOL`, `MANUAL`, `NONE`. Value defaults to `DHCP`.
+- `is_primary` (Boolean) Whether this network is the primary network for the VM. Value defaults to `false`.
+- `mac` (String) The MAC address to assign to this VM on this network. Autogenerated if not specified. Must be a valid mac address.
+- `name` (String) The name of the network to attach to the VM.
+
+
+
+<a id="nestedatt--settings"></a>
+### Nested Schema for `settings`
+
+Optional:
+
+- `affinity_rule_id` (String) The ID of the affinity rule to apply to this VM.
+- `customization` (Attributes) The customization settings for the VM. (see [below for nested schema](#nestedatt--settings--customization))
+- `expose_hardware_virtualization` (Boolean) Whether to expose hardware CPU virtualization to the guest OS. Value defaults to `false`.
+- `guest_properties` (Map of String) Key/Value settings for guest properties.
+- `os_type` (String) The type of OS installed on the VM. Value must be one of : `centos8_64Guest`, `asianux7_64Guest`, `otherLinuxGuest`, `asianux4_64Guest`, `oracleLinux64Guest`, `debian5_64Guest`, `sles64Guest`, `sles10_64Guest`, `other26xLinux64Guest`, `other24xLinuxGuest`, `oracleLinuxGuest`, `sles11_64Guest`, `ubuntu64Guest`, `rhel3_64Guest`, `oesGuest`, `oracleLinux8_64Guest`, `oracleLinux6_64Guest`, `asianux4Guest`, `ubuntuGuest`, `rhel6Guest`, `other24xLinux64Guest`, `asianux3Guest`, `sles10Guest`, `sles12_64Guest`, `vmwarePhoton64Guest`, `debian9_64Guest`, `centos6Guest`, `other3xLinux64Guest`, `centos64Guest`, `slesGuest`, `amazonlinux2_64Guest`, `oracleLinux6Guest`, `debian6_64Guest`, `debian4_64Guest`, `debian6Guest`, `sles11Guest`, `rhel4Guest`, `otherLinux64Guest`, `centos6_64Guest`, `coreos64Guest`, `debian7_64Guest`, `rhel6_64Guest`, `other4xLinux64Guest`, `asianux8_64Guest`, `rhel3Guest`, `rhel5Guest`, `debian10_64Guest`, `debian10Guest`, `debian8Guest`, `debian4Guest`, `debian9Guest`, `other3xLinuxGuest`, `centosGuest`, `rhel5_64Guest`, `debian5Guest`, `rhel4_64Guest`, `other4xLinuxGuest`, `oracleLinux7_64Guest`, `debian8_64Guest`, `debian7Guest`, `rhel8_64Guest`, `rhel7_64Guest`, `rhel2Guest`, `sles15_64Guest`, `centos7_64Guest`, `other26xLinuxGuest`, `asianux3_64Guest`, `win31Guest`, `winLonghornGuest`, `windows9Guest`, `winNetDatacenter64Guest`, `winNetDatacenterGuest`, `winNetEnterpriseGuest`, `winNTGuest`, `windows8Server64Guest`, `winXPPro64Guest`, `winNetStandard64Guest`, `winNetStandardGuest`, `windows8Guest`, `winVista64Guest`, `winLonghorn64Guest`, `winVistaGuest`, `win2000ProGuest`, `windows7Guest`, `win2000ServGuest`, `win2000AdvServGuest`, `win98Guest`, `win95Guest`, `dosGuest`, `winNetBusinessGuest`, `windows9_64Guest`, `windows7Server64Guest`, `winNetWebGuest`, `windows7_64Guest`, `windows8_64Guest`, `winXPProGuest`, `winNetEnterprise64Guest`, `darwin16_64Guest`, `darwin18_64Guest`, `eComStationGuest`, `otherGuest64`, `otherGuest`, `darwin17_64Guest`, `os2Guest`, `freebsd64Guest`, `freebsd11_64Guest`, `darwin12_64Guest`, `solaris10Guest`, `solaris11_64Guest`, `netware6Guest`, `netware5Guest`, `freebsd12_64Guest`, `freebsd12Guest`, `eComStation2Guest`, `freebsdGuest`, `darwin10_64Guest`, `solaris10_64Guest`, `darwin11_64Guest`, `unixWare7Guest`, `openServer5Guest`, `darwin13_64Guest`, `darwin11Guest`, `freebsd11Guest`, `darwin15_64Guest`, `darwin14_64Guest`, `openServer6Guest`, `darwin10Guest`.
+- `storage_profile` (String) The storage profile to use. Value must be one of : `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
+
+<a id="nestedatt--settings--customization"></a>
+### Nested Schema for `settings.customization`
+
+Optional:
+
+- `admin_password` (String, Sensitive) The admin password for the VM. Ensure that one and only one attribute from this collection is set : `admin_password`, `auto_generate_password`.
+- `allow_local_admin_password` (Boolean) Whether to allow the local admin password to be changed.
+- `auto_generate_password` (Boolean) Whether to auto-generate the password. Ensure that one and only one attribute from this collection is set : `admin_password`, `auto_generate_password`.
+- `change_sid` (Boolean) Whether to change the SID of the VM. Applicable only for Windows VMs.
+- `enabled` (Boolean) Whether guest customization is enabled or not. Value defaults to `false`.
+- `force` (Boolean) `true` value will cause the VM to reboot on every `apply` operation.
+- `hostname` (String) Computer name to assign to this virtual machine. Default is the value of attribute `name`. Must be between 1 and 80 characters long and can contain only letters, numbers and hyphen. It must not contain only digits.
+- `init_script` (String) The init script to run.
+- `join_domain` (Boolean) Enable this VM to join a domain.
+- `join_domain_account_ou` (String) The domain account OU to join.
+- `join_domain_name` (String) The domain name to join.
+- `join_domain_password` (String, Sensitive) The domain password to join.
+- `join_domain_user` (String) The domain user to join.
+- `join_org_domain` (Boolean) Use organization's domain for joining.
+- `must_change_password_on_first_login` (Boolean) .
+- `number_of_auto_logons` (Number) The number of times the VM should auto-login. Value must be at least 0.
+
+
+
+<a id="nestedatt--state"></a>
+### Nested Schema for `state`
+
+Optional:
+
+- `power_on` (Boolean) Whether the VM should be powered on or not. `true` means powered on, `false` means powered off. Value defaults to `true`.
+
+Read-Only:
+
+- `status` (String) The status of the VM.
 
