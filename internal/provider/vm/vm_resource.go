@@ -801,7 +801,7 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 	}
 
 	// * * Compute Policy
-	if !settings.AffinityRuleID.IsUnknown() {
+	if !settings.AffinityRuleID.IsUnknown() && !settings.AffinityRuleID.IsNull() {
 		affinityRule, err := r.client.GetAffinityRule(settings.AffinityRuleID.ValueString())
 		if err != nil {
 			diags.AddError("Error retrieving affinity rule", err.Error())
@@ -814,7 +814,7 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 	}
 
 	// * * Compute StorageProfile
-	if !settings.StorageProfile.IsUnknown() {
+	if !settings.StorageProfile.IsUnknown() && !settings.StorageProfile.IsNull() {
 		storageProfile, err = r.vdc.GetStorageProfileReference(settings.StorageProfile.ValueString(), false)
 		if err != nil {
 			diags.AddError("Error retrieving storage profile", err.Error())

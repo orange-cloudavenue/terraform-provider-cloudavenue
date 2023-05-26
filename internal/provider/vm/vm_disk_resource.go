@@ -421,7 +421,6 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			!plan.StorageProfile.Equal(state.StorageProfile) ||
 			!plan.VMID.Equal(state.VMID) ||
 			!plan.VMName.Equal(state.VMName) {
-
 			// Check if disk is attached to a VM
 			if !(state.VMID.IsNull() && state.VMName.IsNull()) {
 				// Detach disk from VM

@@ -181,11 +181,11 @@ func (rm *VMResourceModel) SettingsFromPlan(ctx context.Context) (settings *VMRe
 func (s *VMResourceModelSettings) CustomizationFromPlan(ctx context.Context) (customization *VMResourceModelSettingsCustomization, diags diag.Diagnostics) {
 	tflog.Info(ctx, "CustomizationFromPlan")
 
+	customization = &VMResourceModelSettingsCustomization{}
+
 	if s.Customization.IsNull() || s.Customization.IsUnknown() {
 		return customization, nil
 	}
-
-	customization = &VMResourceModelSettingsCustomization{}
 
 	diags.Append(s.Customization.As(ctx, customization, basetypes.ObjectAsOptions{
 		UnhandledNullAsEmpty:    false,
