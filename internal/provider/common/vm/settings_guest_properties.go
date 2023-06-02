@@ -11,6 +11,9 @@ import (
 
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
 
@@ -33,6 +36,9 @@ func GuestPropertiesSuperSchema() superschema.Attribute {
 		},
 		Resource: &schemaR.MapAttribute{
 			Optional: true,
+			PlanModifiers: []planmodifier.Map{
+				mapplanmodifier.UseStateForUnknown(),
+			},
 		},
 	}
 }
