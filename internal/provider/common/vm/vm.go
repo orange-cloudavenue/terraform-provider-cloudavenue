@@ -50,10 +50,10 @@ func Init(_ *client.CloudAvenue, vApp vapp.VAPP, vmInfo GetVMOpts) (vm VM, d dia
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			d.AddError("VM not found", err.Error())
-			return VM{}, nil
+			return VM{}, d
 		}
 		d.AddError("Error retrieving VM", err.Error())
-		return VM{}, nil
+		return VM{}, d
 	}
 	return VM{VM: &client.VM{VM: vmOut}, vApp: vApp}, nil
 }
