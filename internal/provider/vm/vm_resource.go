@@ -238,6 +238,7 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 		ID:   state.ID,
 		Name: types.StringNull(),
 	})
+
 	if d.HasError() {
 		if d.Contains(diag.NewErrorDiagnostic("VM not found", govcd.ErrorEntityNotFound.Error())) {
 			resp.State.RemoveResource(ctx)
@@ -1196,7 +1197,7 @@ func (r *vmResource) read(ctx context.Context, rm *vm.VMResourceModel) (plan *vm
 		Name:        types.StringValue(r.vm.GetName()),
 		VappID:      types.StringValue(r.vapp.GetID()),
 		VappName:    types.StringValue(r.vapp.GetName()),
-		Description: types.StringValue(r.vm.GetDescription()),
+		Description: rm.Description,
 		State:       stateStruct.ToPlan(ctx),
 		Resource:    r.vm.ResourceRead(ctx).ToPlan(ctx, networks),
 		Settings:    settings.ToPlan(ctx),
