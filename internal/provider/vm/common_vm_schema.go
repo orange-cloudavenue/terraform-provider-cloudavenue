@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
+	fint64validator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/int64validator"
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/storageprofile"
@@ -197,7 +198,8 @@ func vmSuperSchema() superschema.Schema {
 						Resource: &schemaR.BoolAttribute{
 							Optional: true,
 							Computed: true,
-							Default:  booldefault.StaticBool(true),
+							// TODO: BUG démarre pas la VM
+							Default: booldefault.StaticBool(true),
 							PlanModifiers: []planmodifier.Bool{
 								boolplanmodifier.UseStateForUnknown(),
 							},
@@ -249,7 +251,7 @@ func vmSuperSchema() superschema.Schema {
 								int64planmodifier.UseStateForUnknown(),
 							},
 							Validators: []validator.Int64{
-								// TODO: all the possibilities of dividing the cpus by an integer
+								fint64validator.AttributeIsDivisibleByAnInteger(path.MatchRoot("cpus")),
 							},
 						},
 					},
@@ -260,7 +262,8 @@ func vmSuperSchema() superschema.Schema {
 						},
 						Resource: &schemaR.BoolAttribute{
 							Optional: true,
-							Default:  booldefault.StaticBool(true),
+							// TODO: BUG ne fonctionne pas
+							Default: booldefault.StaticBool(true),
 							PlanModifiers: []planmodifier.Bool{
 								boolplanmodifier.UseStateForUnknown(),
 							},
@@ -277,6 +280,9 @@ func vmSuperSchema() superschema.Schema {
 							PlanModifiers: []planmodifier.Int64{
 								int64planmodifier.UseStateForUnknown(),
 							},
+							Validators: []validator.Int64{
+								fint64validator.ZeroRemainder(4),
+							},
 						},
 					},
 					"memory_hot_add_enabled": superschema.BoolAttribute{
@@ -286,12 +292,10 @@ func vmSuperSchema() superschema.Schema {
 						},
 						Resource: &schemaR.BoolAttribute{
 							Optional: true,
-							Default:  booldefault.StaticBool(true),
+							// TODO: BUG ne fonctionne pas
+							Default: booldefault.StaticBool(true),
 							PlanModifiers: []planmodifier.Bool{
 								boolplanmodifier.UseStateForUnknown(),
-							},
-							Validators: []validator.Bool{
-								// TODO: Validator is divisible by 4
 							},
 						},
 					},
