@@ -136,13 +136,13 @@ func (rm *VMResourceModel) ResourceFromPlan(ctx context.Context) (resource *VMRe
 func (r *VMResourceModelResource) NetworksFromPlan(ctx context.Context) (networks *VMResourceModelResourceNetworks, diags diag.Diagnostics) {
 	tflog.Info(ctx, "NetworksFromPlan")
 
-	netwoks := make(VMResourceModelResourceNetworks, 0)
+	networks = &VMResourceModelResourceNetworks{}
 
 	if r.Networks.IsNull() || r.Networks.IsUnknown() {
-		return &netwoks, nil
+		return networks, nil
 	}
 
-	diags.Append(r.Networks.ElementsAs(ctx, &networks, false)...)
+	diags.Append(r.Networks.ElementsAs(ctx, networks, false)...)
 
 	return
 }
