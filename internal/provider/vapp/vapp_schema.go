@@ -9,7 +9,6 @@ import (
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -105,16 +104,6 @@ func vappSchema() superschema.Schema {
 				},
 				DataSource: &schemaD.StringAttribute{
 					Computed: true,
-				},
-			},
-			"power_on": superschema.BoolAttribute{
-				Common: &schemaR.BoolAttribute{
-					MarkdownDescription: "A boolean value indicating whether this vApp is powered on or not.",
-					Computed:            true,
-				},
-				Resource: &schemaR.BoolAttribute{
-					Optional: true,
-					Default:  booldefault.StaticBool(false),
 				},
 			},
 			"guest_properties": superschema.MapAttribute{

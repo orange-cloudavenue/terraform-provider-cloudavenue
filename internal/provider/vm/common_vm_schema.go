@@ -261,11 +261,11 @@ func vmSuperSchema(ctx context.Context) superschema.Schema {
 							MarkdownDescription: "The status of the VM.",
 							Computed:            true,
 						},
-						Resource: &schemaR.StringAttribute{
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
-						},
+						// Resource: &schemaR.StringAttribute{
+						// 	PlanModifiers: []planmodifier.String{
+						// 		stringplanmodifier.UseStateForUnknown(),
+						// 	},
+						// },
 					},
 				},
 			},

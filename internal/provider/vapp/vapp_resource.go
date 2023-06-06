@@ -136,7 +136,6 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 	// Update vApp
 	state := &vappResourceModel{
 		Description: types.StringValue(r.vapp.GetDescription()),
-		PowerON:     types.BoolValue(false),
 	}
 	resp.Diagnostics.Append(r.updateVapp(ctx, plan, state)...)
 	if resp.Diagnostics.HasError() {
@@ -187,12 +186,6 @@ func (r *vappResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		Description:     utils.StringValueOrNull(r.vapp.GetDescription()),
 		Lease:           types.ObjectNull(vappLeaseAttrTypes),
 		GuestProperties: types.MapNull(types.StringType),
-	}
-
-	// Status Code 4 means the vApp is On
-	plan.PowerON = types.BoolValue(false)
-	if r.vapp.GetStatusCode() == 4 {
-		plan.PowerON = types.BoolValue(true)
 	}
 
 	// Get guest properties
@@ -424,31 +417,6 @@ func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResource
 		if _, err := r.vapp.SetProductSectionList(x); err != nil {
 			d.AddError("Error updating VApp guest properties", err.Error())
 			return
-		}
-	}
-
-	// Power on or off if needed
-	if !plan.PowerON.Equal(state.PowerON) {
-		if plan.PowerON.ValueBool() {
-			task, errPowerOn := r.vapp.PowerOn()
-			if errPowerOn != nil {
-				d.AddError("Error powering on VApp", errPowerOn.Error())
-				return
-			}
-			if err := task.WaitTaskCompletion(); err != nil {
-				d.AddError("Error powering on VApp", err.Error())
-				return
-			}
-		} else {
-			task, errUndeploy := r.vapp.Undeploy()
-			if errUndeploy != nil {
-				d.AddError("Error powering off VApp", errUndeploy.Error())
-				return
-			}
-			if err := task.WaitTaskCompletion(); err != nil {
-				d.AddError("Error powering off VApp", err.Error())
-				return
-			}
 		}
 	}
 
