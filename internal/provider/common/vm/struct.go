@@ -139,7 +139,7 @@ func (r *VMResourceModelResource) NetworksFromPlan(ctx context.Context) (network
 	networks = &VMResourceModelResourceNetworks{}
 
 	if r.Networks.IsNull() || r.Networks.IsUnknown() {
-		return networks, nil
+		return
 	}
 
 	diags.Append(r.Networks.ElementsAs(ctx, networks, false)...)
