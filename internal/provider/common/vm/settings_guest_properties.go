@@ -62,7 +62,7 @@ func (g *VMResourceModelSettingsGuestProperties) toAttrValues(_ context.Context)
 // ToPlan converts a GuestProperties to a plan.
 func (g *VMResourceModelSettingsGuestProperties) ToPlan(ctx context.Context) basetypes.MapValue {
 	if g == nil || len(*g) == 0 {
-		return types.MapNull(types.StringType)
+		return types.MapValueMust(types.StringType, nil)
 	}
 
 	return types.MapValueMust(types.StringType, g.toAttrValues(ctx))

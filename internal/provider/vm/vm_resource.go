@@ -73,7 +73,7 @@ func (r *vmResource) Metadata(_ context.Context, req resource.MetadataRequest, r
 
 // Schema defines the schema for the resource.
 func (r *vmResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = vmSuperSchema().GetResource(ctx)
+	resp.Schema = vmSuperSchema(ctx).GetResource(ctx)
 }
 
 func (r *vmResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -140,6 +140,13 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 		return
 	}
 
+	// * Customization
+	customizationConfig, d := settingsConfig.CustomizationFromPlan(ctx)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// * Create VM with Template
 	if !deployOS.VappTemplateID.IsNull() {
 		vmCreated, d = r.createVMWithTemplate(ctx, *plan)
@@ -185,7 +192,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 	}
 	state.Status = types.StringValue(status)
 
-	settings, err := r.vm.SettingsRead(ctx, settingsConfig.Customization)
+	settings, err := r.vm.SettingsRead(ctx, customizationConfig)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to get VM settings",
@@ -462,12 +469,12 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		return
 	}
 
-	if allStructsPlan.State.PowerON.Equal(allStructsState.State.PowerON) ||
-		allStructsPlan.Settings.ExposeHardwareVirtualization.Equal(allStructsState.Settings.ExposeHardwareVirtualization) ||
-		allStructsPlan.Settings.OsType.Equal(allStructsState.Settings.OsType) ||
-		allStructsPlan.Resource.CPUHotAddEnabled.Equal(allStructsState.Resource.CPUHotAddEnabled) ||
-		allStructsPlan.Resource.MemoryHotAddEnabled.Equal(allStructsState.Resource.MemoryHotAddEnabled) ||
-		plan.Description.Equal(state.Description) ||
+	if !allStructsPlan.State.PowerON.Equal(allStructsState.State.PowerON) ||
+		!allStructsPlan.Settings.ExposeHardwareVirtualization.Equal(allStructsState.Settings.ExposeHardwareVirtualization) ||
+		!allStructsPlan.Settings.OsType.Equal(allStructsState.Settings.OsType) ||
+		!allStructsPlan.Resource.CPUHotAddEnabled.Equal(allStructsState.Resource.CPUHotAddEnabled) ||
+		!allStructsPlan.Resource.MemoryHotAddEnabled.Equal(allStructsState.Resource.MemoryHotAddEnabled) ||
+		!plan.Description.Equal(state.Description) ||
 		needColdChange.cpu ||
 		needColdChange.memory ||
 		needColdChange.network {

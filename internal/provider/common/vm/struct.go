@@ -158,7 +158,7 @@ func (rm *VMResourceModel) SettingsFromPlan(ctx context.Context) (settings *VMRe
 	if rm.Settings.IsNull() || rm.Settings.IsUnknown() {
 		return &VMResourceModelSettings{
 			Customization:                types.ObjectNull(custom.AttrTypes()),
-			GuestProperties:              types.MapNull(gP.AttrType()),
+			GuestProperties:              types.MapUnknown(gP.AttrType()),
 			ExposeHardwareVirtualization: types.BoolNull(),
 			OsType:                       types.StringNull(),
 			StorageProfile:               types.StringNull(),
@@ -185,14 +185,32 @@ func (s *VMResourceModelSettings) CustomizationFromPlan(ctx context.Context) (cu
 
 	if s.Customization.IsNull() || s.Customization.IsUnknown() {
 		return customization, nil
+		// return &VMResourceModelSettingsCustomization{
+		// 	Force:                          types.BoolNull(),
+		// 	Enabled:                        types.BoolNull(),
+		// 	ChangeSID:                      types.BoolNull(),
+		// 	AllowLocalAdminPassword:        types.BoolNull(),
+		// 	MustChangePasswordOnFirstLogin: types.BoolNull(),
+		// 	AdminPassword:                  types.StringNull(),
+		// 	AutoGeneratePassword:           types.BoolNull(),
+		// 	NumberOfAutoLogons:             types.Int64Null(),
+		// 	JoinDomain:                     types.BoolNull(),
+		// 	JoinOrgDomain:                  types.BoolNull(),
+		// 	JoinDomainName:                 types.StringNull(),
+		// 	JoinDomainUser:                 types.StringNull(),
+		// 	JoinDomainPassword:             types.StringNull(),
+		// 	JoinDomainAccountOU:            types.StringNull(),
+		// 	InitScript:                     types.StringNull(),
+		// 	Hostname:                       types.StringNull(),
+		// }, nil
 	}
 
 	diags.Append(s.Customization.As(ctx, customization, basetypes.ObjectAsOptions{
-		UnhandledNullAsEmpty:    false,
+		UnhandledNullAsEmpty:    true,
 		UnhandledUnknownAsEmpty: false,
 	})...)
 
-	return
+	return customization, diags
 }
 
 // * SettingsGuestProperties

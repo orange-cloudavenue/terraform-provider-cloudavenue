@@ -16,6 +16,11 @@ type VMResourceModelResource struct { //nolint:revive
 	Networks            types.List  `tfsdk:"networks"`
 }
 
+// AttrTypes returns the types of the attributes of the Resource attribute.
+func (r *VMResourceModelResource) AttrTypes() map[string]attr.Type {
+	return r.attrTypes(&VMResourceModelResourceNetworks{})
+}
+
 // attrTypes() returns the types of the attributes of the Resource attribute.
 func (r *VMResourceModelResource) attrTypes(networks *VMResourceModelResourceNetworks) map[string]attr.Type {
 	return map[string]attr.Type{

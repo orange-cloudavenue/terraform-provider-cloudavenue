@@ -29,6 +29,11 @@ func (s *VMResourceModelSettings) Equal(other *VMResourceModelSettings) bool {
 		s.Customization.Equal(other.Customization)
 }
 
+// AttrTypes returns the types of the attributes of the Settings attribute.
+func (s *VMResourceModelSettings) AttrTypes() map[string]attr.Type {
+	return s.attrTypes(&VMResourceModelSettingsCustomization{}, &VMResourceModelSettingsGuestProperties{})
+}
+
 // attrTypes() returns the types of the attributes of the Settings attribute.
 func (s *VMResourceModelSettings) attrTypes(customization *VMResourceModelSettingsCustomization, guestProperties *VMResourceModelSettingsGuestProperties) map[string]attr.Type {
 	return map[string]attr.Type{
@@ -68,7 +73,7 @@ func (s *VMResourceModelSettings) ToPlan(ctx context.Context) types.Object {
 }
 
 // SettingsRead returns the value of the Settings attribute, if set, as a *VMResourceModelSettings.
-func (v VM) SettingsRead(ctx context.Context, stateCustomization attr.Value) (settings *VMResourceModelSettings, err error) {
+func (v VM) SettingsRead(ctx context.Context, stateCustomization any) (settings *VMResourceModelSettings, err error) {
 	guestProperties, err := v.GuestPropertiesRead()
 	if err != nil {
 		return nil, fmt.Errorf("unable to read guest properties: %w", err)
@@ -79,12 +84,27 @@ func (v VM) SettingsRead(ctx context.Context, stateCustomization attr.Value) (se
 		return nil, fmt.Errorf("unable to read affinity rule ID: %w", err)
 	}
 
+	var (
+		customization types.Object
+		ok            bool
+	)
+
+	switch custo := stateCustomization.(type) {
+	case *VMResourceModelSettingsCustomization:
+		customization = custo.ToPlan(ctx)
+	case attr.Value:
+		customization, ok = custo.(types.Object)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert state customization to basetypes.ObjectType")
+		}
+	}
+
 	return &VMResourceModelSettings{
 		ExposeHardwareVirtualization: types.BoolValue(v.GetExposeHardwareVirtualization()),
 		OsType:                       utils.StringValueOrNull(v.GetOSType()),
 		StorageProfile:               utils.StringValueOrNull(v.GetStorageProfileName()),
 		GuestProperties:              guestProperties.ToPlan(ctx),
 		AffinityRuleID:               utils.StringValueOrNull(affinityRuleID),
-		Customization:                stateCustomization.(types.Object),
+		Customization:                customization,
 	}, nil
 }

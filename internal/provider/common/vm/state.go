@@ -36,7 +36,7 @@ func (s *VMResourceModelState) ToPlan(ctx context.Context) types.Object {
 	}
 
 	// If the VM is powered on, set the power_on attribute to true, otherwise false.
-	if s.Status.String() == "POWERED_ON" {
+	if s.Status.ValueString() == "POWERED_ON" {
 		s.PowerON = types.BoolValue(true)
 	} else {
 		s.PowerON = types.BoolValue(false)
