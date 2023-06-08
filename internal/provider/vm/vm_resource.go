@@ -1028,7 +1028,7 @@ func (r *vmResource) processAfterCreate(ctx context.Context, vmCreated vm.VM, rm
 		networkConnection = append(networkConnection, n.ConvertToNetworkConnection())
 	}
 
-	networkConfig, err := r.vm.ConstructNetworksConnection(networkConnection)
+	networkConfig, err := vm.ConstructNetworksConnectionWithoutVM(r.vapp, networkConnection)
 	if err != nil {
 		diags.AddError("Error retrieving network config", err.Error())
 		return
