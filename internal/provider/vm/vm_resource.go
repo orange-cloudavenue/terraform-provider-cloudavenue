@@ -483,7 +483,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		needColdChange.cpu ||
 		needColdChange.memory ||
 		needColdChange.network {
-		if vmStatusBeforeUpdate != "POWERED_OFF" {
+		if vmStatusBeforeUpdate != poweredOFF {
 			task, err := r.vm.Undeploy()
 			if err != nil {
 				resp.Diagnostics.AddError("Error undeploying VM", err.Error())
@@ -605,7 +605,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	}
 
 	if allStructsPlan.State.PowerON.ValueBool() {
-		if !allStructsPlan.Settings.Customization.Attributes()["force"].(types.Bool).ValueBool() && vmStatus != "POWERED_ON" {
+		if !allStructsPlan.Settings.Customization.Attributes()["force"].(types.Bool).ValueBool() && vmStatus != poweredON {
 			task, err := r.vm.PowerOn()
 			if err != nil {
 				resp.Diagnostics.AddError("Error powering on VM", err.Error())
@@ -620,7 +620,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		}
 
 		if allStructsPlan.Settings.Customization.Attributes()["force"].(types.Bool).ValueBool() {
-			if vmStatus != "POWERED_OFF" {
+			if vmStatus != poweredOFF {
 				task, err := r.vm.Undeploy()
 				if err != nil {
 					resp.Diagnostics.AddError("Error undeploying VM", err.Error())
@@ -639,7 +639,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 				return
 			}
 		}
-	} else if !allStructsPlan.State.PowerON.ValueBool() && vmStatus != "POWERED_OFF" {
+	} else if !allStructsPlan.State.PowerON.ValueBool() && vmStatus != poweredOFF {
 		task, err := r.vm.Undeploy()
 		if err != nil {
 			resp.Diagnostics.AddError("Error undeploying VM", err.Error())
@@ -896,6 +896,7 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 		return
 	}
 
+	// TODO : Why is this here? It's not used anywhere
 	networkConnection := []vm.NetworkConnection{}
 	for _, n := range *resourceNetworks {
 		networkConnection = append(networkConnection, n.ConvertToNetworkConnection())
