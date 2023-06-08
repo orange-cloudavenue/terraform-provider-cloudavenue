@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vapp_org_network Resource - cloudavenue"
 subcategory: "vApp (Virtual Appliance)"
 description: |-
-  Provides a Cloud Avenue routed vAPP Org Network resource. This can be used to create, modify, and delete isolated vAPP Network.
+  Provides a Cloud Avenue routed vAPP Org Network resource. This can be used to create, modify, and delete routed vAPP Network.
 ---
 
 # cloudavenue_vapp_org_network (Resource)
 
-Provides a Cloud Avenue routed vAPP Org Network resource. This can be used to create, modify, and delete isolated vAPP Network.
+Provides a Cloud Avenue routed vAPP Org Network resource. This can be used to create, modify, and delete routed vAPP Network.
 
 ## Example Usage
 

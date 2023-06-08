@@ -89,14 +89,14 @@ func SuperSchema() map[string]superschema.Attribute {
 		"vapp_id": superschema.StringAttribute{
 			Common: &schemaR.StringAttribute{
 				MarkdownDescription: "ID of the vApp.",
-			},
-			Resource: &schemaR.StringAttribute{
-				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
+				},
+				Optional: true,
+			},
+			Resource: &schemaR.StringAttribute{
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			DataSource: &schemaD.StringAttribute{
@@ -106,18 +106,18 @@ func SuperSchema() map[string]superschema.Attribute {
 		"vapp_name": superschema.StringAttribute{
 			Common: &schemaR.StringAttribute{
 				MarkdownDescription: "Name of the vApp.",
-			},
-			Resource: &schemaR.StringAttribute{
-				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_id"), path.MatchRoot("vapp_name")),
 				},
+				Optional: true,
+			},
+			Resource: &schemaR.StringAttribute{
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			DataSource: &schemaD.StringAttribute{
-				Required: true,
+				Computed: true,
 			},
 		},
 	}

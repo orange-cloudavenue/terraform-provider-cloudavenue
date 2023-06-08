@@ -9,7 +9,6 @@ resource "cloudavenue_vapp_isolated_network" "example" {
   gateway               = "192.168.10.1"
   netmask               = "255.255.255.0"
   dns1                  = "192.168.10.1"
-  dns2                  = "192.168.10.3"
   dns_suffix            = "myvapp.biz"
   guest_vlan_allowed    = true
   retain_ip_mac_enabled = true
@@ -25,6 +24,10 @@ resource "cloudavenue_vapp_isolated_network" "example" {
 }
 
 data "cloudavenue_vapp_isolated_network" "example" {
-  vapp_name = cloudavenue_vapp.example.name
-  name      = cloudavenue_vapp_isolated_network.example.name
+    vapp_name = cloudavenue_vapp.example.name
+    name      = cloudavenue_vapp_isolated_network.example.name
+}
+
+output "dns" {
+    value = cloudavenue_vapp_isolated_network.example.dns2
 }

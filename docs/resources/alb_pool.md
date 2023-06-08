@@ -110,7 +110,7 @@ Required:
 
 Optional:
 
-- `value` (String) Value of attribute based on persistence type. If "persistence_profile.type" attribute is set and the value is one of `"HTTP_COOKIE"`, this attribute is required.
+- `value` (String) Value of attribute based on persistence type. If persistence_profile.type attribute is set and the value is one of `"HTTP_COOKIE"`, this attribute is required.
 
 ## Import
 

@@ -54,11 +54,11 @@ resource "cloudavenue_vapp_isolated_network" "example" {
 - `dns2` (String) The secondary DNS server IP address for the network. Must be a valid IP with net.ParseIP.
 - `dns_suffix` (String) The DNS suffix for the network.
 - `guest_vlan_allowed` (Boolean) True if Network allows guest VLAN. Default to `false`.
-- `netmask` (String) (ForceNew) The netmask for the network. Must be a valid netmask. Value defaults to `255.255.255.0`.
+- `netmask` (String) (ForceNew) The netmask of the network. Must be a valid netmask. Value defaults to `255.255.255.0`.
 - `retain_ip_mac_enabled` (Boolean) Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Default to `false`.
 - `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. Set must contain at least 1 elements. (see [below for nested schema](#nestedatt--static_ip_pool))
-- `vapp_id` (String) (ForceNew) ID of the vApp. Required if `vapp_name` is not set.
-- `vapp_name` (String) (ForceNew) Name of the vApp. Required if `vapp_id` is not set.
+- `vapp_id` (String) (ForceNew) ID of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
+- `vapp_name` (String) (ForceNew) Name of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_id`, `vapp_name`.
 - `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
