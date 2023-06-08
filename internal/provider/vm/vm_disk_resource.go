@@ -370,16 +370,12 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { //nolint:gocyclo
 	plan := &vm.Disk{}
 	state := &vm.Disk{}
 
 	// Get current plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
@@ -411,7 +407,7 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			vmDiskDetached vm.VM
 		)
 
-		// Check if size or storage profile has changed
+		// Check if size, storage profile, vm id or vm name has changed
 		if !plan.SizeInMb.Equal(state.SizeInMb) ||
 			!plan.StorageProfile.Equal(state.StorageProfile) ||
 			!plan.VMID.Equal(state.VMID) ||
@@ -419,9 +415,6 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			// Check if disk is attached to a VM
 			if !(state.VMID.IsNull() && state.VMName.IsNull()) {
 				// Detach disk from VM
-				detachParams := &govcdtypes.DiskAttachOrDetachParams{
-					Disk: &govcdtypes.Reference{HREF: disk.Disk.HREF},
-				}
 
 				vmOld, diag := vm.Get(r.vapp, vm.GetVMOpts{
 					ID:   state.VMID,
@@ -433,12 +426,13 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 				}
 
 				// Detach disk
-				task, err := vmOld.DetachDisk(detachParams)
+				task, err := vmOld.DetachDisk(&govcdtypes.DiskAttachOrDetachParams{
+					Disk: &govcdtypes.Reference{HREF: disk.Disk.HREF},
+				})
 				if err != nil {
 					resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %v", state.Name.ValueString(), err))
 					return
 				}
-
 				if err = task.WaitTaskCompletion(); err != nil {
 					resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %v", state.Name.ValueString(), err))
 					return
@@ -447,8 +441,7 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 				diskIsDetached = true
 			}
 
-			err = disk.Refresh()
-			if err != nil {
+			if err = disk.Refresh(); err != nil {
 				resp.Diagnostics.AddError("unable to refresh disk", fmt.Sprintf("unable to refresh disk %s (id:%s): %s", state.Name.ValueString(), state.ID.ValueString(), err))
 				return
 			}
@@ -507,14 +500,12 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 					unitNumber = types.Int64Value(int64(u))
 				}
 
-				attachParams := &govcdtypes.DiskAttachOrDetachParams{
+				// Attach disk
+				task, err := vmNew.AttachDisk(&govcdtypes.DiskAttachOrDetachParams{
 					Disk:       &govcdtypes.Reference{HREF: disk.Disk.HREF},
 					BusNumber:  utils.TakeIntPointer(int(busNumber.ValueInt64())),
 					UnitNumber: utils.TakeIntPointer(int(unitNumber.ValueInt64())),
-				}
-
-				// Attach disk
-				task, err := vmNew.AttachDisk(attachParams)
+				})
 				if err != nil {
 					resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %v", plan.Name.ValueString(), err))
 					return
