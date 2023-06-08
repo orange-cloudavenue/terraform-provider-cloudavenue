@@ -144,11 +144,6 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	if r.vm != (vm.VM{}) {
-		plan.VMName = types.StringValue(r.vm.GetName())
-		plan.VMID = types.StringValue(r.vm.GetID())
-	}
-
 	newPlan := *plan
 	newPlan.VDC = types.StringValue(r.vdc.GetName())
 
