@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 
+	"github.com/kr/pretty"
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 )
 
@@ -59,7 +60,7 @@ func (v VAPP) IsVAPPOrgNetwork(networkName string) (bool, error) {
 		}
 	}
 
-	return false, nil
+	return false, fmt.Errorf("====== network config %s", pretty.Sprint(vAppNetworkConfig))
 }
 
 // IsVAPPNetwork check if it is a vApp network (not vApp Org Network).

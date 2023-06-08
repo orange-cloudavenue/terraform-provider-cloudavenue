@@ -110,7 +110,8 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// Create vApp
 	r.vapp, diags = vapp.Create(r.vdc, plan.VAppName.ValueString(), plan.Description.ValueString())
-	if diags.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

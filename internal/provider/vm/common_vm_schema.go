@@ -4,11 +4,8 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -18,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -37,50 +33,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 )
 
-func vmSuperSchema(ctx context.Context) superschema.Schema {
-	customization := vm.VMResourceModelSettingsCustomization{}
-	// TODO Catch error
-	customizationDefaultValue, _ := basetypes.NewObjectValueFrom(ctx, customization.AttrTypes(), map[string]attr.Value{
-		"force":                               types.BoolValue(false),
-		"enabled":                             types.BoolValue(false),
-		"change_sid":                          types.BoolNull(),
-		"allow_local_admin_password":          types.BoolNull(),
-		"must_change_password_on_first_login": types.BoolNull(),
-		"auto_generate_password":              types.BoolNull(),
-		"admin_password":                      types.StringNull(),
-		"number_of_auto_logons":               types.Int64Null(),
-		"join_domain_enabled":                 types.BoolNull(),
-		"join_org_domain":                     types.BoolNull(),
-		"join_domain_name":                    types.StringNull(),
-		"join_domain_user":                    types.StringNull(),
-		"join_domain_password":                types.StringNull(),
-		"join_domain_account_ou":              types.StringNull(),
-		"init_script":                         types.StringNull(),
-		"hostname":                            types.StringNull(),
-	})
-
-	settings := vm.VMResourceModelSettings{}
-	guestProperties := vm.VMResourceModelSettingsGuestProperties{}
-	settingsDefaultValue, _ := basetypes.NewObjectValueFrom(ctx, settings.AttrTypes(), map[string]attr.Value{
-		"expose_hardware_virtualization": types.BoolValue(false),
-		"os_type":                        types.StringUnknown(),
-		"storage_profile":                types.StringUnknown(),
-		"guest_properties":               types.MapUnknown(guestProperties.AttrType()),
-		"affinity_rule_id":               types.StringUnknown(),
-		"customization":                  customizationDefaultValue,
-	})
-
-	resource := vm.VMResourceModelResource{}
-	network := vm.VMResourceModelResourceNetworks{}
-	resourceDefaultValue, _ := basetypes.NewObjectValueFrom(ctx, resource.AttrTypes(), map[string]attr.Value{
-		"cpus":                   types.Int64Value(1),
-		"cpus_cores":             types.Int64Value(1),
-		"cpu_hot_add_enabled":    types.BoolValue(true),
-		"memory":                 types.Int64Value(1024),
-		"memory_hot_add_enabled": types.BoolValue(true),
-		"networks":               types.ListUnknown(network.ObjectType()),
-	})
-
+func vmSuperSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
 			MarkdownDescription: "The virtual machine (vm) resource allows you to manage a virtual machine in the CloudAvenue.",
@@ -276,7 +229,7 @@ func vmSuperSchema(ctx context.Context) superschema.Schema {
 				},
 				Resource: &schemaR.SingleNestedAttribute{
 					Optional: true,
-					Default:  objectdefault.StaticValue(resourceDefaultValue),
+					// Default:  objectdefault.StaticValue(resourceDefaultValue),
 				},
 				Attributes: map[string]superschema.Attribute{
 					"cpus": superschema.Int64Attribute{
@@ -308,7 +261,6 @@ func vmSuperSchema(ctx context.Context) superschema.Schema {
 							},
 							Validators: []validator.Int64{
 								// TODO fix path
-								// fint64validator.AttributeIsDivisibleByAnInteger(path.MatchRelative().AtName("cpus")),
 							},
 						},
 					},
@@ -508,7 +460,6 @@ func vmSuperSchema(ctx context.Context) superschema.Schema {
 				},
 				Resource: &schemaR.SingleNestedAttribute{
 					Optional: true,
-					Default:  objectdefault.StaticValue(settingsDefaultValue),
 				},
 				Attributes: map[string]superschema.Attribute{
 					"expose_hardware_virtualization": superschema.BoolAttribute{
@@ -557,7 +508,6 @@ func vmSuperSchema(ctx context.Context) superschema.Schema {
 							MarkdownDescription: "The customization settings for the VM.",
 							Optional:            true,
 							Computed:            true,
-							Default:             objectdefault.StaticValue(customizationDefaultValue),
 							PlanModifiers: []planmodifier.Object{
 								objectplanmodifier.UseStateForUnknown(),
 							},

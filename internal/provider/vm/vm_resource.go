@@ -61,6 +61,11 @@ func (r *vmResource) Init(ctx context.Context, rm *vm.VMResourceModel) (diags di
 		return
 	}
 
+	if r.vapp.VAPP == nil {
+		diags.AddError("Vapp not found", fmt.Sprintf("Vapp %s not found in VDC %s", rm.VappName, rm.VDC))
+		return
+	}
+
 	// Vm is not initialized here because if VM is not found in read. Delete resource in state will be called.
 
 	return
