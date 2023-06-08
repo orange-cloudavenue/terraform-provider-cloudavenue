@@ -1,0 +1,3 @@
+```release-note:dependency
+deps: bumps github.com/hashicorp/terraform-plugin-docs from 0.14.1 to 0.15.0
+```
