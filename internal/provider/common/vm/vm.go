@@ -85,7 +85,7 @@ func (v VM) GetDiskSettings() []*govcdtypes.DiskSettings {
 // IsPoweredOn returns true if the VM is powered on.
 func (v VM) IsPoweredON() bool {
 	status, _ := v.GetStatus()
-	return status == "POWERED_ON"
+	return status == powerON
 }
 
 // GetCPUCount returns the number of CPUs of the VM.

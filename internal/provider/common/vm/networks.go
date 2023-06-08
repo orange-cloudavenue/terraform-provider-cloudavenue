@@ -51,7 +51,7 @@ func (n *VMResourceModelResourceNetworks) ObjectType() types.ObjectType {
 }
 
 // toAttrValues() returns the values of the attributes of the Networks attribute.
-func (n *VMResourceModelResourceNetwork) toAttrValues() map[string]attr.Value {
+func (n *VMResourceModelResourceNetwork) toAttrValues() map[string]attr.Value { //nolint:unused
 	return map[string]attr.Value{
 		"type":               n.Type,
 		"ip_allocation_mode": n.IPAllocationMode,

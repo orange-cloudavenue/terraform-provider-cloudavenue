@@ -192,7 +192,7 @@ func (v VM) HotAddIsDefined() bool {
 }
 
 // GetCpuHotAdd returns the hot add of a VM.
-func (v VM) GetCpuHotAddEnabled() bool {
+func (v VM) GetCPUHotAddEnabled() bool {
 	if !v.HotAddIsDefined() {
 		return false
 	}

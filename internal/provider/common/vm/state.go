@@ -8,6 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+const (
+	powerON = "POWERED_ON"
+	// powerOFF = "POWERED_OFF".
+)
+
 type VMResourceModelState struct { //nolint:revive
 	PowerON types.Bool   `tfsdk:"power_on"`
 	Status  types.String `tfsdk:"status"`
@@ -36,7 +41,7 @@ func (s *VMResourceModelState) ToPlan(ctx context.Context) types.Object {
 	}
 
 	// If the VM is powered on, set the power_on attribute to true, otherwise false.
-	if s.Status.ValueString() == "POWERED_ON" {
+	if s.Status.ValueString() == powerON {
 		s.PowerON = types.BoolValue(true)
 	} else {
 		s.PowerON = types.BoolValue(false)

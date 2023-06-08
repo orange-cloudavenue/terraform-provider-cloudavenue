@@ -353,10 +353,11 @@ func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResource
 	// Get lease config
 	if !plan.Lease.IsNull() {
 		l := &vappLeaseModel{}
-		if diags := plan.Lease.As(ctx, l, basetypes.ObjectAsOptions{
+		d.Append(plan.Lease.As(ctx, l, basetypes.ObjectAsOptions{
 			UnhandledNullAsEmpty:    false,
 			UnhandledUnknownAsEmpty: false,
-		}); diags.HasError() {
+		})...)
+		if d.HasError() {
 			return
 		}
 		runtimeLease = int(l.RuntimeLeaseInSec.ValueInt64())

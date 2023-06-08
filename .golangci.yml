@@ -10,7 +10,6 @@ linters:
     - bidichk # Checks for dangerous unicode character sequences [fast: true, auto-fix: false]
     - deadcode # Finds unused code [fast: false, auto-fix: false]
     - decorder # check declaration order and count of types, constants, variables and functions [fast: true, auto-fix: false]
-    - depguard # Go linter that checks if package imports are in a list of acceptable packages [fast: true, auto-fix: false]
     - dogsled # Checks assignments with too many blank identifiers (e.g. x, _, _, _, := f()) [fast: true, auto-fix: false]
     - durationcheck # check for two durations multiplied together [fast: false, auto-fix: false]
     - errcheck # Errcheck is a program for checking for unchecked errors in go programs. These unchecked errors can be critical bugs in some cases [fast: false, auto-fix: false]
@@ -38,7 +37,6 @@ linters:
     - ineffassign # Detects when assignments to existing variables are not used [fast: true, auto-fix: false]
     - makezero # Finds slice declarations with non-zero initial length [fast: false, auto-fix: false]
     - misspell # Finds commonly misspelled English words in comments [fast: true, auto-fix: true]
-    - nakedret # Finds naked returns in functions greater than a specified function length [fast: true, auto-fix: false]
     - nilerr # Finds the code that returns nil even if it checks that the error is not nil. [fast: false, auto-fix: false]
     - noctx # noctx finds sending http request without context.Context [fast: false, auto-fix: false]
     - nolintlint # Reports ill-formed or insufficient nolint directives [fast: true, auto-fix: false]
@@ -48,7 +46,6 @@ linters:
     - revive # Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint. [fast: false, auto-fix: false]
     - rowserrcheck # checks whether Err of rows is checked successfully [fast: false, auto-fix: false]
     - sqlclosecheck # Checks that sql.Rows and sql.Stmt are closed. [fast: false, auto-fix: false]
-    - structcheck # Finds unused struct fields [fast: false, auto-fix: false]
     - stylecheck # Stylecheck is a replacement for golint [fast: false, auto-fix: false]
     - tagliatelle # Checks the struct tags. [fast: true, auto-fix: false]
     - tenv # tenv is analyzer that detects using os.Setenv instead of t.Setenv since Go1.17 [fast: false, auto-fix: false]
@@ -68,6 +65,9 @@ linters:
     - bodyclose # checks whether HTTP response body is closed successfully
 
   disable:
+    - structcheck # Finds unused struct fields [fast: false, auto-fix: false]
+    - nakedret # Finds naked returns in functions greater than a specified function length [fast: true, auto-fix: false]
+    - depguard # Go linter that checks if package imports are in a list of acceptable packages [fast: true, auto-fix: false]
     - goimports # In addition to fixing imports, goimports also formats your code in the same style as gofmt. [fast: true, auto-fix: true]
     - containedctx # containedctx is a linter that detects struct contained context.Context field [fast: true, auto-fix: false]
     - thelper # thelper detects golang test helpers without t.Helper() call and checks the consistency of test helpers [fast: false, auto-fix: false]

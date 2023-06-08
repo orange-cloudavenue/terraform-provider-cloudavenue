@@ -147,13 +147,13 @@ func InternalDiskCreate(ctx context.Context, c *client.CloudAvenue, disk Interna
 	vdc, err := c.GetVDC(client.WithVDCName(vdcName.ValueString()))
 	if err != nil {
 		d.AddError("Error retrieving VDC", err.Error())
-		return
+		return nil, d
 	}
 
 	myVM, err := GetVMOLD(vdc.Vdc, vAppName.ValueString(), vmName.ValueString())
 	if err != nil {
 		d.AddError("Error retrieving VM", err.Error())
-		return
+		return nil, d
 	}
 
 	// storage profile
@@ -169,7 +169,7 @@ func InternalDiskCreate(ctx context.Context, c *client.CloudAvenue, disk Interna
 		storageProfile, errFindStorage := vdc.FindStorageProfileReference(disk.StorageProfile.ValueString())
 		if errFindStorage != nil {
 			d.AddError("Error retrieving storage profile", errFindStorage.Error())
-			return
+			return nil, d
 		}
 		storageProfilePrt = &storageProfile
 		overrideVMDefault = true
@@ -203,7 +203,7 @@ func InternalDiskCreate(ctx context.Context, c *client.CloudAvenue, disk Interna
 	diskID, err := myVM.AddInternalDisk(diskSetting)
 	if err != nil {
 		d.AddError("Error creating disk", err.Error())
-		return
+		return nil, d
 	}
 
 	newDisk = &disk

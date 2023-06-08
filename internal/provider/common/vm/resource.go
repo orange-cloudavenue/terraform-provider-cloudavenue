@@ -29,7 +29,7 @@ func (r *VMResourceModelResource) attrTypes(networks *VMResourceModelResourceNet
 		"memory":                 types.Int64Type,
 		"cpu_hot_add_enabled":    types.BoolType,
 		"memory_hot_add_enabled": types.BoolType,
-		"networks":               types.ListType{ElemType: types.ObjectType{networks.AttrTypes()}},
+		"networks":               types.ListType{ElemType: types.ObjectType{AttrTypes: networks.AttrTypes()}},
 	}
 }
 
@@ -91,7 +91,7 @@ func (v VM) ResourceRead(_ context.Context) (resource *VMResourceModelResource) 
 	}
 
 	if v.HotAddIsDefined() {
-		resource.CPUHotAddEnabled = types.BoolValue(v.GetCpuHotAddEnabled())
+		resource.CPUHotAddEnabled = types.BoolValue(v.GetCPUHotAddEnabled())
 		resource.MemoryHotAddEnabled = types.BoolValue(v.GetMemoryHotAddEnabled())
 	}
 

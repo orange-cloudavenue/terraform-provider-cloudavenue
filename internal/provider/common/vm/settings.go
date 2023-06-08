@@ -42,7 +42,7 @@ func (s *VMResourceModelSettings) attrTypes(customization *VMResourceModelSettin
 		"storage_profile":                types.StringType,
 		"guest_properties":               types.MapType{ElemType: guestProperties.AttrType()},
 		"affinity_rule_id":               types.StringType,
-		"customization":                  types.ObjectType{customization.AttrTypes()},
+		"customization":                  types.ObjectType{AttrTypes: customization.AttrTypes()},
 	}
 }
 

@@ -335,7 +335,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		// * CPU and CPU cores
 		if !allStructsPlan.Resource.CPUs.Equal(allStructsState.Resource.CPUs) || !allStructsPlan.Resource.CPUsCores.Equal(allStructsState.Resource.CPUsCores) {
 			// Detected change on CPU or CPU cores
-			if r.vm.GetCpuHotAddEnabled() {
+			if r.vm.GetCPUHotAddEnabled() {
 				// CPU hot update is enabled
 				if err := r.vm.ChangeCPUAndCoreCount(utils.TakeIntPointer(int(allStructsPlan.Resource.CPUs.ValueInt64())), utils.TakeIntPointer(int(allStructsPlan.Resource.CPUsCores.ValueInt64()))); err != nil {
 					resp.Diagnostics.AddError(
@@ -759,14 +759,14 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 	resource, d := rm.ResourceFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return vm.VM{}, diags
 	}
 
 	// * Network
 	resourceNetworks, d := resource.NetworksFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return vm.VM{}, diags
 	}
 
 	networkConnection := []vm.NetworkConnection{}
@@ -777,14 +777,14 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 	networkConfig, err := vm.ConstructNetworksConnectionWithoutVM(r.vapp, networkConnection)
 	if err != nil {
 		diags.AddError("Error retrieving network config", err.Error())
-		return
+		return vm.VM{}, diags
 	}
 
 	// * DeployOS
 	deployOS, d := rm.DeployOSFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return vm.VM{}, diags
 	}
 
 	var (
@@ -796,13 +796,13 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 		vappTemplate, err = r.client.GetTemplateWithVMName(deployOS.VappTemplateID.ValueString(), deployOS.VMNameInTemplate.ValueString())
 		if err != nil {
 			diags.AddError("Error retrieving vAppTemplate", err.Error())
-			return
+			return vm.VM{}, diags
 		}
 	} else {
 		vappTemplate, err = r.client.GetTemplate(deployOS.VappTemplateID.ValueString())
 		if err != nil {
 			diags.AddError("Error retrieving vAppTemplate", err.Error())
-			return
+			return vm.VM{}, diags
 		}
 	}
 
@@ -810,7 +810,7 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 	settings, d := rm.SettingsFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return vm.VM{}, diags
 	}
 
 	// * * Compute Policy
@@ -818,7 +818,7 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 		affinityRule, err := r.client.GetAffinityRule(settings.AffinityRuleID.ValueString())
 		if err != nil {
 			diags.AddError("Error retrieving affinity rule", err.Error())
-			return
+			return vm.VM{}, diags
 		}
 
 		if affinityRule != nil {
@@ -831,7 +831,7 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 		storageProfile, err = r.vdc.GetStorageProfileReference(settings.StorageProfile.ValueString(), false)
 		if err != nil {
 			diags.AddError("Error retrieving storage profile", err.Error())
-			return
+			return vm.VM{}, diags
 		}
 	}
 
@@ -865,7 +865,7 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 	x, err := r.vapp.AddRawVM(vmFromTemplateParams)
 	if err != nil {
 		diags.AddError("Error creating VM", err.Error())
-		return
+		return vm.VM{}, diags
 	}
 
 	// * Get VM
@@ -882,38 +882,39 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 
 	// * Resource
 
-	resource, d := rm.ResourceFromPlan(ctx)
-	diags.Append(d...)
-	if diags.HasError() {
-		return
-	}
+	// resource, d := rm.ResourceFromPlan(ctx)
+	// diags.Append(d...)
+	// if diags.HasError() {
+	// 	return vm.VM{}, diags
+	// }
 
 	// * Network
 
-	resourceNetworks, d := resource.NetworksFromPlan(ctx)
-	diags.Append(d...)
-	if diags.HasError() {
-		return
-	}
+	// resourceNetworks, d := resource.NetworksFromPlan(ctx)
+	// diags.Append(d...)
+	// if diags.HasError() {
+	// 	return vm.VM{}, diags
+	// }
 
 	// TODO : Why is this here? It's not used anywhere
-	networkConnection := []vm.NetworkConnection{}
-	for _, n := range *resourceNetworks {
-		networkConnection = append(networkConnection, n.ConvertToNetworkConnection())
-	}
+	// networkConnection := []vm.NetworkConnection{}
+	// for _, n := range *resourceNetworks {
+	// 	// notlint:staticcheck
+	// 	networkConnection = append(networkConnection, n.ConvertToNetworkConnection())
+	// }
 
 	// * DeployOS
 	deployOS, d := rm.DeployOSFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return vm.VM{}, diags
 	}
 
 	// * Settings
 	settings, d := rm.SettingsFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return vm.VM{}, diags
 	}
 
 	// * * Compute Policy
@@ -921,7 +922,7 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 		affinityRule, err := r.client.GetAffinityRule(settings.AffinityRuleID.ValueString())
 		if err != nil {
 			diags.AddError("Error retrieving affinity rule", err.Error())
-			return
+			return vm.VM{}, diags
 		}
 
 		if affinityRule != nil {
@@ -933,7 +934,7 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 	storageProfile, err := r.vdc.GetStorageProfileReference(settings.StorageProfile.ValueString(), false)
 	if err != nil {
 		diags.AddError("Error retrieving storage profile", err.Error())
-		return
+		return vm.VM{}, diags
 	}
 
 	// * VirtualCPU Type
@@ -945,14 +946,14 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 	bootImage, err := r.client.GetBootImage(deployOS.BootImageID.ValueString())
 	if err != nil {
 		diags.AddError("Error retrieving boot image", err.Error())
-		return
+		return vm.VM{}, diags
 	}
 
 	// * Customization
 	customization, d := settings.CustomizationFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return vm.VM{}, diags
 	}
 
 	// * Construct GoVDC VM Object
@@ -989,7 +990,7 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 	x, err := r.vapp.AddEmptyVm(vmParams)
 	if err != nil {
 		diags.AddError("Error creating VM", err.Error())
-		return
+		return vm.VM{}, diags
 	}
 
 	// * Get VM
