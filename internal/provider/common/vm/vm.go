@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -12,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm/diskparams"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -60,6 +62,32 @@ func Init(_ *client.CloudAvenue, vApp vapp.VAPP, vmInfo GetVMOpts) (vm VM, d dia
 
 func Get(vApp vapp.VAPP, vmInfo GetVMOpts) (vm VM, d diag.Diagnostics) {
 	return Init(nil, vApp, vmInfo)
+}
+
+func (v VM) constructLockKey() string {
+	return fmt.Sprintf("vm:%s", v.GetID())
+}
+
+// LockVM locks VM.
+func (v VM) LockVM(ctx context.Context) (d diag.Diagnostics) {
+	if v.GetID() == "" || ctx == nil {
+		d.AddError("Incorrect lock args", "VM: "+v.GetID())
+		return
+	}
+
+	mutex.GlobalMutex.KvLock(ctx, v.constructLockKey())
+	return
+}
+
+// UnlockVM unlocks VM.
+func (v VM) UnlockVM(ctx context.Context) (d diag.Diagnostics) {
+	if v.GetID() == "" || ctx == nil {
+		d.AddError("Incorrect Unlock args", "VM: "+v.GetID())
+		return
+	}
+
+	mutex.GlobalMutex.KvUnlock(ctx, v.constructLockKey())
+	return
 }
 
 // GetName returns the name of the VM.

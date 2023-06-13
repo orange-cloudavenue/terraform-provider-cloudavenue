@@ -4,6 +4,9 @@ package vm
 import (
 	"context"
 	"fmt"
+	"time"
+
+	"github.com/kr/pretty"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
@@ -12,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
@@ -130,7 +135,7 @@ func (r *diskResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRe
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) { //nolint:gocyclo
 	plan := &vm.Disk{}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -152,7 +157,8 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		defer resp.Diagnostics.Append(r.vapp.UnlockVAPP(ctx)...)
+
+		defer r.vapp.UnlockVAPP(ctx)
 
 		if ok, err := r.vdc.DiskExist(plan.Name.ValueString()); ok {
 			resp.Diagnostics.AddError("Disk already exists", "Disk with name "+plan.Name.ValueString()+" already exists")
@@ -210,6 +216,43 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 		newPlan.StorageProfile = types.StringValue(disk.Disk.StorageProfile.Name)
 
 		if r.vm != (vm.VM{}) {
+			resp.Diagnostics.Append(r.vm.LockVM(ctx)...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
+			defer r.vm.UnlockVM(ctx)
+
+			// loop with Timeout
+			diskRefreshTimeout := 20 * time.Second
+			diskRefreshTicker := time.NewTicker(2 * time.Second)
+			refreshEnded := false
+
+			for refreshEnded {
+				select {
+				case <-diskRefreshTicker.C:
+					tflog.Info(ctx, "Before refresh")
+					tflog.Info(ctx, pretty.Sprint(r.vm.VM.VM.VM.Link))
+					if err := r.vm.Refresh(); err != nil {
+						resp.Diagnostics.AddError("error refreshing disk", err.Error())
+						return
+					}
+					tflog.Info(ctx, "After refresh")
+					tflog.Info(ctx, pretty.Sprint(r.vm.VM.VM.VM.Link))
+					if len(r.vm.VM.VM.VM.Link) > 0 {
+						refreshEnded = true
+					}
+				case <-time.After(diskRefreshTimeout):
+					resp.Diagnostics.AddError("error refreshing disk", "timeout refreshing disk")
+					return
+				}
+			}
+
+			if err := r.vm.Refresh(); err != nil {
+				resp.Diagnostics.AddError("error refreshing vm", err.Error())
+				return
+			}
+
 			// Attach disk
 			task, err = r.vm.AttachDisk(r.vm.AttachDiskSettings(plan.BusNumber, plan.UnitNumber, task.Task.Owner.HREF))
 			if err != nil {
@@ -228,7 +271,7 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 			}
 
 			newPlan.BusType = types.StringValue(vm.GetBusTypeByCode(disk.Disk.BusType).Name())
-		}
+		} // End if r.vm != (vm.VM{})
 	} else { // Disk not detachable it's an internal disk
 		// storage profile
 		var (
@@ -274,6 +317,13 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 			OverrideVmDefault:   overrideVMDefault,
 		}
 
+		resp.Diagnostics.Append(r.vm.LockVM(ctx)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		defer r.vm.UnlockVM(ctx)
+
 		diskID, err := r.vm.AddInternalDisk(diskSetting)
 		if err != nil {
 			resp.Diagnostics.AddError("Error creating disk", err.Error())
@@ -312,7 +362,8 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer resp.Diagnostics.Append(r.vapp.UnlockVAPP(ctx)...)
+
+	defer r.vapp.UnlockVAPP(ctx)
 
 	// * Detachable disk
 	if state.IsDetachable.ValueBool() {
@@ -392,7 +443,8 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer resp.Diagnostics.Append(r.vapp.UnlockVAPP(ctx)...)
+
+	defer r.vapp.UnlockVAPP(ctx)
 
 	if state.IsDetachable.ValueBool() {
 		// Get the disk by the ID
@@ -424,6 +476,13 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 				if resp.Diagnostics.HasError() {
 					return
 				}
+
+				resp.Diagnostics.Append(vmOld.LockVM(ctx)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
+				defer vmOld.UnlockVM(ctx)
 
 				// Detach disk
 				task, err := vmOld.DetachDisk(&govcdtypes.DiskAttachOrDetachParams{
@@ -486,6 +545,18 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 				var busNumber, unitNumber types.Int64
 
+				resp.Diagnostics.Append(vmNew.LockVM(ctx)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
+				defer vmNew.UnlockVM(ctx)
+
+				if err := vmNew.Refresh(); err != nil {
+					resp.Diagnostics.AddError("error refreshing vm", err.Error())
+					return
+				}
+
 				if diskIsDetached {
 					for _, x := range vmDiskDetached.VM.VM.VM.VmSpecSection.DiskSection.DiskSettings {
 						if x.DiskId == disk.Disk.Id {
@@ -542,7 +613,8 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer resp.Diagnostics.Append(r.vapp.UnlockVAPP(ctx)...)
+
+	defer r.vapp.UnlockVAPP(ctx)
 
 	if state.IsDetachable.ValueBool() {
 		// Get the disk by the ID
@@ -557,6 +629,8 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 			return
 		}
 
+		tflog.Info(ctx, pretty.Sprint(x))
+
 		attached, err := x.AttachedVM()
 		if err != nil {
 			resp.Diagnostics.AddError("unable to find disk", fmt.Sprintf("unable to find disk with id %s: %v", state.ID.ValueString(), err))
@@ -564,6 +638,13 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		}
 
 		if attached != nil {
+			resp.Diagnostics.Append(r.vm.LockVM(ctx)...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
+			defer r.vm.UnlockVM(ctx)
+
 			task, err := r.vm.DetachDisk(&govcdtypes.DiskAttachOrDetachParams{
 				Disk: &govcdtypes.Reference{
 					HREF: x.Disk.HREF,
@@ -580,6 +661,11 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 			}
 		}
 
+		if err := x.Refresh(); err != nil {
+			resp.Diagnostics.AddError("error refreshing disk", fmt.Sprintf("error refreshing disk %s: %v", state.Name.ValueString(), err))
+			return
+		}
+
 		// Delete disk
 		task, err := x.Delete()
 		if err != nil {
@@ -591,6 +677,11 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 			resp.Diagnostics.AddError("error deleting disk", fmt.Sprintf("error deleting disk %s: %v", state.Name.ValueString(), err))
 			return
 		}
+
+		// if err := r.vapp.Wait(ctx, vapp.WaitConfig{}); err != nil {
+		// 	resp.Diagnostics.AddError("error waiting for vapp", fmt.Sprintf("error waiting for vapp %s: %v", r.vapp.GetName(), err))
+		// 	return
+		// }
 	} else {
 		// Delete disk
 		if err := r.vm.DeleteInternalDisk(state.ID.ValueString()); err != nil {

@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+var GlobalMutex = NewKV()
+
 // KV is a simple key/value store for arbitrary mutexes. It can be used to
 // serialize changes across arbitrary collaborators that share knowledge of the
 // keys they must serialize on.
