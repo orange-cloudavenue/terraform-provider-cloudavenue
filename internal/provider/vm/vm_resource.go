@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminvdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
@@ -40,9 +41,10 @@ type vmResource struct {
 
 	// Uncomment the following lines if you need to access the resource's.
 	// org    org.Org
-	vdc  vdc.VDC
-	vapp vapp.VAPP
-	vm   vm.VM
+	vdc      vdc.VDC
+	adminVDC adminvdc.AdminVDC
+	vapp     vapp.VAPP
+	vm       vm.VM
 }
 
 // Init Initializes the resource.
@@ -50,6 +52,12 @@ func (r *vmResource) Init(ctx context.Context, rm *vm.VMResourceModel) (diags di
 	var d diag.Diagnostics
 
 	r.vdc, d = vdc.Init(r.client, rm.VDC)
+	diags.Append(d...)
+	if diags.HasError() {
+		return
+	}
+
+	r.adminVDC, d = adminvdc.Init(r.client, rm.VDC)
 	diags.Append(d...)
 	if diags.HasError() {
 		return
@@ -448,8 +456,11 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 
 			if allStructsPlan.Settings.StorageProfile.ValueString() == "" {
 				// If storage profile is empty, we use the default one
-				// TODO : Waiting adminVDC to be implemented
-				// r.vdc.GetDefaultStorageProfileReference(&govcdtypes.QueryResultRecordsType{})
+				storageProfile, err = r.adminVDC.GetDefaultStorageProfileReference()
+				if err != nil {
+					resp.Diagnostics.AddError("Error retrieving default storage profile", err.Error())
+					return
+				}
 			} else {
 				storageProfile, err = r.vdc.GetStorageProfileReference(allStructsPlan.Settings.StorageProfile.ValueString(), false)
 				if err != nil {
@@ -520,8 +531,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 
 		if !allStructsPlan.Settings.OsType.Equal(allStructsState.Settings.OsType) {
 			vmSpecSectionUpdate = true
-			description = plan.Description.ValueString()
-			// TODO : Set osType
+			vmSpecSection.OsType = allStructsPlan.Settings.OsType.ValueString()
 		}
 
 		if !plan.Description.Equal(state.Description) {
@@ -698,24 +708,12 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 		return
 	}
 
-	// TODO: Check Disk is detached and detachable
 	// Check if all disks are detached
 	for _, disk := range r.vm.GetDiskSettings() {
+		// Disk detachable
 		if disk.Disk != nil && disk.Disk.Name != "" {
-			// This is detachable disk
-			task, err := r.vm.DetachDisk(&govcdtypes.DiskAttachOrDetachParams{
-				Disk: &govcdtypes.Reference{HREF: disk.Disk.HREF},
-			})
-			if err != nil {
-				resp.Diagnostics.AddError("Error detaching disk", err.Error())
-				return
-			}
-
-			err = task.WaitTaskCompletion()
-			if err != nil {
-				resp.Diagnostics.AddError("Error waiting for disk detach", err.Error())
-				return
-			}
+			resp.Diagnostics.AddError("One or more disks are not detached", "Detach all additional disks before deleting the VM")
+			return
 		}
 	}
 
@@ -880,29 +878,6 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 		vmComputePolicy *govcdtypes.ComputePolicy
 	)
 
-	// * Resource
-
-	// resource, d := rm.ResourceFromPlan(ctx)
-	// diags.Append(d...)
-	// if diags.HasError() {
-	// 	return vm.VM{}, diags
-	// }
-
-	// * Network
-
-	// resourceNetworks, d := resource.NetworksFromPlan(ctx)
-	// diags.Append(d...)
-	// if diags.HasError() {
-	// 	return vm.VM{}, diags
-	// }
-
-	// TODO : Why is this here? It's not used anywhere
-	// networkConnection := []vm.NetworkConnection{}
-	// for _, n := range *resourceNetworks {
-	// 	// notlint:staticcheck
-	// 	networkConnection = append(networkConnection, n.ConvertToNetworkConnection())
-	// }
-
 	// * DeployOS
 	deployOS, d := rm.DeployOSFromPlan(ctx)
 	diags.Append(d...)
@@ -963,7 +938,7 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 		PowerOn:     false, // Power on is handled at the end of VM creation process
 		CreateItem: &govcdtypes.CreateItem{
 			Name: rm.Name.ValueString(),
-			// BUG in VCD, do not allow empty NetworkConnectionSection, so we pass simplest
+			// bug in VCD, do not allow empty NetworkConnectionSection, so we pass simplest
 			// network configuration and after VM created update with real config
 			NetworkConnectionSection: &govcdtypes.NetworkConnectionSection{
 				PrimaryNetworkConnectionIndex: 0,
