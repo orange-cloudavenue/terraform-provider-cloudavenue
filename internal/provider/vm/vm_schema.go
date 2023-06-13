@@ -397,7 +397,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								Resource: &schemaR.StringAttribute{
 									Optional: true,
 									Validators: []validator.String{
-										// TODO - this should be a valid IP address
+										fstringvalidator.IsIP(),
 										fstringvalidator.RequireIfAttributeIsOneOf(
 											path.MatchRelative().AtParent().AtName("ip_allocation_mode"),
 											[]attr.Value{
