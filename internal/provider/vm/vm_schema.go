@@ -375,7 +375,12 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 												types.StringValue("org"),
 											},
 										),
-										// TODO: add null attribute validator if type is none
+										fstringvalidator.NullIfAttributeIsOneOf(
+											path.MatchRelative().AtParent().AtName("type"),
+											[]attr.Value{
+												types.StringValue("none"),
+											},
+										),
 									},
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
@@ -392,7 +397,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								Resource: &schemaR.StringAttribute{
 									Optional: true,
 									Validators: []validator.String{
-										stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("name")),
+										// TODO - this should be a valid IP address
 										fstringvalidator.RequireIfAttributeIsOneOf(
 											path.MatchRelative().AtParent().AtName("ip_allocation_mode"),
 											[]attr.Value{
@@ -400,7 +405,13 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 												types.StringValue("POOL"),
 											},
 										),
-										// TODO : add null attribute validator if ip_allocation_mode is DHCP or NONE
+										fstringvalidator.NullIfAttributeIsOneOf(
+											path.MatchRelative().AtParent().AtName("ip_allocation_mode"),
+											[]attr.Value{
+												types.StringValue("DHCP"),
+												types.StringValue("NONE"),
+											},
+										),
 									},
 								},
 								DataSource: &schemaD.StringAttribute{
