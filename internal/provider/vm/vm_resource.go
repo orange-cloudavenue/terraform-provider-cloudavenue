@@ -876,10 +876,18 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 	var (
 		err             error
 		vmComputePolicy *govcdtypes.ComputePolicy
+		storageProfile  *govcdtypes.Reference
 	)
 
 	// * DeployOS
 	deployOS, d := rm.DeployOSFromPlan(ctx)
+	diags.Append(d...)
+	if diags.HasError() {
+		return vm.VM{}, diags
+	}
+
+	// * Resource
+	resource, d := rm.ResourceFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
 		return vm.VM{}, diags
@@ -893,7 +901,7 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 	}
 
 	// * * Compute Policy
-	if !settings.AffinityRuleID.IsNull() {
+	if !settings.AffinityRuleID.IsUnknown() && !settings.AffinityRuleID.IsNull() {
 		affinityRule, err := r.client.GetAffinityRule(settings.AffinityRuleID.ValueString())
 		if err != nil {
 			diags.AddError("Error retrieving affinity rule", err.Error())
@@ -906,10 +914,12 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 	}
 
 	// * * Compute StorageProfile
-	storageProfile, err := r.vdc.GetStorageProfileReference(settings.StorageProfile.ValueString(), false)
-	if err != nil {
-		diags.AddError("Error retrieving storage profile", err.Error())
-		return vm.VM{}, diags
+	if !settings.StorageProfile.IsUnknown() && !settings.StorageProfile.IsNull() {
+		storageProfile, err = r.vdc.GetStorageProfileReference(settings.StorageProfile.ValueString(), false)
+		if err != nil {
+			diags.AddError("Error retrieving storage profile", err.Error())
+			return vm.VM{}, diags
+		}
 	}
 
 	// * VirtualCPU Type
@@ -951,12 +961,17 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 			Description:               rm.Description.ValueString(),
 			GuestCustomizationSection: customization.GetCustomizationSection(rm.Name.ValueString()),
 			VmSpecSection: &govcdtypes.VmSpecSection{
-				Modified: utils.TakeBoolPointer(true),
-				Info:     "Virtual Machine specification",
-				OsType:   settings.OsType.ValueString(),
+				Modified:          utils.TakeBoolPointer(true),
+				Info:              "Virtual Machine specification",
+				OsType:            settings.OsType.ValueString(),
+				CpuResourceMhz:    &govcdtypes.CpuResourceMhz{Configured: 0},
+				NumCpus:           utils.TakeIntPointer(int(resource.CPUs.ValueInt64())),
+				NumCoresPerSocket: utils.TakeIntPointer(int(resource.CPUsCores.ValueInt64())),
+				MemoryResourceMb:  &govcdtypes.MemoryResourceMb{Configured: resource.Memory.ValueInt64()},
 				// can be created with resource internal_disk
-				DiskSection:    &govcdtypes.DiskSection{DiskSettings: []*govcdtypes.DiskSettings{}},
-				VirtualCpuType: virtualCPUType,
+				DiskSection:     &govcdtypes.DiskSection{DiskSettings: []*govcdtypes.DiskSettings{}},
+				VirtualCpuType:  virtualCPUType,
+				HardwareVersion: &govcdtypes.HardwareVersion{Value: "vmx-19"},
 			},
 			BootImage: bootImage,
 		},

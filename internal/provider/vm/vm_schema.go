@@ -464,7 +464,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 											},
 											fstringvalidator.OneOfWithDescriptionValues{
 												Value:       "VMXNET3VRDMA",
-												Description: "VMXNET3VRDMA adapter it's a E1000E adapter it's a paravirtualized NIC that supports remote direct memory access (RDMA) between virtual machines through the OFED verbs API.",
+												Description: "VMXNET3VRDMA adapter it's a paravirtualized NIC that supports remote direct memory access (RDMA) between virtual machines through the OFED verbs API.",
 											},
 											fstringvalidator.OneOfWithDescriptionValues{
 												Value:       "SRIOVETHERNETCARD",
@@ -518,6 +518,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 							Computed:            true,
 							Validators: []validator.String{
 								stringvalidator.OneOf(vm.GetAllOsTypes()...),
+								// TODO Validator field is require if attribute deploy_os.boot_image_id is set
 							},
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
