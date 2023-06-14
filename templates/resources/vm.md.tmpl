@@ -9,11 +9,125 @@ description: |-
 
 {{ .Description | trimspace }}
 
-{{ if .HasExample -}}
-## Example Usage
+## Examples
 
-{{ tffile .ExampleFile }}
-{{- end }}
+~> **Warning**
+Due BUG in Terraform Framework, the **resource** and **state** block must be defined, even if empty.
+
+### Minimal setup
+
+This example shows how to create a simple VM.
+The VM inherits resources from the template.
+
+```hcl
+data "cloudavenue_catalog_vapp_template" "example" {
+  catalog_name  = "Orange-Linux"
+  template_name = "debian_10_X64"
+}
+
+resource "cloudavenue_vapp" "example" {
+  name        = "example-vapp"
+  description = "This is an example vApp"
+}
+
+resource "cloudavenue_vm" "example" {
+    name        = "example-vm"
+    description = "This is a example vm"
+    vapp_name = cloudavenue_vapp.example.name
+    deploy_os = {
+      vapp_template_id = data.cloudavenue_catalog_vapp_template.example.id
+    }
+    settings = {
+        customization = {
+            auto_generate_password = true
+        }
+    }
+    resource = {}
+    state = {}
+}
+```
+
+### VM with template
+
+This example shows how to create a VM from a vApp template.
+
+```hcl
+data "cloudavenue_catalog_vapp_template" "example" {
+  catalog_name  = "Orange-Linux"
+  template_name = "debian_10_X64"
+}
+
+resource "cloudavenue_vapp" "example" {
+  name        = "example-vapp"
+  description = "This is an example vApp"
+}
+
+resource "cloudavenue_vm" "example" {
+  name        = "example-vm"
+  description = "This is a example vm"
+  vapp_name = cloudavenue_vapp.example.name
+  deploy_os = {
+    vapp_template_id = data.cloudavenue_catalog_vapp_template.example.id
+    accept_all_eulas = true
+  }
+  state = {
+    power_on = false
+  }
+  resource = {
+    cpus   = 4
+    memory = 4096
+  }
+}  
+```
+
+### VM with ISO
+
+This example shows how to create a VM from an ISO file with a disk size of 20G.
+
+```hcl
+data "cloudavenue_catalog_media" "example" {
+  catalog_name = "example-catalog"
+  name         = "debian-9.9.0-amd64-netinst.iso"
+}
+
+resource "cloudavenue_vapp" "example" {
+  name        = "example-vapp"
+  description = "This is an example vApp"
+}
+
+resource "cloudavenue_vm" "example-iso" {
+  name      = "example-vm-iso"
+  vapp_name = cloudavenue_vapp.example.name
+  deploy_os = {
+    boot_image_id = data.cloudavenue_catalog_media.example.id
+  }
+  settings = {
+    customization = {
+      auto_generate_password = true
+    }
+    os_type = "debian10_64Guest"
+  }
+  resource = {
+    cpus   = 2
+    memory = 2048
+  }
+
+  state = {
+    power_on = false
+  }
+}
+
+resource "cloudavenue_vm_disk" "example" {
+  vapp_id       = cloudavenue_vapp.example.id
+  bus_type      = "SATA"
+  size_in_mb    = 20480
+  is_detachable = false
+  vm_id         = cloudavenue_vm.example-iso.id
+}
+```
+
+-> **Advanced Examples**
+See below for [Advanced VM Examples](#advanced--examples).
 
 {{ .SchemaMarkdown | trimspace }}
 
@@ -23,3 +137,77 @@ description: |-
 Import is supported using the following syntax:
 {{ codefile "shell" .ImportFile }}
 {{- end }}
+
+<a id="advanced--examples"></a>
+## Advanced Examples
+
+
+### VM with Network
+
+This example shows how to create a VM from a vApp template connected to a routed network.
+
+```hcl
+data "cloudavenue_tier0_vrfs" "example" {}
+
+resource "cloudavenue_edgegateway" "example" {
+  owner_name     = "example-vdc"
+  tier0_vrf_name = data.cloudavenue_tier0_vrfs.example.names.0
+  owner_type     = "vdc"
+}
+
+resource "cloudavenue_network_routed" "example" {
+  name        = "example-network"
+  description = "This is an example Net"
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+  gateway       = "192.168.1.254"
+  prefix_length = 24
+  dns1 = "1.1.1.1"
+  dns2 = "8.8.8.8"
+  dns_suffix = "example"
+  static_ip_pool = [
+    {
+      start_address = "192.168.1.10"
+      end_address   = "192.168.1.20"
+    }
+  ]
+}
+
+resource "cloudavenue_vapp" "example" {
+  name        = "example-vapp"
+  description = "This is an example vApp"
+}
+
+resource "cloudavenue_vapp_org_network" "example" {
+  vapp_name    = cloudavenue_vapp.example.name
+  network_name = cloudavenue_network_routed.example.name
+}
+
+resource "cloudavenue_vm" "example" {
+  name      = "example-vm"
+  vapp_name = cloudavenue_vapp.example.name
+  deploy_os = {
+    vapp_template_id = data.cloudavenue_catalog_vapp_template.example.id
+  }
+  settings = {
+    guest_properties = {
+      "guestinfo.hostname" = "example-vm"
+    }
+    customization = {
+      auto_generate_password = true
+    }
+  }
+  resource = {
+    cpus   = 2
+    memory = 2048
+    networks = [
+      {
+        type               = "org"
+        name               = cloudavenue_vapp_org_network.example.network_name
+        ip                 = "192.168.1.11"
+        ip_allocation_mode = "MANUAL"
+        is_primary         = true
+      }
+    ]
+  }
+}
+```

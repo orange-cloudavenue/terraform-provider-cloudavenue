@@ -31,7 +31,6 @@ data "cloudavenue_vapp" "example" {
 - `description` (String) Description of the vApp.
 - `guest_properties` (Map of String) Key/value settings for guest properties.
 - `lease` (Attributes) Informations about vApp lease. (see [below for nested schema](#nestedatt--lease))
-- `power_on` (Boolean) A boolean value indicating whether this vApp is powered on or not.
 
 <a id="nestedatt--lease"></a>
 ### Nested Schema for `lease`

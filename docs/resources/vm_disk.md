@@ -35,21 +35,21 @@ resource "cloudavenue_vm_disk" "example-detachable" {
 
 ### Optional
 
-- `bus_number` (Number) The bus number of the disk controller. Is the disk is attached to a VM and this attribute is not set, the disk will be attached to the first available bus. Value must be between 0 and 3.
+- `bus_number` (Number) The bus number of the disk controller. If the disk is attached to a VM and this attribute is not set, the disk will be attached to the first available bus. Value must be between 0 and 3.
 - `bus_type` (String) The type of disk controller. Value must be one of : `IDE`, `SATA`, `SCSI`, `NVME`. Value defaults to `SCSI`.
-- `name` (String) The name of the disk. If "is_detachable" attribute is set and the value is one of `true`, this attribute is required.
+- `is_detachable` (Boolean) (ForceNew) If set to `true`, the disk will be detached from the VM. If set to `false`, the disk will be attached to the VM. Value defaults to `false`.
+- `name` (String) The name of the disk. If is_detachable attribute is set and the value is one of `true`, this attribute is REQUIRED.
 - `storage_profile` (String) The name of the storage profile. If not set, the default storage profile will be used. Value must be one of : `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
-- `unit_number` (Number) The unit number of the disk controller. Is the disk is attached to a VM and this attribute is not set, the disk will be attached to the first available unit. Value must be between 0 and 15.
+- `unit_number` (Number) The unit number of the disk controller. If the disk is attached to a VM and this attribute is not set, the disk will be attached to the first available unit. Value must be between 0 and 15.
 - `vapp_id` (String) (ForceNew) ID of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
 - `vapp_name` (String) (ForceNew) Name of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_id`, `vapp_name`.
 - `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
-- `vm_id` (String) The ID of the VM where the disk will be attached. Value must satisfy at least one of the validations: If "is_detachable" attribute is set and the value is one of "false", this attribute is required + Ensure that one and only one attribute from this collection is set: "[vm_name]".
-- `vm_name` (String) The name of the VM where the disk will be attached. Value must satisfy at least one of the validations: If "is_detachable" attribute is set and the value is one of "false", this attribute is required + Ensure that one and only one attribute from this collection is set: "[vm_id]".
+- `vm_id` (String) The ID of the VM where the disk will be attached. Value must satisfy at least one of the validations: If is_detachable attribute is set and the value is one of false, this attribute is REQUIRED + Ensure that one and only one attribute from this collection is set: "[vm_name]".
+- `vm_name` (String) The name of the VM where the disk will be attached. Value must satisfy at least one of the validations: If is_detachable attribute is set and the value is one of false, this attribute is REQUIRED + Ensure that one and only one attribute from this collection is set: "[vm_id]".
 
 ### Read-Only
 
 - `id` (String) The ID of the VM.
-- `is_detachable` (Boolean) If set to `true`, the disk will be detached from the VM. If set to `false`, the disk will be attached to the VM. If `vm_id` is not set, the disk will be attached to any VM. Value defaults to `false`.
 
 ## Import
 
