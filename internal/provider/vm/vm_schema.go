@@ -517,7 +517,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 							Optional:            true,
 							Computed:            true,
 							Validators: []validator.String{
-								stringvalidator.OneOf(vm.GetAllOsTypes()...),
+								fstringvalidator.OneOfWithDescription(vm.GetAllOsTypesWithDescription()...),
 								// TODO Validator field is require if attribute deploy_os.boot_image_id is set
 							},
 							PlanModifiers: []planmodifier.String{

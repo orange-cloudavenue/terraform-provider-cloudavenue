@@ -24,6 +24,16 @@ github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.3-0.2023061
 github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.3-0.20230613090743-d3c4b56fad35/go.mod h1:4Q03kQyC/OF/teqhv/oHbymOoR4yzEQRPYxwnja9eyQ=
 github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.3 h1:yQzhy6DuNx+DCIhOzVD0cJv1+eCI6ZpxvRgyUJKkDIc=
 github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.3/go.mod h1:AAf7+99zG6fl/Pe6ukBOodMWrFWHxuznaNZsUnxuQoI=
+github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.4-0.20230614194226-e68d77d39c1a h1:87J4/K3uJKgKJBlo/KYTTzyqDhExMexH1aO0F7ucXZs=
+github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.4-0.20230614194226-e68d77d39c1a/go.mod h1:AAf7+99zG6fl/Pe6ukBOodMWrFWHxuznaNZsUnxuQoI=
+github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.4-0.20230614194854-f8e84227cd89 h1:NFu/6ttNxAMKRwD67vURKvrDCxy9XczgqpuVRH1nJNM=
+github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.4-0.20230614194854-f8e84227cd89/go.mod h1:AAf7+99zG6fl/Pe6ukBOodMWrFWHxuznaNZsUnxuQoI=
+github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.4-0.20230614195450-474bc307ac49 h1:MNmfp4cmKuHI/R5aqj2Mgfd6b06rTaWe3reVx+ICJ0w=
+github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.4-0.20230614195450-474bc307ac49/go.mod h1:AAf7+99zG6fl/Pe6ukBOodMWrFWHxuznaNZsUnxuQoI=
+github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.4-0.20230614195654-a6474b3e905d h1:87a/yVjR+Vwmtfk92WkWmwOoEQjlDkzA1lqXm8FGuSo=
+github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.4-0.20230614195654-a6474b3e905d/go.mod h1:AAf7+99zG6fl/Pe6ukBOodMWrFWHxuznaNZsUnxuQoI=
+github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.4-0.20230614200505-72bce4a90897 h1:uviIhgMMagtA7AIZrXqVgfOAQry5VYETCKOy9Y3HZ0I=
+github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.4-0.20230614200505-72bce4a90897/go.mod h1:AAf7+99zG6fl/Pe6ukBOodMWrFWHxuznaNZsUnxuQoI=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
 github.com/Masterminds/goutils v1.1.1/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
