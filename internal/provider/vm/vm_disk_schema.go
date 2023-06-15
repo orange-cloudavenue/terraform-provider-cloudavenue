@@ -162,7 +162,7 @@ func DiskSuperSchema() superschema.Schema {
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.UseStateForUnknown(),
 					},
-					Validators: []validator.String{ // TODO: Miss the validation of the bus type if disk is detachable or not.
+					Validators: []validator.String{
 						stringvalidator.OneOf(diskparams.ListOfBusTypes...),
 					},
 				},

@@ -354,7 +354,24 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									Optional: true,
 									Default:  stringdefault.StaticString("DHCP"),
 									Validators: []validator.String{
-										stringvalidator.OneOf("DHCP", "POOL", "MANUAL", "NONE"),
+										fstringvalidator.OneOfWithDescription(
+											fstringvalidator.OneOfWithDescriptionValues{
+												Value:       "DHCP",
+												Description: "IP address is obtained from a DHCP service.",
+											},
+											fstringvalidator.OneOfWithDescriptionValues{
+												Value:       "POOL",
+												Description: "Static IP address is allocated automatically from defined static pool in network.",
+											},
+											fstringvalidator.OneOfWithDescriptionValues{
+												Value:       "MANUAL",
+												Description: "SIP address is assigned manually in the ip field. Must be valid IP address from static pool.",
+											},
+											fstringvalidator.OneOfWithDescriptionValues{
+												Value:       "NONE",
+												Description: "No IP address will be set because VM will have a NIC without network.",
+											},
+										),
 									},
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
@@ -590,7 +607,8 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 							},
 							"must_change_password_on_first_login": superschema.BoolAttribute{
 								Resource: &schemaR.BoolAttribute{
-									Optional: true,
+									MarkdownDescription: "Whether the password must be changed on first login.",
+									Optional:            true,
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
