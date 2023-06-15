@@ -144,12 +144,12 @@ func (v VM) GetStorageProfileName() string {
 	return v.VM.VM.StorageProfile.Name
 }
 
-// IsCpusIsDefined returns true if the number of CPUs of a VM is defined.
+// CpusIsDefined returns true if the number of CPUs of a VM is defined.
 func (v VM) CpusIsDefined() bool {
 	return v.VM.VM.VmSpecSection.NumCpus != nil
 }
 
-// IsCpusCoresIsDefined returns true if the number of cores per CPU of a VM is defined.
+// CpusCoresIsDefined returns true if the number of cores per CPU of a VM is defined.
 func (v VM) CpusCoresIsDefined() bool {
 	return v.VM.VM.VmSpecSection.NumCoresPerSocket != nil
 }
@@ -191,7 +191,7 @@ func (v VM) HotAddIsDefined() bool {
 	return v.VM.VM.VMCapabilities != nil
 }
 
-// GetCpuHotAdd returns the hot add of a VM.
+// GetCPUHotAddEnabled returns the hot add of a VM.
 func (v VM) GetCPUHotAddEnabled() bool {
 	if !v.HotAddIsDefined() {
 		return false
@@ -200,7 +200,7 @@ func (v VM) GetCPUHotAddEnabled() bool {
 	return v.VM.VM.VMCapabilities.CPUHotAddEnabled
 }
 
-// GetMemoryHotAdd returns the hot add of a VM.
+// GetMemoryHotAddEnabled returns the hot add of a VM.
 func (v VM) GetMemoryHotAddEnabled() bool {
 	if !v.HotAddIsDefined() {
 		return false

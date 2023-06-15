@@ -75,69 +75,6 @@ var storageProfileValues = []string{
 	storageProfilePlatinum7HM.String(),
 }
 
-// var storageProfileValuesDescription = func() string {
-// 	var s string
-// 	countItems := len(storageProfileValues)
-// 	for i, v := range storageProfileValues {
-// 		if i == countItems-1 {
-// 			s += "`" + v + "`"
-// 		} else {
-// 			s += "`" + v + "`, "
-// 		}
-// 	}
-// 	return s
-// }()
-
-/*
-Schema
-
-	returns the schema.Attribute for the storage profile.
-
-	Default values are :
-	- Optional: true
-	- Computed: false
-	- Required: false
-
-	You can override the default values by using the following options:
-	- IsComputed()
-	- IsRequired()
-	- IsOptional()
-
-	If the override is define all the default values are set to false.
-*/
-// func Schema(opts ...common.AttributeOpts) schema.Attribute {
-// 	// Initialize the attribute options.
-// 	a := &common.AttributeStruct{}
-
-// 	// if opts is empty, set the default values.
-// 	if len(opts) == 0 {
-// 		a.Optional = true
-// 	} else {
-// 		// Override the default values with the provided options.
-// 		for _, opt := range opts {
-// 			opt(a)
-// 		}
-// 	}
-
-// 	description := "Storage profile to override the VM default one."
-// 	if a.Optional || a.Required {
-// 		description += " Allowed values are: " + storageProfileValuesDescription + "."
-// 	}
-
-// 	return schema.StringAttribute{
-// 		MarkdownDescription: description,
-// 		Computed:            a.Computed,
-// 		Optional:            a.Optional,
-// 		Required:            a.Required,
-// 		PlanModifiers: []planmodifier.String{
-// 			stringplanmodifier.UseStateForUnknown(),
-// 		},
-// 		Validators: []validator.String{
-// 			stringvalidator.OneOf(storageProfileValues...),
-// 		},
-// 	}
-// }
-
 func SuperSchema() superschema.StringAttribute {
 	return superschema.StringAttribute{
 		Common: &schemaR.StringAttribute{

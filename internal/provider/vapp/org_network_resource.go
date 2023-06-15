@@ -369,6 +369,11 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 		resp.Diagnostics.AddError("Error deleting vApp network", err.Error())
 	}
 
+	// Vapp Statuses
+	// 4: "POWERED_ON"
+	// 19: "VAPP_PARTIALLY_DEPLOYED"
+	// 20: "PARTIALLY_POWERED_OFF"
+	// 21: "PARTIALLY_SUSPENDED"
 	if slices.Contains([]int{4, 19, 20, 21}, vAppStatusBeforeAction) {
 		// Power On vApp
 		task, err := r.vapp.PowerOn()

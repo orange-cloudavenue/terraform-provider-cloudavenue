@@ -37,7 +37,7 @@ resource "cloudavenue_vm_disk" "example-detachable" {
 
 - `bus_number` (Number) The bus number of the disk controller. If the disk is attached to a VM and this attribute is not set, the disk will be attached to the first available bus. Value must be between 0 and 3.
 - `bus_type` (String) The type of disk controller. Value must be one of : `IDE`, `SATA`, `SCSI`, `NVME`. Value defaults to `SCSI`.
-- `is_detachable` (Boolean) (ForceNew) If set to `true`, the disk will be detached from the VM. If set to `false`, the disk will be attached to the VM. Value defaults to `false`.
+- `is_detachable` (Boolean) (ForceNew) If set to true, the disk could be detached from the VM. If set to false, the disk canot detached to the VM. Value defaults to `false`.
 - `name` (String) The name of the disk. If is_detachable attribute is set and the value is one of `true`, this attribute is REQUIRED.
 - `storage_profile` (String) The name of the storage profile. If not set, the default storage profile will be used. Value must be one of : `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
 - `unit_number` (Number) The unit number of the disk controller. If the disk is attached to a VM and this attribute is not set, the disk will be attached to the first available unit. Value must be between 0 and 15.

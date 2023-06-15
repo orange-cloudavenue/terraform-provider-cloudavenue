@@ -93,7 +93,7 @@ func DiskSuperSchema() superschema.Schema {
 			},
 			"is_detachable": superschema.BoolAttribute{
 				Common: &schemaR.BoolAttribute{
-					MarkdownDescription: "If set to `true`, the disk will be detached from the VM. If set to `false`, the disk will be attached to the VM.",
+					MarkdownDescription: "If set to true, the disk could be detached from the VM. If set to false, the disk canot detached to the VM.",
 					Computed:            true,
 				},
 				Resource: &schemaR.BoolAttribute{

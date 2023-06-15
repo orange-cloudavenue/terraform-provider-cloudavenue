@@ -185,24 +185,6 @@ func (s *VMResourceModelSettings) CustomizationFromPlan(ctx context.Context) (cu
 
 	if s.Customization.IsNull() || s.Customization.IsUnknown() {
 		return customization, nil
-		// return &VMResourceModelSettingsCustomization{
-		// 	Force:                          types.BoolNull(),
-		// 	Enabled:                        types.BoolNull(),
-		// 	ChangeSID:                      types.BoolNull(),
-		// 	AllowLocalAdminPassword:        types.BoolNull(),
-		// 	MustChangePasswordOnFirstLogin: types.BoolNull(),
-		// 	AdminPassword:                  types.StringNull(),
-		// 	AutoGeneratePassword:           types.BoolNull(),
-		// 	NumberOfAutoLogons:             types.Int64Null(),
-		// 	JoinDomain:                     types.BoolNull(),
-		// 	JoinOrgDomain:                  types.BoolNull(),
-		// 	JoinDomainName:                 types.StringNull(),
-		// 	JoinDomainUser:                 types.StringNull(),
-		// 	JoinDomainPassword:             types.StringNull(),
-		// 	JoinDomainAccountOU:            types.StringNull(),
-		// 	InitScript:                     types.StringNull(),
-		// 	Hostname:                       types.StringNull(),
-		// }, nil
 	}
 
 	diags.Append(s.Customization.As(ctx, customization, basetypes.ObjectAsOptions{

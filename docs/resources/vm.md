@@ -138,7 +138,7 @@ See below for [Advanced VM Examples](#advanced--examples).
 
 ### Optional
 
-- `deploy_os` (Attributes) . (see [below for nested schema](#nestedatt--deploy_os))
+- `deploy_os` (Attributes) Settings for deploying the operating system on the VM. (see [below for nested schema](#nestedatt--deploy_os))
 - `description` (String) The description of the VM.
 - `resource` (Attributes) The resource of the VM. (see [below for nested schema](#nestedatt--resource))
 - `settings` (Attributes) The settings for the VM. (see [below for nested schema](#nestedatt--settings))

@@ -115,8 +115,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 			},
 			"deploy_os": superschema.SingleNestedAttribute{
 				Common: &schemaR.SingleNestedAttribute{
-					// TODO: add description
-					MarkdownDescription: "",
+					MarkdownDescription: "Settings for deploying the operating system on the VM.",
 					Computed:            true,
 				},
 				Resource: &schemaR.SingleNestedAttribute{
