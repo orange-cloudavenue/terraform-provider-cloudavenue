@@ -275,7 +275,7 @@ func (r *aclResource) createOrUpdateACL(ctx context.Context, plan *aclResourceMo
 	if diags.HasError() {
 		return nil, diags
 	}
-	defer diags.Append(r.vapp.UnlockVAPP(ctx)...)
+	defer r.vapp.UnlockVAPP(ctx)
 
 	var accessSettings []*govcdtypes.AccessSetting
 
