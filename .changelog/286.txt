@@ -1,0 +1,23 @@
+```release-note:breaking-change
+New major change on schema for `cloudavenue_vm` resource.
+```
+
+```release-note:breaking-change
+Deletion of `power_on` attribute in schema for `cloudavenue_vapp` resource and datasource.
+```
+
+```release-note:breaking-change
+New major change on schema `cloudavenue_vm_disk` resource.
+```
+
+```release-note:bug
+Force to `power_off` a `cloudavenue_vapp` when you delete a `cloudavenue_vapp_org_network` resource.
+```
+
+```release-note:dependency
+deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-validators from 1.5.1 to 1.6.3
+```
+
+```release-note:dependency
+Update VMware Cloud Director API from v37.0 to v37.1
+```

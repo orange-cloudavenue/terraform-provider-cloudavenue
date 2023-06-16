@@ -1,5 +1,13 @@
 package vm
 
+import (
+	"sort"
+
+	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+)
+
 type osType struct {
 	name        string
 	description string
@@ -14,7 +22,7 @@ type osAllTypes struct {
 type osTypes map[string]osType
 
 func getOsTypeLinux() osTypes {
-	return map[string]osType{
+	return utils.SortMapStringByKeys(map[string]osType{
 		"sles15_64Guest":       {"sles15_64Guest", "SUSE Linux Enterprise Server 15 (64-bit)"},
 		"rhel8_64Guest":        {"rhel8_64Guest", "Red Hat Enterprise Linux 8 (64-bit)"},
 		"other4xLinux64Guest":  {"other4xLinux64Guest", "Other Linux 4.x (64-bit)"},
@@ -82,13 +90,13 @@ func getOsTypeLinux() osTypes {
 		"otherLinux64Guest":    {"otherLinux64Guest", "Other Linux (64-bit)"},
 		"otherLinuxGuest":      {"otherLinuxGuest", "Other Linux (32-bit)"},
 		"oesGuest":             {"oesGuest", "Novell Open Enterprise Server (32-bit)"},
-	}
+	})
 }
 
 // //nolint:dupl
 // getOsTypeWindows returns the osType for the given name.
 func getOsTypeWindows() osTypes {
-	return map[string]osType{
+	return utils.SortMapStringByKeys(map[string]osType{
 		"windows9_64Guest":        {"windows9_64Guest", "Microsoft Windows 10 (64-bit)"},
 		"windows9Guest":           {"windows9Guest", "Microsoft Windows 10 (32-bit)"},
 		"windows8Server64Guest":   {"windows8Server64Guest", "Microsoft Windows Server 2012 (64-bit)"},
@@ -119,7 +127,7 @@ func getOsTypeWindows() osTypes {
 		"win2000ProGuest":         {"win2000ProGuest", "Microsoft Windows 2000 Professional"},
 		"win2000AdvServGuest":     {"win2000AdvServGuest", "Microsoft Windows 2000"},
 		"winNetBusinessGuest":     {"winNetBusinessGuest", "Microsoft Windows Small Business Server 2003"},
-	}
+	})
 }
 
 // //nolint:dupl
@@ -129,7 +137,7 @@ func getOsTypeOther() osTypes {
 	// if allowVMReboot {
 	// 	return map[string]osType{}
 	// }
-	return map[string]osType{
+	return utils.SortMapStringByKeys(map[string]osType{
 		"freebsd12_64Guest": {"freebsd12_64Guest", "FreeBSD 12 or later versions (64-bit)"},
 		"freebsd12Guest":    {"freebsd12Guest", "FreeBSD 12 or later versions (32-bit)"},
 		"freebsd11_64Guest": {"freebsd11_64Guest", "FreeBSD 11 (64-bit)"},
@@ -160,7 +168,7 @@ func getOsTypeOther() osTypes {
 		"solaris10Guest":    {"solaris10Guest", "Oracle Solaris 10 (32-bit)"},
 		"netware6Guest":     {"netware6Guest", "Novell NetWare 6.x"},
 		"netware5Guest":     {"netware5Guest", "Novell NetWare 5.x"},
-	}
+	})
 }
 
 // sortByName sorts the list of osTypes by name.
@@ -200,6 +208,46 @@ func GetAllOsTypes() []string {
 	for k := range all.other {
 		x = append(x, k)
 	}
+
+	fstringvalidator.OneOfWithDescription()
+
+	sort.Strings(x)
+
+	return x
+}
+
+func GetAllOsTypesWithDescription() []fstringvalidator.OneOfWithDescriptionValues {
+	all := osAllTypes{
+		linux:   getOsTypeLinux(),
+		windows: getOsTypeWindows(),
+		other:   getOsTypeOther(),
+	}
+
+	x := []fstringvalidator.OneOfWithDescriptionValues{}
+	for k, v := range all.linux {
+		x = append(x, fstringvalidator.OneOfWithDescriptionValues{
+			Value:       k,
+			Description: v.description,
+		})
+	}
+
+	for k, v := range all.windows {
+		x = append(x, fstringvalidator.OneOfWithDescriptionValues{
+			Value:       k,
+			Description: v.description,
+		})
+	}
+
+	for k, v := range all.other {
+		x = append(x, fstringvalidator.OneOfWithDescriptionValues{
+			Value:       k,
+			Description: v.description,
+		})
+	}
+
+	sort.Slice(x, func(i, j int) bool {
+		return x[i].Value < x[j].Value
+	})
 
 	return x
 }

@@ -13,7 +13,6 @@ type vappResourceModel struct {
 	VAppID          types.String `tfsdk:"id"`
 	VDC             types.String `tfsdk:"vdc"`
 	Description     types.String `tfsdk:"description"`
-	PowerON         types.Bool   `tfsdk:"power_on"`
 	GuestProperties types.Map    `tfsdk:"guest_properties"`
 	Lease           types.Object `tfsdk:"lease"`
 }

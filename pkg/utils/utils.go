@@ -59,3 +59,19 @@ func StringValueOrNull(value string) basetypes.StringValue {
 	}
 	return types.StringValue(value)
 }
+
+// SortMapStringByKeys sorts a map[string]string by keys.
+func SortMapStringByKeys[T any](m map[string]T) map[string]T {
+	sortedKeys := make([]string, 0, len(m))
+	for k := range m {
+		sortedKeys = append(sortedKeys, k)
+	}
+	sort.Strings(sortedKeys)
+
+	sortedMap := make(map[string]T)
+	for _, k := range sortedKeys {
+		sortedMap[k] = m[k]
+	}
+
+	return sortedMap
+}

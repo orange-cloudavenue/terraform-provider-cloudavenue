@@ -1,6 +1,10 @@
 package client
 
-import "github.com/vmware/go-vcloud-director/v2/govcd"
+import (
+	"fmt"
+
+	"github.com/vmware/go-vcloud-director/v2/govcd"
+)
 
 type VAPP struct {
 	*govcd.VApp
@@ -39,4 +43,27 @@ func (v VAPP) GetDeploymentLeaseInSeconds() int {
 // GetStorageLeaseInSeconds retrieves the lease duration in seconds for a storage resource.
 func (v VAPP) GetStorageLeaseInSeconds() int {
 	return v.VApp.VApp.LeaseSettingsSection.StorageLeaseInSeconds
+}
+
+// IsVAPPOrgNetwork check if it is a vApp Org Network (not vApp network).
+func (v VAPP) IsVAPPOrgNetwork(networkName string) (bool, error) {
+	vAppNetworkConfig, err := v.GetNetworkConfig()
+	if err != nil {
+		return false, fmt.Errorf("error getting vApp networks: %w", err)
+	}
+
+	for _, networkConfig := range vAppNetworkConfig.NetworkConfig {
+		if networkConfig.NetworkName == networkName &&
+			!govcd.IsVappNetwork(networkConfig.Configuration) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// IsVAPPNetwork check if it is a vApp network (not vApp Org Network).
+func (v VAPP) IsVAPPNetwork(networkName string) (bool, error) {
+	x, err := v.IsVAPPOrgNetwork(networkName)
+	return !x, err
 }

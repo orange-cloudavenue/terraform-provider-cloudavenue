@@ -33,7 +33,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vrf"
 )
 
-const VCDVersion = "37.0"
+const VCDVersion = "37.1"
 
 // Ensure the implementation satisfies the expected interfaces.
 var _ provider.Provider = &cloudavenueProvider{}

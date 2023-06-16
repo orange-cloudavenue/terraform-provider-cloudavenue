@@ -40,7 +40,6 @@ resource "cloudavenue_vapp" "example" {
 - `description` (String) Description of the vApp.
 - `guest_properties` (Map of String) Key/value settings for guest properties.
 - `lease` (Attributes) Informations about vApp lease. Value defaults to `{"runtime_lease_in_sec":0,"storage_lease_in_sec":0}`. (see [below for nested schema](#nestedatt--lease))
-- `power_on` (Boolean) A boolean value indicating whether this vApp is powered on or not. Value defaults to `false`.
 - `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only

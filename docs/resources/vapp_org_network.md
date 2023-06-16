@@ -9,6 +9,10 @@ description: |-
 
 Provides a Cloud Avenue routed vAPP Org Network resource. This can be used to create, modify, and delete routed vAPP Network.
 
+!> **Warning on deleting resource:** Deleting a resource require **vApp to be in a powered OFF** state. 
+If the vApp is in a powered on state, the resource will power OFF the vApp before deleting the resource and then power it back on.
+On power **ALL** VMs in the vApp will be powered ON, regardless of their previous state.
+
 ## Example Usage
 
 ```terraform

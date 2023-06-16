@@ -92,11 +92,6 @@ func (d *vappDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	data.VAppName = types.StringValue(d.vapp.GetName())
 	data.VDC = types.StringValue(d.vdc.GetName())
 
-	data.PowerON = types.BoolValue(false)
-	if d.vapp.GetStatusCode() == 4 {
-		data.PowerON = types.BoolValue(true)
-	}
-
 	// Get guest properties
 	guestProperties, diags := processGuestProperties(d.vapp)
 	resp.Diagnostics.Append(diags...)
