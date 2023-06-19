@@ -12,7 +12,7 @@ jobs:
         with:
           token: ${{ secrets.CHANGELOG_PAT }}
           fetch-depth: 0
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v4.0.1
         with:
           go-version-file: '.ci/tools/go.mod'
       - run: go generate -tags tools .ci/tools/tools.go
