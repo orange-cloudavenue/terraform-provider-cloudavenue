@@ -1,4 +1,5 @@
-## 0.3.0 (Unreleased)
+## 0.4.0 (Unreleased)
+## 0.3.0 (June 20, 2023)
 BREAKING CHANGES:
 * Deletion of `power_on` attribute in schema for `cloudavenue_vapp` resource and datasource. ([GH-286](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/286))
 * New major change on schema `cloudavenue_vm_disk` resource. ([GH-286](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/286))
