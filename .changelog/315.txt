@@ -1,0 +1,3 @@
+```release-note:dependency
+deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-validators from 1.6.3 to 1.6.4
+```
