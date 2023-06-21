@@ -77,10 +77,37 @@ func (s *VMResourceModelSettingsCustomization) toAttrValues() map[string]attr.Va
 // ToPlan returns the value of the SettingsCustomization attribute, if set, as a types.Object.
 func (s *VMResourceModelSettingsCustomization) ToPlan(_ context.Context) types.Object {
 	if s == nil {
-		return types.Object{}
+		return types.ObjectNull(s.AttrTypes())
 	}
 
 	return types.ObjectValueMust(s.AttrTypes(), s.toAttrValues())
+}
+
+// CustomizationRead reads the customization fields from a VM.
+func (v *VM) CustomizationRead(ctx context.Context) (*VMResourceModelSettingsCustomization, error) {
+	customization, err := v.GetCustomization()
+	if err != nil {
+		return nil, err
+	}
+
+	return &VMResourceModelSettingsCustomization{
+		Force:                          types.BoolValue(false),
+		Enabled:                        types.BoolValue(*customization.Enabled),
+		ChangeSID:                      types.BoolValue(*customization.ChangeSid),
+		AllowLocalAdminPassword:        types.BoolValue(*customization.AdminPasswordEnabled),
+		MustChangePasswordOnFirstLogin: types.BoolValue(*customization.ResetPasswordRequired),
+		AdminPassword:                  utils.StringValueOrNull(customization.AdminPassword),
+		AutoGeneratePassword:           types.BoolValue(*customization.AdminPasswordAuto),
+		NumberOfAutoLogons:             types.Int64Value(int64(customization.AdminAutoLogonCount)),
+		JoinDomain:                     types.BoolValue(*customization.JoinDomainEnabled),
+		JoinOrgDomain:                  types.BoolValue(*customization.UseOrgSettings),
+		JoinDomainName:                 utils.StringValueOrNull(customization.DomainName),
+		JoinDomainUser:                 utils.StringValueOrNull(customization.DomainUserName),
+		JoinDomainPassword:             utils.StringValueOrNull(customization.DomainUserPassword),
+		JoinDomainAccountOU:            utils.StringValueOrNull(customization.MachineObjectOU),
+		InitScript:                     utils.StringValueOrNull(customization.CustomizationScript),
+		Hostname:                       utils.StringValueOrNull(customization.ComputerName),
+	}, nil
 }
 
 // GetCustomizationSection returns the value of the SettingsCustomization attribute, if set, as a *types.CustomizationSection.
