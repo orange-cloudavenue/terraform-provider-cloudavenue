@@ -12,7 +12,7 @@ description: |-
 ## Examples
 
 ~> **Warning**
-Due BUG in Terraform Framework, the **resource** and **state** block must be defined, even if empty.
+Due to a BUG in Terraform Framework, the **resource** and **state** block must be defined, even if empty.
 
 ### Minimal setup
 
@@ -128,6 +128,20 @@ resource "cloudavenue_vm_disk" "example" {
 
 -> **Advanced Examples**
 See below for [Advanced VM Examples](#advanced--examples).
+
+## Restart Required
+
+<a id="restartrequired"></a>
+
+~> **Some attributes changes require VM restart**
+In this case, Terraform will report a difference to be applied, and will restart the VM.
+The attributes is marked with the following text: **(Restart Required)**
+
+~> **Cpu and Memory changes**
+If you change the number of CPUs or the amount of memory and cpu/memory hotplug is not enabled, the VM will be restarted.
+
+~> **Network changes**
+If your change network card is primary, the VM will be restarted.
 
 {{ .SchemaMarkdown | trimspace }}
 

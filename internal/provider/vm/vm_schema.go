@@ -36,6 +36,10 @@ import (
 )
 
 func vmSuperSchema(_ context.Context) superschema.Schema {
+	const (
+		coldUpdate = `<a href="#restartrequired" style="color:red">(Restart Required)</a>`
+	)
+
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
 			MarkdownDescription: "The virtual machine (vm) resource allows you to manage a virtual machine in the CloudAvenue.",
@@ -101,10 +105,11 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 			"vdc": vdc.SuperSchema(),
 			"description": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The description of the VM.",
+					MarkdownDescription: "The description of the VM",
 				},
 				Resource: &schemaR.StringAttribute{
-					Optional: true,
+					Optional:            true,
+					MarkdownDescription: coldUpdate,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.UseStateForUnknown(),
 					},
@@ -211,8 +216,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 							Computed:            true,
 						},
 						Resource: &schemaR.Int64Attribute{
-							Optional: true,
-							Default:  int64default.StaticInt64(1),
+							MarkdownDescription: coldUpdate,
+							Optional:            true,
+							Default:             int64default.StaticInt64(1),
 							PlanModifiers: []planmodifier.Int64{
 								int64planmodifier.UseStateForUnknown(),
 							},
@@ -227,8 +233,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 							Computed:            true,
 						},
 						Resource: &schemaR.Int64Attribute{
-							Optional: true,
-							Default:  int64default.StaticInt64(1),
+							MarkdownDescription: coldUpdate,
+							Optional:            true,
+							Default:             int64default.StaticInt64(1),
 							PlanModifiers: []planmodifier.Int64{
 								int64planmodifier.UseStateForUnknown(),
 							},
@@ -239,12 +246,13 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 					},
 					"cpu_hot_add_enabled": superschema.BoolAttribute{
 						Common: &schemaR.BoolAttribute{
-							MarkdownDescription: "Whether CPU hot add is enabled or not.",
+							MarkdownDescription: "Whether CPU hot add is enabled or not",
 							Computed:            true,
 						},
 						Resource: &schemaR.BoolAttribute{
-							Optional: true,
-							Default:  booldefault.StaticBool(true),
+							MarkdownDescription: coldUpdate,
+							Optional:            true,
+							Default:             booldefault.StaticBool(true),
 							PlanModifiers: []planmodifier.Bool{
 								boolplanmodifier.UseStateForUnknown(),
 							},
@@ -256,8 +264,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 							Computed:            true,
 						},
 						Resource: &schemaR.Int64Attribute{
-							Optional: true,
-							Default:  int64default.StaticInt64(1024),
+							MarkdownDescription: coldUpdate,
+							Optional:            true,
+							Default:             int64default.StaticInt64(1024),
 							PlanModifiers: []planmodifier.Int64{
 								int64planmodifier.UseStateForUnknown(),
 							},
@@ -272,8 +281,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 							Computed:            true,
 						},
 						Resource: &schemaR.BoolAttribute{
-							Optional: true,
-							Default:  booldefault.StaticBool(true),
+							MarkdownDescription: coldUpdate,
+							Optional:            true,
+							Default:             booldefault.StaticBool(true),
 							PlanModifiers: []planmodifier.Bool{
 								boolplanmodifier.UseStateForUnknown(),
 							},
@@ -285,7 +295,8 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 							Computed:            true,
 						},
 						Resource: &schemaR.ListNestedAttribute{
-							Optional: true,
+							MarkdownDescription: coldUpdate,
+							Optional:            true,
 							PlanModifiers: []planmodifier.List{
 								listplanmodifier.UseStateForUnknown(),
 							},
@@ -414,12 +425,13 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 							},
 							"is_primary": superschema.BoolAttribute{
 								Common: &schemaR.BoolAttribute{
-									MarkdownDescription: "Whether this network is the primary network for the VM.",
+									MarkdownDescription: "Whether this network is the primary network for the VM",
 									Computed:            true,
 								},
 								Resource: &schemaR.BoolAttribute{
-									Optional: true,
-									Default:  booldefault.StaticBool(false),
+									MarkdownDescription: coldUpdate,
+									Optional:            true,
+									Default:             booldefault.StaticBool(false),
 								},
 							},
 							"mac": superschema.StringAttribute{
@@ -494,12 +506,13 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 				Attributes: map[string]superschema.Attribute{
 					"expose_hardware_virtualization": superschema.BoolAttribute{
 						Common: &schemaR.BoolAttribute{
-							MarkdownDescription: "Whether to expose hardware CPU virtualization to the guest OS.",
+							MarkdownDescription: "Whether to expose hardware CPU virtualization to the guest OS",
 							Computed:            true,
 						},
 						Resource: &schemaR.BoolAttribute{
-							Optional: true,
-							Default:  booldefault.StaticBool(false),
+							MarkdownDescription: coldUpdate,
+							Optional:            true,
+							Default:             booldefault.StaticBool(false),
 							PlanModifiers: []planmodifier.Bool{
 								boolplanmodifier.UseStateForUnknown(),
 							},
@@ -507,7 +520,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 					},
 					"os_type": superschema.StringAttribute{
 						Resource: &schemaR.StringAttribute{
-							MarkdownDescription: "The type of OS installed on the VM.",
+							MarkdownDescription: "The type of OS installed on the VM " + coldUpdate,
 							Optional:            true,
 							Computed:            true,
 							Validators: []validator.String{
