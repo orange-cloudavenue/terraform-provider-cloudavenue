@@ -22,10 +22,22 @@ resource "cloudavenue_vapp" "example" {
 }
 
 resource "cloudavenue_vm" "example" {
-	name         	    = "example-vm"
-	vapp_name 			= cloudavenue_vapp.example.name
-	vapp_template_id 	= data.cloudavenue_catalog_vapp_template.example.id
-}
+	name      = "example-vm"
+	vapp_name = cloudavenue_vapp.example.name
+	deploy_os = {
+	  vapp_template_id = data.cloudavenue_catalog_vapp_template.example.id
+	}
+	settings = {
+	  customization = {
+		auto_generate_password = true
+	  }
+	}
+	resource = {
+	}
+  
+	state = {
+	}
+  }
 
 resource "cloudavenue_vm_security_tag" "example" {
 	id = "tag-example"
