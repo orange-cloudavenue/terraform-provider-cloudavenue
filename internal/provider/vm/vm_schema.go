@@ -73,9 +73,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 			"vapp_name": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The vApp this VM belongs to.",
-					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
+					Computed: true,
 					Optional: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
@@ -84,6 +84,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
 					},
+				},
+				DataSource: &schemaD.StringAttribute{
+					Required: true,
 				},
 			},
 			"vapp_id": superschema.StringAttribute{
@@ -158,6 +161,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 							Validators: []validator.String{
 								stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("vapp_template_id")),
 							},
+						},
+						DataSource: &schemaD.StringAttribute{
+							Computed: true,
 						},
 					},
 					"accept_all_eulas": superschema.BoolAttribute{
@@ -531,6 +537,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								stringplanmodifier.UseStateForUnknown(),
 							},
 						},
+						DataSource: &schemaD.StringAttribute{
+							Computed: true,
+						},
 					},
 					"storage_profile":  storageprofile.SuperSchema(),
 					"guest_properties": vm.GuestPropertiesSuperSchema(),
@@ -556,6 +565,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								objectplanmodifier.UseStateForUnknown(),
 							},
 						},
+						DataSource: &schemaD.SingleNestedAttribute{
+							Computed: true,
+						},
 						Attributes: map[string]superschema.Attribute{
 							"force": superschema.BoolAttribute{
 								Resource: &schemaR.BoolAttribute{
@@ -566,6 +578,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
+								},
+								DataSource: &schemaD.BoolAttribute{
+									Computed: true,
 								},
 							},
 							"enabled": superschema.BoolAttribute{
@@ -578,6 +593,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										boolplanmodifier.UseStateForUnknown(),
 									},
 								},
+								DataSource: &schemaD.BoolAttribute{
+									Computed: true,
+								},
 							},
 							"change_sid": superschema.BoolAttribute{
 								Resource: &schemaR.BoolAttribute{
@@ -588,6 +606,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
+								},
+								DataSource: &schemaD.BoolAttribute{
+									Computed: true,
 								},
 							},
 							"allow_local_admin_password": superschema.BoolAttribute{
@@ -600,6 +621,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										boolplanmodifier.UseStateForUnknown(),
 									},
 								},
+								DataSource: &schemaD.BoolAttribute{
+									Computed: true,
+								},
 							},
 							"must_change_password_on_first_login": superschema.BoolAttribute{
 								Resource: &schemaR.BoolAttribute{
@@ -610,6 +634,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
+								},
+								DataSource: &schemaD.BoolAttribute{
+									Computed: true,
 								},
 							},
 							"auto_generate_password": superschema.BoolAttribute{
@@ -624,6 +651,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("admin_password")),
 									},
 								},
+								DataSource: &schemaD.BoolAttribute{
+									Computed: true,
+								},
 							},
 							"admin_password": superschema.StringAttribute{
 								Resource: &schemaR.StringAttribute{
@@ -636,6 +666,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									Validators: []validator.String{
 										stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("auto_generate_password")),
 									},
+								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
 								},
 							},
 							"number_of_auto_logons": superschema.Int64Attribute{
@@ -650,6 +683,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										int64planmodifier.UseStateForUnknown(),
 									},
 								},
+								DataSource: &schemaD.Int64Attribute{
+									Computed: true,
+								},
 							},
 							"join_domain": superschema.BoolAttribute{
 								Resource: &schemaR.BoolAttribute{
@@ -660,6 +696,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
+								},
+								DataSource: &schemaD.BoolAttribute{
+									Computed: true,
 								},
 							},
 							"join_org_domain": superschema.BoolAttribute{
@@ -672,6 +711,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										boolplanmodifier.UseStateForUnknown(),
 									},
 								},
+								DataSource: &schemaD.BoolAttribute{
+									Computed: true,
+								},
 							},
 							"join_domain_name": superschema.StringAttribute{
 								Resource: &schemaR.StringAttribute{
@@ -681,6 +723,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										stringplanmodifier.UseStateForUnknown(),
 									},
 								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
+								},
 							},
 							"join_domain_user": superschema.StringAttribute{
 								Resource: &schemaR.StringAttribute{
@@ -689,6 +734,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
+								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
 								},
 							},
 							"join_domain_password": superschema.StringAttribute{
@@ -700,6 +748,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										stringplanmodifier.UseStateForUnknown(),
 									},
 								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
+								},
 							},
 							"join_domain_account_ou": superschema.StringAttribute{
 								Resource: &schemaR.StringAttribute{
@@ -709,6 +760,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										stringplanmodifier.UseStateForUnknown(),
 									},
 								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
+								},
 							},
 							"init_script": superschema.StringAttribute{
 								Resource: &schemaR.StringAttribute{
@@ -717,6 +771,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
+								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
 								},
 							},
 							"hostname": superschema.StringAttribute{
@@ -730,6 +787,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									Validators: []validator.String{
 										stringvalidator.RegexMatches(regexp.MustCompile(`^[a-zA-Z0-9-]{1,80}$`), "Must be between 1 and 80 characters long and can contain only letters, numbers and hyphen. It must not contain only digits."),
 									},
+								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
 								},
 							},
 						},
