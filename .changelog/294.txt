@@ -1,0 +1,3 @@
+```release-note:new-resource
+`cloudavenue_vm_security_tag` resource is added to manage security tags on VMs.
+```
