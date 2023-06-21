@@ -156,7 +156,7 @@ See below for [Advanced VM Examples](#advanced--examples).
 
 Optional:
 
-- `accept_all_eulas` (Boolean) Automatically accept EULA if OVA has it. Value defaults to `true`.
+- `accept_all_eulas` (Boolean) Automatically accept EULA if OVA has it.
 - `boot_image_id` (String) (ForceNew) The ID of the boot image to use for the VM. Ensure that if an attribute is set, these are not set: "[<.vapp_template_id]".
 - `vapp_template_id` (String) (ForceNew) The ID of the vApp template to use for the VM. Ensure that if an attribute is set, these are not set: "[<.boot_image_id]".
 - `vm_name_in_template` (String) (ForceNew) The name of the VM in the vApp template. Ensure that if an attribute is set, these are not set: "[<.boot_image_id]".
@@ -211,20 +211,20 @@ Optional:
 Optional:
 
 - `admin_password` (String, Sensitive) The admin password for the VM. Ensure that one and only one attribute from this collection is set : `admin_password`, `auto_generate_password`.
-- `allow_local_admin_password` (Boolean) Whether to allow the local admin password to be changed.
+- `allow_local_admin_password` (Boolean) Whether to allow the local admin password to be changed. Value defaults to `false`.
 - `auto_generate_password` (Boolean) Whether to auto-generate the password. Ensure that one and only one attribute from this collection is set : `admin_password`, `auto_generate_password`.
-- `change_sid` (Boolean) Whether to change the SID of the VM. Applicable only for Windows VMs.
+- `change_sid` (Boolean) Whether to change the SID of the VM. Applicable only for Windows VMs. Value defaults to `false`.
 - `enabled` (Boolean) Whether guest customization is enabled or not. Value defaults to `false`.
-- `force` (Boolean) `true` value will cause the VM to reboot on every `apply` operation.
+- `force` (Boolean) `true` value will cause the VM to reboot on every `apply` operation. Value defaults to `false`.
 - `hostname` (String) Computer name to assign to this virtual machine. Default is the value of attribute `name`. Must be between 1 and 80 characters long and can contain only letters, numbers and hyphen. It must not contain only digits.
 - `init_script` (String) The init script to run.
-- `join_domain` (Boolean) Enable this VM to join a domain.
+- `join_domain` (Boolean) Enable this VM to join a domain. Value defaults to `false`.
 - `join_domain_account_ou` (String) The domain account OU to join.
 - `join_domain_name` (String) The domain name to join.
 - `join_domain_password` (String, Sensitive) The domain password to join.
 - `join_domain_user` (String) The domain user to join.
-- `join_org_domain` (Boolean) Use organization's domain for joining.
-- `must_change_password_on_first_login` (Boolean) Whether the password must be changed on first login.
+- `join_org_domain` (Boolean) Use organization's domain for joining. Value defaults to `false`.
+- `must_change_password_on_first_login` (Boolean) Whether the password must be changed on first login. Value defaults to `false`.
 - `number_of_auto_logons` (Number) The number of times the VM should auto-login. Value must be at least 0.
 
 
@@ -240,7 +240,17 @@ Read-Only:
 
 - `status` (String) The status of the VM.
 
+## Import
 
+Import is supported using the following syntax:
+```shell
+# If `vDC` is not specified, the default `vDC` will be used
+# The `myVMID` is the ID of the VM. 
+terraform import cloudavenue_vm.example myVAPP.myVMID
+
+# or you can specify the vDC
+terraform import cloudavenue_vm.example myVDC.myVAPP.myVMID
+```
 
 <a id="advanced--examples"></a>
 ## Advanced Examples
