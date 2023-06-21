@@ -2,10 +2,12 @@
 package vm
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
@@ -122,7 +124,7 @@ func TestAccVMResource(t *testing.T) {
 
 					// ! deploy_os
 					// ? accept_all_eulas
-					resource.TestCheckResourceAttr(resourceNameVM, "deploy_os.accept_all_eulas", "true"),
+					resource.TestCheckNoResourceAttr(resourceNameVM, "deploy_os.accept_all_eulas"),
 					// ? boot_image_id
 					resource.TestCheckNoResourceAttr(resourceNameVM, "deploy_os.boot_image_id"),
 					// ? vapp_template_id (No check value becaus it's provided by the catalog)
@@ -145,17 +147,17 @@ func TestAccVMResource(t *testing.T) {
 					// ? admin_password
 					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.admin_password"),
 					// ? allow_local_admin_password
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.allow_local_admin_password"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.allow_local_admin_password", "false"),
 					// ? change_sid
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.change_sid"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.change_sid", "false"),
 					// ? force
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.force"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.force", "false"),
 					// ? hostname
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.hostname"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.hostname", "example-vm"),
 					// ? init_script
 					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.init_script"),
 					// ? join_domain
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.join_domain"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.join_domain", "false"),
 					// ? join_domain_account_ou
 					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.join_domain_account_ou"),
 					// ? join_domain_name
@@ -165,11 +167,11 @@ func TestAccVMResource(t *testing.T) {
 					// ? join_domain_user
 					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.join_domain_user"),
 					// ? join_org_domain
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.join_org_domain"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.join_org_domain", "false"),
 					// ? must_change_password_on_first_login
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.must_change_password_on_first_login"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.must_change_password_on_first_login", "false"),
 					// ? number_of_auto_logons
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.number_of_auto_logons"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.number_of_auto_logons", "0"),
 
 					// ! state
 					// ? power_on
@@ -212,7 +214,7 @@ func TestAccVMResource(t *testing.T) {
 
 					// ! deploy_os
 					// ? accept_all_eulas
-					resource.TestCheckResourceAttr(resourceNameVM, "deploy_os.accept_all_eulas", "true"),
+					resource.TestCheckNoResourceAttr(resourceNameVM, "deploy_os.accept_all_eulas"),
 					// ? boot_image_id
 					resource.TestCheckNoResourceAttr(resourceNameVM, "deploy_os.boot_image_id"),
 					// ? vapp_template_id (No check value becaus it's provided by the catalog)
@@ -237,17 +239,17 @@ func TestAccVMResource(t *testing.T) {
 					// ? admin_password
 					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.admin_password"),
 					// ? allow_local_admin_password
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.allow_local_admin_password"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.allow_local_admin_password", "false"),
 					// ? change_sid
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.change_sid"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.change_sid", "false"),
 					// ? force
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.force"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.force", "false"),
 					// ? hostname
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.hostname"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.hostname", "example-vm"),
 					// ? init_script
 					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.init_script"),
 					// ? join_domain
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.join_domain"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.join_domain", "false"),
 					// ? join_domain_account_ou
 					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.join_domain_account_ou"),
 					// ? join_domain_name
@@ -257,11 +259,11 @@ func TestAccVMResource(t *testing.T) {
 					// ? join_domain_user
 					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.join_domain_user"),
 					// ? join_org_domain
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.join_org_domain"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.join_org_domain", "false"),
 					// ? must_change_password_on_first_login
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.must_change_password_on_first_login"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.must_change_password_on_first_login", "false"),
 					// ? number_of_auto_logons
-					resource.TestCheckNoResourceAttr(resourceNameVM, "settings.customization.number_of_auto_logons"),
+					resource.TestCheckResourceAttr(resourceNameVM, "settings.customization.number_of_auto_logons", "0"),
 
 					// ! state
 					// ? power_on
@@ -304,6 +306,25 @@ func TestAccVMResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameVM, "resource.networks.1.name", "INET"),
 				),
 			},
+			// ImportruetState testing
+			{
+				// Import test
+				ResourceName:      resourceNameVM,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateIdFunc: testAccVMResourceImportStateIDFunc(resourceNameVM),
+			},
 		},
 	})
+}
+
+func testAccVMResourceImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		return fmt.Sprintf("%s.%s", rs.Primary.Attributes["vapp_name"], rs.Primary.ID), nil
+	}
 }

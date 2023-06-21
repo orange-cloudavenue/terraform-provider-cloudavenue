@@ -114,37 +114,27 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 				},
 			},
 			"deploy_os": superschema.SingleNestedAttribute{
-				Common: &schemaR.SingleNestedAttribute{
-					MarkdownDescription: "Settings for deploying the operating system on the VM.",
-					Computed:            true,
-				},
 				Resource: &schemaR.SingleNestedAttribute{
-					Optional: true,
+					MarkdownDescription: "Settings for deploying the operating system on the VM.",
+					Optional:            true,
 				},
 				Attributes: map[string]superschema.Attribute{
 					"vapp_template_id": superschema.StringAttribute{
-						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The ID of the vApp template to use for the VM.",
-						},
 						Resource: &schemaR.StringAttribute{
-							Optional: true,
+							MarkdownDescription: "The ID of the vApp template to use for the VM.",
+							Optional:            true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.RequiresReplace(),
 							},
 							Validators: []validator.String{
 								stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("boot_image_id")),
 							},
-						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
 						},
 					},
 					"vm_name_in_template": superschema.StringAttribute{
-						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The name of the VM in the vApp template.",
-						},
 						Resource: &schemaR.StringAttribute{
-							Optional: true,
+							MarkdownDescription: "The name of the VM in the vApp template.",
+							Optional:            true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.RequiresReplace(),
 							},
@@ -152,16 +142,11 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("boot_image_id")),
 							},
 						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
-						},
 					},
 					"boot_image_id": superschema.StringAttribute{
-						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The ID of the boot image to use for the VM.",
-						},
 						Resource: &schemaR.StringAttribute{
-							Optional: true,
+							MarkdownDescription: "The ID of the boot image to use for the VM.",
+							Optional:            true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.RequiresReplace(),
 							},
@@ -171,16 +156,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 						},
 					},
 					"accept_all_eulas": superschema.BoolAttribute{
-						Common: &schemaR.BoolAttribute{
-							MarkdownDescription: "Automatically accept EULA if OVA has it",
-						},
 						Resource: &schemaR.BoolAttribute{
-							Optional: true,
-							Computed: true,
-							Default:  booldefault.StaticBool(true),
-						},
-						DataSource: &schemaD.BoolAttribute{
-							Computed: true,
+							MarkdownDescription: "Automatically accept EULA if OVA has it",
+							Optional:            true,
 						},
 					},
 				},
@@ -570,6 +548,8 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								Resource: &schemaR.BoolAttribute{
 									MarkdownDescription: "`true` value will cause the VM to reboot on every `apply` operation.",
 									Optional:            true,
+									Computed:            true,
+									Default:             booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
@@ -590,6 +570,8 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								Resource: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether to change the SID of the VM. Applicable only for Windows VMs.",
 									Optional:            true,
+									Computed:            true,
+									Default:             booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
@@ -599,6 +581,8 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								Resource: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether to allow the local admin password to be changed.",
 									Optional:            true,
+									Computed:            true,
+									Default:             booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
@@ -608,6 +592,8 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								Resource: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether the password must be changed on first login.",
 									Optional:            true,
+									Computed:            true,
+									Default:             booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
@@ -617,11 +603,12 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								Resource: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether to auto-generate the password.",
 									Optional:            true,
+									Computed:            true,
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
 									Validators: []validator.Bool{
-										boolvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("admin_password"), path.MatchRelative().AtParent().AtName("auto_generate_password")),
+										boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("admin_password")),
 									},
 								},
 							},
@@ -634,7 +621,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										stringplanmodifier.UseStateForUnknown(),
 									},
 									Validators: []validator.String{
-										stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("admin_password"), path.MatchRelative().AtParent().AtName("auto_generate_password")),
+										stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("auto_generate_password")),
 									},
 								},
 							},
@@ -642,6 +629,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								Resource: &schemaR.Int64Attribute{
 									MarkdownDescription: "The number of times the VM should auto-login.",
 									Optional:            true,
+									Computed:            true,
 									Validators: []validator.Int64{
 										int64validator.AtLeast(0),
 									},
@@ -654,6 +642,8 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								Resource: &schemaR.BoolAttribute{
 									MarkdownDescription: "Enable this VM to join a domain.",
 									Optional:            true,
+									Computed:            true,
+									Default:             booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
@@ -663,6 +653,8 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								Resource: &schemaR.BoolAttribute{
 									MarkdownDescription: "Use organization's domain for joining.",
 									Optional:            true,
+									Computed:            true,
+									Default:             booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
@@ -718,6 +710,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								Resource: &schemaR.StringAttribute{
 									MarkdownDescription: "Computer name to assign to this virtual machine. Default is the value of attribute `name`.",
 									Optional:            true,
+									Computed:            true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},

@@ -78,6 +78,10 @@ func (v VM) GuestPropertiesRead() (guestProperties *VMResourceModelSettingsGuest
 
 	guestProperties = &VMResourceModelSettingsGuestProperties{}
 
+	if guest.ProductSection == nil {
+		return
+	}
+
 	for _, guestProperty := range guest.ProductSection.Property {
 		if guestProperty.Value != nil {
 			(*guestProperties)[guestProperty.Key] = guestProperty.Value.Value

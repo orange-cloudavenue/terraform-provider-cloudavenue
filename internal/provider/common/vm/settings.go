@@ -84,19 +84,20 @@ func (v VM) SettingsRead(ctx context.Context, stateCustomization any) (settings 
 		return nil, fmt.Errorf("unable to read affinity rule ID: %w", err)
 	}
 
-	var (
-		customization types.Object
-		ok            bool
-	)
+	customization, err := v.CustomizationRead(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read customization: %w", err)
+	}
 
 	switch custo := stateCustomization.(type) {
 	case *VMResourceModelSettingsCustomization:
-		customization = custo.ToPlan(ctx)
+		customization.Force = custo.Force
 	case attr.Value:
-		customization, ok = custo.(types.Object)
+		x, ok := custo.(types.Object)
 		if !ok {
 			return nil, fmt.Errorf("unable to convert state customization to basetypes.ObjectType")
 		}
+		customization.Force = x.Attributes()["force"].(types.Bool)
 	}
 
 	return &VMResourceModelSettings{
@@ -105,6 +106,6 @@ func (v VM) SettingsRead(ctx context.Context, stateCustomization any) (settings 
 		StorageProfile:               utils.StringValueOrNull(v.GetStorageProfileName()),
 		GuestProperties:              guestProperties.ToPlan(ctx),
 		AffinityRuleID:               utils.StringValueOrNull(affinityRuleID),
-		Customization:                customization,
+		Customization:                customization.ToPlan(ctx),
 	}, nil
 }

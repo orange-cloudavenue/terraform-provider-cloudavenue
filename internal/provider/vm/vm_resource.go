@@ -160,6 +160,13 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 		return
 	}
 
+	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	defer r.vapp.UnlockVAPP(ctx)
+
 	// * Create VM with Template
 	if !deployOS.VappTemplateID.IsNull() {
 		vmCreated, d = r.createVMWithTemplate(ctx, *plan)
@@ -268,7 +275,7 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 		return
 	}
 
-	plan, d := r.read(ctx, state)
+	plan, d := r.read(ctx, state, state)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -296,6 +303,13 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		return
 	}
 
+	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	defer r.vapp.UnlockVAPP(ctx)
+
 	/*
 		Implement the resource update here
 	*/
@@ -310,6 +324,13 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		resp.Diagnostics.Append(d...)
 		return
 	}
+
+	resp.Diagnostics.Append(r.vm.LockVM(ctx)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	defer r.vm.UnlockVM(ctx)
 
 	/*
 		Update VM was 2 major steps:
@@ -473,6 +494,22 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 				resp.Diagnostics.AddError("Error updating storage profile", err.Error())
 				return
 			}
+		}
+	}
+
+	// * Customization
+	if !allStructsPlan.Settings.Customization.Equal(allStructsState.Settings.Customization) {
+		// Detected change on customization
+		customizationFromPlan, d := allStructsPlan.Settings.CustomizationFromPlan(ctx)
+		resp.Diagnostics.Append(d...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		customization := customizationFromPlan.GetCustomizationSection(plan.Name.ValueString())
+		if err := r.vm.SetCustomization(customization); err != nil {
+			resp.Diagnostics.AddError("Error updating customization", err.Error())
+			return
 		}
 	}
 
@@ -663,7 +700,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		}
 	}
 
-	newPlan, d := r.read(ctx, state)
+	newPlan, d := r.read(ctx, state, plan)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -692,6 +729,13 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 	/*
 		Implement the resource deletion here
 	*/
+
+	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	defer r.vapp.UnlockVAPP(ctx)
 
 	var d diag.Diagnostics
 
@@ -744,7 +788,36 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 }
 
 func (r *vmResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ".")
+
+	if len(idParts) != 3 && len(idParts) != 2 {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: vdc.vapp_name.vm_id or vapp_name.vm_id. Got: %q", req.ID),
+		)
+		return
+	}
+
+	var id string
+
+	if len(idParts) == 3 {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vdc"), idParts[0])...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vapp_name"), idParts[1])...)
+		id = idParts[2]
+	} else {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vapp_name"), idParts[0])...)
+		id = idParts[1]
+	}
+
+	// if ID not contains urn:vcloud:vm add it
+	if !strings.Contains(id, "urn:vcloud:vm") {
+		id = "urn:vcloud:vm:" + id
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), "urn:vcloud:vm:"+id)...)
+
+	// dOS := vm.VMResourceModelDeployOS{}
+	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("deploy_os"), types.ObjectNull(dOS.AttrTypes()))...)
 }
 
 func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceModel) (vmCreated vm.VM, diags diag.Diagnostics) {
@@ -1157,7 +1230,7 @@ func (r *vmResource) vmPowerOn(ctx context.Context, rm vm.VMResourceModel) (diag
 }
 
 // read is a common function for VM read. It is called in Update and Read.
-func (r *vmResource) read(ctx context.Context, rm *vm.VMResourceModel) (plan *vm.VMResourceModel, diags diag.Diagnostics) {
+func (r *vmResource) read(ctx context.Context, rm, rmPlan *vm.VMResourceModel) (plan *vm.VMResourceModel, diags diag.Diagnostics) {
 	if err := r.vm.Refresh(); err != nil {
 		diags.AddError("Error refreshing VM", err.Error())
 		return
@@ -1186,7 +1259,7 @@ func (r *vmResource) read(ctx context.Context, rm *vm.VMResourceModel) (plan *vm
 	}
 
 	// ? Settings
-	settings, err := r.vm.SettingsRead(ctx, rm.Settings.Attributes()["customization"])
+	settings, err := r.vm.SettingsRead(ctx, rmPlan.Settings.Attributes()["customization"])
 	if err != nil {
 		diags.AddError(
 			"Unable to get VM settings",
