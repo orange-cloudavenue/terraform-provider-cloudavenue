@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
@@ -18,7 +18,7 @@ import (
 
 type securityTagResourceModel struct {
 	Name  types.String `tfsdk:"id"`
-	VMIDs types.List   `tfsdk:"vm_ids"`
+	VMIDs types.Set    `tfsdk:"vm_ids"`
 }
 
 func securityTagSchema() superschema.Schema {
@@ -39,14 +39,14 @@ func securityTagSchema() superschema.Schema {
 					},
 				},
 			},
-			"vm_ids": superschema.ListAttribute{
-				Resource: &schemaR.ListAttribute{
+			"vm_ids": superschema.SetAttribute{
+				Resource: &schemaR.SetAttribute{
 					Required:            true,
 					MarkdownDescription: "The IDs of the VMs to attach to the security tag.",
 					ElementType:         types.StringType,
-					Validators: []validator.List{
-						listvalidator.SizeAtLeast(1),
-						listvalidator.ValueStringsAre(fstringvalidator.IsURN()),
+					Validators: []validator.Set{
+						setvalidator.SizeAtLeast(1),
+						setvalidator.ValueStringsAre(fstringvalidator.IsURN()),
 					},
 				},
 			},

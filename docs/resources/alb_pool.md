@@ -88,7 +88,6 @@ resource "cloudavenue_alb_pool" "example" {
 - `id` (String) ID of ALB Pool.
 
 <a id="nestedatt--members"></a>
-
 ### Nested Schema for `members`
 
 Required:
@@ -101,8 +100,8 @@ Optional:
 - `enabled` (Boolean) Indicates whether a pool member accepts traffic. Value defaults to `true`.
 - `ratio` (Number) Ratio of selecting eligible servers in the pool. Value must be at least 1. Value defaults to `1`.
 
-<a id="nestedatt--persistence_profile"></a>
 
+<a id="nestedatt--persistence_profile"></a>
 ### Nested Schema for `persistence_profile`
 
 Required:
@@ -116,7 +115,6 @@ Optional:
 ## Import
 
 Import is supported using the following syntax:
-
 ```shell
 # use the edge_gateway_name.alb_pool_name to import the ALB Pool
 terraform import cloudavenue_alb_pool.test edge_gateway_name.alb_pool_name

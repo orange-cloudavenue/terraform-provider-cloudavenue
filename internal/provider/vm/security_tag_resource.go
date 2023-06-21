@@ -42,7 +42,7 @@ func (r *securityTagResource) Metadata(_ context.Context, req resource.MetadataR
 }
 
 // Init resource used to initialize the resource.
-func (r *securityTagResource) Init(_ context.Context, rm *securityTagResourceModel) (diags diag.Diagnostics) {
+func (r *securityTagResource) Init(_ context.Context, _ *securityTagResourceModel) (diags diag.Diagnostics) {
 	// Init Org
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
@@ -69,7 +69,6 @@ func (r *securityTagResource) Configure(ctx context.Context, req resource.Config
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
-
 		return
 	}
 
@@ -82,6 +81,7 @@ func (r *securityTagResource) Create(ctx context.Context, req resource.CreateReq
 	var (
 		plan *securityTagResourceModel
 	)
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -159,17 +159,20 @@ func (r *securityTagResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	// Convert []string into List to refesh state
-	var diags diag.Diagnostics
-	plan := &securityTagResourceModel{}
-	plan.Name = state.Name
-	plan.VMIDs, diags = types.ListValueFrom(ctx, types.StringType, readEntities)
-	resp.Diagnostics.Append(diags...)
+
+	VMIDs, d := types.SetValueFrom(ctx, types.StringType, readEntities)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	plan := &securityTagResourceModel{
+		Name:  state.Name,
+		VMIDs: VMIDs,
+	}
+
 	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -246,62 +249,45 @@ func (r *securityTagResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 
 	// Update the security tag in vCD
-	_, err := r.org.UpdateSecurityTag(securityTag)
-	if err != nil {
+	if _, err := r.org.UpdateSecurityTag(securityTag); err != nil {
 		resp.Diagnostics.AddError("Unable to Delete Tag", err.Error())
 		return
 	}
 }
 
 func (r *securityTagResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resourceURI := strings.Split(req.ID, ".")
-
-	if len(resourceURI) != 2 {
-		resp.Diagnostics.AddError("Error importing security_tag", "Resource name must be specified as org-name.security-tag-name")
-		return
-	}
-
 	// Init resource
-	var state *securityTagResourceModel
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	resp.Diagnostics.Append(r.Init(ctx, nil)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get Org and securityTag from command line
-	orgName, securityTag := resourceURI[0], resourceURI[1]
-
-	// Check if orgName is present in config file
-	if orgName != r.org.GetName() {
-		resp.Diagnostics.AddError("Error importing security_tag", "Org name in config file must be the same as org name in resource name")
-		return
-	}
-
 	// Get all VM tagged in struct taggedEntities
-	taggedEntities, err := r.org.GetAllSecurityTaggedEntitiesByName(securityTag)
+	taggedEntities, err := r.org.GetAllSecurityTaggedEntitiesByName(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("Error importing security_tag", "name not found:"+err.Error())
 		return
 	}
 
 	// Convert taggedEntities into []string
-	readEntities := make([]string, len(taggedEntities))
-	for i, entity := range taggedEntities {
-		readEntities[i] = entity.ID
+	readEntities := make([]string, 0)
+	for _, entity := range taggedEntities {
+		readEntities = append(readEntities, entity.ID)
 	}
 
-	// Convert []string into List to refesh state
-	var diags diag.Diagnostics
-	plan := &securityTagResourceModel{}
-	plan.Name = types.StringValue(securityTag)
-	plan.VMIDs, diags = types.ListValueFrom(ctx, types.StringType, readEntities)
-	resp.Diagnostics.Append(diags...)
+	VMIDs, d := types.SetValueFrom(ctx, types.StringType, readEntities)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	plan := &securityTagResourceModel{
+		Name:  types.StringValue(req.ID),
+		VMIDs: VMIDs,
+	}
+
 	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
