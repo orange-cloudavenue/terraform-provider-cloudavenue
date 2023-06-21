@@ -599,7 +599,6 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									},
 								},
 							},
-							// TODO This field not working in terraform and in IHM
 							"auto_generate_password": superschema.BoolAttribute{
 								Resource: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether to auto-generate the password.",
@@ -609,8 +608,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										boolplanmodifier.UseStateForUnknown(),
 									},
 									Validators: []validator.Bool{
-										// TODO Migrate to Conflict ?
-										boolvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("admin_password"), path.MatchRelative().AtParent().AtName("auto_generate_password")),
+										boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("admin_password")),
 									},
 								},
 							},
@@ -623,7 +621,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										stringplanmodifier.UseStateForUnknown(),
 									},
 									Validators: []validator.String{
-										stringvalidator.ExactlyOneOf(path.MatchRelative().AtParent().AtName("admin_password"), path.MatchRelative().AtParent().AtName("auto_generate_password")),
+										stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("auto_generate_password")),
 									},
 								},
 							},

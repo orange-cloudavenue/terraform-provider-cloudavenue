@@ -210,9 +210,9 @@ Optional:
 
 Optional:
 
-- `admin_password` (String, Sensitive) The admin password for the VM. Ensure that one and only one attribute from this collection is set : `admin_password`, `auto_generate_password`.
+- `admin_password` (String, Sensitive) The admin password for the VM. Ensure that if an attribute is set, these are not set: "[<.auto_generate_password]".
 - `allow_local_admin_password` (Boolean) Whether to allow the local admin password to be changed. Value defaults to `false`.
-- `auto_generate_password` (Boolean) Whether to auto-generate the password. Ensure that one and only one attribute from this collection is set : `admin_password`, `auto_generate_password`.
+- `auto_generate_password` (Boolean) Whether to auto-generate the password. Ensure that if an attribute is set, these are not set: "[<.admin_password]".
 - `change_sid` (Boolean) Whether to change the SID of the VM. Applicable only for Windows VMs. Value defaults to `false`.
 - `enabled` (Boolean) Whether guest customization is enabled or not. Value defaults to `false`.
 - `force` (Boolean) `true` value will cause the VM to reboot on every `apply` operation. Value defaults to `false`.
