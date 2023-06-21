@@ -1,19 +1,14 @@
-{{- if .NotesByType.note -}}
-NOTES:
-{{range .NotesByType.note -}}
-* {{ template "note" .}}
-{{ end -}}
-{{- end -}}
-
 {{- if .NotesByType.deprecation -}}
-DEPRECATIONS:
+### :warning: **Deprecations**
+
 {{range .NotesByType.deprecation -}}
 * {{ template "note" .}}
 {{ end -}}
 {{- end -}}
 
 {{- if index .NotesByType "breaking-change" -}}
-BREAKING CHANGES:
+### :rotating_light: **Breaking Changes**
+
 {{range index .NotesByType "breaking-change" -}}
 * {{ template "note" .}}
 {{ end -}}
@@ -21,7 +16,8 @@ BREAKING CHANGES:
 
 {{- $features := combineTypes .NotesByType.feature (index .NotesByType "new-resource" ) (index .NotesByType "new-data-source") -}}
 {{- if $features }}
-FEATURES:
+### :rocket: **New Features**
+
 {{range $features | sort -}}
 * {{ template "note" . }}
 {{ end -}}
@@ -29,21 +25,31 @@ FEATURES:
 
 {{- $improvements := combineTypes .NotesByType.improvement .NotesByType.enhancement -}}
 {{- if $improvements }}
-IMPROVEMENTS:
+### :tada: **Improvements**
+
 {{range $improvements | sort -}}
 * {{ template "note" . }}
 {{ end -}}
 {{- end -}}
 
 {{- if .NotesByType.bug }}
-BUG FIXES:
+### :bug: **Bug Fixes**
+
 {{range .NotesByType.bug -}}
 * {{ template "note" . }}
 {{ end -}}
 {{- end -}}
 
+{{- if .NotesByType.note -}}
+### :information_source: **Notes**
+
+{{range .NotesByType.note -}}
+* {{ template "note" .}}
+{{ end -}}
+{{- end -}}
+
 {{- if .NotesByType.dependency }}
-DEPENDENCIES:
+### :dependabot: **Dependencies**
 
 {{range .NotesByType.dependency | sort -}}
 * {{ template "note" . }}
