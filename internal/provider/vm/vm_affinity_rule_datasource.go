@@ -19,7 +19,7 @@ var (
 	_ datasource.DataSourceWithConfigure = &vmAffinityRuleDataSource{}
 )
 
-func NewVMAffinityRuleDatasourceDataSource() datasource.DataSource {
+func NewVMAffinityRuleDatasource() datasource.DataSource {
 	return &vmAffinityRuleDataSource{}
 }
 

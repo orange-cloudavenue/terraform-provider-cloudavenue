@@ -9,7 +9,6 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
 const testAccVMAffinityRuleResourceConfig = `
 resource "cloudavenue_vm_affinity_rule" "example" {
   name     = "example-affinity-rule"
