@@ -1,3 +1,3 @@
 ```release-note:new-datasource
-`datasource/cloudavenue_storage_profile` is a new datasource that can be used to retrieve the details od storage profile.
+`datasource/cloudavenue_storage_profile` is a new datasource that can be used to retrieve the details of storage profile.
 ```

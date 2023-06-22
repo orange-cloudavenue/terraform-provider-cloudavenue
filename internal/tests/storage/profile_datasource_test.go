@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -27,9 +28,9 @@ func TestAccProfileDataSource(t *testing.T) {
 				// Apply test
 				Config: testAccProfileDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
+					resource.TestMatchResourceAttr(dataSourceName, "id", regexp.MustCompile(`(urn:vcloud:vdcstorageProfile:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
 					resource.TestCheckResourceAttrSet(dataSourceName, "vdc"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", "gold"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "limit"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "used_storage"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "default"),

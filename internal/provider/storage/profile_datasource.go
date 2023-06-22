@@ -108,7 +108,7 @@ func (d *profileDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	storageProfileID, err := d.vdc.FindStorageProfileID(config.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Storage profile not found",
+			"Storage Profile (ID) not found",
 			fmt.Sprintf("Storage profile %s not found in VDC %s", config.Name.ValueString(), d.vdc.GetName()),
 		)
 		return
@@ -117,7 +117,7 @@ func (d *profileDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	storageProfileRef, err := d.vdc.GetStorageProfileReference(storageProfileID, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Storage profile not found",
+			"Storage Profile (Reference) not found",
 			fmt.Sprintf("Storage profile %s not found in VDC %s", config.Name.ValueString(), d.vdc.GetName()),
 		)
 		return
@@ -126,7 +126,7 @@ func (d *profileDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	storageProfile, err := d.client.Vmware.GetStorageProfileByHref(storageProfileRef.HREF)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Storage profile not found",
+			"Storage Profile (Reference) not found",
 			fmt.Sprintf("Storage profile %s not found in VDC %s", config.Name.ValueString(), d.vdc.GetName()),
 		)
 		return
