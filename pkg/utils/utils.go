@@ -75,3 +75,12 @@ func SortMapStringByKeys[T any](m map[string]T) map[string]T {
 
 	return sortedMap
 }
+
+// SliceTypesStringToSliceString converts a slice of types.String to a slice of string.
+func SliceTypesStringToSliceString(slice []types.String) []string {
+	var result []string
+	for _, s := range slice {
+		result = append(result, s.ValueString())
+	}
+	return result
+}

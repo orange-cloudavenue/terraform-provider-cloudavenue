@@ -241,3 +241,33 @@ func TestSortMapStringByKeys(t *testing.T) {
 		})
 	}
 }
+
+func TestSliceTypesStringToSliceString(t *testing.T) {
+	type args struct {
+		s []types.String
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "SliceTypesStringToSliceString",
+			args: args{
+				s: []types.String{
+					types.StringValue("a"),
+					types.StringValue("b"),
+					types.StringValue("c"),
+				},
+			},
+			want: []string{"a", "b", "c"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := SliceTypesStringToSliceString(tt.args.s); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SliceTypesStringToSliceString() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
