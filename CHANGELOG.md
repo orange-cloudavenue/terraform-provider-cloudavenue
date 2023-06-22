@@ -1,4 +1,9 @@
 ## 0.5.0 (Unreleased)
+
+### :tada: **Improvements**
+
+* `resource/cloudavenue_vm` - Add in the documentation the fields that require a VM restart if they are modified. ([GH-308](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/308))
+
 ## 0.4.0 (June 21, 2023)
 
 NOTES:
