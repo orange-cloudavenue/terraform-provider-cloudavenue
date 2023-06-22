@@ -12,8 +12,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminvdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
@@ -43,10 +41,7 @@ type VMDataSourceModel struct { //nolint:revive
 }
 
 type vmDataSource struct {
-	client *client.CloudAvenue
-
-	// Uncomment the following lines if you need to access the resource's.
-	// org    org.Org
+	client   *client.CloudAvenue
 	vdc      vdc.VDC
 	adminVDC adminvdc.AdminVDC
 	vapp     vapp.VAPP
@@ -128,11 +123,13 @@ func (d *vmDataSource) Read(ctx context.Context, req datasource.ReadRequest, res
 		return
 	}
 
+	// Complete VM Name or ID
 	var mydiag diag.Diagnostics
 	d.vm, mydiag = vm.Init(d.client, d.vapp, vm.GetVMOpts{
-		ID:   types.StringNull(),
+		ID:   config.ID,
 		Name: config.Name,
 	})
+
 	if mydiag.HasError() {
 		if mydiag.Contains(diag.NewErrorDiagnostic("VM not found", govcd.ErrorEntityNotFound.Error())) {
 			resp.State.RemoveResource(ctx)
@@ -154,7 +151,6 @@ func (d *vmDataSource) Read(ctx context.Context, req datasource.ReadRequest, res
 
 // read is a common function for VM read.
 func (d *vmDataSource) read(ctx context.Context, dm, dmPlan *VMDataSourceModel) (plan *VMDataSourceModel, diags diag.Diagnostics) {
-	tflog.Info(ctx, "read")
 	if err := d.vm.Refresh(); err != nil {
 		diags.AddError("Error refreshing VM", err.Error())
 		return

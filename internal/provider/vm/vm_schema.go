@@ -44,6 +44,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 		Resource: superschema.SchemaDetails{
 			MarkdownDescription: "The virtual machine (vm) resource allows you to manage a virtual machine in the CloudAvenue.",
 		},
+		DataSource: superschema.SchemaDetails{
+			MarkdownDescription: "The virtual machine (vm) data source allows you to read information about a virtual machine in the CloudAvenue.",
+		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
@@ -55,53 +58,63 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
+				DataSource: &schemaD.StringAttribute{
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
+					},
+				},
 			},
 			"name": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the VM. Unique within the vApp.",
-					Required:            true,
 					Validators: []validator.String{
 						stringvalidator.RegexMatches(regexp.MustCompile(`^[a-zA-Z0-9-]{1,80}$`), "Must be between 1 and 80 characters long and can contain only letters, numbers and hyphen. It must not contain only digits."),
 					},
 				},
 				Resource: &schemaR.StringAttribute{
+					Required: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
+					},
+				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},
 				},
 			},
 			"vapp_name": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The vApp this VM belongs to.",
-				},
-				Resource: &schemaR.StringAttribute{
-					Computed: true,
-					Optional: true,
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.RequiresReplace(),
-						stringplanmodifier.UseStateForUnknown(),
-					},
+					Optional:            true,
+					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
 					},
 				},
-				DataSource: &schemaD.StringAttribute{
-					Required: true,
+				Resource: &schemaR.StringAttribute{
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplace(),
+						stringplanmodifier.UseStateForUnknown(),
+					},
 				},
 			},
 			"vapp_id": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The vApp this VM belongs to.",
 					Computed:            true,
+					Optional:            true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
+					},
 				},
 				Resource: &schemaR.StringAttribute{
-					Optional: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 						stringplanmodifier.UseStateForUnknown(),
-					},
-					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
 					},
 				},
 			},
@@ -580,7 +593,8 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									},
 								},
 								DataSource: &schemaD.BoolAttribute{
-									Computed: true,
+									MarkdownDescription: "This attributes is not set in the data source.",
+									Computed:            true,
 								},
 							},
 							"enabled": superschema.BoolAttribute{
@@ -668,7 +682,8 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									},
 								},
 								DataSource: &schemaD.StringAttribute{
-									Computed: true,
+									MarkdownDescription: "This attributes is not set in the data source.",
+									Computed:            true,
 								},
 							},
 							"number_of_auto_logons": superschema.Int64Attribute{

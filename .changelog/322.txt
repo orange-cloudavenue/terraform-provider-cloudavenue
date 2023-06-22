@@ -1,0 +1,3 @@
+```release-note:feature
+`cloudavenue_vm` - Add DataSource.
+```
