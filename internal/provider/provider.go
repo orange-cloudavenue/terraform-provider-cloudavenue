@@ -27,6 +27,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/iam"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/publicip"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/storage"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vm"
@@ -98,6 +99,9 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		// NETWORK
 		network.NewNetworkIsolatedDataSource,
 		network.NewNetworkRoutedDataSource,
+
+		// STORAGE
+		storage.NewProfileDataSource,
 	}
 }
 
