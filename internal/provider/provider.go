@@ -145,6 +145,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		// NETWORK
 		network.NewNetworkRoutedResource,
 		network.NewNetworkIsolatedResource,
+		network.NewPortProfilesResource,
 	}
 }
 
