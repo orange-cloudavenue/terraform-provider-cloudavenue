@@ -10,6 +10,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 //go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
@@ -51,7 +52,7 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 			{
 				Config: testAccEdgeGatewayResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:gateway:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.Gateway.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttr(resourceName, "owner_type", "vdc"),
 					resource.TestCheckResourceAttr(resourceName, "owner_name", "MyVDC"),
 					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(`prvrf01eocb0006205allsp[0-9]{2}`)),
@@ -81,7 +82,7 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 			{
 				Config: testAccEdgeGatewayGroupResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceNameVDCGroup, "id", regexp.MustCompile(`(urn:vcloud:gateway:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestMatchResourceAttr(resourceNameVDCGroup, "id", regexp.MustCompile(uuid.Gateway.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttr(resourceNameVDCGroup, "owner_type", "vdc-group"),
 					resource.TestCheckResourceAttr(resourceNameVDCGroup, "owner_name", "MyVDCGroup"),
 					resource.TestCheckResourceAttr(resourceNameVDCGroup, "tier0_vrf_name", "prvrf01eocb0006205allsp01"),

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 //go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
@@ -72,7 +73,7 @@ func TestAccOrgNetworkDataSource(t *testing.T) {
 				// Apply test
 				Config: testAccOrgNetworkDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`urn:vcloud:network:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.Network.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttrPair(dataSourceName, "network_name", resourceName, "network_name"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "is_fenced", resourceName, "is_fenced"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "retain_ip_mac_enabled", resourceName, "retain_ip_mac_enabled"),

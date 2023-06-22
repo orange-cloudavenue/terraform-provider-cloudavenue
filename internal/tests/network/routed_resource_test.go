@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 //go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
@@ -82,10 +83,10 @@ func TestAccNetworkRoutedResource(t *testing.T) {
 				// Apply test
 				Config: testAccNetworkRoutedResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:network:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.Network.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttr(resourceName, "name", "OrgNetExampleOnVDCGroup"),
 					resource.TestCheckResourceAttr(resourceName, "description", "Org Net Example"),
-					resource.TestMatchResourceAttr(resourceName, "edge_gateway_id", regexp.MustCompile(`(urn:vcloud:gateway:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestMatchResourceAttr(resourceName, "edge_gateway_id", regexp.MustCompile(uuid.Gateway.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.1.254"),
 					resource.TestCheckResourceAttr(resourceName, "dns1", "1.1.1.1"),
 					resource.TestCheckResourceAttr(resourceName, "dns2", "8.8.8.8"),
@@ -98,7 +99,7 @@ func TestAccNetworkRoutedResource(t *testing.T) {
 				// Update test
 				Config: newUpdatedConfig(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:network:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.Network.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttr(resourceName, "description", "Example"),
 					resource.TestCheckResourceAttr(resourceName, "dns1", "1.1.1.2"),
 					resource.TestCheckResourceAttr(resourceName, "dns2", "8.8.8.9"),
@@ -117,11 +118,11 @@ func TestAccNetworkRoutedResource(t *testing.T) {
 				// Apply test
 				Config: testAccNetworkRoutedResourceOnVDCConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:network:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.Network.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttr(resourceName, "name", "OrgNetExampleOnVDC"),
 					resource.TestCheckResourceAttr(resourceName, "description", "Org Net Example"),
 					// resource.TestCheckResourceAttr(resourceName, "vdc", "MyVDC"),
-					resource.TestMatchResourceAttr(resourceName, "edge_gateway_id", regexp.MustCompile(`(urn:vcloud:gateway:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestMatchResourceAttr(resourceName, "edge_gateway_id", regexp.MustCompile(uuid.Gateway.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.1.254"),
 					resource.TestCheckResourceAttr(resourceName, "dns1", "1.1.1.1"),
 					resource.TestCheckResourceAttr(resourceName, "dns2", "8.8.8.8"),

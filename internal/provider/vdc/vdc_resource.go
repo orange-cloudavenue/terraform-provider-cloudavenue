@@ -21,8 +21,8 @@ import (
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -186,7 +186,7 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	for _, v := range vdcs {
 		if plan.Name.ValueString() == v.VdcName {
-			ID = common.NormalizeID("urn:vcloud:vdc:", v.VdcUuid)
+			ID = uuid.Normalize(uuid.VDC, v.VdcUuid).String()
 			break
 		}
 	}
@@ -271,7 +271,7 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	for _, v := range vdcs {
 		if state.Name.ValueString() == v.VdcName {
-			ID = common.NormalizeID("urn:vcloud:vdc:", v.VdcUuid)
+			ID = uuid.Normalize(uuid.VDC, v.VdcUuid).String()
 			break
 		}
 	}

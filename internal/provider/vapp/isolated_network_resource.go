@@ -27,6 +27,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -228,7 +229,7 @@ func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	plan.ID = utils.StringValueOrNull(common.NormalizeID("urn:vcloud:network:", networkID))
+	plan.ID = utils.StringValueOrNull(uuid.Normalize(uuid.Network, networkID).String())
 	plan.VDC = utils.StringValueOrNull(r.vdc.GetName())
 
 	// Set state to fully populated data
@@ -282,10 +283,8 @@ func (r *isolatedNetworkResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	id := common.NormalizeID("urn:vcloud:network:", networkID)
-
 	plan := &isolatedNetworkResourceModel{
-		ID:                 utils.StringValueOrNull(id),
+		ID:                 utils.StringValueOrNull(uuid.Normalize(uuid.Network, networkID).String()),
 		VDC:                utils.StringValueOrNull(r.vdc.GetName()),
 		Name:               utils.StringValueOrNull(vAppNetwork.NetworkName),
 		Description:        utils.StringValueOrNull(vAppNetwork.Description),

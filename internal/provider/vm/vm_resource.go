@@ -21,6 +21,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -809,15 +810,7 @@ func (r *vmResource) ImportState(ctx context.Context, req resource.ImportStateRe
 		id = idParts[1]
 	}
 
-	// if ID not contains urn:vcloud:vm add it
-	if !strings.Contains(id, "urn:vcloud:vm") {
-		id = "urn:vcloud:vm:" + id
-	}
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), "urn:vcloud:vm:"+id)...)
-
-	// dOS := vm.VMResourceModelDeployOS{}
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("deploy_os"), types.ObjectNull(dOS.AttrTypes()))...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), uuid.Normalize(uuid.VM, id).String())...)
 }
 
 func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceModel) (vmCreated vm.VM, diags diag.Diagnostics) {

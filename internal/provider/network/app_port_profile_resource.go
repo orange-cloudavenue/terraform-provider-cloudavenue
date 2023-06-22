@@ -30,6 +30,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -450,12 +451,7 @@ func (r *portProfilesResource) ImportState(ctx context.Context, req resource.Imp
 		return
 	}
 
-	vdcID := idParts[0]
-
-	// if ID not contains urn:vcloud:vdc: add it
-	if !strings.Contains(vdcID, "urn:vcloud:vdc:") {
-		vdcID = "urn:vcloud:vdc:" + vdcID
-	}
+	vdcID := uuid.Normalize(uuid.VDC, idParts[0]).String()
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vdc"), vdcID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[1])...)

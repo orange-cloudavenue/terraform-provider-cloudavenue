@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 //go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
@@ -115,7 +116,7 @@ func TestAccSecurityTagResource(t *testing.T) {
 				Config: testAccSecurityTagResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "id", "tag-example"),
-					resource.TestMatchResourceAttr(resourceName, "vm_ids.0", regexp.MustCompile(`(urn:vcloud:vm:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestMatchResourceAttr(resourceName, "vm_ids.0", regexp.MustCompile(uuid.VM.String()+`:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 				),
 			},
 			{
@@ -123,8 +124,8 @@ func TestAccSecurityTagResource(t *testing.T) {
 				Config: testAccSecurityTagResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "id", "tag-example"),
-					resource.TestMatchResourceAttr(resourceName, "vm_ids.0", regexp.MustCompile(`(urn:vcloud:vm:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
-					resource.TestMatchResourceAttr(resourceName, "vm_ids.1", regexp.MustCompile(`(urn:vcloud:vm:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestMatchResourceAttr(resourceName, "vm_ids.0", regexp.MustCompile(uuid.VM.String()+`:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
+					resource.TestMatchResourceAttr(resourceName, "vm_ids.1", regexp.MustCompile(uuid.VM.String()+`:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 				),
 			},
 			// Import testing

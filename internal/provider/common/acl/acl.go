@@ -19,6 +19,7 @@ import (
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 type SharedWithModel struct {
@@ -138,7 +139,7 @@ func SharedSetToAccessControl(_ *govcd.VCDClient, org *govcd.AdminOrg, input []S
 			subjectName = user.User.Name
 
 			oModel = &SharedWithModel{
-				UserID:      types.StringValue("urn:vcloud:user:" + common.ExtractUUID(subjectHref)),
+				UserID:      types.StringValue(uuid.Normalize(uuid.User, common.ExtractUUID(subjectHref)).String()),
 				SubjectName: types.StringValue(subjectName),
 			}
 		} else if !item.GroupID.IsNull() && !item.GroupID.IsUnknown() {
@@ -151,7 +152,7 @@ func SharedSetToAccessControl(_ *govcd.VCDClient, org *govcd.AdminOrg, input []S
 			subjectType = group.Group.Type
 			subjectName = group.Group.Name
 			oModel = &SharedWithModel{
-				GroupID:     types.StringValue("urn:vcloud:group:" + common.ExtractUUID(subjectHref)),
+				GroupID:     types.StringValue(uuid.Normalize(uuid.Group, common.ExtractUUID(subjectHref)).String()),
 				SubjectName: types.StringValue(subjectName),
 			}
 		}
@@ -181,9 +182,10 @@ func AccessControlListToSharedSet(input []*govcdtypes.AccessSetting) ([]SharedWi
 
 		switch item.Subject.Type {
 		case govcdtypes.MimeAdminUser:
-			o.UserID = types.StringValue("urn:vcloud:user:" + common.ExtractUUID(item.Subject.HREF))
+
+			o.UserID = types.StringValue(uuid.Normalize(uuid.User, common.ExtractUUID(item.Subject.HREF)).String())
 		case govcdtypes.MimeAdminGroup:
-			o.GroupID = types.StringValue("urn:vcloud:group:" + common.ExtractUUID(item.Subject.HREF))
+			o.GroupID = types.StringValue(uuid.Normalize(uuid.Group, common.ExtractUUID(item.Subject.HREF)).String())
 		default:
 			return nil, fmt.Errorf("unhandled type '%s' for item %s", item.Subject.Type, item.Subject.Name)
 		}
