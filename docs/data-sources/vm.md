@@ -74,10 +74,10 @@ Read-Only:
 Read-Only:
 
 - `affinity_rule_id` (String) The ID of the affinity rule to apply to this VM.
-- `customization` (Attributes) . (see [below for nested schema](#nestedatt--settings--customization))
+- `customization` (Attributes) The customization settings for the VM. (see [below for nested schema](#nestedatt--settings--customization))
 - `expose_hardware_virtualization` (Boolean) Whether to expose hardware CPU virtualization to the guest OS.
 - `guest_properties` (Map of String) Key/Value settings for guest properties.
-- `os_type` (String) .
+- `os_type` (String) The Operating System type installed on the VM.
 - `storage_profile` (String) The storage profile to use.
 
 <a id="nestedatt--settings--customization"></a>
@@ -85,22 +85,22 @@ Read-Only:
 
 Read-Only:
 
-- `admin_password` (String) This attributes is not set in the data source.
-- `allow_local_admin_password` (Boolean) .
-- `auto_generate_password` (Boolean) .
-- `change_sid` (Boolean) .
-- `enabled` (Boolean) .
+- `admin_password` (String, Sensitive) The admin password for the VM.
+- `allow_local_admin_password` (Boolean) Whether to allow the local admin password to be changed.
+- `auto_generate_password` (Boolean) Whether to auto-generate the password.
+- `change_sid` (Boolean) Whether to change the SID of the VM. Applicable only for Windows VMs.
+- `enabled` (Boolean) Whether guest customization is enabled or not.
 - `force` (Boolean) This attributes is not set in the data source.
-- `hostname` (String) .
-- `init_script` (String) .
+- `hostname` (String) Computer name to assign to this virtual machine. Default is the value of attribute `name`.
+- `init_script` (String) The init script to run.
 - `join_domain` (Boolean) .
-- `join_domain_account_ou` (String) .
-- `join_domain_name` (String) .
-- `join_domain_password` (String) .
-- `join_domain_user` (String) .
-- `join_org_domain` (Boolean) .
-- `must_change_password_on_first_login` (Boolean) .
-- `number_of_auto_logons` (Number) .
+- `join_domain_account_ou` (String) The domain account OU to join.
+- `join_domain_name` (String) The domain name to join.
+- `join_domain_password` (String, Sensitive) The domain password to join.
+- `join_domain_user` (String) The domain user to join.
+- `join_org_domain` (Boolean) Use organization's domain for joining.
+- `must_change_password_on_first_login` (Boolean) Whether the password must be changed on first login.
+- `number_of_auto_logons` (Number) The number of times the VM should auto-login.
 
 
 
@@ -110,5 +110,5 @@ Read-Only:
 Read-Only:
 
 - `power_on` (Boolean) Whether the VM should be powered on or not. `true` means powered on, `false` means powered off.
-- `status` (String) The status of the VM.
+- `status` (String) The power status of the VM.
 

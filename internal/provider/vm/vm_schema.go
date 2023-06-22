@@ -175,9 +175,6 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("vapp_template_id")),
 							},
 						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
-						},
 					},
 					"accept_all_eulas": superschema.BoolAttribute{
 						Resource: &schemaR.BoolAttribute{
@@ -214,7 +211,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 					},
 					"status": superschema.StringAttribute{
 						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The status of the VM.",
+							MarkdownDescription: "The power status of the VM.",
 							Computed:            true,
 						},
 					},
@@ -538,10 +535,13 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 						},
 					},
 					"os_type": superschema.StringAttribute{
-						Resource: &schemaR.StringAttribute{
-							MarkdownDescription: "The type of OS installed on the VM " + coldUpdate,
-							Optional:            true,
+						Common: &schemaR.StringAttribute{
+							MarkdownDescription: "The Operating System type",
 							Computed:            true,
+						},
+						Resource: &schemaR.StringAttribute{
+							MarkdownDescription: "  to be installed on the VM." + coldUpdate,
+							Optional:            true,
 							Validators: []validator.String{
 								fstringvalidator.OneOfWithDescription(vm.GetAllOsTypesWithDescription()...),
 								// TODO Validator field is require if attribute deploy_os.boot_image_id is set
@@ -551,7 +551,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 							},
 						},
 						DataSource: &schemaD.StringAttribute{
-							Computed: true,
+							MarkdownDescription: " installed on the VM.",
 						},
 					},
 					"storage_profile":  storageprofile.SuperSchema(),
@@ -570,16 +570,15 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 						},
 					},
 					"customization": superschema.SingleNestedAttribute{
-						Resource: &schemaR.SingleNestedAttribute{
+						Common: &schemaR.SingleNestedAttribute{
 							MarkdownDescription: "The customization settings for the VM.",
-							Optional:            true,
 							Computed:            true,
+						},
+						Resource: &schemaR.SingleNestedAttribute{
+							Optional: true,
 							PlanModifiers: []planmodifier.Object{
 								objectplanmodifier.UseStateForUnknown(),
 							},
-						},
-						DataSource: &schemaD.SingleNestedAttribute{
-							Computed: true,
 						},
 						Attributes: map[string]superschema.Attribute{
 							"force": superschema.BoolAttribute{
@@ -598,66 +597,64 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								},
 							},
 							"enabled": superschema.BoolAttribute{
-								Resource: &schemaR.BoolAttribute{
+								Common: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether guest customization is enabled or not.",
-									Optional:            true,
 									Computed:            true,
-									Default:             booldefault.StaticBool(false),
+								},
+								Resource: &schemaR.BoolAttribute{
+									Optional: true,
+									Default:  booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
-								},
-								DataSource: &schemaD.BoolAttribute{
-									Computed: true,
 								},
 							},
 							"change_sid": superschema.BoolAttribute{
-								Resource: &schemaR.BoolAttribute{
+								Common: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether to change the SID of the VM. Applicable only for Windows VMs.",
-									Optional:            true,
 									Computed:            true,
-									Default:             booldefault.StaticBool(false),
+								},
+								Resource: &schemaR.BoolAttribute{
+									Optional: true,
+									Default:  booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
-								},
-								DataSource: &schemaD.BoolAttribute{
-									Computed: true,
 								},
 							},
 							"allow_local_admin_password": superschema.BoolAttribute{
-								Resource: &schemaR.BoolAttribute{
+								Common: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether to allow the local admin password to be changed.",
-									Optional:            true,
 									Computed:            true,
-									Default:             booldefault.StaticBool(false),
+								},
+								Resource: &schemaR.BoolAttribute{
+									Optional: true,
+									Default:  booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
-								},
-								DataSource: &schemaD.BoolAttribute{
-									Computed: true,
 								},
 							},
 							"must_change_password_on_first_login": superschema.BoolAttribute{
-								Resource: &schemaR.BoolAttribute{
+								Common: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether the password must be changed on first login.",
-									Optional:            true,
 									Computed:            true,
-									Default:             booldefault.StaticBool(false),
+								},
+								Resource: &schemaR.BoolAttribute{
+									Optional: true,
+									Default:  booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
 								},
-								DataSource: &schemaD.BoolAttribute{
-									Computed: true,
-								},
 							},
 							"auto_generate_password": superschema.BoolAttribute{
-								Resource: &schemaR.BoolAttribute{
+								Common: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether to auto-generate the password.",
-									Optional:            true,
 									Computed:            true,
+								},
+								Resource: &schemaR.BoolAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
@@ -665,15 +662,14 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("admin_password")),
 									},
 								},
-								DataSource: &schemaD.BoolAttribute{
-									Computed: true,
-								},
 							},
 							"admin_password": superschema.StringAttribute{
-								Resource: &schemaR.StringAttribute{
+								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "The admin password for the VM.",
-									Optional:            true,
 									Sensitive:           true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
@@ -682,24 +678,22 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									},
 								},
 								DataSource: &schemaD.StringAttribute{
-									MarkdownDescription: "This attributes is not set in the data source.",
-									Computed:            true,
+									Computed: true,
 								},
 							},
 							"number_of_auto_logons": superschema.Int64Attribute{
-								Resource: &schemaR.Int64Attribute{
+								Common: &schemaR.Int64Attribute{
 									MarkdownDescription: "The number of times the VM should auto-login.",
-									Optional:            true,
 									Computed:            true,
+								},
+								Resource: &schemaR.Int64Attribute{
+									Optional: true,
 									Validators: []validator.Int64{
 										int64validator.AtLeast(0),
 									},
 									PlanModifiers: []planmodifier.Int64{
 										int64planmodifier.UseStateForUnknown(),
 									},
-								},
-								DataSource: &schemaD.Int64Attribute{
-									Computed: true,
 								},
 							},
 							"join_domain": superschema.BoolAttribute{
@@ -717,23 +711,24 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								},
 							},
 							"join_org_domain": superschema.BoolAttribute{
-								Resource: &schemaR.BoolAttribute{
+								Common: &schemaR.BoolAttribute{
 									MarkdownDescription: "Use organization's domain for joining.",
-									Optional:            true,
 									Computed:            true,
-									Default:             booldefault.StaticBool(false),
+								},
+								Resource: &schemaR.BoolAttribute{
+									Optional: true,
+									Default:  booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
 								},
-								DataSource: &schemaD.BoolAttribute{
-									Computed: true,
-								},
 							},
 							"join_domain_name": superschema.StringAttribute{
-								Resource: &schemaR.StringAttribute{
+								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "The domain name to join.",
-									Optional:            true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
@@ -743,9 +738,11 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								},
 							},
 							"join_domain_user": superschema.StringAttribute{
-								Resource: &schemaR.StringAttribute{
+								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "The domain user to join.",
-									Optional:            true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
@@ -755,10 +752,12 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								},
 							},
 							"join_domain_password": superschema.StringAttribute{
-								Resource: &schemaR.StringAttribute{
+								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "The domain password to join.",
 									Sensitive:           true,
-									Optional:            true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
@@ -768,9 +767,11 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								},
 							},
 							"join_domain_account_ou": superschema.StringAttribute{
-								Resource: &schemaR.StringAttribute{
+								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "The domain account OU to join.",
-									Optional:            true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
@@ -780,9 +781,11 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								},
 							},
 							"init_script": superschema.StringAttribute{
-								Resource: &schemaR.StringAttribute{
+								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "The init script to run.",
-									Optional:            true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
@@ -792,19 +795,18 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								},
 							},
 							"hostname": superschema.StringAttribute{
-								Resource: &schemaR.StringAttribute{
+								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "Computer name to assign to this virtual machine. Default is the value of attribute `name`.",
-									Optional:            true,
 									Computed:            true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
 									Validators: []validator.String{
 										stringvalidator.RegexMatches(regexp.MustCompile(`^[a-zA-Z0-9-]{1,80}$`), "Must be between 1 and 80 characters long and can contain only letters, numbers and hyphen. It must not contain only digits."),
 									},
-								},
-								DataSource: &schemaD.StringAttribute{
-									Computed: true,
 								},
 							},
 						},

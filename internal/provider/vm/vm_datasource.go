@@ -5,8 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -75,7 +73,11 @@ func (d *vmDataSource) Init(ctx context.Context, dm *VMDataSourceModel) (diags d
 		return
 	}
 
-	// Vm is not initialized here because if VM is not found in read. Delete resource in state will be called.
+	d.vm, diag = vm.Init(d.client, d.vapp, vm.GetVMOpts{
+		ID:   dm.ID,
+		Name: dm.Name,
+	})
+	diags.Append(diag...)
 
 	return
 }
@@ -123,22 +125,6 @@ func (d *vmDataSource) Read(ctx context.Context, req datasource.ReadRequest, res
 		return
 	}
 
-	// Complete VM Name or ID
-	var mydiag diag.Diagnostics
-	d.vm, mydiag = vm.Init(d.client, d.vapp, vm.GetVMOpts{
-		ID:   config.ID,
-		Name: config.Name,
-	})
-
-	if mydiag.HasError() {
-		if mydiag.Contains(diag.NewErrorDiagnostic("VM not found", govcd.ErrorEntityNotFound.Error())) {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.Append(mydiag...)
-		return
-	}
-
 	// Read data from API
 	data, mydiag := d.read(ctx, config, config)
 	resp.Diagnostics.Append(mydiag...)
@@ -155,8 +141,6 @@ func (d *vmDataSource) read(ctx context.Context, dm, dmPlan *VMDataSourceModel) 
 		diags.AddError("Error refreshing VM", err.Error())
 		return
 	}
-
-	// ? deployOS -> Use state for unknown value
 
 	// ? State
 	stateStruct, err := d.vm.StateRead(ctx)
