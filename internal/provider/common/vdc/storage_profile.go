@@ -29,7 +29,13 @@ func (v *VDC) GetStorageProfileReference(storageProfileID string, refresh bool) 
 		return nil, storageprofile.ErrStorageProfileIDIsEmpty
 	}
 
-	return v.GetStorageProfileReference(storageProfileID, refresh)
+	for _, sp := range v.Vdc.Vdc.VdcStorageProfiles.VdcStorageProfile {
+		if sp.ID == storageProfileID {
+			return &govcdtypes.Reference{HREF: sp.HREF, Name: sp.Name, ID: sp.ID}, nil
+		}
+	}
+
+	return nil, storageprofile.ErrStorageProfileNotFound
 }
 
 // GetStorageProfileID returns the storage profile ID.
