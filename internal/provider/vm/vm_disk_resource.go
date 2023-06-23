@@ -10,6 +10,7 @@ import (
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -125,6 +126,15 @@ func (r *diskResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRe
 				"Warning detach/attach disk is required",
 				"Disk size cannot be changed when disk is detachable. Detach/attach disk is required. \n"+
 					"If you apply this change, the disk will be detached and attached again.",
+			)
+		}
+	} else {
+		if diskPlan.BusType.ValueString() == diskparams.BusTypeIDE.Name() {
+			resp.Diagnostics.AddAttributeWarning(
+				path.Root("bus_type"),
+				"Warning IDE bus type require VM power off to be applied",
+				"IDE bus type require VM power off to be applied. \n"+
+					"If you apply this change, power off before apply and power on after apply will be required.",
 			)
 		}
 	}
@@ -474,22 +484,23 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 					return
 				}
 
-				defer vmOld.UnlockVM(ctx)
-
 				// Detach disk
 				task, err := vmOld.DetachDisk(&govcdtypes.DiskAttachOrDetachParams{
 					Disk: &govcdtypes.Reference{HREF: disk.Disk.HREF},
 				})
 				if err != nil {
+					vmOld.UnlockVM(ctx)
 					resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %v", state.Name.ValueString(), err))
 					return
 				}
 				if err = task.WaitTaskCompletion(); err != nil {
+					vmOld.UnlockVM(ctx)
 					resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %v", state.Name.ValueString(), err))
 					return
 				}
 				vmDiskDetached = vmOld
 				diskIsDetached = true
+				vmOld.UnlockVM(ctx)
 			}
 
 			if err = disk.Refresh(); err != nil {
@@ -580,8 +591,42 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 				}
 			}
 		}
-	} // TODO: else not detachable
+	} else {
+		// * Internal disk
+		internalDisk, err := r.vm.GetInternalDiskById(state.ID.ValueString(), true)
+		if err != nil {
+			resp.Diagnostics.AddError("unable to find disk", fmt.Sprintf("unable to find disk with id %s: %v", state.ID.ValueString(), err))
+			return
+		}
 
+		internalDisk.SizeMb = plan.SizeInMb.ValueInt64()
+
+		var (
+			storageProfilePrt *govcdtypes.Reference
+			overrideVMDefault bool
+		)
+
+		if plan.StorageProfile.IsNull() || plan.StorageProfile.IsUnknown() {
+			storageProfilePrt = r.vm.VM.VM.VM.StorageProfile
+			overrideVMDefault = false
+		} else {
+			storageProfile, errFindStorage := r.vdc.FindStorageProfileReference(plan.StorageProfile.ValueString())
+			if errFindStorage != nil {
+				resp.Diagnostics.AddError("Error retrieving storage profile", errFindStorage.Error())
+				return
+			}
+			storageProfilePrt = &storageProfile
+			overrideVMDefault = true
+		}
+
+		internalDisk.StorageProfile = storageProfilePrt
+		internalDisk.OverrideVmDefault = overrideVMDefault
+
+		if _, err := r.vm.UpdateInternalDisks(r.vm.VM.VM.VM.VmSpecSection); err != nil {
+			resp.Diagnostics.AddError("error updating internal disk", err.Error())
+			return
+		}
+	}
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
