@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var (
@@ -119,7 +119,6 @@ func (d *orgNetworkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	}
 
 	// Set Attributes
-	id := common.NormalizeID("urn:vcloud:network:", *networkID)
 	var isFenced, retainIPMacEnabled bool
 	if vAppNetwork.Configuration == nil {
 		// Set default value if configuration return is nil
@@ -130,7 +129,7 @@ func (d *orgNetworkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	}
 	// Set data
 	plan := &orgNetworkModel{
-		ID:                 types.StringValue(id),
+		ID:                 types.StringValue(uuid.Normalize(uuid.Network, *networkID).String()),
 		VAppName:           utils.StringValueOrNull(d.vapp.GetName()),
 		VAppID:             utils.StringValueOrNull(d.vapp.GetID()),
 		VDC:                types.StringValue(d.vdc.GetName()),

@@ -22,6 +22,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 const (
@@ -249,7 +250,7 @@ func (r *edgeGatewaysResource) Create(
 	}
 
 	plan = &edgeGatewaysResourceModel{
-		ID:                  types.StringValue(common.NormalizeID("urn:vcloud:gateway:", newEdgeGW.EdgeId)),
+		ID:                  types.StringValue(uuid.Normalize(uuid.Gateway, newEdgeGW.EdgeId).String()),
 		Name:                types.StringValue(newEdgeGW.EdgeName),
 		Description:         types.StringValue(newEdgeGW.Description),
 		Tier0VrfID:          plan.Tier0VrfID,
@@ -369,7 +370,7 @@ func (r *edgeGatewaysResource) Read(
 	}
 
 	state = &edgeGatewaysResourceModel{
-		ID:                  types.StringValue(common.NormalizeID("urn:vcloud:gateway:", gateway.EdgeId)),
+		ID:                  types.StringValue(uuid.Normalize(uuid.Gateway, gateway.EdgeId).String()),
 		Tier0VrfID:          types.StringValue(gateway.Tier0VrfId),
 		Name:                types.StringValue(gateway.EdgeName),
 		OwnerType:           types.StringValue(gateway.OwnerType),

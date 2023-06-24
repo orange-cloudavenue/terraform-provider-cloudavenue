@@ -15,8 +15,8 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var (
@@ -144,7 +144,7 @@ func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRe
 			gws = append(gws, edgeGatewayDataSourceModel{
 				Tier0VrfID:          types.StringValue(gw.Tier0VrfId),
 				Name:                types.StringValue(gw.EdgeName),
-				ID:                  types.StringValue(common.NormalizeID("urn:vcloud:gateway:", gw.EdgeId)),
+				ID:                  types.StringValue(uuid.Normalize(uuid.Gateway, gw.EdgeId).String()),
 				OwnerType:           types.StringValue(gw.OwnerType),
 				OwnerName:           types.StringValue(gw.OwnerName),
 				Description:         types.StringValue(gw.Description),

@@ -21,6 +21,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -422,7 +423,7 @@ func vmReferencesToListValue(refs []*govcdtypes.VMs) []attr.Value {
 	var endpointVMs []attr.Value
 	for _, vmr := range refs {
 		for _, ref := range vmr.VMReference {
-			endpointVMs = append(endpointVMs, types.StringValue(common.NormalizeID("urn:vcloud:vm:", ref.ID)))
+			endpointVMs = append(endpointVMs, types.StringValue(uuid.Normalize(uuid.VM, ref.ID).String()))
 		}
 	}
 	return endpointVMs

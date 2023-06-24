@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 const testAccVDCResourceConfig = `
@@ -42,7 +43,7 @@ func TestAccVDCResource(t *testing.T) {
 				// Apply test
 				Config: testAccVDCResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:vdc:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.VDC.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttr(resourceName, "name", "MyVDC1"),
 					resource.TestCheckResourceAttr(resourceName, "vdc_group", "MyGroup"),
 					resource.TestCheckResourceAttr(resourceName, "description", "Example vDC created by Terraform"),
@@ -63,7 +64,7 @@ func TestAccVDCResource(t *testing.T) {
 				// Update test
 				Config: strings.Replace(testAccVDCResourceConfig, "30", "40", 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(`(urn:vcloud:vdc:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.VDC.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttr(resourceName, "name", "MyVDC1"),
 					resource.TestCheckResourceAttr(resourceName, "vdc_group", "MyGroup"),
 					resource.TestCheckResourceAttr(resourceName, "description", "Example vDC created by Terraform"),

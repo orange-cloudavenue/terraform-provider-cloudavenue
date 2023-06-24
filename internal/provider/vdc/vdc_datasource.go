@@ -12,7 +12,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var (
@@ -97,7 +97,7 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	for _, v := range vdcs {
 		if data.Name.ValueString() == v.VdcName {
-			ID = common.NormalizeID("urn:vcloud:vdc:", v.VdcUuid)
+			ID = uuid.Normalize(uuid.VDC, v.VdcUuid).String()
 			break
 		}
 	}

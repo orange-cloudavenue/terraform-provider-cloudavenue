@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 const testAccEdgeGatewayDataSourceConfig = `
@@ -27,7 +28,7 @@ func TestAccEdgeGatewayDataSource(t *testing.T) {
 				Config: testAccEdgeGatewayDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Verify placeholder id attribute
-					resource.TestMatchResourceAttr(dataSourceName, "id", regexp.MustCompile(`(urn:vcloud:gateway:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestMatchResourceAttr(dataSourceName, "id", regexp.MustCompile(uuid.Gateway.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "tier0_vrf_name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "owner_type"),

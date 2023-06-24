@@ -19,10 +19,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -146,10 +146,8 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	id := common.NormalizeID("urn:vcloud:network:", networkID)
-
 	plan = &orgNetworkModel{
-		ID:                 types.StringValue(id),
+		ID:                 types.StringValue(uuid.Normalize(uuid.Network, networkID).String()),
 		VAppName:           plan.VAppName,
 		VDC:                types.StringValue(r.vdc.GetName()),
 		NetworkName:        plan.NetworkName,
@@ -206,11 +204,10 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	id := common.NormalizeID("urn:vcloud:network:", *networkID)
 	isFenced := vAppNetwork.Configuration.FenceMode == govcdtypes.FenceModeNAT
 
 	plan := &orgNetworkModel{
-		ID:                 types.StringValue(id),
+		ID:                 types.StringValue(uuid.Normalize(uuid.Network, *networkID).String()),
 		VAppName:           state.VAppName,
 		VAppID:             state.VAppID,
 		VDC:                types.StringValue(r.vdc.GetName()),
