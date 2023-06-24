@@ -2,12 +2,12 @@
 page_title: "cloudavenue_storage_profiles Data Source - cloudavenue"
 subcategory: "Storage"
 description: |-
-  The cloudavenue_storage_profile data source can be used to access information about a storage profile in a VDC.
+  The cloudavenue_storage_profile data source can be used to access information about a storage profiles in a VDC.
 ---
 
 # cloudavenue_storage_profiles (Data Source)
 
-The `cloudavenue_storage_profile` data source can be used to access information about a storage profile in a VDC.
+The `cloudavenue_storage_profile` data source can be used to access information about a storage profiles in a VDC.
 
 ## Example Usage
 

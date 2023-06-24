@@ -179,7 +179,7 @@ func (d *profilesDataSource) superSchema(ctx context.Context) superschema.Schema
 	pDS := profileDataSource{}
 	return superschema.Schema{
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_storage_profile` data source can be used to access information about a storage profile in a VDC.",
+			MarkdownDescription: "The `cloudavenue_storage_profile` data source can be used to access information about a storage profiles in a VDC.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
