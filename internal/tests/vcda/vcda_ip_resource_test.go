@@ -27,6 +27,13 @@ func TestAccVCDAResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ip_address", "10.0.0.1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateId:     "10.0.0.1",
+				ImportStateVerify: true,
+				Destroy:           true,
+			},
 		},
 	})
 }
