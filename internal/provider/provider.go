@@ -29,6 +29,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/publicip"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/storage"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vapp"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vcda"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vrf"
@@ -120,7 +121,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 
 		// VCDA
 		// https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/pull/232
-		// vcda.NewVCDAIPResource,
+		vcda.NewVCDAIPResource,
 
 		// PUBLICIP
 		// Bug in the API, we can't delete a public IP. Waiting for a fix.

@@ -70,6 +70,9 @@ func (r *vcdaIPResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 				},
 				Resource: &schemaR.StringAttribute{
 					Computed: true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
 				},
 			},
 			"ip_address": superschema.StringAttribute{
@@ -139,7 +142,7 @@ func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Set the ID
-	plan.ID = plan.IPAddress
+	plan.ID = types.StringValue("urn:cloudavenue:vcda:" + plan.IPAddress.ValueString())
 
 	// Save plan into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -175,8 +178,6 @@ func (r *vcdaIPResource) Read(ctx context.Context, req resource.ReadRequest, res
 		resp.State.RemoveResource(ctx)
 		return
 	}
-
-	state.ID = state.IPAddress
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -214,6 +215,6 @@ func (r *vcdaIPResource) Delete(ctx context.Context, req resource.DeleteRequest,
 }
 
 func (r *vcdaIPResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("ip_address"), req, resp)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("ip_address"), req.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue("urn:cloudavenue:vcda:"+req.ID))...)
 }
