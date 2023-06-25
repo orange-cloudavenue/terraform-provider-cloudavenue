@@ -1,0 +1,3 @@
+```release-note:new-resource
+`resource/cloudavenue_vcda_ip` - Is a new resource allows you to declare or remove your on-premises IP address for the DRaaS service
+```

@@ -120,7 +120,6 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		vdc.NewACLResource,
 
 		// VCDA
-		// https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/pull/232
 		vcda.NewVCDAIPResource,
 
 		// PUBLICIP
