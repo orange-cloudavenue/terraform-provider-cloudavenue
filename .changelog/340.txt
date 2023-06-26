@@ -1,0 +1,3 @@
+```release-note:new-resource
+`resource/cloudavenue_network_firewall` - New resource to create a network firewall.
+```
