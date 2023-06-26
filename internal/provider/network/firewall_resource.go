@@ -11,25 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
-	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
@@ -52,24 +39,20 @@ func NewFirewallResource() resource.Resource {
 // firewallResource is the resource implementation.
 type firewallResource struct {
 	client *client.CloudAvenue
-
-	// Uncomment the following lines if you need to access the resource's.
 	org    org.Org
 	edgegw edgegw.EdgeGateway
-	// vdc    vdc.VDC
-	// vapp   vapp.VAPP
 }
 
-type firewallResourceModel struct {
+type firewallModel struct {
 	ID              types.String `tfsdk:"id"`
 	EdgeGatewayID   types.String `tfsdk:"edge_gateway_id"`
 	EdgeGatewayName types.String `tfsdk:"edge_gateway_name"`
 	Rules           types.List   `tfsdk:"rules"`
 }
 
-type firewallResourceModelRules []firewallResourceModelRule
+type firewallModelRules []firewallModelRule
 
-type firewallResourceModelRule struct {
+type firewallModelRule struct {
 	ID                types.String `tfsdk:"id"`
 	Name              types.String `tfsdk:"name"`
 	Enabled           types.Bool   `tfsdk:"enabled"`
@@ -83,15 +66,15 @@ type firewallResourceModelRule struct {
 }
 
 // RulesFromPlan.
-func (rm *firewallResourceModel) RulesFromPlan(ctx context.Context) (rules firewallResourceModelRules, diags diag.Diagnostics) {
-	tflog.Info(ctx, "firewallResourceModel.RulesFromPlan")
-	rules = make(firewallResourceModelRules, 0)
+func (rm *firewallModel) RulesFromPlan(ctx context.Context) (rules firewallModelRules, diags diag.Diagnostics) {
+	tflog.Info(ctx, "firewallModel.RulesFromPlan")
+	rules = make(firewallModelRules, 0)
 	diags.Append(rm.Rules.ElementsAs(ctx, &rules, false)...)
 	return
 }
 
 // rulesToNsxtFirewallRule.
-func (rules *firewallResourceModelRules) rulesToNsxtFirewallRule(ctx context.Context) (nsxtFirewallRules []*govcdtypes.NsxtFirewallRule, diags diag.Diagnostics) {
+func (rules *firewallModelRules) rulesToNsxtFirewallRule(ctx context.Context) (nsxtFirewallRules []*govcdtypes.NsxtFirewallRule, diags diag.Diagnostics) {
 	nsxtFirewallRules = make([]*govcdtypes.NsxtFirewallRule, len(*rules))
 	for i, rule := range *rules {
 		nsxtFirewallRules[i] = &govcdtypes.NsxtFirewallRule{
@@ -157,7 +140,7 @@ func (rules *firewallResourceModelRules) rulesToNsxtFirewallRule(ctx context.Con
 }
 
 // attrTypes returns the attribute types for the resource.
-func (rules *firewallResourceModelRules) AttrTypes(_ context.Context) map[string]attr.Type {
+func (rules *firewallModelRules) AttrTypes(_ context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
 		"id":                   types.StringType,
 		"name":                 types.StringType,
@@ -173,14 +156,14 @@ func (rules *firewallResourceModelRules) AttrTypes(_ context.Context) map[string
 }
 
 // objectTypes returns the object types for the resource.
-func (rules *firewallResourceModelRules) ObjectType(ctx context.Context) types.ObjectType {
+func (rules *firewallModelRules) ObjectType(ctx context.Context) types.ObjectType {
 	return types.ObjectType{
 		AttrTypes: rules.AttrTypes(ctx),
 	}
 }
 
 // ToPlan.
-func (rules *firewallResourceModelRules) ToPlan(ctx context.Context) (lV basetypes.ListValue, diags diag.Diagnostics) {
+func (rules *firewallModelRules) ToPlan(ctx context.Context) (lV basetypes.ListValue, diags diag.Diagnostics) {
 	if rules == nil {
 		diags.AddError("Rules not initialized", "Failed to convert rules to plan")
 		return types.ListNull(rules.ObjectType(ctx)), diags
@@ -190,8 +173,8 @@ func (rules *firewallResourceModelRules) ToPlan(ctx context.Context) (lV basetyp
 }
 
 // fwRulesRead.
-func fwRulesRead(ctx context.Context, fwRules *govcd.NsxtFirewall) (rules firewallResourceModelRules, diags diag.Diagnostics) {
-	rules = make(firewallResourceModelRules, 0)
+func fwRulesRead(ctx context.Context, fwRules *govcd.NsxtFirewall) (rules firewallModelRules, diags diag.Diagnostics) {
+	rules = make(firewallModelRules, 0)
 
 	for _, rule := range fwRules.NsxtFirewallRuleContainer.UserDefinedRules {
 		sourceIDs, d := types.SetValueFrom(ctx, types.StringType, rule.SourceFirewallGroups)
@@ -203,7 +186,7 @@ func fwRulesRead(ctx context.Context, fwRules *govcd.NsxtFirewall) (rules firewa
 		if diags.HasError() {
 			return
 		}
-		rules = append(rules, firewallResourceModelRule{
+		rules = append(rules, firewallModelRule{
 			ID:                types.StringValue(rule.ID),
 			Name:              types.StringValue(rule.Name),
 			Enabled:           types.BoolValue(rule.Enabled),
@@ -221,7 +204,7 @@ func fwRulesRead(ctx context.Context, fwRules *govcd.NsxtFirewall) (rules firewa
 }
 
 // Init Initializes the resource.
-func (r *firewallResource) Init(ctx context.Context, rm *firewallResourceModel) (diags diag.Diagnostics) {
+func (r *firewallResource) Init(ctx context.Context, rm *firewallModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.org, diags = org.Init(r.client)
@@ -248,185 +231,7 @@ func (r *firewallResource) Metadata(_ context.Context, req resource.MetadataRequ
 
 // Schema defines the schema for the resource.
 func (r *firewallResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = superschema.Schema{
-		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The firewall resource allows you to manage a ...",
-		},
-		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
-				Common: &schemaR.StringAttribute{
-					Computed:            true,
-					MarkdownDescription: "The ID of the network.",
-				},
-				Resource: &schemaR.StringAttribute{
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.UseStateForUnknown(),
-					},
-				},
-			},
-			"edge_gateway_name": superschema.StringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the Edge Gateway.",
-				},
-				Resource: &schemaR.StringAttribute{
-					Optional: true,
-					Computed: true,
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.RequiresReplaceIfConfigured(),
-					},
-					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
-					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
-				},
-			},
-			"edge_gateway_id": superschema.StringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the Edge Gateway.",
-				},
-				Resource: &schemaR.StringAttribute{
-					Optional: true,
-					Computed: true,
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.RequiresReplaceIfConfigured(),
-					},
-					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
-					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
-				},
-			},
-			"rules": superschema.ListNestedAttribute{
-				Common: &schemaR.ListNestedAttribute{
-					MarkdownDescription: "The list of rules to apply to the firewall.",
-					Required:            true,
-					Validators: []validator.List{
-						listvalidator.SizeAtLeast(1),
-					},
-				},
-				Attributes: superschema.Attributes{
-					"id": superschema.StringAttribute{
-						Common: &schemaR.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The ID of the rule.",
-						},
-					},
-					"name": superschema.StringAttribute{
-						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The name of the rule.",
-						},
-						Resource: &schemaR.StringAttribute{
-							Required: true,
-						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
-						},
-					},
-					"direction": superschema.StringAttribute{
-						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The direction of the rule.",
-						},
-						Resource: &schemaR.StringAttribute{
-							Required: true,
-							Validators: []validator.String{
-								stringvalidator.OneOf("IN", "OUT", "IN_OUT"),
-							},
-						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
-						},
-					},
-					"ip_protocol": superschema.StringAttribute{
-						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The IP protocol of the rule.",
-							Computed:            true,
-						},
-						Resource: &schemaR.StringAttribute{
-							Optional: true,
-							Default:  stringdefault.StaticString("IPV4"),
-							Validators: []validator.String{
-								stringvalidator.OneOf("IPV4", "IPV6", "IPV4_IPV6"),
-							},
-						},
-					},
-					"action": superschema.StringAttribute{
-						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "Defines if the rule should `ALLOW` or `DROP` matching traffic.",
-						},
-						Resource: &schemaR.StringAttribute{
-							Required: true,
-							Validators: []validator.String{
-								stringvalidator.OneOf("ALLOW", "DROP"),
-							},
-						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
-						},
-					},
-					"enabled": superschema.BoolAttribute{
-						Common: &schemaR.BoolAttribute{
-							MarkdownDescription: "Defines if the rule is enabled or not.",
-							Computed:            true,
-						},
-						Resource: &schemaR.BoolAttribute{
-							Optional: true,
-							Default:  booldefault.StaticBool(true),
-						},
-					},
-					"logging": superschema.BoolAttribute{
-						Common: &schemaR.BoolAttribute{
-							MarkdownDescription: "Defines if the rule should log matching traffic.",
-							Computed:            true,
-						},
-						Resource: &schemaR.BoolAttribute{
-							Optional: true,
-							Default:  booldefault.StaticBool(false),
-						},
-					},
-					"source_ids": superschema.SetAttribute{
-						Common: &schemaR.SetAttribute{
-							MarkdownDescription: "A set of Source Firewall Group IDs (IP Sets or Security Groups). Leaving it empty means 'Any'.",
-							ElementType:         types.StringType,
-						},
-						Resource: &schemaR.SetAttribute{
-							Optional: true,
-						},
-						DataSource: &schemaD.SetAttribute{
-							Computed: true,
-						},
-					},
-					"destination_ids": superschema.SetAttribute{
-						Common: &schemaR.SetAttribute{
-							MarkdownDescription: "A set of Destination Firewall Group IDs (IP Sets or Security Groups). Leaving it empty means 'Any'.",
-							ElementType:         types.StringType,
-						},
-						Resource: &schemaR.SetAttribute{
-							Optional: true,
-						},
-						DataSource: &schemaD.SetAttribute{
-							Computed: true,
-						},
-					},
-					"app_port_profile_ids": superschema.SetAttribute{
-						Common: &schemaR.SetAttribute{
-							MarkdownDescription: "A set of Application Port Profile IDs. Leaving it empty means 'Any'.",
-							ElementType:         types.StringType,
-						},
-						Resource: &schemaR.SetAttribute{
-							Optional: true,
-						},
-						DataSource: &schemaD.SetAttribute{
-							Computed: true,
-						},
-					},
-				},
-			},
-		},
-	}.GetResource(ctx)
+	resp.Schema = firewallSchema(ctx).GetResource(ctx)
 }
 
 func (r *firewallResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -449,7 +254,7 @@ func (r *firewallResource) Configure(ctx context.Context, req resource.Configure
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *firewallResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) { //nolint:dupl
-	plan := &firewallResourceModel{}
+	plan := &firewallModel{}
 
 	// Retrieve values from plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -507,7 +312,7 @@ func (r *firewallResource) Create(ctx context.Context, req resource.CreateReques
 
 // Read refreshes the Terraform state with the latest data.
 func (r *firewallResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	state := &firewallResourceModel{}
+	state := &firewallModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -537,7 +342,7 @@ func (r *firewallResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *firewallResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { //nolint:dupl
-	plan := &firewallResourceModel{}
+	plan := &firewallModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -596,7 +401,7 @@ func (r *firewallResource) Update(ctx context.Context, req resource.UpdateReques
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *firewallResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	state := &firewallResourceModel{}
+	state := &firewallModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -671,7 +476,7 @@ func (r *firewallResource) ImportState(ctx context.Context, req resource.ImportS
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), edgegw.GetName())...)
 }
 
-func (r *firewallResource) read(ctx context.Context) (plan *firewallResourceModel, diags diag.Diagnostics) {
+func (r *firewallResource) read(ctx context.Context) (plan *firewallModel, diags diag.Diagnostics) {
 	fwRules, err := r.edgegw.GetNsxtFirewall()
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway Firewall", err.Error())
@@ -684,7 +489,7 @@ func (r *firewallResource) read(ctx context.Context) (plan *firewallResourceMode
 		return
 	}
 
-	plan = &firewallResourceModel{
+	plan = &firewallModel{
 		ID:              types.StringValue(r.edgegw.GetID()),
 		EdgeGatewayID:   types.StringValue(r.edgegw.GetID()),
 		EdgeGatewayName: types.StringValue(r.edgegw.GetName()),

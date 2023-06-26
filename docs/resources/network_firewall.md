@@ -55,12 +55,12 @@ Required:
 
 Optional:
 
-- `app_port_profile_ids` (Set of String) A set of Application Port Profile IDs. Leaving it empty means 'Any'.
-- `destination_ids` (Set of String) A set of Destination Firewall Group IDs (IP Sets or Security Groups). Leaving it empty means 'Any'.
+- `app_port_profile_ids` (Set of String) A set of Application Port Profile IDs. Leaving it empty means `Any` (all).
+- `destination_ids` (Set of String) A set of Destination Firewall Group IDs (`IP Sets` or `Security Groups`). Leaving it empty means `Any` (all).
 - `enabled` (Boolean) Defines if the rule is enabled or not. Value defaults to `true`.
 - `ip_protocol` (String) The IP protocol of the rule. Value must be one of : `IPV4`, `IPV6`, `IPV4_IPV6`. Value defaults to `IPV4`.
 - `logging` (Boolean) Defines if the rule should log matching traffic. Value defaults to `false`.
-- `source_ids` (Set of String) A set of Source Firewall Group IDs (IP Sets or Security Groups). Leaving it empty means 'Any'.
+- `source_ids` (Set of String) A set of Source Firewall Group IDs (`IP Sets` or `Security Groups`). Leaving it empty means `Any` (all).
 
 Read-Only:
 

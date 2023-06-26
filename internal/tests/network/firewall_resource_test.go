@@ -51,6 +51,24 @@ resource "cloudavenue_network_firewall" "example" {
 }
 `
 
+func firewallTestCheck(resourceName string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttrSet(resourceName, "id"),
+		resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
+		resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
+		resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
+		resource.TestCheckResourceAttr(resourceName, "rules.0.action", "ALLOW"),
+		resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow all IPv4 traffic"),
+		resource.TestCheckResourceAttr(resourceName, "rules.0.direction", "IN_OUT"),
+		resource.TestCheckResourceAttr(resourceName, "rules.0.ip_protocol", "IPV4"),
+		resource.TestCheckResourceAttr(resourceName, "rules.0.logging", "false"),
+		resource.TestCheckResourceAttr(resourceName, "rules.0.enabled", "true"),
+		resource.TestCheckResourceAttr(resourceName, "rules.0.sources_ids.#", "0"),
+		resource.TestCheckResourceAttr(resourceName, "rules.0.destinations_ids.#", "0"),
+		resource.TestCheckResourceAttr(resourceName, "rules.0.app_port_profile_ids.#", "0"),
+	)
+}
+
 func TestAccFirewallResource(t *testing.T) {
 	resourceName := "cloudavenue_network_firewall.example"
 
@@ -62,21 +80,7 @@ func TestAccFirewallResource(t *testing.T) {
 			{
 				// Apply test
 				Config: testAccFirewallResourceConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
-					resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rules.0.action", "ALLOW"),
-					resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow all IPv4 traffic"),
-					resource.TestCheckResourceAttr(resourceName, "rules.0.direction", "IN_OUT"),
-					resource.TestCheckResourceAttr(resourceName, "rules.0.ip_protocol", "IPV4"),
-					resource.TestCheckResourceAttr(resourceName, "rules.0.logging", "false"),
-					resource.TestCheckResourceAttr(resourceName, "rules.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "rules.0.sources_ids.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "rules.0.destinations_ids.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "rules.0.app_port_profile_ids.#", "0"),
-				),
+				Check:  firewallTestCheck(resourceName),
 			},
 			{
 				// Update test

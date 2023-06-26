@@ -44,3 +44,11 @@ func TestAccPreCheck(t *testing.T) {
 		t.Fatal("CLOUDAVENUE_VDC must be set for acceptance tests")
 	}
 }
+
+func ConcatTests(tests ...string) string {
+	var result string
+	for _, test := range tests {
+		result += test + "\n"
+	}
+	return result
+}

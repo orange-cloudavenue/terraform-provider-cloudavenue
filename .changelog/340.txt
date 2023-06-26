@@ -1,3 +1,7 @@
 ```release-note:new-resource
 `resource/cloudavenue_network_firewall` - New resource to create a network firewall.
 ```
+
+```release-note:new-datasource
+`datasource/cloudavenue_network_firewall` - New datasource to get information about a network firewall.
+```
