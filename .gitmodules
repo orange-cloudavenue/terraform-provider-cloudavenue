@@ -1,3 +1,6 @@
 [submodule "githooks"]
 	path = githooks
 	url = https://github.com/FrangipaneTeam/githooks
+[submodule ".ci"]
+	path = .ci
+	url = https://github.com/FrangipaneTeam/release-ci
