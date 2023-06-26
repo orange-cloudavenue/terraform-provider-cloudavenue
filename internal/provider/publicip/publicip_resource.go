@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/antihax/optional"
-	"github.com/kr/pretty"
 	"golang.org/x/exp/slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,7 +17,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
@@ -388,13 +386,8 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
 
-	tflog.Info(ctx, "deleting public IP")
 	// Delete the public IP
 	job, httpR, err := r.client.APIClient.PublicIPApi.DeletePublicIP(auth, state.PublicIP.ValueString())
-	tflog.Info(ctx, "=============PROUT=============")
-	tflog.Info(ctx, pretty.Sprint(job))
-	tflog.Info(ctx, pretty.Sprint(err))
-
 	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
@@ -405,7 +398,6 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	tflog.Info(ctx, "waiting for public IP to be deleted")
 	// Wait for job to complete
 	errRetry := retry.RetryContext(ctxTO, deleteTimeout, func() *retry.RetryError {
 		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
