@@ -24,7 +24,10 @@ import (
 func firewallSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The firewall resource allows you to manage a ...",
+			MarkdownDescription: "The firewall resource allows you to manage rules on an Firewall.",
+		},
+		DataSource: superschema.SchemaDetails{
+			MarkdownDescription: "The firewall data source allows you to retrieve information about an Firewall.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{

@@ -2,12 +2,12 @@
 page_title: "cloudavenue_network_firewall Resource - cloudavenue"
 subcategory: "Network"
 description: |-
-  The firewall resource allows you to manage a ...
+  The firewall resource allows you to manage rules on an Firewall.
 ---
 
 # cloudavenue_network_firewall (Resource)
 
-The firewall resource allows you to manage a ...
+The firewall resource allows you to manage rules on an Firewall.
 
 ## Example Usage
 

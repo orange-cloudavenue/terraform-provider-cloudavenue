@@ -2,18 +2,20 @@
 page_title: "cloudavenue_network_firewall Data Source - cloudavenue"
 subcategory: "Network"
 description: |-
-  
+  The firewall data source allows you to retrieve information about an Firewall.
 ---
 
 # cloudavenue_network_firewall (Data Source)
 
-
+The firewall data source allows you to retrieve information about an Firewall.
 
 ## Example Usage
 
 ```terraform
+data "cloudavenue_edgegateways" "example" {}
+
 data "cloudavenue_network_firewall" "example" {
-  edge_gateway_id = cloudavenue_network_firewall.example.edge_gateway_id
+  edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[0].id
 }
 ```
 
