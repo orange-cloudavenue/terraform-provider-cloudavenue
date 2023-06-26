@@ -1,0 +1,3 @@
+```release-note:new-resource
+`resource/cloudavenue_publicip` is a new resource that can be used to manage public IP addresses in Cloud Avenue.
+```
