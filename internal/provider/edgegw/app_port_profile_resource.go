@@ -1,5 +1,5 @@
 // Package network provides a Terraform resource.
-package network
+package edgegw
 
 import (
 	"context"
