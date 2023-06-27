@@ -8,8 +8,10 @@ import (
 const (
 
 	// VcloudUUIDPrefix is the prefix for all vCloud UUIDs.
-	VcloudUUIDPrefix = "urn:vcloud:"
+	VcloudUUIDPrefix      = "urn:vcloud:"
+	CloudAvenueUUIDPrefix = "urn:cloudavenue:"
 
+	// * VCD.
 	VM                = VcloudUUID(VcloudUUIDPrefix + "vm:")
 	User              = VcloudUUID(VcloudUUIDPrefix + "user:")
 	Group             = VcloudUUID(VcloudUUIDPrefix + "group:")
@@ -19,6 +21,10 @@ const (
 	LoadBalancerPool  = VcloudUUID(VcloudUUIDPrefix + "loadBalancerPool:")
 	VDCStorageProfile = VcloudUUID(VcloudUUIDPrefix + "vdcstorageProfile:")
 	VAPP              = VcloudUUID(VcloudUUIDPrefix + "vapp:")
+	Disk              = VcloudUUID(VcloudUUIDPrefix + "disk:")
+
+	// * CLOUDAVENUE.
+	VCDA = VcloudUUID(CloudAvenueUUIDPrefix + "vcda:")
 )
 
 var vcloudUUIDs = []VcloudUUID{

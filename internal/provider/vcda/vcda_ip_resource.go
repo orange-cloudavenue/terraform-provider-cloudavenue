@@ -24,6 +24,8 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -142,7 +144,12 @@ func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Set the ID
-	plan.ID = types.StringValue("urn:cloudavenue:vcda:" + plan.IPAddress.ValueString())
+	plan.ID = types.StringValue(uuid.Normalize(
+		uuid.VCDA,
+		utils.GenerateUUID(
+			plan.IPAddress.ValueString(),
+		).ValueString(),
+	).String())
 
 	// Save plan into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
