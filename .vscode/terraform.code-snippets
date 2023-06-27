@@ -86,7 +86,7 @@
 		"scope": "plaintext",
 		"prefix": "release-note-new-datasource",
 		"body": [
-			"```release-note:new-datasource",
+			"```release-note:new-data-source",
 			"`datasource/cloudavenue_xx` - Short Description.",
 			"```"
 		]
