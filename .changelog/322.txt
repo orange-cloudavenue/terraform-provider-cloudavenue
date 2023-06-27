@@ -1,0 +1,3 @@
+```release-note:new-datasource
+`datasource/cloudavenue_vm` - Data source allows you to read information about a virtual machine.
+```

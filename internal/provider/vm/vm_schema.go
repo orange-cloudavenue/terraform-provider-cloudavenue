@@ -44,6 +44,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 		Resource: superschema.SchemaDetails{
 			MarkdownDescription: "The virtual machine (vm) resource allows you to manage a virtual machine in the CloudAvenue.",
 		},
+		DataSource: superschema.SchemaDetails{
+			MarkdownDescription: "The virtual machine (vm) data source allows you to read information about a virtual machine in the CloudAvenue.",
+		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
@@ -55,34 +58,47 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
+				DataSource: &schemaD.StringAttribute{
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
+					},
+				},
 			},
 			"name": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the VM. Unique within the vApp.",
-					Required:            true,
 					Validators: []validator.String{
 						stringvalidator.RegexMatches(regexp.MustCompile(`^[a-zA-Z0-9-]{1,80}$`), "Must be between 1 and 80 characters long and can contain only letters, numbers and hyphen. It must not contain only digits."),
 					},
 				},
 				Resource: &schemaR.StringAttribute{
+					Required: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
+					},
+				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},
 				},
 			},
 			"vapp_name": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The vApp this VM belongs to.",
+					Optional:            true,
 					Computed:            true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
+					},
 				},
 				Resource: &schemaR.StringAttribute{
-					Optional: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 						stringplanmodifier.UseStateForUnknown(),
-					},
-					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
 					},
 				},
 			},
@@ -90,15 +106,15 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The vApp this VM belongs to.",
 					Computed:            true,
+					Optional:            true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
+					},
 				},
 				Resource: &schemaR.StringAttribute{
-					Optional: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 						stringplanmodifier.UseStateForUnknown(),
-					},
-					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
 					},
 				},
 			},
@@ -195,7 +211,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 					},
 					"status": superschema.StringAttribute{
 						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The status of the VM.",
+							MarkdownDescription: "The power status of the VM.",
 							Computed:            true,
 						},
 					},
@@ -519,10 +535,13 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 						},
 					},
 					"os_type": superschema.StringAttribute{
-						Resource: &schemaR.StringAttribute{
-							MarkdownDescription: "The type of OS installed on the VM " + coldUpdate,
-							Optional:            true,
+						Common: &schemaR.StringAttribute{
+							MarkdownDescription: "The Operating System type",
 							Computed:            true,
+						},
+						Resource: &schemaR.StringAttribute{
+							MarkdownDescription: "  to be installed on the VM." + coldUpdate,
+							Optional:            true,
 							Validators: []validator.String{
 								fstringvalidator.OneOfWithDescription(vm.GetAllOsTypesWithDescription()...),
 								// TODO Validator field is require if attribute deploy_os.boot_image_id is set
@@ -530,6 +549,9 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
 							},
+						},
+						DataSource: &schemaD.StringAttribute{
+							MarkdownDescription: " installed on the VM.",
 						},
 					},
 					"storage_profile":  storageprofile.SuperSchema(),
@@ -548,10 +570,12 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 						},
 					},
 					"customization": superschema.SingleNestedAttribute{
-						Resource: &schemaR.SingleNestedAttribute{
+						Common: &schemaR.SingleNestedAttribute{
 							MarkdownDescription: "The customization settings for the VM.",
-							Optional:            true,
 							Computed:            true,
+						},
+						Resource: &schemaR.SingleNestedAttribute{
+							Optional: true,
 							PlanModifiers: []planmodifier.Object{
 								objectplanmodifier.UseStateForUnknown(),
 							},
@@ -567,56 +591,70 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										boolplanmodifier.UseStateForUnknown(),
 									},
 								},
+								DataSource: &schemaD.BoolAttribute{
+									MarkdownDescription: "This attributes is not set in the data source.",
+									Computed:            true,
+								},
 							},
 							"enabled": superschema.BoolAttribute{
-								Resource: &schemaR.BoolAttribute{
+								Common: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether guest customization is enabled or not.",
-									Optional:            true,
 									Computed:            true,
-									Default:             booldefault.StaticBool(false),
+								},
+								Resource: &schemaR.BoolAttribute{
+									Optional: true,
+									Default:  booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
 								},
 							},
 							"change_sid": superschema.BoolAttribute{
-								Resource: &schemaR.BoolAttribute{
+								Common: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether to change the SID of the VM. Applicable only for Windows VMs.",
-									Optional:            true,
 									Computed:            true,
-									Default:             booldefault.StaticBool(false),
+								},
+								Resource: &schemaR.BoolAttribute{
+									Optional: true,
+									Default:  booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
 								},
 							},
 							"allow_local_admin_password": superschema.BoolAttribute{
-								Resource: &schemaR.BoolAttribute{
+								Common: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether to allow the local admin password to be changed.",
-									Optional:            true,
 									Computed:            true,
-									Default:             booldefault.StaticBool(false),
+								},
+								Resource: &schemaR.BoolAttribute{
+									Optional: true,
+									Default:  booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
 								},
 							},
 							"must_change_password_on_first_login": superschema.BoolAttribute{
-								Resource: &schemaR.BoolAttribute{
+								Common: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether the password must be changed on first login.",
-									Optional:            true,
 									Computed:            true,
-									Default:             booldefault.StaticBool(false),
+								},
+								Resource: &schemaR.BoolAttribute{
+									Optional: true,
+									Default:  booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
 								},
 							},
 							"auto_generate_password": superschema.BoolAttribute{
-								Resource: &schemaR.BoolAttribute{
+								Common: &schemaR.BoolAttribute{
 									MarkdownDescription: "Whether to auto-generate the password.",
-									Optional:            true,
 									Computed:            true,
+								},
+								Resource: &schemaR.BoolAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
@@ -626,10 +664,12 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								},
 							},
 							"admin_password": superschema.StringAttribute{
-								Resource: &schemaR.StringAttribute{
+								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "The admin password for the VM.",
-									Optional:            true,
 									Sensitive:           true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
@@ -637,12 +677,17 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("auto_generate_password")),
 									},
 								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
+								},
 							},
 							"number_of_auto_logons": superschema.Int64Attribute{
-								Resource: &schemaR.Int64Attribute{
+								Common: &schemaR.Int64Attribute{
 									MarkdownDescription: "The number of times the VM should auto-login.",
-									Optional:            true,
 									Computed:            true,
+								},
+								Resource: &schemaR.Int64Attribute{
+									Optional: true,
 									Validators: []validator.Int64{
 										int64validator.AtLeast(0),
 									},
@@ -661,69 +706,102 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 										boolplanmodifier.UseStateForUnknown(),
 									},
 								},
+								DataSource: &schemaD.BoolAttribute{
+									MarkdownDescription: "If true, this VM is join to a domain.",
+									Computed:            true,
+								},
 							},
 							"join_org_domain": superschema.BoolAttribute{
-								Resource: &schemaR.BoolAttribute{
+								Common: &schemaR.BoolAttribute{
 									MarkdownDescription: "Use organization's domain for joining.",
-									Optional:            true,
 									Computed:            true,
-									Default:             booldefault.StaticBool(false),
+								},
+								Resource: &schemaR.BoolAttribute{
+									Optional: true,
+									Default:  booldefault.StaticBool(false),
 									PlanModifiers: []planmodifier.Bool{
 										boolplanmodifier.UseStateForUnknown(),
 									},
 								},
 							},
 							"join_domain_name": superschema.StringAttribute{
-								Resource: &schemaR.StringAttribute{
+								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "The domain name to join.",
-									Optional:            true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
+								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
 								},
 							},
 							"join_domain_user": superschema.StringAttribute{
-								Resource: &schemaR.StringAttribute{
+								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "The domain user to join.",
-									Optional:            true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
+								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
 								},
 							},
 							"join_domain_password": superschema.StringAttribute{
-								Resource: &schemaR.StringAttribute{
+								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "The domain password to join.",
 									Sensitive:           true,
-									Optional:            true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
+								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
 								},
 							},
 							"join_domain_account_ou": superschema.StringAttribute{
-								Resource: &schemaR.StringAttribute{
+								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "The domain account OU to join.",
-									Optional:            true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
+								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
 								},
 							},
 							"init_script": superschema.StringAttribute{
-								Resource: &schemaR.StringAttribute{
+								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "The init script to run.",
-									Optional:            true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
 								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
+								},
 							},
 							"hostname": superschema.StringAttribute{
-								Resource: &schemaR.StringAttribute{
+								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "Computer name to assign to this virtual machine. Default is the value of attribute `name`.",
-									Optional:            true,
 									Computed:            true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
 									PlanModifiers: []planmodifier.String{
 										stringplanmodifier.UseStateForUnknown(),
 									},
