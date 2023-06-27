@@ -18,6 +18,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
+	fint64planmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/int64planmodifier"
+	fstringplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/stringplanmodifier"
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
@@ -30,12 +32,12 @@ import (
 func DiskSuperSchema() superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The virtual machine (vm) resource allows you to manage a virtual machine in the CloudAvenue.",
+			MarkdownDescription: "The `vm_disk` resource allows to create a disk and attach it to a VM. The disk resource permit to create Internal or External disks. Internal create non-detachable disks and External create detachable disks.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the VM.",
+					MarkdownDescription: "The ID of the Disk.",
 					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
@@ -57,15 +59,13 @@ func DiskSuperSchema() superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
-						stringvalidator.Any(
-							fstringvalidator.RequireIfAttributeIsOneOf(
-								path.MatchRoot("is_detachable"),
-								[]attr.Value{
-									types.BoolValue(false),
-								},
-							),
-							stringvalidator.ExactlyOneOf(path.MatchRoot("vm_id")),
+						fstringvalidator.RequireIfAttributeIsOneOf(
+							path.MatchRoot("is_detachable"),
+							[]attr.Value{
+								types.BoolValue(false),
+							},
 						),
+						stringvalidator.ExactlyOneOf(path.MatchRoot("vm_id"), path.MatchRoot("vm_name")),
 					},
 				},
 			},
@@ -79,15 +79,13 @@ func DiskSuperSchema() superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
-						stringvalidator.Any(
-							fstringvalidator.RequireIfAttributeIsOneOf(
-								path.MatchRoot("is_detachable"),
-								[]attr.Value{
-									types.BoolValue(false),
-								},
-							),
-							stringvalidator.ExactlyOneOf(path.MatchRoot("vm_name")),
+						fstringvalidator.RequireIfAttributeIsOneOf(
+							path.MatchRoot("is_detachable"),
+							[]attr.Value{
+								types.BoolValue(false),
+							},
 						),
+						stringvalidator.ExactlyOneOf(path.MatchRoot("vm_name"), path.MatchRoot("vm_id")),
 					},
 				},
 			},
@@ -122,6 +120,9 @@ func DiskSuperSchema() superschema.Schema {
 								types.BoolValue(true),
 							},
 						),
+						fstringvalidator.NullIfAttributeIsOneOf(path.MatchRoot("is_detachable"), []attr.Value{
+							types.BoolValue(false),
+						}),
 					},
 				},
 			},
@@ -161,6 +162,8 @@ func DiskSuperSchema() superschema.Schema {
 					Default:  stringdefault.StaticString(diskparams.BusTypeSCSI.Name()),
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.UseStateForUnknown(),
+						// Note can't change bus type as vmware changes diskId
+						fstringplanmodifier.RequireReplaceIfBool(path.Root("is_detachable"), false),
 					},
 					Validators: []validator.String{
 						stringvalidator.OneOf(diskparams.ListOfBusTypes...),
@@ -176,6 +179,8 @@ func DiskSuperSchema() superschema.Schema {
 					Optional:            true,
 					PlanModifiers: []planmodifier.Int64{
 						int64planmodifier.UseStateForUnknown(),
+						// Note can't change bus type as vmware changes diskId
+						fint64planmodifier.RequireReplaceIfBool(path.Root("is_detachable"), false),
 					},
 					Validators: []validator.Int64{
 						int64validator.Between(0, 3),
@@ -191,6 +196,8 @@ func DiskSuperSchema() superschema.Schema {
 					Optional:            true,
 					PlanModifiers: []planmodifier.Int64{
 						int64planmodifier.UseStateForUnknown(),
+						// Note can't change bus type as vmware changes diskId
+						fint64planmodifier.RequireReplaceIfBool(path.Root("is_detachable"), false),
 					},
 					Validators: []validator.Int64{
 						int64validator.Between(0, 15),

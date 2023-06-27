@@ -9,11 +9,47 @@ description: |-
 
 {{ .Description | trimspace }}
 
-{{ if .HasExample -}}
-## Example Usage
+## Examples
 
-{{ tffile .ExampleFile }}
-{{- end }}
+### Internal Disk
+
+```terraform
+resource "cloudavenue_vm_disk" "example-internal" {
+	vapp_id = cloudavenue_vapp.example.id
+	name = "disk-example-internal"
+	bus_type = "NVME"
+	size_in_mb = 104800
+	is_detachable = false
+	vm_id = cloudavenue_vm.example.id
+}
+```
+
+### External Disk
+
+**External disk detached from VM**
+
+```terraform
+resource "cloudavenue_vm_disk" "example-detachable" {
+	vapp_id = cloudavenue_vapp.example.id
+	name = "disk-example"
+	bus_type = "NVME"
+	size_in_mb = 104800
+	is_detachable = true
+}
+```
+
+**External disk attached to VM**
+
+```terraform
+resource "cloudavenue_vm_disk" "example-detachable" {
+	vapp_id = cloudavenue_vapp.example.id
+	name = "disk-example"
+	bus_type = "NVME"
+	size_in_mb = 104800
+	is_detachable = true
+	vm_id = cloudavenue_vm.example.id
+}
+```
 
 {{ .SchemaMarkdown | trimspace }}
 
