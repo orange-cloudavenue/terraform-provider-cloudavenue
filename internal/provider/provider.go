@@ -120,6 +120,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		edgegw.NewEdgeGatewayResource,
 		edgegw.NewFirewallResource,
 		edgegw.NewPortProfilesResource,
+		edgegw.NewSecurityGroupResource,
 
 		// VDC
 		vdc.NewVDCResource,

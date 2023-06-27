@@ -23,6 +23,16 @@ func (v VDC) GetID() string {
 	return v.Vdc.Vdc.ID
 }
 
+// IsVDCGroup return true if the object is a VDC Group.
+func (v VDC) IsVDCGroup() bool {
+	return govcd.OwnerIsVdcGroup(v.GetID())
+}
+
+// GetNsxtFirewallGroupByID return the NSX-T firewall group using the ID provided in the argument.
+func (v VDC) GetNsxtFirewallGroupByID(nsxtFirewallGroupID string) (*govcd.NsxtFirewallGroup, error) {
+	return v.Vdc.GetNsxtFirewallGroupById(nsxtFirewallGroupID)
+}
+
 // GetDefaultPlacementPolicyID give you the ID of the default placement policy.
 func (v VDC) GetDefaultPlacementPolicyID() string {
 	return v.Vdc.Vdc.DefaultComputePolicy.ID
@@ -64,12 +74,24 @@ func (g VDCGroup) GetID() string {
 	return g.VdcGroup.VdcGroup.Id
 }
 
+// IsVDCGroup return true if the object is a VDC Group.
+func (g VDCGroup) IsVDCGroup() bool {
+	return govcd.OwnerIsVdcGroup(g.GetID())
+}
+
+// GetNsxtFirewallGroupById return the NSX-T firewall group using the ID provided in the argument.
+func (g VDCGroup) GetNsxtFirewallGroupByID(nsxtFirewallGroupID string) (*govcd.NsxtFirewallGroup, error) {
+	return g.VdcGroup.GetNsxtFirewallGroupById(nsxtFirewallGroupID)
+}
+
 // VDCOrVDCGroupHandler is an interface to access some common methods on VDC or VDC Group without
 // explicitly handling exact types.
 type VDCOrVDCGroupHandler interface {
 	GetOpenApiOrgVdcNetworkByName(string) (*govcd.OpenApiOrgVdcNetwork, error)
 	GetName() string
 	GetID() string
+	IsVDCGroup() bool
+	GetNsxtFirewallGroupByID(nsxtFirewallGroupID string) (*govcd.NsxtFirewallGroup, error)
 }
 
 type GetVDCOpts func(*VDC)

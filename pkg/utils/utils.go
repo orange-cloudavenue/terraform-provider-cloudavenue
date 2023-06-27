@@ -2,11 +2,14 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/google/uuid"
+
+	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -83,4 +86,39 @@ func SliceTypesStringToSliceString(slice []types.String) []string {
 		result = append(result, s.ValueString())
 	}
 	return result
+}
+
+type OpenAPIValues []string
+
+// OpenApiReferenceToSliceID converts a slice of OpenApiReference to a slice of ID.
+func OpenAPIReferenceToSliceID(slice []govcdtypes.OpenApiReference) OpenAPIValues {
+	var result OpenAPIValues
+	for _, s := range slice {
+		result = append(result, s.ID)
+	}
+	return result
+}
+
+// OpenAPIReferenceToSliceName converts a slice of OpenApiReference to a slice of Name.
+func OpenAPIReferenceToSliceName(slice []govcdtypes.OpenApiReference) OpenAPIValues {
+	var result OpenAPIValues
+	for _, s := range slice {
+		result = append(result, s.Name)
+	}
+	return result
+}
+
+// ToTerraformTypes converts a slice of string to a slice of types.String.
+func (o *OpenAPIValues) ToTerraformTypesString() []types.String {
+	var result []types.String
+	for _, s := range *o {
+		result = append(result, types.StringValue(s))
+	}
+	return result
+}
+
+// ToTerraformTypesSet converts a slice of string to a slice of types.StringSet.
+func (o OpenAPIValues) ToTerraformTypesStringSet(ctx context.Context) basetypes.SetValue {
+	x, _ := types.SetValueFrom(ctx, types.StringType, o)
+	return x
 }
