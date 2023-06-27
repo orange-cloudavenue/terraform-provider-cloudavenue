@@ -9,7 +9,7 @@ description: |-
 # cloudavenue_vcda_ip (Resource)
 
 The VCDa resource allows you to declare or remove your on-premises IP address for the DRaaS service..
- -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://wiki.cloudavenue.orange-business.com/w/index.php/DRaaS_avec_VCDA).
+ -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://wiki.cloudavenue.orange-business.com/wiki/DRaaS_with_VCDA).
 
 ## Example Usage
 
