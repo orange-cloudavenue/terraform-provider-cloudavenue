@@ -3,7 +3,7 @@ module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 go 1.20
 
 require (
-	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.0
+	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.1
 	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.3.1
 	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.4
 	github.com/antihax/optional v1.0.0
