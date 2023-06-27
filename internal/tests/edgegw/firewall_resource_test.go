@@ -1,4 +1,4 @@
-package network
+package edgegw
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ import (
 const testAccFirewallResourceConfig = `
 data "cloudavenue_edgegateways" "example" {}
 
-resource "cloudavenue_network_firewall" "example" {
+resource "cloudavenue_edgegateway_firewall" "example" {
 
   edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[0].id
   rules = [
@@ -31,7 +31,7 @@ resource "cloudavenue_network_firewall" "example" {
 const testAccFirewallResourceConfigUpdate = `
 data "cloudavenue_edgegateways" "example" {}
 
-resource "cloudavenue_network_firewall" "example" {
+resource "cloudavenue_edgegateway_firewall" "example" {
 
   edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[0].id
   rules = [
@@ -70,7 +70,7 @@ func firewallTestCheck(resourceName string) resource.TestCheckFunc {
 }
 
 func TestAccFirewallResource(t *testing.T) {
-	resourceName := "cloudavenue_network_firewall.example"
+	resourceName := "cloudavenue_edgegateway_firewall.example"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },

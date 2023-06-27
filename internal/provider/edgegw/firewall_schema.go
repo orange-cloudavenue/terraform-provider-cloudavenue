@@ -1,4 +1,4 @@
-package network
+package edgegw
 
 import (
 	"context"
@@ -33,7 +33,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 			"id": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					Computed:            true,
-					MarkdownDescription: "The ID of the network.",
+					MarkdownDescription: "The ID of the Firewall Edge Gateway Service.",
 				},
 				Resource: &schemaR.StringAttribute{
 					PlanModifiers: []planmodifier.String{

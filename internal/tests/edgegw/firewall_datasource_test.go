@@ -1,4 +1,4 @@
-package network
+package edgegw
 
 import (
 	"testing"
@@ -9,13 +9,13 @@ import (
 )
 
 const testAccFirewallDataSourceConfig = `
-data "cloudavenue_network_firewall" "example" {
-	  edge_gateway_id = cloudavenue_network_firewall.example.edge_gateway_id
+data "cloudavenue_edgegateway_firewall" "example" {
+	  edge_gateway_id = cloudavenue_edgegateway_firewall.example.edge_gateway_id
 }
 `
 
 func TestAccFirewallDataSource(t *testing.T) {
-	dataSourceName := "data.cloudavenue_network_firewall.example"
+	dataSourceName := "data.cloudavenue_edgegateway_firewall.example"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },

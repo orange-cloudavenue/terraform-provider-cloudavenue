@@ -1,5 +1,5 @@
-// Package network provides a Terraform resource.
-package network
+// Package edgegw provides a Terraform resource.
+package edgegw
 
 import (
 	"context"
@@ -20,6 +20,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
@@ -86,6 +87,8 @@ func (rules *firewallModelRules) rulesToNsxtFirewallRule(ctx context.Context) (n
 			Direction:  rule.Direction.ValueString(),
 			Version:    nil,
 		}
+
+		// ! If sourceIDs/destinationIDs is Null, it's an equivalent of any (source/destination)
 
 		// * sourceIDs
 		if !rule.SourceIDs.IsNull() {
@@ -284,9 +287,10 @@ func (r *firewallResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	networkMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer networkMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
+	// Set the rules
 	vcdRules, d := rules.rulesToNsxtFirewallRule(ctx)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
@@ -373,8 +377,8 @@ func (r *firewallResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	networkMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer networkMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	vcdRules, d := rules.rulesToNsxtFirewallRule(ctx)
 	resp.Diagnostics.Append(d...)
@@ -425,8 +429,8 @@ func (r *firewallResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	networkMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer networkMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	fwRules, err := r.edgegw.GetNsxtFirewall()
 	if err != nil {
@@ -490,6 +494,8 @@ func (r *firewallResource) read(ctx context.Context) (plan *firewallModel, diags
 	}
 
 	plan = &firewallModel{
+		// ID is stored as Edge Gateway ID - because this is a "container" for all firewall rules at once and each child
+		// TypeSet element will have a computed ID field for each rule
 		ID:              types.StringValue(r.edgegw.GetID()),
 		EdgeGatewayID:   types.StringValue(r.edgegw.GetID()),
 		EdgeGatewayName: types.StringValue(r.edgegw.GetName()),

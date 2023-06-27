@@ -1,5 +1,5 @@
-// Package network provides a Terraform datasource.
-package network
+// Package edgegw provides a Terraform datasource.
+package edgegw
 
 import (
 	"context"
