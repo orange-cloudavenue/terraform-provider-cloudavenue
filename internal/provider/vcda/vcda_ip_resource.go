@@ -24,6 +24,8 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -61,7 +63,7 @@ func (r *vcdaIPResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 		},
 		Resource: superschema.SchemaDetails{
 			MarkdownDescription: "resource allows you to declare or remove your on-premises IP address for the DRaaS service..\n" +
-				" -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://wiki.cloudavenue.orange-business.com/w/index.php/DRaaS_avec_VCDA).",
+				" -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://wiki.cloudavenue.orange-business.com/wiki/DRaaS_with_VCDA).",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
@@ -70,6 +72,9 @@ func (r *vcdaIPResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 				},
 				Resource: &schemaR.StringAttribute{
 					Computed: true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
 				},
 			},
 			"ip_address": superschema.StringAttribute{
@@ -139,7 +144,12 @@ func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Set the ID
-	plan.ID = plan.IPAddress
+	plan.ID = types.StringValue(uuid.Normalize(
+		uuid.VCDA,
+		utils.GenerateUUID(
+			plan.IPAddress.ValueString(),
+		).ValueString(),
+	).String())
 
 	// Save plan into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -175,8 +185,6 @@ func (r *vcdaIPResource) Read(ctx context.Context, req resource.ReadRequest, res
 		resp.State.RemoveResource(ctx)
 		return
 	}
-
-	state.ID = state.IPAddress
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -214,6 +222,6 @@ func (r *vcdaIPResource) Delete(ctx context.Context, req resource.DeleteRequest,
 }
 
 func (r *vcdaIPResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("ip_address"), req, resp)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("ip_address"), req.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue("urn:cloudavenue:vcda:"+req.ID))...)
 }
