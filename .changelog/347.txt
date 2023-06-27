@@ -1,0 +1,3 @@
+```release-note:chore
+`resource/cloudavenue_edgegateway_app_port_profile` is a resource moved from `cloudavenue_network_app_port_profile`.
+```

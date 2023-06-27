@@ -1,11 +1,11 @@
 ---
-page_title: "cloudavenue_network_app_port_profile Resource - cloudavenue"
-subcategory: "Network"
+page_title: "cloudavenue_edgegateway_app_port_profile Resource - cloudavenue"
+subcategory: "Edge Gateway (Tier-1)"
 description: |-
   Provides a NSX-T App Port Profile resource
 ---
 
-# cloudavenue_network_app_port_profile (Resource)
+# cloudavenue_edgegateway_app_port_profile (Resource)
 
 Provides a NSX-T App Port Profile resource
 
@@ -16,7 +16,7 @@ data "cloudavenue_vdc" "example" {
   name = "VDC_Test"
 }
 
-resource "cloudavenue_network_app_port_profile" "example" {
+resource "cloudavenue_edgegateway_app_port_profile" "example" {
   name        = "example-rule"
   description = "Application port profile for example"
   vdc         = data.cloudavenue_vdc.example.id
@@ -68,5 +68,5 @@ Optional:
 
 Import is supported using the following syntax:
 ```shell
-terraform import cloudavenue.network_app_port_profile vdc-or-vdc-group-id.RuleName
+terraform import cloudavenue.edgegateway_app_port_profile vdc-or-vdc-group-id.RuleName
 ```

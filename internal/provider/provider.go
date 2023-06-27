@@ -119,6 +119,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		// EDGE GATEWAY
 		edgegw.NewEdgeGatewayResource,
 		edgegw.NewFirewallResource,
+		edgegw.NewPortProfilesResource,
 
 		// VDC
 		vdc.NewVDCResource,
@@ -153,7 +154,6 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		// NETWORK
 		network.NewNetworkRoutedResource,
 		network.NewNetworkIsolatedResource,
-		network.NewPortProfilesResource,
 	}
 }
 
