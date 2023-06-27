@@ -102,6 +102,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 
 		// STORAGE
 		storage.NewProfileDataSource,
+		storage.NewProfilesDataSource,
 	}
 }
 
