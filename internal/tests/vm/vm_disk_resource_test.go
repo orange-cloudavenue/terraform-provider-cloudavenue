@@ -2,6 +2,7 @@
 package vm
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 
@@ -108,7 +109,7 @@ func TestAccVMDiskResource(t *testing.T) {
 			{
 				Config: testAccVMDiskResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceNameDetachable, "id"),
+					resource.TestMatchResourceAttr(resourceNameDetachable, "id", regexp.MustCompile(`(urn:vcloud:disk:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "name", "disk-example-detachable"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "storage_profile", "gold"),
@@ -120,7 +121,7 @@ func TestAccVMDiskResource(t *testing.T) {
 			{
 				Config: strings.Replace(testAccVMDiskResourceConfig, "2048", "4096", 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceNameDetachable, "id"),
+					resource.TestMatchResourceAttr(resourceNameDetachable, "id", regexp.MustCompile(`(urn:vcloud:disk:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "name", "disk-example-detachable"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "storage_profile", "gold"),
@@ -134,7 +135,7 @@ func TestAccVMDiskResource(t *testing.T) {
 			{
 				Config: testAccVMDiskWithVMResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceNameDetachableWithVM, "id"),
+					resource.TestMatchResourceAttr(resourceNameDetachableWithVM, "id", regexp.MustCompile(`(urn:vcloud:disk:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "name", "disk-example-detachable-with-vm"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "storage_profile", "gold"),
@@ -146,7 +147,7 @@ func TestAccVMDiskResource(t *testing.T) {
 			{
 				Config: strings.Replace(testAccVMDiskWithVMResourceConfig, "2048", "4096", 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceNameDetachableWithVM, "id"),
+					resource.TestMatchResourceAttr(resourceNameDetachableWithVM, "id", regexp.MustCompile(`(urn:vcloud:disk:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "name", "disk-example-detachable-with-vm"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "storage_profile", "gold"),
@@ -160,7 +161,7 @@ func TestAccVMDiskResource(t *testing.T) {
 			{
 				Config: testAccVMDiskInternalResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceNameInternal, "id"),
+					resource.TestMatchResourceAttr(resourceNameInternal, "id", regexp.MustCompile(`(urn:vcloud:disk:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
 					resource.TestCheckResourceAttr(resourceNameInternal, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameInternal, "storage_profile", "gold"),
 					resource.TestCheckResourceAttr(resourceNameInternal, "size_in_mb", "2048"),
@@ -171,7 +172,7 @@ func TestAccVMDiskResource(t *testing.T) {
 			{
 				Config: strings.Replace(testAccVMDiskInternalResourceConfig, "2048", "4096", 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceNameInternal, "id"),
+					resource.TestMatchResourceAttr(resourceNameInternal, "id", regexp.MustCompile(`(urn:vcloud:disk:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
 					resource.TestCheckResourceAttr(resourceNameInternal, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameInternal, "storage_profile", "gold"),
 					resource.TestCheckResourceAttr(resourceNameInternal, "size_in_mb", "4096"),
