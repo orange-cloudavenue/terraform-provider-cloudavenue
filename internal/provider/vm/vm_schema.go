@@ -707,7 +707,8 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									},
 								},
 								DataSource: &schemaD.BoolAttribute{
-									Computed: true,
+									MarkdownDescription: "If true, this VM is join to a domain.",
+									Computed:            true,
 								},
 							},
 							"join_org_domain": superschema.BoolAttribute{

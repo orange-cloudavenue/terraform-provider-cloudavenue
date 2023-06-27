@@ -93,7 +93,7 @@ Read-Only:
 - `force` (Boolean) This attributes is not set in the data source.
 - `hostname` (String) Computer name to assign to this virtual machine. Default is the value of attribute `name`.
 - `init_script` (String) The init script to run.
-- `join_domain` (Boolean) .
+- `join_domain` (Boolean) If true, this VM is join to a domain.
 - `join_domain_account_ou` (String) The domain account OU to join.
 - `join_domain_name` (String) The domain name to join.
 - `join_domain_password` (String, Sensitive) The domain password to join.
