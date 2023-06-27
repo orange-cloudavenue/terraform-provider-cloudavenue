@@ -1,5 +1,11 @@
 ## 0.6.0 (Unreleased)
+
 ## 0.5.1 (June 27, 2023)
+
+### :information_source: **Notes**
+
+* `resource/cloudavenue_edgegateway_app_port_profile` is a resource moved from `cloudavenue_network_app_port_profile`. ([GH-347](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/347))
+
 ## 0.5.0 (June 27, 2023)
 
 ### :rocket: **New Features**
