@@ -38,6 +38,14 @@ func publicIPSchema() superschema.Schema {
 			MarkdownDescription: "retrieve information about a Public IP in Cloud Avenue.",
 		},
 		Attributes: map[string]superschema.Attribute{
+			"timeouts": &superschema.TimeoutAttribute{
+				Resource: &superschema.ResourceTimeoutAttribute{
+					Create: true,
+					Read:   true,
+					Delete: true,
+					Update: true,
+				},
+			},
 			"id": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the Public IP.",

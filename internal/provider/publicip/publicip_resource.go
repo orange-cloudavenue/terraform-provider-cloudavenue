@@ -17,7 +17,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
@@ -350,6 +349,7 @@ func (r *publicIPResource) Update(ctx context.Context, req resource.UpdateReques
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	state := &publicIPResourceModel{}
+
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -387,7 +387,7 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 	defer cloudavenue.Unlock(ctx)
 
 	// Delete the public IP
-	job, httpR, err := r.client.APIClient.PublicIPApi.DeletePublicIP(ctx, state.PublicIP.ValueString())
+	job, httpR, err := r.client.APIClient.PublicIPApi.DeletePublicIP(auth, state.PublicIP.ValueString())
 	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
@@ -415,8 +415,6 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
 		return
 	}
-
-	tflog.Trace(ctx, "Public IP deleted")
 }
 
 func (r *publicIPResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
