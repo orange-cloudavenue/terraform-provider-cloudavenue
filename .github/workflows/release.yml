@@ -98,7 +98,7 @@ jobs:
 
           # Add Release Date
           RELEASE_DATE=`date +%B' '%e', '%Y`
-          sed -i -e "1 s/Unreleased/$RELEASE_DATE/" $CHANGELOG_FILE_NAME
+          sed -i -e "1 s/.*Unreleased.*/## ${PREVIOUS_RELEASE_TAG#v} ($RELEASE_DATE)/" $CHANGELOG_FILE_NAME
 
           # Prepend next release line
           echo Previous release is: $PREVIOUS_RELEASE_TAG
