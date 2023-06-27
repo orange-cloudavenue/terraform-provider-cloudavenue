@@ -48,22 +48,22 @@ type vmDataSource struct {
 
 // Init Initializes the data source.
 func (d *vmDataSource) Init(ctx context.Context, dm *VMDataSourceModel) (diags diag.Diagnostics) {
-	var diag diag.Diagnostics
+	var mydiag diag.Diagnostics
 
-	d.vdc, diag = vdc.Init(d.client, dm.VDC)
-	diags.Append(diag...)
+	d.vdc, mydiag = vdc.Init(d.client, dm.VDC)
+	diags.Append(mydiag...)
 	if diags.HasError() {
 		return
 	}
 
-	d.adminVDC, diag = adminvdc.Init(d.client, dm.VDC)
-	diags.Append(diag...)
+	d.adminVDC, mydiag = adminvdc.Init(d.client, dm.VDC)
+	diags.Append(mydiag...)
 	if diags.HasError() {
 		return
 	}
 
-	d.vapp, diag = vapp.Init(d.client, d.vdc, dm.VappID, dm.VappName)
-	diags.Append(diag...)
+	d.vapp, mydiag = vapp.Init(d.client, d.vdc, dm.VappID, dm.VappName)
+	diags.Append(mydiag...)
 	if diags.HasError() {
 		return
 	}
@@ -73,11 +73,11 @@ func (d *vmDataSource) Init(ctx context.Context, dm *VMDataSourceModel) (diags d
 		return
 	}
 
-	d.vm, diag = vm.Init(d.client, d.vapp, vm.GetVMOpts{
+	d.vm, mydiag = vm.Init(d.client, d.vapp, vm.GetVMOpts{
 		ID:   dm.ID,
 		Name: dm.Name,
 	})
-	diags.Append(diag...)
+	diags.Append(mydiag...)
 
 	return
 }
