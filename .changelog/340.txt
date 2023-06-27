@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_edgegateway_firewall` - New resource to create a Edge Gateway firewall.
+```
+
+```release-note:new-datasource
+`datasource/cloudavenue_edgegateway_firewall` - New datasource to get information about a Edge Gateway firewall.
+```

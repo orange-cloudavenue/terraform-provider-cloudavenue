@@ -72,6 +72,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		// EDGE GATEWAY
 		edgegw.NewEdgeGatewayDataSource,
 		edgegw.NewEdgeGatewaysDataSource,
+		edgegw.NewFirewallDataSource,
 
 		// VDC
 		vdc.NewVDCsDataSource,
@@ -82,6 +83,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		vapp.NewVappDataSource,
 		vapp.NewOrgNetworkDataSource,
 		vapp.NewIsolatedNetworkDataSource,
+
 		// CATALOG
 		catalog.NewCatalogsDataSource,
 		catalog.NewCatalogDataSource,
@@ -116,6 +118,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 
 		// EDGE GATEWAY
 		edgegw.NewEdgeGatewayResource,
+		edgegw.NewFirewallResource,
 
 		// VDC
 		vdc.NewVDCResource,
