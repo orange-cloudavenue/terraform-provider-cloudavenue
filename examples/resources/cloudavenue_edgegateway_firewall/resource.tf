@@ -1,6 +1,6 @@
 data "cloudavenue_edgegateways" "example" {}
 
-resource "cloudavenue_network_firewall" "example" {
+resource "cloudavenue_edgegateway_firewall" "example" {
 
   edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[0].id
   rules = [

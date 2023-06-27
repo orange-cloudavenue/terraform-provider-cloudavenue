@@ -281,6 +281,8 @@ func (r *firewallResource) Create(ctx context.Context, req resource.CreateReques
 	/*
 		Implement the resource creation logic here.
 	*/
+
+	// Lock object VDC or VDC Group
 	vdcOrVDCGroup, err := r.edgegw.GetParent()
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
