@@ -55,21 +55,6 @@ type portProfilesResource struct {
 	org    org.Org
 }
 
-type portProfilesResourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	VDC         types.String `tfsdk:"vdc"`
-	Description types.String `tfsdk:"description"`
-	AppPorts    types.List   `tfsdk:"app_ports"`
-}
-
-type portProfilesResourceModelAppPorts []portProfilesResourceModelAppPort
-
-type portProfilesResourceModelAppPort struct {
-	Protocol types.String `tfsdk:"protocol"`
-	Ports    types.Set    `tfsdk:"ports"`
-}
-
 func (rm *portProfilesResourceModel) AppPortsFromPlan(ctx context.Context) (appPorts portProfilesResourceModelAppPorts, diags diag.Diagnostics) {
 	appPorts = make([]portProfilesResourceModelAppPort, 0)
 	diags.Append(rm.AppPorts.ElementsAs(ctx, &appPorts, false)...)
