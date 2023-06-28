@@ -1,5 +1,9 @@
 ## 0.6.0 (Unreleased)
 
+### :dependabot: **Dependencies**
+
+* deps: bumps dependabot/fetch-metadata from 1.5.1 to 1.6.0 ([GH-359](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/359))
+
 ## 0.5.1 (June 27, 2023)
 
 ### :information_source: **Notes**
