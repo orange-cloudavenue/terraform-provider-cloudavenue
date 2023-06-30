@@ -321,11 +321,12 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 	defer r.vapp.UnlockVAPP(ctx)
 
 	// Vapp Statuses
+	// 1:  "RESOLVED",
 	// 3:  "SUSPENDED",
 	// 8:  "POWERED_OFF",
 
 	var (
-		vAppRequiredStatuses   = []int{3, 8}
+		vAppRequiredStatuses   = []int{1, 3, 8}
 		vAppStatusBeforeAction = r.vapp.VApp.VApp.Status
 	)
 
