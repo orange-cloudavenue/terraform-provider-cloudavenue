@@ -1,0 +1,9 @@
+package {{ .PackageName }}
+
+
+{{ range .Attributes }}
+
+{{ if IsNested . }}
+{{ . }}
+{{ end }}
+{{ end }}
