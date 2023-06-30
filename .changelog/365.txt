@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_vapp_org_network` - Fixed a bug where failed to delete resource if the vapp status is RESOLVED.
+```
