@@ -1,5 +1,9 @@
 ## 0.6.0 (Unreleased)
 
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vapp_org_network` - Fixed a bug where failed to delete resource if the vapp status is RESOLVED. ([GH-365](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/365))
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps dependabot/fetch-metadata from 1.5.1 to 1.6.0 ([GH-359](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/359))
