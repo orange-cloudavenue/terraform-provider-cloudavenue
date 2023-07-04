@@ -9,6 +9,7 @@
 * deps: bumps dependabot/fetch-metadata from 1.5.1 to 1.6.0 ([GH-359](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/359))
 * deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.3.1 to 1.3.2 ([GH-363](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/363))
 * deps: bumps github.com/hashicorp/terraform-plugin-go from 0.16.0 to 0.17.0 ([GH-362](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/362))
+* deps: bumps github.com/hashicorp/terraform-plugin-go from 0.17.0 to 0.18.0 ([GH-366](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/366))
 * deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.26.1 to 2.27.0 ([GH-361](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/361))
 
 ## 0.5.1 (June 27, 2023)
