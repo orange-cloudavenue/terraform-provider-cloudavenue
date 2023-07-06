@@ -5,11 +5,13 @@ import (
 	"fmt"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
+	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var ErrEdgeGatewayIDOrNameIsEmpty = fmt.Errorf("edge gateway ID or name is empty")
@@ -73,4 +75,17 @@ func (e EdgeGateway) Lock(ctx context.Context) {
 // Unlock unlocks the Edge Gateway.
 func (e EdgeGateway) Unlock(ctx context.Context) {
 	gwMutexKV.KvUnlock(ctx, e.GetID())
+}
+
+// GetSecurityGroupByNameOrID.
+func (e EdgeGateway) GetSecurityGroupByNameOrID(nsxtFirewallGroupNameOrID string) (*govcd.NsxtFirewallGroup, error) {
+	if err := e.Refresh(); err != nil {
+		return nil, err
+	}
+
+	if uuid.IsValid(nsxtFirewallGroupNameOrID) {
+		return e.GetNsxtFirewallGroupById(nsxtFirewallGroupNameOrID)
+	}
+
+	return e.GetNsxtFirewallGroupByName(nsxtFirewallGroupNameOrID, govcdtypes.FirewallGroupTypeSecurityGroup)
 }

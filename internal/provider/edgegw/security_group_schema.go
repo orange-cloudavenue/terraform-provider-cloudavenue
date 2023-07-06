@@ -13,28 +13,51 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
+	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 )
 
 func securityGroupSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The Security Group resource allows you to manage an security group in a",
+			MarkdownDescription: "The Security Group resource allows you to manage an security group in an Edge Gateway.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The Security Group data source allows you to retrieve information about an ...",
+			MarkdownDescription: "The Security Group data source allows you to retrieve information about an security group in an Edge Gateway.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					Computed:            true,
-					MarkdownDescription: "The ID of the .",
+					MarkdownDescription: "The ID of the Security Group.",
 				},
 				Resource: &schemaR.StringAttribute{
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+				DataSource: &schemaD.StringAttribute{
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
+					},
+				},
+			},
+			"name": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The name of the security group.",
+				},
+				Resource: &schemaR.StringAttribute{
+					Required: true,
+				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},
 				},
 			},
@@ -66,17 +89,6 @@ func securityGroupSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.StringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the security group.",
-				},
-				Resource: &schemaR.StringAttribute{
-					Required: true,
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
-				},
-			},
 			"description": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The description of the security group.",
@@ -95,31 +107,15 @@ func securityGroupSchema(_ context.Context) superschema.Schema {
 				},
 				Resource: &schemaR.SetAttribute{
 					Optional: true,
+					Validators: []validator.Set{
+						setvalidator.ValueStringsAre(fstringvalidator.IsURN()),
+						// TODO Add validator to check if URN is network https://github.com/FrangipaneTeam/terraform-plugin-framework-validators/issues/76
+					},
 				},
 				DataSource: &schemaD.SetAttribute{
 					Computed: true,
 				},
 			},
-			// "member_vms": superschema.SetNestedAttribute{
-			// 	Common: &schemaR.SetNestedAttribute{
-			// 		MarkdownDescription: "The list of VMs to which the security group is applied.",
-			// 		Computed:            true,
-			// 	},
-			// 	Attributes: map[string]superschema.Attribute{
-			// 		"vm_id": superschema.StringAttribute{
-			// 			Common: &schemaR.StringAttribute{
-			// 				MarkdownDescription: "The ID of the VM.",
-			// 				Computed:            true,
-			// 			},
-			// 		},
-			// 		"vm_name": superschema.StringAttribute{
-			// 			Common: &schemaR.StringAttribute{
-			// 				MarkdownDescription: "The name of the VM.",
-			// 				Computed:            true,
-			// 			},
-			// 		},
-			// 	},
-			// },
 		},
 	}
 }

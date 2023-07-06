@@ -4,6 +4,9 @@ import (
 	"fmt"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
+	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // * VDC
@@ -28,9 +31,23 @@ func (v VDC) IsVDCGroup() bool {
 	return govcd.OwnerIsVdcGroup(v.GetID())
 }
 
-// GetNsxtFirewallGroupByID return the NSX-T firewall group using the ID provided in the argument.
-func (v VDC) GetNsxtFirewallGroupByID(nsxtFirewallGroupID string) (*govcd.NsxtFirewallGroup, error) {
+// GetSecurityGroupByID return the NSX-T security group using the ID provided in the argument.
+func (v VDC) GetSecurityGroupByID(nsxtFirewallGroupID string) (*govcd.NsxtFirewallGroup, error) {
 	return v.Vdc.GetNsxtFirewallGroupById(nsxtFirewallGroupID)
+}
+
+// GetSecurityGroupByName return the NSX-T security group using the name provided in the argument.
+func (v VDC) GetSecurityGroupByName(nsxtFirewallGroupName string) (*govcd.NsxtFirewallGroup, error) {
+	return v.Vdc.GetNsxtFirewallGroupByName(nsxtFirewallGroupName, govcdtypes.FirewallGroupTypeSecurityGroup)
+}
+
+// GetSecurityGroupByNameOrID return the NSX-T security group using the name or ID provided in the argument.
+func (v VDC) GetSecurityGroupByNameOrID(nsxtFirewallGroupNameOrID string) (*govcd.NsxtFirewallGroup, error) {
+	if uuid.IsValid(nsxtFirewallGroupNameOrID) {
+		return v.GetSecurityGroupByID(nsxtFirewallGroupNameOrID)
+	}
+
+	return v.GetSecurityGroupByName(nsxtFirewallGroupNameOrID)
 }
 
 // GetDefaultPlacementPolicyID give you the ID of the default placement policy.
@@ -79,19 +96,42 @@ func (g VDCGroup) IsVDCGroup() bool {
 	return govcd.OwnerIsVdcGroup(g.GetID())
 }
 
-// GetNsxtFirewallGroupById return the NSX-T firewall group using the ID provided in the argument.
-func (g VDCGroup) GetNsxtFirewallGroupByID(nsxtFirewallGroupID string) (*govcd.NsxtFirewallGroup, error) {
+// GetSecurityGroupByID return the NSX-T security group using the ID provided in the argument.
+func (g VDCGroup) GetSecurityGroupByID(nsxtFirewallGroupID string) (*govcd.NsxtFirewallGroup, error) {
 	return g.VdcGroup.GetNsxtFirewallGroupById(nsxtFirewallGroupID)
+}
+
+// GetSecurityGroupByName return the NSX-T security group using the name provided in the argument.
+func (g VDCGroup) GetSecurityGroupByName(nsxtFirewallGroupName string) (*govcd.NsxtFirewallGroup, error) {
+	return g.VdcGroup.GetNsxtFirewallGroupByName(nsxtFirewallGroupName, govcdtypes.FirewallGroupTypeSecurityGroup)
+}
+
+// GetSecurityGroupByNameOrID return the NSX-T security group using the name or ID provided in the argument.
+func (g VDCGroup) GetSecurityGroupByNameOrID(nsxtFirewallGroupNameOrID string) (*govcd.NsxtFirewallGroup, error) {
+	if uuid.IsValid(nsxtFirewallGroupNameOrID) {
+		return g.GetSecurityGroupByID(nsxtFirewallGroupNameOrID)
+	}
+
+	return g.GetSecurityGroupByName(nsxtFirewallGroupNameOrID)
 }
 
 // VDCOrVDCGroupHandler is an interface to access some common methods on VDC or VDC Group without
 // explicitly handling exact types.
 type VDCOrVDCGroupHandler interface {
-	GetOpenApiOrgVdcNetworkByName(string) (*govcd.OpenApiOrgVdcNetwork, error)
+	// * Global Get
 	GetName() string
 	GetID() string
+
+	// * Global Is
 	IsVDCGroup() bool
-	GetNsxtFirewallGroupByID(nsxtFirewallGroupID string) (*govcd.NsxtFirewallGroup, error)
+
+	// * Network
+	GetOpenApiOrgVdcNetworkByName(string) (*govcd.OpenApiOrgVdcNetwork, error)
+
+	// * Security Group
+	GetSecurityGroupByID(nsxtFirewallGroupID string) (*govcd.NsxtFirewallGroup, error)
+	GetSecurityGroupByName(nsxtFirewallGroupName string) (*govcd.NsxtFirewallGroup, error)
+	GetSecurityGroupByNameOrID(nsxtFirewallGroupNameOrID string) (*govcd.NsxtFirewallGroup, error)
 }
 
 type GetVDCOpts func(*VDC)

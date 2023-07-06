@@ -4,6 +4,7 @@ package edgegw
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
@@ -19,6 +20,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -38,59 +40,6 @@ type securityGroupResource struct {
 	client *client.CloudAvenue
 	org    org.Org
 	edgegw edgegw.EdgeGateway
-}
-
-type securityGroupModel struct {
-	ID                  types.String `tfsdk:"id"`
-	EdgeGatewayID       types.String `tfsdk:"edge_gateway_id"`
-	EdgeGatewayName     types.String `tfsdk:"edge_gateway_name"`
-	Name                types.String `tfsdk:"name"`
-	Description         types.String `tfsdk:"description"`
-	MemberOrgNetworkIDs types.Set    `tfsdk:"member_org_network_ids"`
-}
-
-type securityGroupModelMemberOrgNetworkIDs []string
-
-// func securityGroupToNsxtFirewallGroup.
-func (r *securityGroupResource) securityGroupToNsxtFirewallGroup(ctx context.Context, rm *securityGroupModel) (securityGroup *govcdtypes.NsxtFirewallGroup, diags diag.Diagnostics) {
-	parentEdgeGW, err := r.edgegw.GetParent()
-	if err != nil {
-		diags.AddError("Unable to get parent edge gateway", fmt.Sprintf("Unable to get parent edge gateway: %s", err.Error()))
-		return
-	}
-
-	var ownerID string
-
-	if parentEdgeGW.IsVDCGroup() {
-		ownerID = parentEdgeGW.GetID()
-	} else {
-		ownerID = r.edgegw.GetID()
-	}
-
-	members, d := rm.MemberOrgNetworkIDsFromPlan(ctx)
-	diags.Append(d...)
-	if diags.HasError() {
-		return
-	}
-
-	memberReferences := make([]govcdtypes.OpenApiReference, len(members))
-	for index, member := range members {
-		memberReferences[index].ID = member
-	}
-
-	return &govcdtypes.NsxtFirewallGroup{
-		Name:        rm.Name.ValueString(),
-		Description: rm.Description.ValueString(),
-		OwnerRef:    &govcdtypes.OpenApiReference{ID: ownerID},
-		Type:        govcdtypes.FirewallGroupTypeSecurityGroup,
-		Members:     memberReferences,
-	}, diags
-}
-
-// MemberOrgNetworkIDsFromPlan returns the member_org_network_ids from the plan.
-func (rm *securityGroupModel) MemberOrgNetworkIDsFromPlan(ctx context.Context) (securityGroupModelMemberOrgNetworkIDs, diag.Diagnostics) {
-	ids := securityGroupModelMemberOrgNetworkIDs{}
-	return ids, rm.MemberOrgNetworkIDs.ElementsAs(ctx, &ids, false)
 }
 
 // Init Initializes the resource.
@@ -212,7 +161,7 @@ func (r *securityGroupResource) Read(ctx context.Context, req resource.ReadReque
 		Implement the resource read here
 	*/
 
-	secGroup, err := state.GetSecurityGroup(ctx, r)
+	secGroup, err := r.getSecurityGroup(ctx, state)
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -272,7 +221,7 @@ func (r *securityGroupResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	// Get current Security Group
-	secGroup, err := state.GetSecurityGroup(ctx, r)
+	secGroup, err := r.getSecurityGroup(ctx, state)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Security Group", err.Error())
 		return
@@ -329,7 +278,7 @@ func (r *securityGroupResource) Delete(ctx context.Context, req resource.DeleteR
 	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Get current Security Group
-	secGroup, err := state.GetSecurityGroup(ctx, r)
+	secGroup, err := r.getSecurityGroup(ctx, state)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Security Group", err.Error())
 		return
@@ -342,20 +291,67 @@ func (r *securityGroupResource) Delete(ctx context.Context, req resource.DeleteR
 }
 
 func (r *securityGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-}
+	// id format is edgeGatewayIDOrName.securityGroupIDOrName
+	idParts := strings.Split(req.ID, ".")
 
-func (rm *securityGroupModel) GetSecurityGroup(ctx context.Context, r *securityGroupResource) (*govcd.NsxtFirewallGroup, error) {
-	parentEdgeGW, err := r.edgegw.GetParent()
+	if len(idParts) != 2 {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: edgeGatewayIDOrName.securityGroupIDOrName. Got: %q", req.ID),
+		)
+		return
+	}
+
+	var (
+		id, name, edgegwID, edgegwName string
+		d                              diag.Diagnostics
+		err                            error
+	)
+
+	r.org, d = org.Init(r.client)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	if uuid.IsEdgeGateway(idParts[0]) {
+		edgegwID = idParts[0]
+	} else {
+		edgegwName = idParts[0]
+	}
+
+	if uuid.IsSecurityGroup(idParts[1]) {
+		id = idParts[1]
+	} else {
+		name = idParts[1]
+	}
+
+	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+		ID:   types.StringValue(edgegwID),
+		Name: types.StringValue(edgegwName),
+	})
 	if err != nil {
-		return nil, err
+		resp.Diagnostics.AddError("Failed to import Security Group.", err.Error())
+		return
 	}
 
-	if parentEdgeGW.IsVDCGroup() {
-		return parentEdgeGW.GetNsxtFirewallGroupByID(rm.ID.ValueString())
+	securityGroup, err := r.getSecurityGroup(ctx, &securityGroupModel{
+		ID:   utils.StringValueOrNull(id),
+		Name: utils.StringValueOrNull(name),
+	})
+	if err != nil {
+		resp.Diagnostics.AddError("Failed to import Security Group.", err.Error())
+		return
 	}
 
-	return r.edgegw.GetNsxtFirewallGroupById(rm.ID.ValueString())
+	// ID
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), securityGroup.NsxtFirewallGroup.ID)...)
+	// Name
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), securityGroup.NsxtFirewallGroup.Name)...)
+	// edge_gateway_id
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_id"), r.edgegw.GetID())...)
+	// edge_gateway_name
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), r.edgegw.GetName())...)
 }
 
 func (r *securityGroupResource) read(ctx context.Context, securityGroup *govcd.NsxtFirewallGroup) (plan *securityGroupModel, diags diag.Diagnostics) {
@@ -372,4 +368,55 @@ func (r *securityGroupResource) read(ctx context.Context, securityGroup *govcd.N
 		Description:         utils.StringValueOrNull(securityGroup.NsxtFirewallGroup.Description),
 		MemberOrgNetworkIDs: utils.OpenAPIReferenceToSliceID(securityGroup.NsxtFirewallGroup.Members).ToTerraformTypesStringSet(ctx),
 	}, nil
+}
+
+// GetSecurityGroup retrieves the Security Group from the API.
+func (r *securityGroupResource) getSecurityGroup(_ context.Context, rm *securityGroupModel) (*govcd.NsxtFirewallGroup, error) {
+	parentEdgeGW, err := r.edgegw.GetParent()
+	if err != nil {
+		return nil, err
+	}
+
+	if parentEdgeGW.IsVDCGroup() {
+		return parentEdgeGW.GetSecurityGroupByNameOrID(rm.GetIDOrName().ValueString())
+	}
+
+	if err := r.edgegw.Refresh(); err != nil {
+		return nil, err
+	}
+	return r.edgegw.GetSecurityGroupByNameOrID(rm.GetIDOrName().ValueString())
+}
+
+// func securityGroupToNsxtFirewallGroup.
+func (r *securityGroupResource) securityGroupToNsxtFirewallGroup(ctx context.Context, rm *securityGroupModel) (securityGroup *govcdtypes.NsxtFirewallGroup, diags diag.Diagnostics) {
+	parentEdgeGW, err := r.edgegw.GetParent()
+	if err != nil {
+		diags.AddError("Unable to get parent edge gateway", fmt.Sprintf("Unable to get parent edge gateway: %s", err.Error()))
+		return
+	}
+
+	ownerID := r.edgegw.GetID()
+
+	if parentEdgeGW.IsVDCGroup() {
+		ownerID = parentEdgeGW.GetID()
+	}
+
+	members, d := rm.MemberOrgNetworkIDsFromPlan(ctx)
+	diags.Append(d...)
+	if diags.HasError() {
+		return
+	}
+
+	memberReferences := make([]govcdtypes.OpenApiReference, len(members))
+	for index, member := range members {
+		memberReferences[index].ID = member
+	}
+
+	return &govcdtypes.NsxtFirewallGroup{
+		Name:        rm.Name.ValueString(),
+		Description: rm.Description.ValueString(),
+		OwnerRef:    &govcdtypes.OpenApiReference{ID: ownerID},
+		Type:        govcdtypes.FirewallGroupTypeSecurityGroup,
+		Members:     memberReferences,
+	}, diags
 }
