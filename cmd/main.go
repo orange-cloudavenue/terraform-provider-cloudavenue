@@ -21,9 +21,7 @@ var (
 	blue   = color.New(color.FgBlue)
 	yellow = color.New(color.FgYellow)
 
-	numberCAResources  = 1
-	numberVCDResources = 0
-	vcdEquivalentCA    = map[string]string{
+	vcdEquivalentCA = map[string]string{
 		"vcd_catalog_access_control ":    "cloudavenue_catalog_acl",
 		"vcd_independent_disk":           "cloudavenue_vm_disk",
 		"vcd_inserted_media":             "cloudavenue_vm_inserted_media",
@@ -123,8 +121,8 @@ func main() {
 	file.WriteString(mess)
 
 	// Print DataSources List in Orange Cloud Avenue Provider
-	CAtfSchemaD := exportCADataSources(ppCA)
-	mess = fmt.Sprintf("- Found %v datasources in terraform\n\n", len(CAtfSchemaD))
+	caTFSchemaD := exportCADataSources(ppCA)
+	mess = fmt.Sprintf("- Found %v datasources in terraform\n\n", len(caTFSchemaD))
 	blue.Printf(mess)
 	file.WriteString(mess)
 
@@ -135,14 +133,13 @@ func main() {
 	fmt.Printf("====================================================================\n\n")
 
 	// Sort Resources List in VMware Cloud Director Provider
-	// VCDtfSchemaR := ppVCD.ResourcesMap
-	vcdTFSchemaR := sortVCDResources(ppVCD.ResourcesMap)
+	vcdTFSchemaR := ppVCD.ResourcesMap
 	mess = fmt.Sprintf("- Found %v resources in terraform\n", len(vcdTFSchemaR))
 	blue.Printf(mess)
 	file.WriteString(mess)
 
-	vCDtfSchemaD := ppVCD.DataSourcesMap
-	mess = fmt.Sprintf("- Found %v datasources in terraform\n\n", len(vCDtfSchemaD))
+	vcdTFSchemaD := ppVCD.DataSourcesMap
+	mess = fmt.Sprintf("- Found %v datasources in terraform\n\n", len(vcdTFSchemaD))
 	blue.Printf(mess)
 	file.WriteString(mess)
 
@@ -150,25 +147,28 @@ func main() {
 	mess = "\n# Listing cross resources and datasources from Cloud Avenue\n"
 	blue.Printf(mess)
 	file.WriteString(mess)
-	fmt.Printf("=======================================\n\n")
+	fmt.Printf("=======================================\n")
 
-	findResourcesFromCA(vcdTFSchemaR, caTFSchemaR, file)
+	findResourcesFromCA(vcdTFSchemaR, caTFSchemaR, file, "Resources")
+	findResourcesFromCA(vcdTFSchemaD, caTFSchemaD, file, "Datasources")
 
 	// Print Resources List from VMware Cloud Director Provider
 	mess = "\n# Listing cross resources and datasources from VCD\n"
 	blue.Printf(mess)
 	file.WriteString(mess)
-	fmt.Printf("=======================================\n\n")
+	fmt.Printf("=======================================\n")
 
-	findResourcesFromVCD(vcdTFSchemaR, caTFSchemaR, ppCA, file)
+	findResourcesFromVCD(vcdTFSchemaR, caTFSchemaR, ppCA, file, "Resources")
+	findResourcesFromVCD(vcdTFSchemaD, caTFSchemaD, ppCA, file, "Datasources")
 
 }
 
 // Find and print Resources from Orange Cloud Avenue Provider.
-func findResourcesFromCA(vcdTFSchemaR map[string]*schema.Resource, caTFSchemaR []string, file *os.File) {
+func findResourcesFromCA(vcdTFSchemaR map[string]*schema.Resource, caTFSchemaR []string, file *os.File, typeR string) {
+	numberCAResources := 1
 	// Print if the Resource Name in Orange Cloud Avenue Provider is applicable for VMWARE Cloud Provider
 	sortCAResources(caTFSchemaR)
-	mess := "| Number |Resources Orange Cloud Avenue | Resources VMware VCD |\n|:--:|:--:|:--:|\n"
+	mess := "\n| Number | " + typeR + " Orange Cloud Avenue | " + typeR + " VMware VCD |\n|:--:|:--:|:--:|\n"
 	blue.Printf(mess)
 	wf(mess, file)
 
@@ -206,15 +206,24 @@ begin:
 }
 
 // Find and print Resources from VMware Cloud Provider.
-func findResourcesFromVCD(vcdTFSchemaRUnsort map[string]*schema.Resource, caTFSchemaR []string, ppCA func() provider.Provider, file *os.File) {
+func findResourcesFromVCD(vcdTFSchemaRUnsort map[string]*schema.Resource, caTFSchemaR []string, ppCA func() provider.Provider, file *os.File, typeR string) {
+	numberVCDResources := 0
+
+	// Sort slice of keys
+	sortedKeys := make([]string, 0, len(vcdTFSchemaRUnsort))
+	for k := range vcdTFSchemaRUnsort {
+		sortedKeys = append(sortedKeys, k)
+	}
+	sort.Strings(sortedKeys)
+
 	// Print if the Resource Name in VMWARE Cloud Provider is applicable for Orange Cloud Avenue Provider
-	vcdTFSchemaR := sortVCDResources(vcdTFSchemaRUnsort)
-	mess := "| Number | Resources VMware VCD | Resources Orange Cloud Avenue |\n|:--:|:--:|:--:|\n"
+	mess := "\n| Number | " + typeR + " VMware VCD | " + typeR + " Orange Cloud Avenue |\n|:--:|:--:|:--:|\n"
 	blue.Printf(mess)
 	wf(mess, file)
 
 beginVCD:
-	for k, v := range vcdTFSchemaR {
+	for _, k := range sortedKeys {
+		v := vcdTFSchemaRUnsort[k]
 		numberVCDResources++
 		mess = fmt.Sprintf("| (%v) | %v | ", numberVCDResources, k)
 		blue.Printf(mess)
@@ -299,22 +308,6 @@ func findCAResourceName(pp func() provider.Provider, name string) bool {
 		}
 	}
 	return false
-}
-
-// Sort Resources List.
-func sortVCDResources(m map[string]*schema.Resource) map[string]*schema.Resource {
-	sortedKeys := make([]string, 0, len(m))
-	for k := range m {
-		sortedKeys = append(sortedKeys, k)
-	}
-	sort.Strings(sortedKeys)
-
-	// return sliceSorted
-	ms := make(map[string]*schema.Resource)
-	for _, k := range sortedKeys {
-		ms[k] = m[k]
-	}
-	return ms
 }
 
 // Sort Resources List Cloudavenue.
