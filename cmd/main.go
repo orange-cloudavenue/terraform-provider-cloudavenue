@@ -217,7 +217,7 @@ func findResourcesFromVCD(vcdTFSchemaRUnsort map[string]*schema.Resource, caTFSc
 	sort.Strings(sortedKeys)
 
 	// Print if the Resource Name in VMWARE Cloud Provider is applicable for Orange Cloud Avenue Provider
-	mess := "\n| Number | " + typeR + " VMware VCD | " + typeR + " Orange Cloud Avenue |\n|:--:|:--:|:--:|\n"
+	mess := "\n| Number | " + typeR + " VMware VCD | " + typeR + " Orange Cloud Avenue | status |\n|:--:|:--:|:--:|:--:|\n"
 	blue.Printf(mess)
 	wf(mess, file)
 
@@ -230,7 +230,7 @@ beginVCD:
 		wf(mess, file)
 		for _, j := range vcdNotApplicableCA {
 			if k == j {
-				mess = "Not Applicable |\n"
+				mess = "Not Applicable | :no_entry: |\n"
 				red.Printf(mess)
 				wf(mess, file)
 				continue beginVCD
@@ -238,7 +238,7 @@ beginVCD:
 		}
 		// Print if Resource is deprecated in VMware Cloud Provider
 		if v.DeprecationMessage != "" {
-			mess = "Deprecated |\n"
+			mess = "Deprecated | :warning: |\n"
 			red.Printf("mess")
 			wf(mess, file)
 			continue beginVCD
@@ -247,7 +247,7 @@ beginVCD:
 		// Print if the Resource is implemented in Orange Cloud Avenue Provider
 		for _, v := range caTFSchemaR {
 			if k == "vcd"+v {
-				mess = fmt.Sprintf("%v |\n", "cloudavenue"+v)
+				mess = fmt.Sprintf("%v |:white_check_mark: |\n", "cloudavenue"+v)
 				green.Printf(mess)
 				wf(mess, file)
 				continue beginVCD
@@ -259,14 +259,14 @@ beginVCD:
 				x := j
 				// if renamed, find the name in Orange Cloud Avenue Provider
 				if findCAResourceName(ppCA, x) {
-					mess = fmt.Sprintf("%v |\n", j)
+					mess = fmt.Sprintf("%v | :white_check_mark: |\n", j)
 					green.Printf(mess)
 					wf(mess, file)
 					continue beginVCD
 				}
 			}
 		}
-		mess = "Not yet implemented |\n"
+		mess = "Not yet implemented | :x: |\n"
 		yellow.Printf(mess)
 		wf(mess, file)
 	}
