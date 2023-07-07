@@ -1,0 +1,1 @@
+terraform import cloudavenue_network_dhcp.example urn:vcloud:network:xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxx

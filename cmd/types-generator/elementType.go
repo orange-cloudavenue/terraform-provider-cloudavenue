@@ -1,9 +1,10 @@
 package main
 
 import (
+	"github.com/kr/pretty"
+
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/kr/pretty"
 )
 
 type elementType string

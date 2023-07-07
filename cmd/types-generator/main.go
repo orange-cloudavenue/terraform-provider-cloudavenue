@@ -13,12 +13,10 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"github.com/kr/pretty"
-
 	"github.com/rs/zerolog/log"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider"
 
@@ -53,7 +51,10 @@ return map[string]attr.Type{
 
 {{ define "typeStruct" }}
 
-{{ $Parent := (getKeyValue "ParentSubName") }}
+{{ $Parent := "" }}
+{{ if existKeyValue "ParentSubName" }}
+	{{ $Parent = (getKeyValue "ParentSubName") }}
+{{ end }}
 {{ $Name := (getKeyValue "Name") }}
 
 type {{ toUpperCamel $Name }}Model{{ if existKeyValue "SubName" }}{{singular (toUpperCamel (getKeyValue "SubName"))}}{{end}} struct {
@@ -113,7 +114,7 @@ type {{ toUpperCamel $Name }}Model{{ if existKeyValue "SubName" }}{{singular (to
 
 	{{- if isSet . }}
 		// * {{toUpperCamel $aN}}
-		func (rm *{{ toUpperCamel $Name }}Model{{ singular (toUpperCamel $Parent) }}) {{toUpperCamel $aN}}FromPlan(ctx context.Context) ({{toLowerCamel $aN}} {{elementType .}}, diags diag.Diagnostics) {
+		func (rm *{{ toUpperCamel $Name }}Model{{ if $Parent }}{{ singular (toUpperCamel $Parent) }}{{end}}) {{toUpperCamel $aN}}FromPlan(ctx context.Context) ({{toLowerCamel $aN}} {{elementType .}}, diags diag.Diagnostics) {
 			if rm.{{toUpperCamel $aN}}.IsNull() || rm.{{toUpperCamel $aN}}.IsUnknown() {
 				return
 			}
@@ -125,7 +126,7 @@ type {{ toUpperCamel $Name }}Model{{ if existKeyValue "SubName" }}{{singular (to
 			}
 		
 			return {{toLowerCamel $aN}}, diags
-		}					
+		}
 	{{ end }}
 	{{/* End if isSet */}}
 {{ end }}
@@ -167,6 +168,7 @@ func main() {
 		metadataResponse := &resource.MetadataResponse{}
 		res().Metadata(ctx, resource.MetadataRequest{}, metadataResponse)
 
+		log.Info().Msgf("Find resource %s", metadataResponse.TypeName)
 		if "cloudavenue"+metadataResponse.TypeName == *resourceName {
 			log.Info().Msgf("Found resource %s", *resourceName)
 
@@ -246,7 +248,10 @@ func main() {
 						return true
 					},
 					"getKeyValue": func(k string) any {
-						return (*KeyValueStore)[k]
+						if v, ok := (*KeyValueStore)[k]; ok {
+							return v
+						}
+						return nil
 					},
 					"delKeyValue": func(k string) bool {
 						delete(*KeyValueStore, k)
