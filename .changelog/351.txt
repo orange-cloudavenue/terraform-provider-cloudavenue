@@ -1,0 +1,3 @@
+```release-note:new-data-source
+`datasource/cloudavenue_edgegateway_security_group` - New data source to fetch security group details from Cloud Avenue Edge Gateway.
+```

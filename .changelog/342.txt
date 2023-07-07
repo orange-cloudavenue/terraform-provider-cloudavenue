@@ -1,0 +1,3 @@
+```release-note:new-resource
+`resource/cloudavenue_edgegateway_security_group` - New resource to manage Edge Gateway Security Group in Cloud Avenue.
+```

@@ -22,6 +22,7 @@ const (
 	VDCStorageProfile = VcloudUUID(VcloudUUIDPrefix + "vdcstorageProfile:")
 	VAPP              = VcloudUUID(VcloudUUIDPrefix + "vapp:")
 	Disk              = VcloudUUID(VcloudUUIDPrefix + "disk:")
+	SecurityGroup     = VcloudUUID(VcloudUUIDPrefix + "firewallGroup:")
 
 	// * CLOUDAVENUE.
 	VCDA = VcloudUUID(CloudAvenueUUIDPrefix + "vcda:")
@@ -37,6 +38,8 @@ var vcloudUUIDs = []VcloudUUID{
 	LoadBalancerPool,
 	VDCStorageProfile,
 	VAPP,
+	Disk,
+	SecurityGroup,
 }
 
 type (
@@ -50,9 +53,16 @@ func (uuid VcloudUUID) String() string {
 
 // IsType returns true if the UUID is of the specified type.
 func (uuid VcloudUUID) IsType(prefix VcloudUUID) bool {
-	// remove prefix
-	uuidv4 := uuid[len(prefix):]
-	return strings.HasPrefix(string(uuid), string(prefix)) && isUUIDV4(string(uuidv4))
+	if uuid.isEmpty() || prefix.isEmpty() {
+		return false
+	}
+
+	return strings.HasPrefix(string(uuid), string(prefix)) && isUUIDV4(uuid.extractUUIDv4(prefix))
+}
+
+// isNotEmpty returns true if the UUID is not empty.
+func (uuid VcloudUUID) isEmpty() bool {
+	return len(uuid) == 0
 }
 
 func isUUIDV4(uuid string) bool {
@@ -64,11 +74,24 @@ func (uuid VcloudUUID) ContainsPrefix() bool {
 	return strings.Contains(string(uuid), string(VcloudUUIDPrefix))
 }
 
+// extractUUIDv4 returns the UUIDv4 from the UUID.
+func (uuid VcloudUUID) extractUUIDv4(prefix VcloudUUID) string {
+	return extractUUIDv4(uuid.String(), prefix)
+}
+
 func extractUUIDv4(uuid string, prefix VcloudUUID) string {
+	if len(uuid) == 0 || prefix.isEmpty() {
+		return ""
+	}
+
 	return uuid[len(prefix):]
 }
 
 func IsValid(uuid string) bool {
+	if len(uuid) == 0 {
+		return false
+	}
+
 	u := VcloudUUID(uuid)
 
 	for _, prefix := range vcloudUUIDs {
@@ -81,8 +104,11 @@ func IsValid(uuid string) bool {
 
 // Normalize returns the UUID with the prefix if prefix is missing.
 func Normalize(prefix VcloudUUID, uuid string) VcloudUUID {
-	u := VcloudUUID(uuid)
+	if len(uuid) == 0 || prefix.isEmpty() {
+		return ""
+	}
 
+	u := VcloudUUID(uuid)
 	if u.ContainsPrefix() {
 		return u
 	}
@@ -133,4 +159,74 @@ func (uuid VcloudUUID) IsVDCStorageProfile() bool {
 // IsVAPP returns true if the UUID is a VAPP UUID.
 func (uuid VcloudUUID) IsVAPP() bool {
 	return uuid.IsType(VAPP)
+}
+
+// IsDisk returns true if the UUID is a Disk UUID.
+func (uuid VcloudUUID) IsDisk() bool {
+	return uuid.IsType(Disk)
+}
+
+// IsSecurityGroup returns true if the UUID is a SecurityGroup UUID.
+func (uuid VcloudUUID) IsSecurityGroup() bool {
+	return uuid.IsType(SecurityGroup)
+}
+
+// IsEdgeGateway returns true if the UUID is a EdgeGateway UUID.
+func IsEdgeGateway(uuid string) bool {
+	return VcloudUUID(uuid).IsType(Gateway)
+}
+
+// IsVDC returns true if the UUID is a VDC UUID.
+func IsVDC(uuid string) bool {
+	return VcloudUUID(uuid).IsType(VDC)
+}
+
+// IsNetwork returns true if the UUID is a Network UUID.
+func IsNetwork(uuid string) bool {
+	return VcloudUUID(uuid).IsType(Network)
+}
+
+// IsLoadBalancerPool returns true if the UUID is a LoadBalancerPool UUID.
+func IsLoadBalancerPool(uuid string) bool {
+	return VcloudUUID(uuid).IsType(LoadBalancerPool)
+}
+
+// IsVDCStorageProfile returns true if the UUID is a VDCStorageProfile UUID.
+func IsVDCStorageProfile(uuid string) bool {
+	return VcloudUUID(uuid).IsType(VDCStorageProfile)
+}
+
+// IsVAPP returns true if the UUID is a VAPP UUID.
+func IsVAPP(uuid string) bool {
+	return VcloudUUID(uuid).IsType(VAPP)
+}
+
+// IsDisk returns true if the UUID is a Disk UUID.
+func IsDisk(uuid string) bool {
+	return VcloudUUID(uuid).IsType(Disk)
+}
+
+// IsSecurityGroup returns true if the UUID is a SecurityGroup UUID.
+func IsSecurityGroup(uuid string) bool {
+	return VcloudUUID(uuid).IsType(SecurityGroup)
+}
+
+// IsVCDA returns true if the UUID is a VCDA UUID.
+func IsVCDA(uuid string) bool {
+	return VcloudUUID(uuid).IsType(VCDA)
+}
+
+// IsVM returns true if the UUID is a VM UUID.
+func IsVM(uuid string) bool {
+	return VcloudUUID(uuid).IsType(VM)
+}
+
+// IsUser returns true if the UUID is a User UUID.
+func IsUser(uuid string) bool {
+	return VcloudUUID(uuid).IsType(User)
+}
+
+// IsGroup returns true if the UUID is a Group UUID.
+func IsGroup(uuid string) bool {
+	return VcloudUUID(uuid).IsType(Group)
 }

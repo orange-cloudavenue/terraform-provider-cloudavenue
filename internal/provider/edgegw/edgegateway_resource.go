@@ -210,7 +210,7 @@ func (r *edgeGatewaysResource) Create(
 	errRetry := retry.RetryContext(ctxTO, createTimeout, func() *retry.RetryError {
 		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
 		if errGetJob != nil {
-			retry.NonRetryableError(err)
+			return retry.NonRetryableError(errGetJob)
 		}
 		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
 			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))

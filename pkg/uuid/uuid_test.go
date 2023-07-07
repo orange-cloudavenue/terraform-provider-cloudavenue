@@ -4,6 +4,10 @@ import (
 	"testing"
 )
 
+const (
+	validUUIDv4 = "12345678-1234-1234-1234-123456789012"
+)
+
 func TestVcloudUUID_ContainsPrefix(t *testing.T) {
 	tests := []struct {
 		name string
@@ -12,12 +16,17 @@ func TestVcloudUUID_ContainsPrefix(t *testing.T) {
 	}{
 		{
 			name: "ContainsPrefix",
-			uuid: VcloudUUID("urn:vcloud:vm:"),
+			uuid: VcloudUUID(VM.String() + validUUIDv4),
 			want: true,
 		},
 		{
 			name: "DoesNotContainPrefix",
-			uuid: VcloudUUID("urn:vm:"),
+			uuid: VcloudUUID("urn:vm:" + validUUIDv4),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
 			want: false,
 		},
 	}
@@ -42,7 +51,7 @@ func Test_isUUIDV4(t *testing.T) {
 		{
 			name: "ValidUUID",
 			args: args{
-				uuid: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+				uuid: validUUIDv4,
 			},
 			want: true,
 		},
@@ -50,6 +59,13 @@ func Test_isUUIDV4(t *testing.T) {
 			name: "InvalidUUID",
 			args: args{
 				uuid: "f47ac10b-58cddc-43-a567-0e02b2c3d4791",
+			},
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			args: args{
+				uuid: "",
 			},
 			want: false,
 		},
@@ -75,7 +91,7 @@ func TestVcloudUUID_IsType(t *testing.T) {
 	}{
 		{
 			name: "IsType",
-			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			uuid: VcloudUUID(VM.String() + validUUIDv4),
 			args: args{
 				prefix: VM,
 			},
@@ -83,9 +99,17 @@ func TestVcloudUUID_IsType(t *testing.T) {
 		},
 		{
 			name: "IsNotType",
-			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			uuid: VcloudUUID(VM.String() + validUUIDv4),
 			args: args{
 				prefix: User,
+			},
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
+			args: args{
+				prefix: VM,
 			},
 			want: false,
 		},
@@ -112,10 +136,18 @@ func Test_extractUUIDv4(t *testing.T) {
 		{
 			name: "ExtractUUID",
 			args: args{
-				uuid:   "urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479",
+				uuid:   "urn:vcloud:vm:" + validUUIDv4,
 				prefix: VM,
 			},
-			want: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+			want: validUUIDv4,
+		},
+		{
+			name: "EmptyString",
+			args: args{
+				uuid:   "",
+				prefix: VM,
+			},
+			want: "",
 		},
 	}
 	for _, tt := range tests {
@@ -139,7 +171,7 @@ func TestIsValid(t *testing.T) {
 		{
 			name: "ValidUUID",
 			args: args{
-				uuid: "urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479",
+				uuid: "urn:vcloud:vm:" + validUUIDv4,
 			},
 			want: true,
 		},
@@ -154,6 +186,13 @@ func TestIsValid(t *testing.T) {
 			name: "InvalidPrefix",
 			args: args{
 				uuid: "urn:vm:f47ac10b-58cddc-43-a567-0e02b2c3d4791",
+			},
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			args: args{
+				uuid: "",
 			},
 			want: false,
 		},
@@ -181,9 +220,9 @@ func TestNormalize(t *testing.T) {
 			name: "Normalize",
 			args: args{
 				prefix: VM,
-				uuid:   "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+				uuid:   validUUIDv4,
 			},
-			want: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			want: VcloudUUID("urn:vcloud:vm:" + validUUIDv4),
 		},
 	}
 	for _, tt := range tests {
@@ -203,12 +242,17 @@ func TestVcloudUUID_IsVM(t *testing.T) {
 	}{
 		{
 			name: "IsVM",
-			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			uuid: VcloudUUID(VM.String() + validUUIDv4),
 			want: true,
 		},
 		{
 			name: "IsNotVM",
 			uuid: VcloudUUID("urn:vcloud:user:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
 			want: false,
 		},
 	}
@@ -229,12 +273,17 @@ func TestVcloudUUID_IsUser(t *testing.T) {
 	}{
 		{
 			name: "IsUser",
-			uuid: VcloudUUID("urn:vcloud:user:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			uuid: VcloudUUID(User.String() + validUUIDv4),
 			want: true,
 		},
 		{
 			name: "IsNotUser",
 			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
 			want: false,
 		},
 	}
@@ -256,12 +305,17 @@ func TestVcloudUUID_IsGroup(t *testing.T) {
 	}{
 		{
 			name: "IsGroup",
-			uuid: VcloudUUID("urn:vcloud:group:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			uuid: VcloudUUID(Group.String() + validUUIDv4),
 			want: true,
 		},
 		{
 			name: "IsNotGroup",
 			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
 			want: false,
 		},
 	}
@@ -283,12 +337,17 @@ func TestVcloudUUID_IsGateway(t *testing.T) {
 	}{
 		{
 			name: "IsGateway",
-			uuid: VcloudUUID("urn:vcloud:gateway:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			uuid: VcloudUUID(Gateway.String() + validUUIDv4),
 			want: true,
 		},
 		{
 			name: "IsNotGateway",
 			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
 			want: false,
 		},
 	}
@@ -310,12 +369,17 @@ func TestVcloudUUID_IsVDC(t *testing.T) {
 	}{
 		{
 			name: "IsVDC",
-			uuid: VcloudUUID("urn:vcloud:vdc:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			uuid: VcloudUUID(VDC.String() + validUUIDv4),
 			want: true,
 		},
 		{
 			name: "IsNotVDC",
 			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
 			want: false,
 		},
 	}
@@ -337,12 +401,17 @@ func TestVcloudUUID_IsNetwork(t *testing.T) {
 	}{
 		{
 			name: "IsNetwork",
-			uuid: VcloudUUID("urn:vcloud:network:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			uuid: VcloudUUID(Network.String() + validUUIDv4),
 			want: true,
 		},
 		{
 			name: "IsNotNetwork",
 			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
 			want: false,
 		},
 	}
@@ -364,12 +433,17 @@ func TestVcloudUUID_IsLoadBalancerPool(t *testing.T) {
 	}{
 		{
 			name: "IsLoadBalancerPool",
-			uuid: VcloudUUID("urn:vcloud:loadBalancerPool:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			uuid: VcloudUUID(LoadBalancerPool.String() + validUUIDv4),
 			want: true,
 		},
 		{
 			name: "IsNotLoadBalancerPool",
 			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
 			want: false,
 		},
 	}
@@ -391,12 +465,17 @@ func TestVcloudUUID_IsVDCStorageProfile(t *testing.T) {
 	}{
 		{
 			name: "IsVDCStorageProfile",
-			uuid: VcloudUUID("urn:vcloud:vdcstorageProfile:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			uuid: VcloudUUID(VDCStorageProfile.String() + validUUIDv4),
 			want: true,
 		},
 		{
 			name: "IsNotVDCStorageProfile",
 			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
 			want: false,
 		},
 	}
@@ -418,7 +497,7 @@ func TestVcloudUUID_IsVAPP(t *testing.T) {
 	}{
 		{
 			name: "IsVAPP",
-			uuid: VcloudUUID("urn:vcloud:vapp:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			uuid: VcloudUUID(VAPP.String() + validUUIDv4),
 			want: true,
 		},
 		{
@@ -426,11 +505,80 @@ func TestVcloudUUID_IsVAPP(t *testing.T) {
 			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
 			want: false,
 		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
+			want: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.uuid.IsVAPP(); got != tt.want {
 				t.Errorf("VcloudUUID.IsVAPP() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// IsDisk.
+func TestVcloudUUID_IsDisk(t *testing.T) {
+	tests := []struct {
+		name string
+		uuid VcloudUUID
+		want bool
+	}{
+		{
+			name: "IsDisk",
+			uuid: VcloudUUID(Disk.String() + validUUIDv4),
+			want: true,
+		},
+		{
+			name: "IsNotDisk",
+			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.uuid.IsDisk(); got != tt.want {
+				t.Errorf("VcloudUUID.IsDisk() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// IsSecurityGroup.
+func TestVcloudUUID_IsSecurityGroup(t *testing.T) {
+	tests := []struct {
+		name string
+		uuid VcloudUUID
+		want bool
+	}{
+		{
+			name: "IsSecurityGroup",
+			uuid: VcloudUUID(SecurityGroup.String() + validUUIDv4),
+			want: true,
+		},
+		{
+			name: "IsNotSecurityGroup",
+			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.uuid.IsSecurityGroup(); got != tt.want {
+				t.Errorf("VcloudUUID.IsSecurityGroup() = %v, want %v", got, tt.want)
 			}
 		})
 	}

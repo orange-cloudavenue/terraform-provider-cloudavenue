@@ -73,6 +73,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		edgegw.NewEdgeGatewayDataSource,
 		edgegw.NewEdgeGatewaysDataSource,
 		edgegw.NewFirewallDataSource,
+		edgegw.NewSecurityGroupDataSource,
 
 		// VDC
 		vdc.NewVDCsDataSource,
@@ -120,6 +121,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		edgegw.NewEdgeGatewayResource,
 		edgegw.NewFirewallResource,
 		edgegw.NewPortProfilesResource,
+		edgegw.NewSecurityGroupResource,
 
 		// VDC
 		vdc.NewVDCResource,
