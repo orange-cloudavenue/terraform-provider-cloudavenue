@@ -1,4 +1,10 @@
 ## 0.6.0 (Unreleased)
+
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_edgegateway_security_group` - New data source to fetch security group details from Cloud Avenue Edge Gateway. ([GH-351](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/351))
+* **New Resource:** `resource/cloudavenue_edgegateway_security_group` - New resource to manage Edge Gateway Security Group in Cloud Avenue. ([GH-342](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/342))
+
 ## 0.5.2 (July  4, 2023)
 
 ### :bug: **Bug Fixes**
