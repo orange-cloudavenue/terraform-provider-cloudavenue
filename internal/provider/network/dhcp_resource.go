@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
@@ -38,7 +39,7 @@ type dhcpResource struct {
 }
 
 // Init Initializes the resource.
-func (r *dhcpResource) Init(ctx context.Context, rm *DHCPModel) (diags diag.Diagnostics) {
+func (r *dhcpResource) Init(ctx context.Context, rm *dhcpModel) (diags diag.Diagnostics) {
 	r.org, diags = org.Init(r.client)
 	return
 }
@@ -72,7 +73,7 @@ func (r *dhcpResource) Configure(ctx context.Context, req resource.ConfigureRequ
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *dhcpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	plan := &DHCPModel{}
+	plan := &dhcpModel{}
 
 	// Retrieve values from plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -89,6 +90,9 @@ func (r *dhcpResource) Create(ctx context.Context, req resource.CreateRequest, r
 	/*
 		Implement the resource creation logic here.
 	*/
+
+	mutex.GlobalMutex.KvLock(ctx, plan.OrgNetworkID.ValueString())
+	defer mutex.GlobalMutex.KvUnlock(ctx, plan.OrgNetworkID.ValueString())
 
 	resp.Diagnostics.Append(r.createUpdateDHCP(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
@@ -112,7 +116,7 @@ func (r *dhcpResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 // Read refreshes the Terraform state with the latest data.
 func (r *dhcpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	state := &DHCPModel{}
+	state := &dhcpModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -129,6 +133,9 @@ func (r *dhcpResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	/*
 		Implement the resource read here
 	*/
+
+	mutex.GlobalMutex.KvLock(ctx, state.OrgNetworkID.ValueString())
+	defer mutex.GlobalMutex.KvUnlock(ctx, state.OrgNetworkID.ValueString())
 
 	stateRefreshed, found, d := r.read(ctx, state)
 	resp.Diagnostics.Append(d...)
@@ -148,8 +155,8 @@ func (r *dhcpResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *dhcpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var (
-		plan  = &DHCPModel{}
-		state = &DHCPModel{}
+		plan  = &dhcpModel{}
+		state = &dhcpModel{}
 	)
 
 	// Get current plan and state
@@ -167,6 +174,9 @@ func (r *dhcpResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	/*
 		Implement the resource update here
 	*/
+
+	mutex.GlobalMutex.KvLock(ctx, plan.OrgNetworkID.ValueString())
+	defer mutex.GlobalMutex.KvUnlock(ctx, plan.OrgNetworkID.ValueString())
 
 	resp.Diagnostics.Append(r.createUpdateDHCP(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
@@ -189,7 +199,7 @@ func (r *dhcpResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *dhcpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	state := &DHCPModel{}
+	state := &dhcpModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -207,6 +217,9 @@ func (r *dhcpResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		Implement the resource deletion here
 	*/
 
+	mutex.GlobalMutex.KvLock(ctx, state.OrgNetworkID.ValueString())
+	defer mutex.GlobalMutex.KvUnlock(ctx, state.OrgNetworkID.ValueString())
+
 	if err := r.org.DeleteNetworkDHCP(state.OrgNetworkID.ValueString()); err != nil {
 		resp.Diagnostics.AddError("Error deleting dhcp", err.Error())
 	}
@@ -218,9 +231,8 @@ func (r *dhcpResource) ImportState(ctx context.Context, req resource.ImportState
 }
 
 // createUpdateDhcp The dhcp has no create method in the API, so we use the update method.
-func (r *dhcpResource) createUpdateDHCP(ctx context.Context, rm *DHCPModel) (diags diag.Diagnostics) {
-	err := r.org.UpdateNetworkDHCP(rm.OrgNetworkID.ValueString(), rm.toNetworkDHCP(ctx))
-	if err != nil {
+func (r *dhcpResource) createUpdateDHCP(ctx context.Context, rm *dhcpModel) (diags diag.Diagnostics) {
+	if err := r.org.UpdateNetworkDHCP(rm.OrgNetworkID.ValueString(), rm.toNetworkDHCP(ctx)); err != nil {
 		diags.AddError("Error updating dhcp", err.Error())
 	}
 
@@ -228,7 +240,7 @@ func (r *dhcpResource) createUpdateDHCP(ctx context.Context, rm *DHCPModel) (dia
 }
 
 // toNetworkDHCP converts a dhcp to a govcdtypes.OpenApiOrgVdcNetworkDhcp object.
-func (rm *DHCPModel) toNetworkDHCP(ctx context.Context) *govcdtypes.OpenApiOrgVdcNetworkDhcp {
+func (rm *dhcpModel) toNetworkDHCP(ctx context.Context) *govcdtypes.OpenApiOrgVdcNetworkDhcp {
 	object := &govcdtypes.OpenApiOrgVdcNetworkDhcp{
 		Mode:      rm.Mode.ValueString(),
 		LeaseTime: utils.TakeIntPointer(int(rm.LeaseTime.ValueInt64())),
@@ -266,19 +278,13 @@ func (rm *DHCPModel) toNetworkDHCP(ctx context.Context) *govcdtypes.OpenApiOrgVd
 }
 
 // read() reads the resource from the API and updates the state with it.
-func (r *dhcpResource) read(ctx context.Context, plan *DHCPModel) (state *DHCPModel, found bool, diags diag.Diagnostics) {
+func (r *dhcpResource) read(ctx context.Context, plan *dhcpModel) (state *dhcpModel, found bool, diags diag.Diagnostics) {
 	var d diag.Diagnostics
 
-	state = new(DHCPModel)
-
-	orgNetwork, err := r.org.GetOpenApiOrgVdcNetworkById(plan.OrgNetworkID.ValueString())
-	if err != nil {
-		diags.AddError("Error getting org network", err.Error())
-		return
-	}
-
+	state = new(dhcpModel)
 	found = true
-	orgNetworkDhcp, err := orgNetwork.GetOpenApiOrgVdcNetworkDhcp()
+
+	orgNetworkDhcp, err := r.org.GetNetworkDHCP(plan.OrgNetworkID.ValueString())
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			found = false
@@ -296,9 +302,9 @@ func (r *dhcpResource) read(ctx context.Context, plan *DHCPModel) (state *DHCPMo
 	state.ListenerIPAddress = utils.StringValueOrNull(orgNetworkDhcp.OpenApiOrgVdcNetworkDhcp.IPAddress)
 
 	if orgNetworkDhcp.OpenApiOrgVdcNetworkDhcp.DhcpPools != nil {
-		pools := make(DHCPModelPools, len(orgNetworkDhcp.OpenApiOrgVdcNetworkDhcp.DhcpPools))
+		pools := make(dhcpModelPools, len(orgNetworkDhcp.OpenApiOrgVdcNetworkDhcp.DhcpPools))
 		for i, pool := range orgNetworkDhcp.OpenApiOrgVdcNetworkDhcp.DhcpPools {
-			pools[i] = DHCPModelPool{
+			pools[i] = dhcpModelPool{
 				Start: types.StringValue(pool.IPRange.StartAddress),
 				End:   types.StringValue(pool.IPRange.EndAddress),
 			}
@@ -311,7 +317,7 @@ func (r *dhcpResource) read(ctx context.Context, plan *DHCPModel) (state *DHCPMo
 	}
 
 	if orgNetworkDhcp.OpenApiOrgVdcNetworkDhcp.DnsServers != nil {
-		dnsServers := make(DHCPModelDNSServers, len(orgNetworkDhcp.OpenApiOrgVdcNetworkDhcp.DnsServers))
+		dnsServers := make(dhcpModelDNSServers, len(orgNetworkDhcp.OpenApiOrgVdcNetworkDhcp.DnsServers))
 		copy(dnsServers, orgNetworkDhcp.OpenApiOrgVdcNetworkDhcp.DnsServers)
 
 		state.DNSServers, d = dnsServers.ToPlan(ctx)

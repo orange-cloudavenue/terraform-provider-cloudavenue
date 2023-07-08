@@ -1,8 +1,6 @@
 package main
 
 import (
-	"github.com/kr/pretty"
-
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
@@ -21,8 +19,6 @@ const (
 
 // New returns a new elementType.
 func NewElementType(attribute any) elementType {
-	pretty.Println(attribute)
-
 	var eType string
 
 	switch x := attribute.(type) {

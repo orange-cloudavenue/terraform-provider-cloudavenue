@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-type DHCPModel struct {
+type dhcpModel struct {
 	DNSServers        types.List   `tfsdk:"dns_servers"`
 	ID                types.String `tfsdk:"id"`
 	LeaseTime         types.Int64  `tfsdk:"lease_time"`
@@ -19,24 +19,24 @@ type DHCPModel struct {
 	Pools             types.Set    `tfsdk:"pools"`
 }
 
-type DHCPModelPools []DHCPModelPool
+type dhcpModelPools []dhcpModelPool
 
-type DHCPModelPool struct {
+type dhcpModelPool struct {
 	End   types.String `tfsdk:"end_address"`
 	Start types.String `tfsdk:"start_address"`
 }
 
-type DHCPModelDNSServers []string
+type dhcpModelDNSServers []string
 
 // ObjectType() returns the object type for the nested object.
-func (p *DHCPModelPools) ObjectType(ctx context.Context) types.ObjectType {
+func (p *dhcpModelPools) ObjectType(ctx context.Context) types.ObjectType {
 	return types.ObjectType{
 		AttrTypes: p.AttrTypes(ctx),
 	}
 }
 
 // AttrTypes() returns the attribute types for the nested object.
-func (p *DHCPModelPools) AttrTypes(ctx context.Context) map[string]attr.Type {
+func (p *dhcpModelPools) AttrTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
 		"end_address":   types.StringType,
 		"start_address": types.StringType,
@@ -44,7 +44,7 @@ func (p *DHCPModelPools) AttrTypes(ctx context.Context) map[string]attr.Type {
 }
 
 // ToPlan() returns the plan representation of the nested object.
-func (p *DHCPModelPools) ToPlan(ctx context.Context) (basetypes.SetValue, diag.Diagnostics) {
+func (p *dhcpModelPools) ToPlan(ctx context.Context) (basetypes.SetValue, diag.Diagnostics) {
 	if p == nil {
 		return types.SetNull(p.ObjectType(ctx)), nil
 	}
@@ -52,8 +52,8 @@ func (p *DHCPModelPools) ToPlan(ctx context.Context) (basetypes.SetValue, diag.D
 	return types.SetValueFrom(ctx, p.ObjectType(ctx), p)
 }
 
-func (rm *DHCPModel) PoolsFromPlan(ctx context.Context) (pools DHCPModelPools, diags diag.Diagnostics) {
-	pools = make(DHCPModelPools, 0)
+func (rm *dhcpModel) PoolsFromPlan(ctx context.Context) (pools dhcpModelPools, diags diag.Diagnostics) {
+	pools = make(dhcpModelPools, 0)
 	diags.Append(rm.Pools.ElementsAs(ctx, &pools, false)...)
 	if diags.HasError() {
 		return
@@ -63,8 +63,8 @@ func (rm *DHCPModel) PoolsFromPlan(ctx context.Context) (pools DHCPModelPools, d
 }
 
 // DNSServersFromPlan returns the DNSServers from the plan.
-func (rm *DHCPModel) DNSServersFromPlan(ctx context.Context) (dnsServers DHCPModelDNSServers, diags diag.Diagnostics) {
-	dnsServers = make(DHCPModelDNSServers, 0)
+func (rm *dhcpModel) DNSServersFromPlan(ctx context.Context) (dnsServers dhcpModelDNSServers, diags diag.Diagnostics) {
+	dnsServers = make(dhcpModelDNSServers, 0)
 	diags.Append(rm.DNSServers.ElementsAs(ctx, &dnsServers, false)...)
 	if diags.HasError() {
 		return
@@ -73,7 +73,7 @@ func (rm *DHCPModel) DNSServersFromPlan(ctx context.Context) (dnsServers DHCPMod
 	return dnsServers, diags
 }
 
-// ToPlan converts a DHCPModelDNSServers to a plan representation.
-func (dnsServers *DHCPModelDNSServers) ToPlan(ctx context.Context) (basetypes.ListValue, diag.Diagnostics) {
+// ToPlan converts a dhcpModelDNSServers to a plan representation.
+func (dnsServers *dhcpModelDNSServers) ToPlan(ctx context.Context) (basetypes.ListValue, diag.Diagnostics) {
 	return types.ListValueFrom(ctx, types.StringType, dnsServers)
 }

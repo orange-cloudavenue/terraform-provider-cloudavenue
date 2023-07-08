@@ -23,6 +23,10 @@ func (o *Org) GetID() string {
 
 // GetNetworkDHCP returns the DHCP object for the org network provided in parameter.
 func (o *Org) GetNetworkDHCP(orgNetworkID string) (*govcd.OpenApiOrgVdcNetworkDhcp, error) {
+	if err := o.Refresh(); err != nil {
+		return nil, err
+	}
+
 	orgNetwork, err := o.GetOpenApiOrgVdcNetworkById(orgNetworkID)
 	if err != nil {
 		return nil, err

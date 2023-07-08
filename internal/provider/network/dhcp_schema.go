@@ -174,6 +174,9 @@ func dhcpSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.RequiresReplaceIfConfigured(),
 					},
 				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+				},
 			},
 		},
 	}
