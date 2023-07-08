@@ -8,6 +8,7 @@
 ### :dependabot: **Dependencies**
 
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers from 1.3.1 to 1.3.2 ([GH-369](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/369))
+* deps: bumps github.com/hashicorp/terraform-plugin-docs from 0.15.0 to 0.16.0 ([GH-370](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/370))
 
 ## 0.5.2 (July  4, 2023)
 
