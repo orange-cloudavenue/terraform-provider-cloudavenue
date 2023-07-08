@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.2
 	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.4.1
+	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.0.5
 	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.7.0
 	github.com/antihax/optional v1.0.0
 	github.com/google/uuid v1.3.0
@@ -19,10 +20,10 @@ require (
 	github.com/rs/zerolog v1.29.1
 	github.com/vmware/go-vcloud-director/v2 v2.20.0
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
+	golang.org/x/net v0.11.0
 )
 
 require (
-	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.0.5 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
@@ -79,7 +80,6 @@ require (
 	github.com/zclconf/go-cty v1.13.2 // indirect
 	golang.org/x/crypto v0.10.0 // indirect
 	golang.org/x/mod v0.11.0 // indirect
-	golang.org/x/net v0.11.0 // indirect
 	golang.org/x/oauth2 v0.7.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
