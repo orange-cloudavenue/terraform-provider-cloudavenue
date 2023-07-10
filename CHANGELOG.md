@@ -3,7 +3,9 @@
 ### :rocket: **New Features**
 
 * **New Data Source:** `datasource/cloudavenue_edgegateway_security_group` - New data source to fetch security group details from Cloud Avenue Edge Gateway. ([GH-351](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/351))
+* **New Data Source:** `datasource/cloudavenue_network_dhcp` - New data source to get DHCP information for an organization network. ([GH-349](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/349))
 * **New Resource:** `resource/cloudavenue_edgegateway_security_group` - New resource to manage Edge Gateway Security Group in Cloud Avenue. ([GH-342](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/342))
+* **New Resource:** `resource/cloudavenue_network_dhcp` - New resource to manage DHCP for a organization network. ([GH-348](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/348))
 
 ### :dependabot: **Dependencies**
 
