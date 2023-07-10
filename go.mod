@@ -16,6 +16,8 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.27.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.1.2
+	github.com/orange-cloudavenue/terraform-provider-cloudavenue/cmd/types-generator v0.0.0-20230719083825-6e6c29b41428
+	github.com/rs/zerolog v1.29.1
 	github.com/vmware/go-vcloud-director/v2 v2.20.0
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 )
@@ -52,7 +54,7 @@ require (
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
-	github.com/iancoleman/strcase v0.2.0 // indirect
+	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/imdario/mergo v0.3.15 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect

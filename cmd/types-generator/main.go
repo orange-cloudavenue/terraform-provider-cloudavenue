@@ -28,11 +28,13 @@ package {{ .PackageName }}
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 {{ if not (setKeyValue "Name" .Name) }}
@@ -41,13 +43,6 @@ Error
 
 {{ template "typeStruct" . }}
 
-{{ define "attributeType" }}
-return map[string]attr.Type{
-	{{- range $aN, $aD := .Attributes }}
-		"{{$aN}}": {{ attrType . }},
-	{{- end }}
-}
-{{end}}
 
 {{ define "typeStruct" }}
 
@@ -57,9 +52,13 @@ return map[string]attr.Type{
 {{ end }}
 {{ $Name := (getKeyValue "Name") }}
 
+
+{{ if existKeyValue "SubName" }}
+// * {{ toUpperCamel (getKeyValue "SubName") -}}
+{{ end }}
 type {{ toUpperCamel $Name }}Model{{ if existKeyValue "SubName" }}{{singular (toUpperCamel (getKeyValue "SubName"))}}{{end}} struct {
 	{{- range $aN, $aD := .Attributes }}
-		{{ toUpperCamel $aN }} {{ schemaType . }}	{{ tfsdk $aN -}}
+		{{ toUpperCamel $aN }} {{ terraformValue . }}	{{ tfsdk $aN -}}
 	{{ end }}
 }
 {{ if existKeyValue "SubName" }}{{ if not (delKeyValue "SubName")}}Error{{end}}{{end}}
@@ -67,40 +66,12 @@ type {{ toUpperCamel $Name }}Model{{ if existKeyValue "SubName" }}{{singular (to
 {{/* if schemaType is Nested create new Type */}}
 {{- range $aN, $aD := .Attributes }}
 	{{- if isNestedAttribute . }}
-
-		type {{ toUpperCamel $Name }}Model{{ toUpperCamel $aN }} []{{ toUpperCamel $Name }}Model{{ singular (toUpperCamel $aN) }}
-
-		// ObjectType() returns the object type for the nested object.
-		func (p *{{ toUpperCamel $Name }}Model{{ toUpperCamel $aN }}) ObjectType(ctx context.Context) types.ObjectType {
-			return types.ObjectType{
-				AttrTypes: p.AttrTypes(ctx),
-			}
-		}
-
-		// AttrTypes() returns the attribute types for the nested object.
-		func (p *{{ toUpperCamel $Name }}Model{{ toUpperCamel $aN }}) AttrTypes(_ context.Context) map[string]attr.Type {
-			{{- template "attributeType" .NestedObject -}}
-		}
-
-		// ToPlan() returns the plan representation of the nested object.
-		func (p *{{ toUpperCamel $Name }}Model{{ toUpperCamel $aN }}) ToPlan(ctx context.Context) ({{ baseTypeValue . }}, diag.Diagnostics) {
-			if p == nil {
-				return {{ funcNull . }}(p.ObjectType(ctx)), nil
-			}
-
-			return {{ funcFromValue . }}(ctx, p.ObjectType(ctx), p)
-		}
-
-		func (rm *{{ toUpperCamel $Name }}Model{{ if existKeyValue "SubName" }}{{ toUpperCamel (getKeyValue "SubName")}}{{end}}) {{ toUpperCamel $aN }}FromPlan(ctx context.Context) ({{ toLowerCamel $aN }} {{ toUpperCamel $Name }}Model{{ toUpperCamel $aN }}, diags diag.Diagnostics) {
-			{{ toLowerCamel $aN }} = make({{ toUpperCamel $Name }}Model{{ toUpperCamel $aN }}, 0)
-			diags.Append(rm.{{ toUpperCamel $aN }}.ElementsAs(ctx, &{{ toLowerCamel $aN }}, false)...)
-			if diags.HasError() {
-				return
-			}
-		
-			return {{ toLowerCamel $aN }}, diags
-		}
-
+		// * {{ toUpperCamel $aN -}} 
+		{{ if isMap . }}
+			type {{ toUpperCamel $Name }}Model{{ toUpperCamel $aN }} map[string]{{ toUpperCamel $Name }}Model{{ singular (toUpperCamel $aN) }}
+		{{ else }}
+			type {{ toUpperCamel $Name }}Model{{ toUpperCamel $aN }} []{{ toUpperCamel $Name }}Model{{ singular (toUpperCamel $aN) }}
+		{{ end }}
 		{{ if not (setKeyValue "SubName" $aN) }}
 		Error
 		{{ end }}
@@ -112,25 +83,94 @@ type {{ toUpperCamel $Name }}Model{{ if existKeyValue "SubName" }}{{singular (to
 	{{ end }}
 	{{/* End if isNestedAttribute */}}
 
-	{{- if isSet . }}
-		// * {{toUpperCamel $aN}}
-		func (rm *{{ toUpperCamel $Name }}Model{{ if $Parent }}{{ singular (toUpperCamel $Parent) }}{{end}}) {{toUpperCamel $aN}}FromPlan(ctx context.Context) ({{toLowerCamel $aN}} {{elementType .}}, diags diag.Diagnostics) {
-			if rm.{{toUpperCamel $aN}}.IsNull() || rm.{{toUpperCamel $aN}}.IsUnknown() {
-				return
-			}
-		
-			{{toLowerCamel $aN}} = make({{elementType .}}, 0)
-			diags.Append(rm.{{toUpperCamel $aN}}.ElementsAs(ctx, &{{toLowerCamel $aN}}, false)...)
-			if diags.HasError() {
-				return
-			}
-		
-			return {{toLowerCamel $aN}}, diags
+	{{- if isSingle . }}
+
+		{{ if not (setKeyValue "SubName" $aN) }}
+		Error
+		{{ end }}
+		{{ if not (setKeyValue "ParentSubName" $aN) }}
+		Error
+		{{ end }}
+		{{ template "typeStruct" . -}}
+
+	{{ end }}
+	{{/* End if isSingle */}}
+
+	{{ if isArray . }}
+		{{ if isMap . }}
+			type {{ toUpperCamel $Name }}Model{{ toUpperCamel $aN }} map[string]{{ terraformValue . }}
+		{{ else }}
+			type {{ toUpperCamel $Name }}Model{{ toUpperCamel $aN }} []{{ terraformValue . }}
+		{{ end }}
+	{{ end }}
+	{{/* End if isArray */}}
+
+
+
+{{ end }}
+{{ end }}
+
+
+func New{{ toUpperCamel .Name }}(t any) *{{ toUpperCamel .Name }}Model {
+	switch x := t.(type) {
+	case tfsdk.State: //nolint:dupl
+		return {{ template "structNewFunc" . }}
+	case tfsdk.Plan: //nolint:dupl
+		return {{ template "structNewFunc" . }}
+	case tfsdk.Config: //nolint:dupl
+		return {{ template "structNewFunc" . }}
+	default:
+		panic(fmt.Sprintf("unexpected type %T", t))
+	}
+}
+
+func (rm *{{ toUpperCamel .Name }}Model) Copy() *{{ toUpperCamel .Name }}Model {
+	x := &{{ toUpperCamel .Name }}Model{}
+	utils.ModelCopy(rm, x)
+	return x
+}
+
+{{- range $aN, $aD := .Attributes }}
+	{{- $Name := (getKeyValue "Name") -}}
+
+	{{ if isNestedOrArrayAttribute . }}
+		// Get{{ toUpperCamel $aN }} returns the value of the {{ toUpperCamel $aN }} field.
+		func (rm *{{ toUpperCamel $Name }}Model) Get{{ toUpperCamel $aN }}(ctx context.Context) (values {{ toUpperCamel $Name }}Model{{ toUpperCamel $aN}}, diags diag.Diagnostics) {
+			values = make({{ toUpperCamel $Name }}Model{{ toUpperCamel $aN}}, 0)
+			d := rm.{{ toUpperCamel $aN }}.Get(ctx, &values, false)
+			return values, d
 		}
 	{{ end }}
-	{{/* End if isSet */}}
+
+	{{ if isSingle . }}
+		// Get{{ toUpperCamel $aN }} returns the value of the {{ toUpperCamel $aN }} field.
+		func (rm *{{ toUpperCamel $Name }}Model) Get{{ toUpperCamel $aN }}(ctx context.Context) (values {{ toUpperCamel $Name }}Model{{ singular (toUpperCamel $aN)}}, diags diag.Diagnostics) {
+			values = {{ toUpperCamel $Name }}Model{{ singular (toUpperCamel $aN)}}{}
+			d := rm.{{ toUpperCamel $aN }}.Get(ctx, &values, basetypes.ObjectAsOptions{})
+			return values, d
+		}
+	{{ end }}
 {{ end }}
+
+
+
+{{ define "structNewFunc" }}
+	{{- $Name := (getKeyValue "Name") -}}
+	&{{ toUpperCamel $Name }}Model{
+	{{ range $aN, $aD := .Attributes }}
+		{{- if isNestedOrArrayAttribute . -}}
+			{{ toUpperCamel $aN }}: {{ funcNullOrUnkown . }}(x.Schema.GetAttributes()["{{ toSnakeCase $aN }}"].GetType().({{ terraformType . }}).ElementType()),
+		{{- else if isSingle . -}}
+			{{ toUpperCamel $aN }}: {{ funcNullOrUnkown . }}(x.Schema.GetAttributes()["{{ toSnakeCase $aN }}"].GetType().({{ terraformType . }}).AttributeTypes()),
+		{{- else -}}
+			{{ toUpperCamel $aN }}: {{ funcNullOrUnkown . }}(),
+		{{ end }}
+	{{ end -}}
+	}
+
 {{ end }}
+
+
 `
 
 type templateData struct {
@@ -192,8 +232,18 @@ func main() {
 					}
 				}
 
+				// metadataResponse.TypeName = "_demo_superschema_supertypes"
+				// if metadataResponse.TypeName contains two or more underscores, remove the two first underscores
+
+				metadataResponse.TypeName = strings.TrimPrefix(metadataResponse.TypeName, "_")
+
+				if strings.Count(metadataResponse.TypeName, "_") > 1 {
+					first := strings.Split(metadataResponse.TypeName, "_")[0]
+					metadataResponse.TypeName = strings.TrimPrefix(metadataResponse.TypeName, first+"_")
+				}
+
 				tD := templateData{
-					Name:        strings.TrimPrefix(metadataResponse.TypeName, "_"),
+					Name:        metadataResponse.TypeName,
 					PackageName: packageName,
 					Attributes:  resp.Schema.Attributes,
 				}
@@ -213,6 +263,12 @@ func main() {
 					"isNestedAttribute": func(a schema.Attribute) bool {
 						return IsNested(reflect.TypeOf(a).String())
 					},
+					"isNestedOrArrayAttribute": func(a schema.Attribute) bool {
+						return IsNestedOrArray(reflect.TypeOf(a).String())
+					},
+					"isArray": func(a schema.Attribute) bool {
+						return IsArray(reflect.TypeOf(a).String())
+					},
 					"isList": func(a schema.Attribute) bool {
 						return IsList(reflect.TypeOf(a).String())
 					},
@@ -222,8 +278,14 @@ func main() {
 					"isMap": func(a schema.Attribute) bool {
 						return IsMap(reflect.TypeOf(a).String())
 					},
-					"schemaType": func(a schema.Attribute) string {
+					"isSingle": func(a schema.Attribute) bool {
+						return IsSingle(reflect.TypeOf(a).String())
+					},
+					"terraformType": func(a schema.Attribute) string {
 						return NewSchemaType(reflect.TypeOf(a).String()).ToTerraformType()
+					},
+					"terraformValue": func(a schema.Attribute) string {
+						return NewSchemaType(reflect.TypeOf(a).String()).ToTerraformValue()
 					},
 					"elementType": func(a any) string {
 						return NewElementType(a).ToTerraformType()
@@ -235,6 +297,15 @@ func main() {
 						return NewAttributeType(a)
 					},
 					"funcNull": func(a any) string {
+						return NewSchemaType(reflect.TypeOf(a).String()).ToFuncNull()
+					},
+					"funcUnkown": func(a any) string {
+						return NewSchemaType(reflect.TypeOf(a).String()).ToFuncUnkown()
+					},
+					"funcNullOrUnkown": func(a schema.Attribute) string {
+						if a.IsComputed() {
+							return NewSchemaType(reflect.TypeOf(a).String()).ToFuncUnkown()
+						}
 						return NewSchemaType(reflect.TypeOf(a).String()).ToFuncNull()
 					},
 					"funcFromValue": func(a any) string {
