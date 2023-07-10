@@ -1,7 +1,10 @@
 <div align="center">
-    <!-- <a href="https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/latest"> -->
-    <!--   <img alt="Latest release" src="https://img.shields.io/github/v/release/orange-cloudavenue/terraform-provider-cloudavenue?style=for-the-badge&logo=starship&color=C9CBFF&logoColor=D9E0EE&labelColor=302D41&include_prerelease&sort=semver" /> -->
-    <!-- </a> -->
+    <a href="https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs">
+      <img alt="Terraform" src="https://img.shields.io/badge/terraform-%235835CC.svg?style=for-the-badge&logo=terraform&logoColor=white" />
+    </a>
+    <a href="https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/latest">
+      <img alt="Latest release" src="https://img.shields.io/github/v/release/orange-cloudavenue/terraform-provider-cloudavenue?style=for-the-badge&logo=starship&color=C9CBFF&logoColor=D9E0EE&labelColor=302D41&include_prerelease&sort=semver" />
+    </a>
     <a href="https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/pulse">
       <img alt="Last commit" src="https://img.shields.io/github/last-commit/orange-cloudavenue/terraform-provider-cloudavenue?style=for-the-badge&logo=starship&color=8bd5ca&logoColor=D9E0EE&labelColor=302D41"/>
     </a>
