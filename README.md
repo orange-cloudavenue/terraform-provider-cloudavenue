@@ -59,3 +59,5 @@ This provider is open source and contributions are welcome.
 If you want to contribute to this provider, please read the [contributing guidelines](CONTRIBUTING.md).
 
 You may also report issues or feature requests on the [GitHub issue tracker](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/new/choose).
+
+You can consult a [listing of resources and datasources](cmd/listing/resource-ca.md).
