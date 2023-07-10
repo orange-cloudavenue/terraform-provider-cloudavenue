@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
@@ -27,19 +26,13 @@ var (
 	_ datasource.DataSourceWithConfigure = &catalogsDataSource{}
 )
 
-func NewCatalogsDataSource() datasource.DataSource {
-	return &catalogsDataSource{}
-}
-
 type catalogsDataSource struct {
 	client   *client.CloudAvenue
 	adminOrg adminorg.AdminOrg
 }
 
-type catalogsDataSourceModel struct {
-	ID           types.String                      `tfsdk:"id"`
-	Catalogs     map[string]catalogDataSourceModel `tfsdk:"catalogs"`
-	CatalogsName types.List                        `tfsdk:"catalogs_name"`
+func NewCatalogsDataSource() datasource.DataSource {
+	return &catalogsDataSource{}
 }
 
 func (d *catalogsDataSource) Init(ctx context.Context, rm *catalogsDataSourceModel) (diags diag.Diagnostics) {
@@ -49,30 +42,6 @@ func (d *catalogsDataSource) Init(ctx context.Context, rm *catalogsDataSourceMod
 
 func (d *catalogsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "s"
-}
-
-func (d *catalogsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "The catalogs datasource show the details of all the catalogs.",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"catalogs_name": schema.ListAttribute{
-				MarkdownDescription: "List of catalogs name.",
-				Computed:            true,
-				ElementType:         types.StringType,
-			},
-			"catalogs": schema.MapNestedAttribute{
-				MarkdownDescription: "Map of catalogs.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: catalogDatasourceAttributes(),
-				},
-			},
-		},
-	}
 }
 
 func (d *catalogsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {

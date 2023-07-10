@@ -39,17 +39,6 @@ type vAppTemplateDataSource struct {
 	catalog  base
 }
 
-type vAppTemplateDataSourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	TemplateName types.String `tfsdk:"template_name"`
-	TemplateID   types.String `tfsdk:"template_id"`
-	CatalogID    types.String `tfsdk:"catalog_id"`
-	CatalogName  types.String `tfsdk:"catalog_name"`
-	Description  types.String `tfsdk:"description"`
-	CreatedAt    types.String `tfsdk:"created_at"`
-	VMNames      types.List   `tfsdk:"vm_names"`
-}
-
 func (d *vAppTemplateDataSource) Init(ctx context.Context, rm *vAppTemplateDataSourceModel) (diags diag.Diagnostics) {
 	d.catalog = base{
 		name: rm.CatalogName.ValueString(),
