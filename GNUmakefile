@@ -1,9 +1,16 @@
-default: testacc
+TEST?=$$(go list ./... |grep -v 'vendor')
+default: build
 
 # Run acceptance tests
 .PHONY: testacc
-testacc:
-	TF_ACC=1 go test ./... -v $(TESTARGS) -timeout 120m
+
+test: lint
+	go test -i $(TEST) || exit 1
+	echo $(TEST) | \
+		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=8
+
+testacc: lint
+	TF_ACC=1 go test -v -count=1 -timeout 600m $(TEST_FILEPATH)
 
 generate:
 	go install github.com/FrangipaneTeam/tf-doc-extractor@latest
@@ -11,11 +18,17 @@ generate:
 	# golang 1.20 feature
 	go generate -skip "tf-doc-extractor" ./...
 
+lint:
+	golangci-lint run
+
+lintWithFix:
+	golangci-lint run --fix
+
+build: lint
+	install 
+
 install:
 	go install .
-
-test:
-	go test -count=1 -parallel=4 ./...
 
 submodules:
 	@git submodule sync

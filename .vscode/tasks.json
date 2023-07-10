@@ -11,12 +11,22 @@
         {
             "label": "Install",
             "type": "shell",
-            "command": "make -j 6 install"
+            "command": "make -j 6 build"
+        },
+        {
+            "label": "Lint",
+            "type": "shell",
+            "command": "make -j 6 lintWithFix"
         },
         {
             "label": "TestAcc",
             "type": "shell",
-            "command": "make -j 2 testacc"
-        }
+            "command": "source ~/.cloud_avenue.source && TEST_FILEPATH=${file} make testacc"
+        },
+        {
+            "label": "Test",
+            "type": "shell",
+            "command": "make -j 2 test"
+        },
     ]
 }
