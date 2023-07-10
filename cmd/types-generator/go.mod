@@ -2,6 +2,8 @@ module github.com/orange-cloudavenue/terraform-provider-cloudavenue/cmd/types-ge
 
 go 1.20
 
+replace github.com/orange-cloudavenue/terraform-provider-cloudavenue => ../..
+
 require (
 	github.com/hashicorp/terraform-plugin-framework v1.3.2
 	github.com/iancoleman/strcase v0.2.0
@@ -23,9 +25,9 @@ require (
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.0 // indirect
 	github.com/hashicorp/terraform-plugin-framework-validators v0.10.0 // indirect
-	github.com/hashicorp/terraform-plugin-go v0.17.0 // indirect
+	github.com/hashicorp/terraform-plugin-go v0.18.0 // indirect
 	github.com/hashicorp/terraform-plugin-log v0.9.0 // indirect
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.26.1 // indirect
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.27.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect

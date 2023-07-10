@@ -104,6 +104,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		// NETWORK
 		network.NewNetworkIsolatedDataSource,
 		network.NewNetworkRoutedDataSource,
+		network.NewDhcpDataSource,
 
 		// STORAGE
 		storage.NewProfileDataSource,
@@ -156,6 +157,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		// NETWORK
 		network.NewNetworkRoutedResource,
 		network.NewNetworkIsolatedResource,
+		network.NewDhcpResource,
 	}
 }
 

@@ -161,7 +161,7 @@ func IsList(schemaType string) bool {
 // IsSet returns true if the schemaType is a set.
 func IsSet(schemaType string) bool {
 	switch schemaType {
-	case schemaTypeSet.String(), schemaTypeSetNested.String():
+	case schemaTypeSet.String():
 		return true
 	}
 

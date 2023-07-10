@@ -3,7 +3,6 @@ package main
 import (
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/kr/pretty"
 )
 
 type elementType string
@@ -20,8 +19,6 @@ const (
 
 // New returns a new elementType.
 func NewElementType(attribute any) elementType {
-	pretty.Println(attribute)
-
 	var eType string
 
 	switch x := attribute.(type) {

@@ -1,0 +1,3 @@
+```release-note:new-resource
+`resource/cloudavenue_network_dhcp` - New resource to manage DHCP for a organization network.
+```
