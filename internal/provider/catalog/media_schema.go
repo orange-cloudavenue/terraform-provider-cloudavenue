@@ -1,9 +1,6 @@
 package catalog
 
 import (
-	"context"
-
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -32,49 +29,6 @@ type catalogMediaDataSourceModel struct {
 	Size           types.Int64  `tfsdk:"size"`
 	Status         types.String `tfsdk:"status"`
 	StorageProfile types.String `tfsdk:"storage_profile"`
-}
-
-func catalogMediaDataSourceModelType() map[string]attr.Type {
-	return map[string]attr.Type{
-		"id":              types.StringType,
-		"name":            types.StringType,
-		"catalog_id":      types.StringType,
-		"catalog_name":    types.StringType,
-		"description":     types.StringType,
-		"is_iso":          types.BoolType,
-		"owner_name":      types.StringType,
-		"is_published":    types.BoolType,
-		"created_at":      types.StringType,
-		"size":            types.Int64Type,
-		"status":          types.StringType,
-		"storage_profile": types.StringType,
-	}
-}
-
-func mediaDatasourceAttributes() map[string]schemaD.Attribute {
-	attr := mediaSchema().GetDataSource(context.Background()).Attributes
-
-	for k, v := range attr {
-		switch val := v.(type) {
-		case schemaD.StringAttribute:
-			val.Computed = true
-			val.Optional = false
-			val.Required = false
-			attr[k] = val
-		case schemaD.BoolAttribute:
-			val.Computed = true
-			val.Optional = false
-			val.Required = false
-			attr[k] = val
-		case schemaD.Int64Attribute:
-			val.Computed = true
-			val.Optional = false
-			val.Required = false
-			attr[k] = val
-		}
-	}
-
-	return attr
 }
 
 func mediaSchema() superschema.Schema {

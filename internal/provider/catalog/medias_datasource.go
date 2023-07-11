@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
@@ -21,7 +20,7 @@ import (
 var (
 	_ datasource.DataSource              = &catalogMediasDataSource{}
 	_ datasource.DataSourceWithConfigure = &catalogMediasDataSource{}
-	_ catalog                            = &vAppTemplateDataSource{}
+	_ catalog                            = &catalogMediasDataSource{}
 )
 
 func NewCatalogMediasDataSource() datasource.DataSource {
@@ -34,42 +33,25 @@ type catalogMediasDataSource struct {
 	catalog  base
 }
 
-type catalogMediasDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Medias      types.Map    `tfsdk:"medias"`
-	MediasName  types.List   `tfsdk:"medias_name"`
-	CatalogName types.String `tfsdk:"catalog_name"`
-	CatalogID   types.String `tfsdk:"catalog_id"`
-}
+type (
+	catalogMediasDataSourceModel struct {
+		ID          types.String `tfsdk:"id"`
+		Medias      types.Map    `tfsdk:"medias"`
+		MediasName  types.List   `tfsdk:"medias_name"`
+		CatalogName types.String `tfsdk:"catalog_name"`
+		CatalogID   types.String `tfsdk:"catalog_id"`
+	}
+
+	catalogMediasDataSourceModelMedias     map[string]catalogMediaDataSourceModel
+	catalogMediasDataSourceModelMediasName []string
+)
 
 func (d *catalogMediasDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "medias"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_medias"
 }
 
 func (d *catalogMediasDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "The `catalog_medias` datasource allows you to list all the medias of a catalog.",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"medias": schema.MapNestedAttribute{
-				MarkdownDescription: "The map of medias.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: mediaDatasourceAttributes(),
-				},
-			},
-			"medias_name": schema.ListAttribute{
-				MarkdownDescription: "The list of medias name.",
-				Computed:            true,
-				ElementType:         types.StringType,
-			},
-			catalogName: mediaSchema().GetDataSource(ctx).Attributes[catalogName],
-			catalogID:   mediaSchema().GetDataSource(ctx).Attributes[catalogID],
-		},
-	}
+	resp.Schema = catalogsSchema(ctx).GetDataSource(ctx)
 }
 
 func (d *catalogMediasDataSource) Init(ctx context.Context, rm *catalogMediasDataSourceModel) (diags diag.Diagnostics) {
@@ -79,7 +61,6 @@ func (d *catalogMediasDataSource) Init(ctx context.Context, rm *catalogMediasDat
 	}
 
 	d.adminOrg, diags = adminorg.Init(d.client)
-
 	return
 }
 
@@ -104,15 +85,15 @@ func (d *catalogMediasDataSource) Configure(ctx context.Context, req datasource.
 }
 
 func (d *catalogMediasDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	state := &catalogMediasDataSourceModel{}
+	config := &catalogMediasDataSourceModel{}
 
 	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, state)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(d.Init(ctx, state)...)
+	resp.Diagnostics.Append(d.Init(ctx, config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -124,8 +105,8 @@ func (d *catalogMediasDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	var (
-		medias     = make(map[string]catalogMediaDataSourceModel)
-		mediasName = make([]string, 0)
+		medias     = make(catalogMediasDataSourceModelMedias)
+		mediasName = make(catalogMediasDataSourceModelMediasName, 0)
 	)
 
 	// Get all medias
@@ -136,11 +117,12 @@ func (d *catalogMediasDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	for _, media := range mediaList {
-		s := catalogMediaDataSourceModel{
+		mediasName = append(mediasName, media.Name)
+		medias[media.Name] = catalogMediaDataSourceModel{
 			ID:             types.StringValue(media.ID),
 			Name:           types.StringValue(media.Name),
-			CatalogID:      state.CatalogID,
-			CatalogName:    state.CatalogName,
+			CatalogID:      types.StringValue(d.GetID()),
+			CatalogName:    types.StringValue(d.GetName()),
 			IsISO:          types.BoolValue(media.IsIso),
 			OwnerName:      types.StringValue(media.OwnerName),
 			IsPublished:    types.BoolValue(media.IsPublished),
@@ -148,9 +130,8 @@ func (d *catalogMediasDataSource) Read(ctx context.Context, req datasource.ReadR
 			Status:         types.StringValue(media.Status),
 			Size:           types.Int64Value(media.StorageB),
 			StorageProfile: types.StringValue(media.StorageProfileName),
+			Description:    types.StringNull(),
 		}
-		mediasName = append(mediasName, media.Name)
-		medias[media.Name] = s
 	}
 
 	listMediasName, diag := types.ListValueFrom(ctx, types.StringType, mediasName)
@@ -159,22 +140,22 @@ func (d *catalogMediasDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	listMedias, diag := types.MapValueFrom(ctx, types.ObjectType{AttrTypes: catalogMediaDataSourceModelType()}, medias)
+	listMedias, diag := types.MapValueFrom(ctx, config.Medias.ElementType(ctx), medias)
 	resp.Diagnostics.Append(diag...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	updateState := catalogMediasDataSourceModel{
+	state := catalogMediasDataSourceModel{
 		ID:          utils.GenerateUUID("catalog_medias"),
 		Medias:      listMedias,
 		MediasName:  listMediasName,
-		CatalogName: state.CatalogName,
-		CatalogID:   state.CatalogID,
+		CatalogName: config.CatalogName,
+		CatalogID:   config.CatalogID,
 	}
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, updateState)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
