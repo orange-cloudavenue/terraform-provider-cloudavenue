@@ -11,6 +11,7 @@
 
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers from 1.3.1 to 1.3.2 ([GH-369](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/369))
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.3.2 to 1.3.3 ([GH-377](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/377))
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-validators from 1.6.4 to 1.7.0 ([GH-379](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/379))
 * deps: bumps github.com/hashicorp/terraform-plugin-docs from 0.15.0 to 0.16.0 ([GH-370](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/370))
 * deps: bumps github.com/hashicorp/terraform-plugin-framework-timeouts from 0.4.0 to 0.4.1 ([GH-376](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/376))
 
