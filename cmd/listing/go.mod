@@ -4,6 +4,8 @@ go 1.20
 
 require (
 	github.com/fatih/color v1.15.0
+	github.com/hashicorp/terraform-plugin-framework v1.3.1
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.26.1
 	github.com/orange-cloudavenue/terraform-provider-cloudavenue v0.5.1
 	github.com/vmware/terraform-provider-vcd/v3 v3.9.0
 )
@@ -27,12 +29,10 @@ require (
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.16.2 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
-	github.com/hashicorp/terraform-plugin-framework v1.3.1 // indirect
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.0 // indirect
 	github.com/hashicorp/terraform-plugin-framework-validators v0.10.0 // indirect
 	github.com/hashicorp/terraform-plugin-go v0.16.0 // indirect
 	github.com/hashicorp/terraform-plugin-log v0.9.0 // indirect
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.26.1 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect

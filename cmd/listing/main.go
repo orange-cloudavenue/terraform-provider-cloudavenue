@@ -6,13 +6,17 @@ import (
 	"sort"
 
 	"github.com/fatih/color"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
+
+	vcdProvider "github.com/vmware/terraform-provider-vcd/v3/vcd"
+
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	caProvider "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider"
-	vcdProvider "github.com/vmware/terraform-provider-vcd/v3/vcd"
 )
 
 var (
