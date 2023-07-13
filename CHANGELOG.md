@@ -7,6 +7,14 @@
 * **New Resource:** `resource/cloudavenue_edgegateway_security_group` - New resource to manage Edge Gateway Security Group in Cloud Avenue. ([GH-342](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/342))
 * **New Resource:** `resource/cloudavenue_network_dhcp` - New resource to manage DHCP for a organization network. ([GH-348](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/348))
 
+### :tada: **Improvements**
+
+* `resource/cloudavenue_vm_affinity_rule` - Add notice in documentation about polarity attribute. ([GH-380](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/380))
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vm_affinity_rule` - Fix bug in `vm_ids` attribute. Now it is possible to set more than 2 VMs IDs. ([GH-380](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/380))
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers from 1.3.1 to 1.3.2 ([GH-369](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/369))
