@@ -1,0 +1,6 @@
+```release-note:bug
+`resource/cloudavenue_vm_affinity_rule` - Fix bug in `vm_ids` attribute. Now it is possible to set more than 2 VMs IDs.
+```
+```release-note:enhancement
+`resource/cloudavenue_vm_affinity_rule` - Add notice in documentation about polarity attribute.
+```

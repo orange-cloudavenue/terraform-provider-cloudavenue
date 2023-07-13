@@ -9,6 +9,8 @@ description: |-
 
 Provides a Cloud Avenue VM Affinity Rule. This can be used to create, modify and delete VM affinity and anti-affinity rules.
 
+~> **NOTE:** The CloudAvenue UI defines two different entities (`Affinity Rules` and `Anti-Affinity Rules`). This resource combines both entities: they are differentiated by the `polarity` property (see below).
+
 ## Example Usage
 
 ```terraform
@@ -76,7 +78,7 @@ resource "cloudavenue_vapp" "example" {
 
 - `name` (String) VM affinity rule name.
 - `polarity` (String) (ForceNew) The polarity of the affinity rule. Value must be one of : `Affinity`, `Anti-Affinity`.
-- `vm_ids` (List of String) List of VM IDs to apply the affinity rule to. List must contain at most 2 elements. Element value must satisfy all validations: must be a valid URN.
+- `vm_ids` (Set of String) List of VM IDs to apply the affinity rule to. Set must contain at least 2 elements. Element value must satisfy all validations: must be a valid URN.
 
 ### Optional
 

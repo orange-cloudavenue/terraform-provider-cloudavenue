@@ -17,6 +17,7 @@ resource "cloudavenue_vm_affinity_rule" "example" {
   vm_ids = [
     cloudavenue_vm.example.id,
 	cloudavenue_vm.example2.id,
+	cloudavenue_vm.example3.id,
   ]
 }
 
@@ -40,6 +41,24 @@ resource "cloudavenue_vm" "example" {
 
 resource "cloudavenue_vm" "example2" {
 	name      = "example-vm2"
+	vapp_name = cloudavenue_vapp.example.name
+	deploy_os = {
+	  vapp_template_id = data.cloudavenue_catalog_vapp_template.example.id
+	}
+	settings = {
+	  customization = {
+		auto_generate_password = true
+	  }
+	}
+	resource = {
+	}
+  
+	state = {
+	}
+}
+
+resource "cloudavenue_vm" "example3" {
+	name      = "example-vm3"
 	vapp_name = cloudavenue_vapp.example.name
 	deploy_os = {
 	  vapp_template_id = data.cloudavenue_catalog_vapp_template.example.id
@@ -85,6 +104,7 @@ func TestAccVmAffinityRuleResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "vm_ids.0"),
 					resource.TestCheckResourceAttrSet(resourceName, "vm_ids.1"),
+					resource.TestCheckResourceAttrSet(resourceName, "vm_ids.2"),
 				),
 			},
 			// Uncomment if you want to test update or delete this block
