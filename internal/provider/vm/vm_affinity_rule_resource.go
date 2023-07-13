@@ -157,7 +157,7 @@ func (r *vmAffinityRuleResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 
 	endpointVMs := vmReferencesToListValue(vmAffinityRule.VmAffinityRule.VmReferences)
-	plan.VMIDs = types.ListValueMust(types.StringType, endpointVMs)
+	plan.VMIDs = types.SetValueMust(types.StringType, endpointVMs)
 
 	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -215,7 +215,7 @@ func (r *vmAffinityRuleResource) Update(ctx context.Context, req resource.Update
 	}
 
 	endpointVMs := vmReferencesToListValue(vmAffinityRule.VmAffinityRule.VmReferences)
-	plan.VMIDs = types.ListValueMust(types.StringType, endpointVMs)
+	plan.VMIDs = types.SetValueMust(types.StringType, endpointVMs)
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -327,7 +327,7 @@ func (r *vmAffinityRuleResource) ImportState(ctx context.Context, req resource.I
 	}
 
 	endpointVMs := vmReferencesToListValue(vmAffinityRule.VmReferences)
-	state.VMIDs = types.ListValueMust(types.StringType, endpointVMs)
+	state.VMIDs = types.SetValueMust(types.StringType, endpointVMs)
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

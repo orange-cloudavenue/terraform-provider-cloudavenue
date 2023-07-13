@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
@@ -30,7 +30,7 @@ type vmAffinityRuleResourceModel struct {
 	Polarity types.String `tfsdk:"polarity"`
 	Required types.Bool   `tfsdk:"required"`
 	Enabled  types.Bool   `tfsdk:"enabled"`
-	VMIDs    types.List   `tfsdk:"vm_ids"`
+	VMIDs    types.Set    `tfsdk:"vm_ids"`
 }
 
 type vmAffinityRuleDataSourceModel struct {
@@ -40,7 +40,7 @@ type vmAffinityRuleDataSourceModel struct {
 	Polarity types.String `tfsdk:"polarity"`
 	Required types.Bool   `tfsdk:"required"`
 	Enabled  types.Bool   `tfsdk:"enabled"`
-	VMIDs    types.List   `tfsdk:"vm_ids"`
+	VMIDs    types.Set    `tfsdk:"vm_ids"`
 }
 
 /*
@@ -136,20 +136,20 @@ func vmAffinityRuleSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"vm_ids": superschema.ListAttribute{
-				Common: &schemaR.ListAttribute{
+			"vm_ids": superschema.SetAttribute{
+				Common: &schemaR.SetAttribute{
 					MarkdownDescription: "List of VM IDs",
 					ElementType:         types.StringType,
 				},
-				Resource: &schemaR.ListAttribute{
+				Resource: &schemaR.SetAttribute{
 					MarkdownDescription: "to apply the affinity rule to.",
 					Required:            true,
-					Validators: []validator.List{
-						listvalidator.SizeAtMost(2),
-						listvalidator.ValueStringsAre(fstringvalidator.IsURN()),
+					Validators: []validator.Set{
+						setvalidator.SizeAtLeast(2),
+						setvalidator.ValueStringsAre(fstringvalidator.IsURN()),
 					},
 				},
-				DataSource: &schemaD.ListAttribute{
+				DataSource: &schemaD.SetAttribute{
 					MarkdownDescription: "associated to the affinity rule.",
 					Computed:            true,
 				},

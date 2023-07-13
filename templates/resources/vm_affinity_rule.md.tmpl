@@ -9,6 +9,8 @@ description: |-
 
 {{ .Description | trimspace }}
 
+~> **NOTE:** The CloudAvenue UI defines two different entities (`Affinity Rules` and `Anti-Affinity Rules`). This resource combines both entities: they are differentiated by the `polarity` property (see below).
+
 {{ if .HasExample -}}
 ## Example Usage
 

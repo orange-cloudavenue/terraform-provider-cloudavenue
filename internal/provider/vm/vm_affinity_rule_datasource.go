@@ -94,7 +94,7 @@ func (d *vmAffinityRuleDataSource) Read(ctx context.Context, req datasource.Read
 	}
 
 	endpointVMs := vmReferencesToListValue(vmAffinityRule.VmAffinityRule.VmReferences)
-	data.VMIDs = types.ListValueMust(types.StringType, endpointVMs)
+	data.VMIDs = types.SetValueMust(types.StringType, endpointVMs)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

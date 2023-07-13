@@ -87,6 +87,6 @@ resource "cloudavenue_vapp" "example" {
 - `enabled` (Boolean) `True` if this affinity rule is enabled.
 - `polarity` (String) The polarity of the affinity rule.
 - `required` (Boolean) `True` if this affinity rule is required. When a rule is mandatory, a host failover will not power on the VM if doing so would violate the rule.
-- `vm_ids` (List of String) List of VM IDs associated to the affinity rule.
+- `vm_ids` (Set of String) List of VM IDs associated to the affinity rule.
 
 
