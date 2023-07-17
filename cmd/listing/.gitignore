@@ -1,0 +1,5 @@
+resource-ca.md
+*.log
+*.bak
+*~
+.*.swp

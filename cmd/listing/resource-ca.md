@@ -30,7 +30,7 @@
 | (17) | cloudavenue_vdc_acl | vcd_org_vdc_access_control |
 | (18) | cloudavenue_vm | vcd_vm |
 | (19) | cloudavenue_vm_affinity_rule | vcd_vm_affinity_rule |
-| (20) | cloudavenue_vm_disk | vcd_independent_disk |
+| (20) | cloudavenue_vm_disk | vcd_vm_internal_disk |
 | (21) | cloudavenue_vm_inserted_media | vcd_inserted_media |
 | (22) | cloudavenue_vm_security_tag | vcd_security_tag |
 
