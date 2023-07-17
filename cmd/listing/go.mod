@@ -1,6 +1,8 @@
-module github.com/orange-cloudavenue/terraform-provider-cloudavenue/cmd
+module github.com/orange-cloudavenue/terraform-provider-cloudavenue/cmd/listing
 
 go 1.20
+
+replace github.com/orange-cloudavenue/terraform-provider-cloudavenue ../..
 
 require (
 	github.com/fatih/color v1.15.0
