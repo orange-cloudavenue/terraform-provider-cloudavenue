@@ -2,6 +2,7 @@
 name: ListingRD
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [ "main" ]
     paths:
@@ -24,6 +25,6 @@ jobs:
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
         add_options: '--force'
-        commit_message: 'ci(generate): changes by go generate'
+        commit_message: 'chore(script): changes by ci ListingRD (generate_listing)'
         file_pattern: 'resource-ca.md'
         skip_dirty_check: true
