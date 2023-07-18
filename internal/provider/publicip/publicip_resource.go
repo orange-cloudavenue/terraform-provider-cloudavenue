@@ -166,6 +166,7 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	knowIPs = append(knowIPs, publicIPs.NetworkConfig...)
 
 	// Find an ip that is not already existing in the vdc
+	// this function var is called later in the code...
 	findIPNotAlreadyExists = func(IPs apiclient.PublicIps) (interface{}, error) {
 		if len(IPs.NetworkConfig) == 0 {
 			return nil, fmt.Errorf("no public ip found")
@@ -173,21 +174,19 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 
 		// knowIPs is a list of ips that are already existing in the vdc
 		// we need to find an ip that is not in this list
+		// compare the list of public ip after the creation of public ip to the list of public ip before the creation of new public ip
 		for _, IP := range IPs.NetworkConfig {
-			found := false
-			for _, knownIP := range knowIPs {
+			for j, knownIP := range knowIPs {
 				if knownIP.UplinkIp == IP.UplinkIp {
-					continue
-				} else {
-					found = true
+					// if ip is equal then go to next ip to compare
 					break
 				}
-			}
-			if found {
-				return IP, nil
+				// if ip is not found on list of public ip before the creation then we found the new one
+				if j == (len(knowIPs) - 1) {
+					return IP, nil
+				}
 			}
 		}
-
 		return apiclient.PublicIpsNetworkConfig{}, fmt.Errorf("no public ip found")
 	}
 
@@ -239,7 +238,9 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 		resp.Diagnostics.AddError("Error finding Public IP", errFind.Error())
 		return
 	}
+
 	var publicIP apiclient.PublicIps
+
 	publicIP.NetworkConfig = append(publicIP.NetworkConfig, pubIP.(apiclient.PublicIpsNetworkConfig))
 	if len(publicIP.NetworkConfig) == 0 {
 		resp.Diagnostics.AddError(
@@ -296,6 +297,7 @@ func (r *publicIPResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	// Get Public IP
 	publicIPs, httpR, err := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
+
 	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
