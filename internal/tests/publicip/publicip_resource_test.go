@@ -9,7 +9,7 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-const testAccVMResourceConfigFromVappTemplate = `
+const testAccPublicIPResource = `
 data "cloudavenue_edgegateways" "example" {}
 
 resource "cloudavenue_publicip" "example" {
@@ -27,7 +27,7 @@ func TestAccPublicIPResource(t *testing.T) {
 			// Read testing
 			{
 				// Apply test
-				Config: testAccVMResourceConfigFromVappTemplate,
+				Config: testAccPublicIPResource,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "public_ip"),
