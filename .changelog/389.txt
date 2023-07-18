@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_publicip` - Fix bug in `public_ip` attribute. Now it is possible to set multiple publicip with the good attribute ip.
+```
