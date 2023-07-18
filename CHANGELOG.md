@@ -1,4 +1,9 @@
 ## 0.7.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_publicip` - Fix bug in `public_ip` attribute. Now it is possible to set multiple publicip with the good attribute ip. ([GH-389](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/389))
+
 ## 0.6.0 (July 13, 2023)
 
 ### :rocket: **New Features**
