@@ -1,16 +1,13 @@
 package catalog
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
-func (d *catalogsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
+func catalogsSchema() schema.Schema {
+	return schema.Schema{
 		Description: "The catalogs datasource show the details of all the catalogs.",
 
 		Attributes: map[string]schema.Attribute{

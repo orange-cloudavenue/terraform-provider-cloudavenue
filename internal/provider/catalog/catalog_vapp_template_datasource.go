@@ -9,15 +9,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
@@ -54,48 +49,6 @@ func (d *vAppTemplateDataSource) Metadata(ctx context.Context, req datasource.Me
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "vapp_template"
 }
 
-func (d *vAppTemplateDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "The `catalog_vapp_template` datasource provides information about a vApp Template in a catalog.",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "ID of the vApp Template",
-				Computed:            true,
-			},
-			"template_name": schema.StringAttribute{
-				MarkdownDescription: "Name of the vApp Template. Required if `template_id` is not set.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("template_name"), path.MatchRoot("template_id")),
-				},
-			},
-			"template_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the vApp Template. Required if `template_name` is not set.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("template_name"), path.MatchRoot("template_id")),
-				},
-			},
-			catalogID:   mediaSchema().GetDataSource(ctx).Attributes[catalogID],
-			catalogName: mediaSchema().GetDataSource(ctx).Attributes[catalogName],
-			"description": schema.StringAttribute{
-				MarkdownDescription: "Description of the vApp Template",
-				Computed:            true,
-			},
-			"created_at": schema.StringAttribute{
-				MarkdownDescription: "Creation date of the vApp Template",
-				Computed:            true,
-			},
-			"vm_names": schema.ListAttribute{
-				MarkdownDescription: "Set of VM names within the vApp template",
-				Computed:            true,
-				ElementType:         types.StringType,
-			},
-		},
-	}
-}
-
 func (d *vAppTemplateDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
@@ -114,6 +67,10 @@ func (d *vAppTemplateDataSource) Configure(ctx context.Context, req datasource.C
 	}
 
 	d.client = client
+}
+
+func (d *vAppTemplateDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = vappTemplateSchema(ctx)
 }
 
 func (d *vAppTemplateDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

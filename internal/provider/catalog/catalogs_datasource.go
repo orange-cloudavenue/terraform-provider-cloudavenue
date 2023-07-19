@@ -35,6 +35,10 @@ func NewCatalogsDataSource() datasource.DataSource {
 	return &catalogsDataSource{}
 }
 
+func (d *catalogsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = catalogsSchema()
+}
+
 func (d *catalogsDataSource) Init(ctx context.Context, rm *catalogsDataSourceModel) (diags diag.Diagnostics) {
 	d.adminOrg, diags = adminorg.Init(d.client)
 	return

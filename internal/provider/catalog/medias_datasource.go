@@ -33,25 +33,12 @@ type catalogMediasDataSource struct {
 	catalog  base
 }
 
-type (
-	catalogMediasDataSourceModel struct {
-		ID          types.String `tfsdk:"id"`
-		Medias      types.Map    `tfsdk:"medias"`
-		MediasName  types.List   `tfsdk:"medias_name"`
-		CatalogName types.String `tfsdk:"catalog_name"`
-		CatalogID   types.String `tfsdk:"catalog_id"`
-	}
-
-	catalogMediasDataSourceModelMedias     map[string]catalogMediaDataSourceModel
-	catalogMediasDataSourceModelMediasName []string
-)
-
 func (d *catalogMediasDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_medias"
 }
 
 func (d *catalogMediasDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = catalogsSchema(ctx).GetDataSource(ctx)
+	resp.Schema = mediasSchema().GetDataSource(ctx)
 }
 
 func (d *catalogMediasDataSource) Init(ctx context.Context, rm *catalogMediasDataSourceModel) (diags diag.Diagnostics) {

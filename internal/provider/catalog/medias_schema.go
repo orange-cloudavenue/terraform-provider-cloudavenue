@@ -1,8 +1,6 @@
 package catalog
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -10,7 +8,7 @@ import (
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
 
-func catalogsSchema(_ context.Context) superschema.Schema {
+func mediasSchema() superschema.Schema {
 	return superschema.Schema{
 		Common: superschema.SchemaDetails{
 			MarkdownDescription: "The Catalog medias allows you to",
