@@ -1,4 +1,9 @@
 ## 0.7.0 (Unreleased)
+
+### :tada: **Improvements**
+
+* `datasource/cloudavenue_catalog_medias` - Improve documentation. ([GH-384](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/384))
+
 ## 0.6.1 (July 18, 2023)
 
 ### :bug: **Bug Fixes**
