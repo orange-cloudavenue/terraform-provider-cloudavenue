@@ -2,12 +2,12 @@
 page_title: "cloudavenue_catalog_medias Data Source - cloudavenue"
 subcategory: "Catalog"
 description: |-
-  The catalog_medias datasource allows you to list all the medias of a catalog.
+  The Catalog medias allows you to retrieve information about a medias in Cloud Avenue.
 ---
 
 # cloudavenue_catalog_medias (Data Source)
 
-The `catalog_medias` datasource allows you to list all the medias of a catalog.
+The Catalog medias allows you to retrieve information about a medias in Cloud Avenue.
 
 ## Example Usage
 
@@ -29,7 +29,7 @@ data "cloudavenue_catalog_medias" "example" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the medias.
 - `medias` (Attributes Map) The map of medias. (see [below for nested schema](#nestedatt--medias))
 - `medias_name` (List of String) The list of medias name.
 
@@ -38,14 +38,14 @@ data "cloudavenue_catalog_medias" "example" {
 
 Read-Only:
 
-- `catalog_id` (String) The ID of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
-- `catalog_name` (String) The name of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
+- `catalog_id` (String) The ID of the catalog.
+- `catalog_name` (String) The name of the catalog.
 - `created_at` (String) The date and time when the media was created.
 - `description` (String) The description of the media.
-- `id` (String) The ID of the media. Ensure that one and only one attribute from this collection is set : `name`, `id`.
+- `id` (String) The ID of the media.
 - `is_iso` (Boolean) `True` if the media is an ISO.
 - `is_published` (Boolean) `True` if the media is published.
-- `name` (String) The name of the media. Ensure that one and only one attribute from this collection is set : `name`, `id`.
+- `name` (String) The name of the media.
 - `owner_name` (String) The name of the owner of the media.
 - `size` (Number) The size of the media in bytes.
 - `status` (String) The status of the media.
