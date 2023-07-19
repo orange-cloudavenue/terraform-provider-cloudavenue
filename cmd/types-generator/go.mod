@@ -6,15 +6,16 @@ replace github.com/orange-cloudavenue/terraform-provider-cloudavenue => ../..
 
 require (
 	github.com/hashicorp/terraform-plugin-framework v1.3.2
-	github.com/iancoleman/strcase v0.2.0
+	github.com/iancoleman/strcase v0.3.0
 	github.com/kr/pretty v0.3.1
-	github.com/orange-cloudavenue/terraform-provider-cloudavenue v0.5.1
+	github.com/orange-cloudavenue/terraform-provider-cloudavenue v0.6.1
 	github.com/rs/zerolog v1.29.1
 )
 
 require (
-	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.1 // indirect
-	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.3.2 // indirect
+	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.2 // indirect
+	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.3.3 // indirect
+	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.0.5-0.20230719121034-1c58f9e729de // indirect
 	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.6.4 // indirect
 	github.com/antihax/optional v1.0.0 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
@@ -23,7 +24,7 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/go-hclog v1.5.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
-	github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.0 // indirect
+	github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.1 // indirect
 	github.com/hashicorp/terraform-plugin-framework-validators v0.10.0 // indirect
 	github.com/hashicorp/terraform-plugin-go v0.18.0 // indirect
 	github.com/hashicorp/terraform-plugin-log v0.9.0 // indirect
@@ -38,7 +39,7 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/vmware/go-vcloud-director/v2 v2.20.0 // indirect
-	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
+	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
 	golang.org/x/net v0.11.0 // indirect
 	golang.org/x/oauth2 v0.7.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect

@@ -4,6 +4,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 
@@ -121,4 +122,17 @@ func (o *OpenAPIValues) ToTerraformTypesString() []types.String {
 func (o OpenAPIValues) ToTerraformTypesStringSet(ctx context.Context) basetypes.SetValue {
 	x, _ := types.SetValueFrom(ctx, types.StringType, o)
 	return x
+}
+
+func ModelCopy(source, dest interface{}) {
+	x := reflect.ValueOf(source)
+	if x.Kind() == reflect.Ptr {
+		starX := x.Elem()
+		y := reflect.New(starX.Type())
+		starY := y.Elem()
+		starY.Set(starX)
+		reflect.ValueOf(dest).Elem().Set(y.Elem())
+	} else {
+		dest = x.Interface() //nolint:all
+	}
 }
