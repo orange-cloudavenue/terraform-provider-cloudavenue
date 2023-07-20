@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
@@ -28,16 +27,6 @@ type iamRightDataSource struct {
 	client *client.CloudAvenue
 }
 
-type iamRightDataSourceModel struct {
-	ID            types.String `tfsdk:"id"`
-	Name          types.String `tfsdk:"name"`
-	Description   types.String `tfsdk:"description"`
-	CategoryID    types.String `tfsdk:"category_id"`
-	BundleKey     types.String `tfsdk:"bundle_key"`
-	RightType     types.String `tfsdk:"right_type"`
-	ImpliedRights types.Set    `tfsdk:"implied_rights"`
-}
-
 func (d *iamRightDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "right"
 }
@@ -45,53 +34,7 @@ func (d *iamRightDataSource) Metadata(ctx context.Context, req datasource.Metada
 // ! Convert to iam_rightS
 
 func (d *iamRightDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "Provides a data source for available rights in Cloud Avenue.",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The id of the right.",
-			},
-			"name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The name of the right.",
-			},
-			"description": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "A description for the right.",
-			},
-			"category_id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The category id for the right.",
-			},
-			// * Remove
-			"bundle_key": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The bundle key for the right.",
-			},
-			"right_type": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The right type for the right.",
-			},
-			"implied_rights": schema.SetNestedAttribute{
-				MarkdownDescription: "The list of rights that are implied with this one.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							MarkdownDescription: "Name of the implied right.",
-							Computed:            true,
-						},
-						"id": schema.StringAttribute{
-							MarkdownDescription: "ID of the implied right.",
-							Computed:            true,
-						},
-					},
-				},
-			},
-		},
-	}
+	resp.Schema = iamRightSchema()
 }
 
 type ImpliedRightsModel struct {
