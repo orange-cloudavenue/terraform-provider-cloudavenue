@@ -24,6 +24,7 @@ require (
 )
 
 require (
+	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.0.5 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
