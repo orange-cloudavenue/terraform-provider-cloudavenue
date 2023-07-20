@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
@@ -40,10 +39,9 @@ func NewIPSetResource() resource.Resource {
 
 // ipSetResource is the resource implementation.
 type ipSetResource struct {
-	client   *client.CloudAvenue
-	org      org.Org
-	adminOrg adminorg.AdminOrg
-	edgegw   edgegw.EdgeGateway
+	client *client.CloudAvenue
+	org    org.Org
+	edgegw edgegw.EdgeGateway
 }
 
 // Init Initializes the resource.
@@ -64,7 +62,6 @@ func (r *ipSetResource) Init(ctx context.Context, rm *IPSetModel) (diags diag.Di
 		return
 	}
 
-	r.adminOrg, diags = adminorg.Init(r.client)
 	return
 }
 

@@ -25,7 +25,7 @@ type IPSetModel struct {
 
 type IPSetModelIPAddresses []supertypes.StringValue
 
-func NewIpSet(t any) *IPSetModel {
+func NewIPSet(t any) *IPSetModel {
 	switch x := t.(type) {
 	case tfsdk.State:
 		return &IPSetModel{

@@ -21,10 +21,10 @@ import (
 func ipSetSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The  resource allows you to manage ...",
+			MarkdownDescription: "The `cloudavenue_edgegateway_ip_set` resource allows you to manage an IP Set rule on an Edge Gateway.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The  data source allows you to retrieve information about an ...",
+			MarkdownDescription: "The `cloudavenue_edgegateway_ip_set` data source allows you to retrieve information about an IP Set rule on an Edge Gateway.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
@@ -85,7 +85,7 @@ func ipSetSchema(_ context.Context) superschema.Schema {
 			},
 			"ip_addresses": superschema.SuperSetAttribute{
 				Common: &schemaR.SetAttribute{
-					MarkdownDescription: "A set of IP address, CIDR, IP range objects.",
+					MarkdownDescription: "A set of IP address, CIDR or IP range.",
 					ElementType:         supertypes.StringType{},
 				},
 				Resource: &schemaR.SetAttribute{
