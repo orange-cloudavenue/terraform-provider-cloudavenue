@@ -57,13 +57,8 @@ func dhcpBindingSchema(_ context.Context) superschema.Schema {
 			},
 			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
+					Required:            true,
 					MarkdownDescription: "The name of the DHCP Binding.",
-				},
-				Resource: &schemaR.StringAttribute{
-					Required: true,
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
 				},
 			},
 			"ip_address": superschema.SuperStringAttribute{

@@ -1,0 +1,3 @@
+```release-note:new-resource
+`resource/cloudavenue_network_dhcp_binding` - New resource to manage DHCP bindings.
+```

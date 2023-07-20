@@ -1,0 +1,3 @@
+```release-note:new-data-source
+`datasource/cloudavenue_network_dhcp_binding` - New data source to get DHCP binding information from Org Network.
+```

@@ -274,7 +274,13 @@ func (r *dhcpBindingResource) read(ctx context.Context, planOrState *DHCPBinding
 		return nil, true, diags
 	}
 
-	dhcpBinding, err := orgNetwork.GetOpenApiOrgVdcNetworkDhcpBindingById(refreshed.ID.Get())
+	var dhcpBinding *govcd.OpenApiOrgVdcNetworkDhcpBinding
+
+	if refreshed.ID.IsKnown() {
+		dhcpBinding, err = orgNetwork.GetOpenApiOrgVdcNetworkDhcpBindingById(refreshed.ID.Get())
+	} else {
+		dhcpBinding, err = orgNetwork.GetOpenApiOrgVdcNetworkDhcpBindingByName(refreshed.Name.Get())
+	}
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			return nil, false, nil
