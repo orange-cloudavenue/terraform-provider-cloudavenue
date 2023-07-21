@@ -9,14 +9,13 @@ require (
 	github.com/antihax/optional v1.0.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/terraform-plugin-docs v0.16.0
-	github.com/hashicorp/terraform-plugin-framework v1.3.2
+	github.com/hashicorp/terraform-plugin-framework v1.3.3
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.1
 	github.com/hashicorp/terraform-plugin-framework-validators v0.10.0
 	github.com/hashicorp/terraform-plugin-go v0.18.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.27.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.1.2
-	github.com/orange-cloudavenue/terraform-provider-cloudavenue/cmd/types-generator v0.0.0-20230719083825-6e6c29b41428
 	github.com/rs/zerolog v1.29.1
 	github.com/vmware/go-vcloud-director/v2 v2.20.0
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
