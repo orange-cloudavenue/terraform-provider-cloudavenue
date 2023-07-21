@@ -5,10 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
@@ -34,19 +30,7 @@ func (d *iamRightDataSource) Metadata(ctx context.Context, req datasource.Metada
 // ! Convert to iam_rightS
 
 func (d *iamRightDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = iamRightSchema()
-}
-
-type ImpliedRightsModel struct {
-	Name types.String `tfsdk:"name"`
-	ID   types.String `tfsdk:"id"`
-}
-
-func iamRightDataImpliedRightsAttrType() map[string]attr.Type {
-	return map[string]attr.Type{
-		"name": types.StringType,
-		"id":   types.StringType,
-	}
+	resp.Schema = iamRightSuperSchema(ctx).GetDataSource(ctx)
 }
 
 func (d *iamRightDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -70,7 +54,7 @@ func (d *iamRightDataSource) Configure(ctx context.Context, req datasource.Confi
 }
 
 func (d *iamRightDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data iamRightDataSourceModel
+	var data RightModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -78,36 +62,29 @@ func (d *iamRightDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	// Read right name from the provider
-	rightName := data.Name.ValueString()
-
-	var diag diag.Diagnostics
-
-	right, err := d.client.Vmware.Client.GetRightByName(rightName)
+	right, err := d.client.Vmware.Client.GetRightByName(data.Name.Get())
 	if err != nil {
-		resp.Diagnostics.AddError("This right does not exist", rightName)
+		resp.Diagnostics.AddError("This right does not exist", data.Name.Get())
 		return
 	}
 
 	// Set the data to be returned
-	data.ID = types.StringValue(right.ID)
-	data.Name = types.StringValue(right.Name)
-	data.Description = types.StringValue(right.Description)
-	data.CategoryID = types.StringValue(right.Category)
-	data.BundleKey = types.StringValue(right.BundleKey)
-	data.RightType = types.StringValue(right.RightType)
+	data.ID.Set(right.ID)
+	data.Name.Set(right.Name)
+	data.Description.Set(right.Description)
+	data.CategoryID.Set(right.Category)
+	data.BundleKey.Set(right.BundleKey)
+	data.RightType.Set(right.RightType)
 
-	var impliedRights []ImpliedRightsModel
+	impliedRights := make(RightModelImpliedRights, 0)
 	for _, ir := range right.ImpliedRights {
-		p := ImpliedRightsModel{
-			Name: types.StringValue(ir.Name),
-			ID:   types.StringValue(ir.ID),
-		}
+		p := RightModelImpliedRight{}
+		p.ID.Set(ir.ID)
+		p.Name.Set(ir.Name)
 		impliedRights = append(impliedRights, p)
 	}
 
-	data.ImpliedRights, diag = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: iamRightDataImpliedRightsAttrType()}, impliedRights)
-	resp.Diagnostics.Append(diag...)
+	resp.Diagnostics.Append(data.ImpliedRights.Set(ctx, impliedRights)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

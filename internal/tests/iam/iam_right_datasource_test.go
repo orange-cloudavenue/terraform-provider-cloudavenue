@@ -29,7 +29,7 @@ func TestAccIamRightDatasource(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "bundle_key"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "category_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", "Catalog: Add vApp from My Cloud"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "right_type"),
 				),
 			},
