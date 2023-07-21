@@ -4,7 +4,6 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -15,31 +14,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
-
-type edgeGatewaysResourceModel struct {
-	Timeouts            timeouts.Value `tfsdk:"timeouts"`
-	ID                  types.String   `tfsdk:"id"`
-	Tier0VrfID          types.String   `tfsdk:"tier0_vrf_name"`
-	Name                types.String   `tfsdk:"name"`
-	OwnerType           types.String   `tfsdk:"owner_type"`
-	OwnerName           types.String   `tfsdk:"owner_name"`
-	Description         types.String   `tfsdk:"description"`
-	EnableLoadBalancing types.Bool     `tfsdk:"lb_enabled"`
-}
-
-type edgeGatewayDataSourceModel struct {
-	ID                  types.String `tfsdk:"id"`
-	Tier0VrfID          types.String `tfsdk:"tier0_vrf_name"`
-	Name                types.String `tfsdk:"name"`
-	OwnerType           types.String `tfsdk:"owner_type"`
-	OwnerName           types.String `tfsdk:"owner_name"`
-	Description         types.String `tfsdk:"description"`
-	EnableLoadBalancing types.Bool   `tfsdk:"lb_enabled"`
-}
 
 /*
 edgegwSchema

@@ -2,11 +2,13 @@
 package edgegw
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
@@ -61,16 +63,15 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				),
 			},
-			{
-				Destroy: true,
-				Config:  testAccEdgeGatewayResourceConfig,
-			},
 			// ImportState testing
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateId:     "tn01e02ocb0006205spt101",
-				ImportStateVerify: true,
+				ImportStateIdFunc: testAccEdgeGatewayImportStateIDFunc(resourceName),
+			},
+			{
+				Destroy: true,
+				Config:  testAccEdgeGatewayResourceConfig,
 			},
 			// check bad owner_type
 			// https://github.com/hashicorp/terraform-plugin-sdk/issues/609
@@ -93,4 +94,15 @@ func TestAccEdgeGatewayResource(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccEdgeGatewayImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		return rs.Primary.Attributes["name"], nil
+	}
 }
