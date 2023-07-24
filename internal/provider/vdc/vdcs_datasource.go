@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -29,46 +28,12 @@ type vdcsDataSource struct {
 	client *client.CloudAvenue
 }
 
-type vdcsDataSourceModel struct {
-	ID   types.String `tfsdk:"id"`
-	VDCs []vdcRef     `tfsdk:"vdcs"`
-}
-
-type vdcRef struct {
-	VDCName types.String `tfsdk:"vdc_name"`
-	VDCUuid types.String `tfsdk:"vdc_uuid"`
-}
-
 func (d *vdcsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "s"
 }
 
 func (d *vdcsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "List all vDC inside an Organization.",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"vdcs": schema.ListNestedAttribute{
-				MarkdownDescription: "VDC list.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"vdc_name": schema.StringAttribute{
-							MarkdownDescription: "VDC name.",
-							Computed:            true,
-						},
-						"vdc_uuid": schema.StringAttribute{
-							MarkdownDescription: "VDC UUID.",
-							Computed:            true,
-						},
-					},
-				},
-			},
-		},
-	}
+	resp.Schema = vdcsSchema()
 }
 
 func (d *vdcsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
