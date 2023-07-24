@@ -39,23 +39,6 @@ type isolatedNetworkDataSource struct {
 	vapp vapp.VAPP
 }
 
-type isolatedNetworkDataSourceModel struct {
-	ID                 types.String `tfsdk:"id"`
-	VDC                types.String `tfsdk:"vdc"`
-	Name               types.String `tfsdk:"name"`
-	Description        types.String `tfsdk:"description"`
-	VAppName           types.String `tfsdk:"vapp_name"`
-	VAppID             types.String `tfsdk:"vapp_id"`
-	Netmask            types.String `tfsdk:"netmask"`
-	Gateway            types.String `tfsdk:"gateway"`
-	DNS1               types.String `tfsdk:"dns1"`
-	DNS2               types.String `tfsdk:"dns2"`
-	DNSSuffix          types.String `tfsdk:"dns_suffix"`
-	GuestVLANAllowed   types.Bool   `tfsdk:"guest_vlan_allowed"`
-	RetainIPMacEnabled types.Bool   `tfsdk:"retain_ip_mac_enabled"`
-	StaticIPPool       types.Set    `tfsdk:"static_ip_pool"`
-}
-
 // Init Initializes the data source.
 func (d *isolatedNetworkDataSource) Init(ctx context.Context, dm *isolatedNetworkDataSourceModel) (diags diag.Diagnostics) {
 	d.org, diags = org.Init(d.client)

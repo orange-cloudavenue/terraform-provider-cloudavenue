@@ -9,17 +9,11 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-
-	fboolplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/boolplanmodifier"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
@@ -49,33 +43,6 @@ type isolatedNetworkResource struct {
 	vapp   vapp.VAPP
 }
 
-type isolatedNetworkResourceModel struct {
-	ID                 types.String `tfsdk:"id"`
-	VDC                types.String `tfsdk:"vdc"`
-	Name               types.String `tfsdk:"name"`
-	Description        types.String `tfsdk:"description"`
-	VAppName           types.String `tfsdk:"vapp_name"`
-	VAppID             types.String `tfsdk:"vapp_id"`
-	Netmask            types.String `tfsdk:"netmask"`
-	Gateway            types.String `tfsdk:"gateway"`
-	DNS1               types.String `tfsdk:"dns1"`
-	DNS2               types.String `tfsdk:"dns2"`
-	DNSSuffix          types.String `tfsdk:"dns_suffix"`
-	GuestVLANAllowed   types.Bool   `tfsdk:"guest_vlan_allowed"`
-	RetainIPMacEnabled types.Bool   `tfsdk:"retain_ip_mac_enabled"`
-	StaticIPPool       types.Set    `tfsdk:"static_ip_pool"`
-}
-
-type staticIPPoolModel struct {
-	StartAddress types.String `tfsdk:"start_address"`
-	EndAddress   types.String `tfsdk:"end_address"`
-}
-
-var staticIPPoolModelAttrTypes = map[string]attr.Type{
-	"start_address": types.StringType,
-	"end_address":   types.StringType,
-}
-
 // Metadata returns the resource type name.
 func (r *isolatedNetworkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "isolated_network"
@@ -83,31 +50,8 @@ func (r *isolatedNetworkResource) Metadata(_ context.Context, req resource.Metad
 
 // Schema defines the schema for the resource.
 func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = isolatedNetworkSchema()
 	commonSchema := network.GetSchema(network.SetIsolatedVapp()).GetResource(ctx)
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides capability to attach an existing Org VDC Network to a vApp and toggle network features.",
-		Attributes: map[string]schema.Attribute{
-			"vdc":       vdc.Schema(),
-			"vapp_id":   vapp.Schema()["vapp_id"],
-			"vapp_name": vapp.Schema()["vapp_name"],
-			"guest_vlan_allowed": schema.BoolAttribute{
-				MarkdownDescription: "True if Network allows guest VLAN. Default to `false`.",
-				Optional:            true,
-				Computed:            true,
-				PlanModifiers: []planmodifier.Bool{
-					fboolplanmodifier.SetDefault(false),
-				},
-			},
-			"retain_ip_mac_enabled": schema.BoolAttribute{
-				MarkdownDescription: "Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Default to `false`.",
-				Optional:            true,
-				Computed:            true,
-				PlanModifiers: []planmodifier.Bool{
-					fboolplanmodifier.SetDefault(false),
-				},
-			},
-		},
-	}
 	// Add common attributes network
 	for k, v := range commonSchema.Attributes {
 		resp.Schema.Attributes[k] = v
