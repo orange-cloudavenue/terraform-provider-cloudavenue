@@ -6,12 +6,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
@@ -33,53 +31,12 @@ type edgeGatewaysDataSource struct {
 	client *client.CloudAvenue
 }
 
-type edgeGatewaysDataSourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	EdgeGateways types.List   `tfsdk:"edge_gateways"`
-}
-
-var edgeGatewayDataSourceModelAttrTypes = map[string]attr.Type{
-	"tier0_vrf_name": types.StringType,
-	"name":           types.StringType,
-	"id":             types.StringType,
-	"owner_type":     types.StringType,
-	"owner_name":     types.StringType,
-	"description":    types.StringType,
-	"lb_enabled":     types.BoolType,
-}
-
 func (d *edgeGatewaysDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "s"
 }
 
 func (d *edgeGatewaysDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "The edge gateways data source show the list of edge gateways of an organization.",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"edge_gateways": schema.ListNestedAttribute{
-				Computed:    true,
-				Description: "A list of Edge Gateways.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"tier0_vrf_name": edgegwSchema().GetDataSource(ctx).Attributes["tier0_vrf_name"],
-						"name": schema.StringAttribute{
-							MarkdownDescription: "The name of the Edge Gateway.",
-							Computed:            true,
-						},
-						"id":          edgegwSchema().GetDataSource(ctx).Attributes["id"],
-						"owner_type":  edgegwSchema().GetDataSource(ctx).Attributes["owner_type"],
-						"owner_name":  edgegwSchema().GetDataSource(ctx).Attributes["owner_name"],
-						"description": edgegwSchema().GetDataSource(ctx).Attributes["description"],
-						"lb_enabled":  edgegwSchema().GetDataSource(ctx).Attributes["lb_enabled"],
-					},
-				},
-			},
-		},
-	}
+	resp.Schema = edgeGatewaysSchema(ctx)
 }
 
 func (d *edgeGatewaysDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
