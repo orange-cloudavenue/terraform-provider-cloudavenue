@@ -15,6 +15,7 @@
 
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.3.3 to 1.4.1 ([GH-397](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/397))
 * deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.3.2 to 1.3.3 ([GH-402](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/402))
+* deps: bumps golang.org/x/net from 0.11.0 to 0.12.0 ([GH-409](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/409))
 
 ## 0.6.1 (July 18, 2023)
 
