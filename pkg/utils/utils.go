@@ -14,6 +14,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 )
 
 type tfValuesForUUID interface {
@@ -64,6 +66,14 @@ func StringValueOrNull(value string) basetypes.StringValue {
 	return types.StringValue(value)
 }
 
+// SuperStringValueOrNull return a null SuperStringValue if value is "" or return SuperStringValue(value) if not.
+func SuperStringValueOrNull(value string) supertypes.StringValue {
+	if value == "" {
+		return supertypes.NewStringNull()
+	}
+	return supertypes.NewStringValue(value)
+}
+
 // SortMapStringByKeys sorts a map[string]string by keys.
 func SortMapStringByKeys[T any](m map[string]T) map[string]T {
 	sortedKeys := make([]string, 0, len(m))
@@ -85,6 +95,15 @@ func SliceTypesStringToSliceString(slice []types.String) []string {
 	var result []string
 	for _, s := range slice {
 		result = append(result, s.ValueString())
+	}
+	return result
+}
+
+// SuperSliceStringToSliceString converts a slice of supertypes.StringValue to a slice of string.
+func SuperSliceStringToSliceString(slice []supertypes.StringValue) []string {
+	var result []string
+	for _, s := range slice {
+		result = append(result, s.Get())
 	}
 	return result
 }
