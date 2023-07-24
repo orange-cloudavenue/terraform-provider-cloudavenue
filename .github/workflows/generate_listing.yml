@@ -21,10 +21,9 @@ jobs:
         cd cmd/listing
         go mod tidy
         go run .
-        git status --ignored
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
         add_options: '--force'
         commit_message: 'chore(script): changes by ci ListingRD (generate_listing)'
-        file_pattern: 'resource-ca.md'
+        file_pattern: 'cmd/listing/resource-ca.md'
         skip_dirty_check: true
