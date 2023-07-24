@@ -89,3 +89,39 @@ func (e EdgeGateway) GetSecurityGroupByNameOrID(nsxtFirewallGroupNameOrID string
 
 	return e.GetNsxtFirewallGroupByName(nsxtFirewallGroupNameOrID, govcdtypes.FirewallGroupTypeSecurityGroup)
 }
+
+// GetIPSetByID.
+func (e EdgeGateway) GetIPSetByID(nsxtFirewallGroupID string) (*govcd.NsxtFirewallGroup, error) {
+	if err := e.Refresh(); err != nil {
+		return nil, err
+	}
+
+	return e.GetNsxtFirewallGroupById(nsxtFirewallGroupID)
+}
+
+// GetIPSetByName.
+func (e EdgeGateway) GetIPSetByName(nsxtFirewallGroupName string) (*govcd.NsxtFirewallGroup, error) {
+	if err := e.Refresh(); err != nil {
+		return nil, err
+	}
+
+	return e.GetNsxtFirewallGroupByName(nsxtFirewallGroupName, govcdtypes.FirewallGroupTypeIpSet)
+}
+
+// GetIPSetByNameOrID.
+func (e EdgeGateway) GetIPSetByNameOrID(nsxtFirewallGroupNameOrID string) (*govcd.NsxtFirewallGroup, error) {
+	if err := e.Refresh(); err != nil {
+		return nil, err
+	}
+
+	if uuid.IsValid(nsxtFirewallGroupNameOrID) {
+		return e.GetIPSetByID(nsxtFirewallGroupNameOrID)
+	}
+
+	return e.GetIPSetByName(nsxtFirewallGroupNameOrID)
+}
+
+// SetIPSet.
+func (e EdgeGateway) SetIPSet(ipSetConfig *govcdtypes.NsxtFirewallGroup) (*govcd.NsxtFirewallGroup, error) {
+	return e.CreateNsxtFirewallGroup(ipSetConfig)
+}

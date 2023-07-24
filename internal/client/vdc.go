@@ -50,6 +50,30 @@ func (v VDC) GetSecurityGroupByNameOrID(nsxtFirewallGroupNameOrID string) (*govc
 	return v.GetSecurityGroupByName(nsxtFirewallGroupNameOrID)
 }
 
+// GetIPSetByID return the NSX-T firewall group using the ID provided in the argument.
+func (v VDC) GetIPSetByID(id string) (*govcd.NsxtFirewallGroup, error) {
+	return v.Vdc.GetNsxtFirewallGroupById(id)
+}
+
+// GetIPSetByName return the NSX-T firewall group using the name provided in the argument.
+func (v VDC) GetIPSetByName(name string) (*govcd.NsxtFirewallGroup, error) {
+	return v.Vdc.GetNsxtFirewallGroupByName(name, govcdtypes.FirewallGroupTypeIpSet)
+}
+
+// GetIPSetByNameOrId return the NSX-T firewall group using the name or ID provided in the argument.
+func (v VDC) GetIPSetByNameOrID(nameOrID string) (*govcd.NsxtFirewallGroup, error) {
+	if uuid.IsValid(nameOrID) {
+		return v.GetIPSetByID(nameOrID)
+	}
+
+	return v.GetIPSetByName(nameOrID)
+}
+
+// SetIPSet set the NSX-T firewall group using the name provided in the argument.
+func (v VDC) SetIPSet(ipSetConfig *govcdtypes.NsxtFirewallGroup) (*govcd.NsxtFirewallGroup, error) {
+	return v.CreateNsxtFirewallGroup(ipSetConfig)
+}
+
 // GetDefaultPlacementPolicyID give you the ID of the default placement policy.
 func (v VDC) GetDefaultPlacementPolicyID() string {
 	return v.Vdc.Vdc.DefaultComputePolicy.ID
@@ -115,6 +139,30 @@ func (g VDCGroup) GetSecurityGroupByNameOrID(nsxtFirewallGroupNameOrID string) (
 	return g.GetSecurityGroupByName(nsxtFirewallGroupNameOrID)
 }
 
+// GetIPSetByID return the NSX-T firewall group using the ID provided in the argument.
+func (g VDCGroup) GetIPSetByID(id string) (*govcd.NsxtFirewallGroup, error) {
+	return g.VdcGroup.GetNsxtFirewallGroupById(id)
+}
+
+// GetIPSetByName return the NSX-T firewall group using the name provided in the argument.
+func (g VDCGroup) GetIPSetByName(name string) (*govcd.NsxtFirewallGroup, error) {
+	return g.VdcGroup.GetNsxtFirewallGroupByName(name, govcdtypes.FirewallGroupTypeIpSet)
+}
+
+// GetIPSetByNameOrID return the NSX-T firewall group using the name or ID provided in the argument.
+func (g VDCGroup) GetIPSetByNameOrID(nameOrID string) (*govcd.NsxtFirewallGroup, error) {
+	if uuid.IsValid(nameOrID) {
+		return g.GetIPSetByID(nameOrID)
+	}
+
+	return g.GetIPSetByName(nameOrID)
+}
+
+// SetIPSet set the NSX-T firewall group using the name provided in the argument.
+func (g VDCGroup) SetIPSet(ipSetConfig *govcdtypes.NsxtFirewallGroup) (*govcd.NsxtFirewallGroup, error) {
+	return g.CreateNsxtFirewallGroup(ipSetConfig)
+}
+
 // VDCOrVDCGroupHandler is an interface to access some common methods on VDC or VDC Group without
 // explicitly handling exact types.
 type VDCOrVDCGroupHandler interface {
@@ -132,6 +180,12 @@ type VDCOrVDCGroupHandler interface {
 	GetSecurityGroupByID(nsxtFirewallGroupID string) (*govcd.NsxtFirewallGroup, error)
 	GetSecurityGroupByName(nsxtFirewallGroupName string) (*govcd.NsxtFirewallGroup, error)
 	GetSecurityGroupByNameOrID(nsxtFirewallGroupNameOrID string) (*govcd.NsxtFirewallGroup, error)
+
+	// * IP Set
+	GetIPSetByID(id string) (*govcd.NsxtFirewallGroup, error)
+	GetIPSetByName(name string) (*govcd.NsxtFirewallGroup, error)
+	GetIPSetByNameOrID(nameOrID string) (*govcd.NsxtFirewallGroup, error)
+	SetIPSet(ipSetConfig *govcdtypes.NsxtFirewallGroup) (*govcd.NsxtFirewallGroup, error)
 }
 
 type GetVDCOpts func(*VDC)

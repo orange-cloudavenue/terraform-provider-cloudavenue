@@ -99,8 +99,8 @@ func SliceTypesStringToSliceString(slice []types.String) []string {
 	return result
 }
 
-// SuperSliceStringToSliceString converts a slice of supertypes.StringValue to a slice of string.
-func SuperSliceStringToSliceString(slice []supertypes.StringValue) []string {
+// SuperSliceTypesStringToSliceString converts a slice of supertypes.StringValue to a slice of string.
+func SuperSliceTypesStringToSliceString(slice []supertypes.StringValue) []string {
 	var result []string
 	for _, s := range slice {
 		result = append(result, s.Get())

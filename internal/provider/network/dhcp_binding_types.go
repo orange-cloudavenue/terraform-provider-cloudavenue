@@ -121,7 +121,7 @@ func (rm *DHCPBindingModel) GetDNSServers(ctx context.Context) (values DHCPBindi
 
 // Get returns the value of the given attribute.
 func (ds DHCPBindingModelDNSServers) Get() []string {
-	return utils.SuperSliceStringToSliceString(ds)
+	return utils.SuperSliceTypesStringToSliceString(ds)
 }
 
 // ToNetworkDhcpBindingType converts a DHCPBindingModel to govcdtypes.OpenApiOrgVdcNetworkDhcpBinding.
