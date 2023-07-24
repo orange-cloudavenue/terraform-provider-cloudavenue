@@ -23,26 +23,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
-type vmAffinityRuleResourceModel struct {
-	ID       types.String `tfsdk:"id"`
-	VDC      types.String `tfsdk:"vdc"`
-	Name     types.String `tfsdk:"name"`
-	Polarity types.String `tfsdk:"polarity"`
-	Required types.Bool   `tfsdk:"required"`
-	Enabled  types.Bool   `tfsdk:"enabled"`
-	VMIDs    types.Set    `tfsdk:"vm_ids"`
-}
-
-type vmAffinityRuleDataSourceModel struct {
-	ID       types.String `tfsdk:"id"`
-	VDC      types.String `tfsdk:"vdc"`
-	Name     types.String `tfsdk:"name"`
-	Polarity types.String `tfsdk:"polarity"`
-	Required types.Bool   `tfsdk:"required"`
-	Enabled  types.Bool   `tfsdk:"enabled"`
-	VMIDs    types.Set    `tfsdk:"vm_ids"`
-}
-
 /*
 vmAffinityRuleSchema
 This function is used to create the schema for the catalog resource and datasource.

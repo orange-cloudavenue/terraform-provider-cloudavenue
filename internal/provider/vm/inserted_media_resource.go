@@ -9,10 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
@@ -31,25 +27,6 @@ func NewVMInsertedMediaResource() resource.Resource {
 	return &vmInsertedMediaResource{}
 }
 
-// vmInsertedMediaResource is the resource implementation.
-type vmInsertedMediaResource struct {
-	client *client.CloudAvenue
-	vdc    vdc.VDC
-	vapp   vapp.VAPP
-	org    org.Org
-}
-
-type vmInsertedMediaResourceModel struct {
-	ID       types.String `tfsdk:"id"`
-	VDC      types.String `tfsdk:"vdc"`
-	Catalog  types.String `tfsdk:"catalog"`
-	Name     types.String `tfsdk:"name"`
-	VAppName types.String `tfsdk:"vapp_name"`
-	VAppID   types.String `tfsdk:"vapp_id"`
-	VMName   types.String `tfsdk:"vm_name"`
-	// EjectForce types.Bool   `tfsdk:"eject_force"` - Disable attributes - Issue referrer: vmware/go-vcloud-director#552
-}
-
 // Metadata returns the resource type name.
 func (r *vmInsertedMediaResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "inserted_media"
@@ -57,46 +34,7 @@ func (r *vmInsertedMediaResource) Metadata(_ context.Context, req resource.Metad
 
 // Schema defines the schema for the resource.
 func (r *vmInsertedMediaResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The inserted_media resource resource for inserting or ejecting media (ISO) file for the VM. Create this resource for inserting the media, and destroy it for ejecting.",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The ID of the inserted media. This is the vm Id where the media is inserted.",
-			},
-			"vdc":       vdc.Schema(),
-			"vapp_id":   vapp.Schema()["vapp_id"],
-			"vapp_name": vapp.Schema()["vapp_name"],
-			"catalog": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The name of the catalog where to find media file",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Media file name in catalog which will be inserted to VM",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"vm_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "VM name where media will be inserted or ejected",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			// "eject_force": schema.BoolAttribute{ - Disable attributes - Issue referrer: vmware/go-vcloud-director#552
-			//	Optional:            true,
-			//	MarkdownDescription: "Allows to pass answer to question in vCD when ejecting from a VM which is powered on. True means 'Yes' as answer to question. Default is true",
-			//	PlanModifiers: []planmodifier.Bool{
-			//		boolpm.SetDefault(true),
-			//	},
-			// },
-		},
-	}
+	resp.Schema = vmInsertedMediaSchema()
 }
 
 func (r *vmInsertedMediaResource) Init(ctx context.Context, rm *vmInsertedMediaResourceModel) (diags diag.Diagnostics) {
