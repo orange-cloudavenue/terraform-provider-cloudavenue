@@ -6,7 +6,7 @@ resource "cloudavenue_edgegateway_ip_set" "example" {
     "10.10.10.0/24",         # IP Address With CIDR
     "11.11.11.1-11.11.11.2", # IP Address Range
   ]
-  edge_gateway_name = cloudavenue_edgegateway.example.name
+  edge_gateway_name = data.cloudavenue_edgegateway.example.name
 }
 
-data "cloudavenue_edgegateways" "example" {}
+data "cloudavenue_edgegateway" "example" {}
