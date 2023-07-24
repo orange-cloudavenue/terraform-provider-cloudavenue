@@ -112,6 +112,7 @@ func main() {
 	ppCA := caProvider.New(caProvider.VCDVersion)
 	// Init provider VMware Cloud Director
 	ppVCD := vcdProvider.Provider()
+	ppVCDVersion := vcdProvider.BuildVersion
 
 	// Print Resources List in Orange Cloud Avenue Provider
 	mess = "Checking resources and datasources of Orange Cloud Avenue provider\n"
@@ -131,7 +132,7 @@ func main() {
 	file.WriteString(mess)
 
 	// Print Resources List in VMware Cloud Director Provider
-	mess = "Checking resources and datasources of VMware Cloud Director provider\n"
+	mess = "Checking resources and datasources of VMware Cloud Director provider (version: " + ppVCDVersion + ")\n"
 	blue.Printf(mess)
 	file.WriteString("# " + mess)
 	fmt.Printf("====================================================================\n\n")
@@ -157,7 +158,7 @@ func main() {
 	findResourcesFromCA(vcdTFSchemaD, caTFSchemaD, file, "Datasources")
 
 	// Print Resources List from VMware Cloud Director Provider
-	mess = "\n# Listing cross resources and datasources from VCD\n"
+	mess = "\n# Listing cross resources and datasources from VCD (version: " + ppVCDVersion + ")\n"
 	blue.Printf(mess)
 	file.WriteString(mess)
 	fmt.Printf("=======================================\n")
