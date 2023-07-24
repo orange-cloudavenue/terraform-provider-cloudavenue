@@ -1,47 +1,70 @@
 package iam
 
-import "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+import (
+	"context"
 
-func iamRightSchema() schema.Schema {
-	return schema.Schema{
-		Description: "Provides a data source for available rights in Cloud Avenue.",
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The id of the right.",
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
+)
+
+func iamRightSuperSchema(_ context.Context) superschema.Schema {
+	return superschema.Schema{
+		DataSource: superschema.SchemaDetails{
+			MarkdownDescription: "Provides a data source for available rights in Cloud Avenue.",
+		},
+		Attributes: superschema.Attributes{
+			"id": superschema.SuperStringAttribute{
+				DataSource: &schemaD.StringAttribute{
+					MarkdownDescription: "The id of the right.",
+					Computed:            true,
+				},
 			},
-			"name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The name of the right.",
+			"name": superschema.SuperStringAttribute{
+				DataSource: &schemaD.StringAttribute{
+					MarkdownDescription: "The name of the right.",
+					Required:            true,
+				},
 			},
-			"description": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "A description for the right.",
+			"description": superschema.SuperStringAttribute{
+				DataSource: &schemaD.StringAttribute{
+					MarkdownDescription: "A description for the right.",
+					Computed:            true,
+				},
 			},
-			"category_id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The category id for the right.",
+			"category_id": superschema.SuperStringAttribute{
+				DataSource: &schemaD.StringAttribute{
+					MarkdownDescription: "The category id for the right.",
+					Computed:            true,
+				},
 			},
 			// * Remove
-			"bundle_key": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The bundle key for the right.",
+			"bundle_key": superschema.SuperStringAttribute{
+				DataSource: &schemaD.StringAttribute{
+					MarkdownDescription: "The bundle key for the right.",
+					Computed:            true,
+				},
 			},
-			"right_type": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The right type for the right.",
+			"right_type": superschema.SuperStringAttribute{
+				DataSource: &schemaD.StringAttribute{
+					MarkdownDescription: "The right type for the right.",
+					Computed:            true,
+				},
 			},
-			"implied_rights": schema.SetNestedAttribute{
-				MarkdownDescription: "The list of rights that are implied with this one.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
+			"implied_rights": superschema.SuperSetNestedAttribute{
+				DataSource: &schemaD.SetNestedAttribute{
+					MarkdownDescription: "The list of rights that are implied with this one.",
+					Computed:            true,
+				},
+				Attributes: superschema.Attributes{
+					"name": superschema.SuperStringAttribute{
+						DataSource: &schemaD.StringAttribute{
 							MarkdownDescription: "Name of the implied right.",
 							Computed:            true,
 						},
-						"id": schema.StringAttribute{
+					},
+					"id": superschema.SuperStringAttribute{
+						DataSource: &schemaD.StringAttribute{
 							MarkdownDescription: "ID of the implied right.",
 							Computed:            true,
 						},
