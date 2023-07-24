@@ -5,14 +5,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
@@ -37,27 +33,6 @@ type profilesDataSourceModel struct {
 	ID              types.String `tfsdk:"id"`
 	VDC             types.String `tfsdk:"vdc"`
 	StorageProfiles types.List   `tfsdk:"storage_profiles"`
-}
-
-type storageProfiles []profileDataSourceModel
-
-func (s *storageProfiles) attrTypes(_ context.Context) map[string]attr.Type {
-	return map[string]attr.Type{
-		"id":                    types.StringType,
-		"name":                  types.StringType,
-		"vdc":                   types.StringType,
-		"limit":                 types.Int64Type,
-		"used_storage":          types.Int64Type,
-		"default":               types.BoolType,
-		"enabled":               types.BoolType,
-		"iops_allocated":        types.Int64Type,
-		"units":                 types.StringType,
-		"iops_limiting_enabled": types.BoolType,
-		"maximum_disk_iops":     types.Int64Type,
-		"default_disk_iops":     types.Int64Type,
-		"disk_iops_per_gb_max":  types.Int64Type,
-		"iops_limit":            types.Int64Type,
-	}
 }
 
 func (s *storageProfiles) objectType(ctx context.Context) types.ObjectType {
@@ -173,29 +148,4 @@ func (d *profilesDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, config)...)
-}
-
-func (d *profilesDataSource) superSchema(ctx context.Context) superschema.Schema {
-	pDS := profileDataSource{}
-	return superschema.Schema{
-		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_storage_profile` data source can be used to access information about a storage profiles in a VDC.",
-		},
-		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
-				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "ID of storage profile.",
-					Computed:            true,
-				},
-			},
-			"vdc": vdc.SuperSchema(),
-			"storage_profiles": superschema.ListNestedAttribute{
-				DataSource: &schemaD.ListNestedAttribute{
-					MarkdownDescription: "List of storage profiles.",
-					Computed:            true,
-				},
-				Attributes: pDS.superSchema(ctx).Attributes,
-			},
-		},
-	}
 }

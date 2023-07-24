@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -12,15 +13,18 @@ import (
 	"text/template"
 
 	"github.com/iancoleman/strcase"
-	"github.com/kr/pretty"
 	"github.com/rs/zerolog/log"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider"
 
 	_ "embed"
+
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
 const typeTemplate = `
@@ -173,13 +177,108 @@ func (rm *{{ toUpperCamel .Name }}Model) Copy() *{{ toUpperCamel .Name }}Model {
 
 `
 
-type templateData struct {
+type templateDataResource struct {
 	Name        string
 	PackageName string
-	Attributes  map[string]schema.Attribute
+	Attributes  map[string]schemaR.Attribute
 }
 
-var KeyValueStore *map[string]any
+type templateDataDataSource struct {
+	Name        string
+	PackageName string
+	Attributes  map[string]schemaD.Attribute
+}
+
+var (
+	KeyValueStore = &map[string]any{}
+)
+
+var templateFuncs = template.FuncMap{
+	"toLowerCamel": func(s string) string {
+		return strcase.ToLowerCamel(s)
+	},
+	"toUpperCamel": func(s string) string {
+		return strcase.ToCamel(s)
+	},
+	"toSnakeCase": func(s string) string {
+		return strcase.ToSnake(s)
+	},
+	"isNestedAttribute": func(a schema.Attribute) bool {
+		return IsNested(reflect.TypeOf(a).String())
+	},
+	"isNestedOrArrayAttribute": func(a schema.Attribute) bool {
+		return IsNestedOrArray(reflect.TypeOf(a).String())
+	},
+	"isArray": func(a schema.Attribute) bool {
+		return IsArray(reflect.TypeOf(a).String())
+	},
+	"isList": func(a schema.Attribute) bool {
+		return IsList(reflect.TypeOf(a).String())
+	},
+	"isSet": func(a schema.Attribute) bool {
+		return IsSet(reflect.TypeOf(a).String())
+	},
+	"isMap": func(a schema.Attribute) bool {
+		return IsMap(reflect.TypeOf(a).String())
+	},
+	"isSingle": func(a schema.Attribute) bool {
+		return IsSingle(reflect.TypeOf(a).String())
+	},
+	"terraformType": func(a schema.Attribute) string {
+		return NewSchemaType(reflect.TypeOf(a).String()).ToTerraformType()
+	},
+	"terraformValue": func(a schema.Attribute) string {
+		return NewSchemaType(reflect.TypeOf(a).String()).ToTerraformValue()
+	},
+	"elementType": func(a any) string {
+		return NewElementType(a).ToTerraformType()
+	},
+	"baseTypeValue": func(a any) string {
+		return NewSchemaType(reflect.TypeOf(a).String()).ToBaseTypeValue()
+	},
+	"attrType": func(a any) string {
+		return NewAttributeType(a)
+	},
+	"funcNull": func(a any) string {
+		return NewSchemaType(reflect.TypeOf(a).String()).ToFuncNull()
+	},
+	"funcUnkown": func(a any) string {
+		return NewSchemaType(reflect.TypeOf(a).String()).ToFuncUnkown()
+	},
+	"funcNullOrUnkown": func(a schema.Attribute) string {
+		if a.IsComputed() {
+			return NewSchemaType(reflect.TypeOf(a).String()).ToFuncUnkown()
+		}
+		return NewSchemaType(reflect.TypeOf(a).String()).ToFuncNull()
+	},
+	"funcFromValue": func(a any) string {
+		return NewSchemaType(reflect.TypeOf(a).String()).ToValueFrom()
+	},
+	"tfsdk": func(a string) string {
+		return "`tfsdk:" + "\"" + a + "\"" + "`"
+	},
+	"setKeyValue": func(k string, v any) bool {
+		(*KeyValueStore)[k] = v
+		return true
+	},
+	"getKeyValue": func(k string) any {
+		if v, ok := (*KeyValueStore)[k]; ok {
+			return v
+		}
+		return nil
+	},
+	"delKeyValue": func(k string) bool {
+		delete(*KeyValueStore, k)
+		return true
+	},
+	"existKeyValue": func(k string) bool {
+		_, ok := (*KeyValueStore)[k]
+		return ok
+	},
+	"singular": func(s string) string {
+		return strings.TrimSuffix(s, "s")
+	},
+}
 
 func main() {
 	resourceName := new(string)
@@ -204,33 +303,17 @@ func main() {
 
 	cavP := provider.New(provider.VCDVersion)
 
-	for _, res := range cavP().Resources(ctx) {
-		metadataResponse := &resource.MetadataResponse{}
-		res().Metadata(ctx, resource.MetadataRequest{}, metadataResponse)
+	if *isResource {
+		for _, res := range cavP().Resources(ctx) {
+			metadataResponse := &resource.MetadataResponse{}
+			res().Metadata(ctx, resource.MetadataRequest{}, metadataResponse)
 
-		log.Info().Msgf("Find resource %s", metadataResponse.TypeName)
-		if "cloudavenue"+metadataResponse.TypeName == *resourceName {
-			log.Info().Msgf("Found resource %s", *resourceName)
+			log.Info().Msgf("Find resource %s", metadataResponse.TypeName)
+			if "cloudavenue"+metadataResponse.TypeName == *resourceName {
+				log.Info().Msgf("Found resource %s", *resourceName)
 
-			if *isResource {
 				resp := &resource.SchemaResponse{}
 				res().Schema(ctx, resource.SchemaRequest{}, resp)
-
-				// read file
-				content, err := ioutil.ReadFile(*filePath)
-				if err != nil {
-					log.Fatal().Err(err).Msg("Failed to read file")
-				}
-				// Do something with the content
-				packageName := ""
-				for _, line := range strings.Split(string(content), "\n") {
-					if !strings.Contains(line, "//") {
-						words := strings.Split(line, " ")
-						// Get package name
-						packageName = words[len(words)-1]
-						break
-					}
-				}
 
 				// metadataResponse.TypeName = "_demo_superschema_supertypes"
 				// if metadataResponse.TypeName contains two or more underscores, remove the two first underscores
@@ -242,99 +325,15 @@ func main() {
 					metadataResponse.TypeName = strings.TrimPrefix(metadataResponse.TypeName, first+"_")
 				}
 
-				tD := templateData{
+				packageName, err := getPackageName(*filePath)
+				if err != nil {
+					log.Fatal().Err(err).Msg("Failed to get package name")
+				}
+
+				tD := templateDataResource{
 					Name:        metadataResponse.TypeName,
 					PackageName: packageName,
 					Attributes:  resp.Schema.Attributes,
-				}
-
-				KeyValueStore = &map[string]any{}
-
-				templateFuncs := template.FuncMap{
-					"toLowerCamel": func(s string) string {
-						return strcase.ToLowerCamel(s)
-					},
-					"toUpperCamel": func(s string) string {
-						return strcase.ToCamel(s)
-					},
-					"toSnakeCase": func(s string) string {
-						return strcase.ToSnake(s)
-					},
-					"isNestedAttribute": func(a schema.Attribute) bool {
-						return IsNested(reflect.TypeOf(a).String())
-					},
-					"isNestedOrArrayAttribute": func(a schema.Attribute) bool {
-						return IsNestedOrArray(reflect.TypeOf(a).String())
-					},
-					"isArray": func(a schema.Attribute) bool {
-						return IsArray(reflect.TypeOf(a).String())
-					},
-					"isList": func(a schema.Attribute) bool {
-						return IsList(reflect.TypeOf(a).String())
-					},
-					"isSet": func(a schema.Attribute) bool {
-						return IsSet(reflect.TypeOf(a).String())
-					},
-					"isMap": func(a schema.Attribute) bool {
-						return IsMap(reflect.TypeOf(a).String())
-					},
-					"isSingle": func(a schema.Attribute) bool {
-						return IsSingle(reflect.TypeOf(a).String())
-					},
-					"terraformType": func(a schema.Attribute) string {
-						return NewSchemaType(reflect.TypeOf(a).String()).ToTerraformType()
-					},
-					"terraformValue": func(a schema.Attribute) string {
-						return NewSchemaType(reflect.TypeOf(a).String()).ToTerraformValue()
-					},
-					"elementType": func(a any) string {
-						return NewElementType(a).ToTerraformType()
-					},
-					"baseTypeValue": func(a any) string {
-						return NewSchemaType(reflect.TypeOf(a).String()).ToBaseTypeValue()
-					},
-					"attrType": func(a any) string {
-						return NewAttributeType(a)
-					},
-					"funcNull": func(a any) string {
-						return NewSchemaType(reflect.TypeOf(a).String()).ToFuncNull()
-					},
-					"funcUnkown": func(a any) string {
-						return NewSchemaType(reflect.TypeOf(a).String()).ToFuncUnkown()
-					},
-					"funcNullOrUnkown": func(a schema.Attribute) string {
-						if a.IsComputed() {
-							return NewSchemaType(reflect.TypeOf(a).String()).ToFuncUnkown()
-						}
-						return NewSchemaType(reflect.TypeOf(a).String()).ToFuncNull()
-					},
-					"funcFromValue": func(a any) string {
-						return NewSchemaType(reflect.TypeOf(a).String()).ToValueFrom()
-					},
-					"tfsdk": func(a string) string {
-						return "`tfsdk:" + "\"" + a + "\"" + "`"
-					},
-					"setKeyValue": func(k string, v any) bool {
-						(*KeyValueStore)[k] = v
-						return true
-					},
-					"getKeyValue": func(k string) any {
-						if v, ok := (*KeyValueStore)[k]; ok {
-							return v
-						}
-						return nil
-					},
-					"delKeyValue": func(k string) bool {
-						delete(*KeyValueStore, k)
-						return true
-					},
-					"existKeyValue": func(k string) bool {
-						_, ok := (*KeyValueStore)[k]
-						return ok
-					},
-					"singular": func(s string) string {
-						return strings.TrimSuffix(s, "s")
-					},
 				}
 
 				tmpl, err := template.New("template").Funcs(templateFuncs).Parse(typeTemplate)
@@ -351,7 +350,7 @@ func main() {
 
 				file := strings.TrimSuffix(*filePath, ".go") + "_types.go"
 
-				if err := os.WriteFile(file, tplTypes.Bytes(), 0o600); err != nil {
+				if err := os.WriteFile(file, tplTypes.Bytes(), 0600); err != nil {
 					log.Fatal().Err(err).Msg("Failed to write file")
 					return
 				}
@@ -362,12 +361,85 @@ func main() {
 					log.Fatal().Err(err).Msg("Failed to format file")
 					return
 				}
-
-				pretty.Print(resp.Schema)
+				return
 			}
-			return
+		}
+	} else if *isDataSource {
+		for _, res := range cavP().DataSources(ctx) {
+			metadataResponse := &datasource.MetadataResponse{}
+			res().Metadata(ctx, datasource.MetadataRequest{}, metadataResponse)
+
+			log.Info().Msgf("Find data source %s", metadataResponse.TypeName)
+			if "cloudavenue"+metadataResponse.TypeName == *resourceName {
+				log.Info().Msgf("Found data source %s", *resourceName)
+
+				resp := &datasource.SchemaResponse{}
+				res().Schema(ctx, datasource.SchemaRequest{}, resp)
+
+				packageName, err := getPackageName(*filePath)
+				if err != nil {
+					log.Fatal().Err(err).Msg("Failed to get package name")
+				}
+
+				tD := templateDataDataSource{
+					Name:        metadataResponse.TypeName,
+					PackageName: packageName,
+					Attributes:  resp.Schema.Attributes,
+				}
+
+				tmpl, err := template.New("template").Funcs(templateFuncs).Parse(typeTemplate)
+				if err != nil {
+					log.Fatal().Err(err).Msg("Failed to parse template")
+				}
+
+				var tplTypes bytes.Buffer
+				if err := tmpl.Execute(&tplTypes, tD); err != nil {
+					log.Fatal().Err(err).Msg("Failed to execute template")
+					return
+				}
+
+				file := strings.TrimSuffix(*filePath, ".go") + "_types.go"
+
+				if err := os.WriteFile(file, tplTypes.Bytes(), 0600); err != nil {
+					log.Fatal().Err(err).Msg("Failed to write file")
+					return
+				}
+
+				// format go file
+				cmd := exec.Command("gofmt", "-s", "-w", file)
+				if err := cmd.Run(); err != nil {
+					log.Fatal().Err(err).Msg("Failed to format file")
+					return
+				}
+				return
+			}
+
 		}
 	}
 
 	log.Error().Msgf("Resource %s not found", *resourceName)
+}
+
+func getPackageName(filename string) (string, error) {
+	// read file
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to read file")
+	}
+	// Do something with the content
+	packageName := ""
+	for _, line := range strings.Split(string(content), "\n") {
+		if !strings.Contains(line, "//") {
+			words := strings.Split(line, " ")
+			// Get package name
+			packageName = words[len(words)-1]
+			break
+		}
+	}
+
+	if packageName == "" {
+		return "", fmt.Errorf("package name not found")
+	}
+
+	return packageName, nil
 }

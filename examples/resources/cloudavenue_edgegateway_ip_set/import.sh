@@ -1,0 +1,1 @@
+terraform import cloudavenue_edgegateway_ip_set.example edgeGatewayIDOrName.ipSetName

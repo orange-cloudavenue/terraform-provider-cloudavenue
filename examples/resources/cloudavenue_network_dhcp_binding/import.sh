@@ -1,0 +1,1 @@
+terraform import cloudavenue_network_dhcp_binding.example orgNetworkID.dhcpBindingName

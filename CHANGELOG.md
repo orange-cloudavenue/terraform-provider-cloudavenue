@@ -1,8 +1,20 @@
 ## 0.7.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_edgegateway_ip_set` - New datasource to get the IP set of an edge gateway. ([GH-354](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/354))
+* **New Data Source:** `datasource/cloudavenue_network_dhcp_binding` - New data source to get DHCP binding information from Org Network. ([GH-358](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/358))
+* **New Resource:** `resource/cloudavenue_edgegateway_ip_set` - New resource to manage Edge Gateway IP Sets. ([GH-350](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/350))
+* **New Resource:** `resource/cloudavenue_network_dhcp_binding` - New resource to manage DHCP bindings. ([GH-357](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/357))
+
 ### :tada: **Improvements**
 
 * `datasource/cloudavenue_catalog_medias` - Improve documentation. ([GH-384](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/384))
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.3.3 to 1.4.1 ([GH-397](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/397))
+* deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.3.2 to 1.3.3 ([GH-402](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/402))
 
 ## 0.6.1 (July 18, 2023)
 

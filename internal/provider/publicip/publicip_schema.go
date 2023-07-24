@@ -3,7 +3,6 @@ package publicip
 import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -13,18 +12,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
-
-type publicIPResourceModel struct {
-	Timeouts        timeouts.Value `tfsdk:"timeouts"`
-	ID              types.String   `tfsdk:"id"`
-	PublicIP        types.String   `tfsdk:"public_ip"`
-	EdgeGatewayName types.String   `tfsdk:"edge_gateway_name"`
-	EdgeGatewayID   types.String   `tfsdk:"edge_gateway_id"`
-}
 
 func publicIPSchema() superschema.Schema {
 	return superschema.Schema{

@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
@@ -34,18 +33,6 @@ type publicIPDataSource struct {
 	adminOrg adminorg.AdminOrg
 }
 
-type publicIPDataSourceModel struct {
-	ID        types.String                 `tfsdk:"id"`
-	PublicIPs []publicIPNetworkConfigModel `tfsdk:"public_ips"`
-}
-
-type publicIPNetworkConfigModel struct {
-	ID              types.String `tfsdk:"id"`
-	PublicIP        types.String `tfsdk:"public_ip"`
-	EdgeGatewayName types.String `tfsdk:"edge_gateway_name"`
-	EdgeGatewayID   types.String `tfsdk:"edge_gateway_id"`
-}
-
 // Init.
 func (d *publicIPDataSource) Init(_ context.Context, rm *publicIPDataSourceModel) (diags diag.Diagnostics) {
 	d.adminOrg, diags = adminorg.Init(d.client)
@@ -58,27 +45,7 @@ func (d *publicIPDataSource) Metadata(ctx context.Context, req datasource.Metada
 }
 
 func (d *publicIPDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Description: "The public IP data source displays the list of public IP addresses.",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"public_ips": schema.ListNestedAttribute{
-				MarkdownDescription: "A list of public IPs.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id":                publicIPSchema().GetDataSource(ctx).Attributes["id"],
-						"public_ip":         publicIPSchema().GetDataSource(ctx).Attributes["public_ip"],
-						"edge_gateway_name": publicIPSchema().GetDataSource(ctx).Attributes["edge_gateway_name"],
-						"edge_gateway_id":   publicIPSchema().GetDataSource(ctx).Attributes["edge_gateway_id"],
-					},
-				},
-			},
-		},
-	}
+	resp.Schema = publicIPsSchema(ctx)
 }
 
 func (d *publicIPDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
