@@ -286,6 +286,10 @@ func (r *dhcpForwardingResource) read(ctx context.Context, planOrState *DhcpForw
 		return
 	}
 
+	if !stateRefreshed.ID.IsKnown() {
+		stateRefreshed.ID.Set(r.edgegw.GetID())
+	}
+
 	stateRefreshed.Enabled.Set(dhcpForwardConfig.Enabled)
 	stateRefreshed.EdgeGatewayID.Set(r.edgegw.GetID())
 	stateRefreshed.EdgeGatewayName.Set(r.edgegw.GetName())

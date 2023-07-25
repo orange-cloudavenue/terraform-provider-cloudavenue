@@ -23,16 +23,16 @@ import (
 func dhcpForwardingSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The  resource allows you to manage ...",
+			MarkdownDescription: "The `cloudavenue_edgegateway_dhcp_forwarding` resource allows you to manage DHCP Forwarding for an Edge Gateway.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The  data source allows you to retrieve information about an ...",
+			MarkdownDescription: "The `cloudavenue_edgegateway_dhcp_forwarding` data source allows you to retrieve DHCP Forwarding for an Edge Gateway.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					Computed:            true,
-					MarkdownDescription: "The ID of the .",
+					MarkdownDescription: "The ID of the DHCP Forwarding.",
 				},
 				Resource: &schemaR.StringAttribute{
 					PlanModifiers: []planmodifier.String{

@@ -9,8 +9,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
-const testAccForwardingResourceConfig = `
+const testAccDhcpForwardingResourceConfig = `
 resource "cloudavenue_edgegateway_dhcp_forwarding" "example" {
 	edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
 	enabled = true
@@ -20,7 +19,7 @@ resource "cloudavenue_edgegateway_dhcp_forwarding" "example" {
 }
 `
 
-const testAccForwardingResourceConfigUpdate = `
+const testAccDhcpForwardingResourceConfigUpdate = `
 resource "cloudavenue_edgegateway_dhcp_forwarding" "example" {
 	edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
 	enabled = true
@@ -31,7 +30,7 @@ resource "cloudavenue_edgegateway_dhcp_forwarding" "example" {
 }
 `
 
-func forwardingTestCheck(resourceName string) resource.TestCheckFunc {
+func dhcpForwardingTestCheck(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
 		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
@@ -41,7 +40,7 @@ func forwardingTestCheck(resourceName string) resource.TestCheckFunc {
 	)
 }
 
-func TestAccForwardingResource(t *testing.T) {
+func TestAcDhcpForwardingResource(t *testing.T) {
 	resourceName := "cloudavenue_edgegateway_dhcp_forwarding.example"
 
 	resource.Test(t, resource.TestCase{
@@ -51,13 +50,13 @@ func TestAccForwardingResource(t *testing.T) {
 			// Read testing
 			{
 				// Apply test
-				Config: tests.ConcatTests(testAccEdgeGatewayResourceConfig, testAccForwardingResourceConfig),
-				Check:  forwardingTestCheck(resourceName),
+				Config: tests.ConcatTests(testAccEdgeGatewayResourceConfig, testAccDhcpForwardingResourceConfig),
+				Check:  dhcpForwardingTestCheck(resourceName),
 			},
 			// Update testing
 			{
 				// Update test
-				Config: tests.ConcatTests(testAccEdgeGatewayResourceConfig, testAccForwardingResourceConfigUpdate),
+				Config: tests.ConcatTests(testAccEdgeGatewayResourceConfig, testAccDhcpForwardingResourceConfigUpdate),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
 					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
