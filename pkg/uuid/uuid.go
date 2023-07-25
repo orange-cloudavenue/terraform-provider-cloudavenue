@@ -1,8 +1,11 @@
 package uuid
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 const (
@@ -229,4 +232,19 @@ func IsUser(uuid string) bool {
 // IsGroup returns true if the UUID is a Group UUID.
 func IsGroup(uuid string) bool {
 	return VcloudUUID(uuid).IsType(Group)
+}
+
+// TestIsType returns true if the UUID is of the specified type.
+func TestIsType(uuidType VcloudUUID) resource.CheckResourceAttrWithFunc {
+	return func(value string) error {
+		if value == "" {
+			return nil
+		}
+
+		ok := VcloudUUID(value).IsType(uuidType)
+		if !ok {
+			return fmt.Errorf("uuid %s is not of type %s", value, uuidType)
+		}
+		return nil
+	}
 }
