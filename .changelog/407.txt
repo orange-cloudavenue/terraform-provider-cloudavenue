@@ -1,3 +1,3 @@
 ```release-note:enhancement
-`resource/cloudavenue_iam_user` - Improve examples in documentation.
+`resource/cloudavenue_vapp_acl` - Now the attribute `access_level` support `ReadOnly`, `Change` and `FullControl` options. The documentation has been updated accordingly.
 ```
