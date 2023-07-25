@@ -1,8 +1,6 @@
 package vdc
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -13,13 +11,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/acl"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
-
-type aclResourceModel struct {
-	ID                  types.String `tfsdk:"id"`
-	VDC                 types.String `tfsdk:"vdc"`
-	EveryoneAccessLevel types.String `tfsdk:"everyone_access_level"`
-	SharedWith          types.Set    `tfsdk:"shared_with"`
-}
 
 /*
 aclSchema

@@ -2,7 +2,6 @@ package vdc
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -15,41 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
-
-type vdcDataSourceModel struct {
-	ID                     types.String             `tfsdk:"id"`
-	Name                   types.String             `tfsdk:"name"`
-	Description            types.String             `tfsdk:"description"`
-	VDCServiceClass        types.String             `tfsdk:"service_class"`
-	VDCDisponibilityClass  types.String             `tfsdk:"disponibility_class"`
-	VDCBillingModel        types.String             `tfsdk:"billing_model"`
-	VcpuInMhz2             types.Float64            `tfsdk:"cpu_speed_in_mhz"`
-	CPUAllocated           types.Float64            `tfsdk:"cpu_allocated"`
-	MemoryAllocated        types.Float64            `tfsdk:"memory_allocated"`
-	VDCStorageBillingModel types.String             `tfsdk:"storage_billing_model"`
-	VDCStorageProfiles     []vdcStorageProfileModel `tfsdk:"storage_profiles"`
-	VDCGroup               types.String             `tfsdk:"vdc_group"`
-}
-
-type vdcResourceModel struct {
-	Timeouts               timeouts.Value           `tfsdk:"timeouts"`
-	ID                     types.String             `tfsdk:"id"`
-	Name                   types.String             `tfsdk:"name"`
-	Description            types.String             `tfsdk:"description"`
-	VDCServiceClass        types.String             `tfsdk:"service_class"`
-	VDCDisponibilityClass  types.String             `tfsdk:"disponibility_class"`
-	VDCBillingModel        types.String             `tfsdk:"billing_model"`
-	VcpuInMhz2             types.Float64            `tfsdk:"cpu_speed_in_mhz"`
-	CPUAllocated           types.Float64            `tfsdk:"cpu_allocated"`
-	MemoryAllocated        types.Float64            `tfsdk:"memory_allocated"`
-	VDCStorageBillingModel types.String             `tfsdk:"storage_billing_model"`
-	VDCStorageProfiles     []vdcStorageProfileModel `tfsdk:"storage_profiles"`
-	VDCGroup               types.String             `tfsdk:"vdc_group"`
-}
 
 /*
 vdcSchema
