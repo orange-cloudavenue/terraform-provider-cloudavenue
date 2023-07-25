@@ -9,17 +9,9 @@ import (
 	"golang.org/x/exp/slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
-	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
@@ -45,11 +37,6 @@ type vcdaIPResource struct {
 	client *client.CloudAvenue
 }
 
-type vcdaIPResourceModel struct {
-	ID        types.String `tfsdk:"id"`
-	IPAddress types.String `tfsdk:"ip_address"`
-}
-
 // Metadata returns the resource type name.
 func (r *vcdaIPResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "ip"
@@ -57,42 +44,7 @@ func (r *vcdaIPResource) Metadata(_ context.Context, req resource.MetadataReques
 
 // Schema defines the schema for the resource.
 func (r *vcdaIPResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = superschema.Schema{
-		Common: superschema.SchemaDetails{
-			MarkdownDescription: "The VCDa",
-		},
-		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "resource allows you to declare or remove your on-premises IP address for the DRaaS service..\n" +
-				" -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://wiki.cloudavenue.orange-business.com/wiki/DRaaS_with_VCDA).",
-		},
-		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the VCDa resource.",
-				},
-				Resource: &schemaR.StringAttribute{
-					Computed: true,
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.UseStateForUnknown(),
-					},
-				},
-			},
-			"ip_address": superschema.StringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The on-premises IP address refers to the IP address of your local infrastructure running vCloud Extender.",
-				},
-				Resource: &schemaR.StringAttribute{
-					Required: true,
-					Validators: []validator.String{
-						fstringvalidator.IsIP(),
-					},
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.RequiresReplace(),
-					},
-				},
-			},
-		},
-	}.GetResource(ctx)
+	resp.Schema = vcdaIPSchema().GetResource(ctx)
 }
 
 // Configure configures the resource.
