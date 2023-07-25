@@ -1,4 +1,9 @@
 ## 0.8.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/vmware/go-vcloud-director/v2 from 2.20.0 to 2.21.0 ([GH-403](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/403))
+
 ## 0.7.0 (July 25, 2023)
 
 ### :rocket: **New Features**
