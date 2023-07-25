@@ -15,11 +15,10 @@ Provides a Cloud Avenue vApp resource. This can be used to create, modify, and d
 resource "cloudavenue_vapp" "example" {
   name        = "MyVapp"
   description = "This is an example vApp"
-  power_on    = true
 
   lease = {
     runtime_lease_in_sec = 3600
-    storage_lease_in_sec = 7200
+    storage_lease_in_sec = 3600
   }
 
   guest_properties = {

@@ -73,14 +73,6 @@ func TestAccOrgNetworkResource(t *testing.T) {
 			},
 			// Import
 			{
-				// Import test without vdc
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateId:     "MyVapp.MyOrgNet",
-			},
-			// Import
-			{
 				// Import test with vdc
 				ResourceName:      resourceName,
 				ImportState:       true,

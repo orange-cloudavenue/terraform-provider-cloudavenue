@@ -31,9 +31,11 @@ resource "cloudavenue_network_routed" "example" {
 resource "cloudavenue_vapp" "example" {
   name        = "MyVapp"
   description = "This is an example vApp"
+  vdc         = "MyVDC"
 }
 
 resource "cloudavenue_vapp_org_network" "example" {
   vapp_name    = cloudavenue_vapp.example.name
   network_name = cloudavenue_network_routed.example.name
+  vdc          = "MyVDC"
 }
