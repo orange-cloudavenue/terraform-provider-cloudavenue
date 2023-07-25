@@ -11,16 +11,16 @@ import (
 )
 
 const testAccOrgUserResourceConfig = `
-resource "cloudavenue_iam_user" "test" {
-	name        = "testuser"
+resource "cloudavenue_iam_user" "example" {
+	name        = "example"
 	role_name   = "Organization Administrator"
 	password    = "Th!s1sSecur3P@ssword"
- }
+}
 `
 
 const testAccOrgUserResourceConfigFull = `
-resource "cloudavenue_iam_user" "test" {
-	name              = "testuserfull"
+resource "cloudavenue_iam_user" "example" {
+	name              = "example"
 	role_name         = "Organization Administrator"
 	password          = "Th!s1sSecur3P@ssword"
 	enabled           = true
@@ -33,8 +33,37 @@ resource "cloudavenue_iam_user" "test" {
  }
 `
 
+func testsOrgUserResourceConfig(resourceName string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttr(resourceName, "name", "example"),
+		resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
+		resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+	)
+}
+
+func testsOrgUserResourceConfigFull(resourceName string, isDataSource bool) resource.TestCheckFunc {
+	tests := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(resourceName, "name", "example"),
+		resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
+		resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+		resource.TestCheckResourceAttr(resourceName, "email", "foo@bar.com"),
+		resource.TestCheckResourceAttr(resourceName, "telephone", "1234567890"),
+		resource.TestCheckResourceAttr(resourceName, "full_name", "Test User"),
+		resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "10"),
+		resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "5"),
+	}
+
+	if !isDataSource {
+		tests = append(tests, resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"))
+	}
+
+	return resource.ComposeAggregateTestCheckFunc(
+		tests...,
+	)
+}
+
 func TestAccUserResource(t *testing.T) {
-	resourceName := "cloudavenue_iam_user.test"
+	resourceName := "cloudavenue_iam_user.example"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },
@@ -43,31 +72,17 @@ func TestAccUserResource(t *testing.T) {
 			// Read testing
 			{
 				Config: testAccOrgUserResourceConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "name", "testuser"),
-					resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-				),
+				Check:  testsOrgUserResourceConfig(resourceName),
 			},
 			{
 				Config: testAccOrgUserResourceConfigFull,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "name", "testuserfull"),
-					resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "email", "foo@bar.com"),
-					resource.TestCheckResourceAttr(resourceName, "telephone", "1234567890"),
-					resource.TestCheckResourceAttr(resourceName, "full_name", "Test User"),
-					resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"),
-					resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "10"),
-					resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "5"),
-				),
+				Check:  testsOrgUserResourceConfigFull(resourceName, false),
 			},
 			// ImportState testing
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateId:     "testuserfull",
+				ImportStateId:     "example",
 				ImportStateVerify: true,
 				// These fields can't be retrieved from user data
 				ImportStateVerifyIgnore: []string{"take_ownership", "password"},

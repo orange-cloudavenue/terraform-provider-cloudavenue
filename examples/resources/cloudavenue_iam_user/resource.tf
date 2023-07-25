@@ -1,5 +1,5 @@
 resource "cloudavenue_iam_user" "example" {
-  name              = "exampleuserfull"
+  name              = "example"
   role_name         = "Organization Administrator"
   password          = "Th!s1sSecur3P@ssword"
   enabled           = true # Default true
