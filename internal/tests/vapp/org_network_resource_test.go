@@ -1,7 +1,6 @@
 package vapp
 
 import (
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -44,17 +43,19 @@ resource "cloudavenue_network_routed" "example" {
 resource "cloudavenue_vapp" "example" {
   name        = "MyVapp"
   description = "This is an example vApp"
+  vdc         = "MyVDC"
 }
 
 resource "cloudavenue_vapp_org_network" "example" {
   vapp_name    = cloudavenue_vapp.example.name
   network_name = cloudavenue_network_routed.example.name
+  vdc          = "MyVDC"
 }
 `
 
-const resourceName = "cloudavenue_vapp_org_network.example"
-
 func TestAccOrgNetworkResource(t *testing.T) {
+	resourceName := "cloudavenue_vapp_org_network.example"
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: tests.TestAccProtoV6ProviderFactories,
@@ -65,20 +66,12 @@ func TestAccOrgNetworkResource(t *testing.T) {
 				Config: testAccOrgNetworkResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
+					resource.TestCheckResourceAttr(resourceName, "vdc", "MyVDC"),
 					resource.TestCheckResourceAttr(resourceName, "vapp_name", "MyVapp"),
 					resource.TestCheckResourceAttr(resourceName, "network_name", "MyOrgNet"),
 				),
 			},
-			// Uncomment if you want to test update or delete this block
-			// {
-			// 	// Update test
-			// 	Config: strings.Replace(testAccOrgNetworkResourceConfig, "old", "new", 1),
-			// 	Check: resource.ComposeAggregateTestCheckFunc(
-			// 		resource.TestCheckResourceAttrSet(resourceName, "id"),
-			// 	),
-			// },
-			// ImportruetState testing
+			// Import
 			{
 				// Import test without vdc
 				ResourceName:      resourceName,
@@ -86,6 +79,7 @@ func TestAccOrgNetworkResource(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateId:     "MyVapp.MyOrgNet",
 			},
+			// Import
 			{
 				// Import test with vdc
 				ResourceName:      resourceName,
