@@ -1,6 +1,7 @@
 package edgegw
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -30,6 +31,37 @@ resource "cloudavenue_edgegateway_dhcp_forwarding" "example" {
 }
 `
 
+const testAccDhcpForwardingResourceConfigUpdateError = `
+resource "cloudavenue_edgegateway_dhcp_forwarding" "example" {
+	edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
+	enabled = false
+	dhcp_servers = [
+		"192.168.10.10"
+	]
+}
+`
+
+const testAccDhcpForwardingResourceConfigWithVDCGroup = `
+resource "cloudavenue_edgegateway_dhcp_forwarding" "example" {
+	edge_gateway_id = cloudavenue_edgegateway.example_with_group.id
+	enabled = true
+	dhcp_servers = [
+		"192.168.10.10",
+	]
+}
+`
+
+const testAccDhcpForwardingResourceConfigWithVDCGroupUpdate = `
+resource "cloudavenue_edgegateway_dhcp_forwarding" "example" {
+	edge_gateway_id = cloudavenue_edgegateway.example_with_group.id
+	enabled = true
+	dhcp_servers = [
+		"192.168.10.10",
+		"192.168.10.11"
+	]
+}
+`
+
 func dhcpForwardingTestCheck(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
@@ -40,34 +72,66 @@ func dhcpForwardingTestCheck(resourceName string) resource.TestCheckFunc {
 	)
 }
 
-func TestAcDhcpForwardingResource(t *testing.T) {
+func dhcpForwardingTestCheckWithVDCGroup(resourceName string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
+		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+		resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
+		resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+		resource.TestCheckResourceAttr(resourceName, "dhcp_servers.#", "2"),
+	)
+}
+
+func TestAccDhcpForwardingResource(t *testing.T) {
 	resourceName := "cloudavenue_edgegateway_dhcp_forwarding.example"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: tests.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Read testing
+			// * Test with VDC
 			{
-				// Apply test
+				// Apply
 				Config: tests.ConcatTests(testAccEdgeGatewayResourceConfig, testAccDhcpForwardingResourceConfig),
 				Check:  dhcpForwardingTestCheck(resourceName),
 			},
-			// Update testing
 			{
-				// Update test
+				// Update
 				Config: tests.ConcatTests(testAccEdgeGatewayResourceConfig, testAccDhcpForwardingResourceConfigUpdate),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
-					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
-					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "dhcp_servers.#", "2"),
-				),
+				Check:  dhcpForwardingTestCheckWithVDCGroup(resourceName),
 			},
-			// Import State testing
 			{
-				// Import test
+				// Import
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				// check error when updating dhcp_servers if enabled is false
+				Config:             tests.ConcatTests(testAccEdgeGatewayResourceConfig, testAccDhcpForwardingResourceConfigUpdateError),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+				ExpectError:        regexp.MustCompile("DHCP servers cannot be edited"),
+			},
+			// Destroy test with VDC
+			{
+				Destroy: true,
+				Config:  tests.ConcatTests(testAccEdgeGatewayResourceConfig, testAccDhcpForwardingResourceConfigUpdate),
+			},
+
+			// * Test with VDC group
+			{
+				// Apply
+				Config: tests.ConcatTests(testAccEdgeGatewayGroupResourceConfig, testAccDhcpForwardingResourceConfigWithVDCGroup),
+				Check:  dhcpForwardingTestCheck(resourceName),
+			},
+			{
+				// Update
+				Config: tests.ConcatTests(testAccEdgeGatewayGroupResourceConfig, testAccDhcpForwardingResourceConfigWithVDCGroupUpdate),
+				Check:  dhcpForwardingTestCheckWithVDCGroup(resourceName),
+			},
+			{
+				// Import
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

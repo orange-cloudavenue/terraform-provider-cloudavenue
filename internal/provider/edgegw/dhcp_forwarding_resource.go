@@ -26,9 +26,7 @@ var (
 	_ resource.Resource                = &dhcpForwardingResource{}
 	_ resource.ResourceWithConfigure   = &dhcpForwardingResource{}
 	_ resource.ResourceWithImportState = &dhcpForwardingResource{}
-	// _ resource.ResourceWithModifyPlan     = &dhcpForwardingResource{}
-	// _ resource.ResourceWithUpgradeState   = &dhcpForwardingResource{}
-	// _ resource.ResourceWithValidateConfig = &dhcpForwardingResource{}.
+	_ resource.ResourceWithModifyPlan  = &dhcpForwardingResource{}
 )
 
 // NewDhcpForwardingResource is a helper function to simplify the provider implementation.
@@ -111,7 +109,13 @@ func (r *dhcpForwardingResource) Create(ctx context.Context, req resource.Create
 		Implement the resource creation logic here.
 	*/
 
-	resp.Diagnostics.Append(r.createorUpdate(ctx, plan)...)
+	// ! If Enabled is set to false, then DHCP servers cannot be edited \0_o/
+	if plan.DhcpServers.IsKnown() && !plan.Enabled.Get() {
+		resp.Diagnostics.AddError("DHCP servers cannot be set", "DHCP servers can only be set when DHCP forwarding is enabled")
+		return
+	}
+
+	resp.Diagnostics.Append(r.createOrUpdate(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -185,7 +189,13 @@ func (r *dhcpForwardingResource) Update(ctx context.Context, req resource.Update
 		Implement the resource update here
 	*/
 
-	resp.Diagnostics.Append(r.createorUpdate(ctx, plan)...)
+	// ! If Enabled is set to false, then DHCP servers cannot be edited \0_o/
+	if !plan.DhcpServers.Equal(state.DhcpServers) && !plan.Enabled.Get() {
+		resp.Diagnostics.AddError("DHCP servers cannot be edited", "DHCP servers can only be edited when DHCP forwarding is enabled")
+		return
+	}
+
+	resp.Diagnostics.Append(r.createOrUpdate(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -274,6 +284,29 @@ func (r *dhcpForwardingResource) ImportState(ctx context.Context, req resource.I
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), r.edgegw.GetName())...)
 }
 
+// ModifyPlan Check if DHCP servers can be edited.
+func (r *dhcpForwardingResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	dPlan := &DhcpForwardingModel{}
+	dState := &DhcpForwardingModel{}
+
+	if d := req.Plan.Get(ctx, dPlan); d.HasError() {
+		// return because plan is empty
+		return
+	}
+	if d := req.State.Get(ctx, dState); d.HasError() {
+		// return because state is empty
+		return
+	}
+
+	// ! If Enabled is set to false, then DHCP servers cannot be edited \0_o/
+	if !dPlan.DhcpServers.Equal(dState.DhcpServers) && !dPlan.Enabled.Get() {
+		resp.Diagnostics.AddError("DHCP servers cannot be edited", "DHCP servers can only be edited when DHCP forwarding is enabled")
+		return
+	}
+}
+
+// * CustomFuncs
+
 func (r *dhcpForwardingResource) read(ctx context.Context, planOrState *DhcpForwardingModel) (stateRefreshed *DhcpForwardingModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
@@ -301,7 +334,7 @@ func (r *dhcpForwardingResource) read(ctx context.Context, planOrState *DhcpForw
 	return stateRefreshed, true, nil
 }
 
-func (r *dhcpForwardingResource) createorUpdate(ctx context.Context, plan *DhcpForwardingModel) (diags diag.Diagnostics) {
+func (r *dhcpForwardingResource) createOrUpdate(ctx context.Context, plan *DhcpForwardingModel) (diags diag.Diagnostics) {
 	vdcOrVDCGroup, err := r.edgegw.GetParent()
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway parent", err.Error())

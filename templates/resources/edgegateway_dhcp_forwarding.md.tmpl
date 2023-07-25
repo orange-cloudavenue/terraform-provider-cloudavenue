@@ -15,6 +15,9 @@ description: |-
 {{ tffile .ExampleFile }}
 {{- end }}
 
+~> **Warning**
+`dhcp_servers` attribute can be updated **only** if `enabled` attribute is set to `true`.
+
 {{ .SchemaMarkdown | trimspace }}
 
 {{ if .HasImport -}}

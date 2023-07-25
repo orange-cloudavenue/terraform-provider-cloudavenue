@@ -70,15 +70,16 @@ func dhcpForwardingSchema(_ context.Context) superschema.Schema {
 			},
 			"enabled": superschema.SuperBoolAttribute{
 				Common: &schemaR.BoolAttribute{
-					MarkdownDescription: "Status of DHCP Forwarding for the Edge Gateway.",
-					Computed:            true,
+					Computed: true,
 				},
 				Resource: &schemaR.BoolAttribute{
-					Optional: true,
-					Default:  booldefault.StaticBool(true),
+					MarkdownDescription: "Enable or disable DHCP Forwarding for the Edge Gateway.",
+					Optional:            true,
+					Default:             booldefault.StaticBool(true),
 				},
 				DataSource: &schemaD.BoolAttribute{
-					Computed: true,
+					MarkdownDescription: "Status of DHCP Forwarding for the Edge Gateway.",
+					Computed:            true,
 				},
 			},
 			"dhcp_servers": superschema.SuperSetAttribute{
@@ -87,7 +88,8 @@ func dhcpForwardingSchema(_ context.Context) superschema.Schema {
 					ElementType:         supertypes.StringType{},
 				},
 				Resource: &schemaR.SetAttribute{
-					Required: true,
+					MarkdownDescription: "Set or change the IP addresses is allowed only when the DHCP Forwarding is enable.",
+					Required:            true,
 					Validators: []validator.Set{
 						setvalidator.SizeAtLeast(1),
 						setvalidator.SizeAtMost(8),
