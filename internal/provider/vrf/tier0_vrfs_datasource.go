@@ -8,10 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -31,44 +27,12 @@ type tier0VrfsDataSource struct {
 	client *client.CloudAvenue
 }
 
-type tier0VrfsDataSourceModel struct {
-	ID    types.String   `tfsdk:"id"`
-	Names []types.String `tfsdk:"names"`
-}
-
 func (d *tier0VrfsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "vrfs"
 }
 
 func (d *tier0VrfsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = superschema.Schema{
-		Common: superschema.SchemaDetails{
-			MarkdownDescription: "The Tier-0 VRFs",
-		},
-		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "data source allow access to a list of Tier-0 that can be accessed by the user.",
-		},
-
-		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the Tier-0 VRFs.",
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
-				},
-			},
-			"names": superschema.ListAttribute{
-				Common: &schemaR.ListAttribute{
-					MarkdownDescription: "List of Tier-0 VRFs names.",
-				},
-				DataSource: &schemaD.ListAttribute{
-					ElementType: types.StringType,
-					Computed:    true,
-				},
-			},
-		},
-	}.GetDataSource(ctx)
+	resp.Schema = tier0VrfsSchema().GetDataSource(ctx)
 }
 
 func (d *tier0VrfsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {

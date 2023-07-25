@@ -8,10 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
@@ -30,92 +26,12 @@ type tier0VrfDataSource struct {
 	client *client.CloudAvenue
 }
 
-type tier0VrfDataSourceModel struct {
-	ID           types.String   `tfsdk:"id"`
-	Name         types.String   `tfsdk:"name"`
-	Provider     types.String   `tfsdk:"tier0_provider"`
-	ClassService types.String   `tfsdk:"class_service"`
-	Services     []segmentModel `tfsdk:"services"`
-}
-
-type segmentModel struct {
-	Service types.String `tfsdk:"service"`
-	VLANID  types.String `tfsdk:"vlan_id"`
-}
-
 func (d *tier0VrfDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "vrf"
 }
 
 func (d *tier0VrfDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = superschema.Schema{
-		Common: superschema.SchemaDetails{
-			MarkdownDescription: "The Tier-0 VRF",
-		},
-		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "data source retrieve informations about a Tier-0 VRF.",
-		},
-		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the Tier-0 VRF.",
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
-				},
-			},
-			"name": superschema.StringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the Tier-0 VRF.",
-				},
-				DataSource: &schemaD.StringAttribute{
-					Required: true,
-				},
-			},
-			"tier0_provider": superschema.StringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "Tier-0 provider info.",
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
-				},
-			},
-			"class_service": superschema.StringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "List of Tags for the Tier-0 VRF.",
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
-				},
-			},
-			"services": superschema.ListNestedAttribute{
-				Common: &schemaR.ListNestedAttribute{
-					MarkdownDescription: "Services list of the Tier-0 VRF.",
-				},
-				DataSource: &schemaD.ListNestedAttribute{
-					Computed: true,
-				},
-				Attributes: superschema.Attributes{
-					"service": superschema.StringAttribute{
-						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "Service of the segment.",
-						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
-						},
-					},
-					"vlan_id": superschema.StringAttribute{
-						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "VLAN ID of the segment.",
-						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
-						},
-					},
-				},
-			},
-		},
-	}.GetDataSource(ctx)
+	resp.Schema = tier0VrfSchema().GetDataSource(ctx)
 }
 
 func (d *tier0VrfDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
