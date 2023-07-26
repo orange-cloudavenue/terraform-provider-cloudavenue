@@ -6,7 +6,8 @@ on:
   # pull_request:
   #   branches: [ "main" ]
   #   paths:
-  #     - 'internal/provider/provider.go'
+  #     - 'internal/provider/provider_resources.go'
+  #    - 'internal/provider/provider_datasources.go'
 
 permissions:
   contents: write
