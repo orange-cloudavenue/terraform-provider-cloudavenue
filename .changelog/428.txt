@@ -1,0 +1,3 @@
+```release-note:new-data-source
+`datasource/cloudavenue_edgegateway_static_route` - New data source to fetch static route details from Cloud Avenue Edge Gateway.
+```

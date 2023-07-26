@@ -27,9 +27,6 @@ var (
 	_ resource.Resource                = &staticRouteResource{}
 	_ resource.ResourceWithConfigure   = &staticRouteResource{}
 	_ resource.ResourceWithImportState = &staticRouteResource{}
-	// _ resource.ResourceWithModifyPlan     = &staticRouteResource{}
-	// _ resource.ResourceWithUpgradeState   = &staticRouteResource{}
-	// _ resource.ResourceWithValidateConfig = &staticRouteResource{}.
 )
 
 // NewStaticRouteResource is a helper function to simplify the provider implementation.
@@ -343,7 +340,16 @@ func (r *staticRouteResource) ImportState(ctx context.Context, req resource.Impo
 func (r *staticRouteResource) read(ctx context.Context, planOrState *StaticRouteModel) (stateRefreshed *StaticRouteModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
-	staticRoute, err := r.edgegw.GetStaticRouteById(planOrState.ID.Get())
+	var (
+		staticRoute *govcd.NsxtEdgeGatewayStaticRoute
+		err         error
+	)
+
+	if planOrState.ID.IsKnown() {
+		staticRoute, err = r.edgegw.GetStaticRouteById(planOrState.ID.Get())
+	} else {
+		staticRoute, err = r.edgegw.GetStaticRouteByName(planOrState.Name.Get())
+	}
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			return nil, false, nil

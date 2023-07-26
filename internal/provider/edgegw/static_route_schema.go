@@ -72,12 +72,7 @@ func staticRouteSchema(_ context.Context) superschema.Schema {
 			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the Static Route.",
-				},
-				Resource: &schemaR.StringAttribute{
-					Required: true,
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
+					Required:            true,
 				},
 			},
 			"description": superschema.SuperStringAttribute{
