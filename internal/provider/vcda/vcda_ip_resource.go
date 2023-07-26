@@ -175,5 +175,10 @@ func (r *vcdaIPResource) Delete(ctx context.Context, req resource.DeleteRequest,
 
 func (r *vcdaIPResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("ip_address"), req.ID)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue("urn:cloudavenue:vcda:"+req.ID))...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(uuid.Normalize(
+		uuid.VCDA,
+		utils.GenerateUUID(
+			req.ID,
+		).ValueString(),
+	).String()))...)
 }
