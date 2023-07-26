@@ -583,3 +583,41 @@ func TestVcloudUUID_IsSecurityGroup(t *testing.T) {
 		})
 	}
 }
+
+// TestIsType tests the TestIsType function.
+func TestTestIsType(t *testing.T) {
+	testCases := []struct {
+		name     string
+		uuidType VcloudUUID
+		uuid     VcloudUUID
+		want     bool
+	}{
+		{
+			name:     "valid uuid",
+			uuidType: VM,
+			uuid:     VcloudUUID(VM.String() + validUUIDv4),
+			want:     true,
+		},
+		{
+			name:     "invalid uuid",
+			uuidType: VM,
+			uuid:     "invalid-uuid",
+			want:     false,
+		},
+		{
+			name:     "empty value",
+			uuidType: VM,
+			uuid:     "",
+			want:     false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := TestIsType(tc.uuidType)(tc.uuid.String())
+			if tc.want && err != nil {
+				t.Errorf("TestIsType() = %v, want %v", err, tc.want)
+			}
+		})
+	}
+}

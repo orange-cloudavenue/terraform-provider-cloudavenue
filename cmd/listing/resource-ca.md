@@ -1,6 +1,6 @@
 # Checking resources and datasources of Orange Cloud Avenue provider
-- Found 26 resources in terraform
-- Found 31 datasources in terraform
+- Found 27 resources in terraform
+- Found 32 datasources in terraform
 
 # Checking resources and datasources of VMware Cloud Director provider (version: unset)
 - Found 98 resources in terraform
@@ -15,28 +15,29 @@
 | (2) | cloudavenue_catalog | vcd_catalog |
 | (3) | cloudavenue_edgegateway | vcd_edgegateway |
 | (4) | cloudavenue_edgegateway_app_port_profile | vcd_nsxt_app_port_profile |
-| (5) | cloudavenue_edgegateway_firewall | vcd_nsxt_firewall |
-| (6) | cloudavenue_edgegateway_ip_set | vcd_nsxt_ip_set |
-| (7) | cloudavenue_edgegateway_security_group | vcd_nsxt_security_group |
-| (8) | cloudavenue_iam_role | vcd_role |
-| (9) | cloudavenue_iam_user | vcd_org_user |
-| (10) | cloudavenue_network_dhcp | vcd_nsxt_network_dhcp |
-| (11) | cloudavenue_network_dhcp_binding | vcd_nsxt_network_dhcp_binding  |
-| (12) | cloudavenue_network_isolated | vcd_network_isolated |
-| (13) | cloudavenue_network_routed | vcd_network_routed |
-| (14) | cloudavenue_publicip |
-| (15) | cloudavenue_vapp | vcd_vapp |
-| (16) | cloudavenue_vapp_acl | vcd_vapp_access_control |
-| (17) | cloudavenue_vapp_isolated_network | vcd_vapp_network |
-| (18) | cloudavenue_vapp_org_network | vcd_vapp_org_network |
-| (19) | cloudavenue_vcda_ip |
-| (20) | cloudavenue_vdc | vcd_org_vdc |
-| (21) | cloudavenue_vdc_acl | vcd_org_vdc_access_control |
-| (22) | cloudavenue_vm | vcd_vm |
-| (23) | cloudavenue_vm_affinity_rule | vcd_vm_affinity_rule |
-| (24) | cloudavenue_vm_disk | vcd_vm_internal_disk |
-| (25) | cloudavenue_vm_inserted_media | vcd_inserted_media |
-| (26) | cloudavenue_vm_security_tag | vcd_security_tag |
+| (5) | cloudavenue_edgegateway_dhcp_forwarding |
+| (6) | cloudavenue_edgegateway_firewall | vcd_nsxt_firewall |
+| (7) | cloudavenue_edgegateway_ip_set | vcd_nsxt_ip_set |
+| (8) | cloudavenue_edgegateway_security_group | vcd_nsxt_security_group |
+| (9) | cloudavenue_iam_role | vcd_role |
+| (10) | cloudavenue_iam_user | vcd_org_user |
+| (11) | cloudavenue_network_dhcp | vcd_nsxt_network_dhcp |
+| (12) | cloudavenue_network_dhcp_binding | vcd_nsxt_network_dhcp_binding  |
+| (13) | cloudavenue_network_isolated | vcd_network_isolated |
+| (14) | cloudavenue_network_routed | vcd_network_routed |
+| (15) | cloudavenue_publicip |
+| (16) | cloudavenue_vapp | vcd_vapp |
+| (17) | cloudavenue_vapp_acl | vcd_vapp_access_control |
+| (18) | cloudavenue_vapp_isolated_network | vcd_vapp_network |
+| (19) | cloudavenue_vapp_org_network | vcd_vapp_org_network |
+| (20) | cloudavenue_vcda_ip |
+| (21) | cloudavenue_vdc | vcd_org_vdc |
+| (22) | cloudavenue_vdc_acl | vcd_org_vdc_access_control |
+| (23) | cloudavenue_vm | vcd_vm |
+| (24) | cloudavenue_vm_affinity_rule | vcd_vm_affinity_rule |
+| (25) | cloudavenue_vm_disk | vcd_vm_internal_disk |
+| (26) | cloudavenue_vm_inserted_media | vcd_inserted_media |
+| (27) | cloudavenue_vm_security_tag | vcd_security_tag |
 
 | Number | Datasources Orange Cloud Avenue | Datasources VMware VCD |
 |:--:|:--:|:--:|
@@ -47,30 +48,31 @@
 | (5) | cloudavenue_catalog_vapp_template | vcd_catalog_vapp_template |
 | (6) | cloudavenue_catalogs |
 | (7) | cloudavenue_edgegateway | vcd_edgegateway |
-| (8) | cloudavenue_edgegateway_firewall | vcd_nsxt_firewall |
-| (9) | cloudavenue_edgegateway_ip_set | vcd_nsxt_ip_set |
-| (10) | cloudavenue_edgegateway_security_group | vcd_nsxt_security_group |
-| (11) | cloudavenue_edgegateways |
-| (12) | cloudavenue_iam_right | vcd_right |
-| (13) | cloudavenue_iam_role | vcd_role |
-| (14) | cloudavenue_iam_user | vcd_org_user |
-| (15) | cloudavenue_network_dhcp | vcd_nsxt_network_dhcp |
-| (16) | cloudavenue_network_dhcp_binding | vcd_nsxt_network_dhcp_binding  |
-| (17) | cloudavenue_network_isolated | vcd_network_isolated |
-| (18) | cloudavenue_network_routed | vcd_network_routed |
-| (19) | cloudavenue_publicips |
-| (20) | cloudavenue_storage_profile | vcd_storage_profile |
-| (21) | cloudavenue_storage_profiles |
-| (22) | cloudavenue_tier0_vrf |
-| (23) | cloudavenue_tier0_vrfs |
-| (24) | cloudavenue_vapp | vcd_vapp |
-| (25) | cloudavenue_vapp_isolated_network | vcd_vapp_network |
-| (26) | cloudavenue_vapp_org_network | vcd_vapp_org_network |
-| (27) | cloudavenue_vdc | vcd_org_vdc |
-| (28) | cloudavenue_vdc_group | vcd_vdc_group |
-| (29) | cloudavenue_vdcs |
-| (30) | cloudavenue_vm | vcd_vm |
-| (31) | cloudavenue_vm_affinity_rule | vcd_vm_affinity_rule |
+| (8) | cloudavenue_edgegateway_dhcp_forwarding |
+| (9) | cloudavenue_edgegateway_firewall | vcd_nsxt_firewall |
+| (10) | cloudavenue_edgegateway_ip_set | vcd_nsxt_ip_set |
+| (11) | cloudavenue_edgegateway_security_group | vcd_nsxt_security_group |
+| (12) | cloudavenue_edgegateways |
+| (13) | cloudavenue_iam_right | vcd_right |
+| (14) | cloudavenue_iam_role | vcd_role |
+| (15) | cloudavenue_iam_user | vcd_org_user |
+| (16) | cloudavenue_network_dhcp | vcd_nsxt_network_dhcp |
+| (17) | cloudavenue_network_dhcp_binding | vcd_nsxt_network_dhcp_binding  |
+| (18) | cloudavenue_network_isolated | vcd_network_isolated |
+| (19) | cloudavenue_network_routed | vcd_network_routed |
+| (20) | cloudavenue_publicips |
+| (21) | cloudavenue_storage_profile | vcd_storage_profile |
+| (22) | cloudavenue_storage_profiles |
+| (23) | cloudavenue_tier0_vrf |
+| (24) | cloudavenue_tier0_vrfs |
+| (25) | cloudavenue_vapp | vcd_vapp |
+| (26) | cloudavenue_vapp_isolated_network | vcd_vapp_network |
+| (27) | cloudavenue_vapp_org_network | vcd_vapp_org_network |
+| (28) | cloudavenue_vdc | vcd_org_vdc |
+| (29) | cloudavenue_vdc_group | vcd_vdc_group |
+| (30) | cloudavenue_vdcs |
+| (31) | cloudavenue_vm | vcd_vm |
+| (32) | cloudavenue_vm_affinity_rule | vcd_vm_affinity_rule |
 
 # Listing cross resources and datasources from VCD (version: unset)
 

@@ -16,22 +16,22 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &ipSetDataSource{}
-	_ datasource.DataSourceWithConfigure = &ipSetDataSource{}
+	_ datasource.DataSource              = &dhcpForwardingDataSource{}
+	_ datasource.DataSourceWithConfigure = &dhcpForwardingDataSource{}
 )
 
-func NewIPSetDataSource() datasource.DataSource {
-	return &ipSetDataSource{}
+func NewDhcpForwardingDataSource() datasource.DataSource {
+	return &dhcpForwardingDataSource{}
 }
 
-type ipSetDataSource struct {
+type dhcpForwardingDataSource struct {
 	client *client.CloudAvenue
 	org    org.Org
 	edgegw edgegw.EdgeGateway
 }
 
 // Init Initializes the data source.
-func (d *ipSetDataSource) Init(ctx context.Context, dm *IPSetModel) (diags diag.Diagnostics) {
+func (d *dhcpForwardingDataSource) Init(ctx context.Context, dm *DhcpForwardingModel) (diags diag.Diagnostics) {
 	var err error
 
 	d.org, diags = org.Init(d.client)
@@ -51,15 +51,15 @@ func (d *ipSetDataSource) Init(ctx context.Context, dm *IPSetModel) (diags diag.
 	return
 }
 
-func (d *ipSetDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_ip_set"
+func (d *dhcpForwardingDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_dhcp_forwarding"
 }
 
-func (d *ipSetDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = ipSetSchema(ctx).GetDataSource(ctx)
+func (d *dhcpForwardingDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = dhcpForwardingSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *ipSetDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *dhcpForwardingDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -76,8 +76,8 @@ func (d *ipSetDataSource) Configure(ctx context.Context, req datasource.Configur
 	d.client = client
 }
 
-func (d *ipSetDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	config := &IPSetModel{}
+func (d *dhcpForwardingDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	config := &DhcpForwardingModel{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
@@ -96,7 +96,7 @@ func (d *ipSetDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 	*/
 
 	// If read function is identical to the resource, you can use the following code:
-	s := &ipSetResource{
+	s := &dhcpForwardingResource{
 		client: d.client,
 		org:    d.org,
 		edgegw: d.edgegw,
