@@ -113,8 +113,18 @@ func (r *natRuleResource) Create(ctx context.Context, req resource.CreateRequest
 	*/
 
 	// Lock object EdgeGateway
-	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	vdcOrVDCGroup, err := r.edgegw.GetParent()
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+		return
+	}
+	if vdcOrVDCGroup.IsVDCGroup() {
+		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	} else {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	}
 
 	// Get data from plan
 	nsxtNATRule, err := plan.ToNsxtNatRule(ctx)
@@ -206,8 +216,18 @@ func (r *natRuleResource) Update(ctx context.Context, req resource.UpdateRequest
 	*/
 
 	// Lock object EdgeGateway
-	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	vdcOrVDCGroup, err := r.edgegw.GetParent()
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+		return
+	}
+	if vdcOrVDCGroup.IsVDCGroup() {
+		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	} else {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	}
 
 	// Get data to plan
 	nsxtNATRule, err := plan.ToNsxtNatRule(ctx)
@@ -263,14 +283,19 @@ func (r *natRuleResource) Delete(ctx context.Context, req resource.DeleteRequest
 		Implement the resource deletion here
 	*/
 
-	// Lock object VDC or VDC Group
+	// Lock object EdgeGateway
 	vdcOrVDCGroup, err := r.edgegw.GetParent()
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
 		return
 	}
-	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	if vdcOrVDCGroup.IsVDCGroup() {
+		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	} else {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	}
 
 	// Get NAT Rule
 	existingRule, err := r.edgegw.GetNatRuleById(state.ID.Get())
@@ -351,7 +376,7 @@ func (r *natRuleResource) read(planOrState *NATRuleModel) (stateRefreshed *NATRu
 	// Get Nat Rule by Name or ID
 	var rule *govcd.NsxtNatRule
 	var err error
-	if !stateRefreshed.Name.IsKnown() {
+	if stateRefreshed.ID.IsKnown() {
 		rule, err = r.edgegw.GetNatRuleById(stateRefreshed.ID.Get())
 	} else {
 		rule, err = r.edgegw.GetNatRuleByName(stateRefreshed.Name.Get())
@@ -361,6 +386,7 @@ func (r *natRuleResource) read(planOrState *NATRuleModel) (stateRefreshed *NATRu
 			return nil, false, diags
 		}
 		diags.AddError("Error retrieving NAT Rule ID", err.Error())
+		return nil, true, diags
 	}
 
 	// Set AppPortProfile
@@ -383,5 +409,5 @@ func (r *natRuleResource) read(planOrState *NATRuleModel) (stateRefreshed *NATRu
 	stateRefreshed.RuleType.Set(rule.NsxtNatRule.Type)
 	stateRefreshed.SnatDestinationAddress = utils.SuperStringValueOrNull(rule.NsxtNatRule.SnatDestinationAddresses)
 
-	return stateRefreshed, true, diags
+	return stateRefreshed, true, nil
 }
