@@ -9,8 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider"
-
-	_ "github.com/rs/zerolog/log"
 )
 
 // Example version string that can be overwritten by a release process.

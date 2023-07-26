@@ -17,6 +17,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	caProvider "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider"
+
+	_ "github.com/vmware/terraform-provider-vcd/v3/vcd"
 )
 
 var (
@@ -50,6 +52,10 @@ var (
 		"vcd_org_vdc_access_control":     "cloudavenue_vdc_acl",
 		"vcd_role":                       "cloudavenue_iam_role",
 		"vcd_security_tag":               "cloudavenue_vm_security_tag",
+		"vcd_right":                      "cloudavenue_iam_right",
+		"vcd_nsxt_network_dhcp":          "cloudavenue_network_dhcp",
+		"vcd_nsxt_network_dhcp_binding":  "cloudavenue_network_dhcp_binding",
+		"vcd_vm":                         "cloudavenue_vm",
 	}
 
 	vcdNotApplicableCA = []string{
@@ -88,13 +94,34 @@ var (
 		"vcd_nsxv_distributed_firewall", // NSX-V not supported on cloudavenue
 		"vcd_org",
 		"vcd_org_ldap",
+		"vcd_org_saml",
 		"vcd_org_vdc",
+		"vcd_provider_vdc",
 		"vcd_rights_bundle",
 		"vcd_subscribed_catalog",
 		"vcd_vdc_group",
 		"vcd_vm",
 		"vcd_vm_placement_policy",
 		"vcd_vm_sizing_policy",
+		"vcd_org_group",       // Manage group for LDAP and SAML
+		"vcd_resource_schema", // Generic data source.
+		"vcd_resource_pool",   // Require Admin Org
+		"vcd_resource_list",   // Generic data source.
+		"vcd_nsxt_manager",    // NSX-T manager
+		"vcd_cloned_vapp",
+		"vcd_ip_space",              // IP Space require Admin Org
+		"vcd_ip_space_custom_quota", // IP Space require Admin Org
+		"vcd_ip_space_uplink",       // IP Space require Admin Org
+		"vcd_nsxt_edgegateway_dhcpv6",
+		"vcd_rde",
+		"vcd_rde_interface",
+		"vcd_rde_interface_behavior",
+		"vcd_rde_type",
+		"vcd_rde_type_behavior",
+		"vcd_rde_type_behavior_acl",
+		"vcd_ui_plugin",
+		"vcd_vm_placement_policy", // Require Admin Org
+		"vcd_vm_sizing_policy",    // Require Admin Org
 	}
 )
 
@@ -235,7 +262,7 @@ beginVCD:
 		wf(mess, file)
 		for _, j := range vcdNotApplicableCA {
 			if k == j {
-				mess = "Not Applicable | :no_entry: |\n"
+				mess = "Not Applicable | :heavy_multiplication_x: |\n"
 				red.Printf(mess)
 				wf(mess, file)
 				continue beginVCD
