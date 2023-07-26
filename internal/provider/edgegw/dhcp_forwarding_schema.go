@@ -79,7 +79,6 @@ func dhcpForwardingSchema(_ context.Context) superschema.Schema {
 				},
 				DataSource: &schemaD.BoolAttribute{
 					MarkdownDescription: "Status of DHCP Forwarding for the Edge Gateway.",
-					Computed:            true,
 				},
 			},
 			"dhcp_servers": superschema.SuperSetAttribute{

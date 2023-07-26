@@ -1,0 +1,3 @@
+```release-note:new-data-source
+`datasource/cloudavenue_edgegateway_dhcp_forwarding` - New data source to get DHCP forwarding configuration from Edge Gateway.
+```

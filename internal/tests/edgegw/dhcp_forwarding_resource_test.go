@@ -111,7 +111,7 @@ func TestAccDhcpForwardingResource(t *testing.T) {
 				Config:             tests.ConcatTests(testAccEdgeGatewayResourceConfig, testAccDhcpForwardingResourceConfigUpdateError),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
-				ExpectError:        regexp.MustCompile("DHCP servers cannot be edited"),
+				ExpectError:        regexp.MustCompile("DHCP Servers cannot be edited"),
 			},
 			// Destroy test with VDC
 			{

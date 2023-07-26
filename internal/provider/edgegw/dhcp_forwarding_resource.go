@@ -109,7 +109,7 @@ func (r *dhcpForwardingResource) Create(ctx context.Context, req resource.Create
 		Implement the resource creation logic here.
 	*/
 
-	// ! If Enabled is set to false, then DHCP servers cannot be edited \0_o/
+	// ! If Enabled is set to false, then DHCP Servers cannot be edited \0_o/
 	if plan.DhcpServers.IsKnown() && !plan.Enabled.Get() {
 		resp.Diagnostics.AddError("DHCP servers cannot be set", "DHCP servers can only be set when DHCP forwarding is enabled")
 		return
@@ -189,9 +189,9 @@ func (r *dhcpForwardingResource) Update(ctx context.Context, req resource.Update
 		Implement the resource update here
 	*/
 
-	// ! If Enabled is set to false, then DHCP servers cannot be edited \0_o/
+	// ! If Enabled is set to false, then DHCP Servers cannot be edited \0_o/
 	if !plan.DhcpServers.Equal(state.DhcpServers) && !plan.Enabled.Get() {
-		resp.Diagnostics.AddError("DHCP servers cannot be edited", "DHCP servers can only be edited when DHCP forwarding is enabled")
+		resp.Diagnostics.AddError("DHCP Servers cannot be edited", "DHCP servers can only be edited when DHCP forwarding is enabled")
 		return
 	}
 
@@ -298,9 +298,9 @@ func (r *dhcpForwardingResource) ModifyPlan(ctx context.Context, req resource.Mo
 		return
 	}
 
-	// ! If Enabled is set to false, then DHCP servers cannot be edited \0_o/
+	// ! If Enabled is set to false, then DHCP Servers cannot be edited \0_o/
 	if !dPlan.DhcpServers.Equal(dState.DhcpServers) && !dPlan.Enabled.Get() {
-		resp.Diagnostics.AddError("DHCP servers cannot be edited", "DHCP servers can only be edited when DHCP forwarding is enabled")
+		resp.Diagnostics.AddError("DHCP Servers cannot be edited", "DHCP servers can only be edited when DHCP forwarding is enabled")
 		return
 	}
 }
@@ -316,7 +316,7 @@ func (r *dhcpForwardingResource) read(ctx context.Context, planOrState *DhcpForw
 			return nil, false, nil
 		}
 		diags.AddError("Error retrieving NSX-T Edge Gateway DHCP forwarding", err.Error())
-		return
+		return nil, true, diags
 	}
 
 	if !stateRefreshed.ID.IsKnown() {
@@ -356,7 +356,7 @@ func (r *dhcpForwardingResource) createOrUpdate(ctx context.Context, plan *DhcpF
 	}
 
 	if _, err := r.edgegw.UpdateDhcpForwarder(dhcpForwarderConfig); err != nil {
-		diags.AddError("Error creating DHCP forwarding", err.Error())
+		diags.AddError("Error on change DHCP forwarding configuration", err.Error())
 		return
 	}
 

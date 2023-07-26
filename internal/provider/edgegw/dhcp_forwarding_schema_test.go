@@ -4,9 +4,6 @@ import (
 	"context"
 	"testing"
 
-	// The fwresource import alias is so there is no collistion
-	// with the more typical acceptance testing import:
-	// "github.com/hashicorp/terraform-plugin-testing/helper/resource".
 	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 
