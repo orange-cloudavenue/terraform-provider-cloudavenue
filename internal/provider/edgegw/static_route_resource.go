@@ -109,6 +109,20 @@ func (r *staticRouteResource) Create(ctx context.Context, req resource.CreateReq
 		Implement the resource creation logic here.
 	*/
 
+	vdcOrVDCGroup, err := r.edgegw.GetParent()
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+		return
+	}
+
+	if vdcOrVDCGroup.IsVDCGroup() {
+		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	} else {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	}
+
 	stateRouteConfig, d := plan.ToNsxtEdgeGatewayStaticRoute(ctx)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
