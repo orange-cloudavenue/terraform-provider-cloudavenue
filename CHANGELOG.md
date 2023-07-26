@@ -1,5 +1,10 @@
 ## 0.8.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_edgegateway_dhcp_forwarding` - New data source to get DHCP forwarding configuration from Edge Gateway. ([GH-422](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/422))
+* **New Resource:** `resource/cloudavenue_edgegateway_dhcp_forwarding` - New resource to manage DHCP forwarding on Edge Gateway. ([GH-421](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/421))
+
 ### :tada: **Improvements**
 
 * `resource/cloudavenue_vapp_acl` - Now the attribute `access_level` support `ReadOnly`, `Change` and `FullControl` options. The documentation has been updated accordingly. ([GH-407](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/407))
