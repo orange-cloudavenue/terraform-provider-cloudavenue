@@ -42,14 +42,7 @@ type natRuleResource struct {
 	client *client.CloudAvenue
 	org    org.Org
 	edgegw edgegw.EdgeGateway
-	// vdc    vdc.VDC
-	// vapp   vapp.VAPP
 }
-
-// If the resource don't have same schema/structure as the data source, you can use the following code:
-// type ruleResourceModel struct {
-// 	ID types.String `tfsdk:"id"`
-// }
 
 // Init Initializes the resource.
 func (r *natRuleResource) Init(ctx context.Context, rm *NATRuleModel) (diags diag.Diagnostics) {
@@ -68,15 +61,6 @@ func (r *natRuleResource) Init(ctx context.Context, rm *NATRuleModel) (diags dia
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
 		return
 	}
-
-	// Uncomment the following lines if you need to access to the VDC
-	// r.vdc, diags = vdc.Init(r.client, rm.VDC)
-	// if diags.HasError() {
-	// 	return
-	// }
-
-	// Uncomment the following lines if you need to access to the VAPP
-	// r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
 
 	return
 }
@@ -364,8 +348,14 @@ func (r *natRuleResource) ImportState(ctx context.Context, req resource.ImportSt
 func (r *natRuleResource) read(planOrState *NATRuleModel) (stateRefreshed *NATRuleModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
-	// Get Nat Rule
-	rule, err := r.edgegw.GetNatRuleById(stateRefreshed.ID.Get())
+	// Get Nat Rule by Name or ID
+	var rule *govcd.NsxtNatRule
+	var err error
+	if !stateRefreshed.Name.IsKnown() {
+		rule, err = r.edgegw.GetNatRuleById(stateRefreshed.ID.Get())
+	} else {
+		rule, err = r.edgegw.GetNatRuleByName(stateRefreshed.Name.Get())
+	}
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			return nil, false, diags

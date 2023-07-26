@@ -44,15 +44,12 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The Name of the Nat Rule.",
+					Required:            true,
 				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
 				},
 			},
 			"edge_gateway_id": superschema.SuperStringAttribute{
