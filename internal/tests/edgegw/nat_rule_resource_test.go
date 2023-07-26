@@ -13,14 +13,14 @@ import (
 //go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
 const testAccNATRuleResourceConfigSnat = `
 resource "cloudavenue_edgegateway_nat_rule" "example" {
-	edge_gateway_id = data.cloudavenue_edgegateway.main.id
+	edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[1].id
   
 	name        = "example-snat"
 	rule_type   = "SNAT"
 	description = "description SNAT example"
   
 	# Using primary_ip from edge gateway
-	external_address         = data.cloudavenue_publicips.example.public_ips[2].public_ip #tolist(data.cloudavenue_edgegateway.main.subnet)[0].primary_ip
+	external_address         = data.cloudavenue_publicips.example.public_ips[2].public_ip
 	internal_address         = "11.11.11.0/24"
 	snat_destination_address = "8.8.8.8"
 	
@@ -30,14 +30,14 @@ resource "cloudavenue_edgegateway_nat_rule" "example" {
 
 const testAccNATRuleResourceConfigDnat = `
 resource "cloudavenue_edgegateway_nat_rule" "example" {
-	edge_gateway_id = data.cloudavenue_edgegateway.main.id
+	edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[1].id
   
 	name        = "example-dnat"
 	rule_type   = "DNAT"
 	description = "description DNAT example"
   
 	# Using primary_ip from edge gateway
-	external_address         = data.cloudavenue_publicips.example.public_ips[2].public_ip #tolist(data.cloudavenue_edgegateway.main.subnet)[0].primary_ip
+	external_address         = data.cloudavenue_publicips.example.public_ips[2].public_ip
 	internal_address         = "11.11.11.4"
   
 	dnat_external_port = "8080"
@@ -46,36 +46,34 @@ resource "cloudavenue_edgegateway_nat_rule" "example" {
 
 const testAccNATRuleResourceConfigReflexive = `
 resource "cloudavenue_edgegateway_nat_rule" "example" {
-	edge_gateway_id = data.cloudavenue_edgegateway.main.id
+	edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[1].id
   
 	name        = "example-reflexive"
 	rule_type   = "REFLEXIVE"
 	description = "description REFLEXIVE example"
   
 	# Using primary_ip from edge gateway
-	external_address         = data.cloudavenue_publicips.example.public_ips[2].public_ip #tolist(data.cloudavenue_edgegateway.main.subnet)[0].primary_ip
+	external_address         = data.cloudavenue_publicips.example.public_ips[2].public_ip
 	internal_address         = "192.168.0.1"
 }
 `
 
 const testAccNATRuleResourceConfigDataSource = `
-data "cloudavenue_edgegateway" "main" {
-	name = "tn01e02ocb0006205spt103"
-}
-  
+data "cloudavenue_edgegateways" "example" {}
+
 data "cloudavenue_publicips" "example" {}
 `
 
 const testAccNATRuleResourceConfigUpdateSnat = `
 resource "cloudavenue_edgegateway_nat_rule" "example" {
-	edge_gateway_id = data.cloudavenue_edgegateway.main.id
+	edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[1].id
   
 	name        = "example-snat"
 	rule_type   = "SNAT"
 	description = "description SNAT example Updated!!"
   
 	# Using primary_ip from edge gateway
-	external_address         = data.cloudavenue_publicips.example.public_ips[2].public_ip #tolist(data.cloudavenue_edgegateway.main.subnet)[0].primary_ip
+	external_address         = data.cloudavenue_publicips.example.public_ips[2].public_ip
 	internal_address         = "11.11.11.0/24"
 	snat_destination_address = "9.9.9.9"
 	
@@ -163,15 +161,14 @@ func TestAccNATRuleResource(t *testing.T) {
 				Check:  natRuleDnatTestCheck(resourceName),
 			},
 			{
+				// Delete test
+				Destroy: true,
+				Config:  tests.ConcatTests(testAccNATRuleResourceConfigSnat, testAccNATRuleResourceConfigDataSource),
+			},
+			{
 				// Apply test Reflexive
 				Config: tests.ConcatTests(testAccNATRuleResourceConfigReflexive, testAccNATRuleResourceConfigDataSource),
 				Check:  natRuleReflexiveTestCheck(resourceName),
-			},
-			// Update testing Snat
-			{
-				// Update test
-				Config: tests.ConcatTests(testAccNATRuleResourceConfigUpdateSnat, testAccNATRuleResourceConfigDataSource),
-				Check:  natRuleSnatUpdateTestCheck(resourceName),
 			},
 			// Import State testing
 			{

@@ -8,11 +8,10 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
 const testAccNatRuleDataSourceConfig = `
 data "cloudavenue_edgegateway_nat_rule" "example" {
-	depends_on = cloudavenue_edgegateway_nat_rule.example
-	edge_gateway_id = data.cloudavenue_edgegateway.main.id
+	depends_on = [cloudavenue_edgegateway_nat_rule.example]
+	edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[1].id
 	name = "example-snat"
 }
 `
