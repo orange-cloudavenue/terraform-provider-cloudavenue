@@ -23,7 +23,7 @@
 | (10) | cloudavenue_iam_role | vcd_role |
 | (11) | cloudavenue_iam_user | vcd_org_user |
 | (12) | cloudavenue_network_dhcp | vcd_nsxt_network_dhcp |
-| (13) | cloudavenue_network_dhcp_binding | vcd_nsxt_network_dhcp_binding  |
+| (13) | cloudavenue_network_dhcp_binding | vcd_nsxt_network_dhcp_binding |
 | (14) | cloudavenue_network_isolated | vcd_network_isolated |
 | (15) | cloudavenue_network_routed | vcd_network_routed |
 | (16) | cloudavenue_publicip |
