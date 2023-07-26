@@ -1,0 +1,3 @@
+```release-note:new-resource
+`resource/cloudavenue_edgegateway_static_route` - New resource to manage static routes on edge gateway.
+```
