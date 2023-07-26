@@ -15,11 +15,10 @@ const testAccEVappResourceConfig = `
 resource "cloudavenue_vapp" "example" {
 	name        = "MyVapp"
 	description = "This is an example vApp"
-	power_on = true
 
 	lease = {
 		runtime_lease_in_sec = 3600
-		storage_lease_in_sec = 7200
+		storage_lease_in_sec = 3600
 	}
 
 	guest_properties = {
@@ -32,6 +31,7 @@ const testAccEVappResourceUpdatedConfig = `
 resource "cloudavenue_vapp" "example" {
 	name        = "MyVapp"
 	description = "This is an example modified vApp"
+}
 `
 
 func TestAccVappResource(t *testing.T) {
@@ -49,10 +49,9 @@ func TestAccVappResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", "MyVapp"),
 					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
 					resource.TestCheckResourceAttr(resourceName, "description", "This is an example vApp"),
-					resource.TestCheckResourceAttr(resourceName, "power_on", "true"),
 					resource.TestCheckResourceAttr(resourceName, "lease.runtime_lease_in_sec", "3600"),
-					resource.TestCheckResourceAttr(resourceName, "lease.storage_lease_in_sec", "7200"),
-					resource.TestCheckResourceAttrSet(resourceName, "guest_properties.#"),
+					resource.TestCheckResourceAttr(resourceName, "lease.storage_lease_in_sec", "3600"),
+					resource.TestCheckResourceAttr(resourceName, "guest_properties.key", "Value"),
 				),
 			},
 			// Update
@@ -63,7 +62,6 @@ func TestAccVappResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", "MyVapp"),
 					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
 					resource.TestCheckResourceAttr(resourceName, "description", "This is an example modified vApp"),
-					resource.TestCheckResourceAttr(resourceName, "power_on", "false"),
 					resource.TestCheckResourceAttr(resourceName, "lease.runtime_lease_in_sec", "0"),
 					resource.TestCheckResourceAttr(resourceName, "lease.storage_lease_in_sec", "0"),
 					resource.TestCheckNoResourceAttr(resourceName, "guest_properties.#"),
@@ -75,7 +73,6 @@ func TestAccVappResource(t *testing.T) {
 				ImportState:       true,
 				ImportStateId:     "MyVapp",
 				ImportStateVerify: true,
-				Destroy:           true,
 			},
 		},
 	})

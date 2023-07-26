@@ -245,13 +245,13 @@ func (r *aclResource) ImportState(ctx context.Context, req resource.ImportStateR
 	if len(idParts) != 1 && len(idParts) != 2 {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: vdc.vapp_name vapp_name. Got: %q", req.ID),
+			fmt.Sprintf("Expected import identifier with format: vdc.vapp_name or vapp_name. Got: %q", req.ID),
 		)
 		return
 	}
 
 	if len(idParts) == 1 {
-		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vapp_name"), idParts[0])...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vapp_name"), req.ID)...)
 	} else {
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vdc"), idParts[0])...)
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vapp_name"), idParts[1])...)

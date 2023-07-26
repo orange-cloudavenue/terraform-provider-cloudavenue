@@ -13,16 +13,9 @@ Provides a Cloud Avenue Access Control structure for a vApp. This can be used to
 
 ```terraform
 resource "cloudavenue_iam_user" "example" {
-  user_name   = "exampleuser"
-  description = "An example user"
-  role        = "Organization Administrator"
-  password    = "Th!s1sSecur3P@ssword"
-}
-
-resource "cloudavenue_iam_group" "example" {
-  name        = "examplegroup"
-  role        = "Organization Administrator"
-  description = "An example group"
+  name      = "example"
+  role_name = "Organization Administrator"
+  password  = "Th!s1sSecur3P@ssword"
 }
 
 resource "cloudavenue_vapp" "example" {
@@ -31,15 +24,10 @@ resource "cloudavenue_vapp" "example" {
 }
 
 resource "cloudavenue_vapp_acl" "example" {
-  vdc       = "MyVDC" # Optional
   vapp_name = cloudavenue_vapp.example.name
   shared_with = [{
     access_level = "ReadOnly"
     user_id      = cloudavenue_iam_user.example.id
-    },
-    {
-      access_level = "FullControl"
-      group_id     = cloudavenue_iam_group.example.id
   }]
 }
 ```
@@ -64,7 +52,7 @@ resource "cloudavenue_vapp_acl" "example" {
 
 Required:
 
-- `access_level` (String) Access level for the user or group with whom we are sharing. Value must be one of : `ReadOnly`.
+- `access_level` (String) Access level for the user or group with whom we are sharing. Value must be one of : `ReadOnly`, `Change`, `FullControl`.
 
 Optional:
 
