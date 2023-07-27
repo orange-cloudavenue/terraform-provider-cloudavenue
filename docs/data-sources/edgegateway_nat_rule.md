@@ -3,7 +3,7 @@
 page_title: "cloudavenue_edgegateway_nat_rule Data Source - cloudavenue"
 subcategory: ""
 description: |-
-  The  data source allows you to retrieve information about an EdgeGateway NAT rules.
+  The `clooudavenue_edgegateway_nat_rule` data source allows you to retrieve information about an EdgeGateway NAT rule.
 ---
 
 # cloudavenue_edgegateway_nat_rule (Data Source)
