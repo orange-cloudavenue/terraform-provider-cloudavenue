@@ -1,5 +1,5 @@
 ```release-note:new-resource
-`resource/cloudavenue_edgegateway_nat_rules` - New resource to create a NAT Rule in edge gateway.
+`resource/cloudavenue_edgegateway_nat_rule` - New resource to manage a NAT Rule in Edge Gateway.
 ```
 ```release-note:new-data-source
 `datasource/cloudavenue_edgegateway_nat_rules` - New datasource to get a NAT Rule in edge gateway.
