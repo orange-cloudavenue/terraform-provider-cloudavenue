@@ -11,7 +11,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
 const testAccNATRuleResourceConfigSnat = `
 resource "cloudavenue_edgegateway_nat_rule" "example" {
 	edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
@@ -76,6 +75,54 @@ resource "cloudavenue_edgegateway_nat_rule" "example" {
 }
 `
 
+const testAccNATRuleResourceConfigUpdateDnat = `
+resource "cloudavenue_edgegateway_nat_rule" "example" {
+	edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
+  
+	name        = "example-dnat"
+	rule_type   = "DNAT"
+	description = "description DNAT example Updated!!"
+  
+	# Using primary_ip from edge gateway
+	external_address         = "89.32.25.10"
+	internal_address         = "4.11.11.11"
+
+	priority = 25
+}
+`
+
+const testAccNATRuleResourceConfigDnatWithVDCGroup = `
+resource "cloudavenue_edgegateway_nat_rule" "example" {
+	edge_gateway_id = cloudavenue_edgegateway.example_with_group.id
+  
+	name        = "example-dnat"
+	rule_type   = "DNAT"
+	description = "description DNAT example"
+  
+	# Using primary_ip from edge gateway
+	external_address         = "89.32.25.10"
+	internal_address         = "11.11.11.4"
+
+	dnat_external_port = "8080"
+}
+`
+
+const testAccNATRuleResourceConfigUpdateDnatWithVDCGroup = `
+resource "cloudavenue_edgegateway_nat_rule" "example" {
+	edge_gateway_id = cloudavenue_edgegateway.example_with_group.id
+  
+	name        = "example-dnat"
+	rule_type   = "DNAT"
+	description = "description DNAT example Updated!!"
+  
+	# Using primary_ip from edge gateway
+	external_address         = "89.32.25.10"
+	internal_address         = "4.11.11.11"
+
+	priority = 25
+}
+`
+
 func natRuleSnatTestCheck(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttrSet(resourceName, "id"),
@@ -87,8 +134,6 @@ func natRuleSnatTestCheck(resourceName string) resource.TestCheckFunc {
 		resource.TestCheckResourceAttr(resourceName, "rule_type", "SNAT"),
 		resource.TestCheckResourceAttr(resourceName, "snat_destination_address", "8.8.8.8"),
 		resource.TestCheckResourceAttr(resourceName, "priority", "10"),
-		resource.TestCheckNoResourceAttr(resourceName, "app_port_profile_id"),
-		resource.TestCheckNoResourceAttr(resourceName, "app_port_profile_name"),
 		resource.TestCheckNoResourceAttr(resourceName, "dnat_external_port"),
 	)
 }
@@ -104,8 +149,6 @@ func natRuleSnatUpdateTestCheck(resourceName string) resource.TestCheckFunc {
 		resource.TestCheckResourceAttr(resourceName, "rule_type", "SNAT"),
 		resource.TestCheckResourceAttr(resourceName, "snat_destination_address", "9.9.9.9"),
 		resource.TestCheckResourceAttr(resourceName, "priority", "0"),
-		resource.TestCheckNoResourceAttr(resourceName, "app_port_profile_id"),
-		resource.TestCheckNoResourceAttr(resourceName, "app_port_profile_name"),
 		resource.TestCheckNoResourceAttr(resourceName, "dnat_external_port"),
 	)
 }
@@ -121,8 +164,21 @@ func natRuleDnatTestCheck(resourceName string) resource.TestCheckFunc {
 		resource.TestCheckResourceAttr(resourceName, "rule_type", "DNAT"),
 		resource.TestCheckResourceAttr(resourceName, "dnat_external_port", "8080"),
 		resource.TestCheckResourceAttr(resourceName, "priority", "0"),
-		resource.TestCheckNoResourceAttr(resourceName, "app_port_profile_id"),
-		resource.TestCheckNoResourceAttr(resourceName, "app_port_profile_name"),
+		resource.TestCheckNoResourceAttr(resourceName, "snat_destination_address"),
+	)
+}
+
+func natRuleDnatUpdateTestCheck(resourceName string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttrSet(resourceName, "id"),
+		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+		resource.TestCheckResourceAttrSet(resourceName, "external_address"),
+		resource.TestCheckResourceAttr(resourceName, "name", "example-dnat"),
+		resource.TestCheckResourceAttr(resourceName, "description", "description DNAT example Updated!!"),
+		resource.TestCheckResourceAttr(resourceName, "internal_address", "4.11.11.11"),
+		resource.TestCheckResourceAttr(resourceName, "rule_type", "DNAT"),
+		resource.TestCheckNoResourceAttr(resourceName, "dnat_external_port"),
+		resource.TestCheckResourceAttr(resourceName, "priority", "25"),
 		resource.TestCheckNoResourceAttr(resourceName, "snat_destination_address"),
 	)
 }
@@ -137,8 +193,6 @@ func natRuleReflexiveTestCheck(resourceName string) resource.TestCheckFunc {
 		resource.TestCheckResourceAttr(resourceName, "internal_address", "192.168.0.1"),
 		resource.TestCheckResourceAttr(resourceName, "rule_type", "REFLEXIVE"),
 		resource.TestCheckResourceAttr(resourceName, "priority", "0"),
-		resource.TestCheckNoResourceAttr(resourceName, "app_port_profile_id"),
-		resource.TestCheckNoResourceAttr(resourceName, "app_port_profile_name"),
 		resource.TestCheckNoResourceAttr(resourceName, "snat_destination_address"),
 		resource.TestCheckNoResourceAttr(resourceName, "dnat_external_port"),
 	)
@@ -151,17 +205,21 @@ func TestAccNATRuleResource(t *testing.T) {
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: tests.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Read testing
+			// * Test with VDC
 			{
 				// Apply test Snat
 				Config: tests.ConcatTests(testAccNATRuleResourceConfigSnat, testAccEdgeGatewayResourceConfig),
 				Check:  natRuleSnatTestCheck(resourceName),
 			},
-			// Update testing Snat
 			{
-				// Update test
+				// Update test Snat
 				Config: tests.ConcatTests(testAccNATRuleResourceConfigUpdateSnat, testAccEdgeGatewayResourceConfig),
 				Check:  natRuleSnatUpdateTestCheck(resourceName),
+			},
+			{
+				// Delete test Snat
+				Destroy: true,
+				Config:  tests.ConcatTests(testAccNATRuleResourceConfigUpdateSnat, testAccEdgeGatewayResourceConfig),
 			},
 			{
 				// Apply test Dnat
@@ -169,25 +227,54 @@ func TestAccNATRuleResource(t *testing.T) {
 				Check:  natRuleDnatTestCheck(resourceName),
 			},
 			{
-				// Delete test
+				// Update test Dnat
+				Config: tests.ConcatTests(testAccNATRuleResourceConfigUpdateDnat, testAccEdgeGatewayResourceConfig),
+				Check:  natRuleDnatUpdateTestCheck(resourceName),
+			},
+			{
+				// Delete test Snat
 				Destroy: true,
-				Config:  tests.ConcatTests(testAccNATRuleResourceConfigSnat, testAccEdgeGatewayResourceConfig),
+				Config:  tests.ConcatTests(testAccNATRuleResourceConfigUpdateDnat, testAccEdgeGatewayResourceConfig),
 			},
 			{
 				// Apply test Reflexive
 				Config: tests.ConcatTests(testAccNATRuleResourceConfigReflexive, testAccEdgeGatewayResourceConfig),
 				Check:  natRuleReflexiveTestCheck(resourceName),
 			},
-			// Import State testing
 			{
-				// Import test
+				// Import test ID and Name
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateIdFunc: testAccNATRuleResourceImportStateIDFuncWithIDAndName(resourceName),
 			},
 			{
-				// Import test
+				// Import test Name and ID
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateIdFunc: testAccNATRuleResourceImportStateIDFuncWithNameAndID(resourceName),
+			},
+			// * Test with VDCGroup
+			{
+				// Apply test Dnat
+				Config: tests.ConcatTests(testAccNATRuleResourceConfigDnatWithVDCGroup, testAccEdgeGatewayGroupResourceConfig),
+				Check:  natRuleDnatTestCheck(resourceName),
+			},
+			{
+				// Update test Dnat
+				Config: tests.ConcatTests(testAccNATRuleResourceConfigUpdateDnatWithVDCGroup, testAccEdgeGatewayGroupResourceConfig),
+				Check:  natRuleDnatUpdateTestCheck(resourceName),
+			},
+			{
+				// Import test ID and Name
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateIdFunc: testAccNATRuleResourceImportStateIDFuncWithIDAndName(resourceName),
+			},
+			{
+				// Import test Name and ID
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

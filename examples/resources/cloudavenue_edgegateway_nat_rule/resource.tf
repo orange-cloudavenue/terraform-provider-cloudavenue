@@ -1,5 +1,5 @@
 resource "cloudavenue_edgegateway_nat_rule" "example" {
-  edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
+  edge_gateway_name = "myEdgeGateway"
 
   name        = "example-snat"
   rule_type   = "SNAT"

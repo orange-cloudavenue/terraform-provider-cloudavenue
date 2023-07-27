@@ -24,10 +24,10 @@ import (
 func natRuleSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_edgegateway_nat_rule` resource allows you to manage EdgeGateway NAT rules. To change the source IP address from a private to a public IP address, you create a source NAT (SNAT) rule. To change the destination IP address from a public to a private IP address, you create a destination NAT (DNAT) rule.",
+			MarkdownDescription: "The `cloudavenue_edgegateway_nat_rule` resource allows you to manage EdgeGateway NAT rule. To change the source IP address from a private to a public IP address, you create a source NAT (SNAT) rule. To change the destination IP address from a public to a private IP address, you create a destination NAT (DNAT) rule.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_edgegateway_nat_rule` data source allows you to retrieve information about an EdgeGateway NAT rules.",
+			MarkdownDescription: "The `cloudavenue_edgegateway_nat_rule` data source allows you to retrieve informations about an EdgeGateway NAT rule.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
@@ -111,6 +111,9 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplace(),
+					},
 					Validators: []validator.String{
 						fstringvalidator.OneOfWithDescription(
 							fstringvalidator.OneOfWithDescriptionValues{
@@ -142,10 +145,10 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 			},
 			"external_address": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The external address for the NAT Rule. This must be supplied as a single IP or Network CIDR.For a DNAT rule, this is the external facing IP Address for incoming traffic. For an SNAT rule, this is the external facing IP Address for outgoing traffic. These IPs are typically allocated/suballocated IP Addresses on the Edge Gateway. For a REFLEXIVE rule, these are the external facing IPs.",
+					MarkdownDescription: "The external address for the NAT Rule. This must be supplied as a single IP or Network CIDR. For a DNAT rule, this is the external facing IP Address for incoming traffic. For an SNAT rule, this is the external facing IP Address for outgoing traffic. These IPs are typically allocated/suballocated IP Addresses on the Edge Gateway. For a REFLEXIVE rule, these are the external facing IPs.",
 				},
 				Resource: &schemaR.StringAttribute{
-					Optional: true,
+					Required: true,
 					// TODO - Validator of IP or IP/CIDR
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -157,41 +160,25 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The internal address for the NAT Rule. This must be supplied as a single IP or Network CIDR. For a DNAT rule, this is the internal IP address for incoming traffic. For an SNAT rule, this is the internal IP Address for outgoing traffic. For a REFLEXIVE rule, these are the internal IPs. These IPs are typically the Private IPs that are allocated to workloads.",
 				},
 				Resource: &schemaR.StringAttribute{
-					Optional: true,
+					Required: true,
 					// TODO - Validator of IP or IP/CIDR
 				},
 				DataSource: &schemaD.StringAttribute{
 					Computed: true,
 				},
 			},
-			"app_port_profile_id": superschema.SuperStringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "Application Port Profile ID to which the rule applies.",
-				},
-				Resource: &schemaR.StringAttribute{
-					Optional: true,
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.UseStateForUnknown(),
-					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
-				},
-			},
-			"app_port_profile_name": superschema.SuperStringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "Application Port Profile Name to which the rule applies.",
-				},
-				Resource: &schemaR.StringAttribute{
-					Optional: true,
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.UseStateForUnknown(),
-					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
-				},
-			},
+			// Not implemented because App_Port_profile for nat rule allow only one port list and one protocol - no real utility
+			// "app_port_profile_id": superschema.SuperStringAttribute{
+			// 	Common: &schemaR.StringAttribute{
+			// 		MarkdownDescription: "Application Port Profile ID to which the rule applies.",
+			// 	},
+			// 	Resource: &schemaR.StringAttribute{
+			// 		Optional: true,
+			// 	},
+			// 	DataSource: &schemaD.StringAttribute{
+			// 		Computed: true,
+			// 	},
+			// },
 			"dnat_external_port": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "This represents the external port number or port range when doing DNAT port forwarding from external to internal. If not specify, all ports are translated",
@@ -199,7 +186,7 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
-						fstringvalidator.RequireIfAttributeIsOneOf(path.MatchRoot("rule_type"), []attr.Value{types.StringValue("DNAT"), types.StringValue("NO_DNAT")}),
+						fstringvalidator.NullIfAttributeIsOneOf(path.MatchRoot("rule_type"), []attr.Value{types.StringValue("SNAT"), types.StringValue("NO_SNAT"), types.StringValue("REFLEXIVE")}),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -213,7 +200,7 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
-						fstringvalidator.RequireIfAttributeIsOneOf(path.MatchRoot("rule_type"), []attr.Value{types.StringValue("SNAT"), types.StringValue("NO_SNAT")}),
+						fstringvalidator.NullIfAttributeIsOneOf(path.MatchRoot("rule_type"), []attr.Value{types.StringValue("DNAT"), types.StringValue("NO_DNAT"), types.StringValue("REFLEXIVE")}),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -235,7 +222,7 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 			// },
 			"priority": superschema.SuperInt64Attribute{
 				Common: &schemaR.Int64Attribute{
-					MarkdownDescription: "If an address has multiple NAT rules, you can assign these rules different priorities to determine the order in which they are applied. A lower value means a higher priority for this rule.",
+					MarkdownDescription: "If an address has multiple NAT rule, you can assign these rule different priorities to determine the order in which they are applied. A lower value means a higher priority for this rule.",
 					Computed:            true,
 				},
 				Resource: &schemaR.Int64Attribute{
@@ -253,15 +240,15 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 						fstringvalidator.OneOfWithDescription(
 							fstringvalidator.OneOfWithDescriptionValues{
 								Value:       "MATCH_INTERNAL_ADDRESS",
-								Description: "Applies firewall rules to the internal address of a NAT rule.",
+								Description: "Applies firewall rule to the internal address of a NAT rule.",
 							},
 							fstringvalidator.OneOfWithDescriptionValues{
 								Value:       "MATCH_EXTERNAL_ADDRESS",
-								Description: "Applies firewall rules to the external address of a NAT rule.",
+								Description: "Applies firewall rule to the external address of a NAT rule.",
 							},
 							fstringvalidator.OneOfWithDescriptionValues{
 								Value:       "BYPASS",
-								Description: "Skip applying firewall rules to NAT rule.",
+								Description: "Skip applying firewall rule to NAT rule.",
 							},
 						),
 					},

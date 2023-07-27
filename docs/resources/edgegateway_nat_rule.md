@@ -2,18 +2,18 @@
 page_title: "cloudavenue_edgegateway_nat_rule Resource - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  The cloudavenue_edgegateway_nat_rule resource allows you to manage EdgeGateway NAT rules. To change the source IP address from a private to a public IP address, you create a source NAT (SNAT) rule. To change the destination IP address from a public to a private IP address, you create a destination NAT (DNAT) rule.
+  The cloudavenue_edgegateway_nat_rule resource allows you to manage EdgeGateway NAT rule. To change the source IP address from a private to a public IP address, you create a source NAT (SNAT) rule. To change the destination IP address from a public to a private IP address, you create a destination NAT (DNAT) rule.
 ---
 
 # cloudavenue_edgegateway_nat_rule (Resource)
 
-The `cloudavenue_edgegateway_nat_rule` resource allows you to manage EdgeGateway NAT rules. To change the source IP address from a private to a public IP address, you create a source NAT (SNAT) rule. To change the destination IP address from a public to a private IP address, you create a destination NAT (DNAT) rule.
+The `cloudavenue_edgegateway_nat_rule` resource allows you to manage EdgeGateway NAT rule. To change the source IP address from a private to a public IP address, you create a source NAT (SNAT) rule. To change the destination IP address from a public to a private IP address, you create a destination NAT (DNAT) rule.
 
 ## Example Usage
 
 ```terraform
 resource "cloudavenue_edgegateway_nat_rule" "example" {
-  edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
+  edge_gateway_name = "myEdgeGateway"
 
   name        = "example-snat"
   rule_type   = "SNAT"
@@ -33,23 +33,21 @@ resource "cloudavenue_edgegateway_nat_rule" "example" {
 
 ### Required
 
+- `external_address` (String) The external address for the NAT Rule. This must be supplied as a single IP or Network CIDR. For a DNAT rule, this is the external facing IP Address for incoming traffic. For an SNAT rule, this is the external facing IP Address for outgoing traffic. These IPs are typically allocated/suballocated IP Addresses on the Edge Gateway. For a REFLEXIVE rule, these are the external facing IPs.
+- `internal_address` (String) The internal address for the NAT Rule. This must be supplied as a single IP or Network CIDR. For a DNAT rule, this is the internal IP address for incoming traffic. For an SNAT rule, this is the internal IP Address for outgoing traffic. For a REFLEXIVE rule, these are the internal IPs. These IPs are typically the Private IPs that are allocated to workloads.
 - `name` (String) (ForceNew) The Name of the Nat Rule.
-- `rule_type` (String) Nat Rule type. Value must be one of: `DNAT` (Rule translates the external IP to an internal IP and is used for inbound traffic.), `NO_DNAT` (Prevents external IP translation.), `SNAT` (Translates an internal IP to an external IP and is used for outbound traffic.), `NO_SNAT` (Prevents internal IP translation.), `REFLEXIVE` (This translates an internal IP to an external IP and vice versa.).
+- `rule_type` (String) (ForceNew) Nat Rule type. Value must be one of: `DNAT` (Rule translates the external IP to an internal IP and is used for inbound traffic.), `NO_DNAT` (Prevents external IP translation.), `SNAT` (Translates an internal IP to an external IP and is used for outbound traffic.), `NO_SNAT` (Prevents internal IP translation.), `REFLEXIVE` (This translates an internal IP to an external IP and vice versa.).
 
 ### Optional
 
-- `app_port_profile_id` (String) Application Port Profile ID to which the rule applies.
-- `app_port_profile_name` (String) Application Port Profile Name to which the rule applies.
 - `description` (String) A description of the NAT rule.
-- `dnat_external_port` (String) This represents the external port number or port range when doing DNAT port forwarding from external to internal. If not specify, all ports are translated. If rule_type attribute is set and the value is one of `"DNAT"`, `"NO_DNAT"`, this attribute is REQUIRED.
+- `dnat_external_port` (String) This represents the external port number or port range when doing DNAT port forwarding from external to internal. If not specify, all ports are translated. If rule_type attribute is set and the value is one of `"SNAT"`, `"NO_SNAT"`, `"REFLEXIVE"`, this attribute is NULL.
 - `edge_gateway_id` (String) (ForceNew) The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 - `edge_gateway_name` (String) (ForceNew) The Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 - `enabled` (Boolean) Enable or Disable the Nat Rule. Value defaults to `true`.
-- `external_address` (String) The external address for the NAT Rule. This must be supplied as a single IP or Network CIDR.For a DNAT rule, this is the external facing IP Address for incoming traffic. For an SNAT rule, this is the external facing IP Address for outgoing traffic. These IPs are typically allocated/suballocated IP Addresses on the Edge Gateway. For a REFLEXIVE rule, these are the external facing IPs.
-- `firewall_match` (String) You can set a firewall match rule to determine how firewall is applied during NAT. Value must be one of: `MATCH_INTERNAL_ADDRESS` (Applies firewall rules to the internal address of a NAT rule.), `MATCH_EXTERNAL_ADDRESS` (Applies firewall rules to the external address of a NAT rule.), `BYPASS` (Skip applying firewall rules to NAT rule.).
-- `internal_address` (String) The internal address for the NAT Rule. This must be supplied as a single IP or Network CIDR. For a DNAT rule, this is the internal IP address for incoming traffic. For an SNAT rule, this is the internal IP Address for outgoing traffic. For a REFLEXIVE rule, these are the internal IPs. These IPs are typically the Private IPs that are allocated to workloads.
-- `priority` (Number) If an address has multiple NAT rules, you can assign these rules different priorities to determine the order in which they are applied. A lower value means a higher priority for this rule.
-- `snat_destination_address` (String) The destination addresses to match in the SNAT Rule. This must be supplied as a single IP or Network CIDR. Providing no value for this field results in match with ANY destination network. If rule_type attribute is set and the value is one of `"SNAT"`, `"NO_SNAT"`, this attribute is REQUIRED.
+- `firewall_match` (String) You can set a firewall match rule to determine how firewall is applied during NAT. Value must be one of: `MATCH_INTERNAL_ADDRESS` (Applies firewall rule to the internal address of a NAT rule.), `MATCH_EXTERNAL_ADDRESS` (Applies firewall rule to the external address of a NAT rule.), `BYPASS` (Skip applying firewall rule to NAT rule.).
+- `priority` (Number) If an address has multiple NAT rule, you can assign these rule different priorities to determine the order in which they are applied. A lower value means a higher priority for this rule.
+- `snat_destination_address` (String) The destination addresses to match in the SNAT Rule. This must be supplied as a single IP or Network CIDR. Providing no value for this field results in match with ANY destination network. If rule_type attribute is set and the value is one of `"DNAT"`, `"NO_DNAT"`, `"REFLEXIVE"`, this attribute is NULL.
 
 ### Read-Only
 

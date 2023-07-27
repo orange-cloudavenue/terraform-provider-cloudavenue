@@ -380,7 +380,7 @@ func (r *natRuleResource) read(planOrState *NATRuleModel) (stateRefreshed *NATRu
 		return nil, true, diags
 	}
 
-	stateRefreshed.Description.Set(rule.NsxtNatRule.Description)
+	stateRefreshed.Description = utils.SuperStringValueOrNull(rule.NsxtNatRule.Description)
 	stateRefreshed.DnatExternalPort = utils.SuperStringValueOrNull(rule.NsxtNatRule.DnatExternalPort)
 	stateRefreshed.EdgeGatewayID.Set(r.edgegw.GetID())
 	stateRefreshed.EdgeGatewayName.Set(r.edgegw.GetName())

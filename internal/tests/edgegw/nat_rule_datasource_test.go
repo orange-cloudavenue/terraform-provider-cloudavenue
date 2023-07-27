@@ -10,6 +10,7 @@ import (
 
 const testAccNatRuleDataSourceConfig = `
 data "cloudavenue_edgegateway_nat_rule" "example" {
+	depends_on = [cloudavenue_edgegateway.example_with_vdc, cloudavenue_edgegateway_nat_rule.example]
 	edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
 	name = "example-snat"
 }

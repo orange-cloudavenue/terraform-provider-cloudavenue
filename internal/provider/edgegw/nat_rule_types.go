@@ -14,17 +14,17 @@ import (
 )
 
 type NATRuleModel struct {
-	AppPortProfileID   supertypes.StringValue `tfsdk:"app_port_profile_id"`
-	AppPortProfileName supertypes.StringValue `tfsdk:"app_port_profile_name"`
-	Description        supertypes.StringValue `tfsdk:"description"`
-	DnatExternalPort   supertypes.StringValue `tfsdk:"dnat_external_port"`
-	EdgeGatewayID      supertypes.StringValue `tfsdk:"edge_gateway_id"`
-	EdgeGatewayName    supertypes.StringValue `tfsdk:"edge_gateway_name"`
-	Enabled            supertypes.BoolValue   `tfsdk:"enabled"`
-	ExternalAddress    supertypes.StringValue `tfsdk:"external_address"`
-	FirewallMatch      supertypes.StringValue `tfsdk:"firewall_match"`
-	ID                 supertypes.StringValue `tfsdk:"id"`
-	InternalAddress    supertypes.StringValue `tfsdk:"internal_address"`
+	// Option not implemented - see schema comment
+	// AppPortProfileID supertypes.StringValue `tfsdk:"app_port_profile_id"`
+	Description      supertypes.StringValue `tfsdk:"description"`
+	DnatExternalPort supertypes.StringValue `tfsdk:"dnat_external_port"`
+	EdgeGatewayID    supertypes.StringValue `tfsdk:"edge_gateway_id"`
+	EdgeGatewayName  supertypes.StringValue `tfsdk:"edge_gateway_name"`
+	Enabled          supertypes.BoolValue   `tfsdk:"enabled"`
+	ExternalAddress  supertypes.StringValue `tfsdk:"external_address"`
+	FirewallMatch    supertypes.StringValue `tfsdk:"firewall_match"`
+	ID               supertypes.StringValue `tfsdk:"id"`
+	InternalAddress  supertypes.StringValue `tfsdk:"internal_address"`
 	// Option not available in CloudAvenue
 	// Logging                supertypes.BoolValue   `tfsdk:"logging"`
 	Name                   supertypes.StringValue `tfsdk:"name"`
@@ -37,8 +37,6 @@ func NewNATRule(t any) *NATRuleModel {
 	switch x := t.(type) {
 	case tfsdk.State:
 		return &NATRuleModel{
-			AppPortProfileID:       supertypes.NewStringNull(),
-			AppPortProfileName:     supertypes.NewStringNull(),
 			Description:            supertypes.NewStringNull(),
 			DnatExternalPort:       supertypes.NewStringNull(),
 			EdgeGatewayID:          supertypes.NewStringUnknown(),
@@ -49,15 +47,13 @@ func NewNATRule(t any) *NATRuleModel {
 			ID:                     supertypes.NewStringUnknown(),
 			InternalAddress:        supertypes.NewStringNull(),
 			Name:                   supertypes.NewStringUnknown(),
-			Priority:               supertypes.NewInt64Null(),
+			Priority:               supertypes.NewInt64Unknown(),
 			RuleType:               supertypes.NewStringNull(),
 			SnatDestinationAddress: supertypes.NewStringNull(),
 		}
 
 	case tfsdk.Plan:
 		return &NATRuleModel{
-			AppPortProfileID:       supertypes.NewStringNull(),
-			AppPortProfileName:     supertypes.NewStringNull(),
 			Description:            supertypes.NewStringNull(),
 			DnatExternalPort:       supertypes.NewStringNull(),
 			EdgeGatewayID:          supertypes.NewStringUnknown(),
@@ -68,15 +64,13 @@ func NewNATRule(t any) *NATRuleModel {
 			ID:                     supertypes.NewStringUnknown(),
 			InternalAddress:        supertypes.NewStringNull(),
 			Name:                   supertypes.NewStringUnknown(),
-			Priority:               supertypes.NewInt64Null(),
+			Priority:               supertypes.NewInt64Unknown(),
 			RuleType:               supertypes.NewStringNull(),
 			SnatDestinationAddress: supertypes.NewStringNull(),
 		}
 
 	case tfsdk.Config:
 		return &NATRuleModel{
-			AppPortProfileID:       supertypes.NewStringNull(),
-			AppPortProfileName:     supertypes.NewStringNull(),
 			Description:            supertypes.NewStringNull(),
 			DnatExternalPort:       supertypes.NewStringNull(),
 			EdgeGatewayID:          supertypes.NewStringUnknown(),
@@ -87,7 +81,7 @@ func NewNATRule(t any) *NATRuleModel {
 			ID:                     supertypes.NewStringUnknown(),
 			InternalAddress:        supertypes.NewStringNull(),
 			Name:                   supertypes.NewStringUnknown(),
-			Priority:               supertypes.NewInt64Null(),
+			Priority:               supertypes.NewInt64Unknown(),
 			RuleType:               supertypes.NewStringNull(),
 			SnatDestinationAddress: supertypes.NewStringNull(),
 		}
@@ -116,13 +110,6 @@ func (rm *NATRuleModel) ToNsxtNatRule(ctx context.Context) (values *govcdtypes.N
 		FirewallMatch:            rm.FirewallMatch.Get(),
 		Priority:                 utils.TakeIntPointer(int(rm.Priority.Get())),
 	}
-	// Get AppPortProfile
-	if rm.AppPortProfileID.IsKnown() || rm.AppPortProfileName.IsKnown() {
-		appPortProfile := &govcdtypes.OpenApiReference{
-			Name: rm.AppPortProfileName.Get(),
-			ID:   rm.AppPortProfileID.Get(),
-		}
-		values.ApplicationPortProfile = appPortProfile
-	}
+
 	return values, err
 }
