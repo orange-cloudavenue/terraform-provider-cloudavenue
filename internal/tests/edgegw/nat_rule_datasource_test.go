@@ -10,8 +10,7 @@ import (
 
 const testAccNatRuleDataSourceConfig = `
 data "cloudavenue_edgegateway_nat_rule" "example" {
-	depends_on = [cloudavenue_edgegateway_nat_rule.example]
-	edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[1].id
+	edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
 	name = "example-snat"
 }
 `
@@ -26,7 +25,7 @@ func TestAccNatRuleDataSource(t *testing.T) {
 			// Read testing
 			{
 				// Apply test
-				Config: tests.ConcatTests(testAccNATRuleResourceConfigSnat, testAccNatRuleDataSourceConfig, testAccNATRuleResourceConfigDataSource),
+				Config: tests.ConcatTests(testAccNATRuleResourceConfigSnat, testAccNatRuleDataSourceConfig, testAccEdgeGatewayResourceConfig),
 				Check:  natRuleSnatTestCheck(dataSourceName),
 			},
 		},

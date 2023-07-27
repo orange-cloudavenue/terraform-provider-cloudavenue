@@ -117,7 +117,7 @@ func (rm *NATRuleModel) ToNsxtNatRule(ctx context.Context) (values *govcdtypes.N
 		Priority:                 utils.TakeIntPointer(int(rm.Priority.Get())),
 	}
 	// Get AppPortProfile
-	if rm.AppPortProfileID.IsKnown() {
+	if rm.AppPortProfileID.IsKnown() || rm.AppPortProfileName.IsKnown() {
 		appPortProfile := &govcdtypes.OpenApiReference{
 			Name: rm.AppPortProfileName.Get(),
 			ID:   rm.AppPortProfileID.Get(),

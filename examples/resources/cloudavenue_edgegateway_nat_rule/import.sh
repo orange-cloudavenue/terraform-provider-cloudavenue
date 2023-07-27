@@ -1,1 +1,1 @@
-terraform import cloudavenue_edgegateway_nat_rule.example edgeGatewayIDOrName.natRuleName
+terraform import cloudavenue_edgegateway_nat_rule.example edgeGatewayIDOrName.natRuleNameOrID

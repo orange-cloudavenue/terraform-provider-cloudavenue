@@ -24,10 +24,10 @@ import (
 func natRuleSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The  resource allows you to manage EdgeGateway NAT rules. To change the source IP address from a private to a public IP address, you create a source NAT (SNAT) rule. To change the destination IP address from a public to a private IP address, you create a destination NAT (DNAT) rule.",
+			MarkdownDescription: "The `cloudavenue_edgegateway_nat_rule` resource allows you to manage EdgeGateway NAT rules. To change the source IP address from a private to a public IP address, you create a source NAT (SNAT) rule. To change the destination IP address from a public to a private IP address, you create a destination NAT (DNAT) rule.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The  data source allows you to retrieve information about an EdgeGateway NAT rules.",
+			MarkdownDescription: "The `cloudavenue_edgegateway_nat_rule` data source allows you to retrieve information about an EdgeGateway NAT rules.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
@@ -86,8 +86,10 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 			},
 			"description": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The Description of the Nat Rule.",
-					Optional:            true,
+					MarkdownDescription: "A description of the NAT rule",
+				},
+				Resource: &schemaR.StringAttribute{
+					Optional: true,
 				},
 				DataSource: &schemaD.StringAttribute{
 					Computed: true,
@@ -96,11 +98,11 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 			"enabled": superschema.SuperBoolAttribute{
 				Common: &schemaR.BoolAttribute{
 					MarkdownDescription: "Enable or Disable the Nat Rule.",
-					Optional:            true,
 					Computed:            true,
 				},
 				Resource: &schemaR.BoolAttribute{
-					Default: booldefault.StaticBool(true),
+					Default:  booldefault.StaticBool(true),
+					Optional: true,
 				},
 			},
 			"rule_type": superschema.SuperStringAttribute{
@@ -168,6 +170,9 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
 				},
 				DataSource: &schemaD.StringAttribute{
 					Computed: true,
@@ -179,6 +184,9 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
 				},
 				DataSource: &schemaD.StringAttribute{
 					Computed: true,
@@ -191,8 +199,7 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
-						fstringvalidator.RequireIfAttributeIsOneOf(path.MatchRoot("rule_type"), []attr.Value{types.StringValue("DNAT")}),
-						fstringvalidator.RequireIfAttributeIsOneOf(path.MatchRoot("rule_type"), []attr.Value{types.StringValue("NO_DNAT")}),
+						fstringvalidator.RequireIfAttributeIsOneOf(path.MatchRoot("rule_type"), []attr.Value{types.StringValue("DNAT"), types.StringValue("NO_DNAT")}),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -206,8 +213,7 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
-						fstringvalidator.RequireIfAttributeIsOneOf(path.MatchRoot("rule_type"), []attr.Value{types.StringValue("SNAT")}),
-						fstringvalidator.RequireIfAttributeIsOneOf(path.MatchRoot("rule_type"), []attr.Value{types.StringValue("NO_SNAT")}),
+						fstringvalidator.RequireIfAttributeIsOneOf(path.MatchRoot("rule_type"), []attr.Value{types.StringValue("SNAT"), types.StringValue("NO_SNAT")}),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -250,7 +256,7 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 								Description: "Applies firewall rules to the internal address of a NAT rule.",
 							},
 							fstringvalidator.OneOfWithDescriptionValues{
-								Value:       "MATCH_EXTERNAL_ADDRESST",
+								Value:       "MATCH_EXTERNAL_ADDRESS",
 								Description: "Applies firewall rules to the external address of a NAT rule.",
 							},
 							fstringvalidator.OneOfWithDescriptionValues{

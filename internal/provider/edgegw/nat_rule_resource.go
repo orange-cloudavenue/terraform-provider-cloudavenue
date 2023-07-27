@@ -27,9 +27,6 @@ var (
 	_ resource.Resource                = &natRuleResource{}
 	_ resource.ResourceWithConfigure   = &natRuleResource{}
 	_ resource.ResourceWithImportState = &natRuleResource{}
-	// _ resource.ResourceWithModifyPlan     = &natRuleResource{}
-	// _ resource.ResourceWithUpgradeState   = &natRuleResource{}
-	// _ resource.ResourceWithValidateConfig = &natRuleResource{}.
 )
 
 // NewNATRuleResource is a helper function to simplify the provider implementation.
@@ -140,8 +137,6 @@ func (r *natRuleResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	// tflog.Info(ctx, pp.Sprintf("******RULE CREATE RETURN %v", rule))
-
 	// Set ID
 	plan.ID.Set(rule.NsxtNatRule.ID)
 
@@ -245,15 +240,13 @@ func (r *natRuleResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// Inject ID for update
 	nsxtNATRule.ID = existingRule.NsxtNatRule.ID
-	_, err = existingRule.Update(nsxtNATRule)
-	if err != nil {
+	if _, err = existingRule.Update(nsxtNATRule); err != nil {
 		resp.Diagnostics.AddError("Error updating NSX-T NAT rule: %s", err.Error())
 		return
 	}
 
 	// read NAT Rule and refresh state
 	stateRefreshed, _, d := r.read(plan)
-
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -304,16 +297,13 @@ func (r *natRuleResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
-	err = existingRule.Delete()
-	if err != nil {
+	if err = existingRule.Delete(); err != nil {
 		resp.Diagnostics.AddError("Error Deleting NAT Rule ID", err.Error())
 		return
 	}
-	resp.State.RemoveResource(ctx)
 }
 
 func (r *natRuleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	var (
 		edgegwID, edgegwName string
 		d                    diag.Diagnostics
@@ -373,8 +363,10 @@ func (r *natRuleResource) read(planOrState *NATRuleModel) (stateRefreshed *NATRu
 	stateRefreshed = planOrState.Copy()
 
 	// Get Nat Rule by Name or ID
-	var rule *govcd.NsxtNatRule
-	var err error
+	var (
+		rule *govcd.NsxtNatRule
+		err  error
+	)
 	if stateRefreshed.ID.IsKnown() {
 		rule, err = r.edgegw.GetNatRuleById(stateRefreshed.ID.Get())
 	} else {
@@ -386,12 +378,6 @@ func (r *natRuleResource) read(planOrState *NATRuleModel) (stateRefreshed *NATRu
 		}
 		diags.AddError("Error retrieving NAT Rule ID", err.Error())
 		return nil, true, diags
-	}
-
-	// Set AppPortProfile
-	if rule.NsxtNatRule.ApplicationPortProfile != nil {
-		stateRefreshed.AppPortProfileID.Set(rule.NsxtNatRule.ApplicationPortProfile.ID)
-		stateRefreshed.AppPortProfileName.Set(rule.NsxtNatRule.ApplicationPortProfile.Name)
 	}
 
 	stateRefreshed.Description.Set(rule.NsxtNatRule.Description)
