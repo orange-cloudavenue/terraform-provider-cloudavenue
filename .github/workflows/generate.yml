@@ -1,0 +1,29 @@
+# Terraform Provider testing workflow.
+name: generate
+
+# This GitHub action runs your tests for each pull request and push.
+# Optionally, you can turn it on using a schedule for regular testing.
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'templates/**'
+      - 'examples/**'  
+      - 'internal/tests/**'
+      - '**.go'
+  
+jobs:
+  generate:
+    name: Generate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3 # v3.5.0
+      - uses: actions/setup-go@v4.0.1 # v4.0.0
+        with:
+          go-version-file: 'go.mod'
+      - run: make generate
+      - name: git diff
+        run: |
+          git diff --compact-summary --exit-code || \
+            (echo; echo "Unexpected difference in directories after code generation. Run 'go generate ./...' command and commit."; exit 1)
