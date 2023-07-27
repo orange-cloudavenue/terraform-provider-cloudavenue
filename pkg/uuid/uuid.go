@@ -72,6 +72,10 @@ func isUUIDV4(uuid string) bool {
 	return regexp.MustCompile(`(?m)^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$`).MatchString(uuid)
 }
 
+func IsUUIDV4(uuid string) bool {
+	return isUUIDV4(uuid)
+}
+
 // ContainsPrefix returns true if the UUID contains any prefix.
 func (uuid VcloudUUID) ContainsPrefix() bool {
 	return strings.Contains(string(uuid), string(VcloudUUIDPrefix))

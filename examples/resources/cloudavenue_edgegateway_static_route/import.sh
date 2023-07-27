@@ -1,0 +1,1 @@
+terraform import cloudavenue_edgegateway_static_route.example edgeGatewayIDOrName.staticRouteIDOrName

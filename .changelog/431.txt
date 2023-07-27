@@ -1,0 +1,4 @@
+```release-note:enhancement
+`resource/cloudavenue_edgegateway_ip_set` - Improve example in documentation.
+`datasource/cloudavenue_edgegateway_ip_set` - Improve example in documentation.
+```
