@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -37,9 +38,7 @@ func portProfilesSchema(_ context.Context) superschema.Schema {
 			"name": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Application Port Profile name.",
-				},
-				Resource: &schemaR.StringAttribute{
-					Required: true,
+					Required:            true,
 				},
 			},
 			"description": superschema.StringAttribute{
@@ -52,13 +51,16 @@ func portProfilesSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+				},
 			},
 			"vdc": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "ID of VDC or VDC Group",
+					Optional:            true,
 				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 						stringplanmodifier.UseStateForUnknown(),
@@ -68,17 +70,22 @@ func portProfilesSchema(_ context.Context) superschema.Schema {
 			"app_ports": superschema.ListNestedAttribute{
 				Common: &schemaR.ListNestedAttribute{
 					MarkdownDescription: "List of application ports.",
-					Required:            true,
+				},
+				Resource: &schemaR.ListNestedAttribute{
+					Required: true,
+				},
+				DataSource: &schemaD.ListNestedAttribute{
+					Computed: true,
 				},
 				Attributes: map[string]superschema.Attribute{
 					"ports": superschema.SetAttribute{
 						Common: &schemaR.SetAttribute{
 							MarkdownDescription: "Set of ports or ranges.",
+							ElementType:         types.StringType,
 							Computed:            true,
 						},
 						Resource: &schemaR.SetAttribute{
-							Optional:    true,
-							ElementType: types.StringType,
+							Optional: true,
 							PlanModifiers: []planmodifier.Set{
 								setplanmodifier.UseStateForUnknown(),
 							},
@@ -93,6 +100,9 @@ func portProfilesSchema(_ context.Context) superschema.Schema {
 							Validators: []validator.String{
 								stringvalidator.OneOf("ICMPv4", "ICMPv6", "TCP", "UDP"),
 							},
+						},
+						DataSource: &schemaD.StringAttribute{
+							Computed: true,
 						},
 					},
 				},

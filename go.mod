@@ -16,6 +16,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.18.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.27.0
+	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.1.2
 	github.com/rs/zerolog v1.30.0
 	github.com/vmware/go-vcloud-director/v2 v2.21.0
@@ -57,6 +58,7 @@ require (
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/imdario/mergo v0.3.15 // indirect
+	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
