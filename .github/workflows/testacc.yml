@@ -8,7 +8,8 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-22.04
-    if: 
+    if: github.event.issue.author_association == 'OWNER' ||
+      github.event.issue.author_association == 'MEMBER' &&
       github.event.issue.pull_request &&
       startsWith(github.event.comment.body, '/testacc ')
     steps:
