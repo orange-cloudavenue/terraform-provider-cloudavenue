@@ -50,7 +50,8 @@ jobs:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
       - run: go mod download
-      - env:
+      - name : Run Terraform Acceptance Tests
+        env:
           TF_ACC: "1"
           CLOUDAVENUE_ORG: ${{ secrets.CLOUDAVENUE_ORG }}
           CLOUDAVENUE_USER: ${{ secrets.CLOUDAVENUE_USER }}
@@ -62,3 +63,16 @@ jobs:
           CATEGORY=$(echo $TEST_NAME | sed -r 's/^TestAcc([A-Z][a-z]*).*$/\1/' | tr '[:upper:]' '[:lower:]')
           go test ./internal/tests/$CATEGORY -run $TEST_NAME
         timeout-minutes: 10
+      - name: Comment PR with test results
+        uses: actions/github-script@v6.4.1
+        if: always() # This ensures the step always runs, even if the test step failed
+        with:
+          script: |
+            const fs = require('fs');
+            let output = fs.readFileSync('test_output.txt', 'utf8'); // Read the test output file
+            github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+            });
