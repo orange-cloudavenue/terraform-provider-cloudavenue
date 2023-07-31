@@ -55,6 +55,7 @@ jobs:
           CLOUDAVENUE_USER: ${{ secrets.CLOUDAVENUE_USER }}
           CLOUDAVENUE_PASSWORD: ${{ secrets.CLOUDAVENUE_PASSWORD }}
           CLOUDAVENUE_URL : ${{ secrets.CLOUDAVENUE_URL }}
+          CLOUDAVENUE_VDC : ${{ secrets.CLOUDAVENUE_VDC }}
         run: |
           TEST_NAME=$(echo ${{ github.event.comment.body }} | cut -d " " -f2)
           CATEGORY=$(echo $TEST_NAME | sed -r 's/^TestAcc([A-Z][a-z]*).*$/\1/' | tr '[:upper:]' '[:lower:]')
