@@ -16,7 +16,7 @@ jobs:
       id: command
       uses: xt0rted/slash-command-action@v2
       with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        repo-token: ${{ secrets.GH_PAT }}
         command: testacc
         reaction: "true"
         reaction-type: "rocket"
