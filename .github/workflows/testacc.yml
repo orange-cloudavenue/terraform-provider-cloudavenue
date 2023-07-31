@@ -67,6 +67,7 @@ jobs:
         uses: actions/github-script@v6.4.1
         if: always() # This ensures the step always runs, even if the test step failed
         with:
+          github-token: ${{ secrets.GH_PAT }}
           script: |
             const fs = require('fs');
             let output = fs.readFileSync('test_output.txt', 'utf8'); // Read the test output file
