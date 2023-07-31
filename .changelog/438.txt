@@ -1,0 +1,3 @@
+```release-note:dependency
+deps: bumps github.com/rs/zerolog from 1.29.1 to 1.30.0
+```
