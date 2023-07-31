@@ -1,33 +1,33 @@
-name: Generate CHANGELOG
-on:
-  pull_request:
-    types: [closed]
-  workflow_dispatch:
-jobs:
-  GenerateChangelog:
-    if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3 
-        with:
-          token: ${{ secrets.CHANGELOG_PAT }}
-          fetch-depth: 0
-          submodules: true
-      - uses: actions/setup-go@v4.0.1
-        with:
-          go-version-file: '.ci/tools/go.mod'
-      - run: go generate -tags tools .ci/tools/tools.go
-      - run: ./.ci/scripts/generate-changelog.sh
-      - run: |
-          if [[ `git status --porcelain` ]]; then
-            if ${{github.event_name == 'workflow_dispatch'}}; then
-              MSG="chore: update CHANGELOG.md (Manual Trigger)"
-            else
-              MSG="chore: update CHANGELOG.md for #${{ github.event.pull_request.number }}"
-            fi
-            git config --local user.email changelogbot@frangipane.io
-            git config --local user.name changelogbot
-            git add CHANGELOG.md
-            git commit -m "$MSG"
-            git push
-          fi
+# name: Generate CHANGELOG
+# on:
+#   pull_request:
+#     types: [closed]
+#   workflow_dispatch:
+# jobs:
+#   GenerateChangelog:
+#     if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3 
+#         with:
+#           token: ${{ secrets.CHANGELOG_PAT }}
+#           fetch-depth: 0
+#           submodules: true
+#       - uses: actions/setup-go@v4.0.1
+#         with:
+#           go-version-file: '.ci/tools/go.mod'
+#       - run: go generate -tags tools .ci/tools/tools.go
+#       - run: ./.ci/scripts/generate-changelog.sh
+#       - run: |
+#           if [[ `git status --porcelain` ]]; then
+#             if ${{github.event_name == 'workflow_dispatch'}}; then
+#               MSG="chore: update CHANGELOG.md (Manual Trigger)"
+#             else
+#               MSG="chore: update CHANGELOG.md for #${{ github.event.pull_request.number }}"
+#             fi
+#             git config --local user.email changelogbot@frangipane.io
+#             git config --local user.name changelogbot
+#             git add CHANGELOG.md
+#             git commit -m "$MSG"
+#             git push
+#           fi

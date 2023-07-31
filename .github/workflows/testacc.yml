@@ -1,7 +1,9 @@
-Name: Acceptance Tests
+name: Acceptance Tests
 
-on: issue_comment
-
+on:
+  issue_comment:
+    types: [created]
+    
 jobs:
   build:
     name: Build
@@ -9,7 +11,7 @@ jobs:
     if: github.event.issue.author_association == 'OWNER' &&
       github.event.issue.author_association == 'MEMBER' &&
       github.event.issue.pull_request &&
-      startsWith(github.event.comment.body, '/testacc')
+      startsWith(github.event.comment.body, '/testacc ')
     steps:
     - name: Extract Command
       id: command
@@ -36,11 +38,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # list whatever Terraform versions here you would like to support
         terraform:
-          - '1.0.*'
-          - '1.1.*'
-          - '1.2.*'
           - '1.3.*'
     steps:
       - uses: actions/checkout@v3 # v3.5.0
@@ -57,5 +55,8 @@ jobs:
           CLOUDAVENUE_ORG: ${{ secrets.CLOUDAVENUE_ORG }}
           CLOUDAVENUE_USER: ${{ secrets.CLOUDAVENUE_USER }}
           CLOUDAVENUE_PASSWORD: ${{ secrets.CLOUDAVENUE_PASSWORD }}
-        run: go test -v -cover ./internal/provider/
+        run: |
+          TEST_NAME=$(echo ${{ github.event.comment.body }} | cut -d " " -f2)
+          CATEGORY=$(echo $TEST_NAME | sed -r 's/^TestAcc([A-Z][a-z]*).*$/\1/' | tr '[:upper:]' '[:lower:]')
+          go test ./internal/tests/$CATEGORY -run $TEST_NAME
         timeout-minutes: 10
