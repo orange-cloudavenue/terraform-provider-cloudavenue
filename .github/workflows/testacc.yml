@@ -61,17 +61,8 @@ jobs:
         run: |
           TEST_NAME=$(echo "${{ github.event.comment.body }}" | cut -d " " -f2)
           CATEGORY=$(grep -rilE "$TEST_NAME" * | sed 's![^/]*$!!')
-          echo "CATEGORY: $CATEGORY" 
           if [ -d "$CATEGORY" ]; then
-            TEST_PATH="$CATEGORY/$TEST_NAME"
-            if [-f "$TEST_PATH"]; then
-              go test ./$CATEGORY -run $TEST_NAME  > 'test_output.txt'
-            else
-              echo "This ressource name does not exist" > 'test_output.txt'
-            fi
-          else
-           echo "This category does not exist" > 'test_output.txt' 
-          fi
+           go test ./$CATEGORY -run $TEST_NAME  > 'test_output.txt'
         timeout-minutes: 20
       - name: Comment PR with test results
         uses: actions/github-script@v6.4.1
@@ -84,10 +75,6 @@ jobs:
             let comment = "";
             if (output.includes('[no tests to run]')) {
                 comment = "This ressource name does not exist";
-            } else if (output.includes('This category does not exist')) {
-                comment = "This category does not exist";
-            } else if (output.includes('This test does not exist')) {
-                comment = "This test does not exist";
             } else if (output.startsWith('ok')) {
                 comment = "Acceptance Test passed : " + output;
             } else {
