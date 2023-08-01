@@ -26,6 +26,7 @@ const (
 	VAPP              = VcloudUUID(VcloudUUIDPrefix + "vapp:")
 	Disk              = VcloudUUID(VcloudUUIDPrefix + "disk:")
 	SecurityGroup     = VcloudUUID(VcloudUUIDPrefix + "firewallGroup:")
+	AppPortProfile    = VcloudUUID(VcloudUUIDPrefix + "applicationPortProfile:")
 
 	// * CLOUDAVENUE.
 	VCDA = VcloudUUID(CloudAvenueUUIDPrefix + "vcda:")
@@ -43,6 +44,7 @@ var vcloudUUIDs = []VcloudUUID{
 	VAPP,
 	Disk,
 	SecurityGroup,
+	AppPortProfile,
 }
 
 type (
@@ -178,6 +180,11 @@ func (uuid VcloudUUID) IsSecurityGroup() bool {
 	return uuid.IsType(SecurityGroup)
 }
 
+// IsAppPortProfile returns true if the UUID is a AppPortProfile UUID.
+func (uuid VcloudUUID) IsAppPortProfile() bool {
+	return uuid.IsType(AppPortProfile)
+}
+
 // IsEdgeGateway returns true if the UUID is a EdgeGateway UUID.
 func IsEdgeGateway(uuid string) bool {
 	return VcloudUUID(uuid).IsType(Gateway)
@@ -216,6 +223,11 @@ func IsDisk(uuid string) bool {
 // IsSecurityGroup returns true if the UUID is a SecurityGroup UUID.
 func IsSecurityGroup(uuid string) bool {
 	return VcloudUUID(uuid).IsType(SecurityGroup)
+}
+
+// IsAppPortProfile returns true if the UUID is a AppPortProfile UUID.
+func IsAppPortProfile(uuid string) bool {
+	return VcloudUUID(uuid).IsType(AppPortProfile)
 }
 
 // IsVCDA returns true if the UUID is a VCDA UUID.

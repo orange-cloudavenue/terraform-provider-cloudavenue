@@ -126,5 +126,59 @@ func (e EdgeGateway) SetIPSet(ipSetConfig *govcdtypes.NsxtFirewallGroup) (*govcd
 	return e.CreateNsxtFirewallGroup(ipSetConfig)
 }
 
-// GetAppPortProfileByNameOrID
-func (e EdgeGateway) GetAppPortProfileByNameOrID() (*govcd.NsxtAppPortProfile, error)
+// GetAppPortProfileByNameOrID.
+func (e EdgeGateway) GetAppPortProfileByNameOrID(appPortProfileNameOrID string) (*govcd.NsxtAppPortProfile, error) {
+	if err := e.Refresh(); err != nil {
+		return nil, err
+	}
+
+	if uuid.IsAppPortProfile(appPortProfileNameOrID) {
+		return e.GetAppPortProfileByID(appPortProfileNameOrID)
+	}
+
+	return e.GetAppPortProfileByName(appPortProfileNameOrID)
+}
+
+// GetAppPortProfileByName.
+func (e EdgeGateway) GetAppPortProfileByName(appPortProfileName string) (*govcd.NsxtAppPortProfile, error) {
+	if err := e.Refresh(); err != nil {
+		return nil, err
+	}
+
+	// Get VDC Or VDCGroup
+	vdcOrVDCGroup, err := e.GetParent()
+	if err != nil {
+		return nil, err
+	}
+
+	// Is a VDCGroup
+	if vdcOrVDCGroup.IsVDCGroup() {
+		vdcgroup, err := e.Client.GetVDCGroup(vdcOrVDCGroup.GetName())
+		if err != nil {
+			return nil, err
+		}
+		return vdcgroup.GetNsxtAppPortProfileByName(appPortProfileName, "")
+	}
+
+	// Is a VDC
+	vdc, err := e.Client.GetVDC()
+	if err != nil {
+		return nil, err
+	}
+	return vdc.GetNsxtAppPortProfileByName(appPortProfileName, "")
+}
+
+// GetAppPortProfileByID.
+func (e EdgeGateway) GetAppPortProfileByID(appPortProfileID string) (*govcd.NsxtAppPortProfile, error) {
+	if err := e.Refresh(); err != nil {
+		return nil, err
+	}
+
+	// Get Org
+	org, err := e.Client.GetOrg()
+	if err != nil {
+		return nil, err
+	}
+
+	return org.GetNsxtAppPortProfileById(appPortProfileID)
+}

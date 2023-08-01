@@ -584,6 +584,38 @@ func TestVcloudUUID_IsSecurityGroup(t *testing.T) {
 	}
 }
 
+// IsAppPortProfile.
+func TestVcloudUUID_IsAppPortProfile(t *testing.T) {
+	tests := []struct {
+		name string
+		uuid VcloudUUID
+		want bool
+	}{
+		{
+			name: "IsAppPortProfile",
+			uuid: VcloudUUID(AppPortProfile.String() + validUUIDv4),
+			want: true,
+		},
+		{
+			name: "IsNotAppPortProfile",
+			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.uuid.IsAppPortProfile(); got != tt.want {
+				t.Errorf("VcloudUUID.IsAppPortProfile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 // TestIsType tests the TestIsType function.
 func TestTestIsType(t *testing.T) {
 	testCases := []struct {

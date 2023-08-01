@@ -136,9 +136,12 @@ func (d *portProfileDataSource) Read(ctx context.Context, req datasource.ReadReq
 		err          error
 	)
 
+	// TODO - waiting answer from UGO Vincent about AppPortProfile VDC or ORG propagation
 	queryParams = queryParameterFilterAnd("name=="+plan.Name.ValueString(), queryParams)
 	// queryParams.Set("pageSize", "1024")
-	// TODO - retrieve vdc ID to apply filter search
+	// TODO - Change resource to Add EdgeGateway
+	// TODO - Use UUID pakage for new uuid appPortProfile
+	// TODO - Use function GetAppPortProfileByNameOrID in method EdgeGateway (common)
 	queryParams = queryParameterFilterAnd("_context==urn:vcloud:vdc:889318ed-e5ea-43a0-a03f-e99d9c06d3e3", queryParams)
 	portProfiles, err = s.org.GetAllNsxtAppPortProfiles(queryParams, "")
 	for _, v := range portProfiles {
