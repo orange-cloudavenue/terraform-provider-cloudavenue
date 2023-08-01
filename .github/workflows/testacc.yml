@@ -77,7 +77,7 @@ jobs:
             let output = fs.readFileSync('test_output.txt', 'utf8'); // Read the test output file
             let comment = "";
             if (output.includes('[no tests to run]')) {
-                comment = This ressource name does not exist;
+                comment = "This ressource name does not exist";
             } else if (output.startsWith('ok')) {
                 comment = "Acceptance Test passed : " + output;
             } else {
