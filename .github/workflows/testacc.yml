@@ -61,7 +61,6 @@ jobs:
         run: |
           TEST_NAME=$(echo ${{ github.event.comment.body }} | cut -d " " -f2)
           CATEGORY=$(echo $TEST_NAME | sed -r 's/^TestAcc([A-Z][a-z]*).*$/\1/' | tr '[:upper:]' '[:lower:]')
-          go test ./internal/tests/$CATEGORY -run $TEST_NAME > 'test_output.txt'
           if [ -d "./internal/tests/$CATEGORY" ]; then
             go test ./internal/tests/$CATEGORY -run $TEST_NAME > 'test_output.txt'
             if [ $? -ne 0 ]; then
