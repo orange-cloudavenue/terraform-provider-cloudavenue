@@ -5,34 +5,13 @@ import (
 	"context"
 	"errors"
 	"os"
-	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/alb"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/catalog"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/iam"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/network"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/publicip"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/storage"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vapp"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vcda"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vm"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vrf"
 )
 
 const VCDVersion = "37.1"
@@ -48,129 +27,6 @@ type cloudavenueProvider struct {
 	version string
 }
 
-type cloudavenueProviderModel struct {
-	URL      types.String `tfsdk:"url"`
-	User     types.String `tfsdk:"user"`
-	Password types.String `tfsdk:"password"`
-	Org      types.String `tfsdk:"org"`
-	VDC      types.String `tfsdk:"vdc"`
-}
-
-// DataSources defines the data sources implemented in the provider.
-func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{
-		// ALB
-		alb.NewAlbPoolDataSource,
-
-		// TIER0
-		vrf.NewTier0VrfsDataSource,
-		vrf.NewTier0VrfDataSource,
-
-		// PUBLICIP
-		publicip.NewPublicIPDataSource,
-
-		// EDGE GATEWAY
-		edgegw.NewEdgeGatewayDataSource,
-		edgegw.NewEdgeGatewaysDataSource,
-		edgegw.NewFirewallDataSource,
-		edgegw.NewSecurityGroupDataSource,
-		edgegw.NewIPSetDataSource,
-		edgegw.NewDhcpForwardingDataSource,
-		edgegw.NewStaticRouteDataSource,
-		edgegw.NewNATRuleDataSource,
-
-		// VDC
-		vdc.NewVDCsDataSource,
-		vdc.NewVDCDataSource,
-		vdc.NewVDCGroupDataSource,
-
-		// VAPP
-		vapp.NewVappDataSource,
-		vapp.NewOrgNetworkDataSource,
-		vapp.NewIsolatedNetworkDataSource,
-
-		// CATALOG
-		catalog.NewCatalogsDataSource,
-		catalog.NewCatalogDataSource,
-		catalog.NewVAppTemplateDataSource,
-		catalog.NewCatalogMediaDataSource,
-		catalog.NewCatalogMediasDataSource,
-
-		// IAM
-		iam.NewUserDataSource,
-		iam.NewRoleDataSource,
-		iam.NewIAMRightDataSource,
-
-		// VM
-		vm.NewVMAffinityRuleDatasource,
-		vm.NewVMDataSource,
-
-		// NETWORK
-		network.NewNetworkIsolatedDataSource,
-		network.NewNetworkRoutedDataSource,
-		network.NewDhcpDataSource,
-		network.NewDhcpBindingDataSource,
-
-		// STORAGE
-		storage.NewProfileDataSource,
-		storage.NewProfilesDataSource,
-	}
-}
-
-// Resources defines the resources implemented in the provider.
-func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		// ALB
-		alb.NewAlbPoolResource,
-
-		// EDGE GATEWAY
-		edgegw.NewEdgeGatewayResource,
-		edgegw.NewFirewallResource,
-		edgegw.NewPortProfilesResource,
-		edgegw.NewSecurityGroupResource,
-		edgegw.NewIPSetResource,
-		edgegw.NewDhcpForwardingResource,
-		edgegw.NewStaticRouteResource,
-		edgegw.NewNATRuleResource,
-
-		// VDC
-		vdc.NewVDCResource,
-		vdc.NewACLResource,
-
-		// VCDA
-		vcda.NewVCDAIPResource,
-
-		// PUBLICIP
-		publicip.NewPublicIPResource,
-
-		// VAPP
-		vapp.NewVappResource,
-		vapp.NewOrgNetworkResource,
-		vapp.NewIsolatedNetworkResource,
-		vapp.NewACLResource,
-
-		// CATALOG
-		catalog.NewCatalogResource,
-
-		// IAM
-		iam.NewIAMUserResource,
-		iam.NewRoleResource,
-
-		// VM
-		vm.NewDiskResource,
-		vm.NewVMResource,
-		vm.NewVMInsertedMediaResource,
-		vm.NewVMAffinityRuleResource,
-		vm.NewSecurityTagResource,
-
-		// NETWORK
-		network.NewNetworkRoutedResource,
-		network.NewNetworkIsolatedResource,
-		network.NewDhcpBindingResource,
-		network.NewDhcpResource,
-	}
-}
-
 // New is a helper function to simplify provider server and testing implementation.
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
@@ -181,65 +37,20 @@ func New(version string) func() provider.Provider {
 }
 
 // Metadata returns the provider type name.
-func (p *cloudavenueProvider) Metadata(
-	_ context.Context,
-	_ provider.MetadataRequest,
-	resp *provider.MetadataResponse,
-) {
+func (p *cloudavenueProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "cloudavenue"
 	resp.Version = p.version
 }
 
 // Schema defines the provider-level schema for configuration data.
-func (p *cloudavenueProvider) Schema(
-	_ context.Context,
-	_ provider.SchemaRequest,
-	resp *provider.SchemaResponse,
-) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "This provider offers utilities for working with the Cloud Avenue platform.",
-		Attributes: map[string]schema.Attribute{
-			"url": schema.StringAttribute{
-				MarkdownDescription: "The URL of the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_URL` environment variable.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https?:\/\/\S+\w$`),
-						"must end with a letter",
-					),
-				},
-			},
-			"user": schema.StringAttribute{
-				MarkdownDescription: "The username to use to connect to the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_USER` environment variable.",
-				Optional:            true,
-			},
-			"password": schema.StringAttribute{
-				MarkdownDescription: "The password to use to connect to the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_PASSWORD` environment variable.",
-				Sensitive:           true,
-				Optional:            true,
-			},
-			"org": schema.StringAttribute{
-				MarkdownDescription: "The organization used on Cloud Avenue API. Can also be set with the `CLOUDAVENUE_ORG` environment variable.",
-				Optional:            true,
-			},
-			"vdc": schema.StringAttribute{
-				MarkdownDescription: "The VDC used on Cloud Avenue API. Can also be set with the `CLOUDAVENUE_VDC` environment variable.",
-				Optional:            true,
-			},
-		},
-	}
+func (p *cloudavenueProvider) Schema(ctx context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+	resp.Schema = providerSchema(ctx)
 }
 
-func (p *cloudavenueProvider) Configure(
-	ctx context.Context,
-	req provider.ConfigureRequest,
-	resp *provider.ConfigureResponse,
-) {
-	tflog.Info(ctx, "Configuring Cloud Avenue client")
+func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var config cloudavenueProviderModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
