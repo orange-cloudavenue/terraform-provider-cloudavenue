@@ -60,11 +60,11 @@ jobs:
           CLOUDAVENUE_VDC : ${{ secrets.CLOUDAVENUE_VDC }}
         run: |
           TEST_NAME=$(echo "${{ github.event.comment.body }}" | cut -d " " -f2)
-          CATEGORY=$(echo $TEST_NAME | sed -r 's/^TestAcc([A-Z][a-z]*).*$/\1/' | tr '[:upper:]' '[:lower:]')
-          if [ -d "./internal/tests/$CATEGORY" ]; then
-           go test ./internal/tests/$CATEGORY -run $TEST_NAME > 'test_output.txt'
+          CATEGORY=$(./$(grep -rilE "$TEST_NAME" * |sed 's![^/]*$!!'))
+          if [ -d "$CATEGORY" ]; then
+           go test $CATEGORY -run $TEST_NAME  > 'test_output.txt'
           else
-           echo "This category does not exist" > 'test_output.txt'
+           echo "This category does not exist" > 'test_output.txt' 
           fi
         timeout-minutes: 20
       - name: Comment PR with test results
