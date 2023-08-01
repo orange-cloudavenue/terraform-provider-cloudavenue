@@ -61,7 +61,10 @@ jobs:
         run: |
           TEST_NAME=$(echo ${{ github.event.comment.body }} | cut -d " " -f2)
           CATEGORY=$(echo $TEST_NAME | sed -r 's/^TestAcc([A-Z][a-z]*).*$/\1/' | tr '[:upper:]' '[:lower:]')
-          OUTPUT=$(go test ./internal/tests/$CATEGORY -run $TEST_NAME > 'test_output.txt')
+          go test ./internal/tests/$CATEGORY -run $TEST_NAME > 'test_output.txt'
+          if [ $? -ne 0 ]; then
+            echo "Error: Test $TEST_NAME does not exist" > 'test_output.txt'
+          fi
         timeout-minutes: 20
       - name: Comment PR with test results
         uses: actions/github-script@v6.4.1
@@ -71,9 +74,19 @@ jobs:
           script: |
             const fs = require('fs');
             let output = fs.readFileSync('test_output.txt', 'utf8'); // Read the test output file
+            let comment = "";
+            if (output.includes('[no tests to run]')) {
+                comment = "La ressource n'existe pas";
+            } else if (output.startsWith('ok')) {
+                comment = "La ressource est correcte";
+            } else if (output.includes('Error: Test')) {
+                comment = "Le test spécifié n'existe pas";
+            else {
+                comment = "La ressource n'est pas correcte et renvoie ce message d'erreur : " + output;
+            }
             github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: output
+            body: comment
             });
