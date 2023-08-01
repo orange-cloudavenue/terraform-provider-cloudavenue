@@ -7,17 +7,19 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 )
 
 // vmInsertedMediaResource is the resource implementation.
-type vmInsertedMediaResource struct {
+type insertedMediaResource struct {
 	client *client.CloudAvenue
 	vdc    vdc.VDC
 	vapp   vapp.VAPP
 	org    org.Org
+	vm     vm.VM
 }
 
-type vmInsertedMediaResourceModel struct {
+type insertedMediaResourceModel struct {
 	ID       types.String `tfsdk:"id"`
 	VDC      types.String `tfsdk:"vdc"`
 	Catalog  types.String `tfsdk:"catalog"`

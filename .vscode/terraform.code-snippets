@@ -62,5 +62,30 @@
 			"    return",
 			"}"
 		],
+	},
+	"SuperSchema Base": {
+		"scope": "go",
+		"prefix": "tf-super-schema-base",
+		"body": [
+			"return superschema.Schema{",
+			"Resource: superschema.SchemaDetails{",
+			"MarkdownDescription: \"The security_tag resource allows you to assign security tags to VMs.\",",
+			"},",
+			"Attributes: map[string]superschema.Attribute{",
+			"\"id\": superschema.StringAttribute{",
+			"Resource: &schemaR.StringAttribute{",
+			"Required:            true,",
+			"MarkdownDescription: \"ID is the name of the security tag.\",",
+			"Validators: []validator.String{",
+			"stringvalidator.LengthBetween(1, 129),",
+			"},",
+			"PlanModifiers: []planmodifier.String{",
+			"stringplanmodifier.RequiresReplace(),",
+			"},",
+			"},",
+			"},",
+			"},",
+			"}",
+		],
 	}
 }
