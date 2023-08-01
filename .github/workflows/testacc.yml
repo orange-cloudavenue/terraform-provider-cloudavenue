@@ -62,8 +62,6 @@ jobs:
           TEST_NAME=$(echo ${{ github.event.comment.body }} | cut -d " " -f2)
           CATEGORY=$(echo $TEST_NAME | sed -r 's/^TestAcc([A-Z][a-z]*).*$/\1/' | tr '[:upper:]' '[:lower:]')
           OUTPUT=$(go test ./internal/tests/$CATEGORY -run $TEST_NAME)
-          echo $OUTPUT > test_output.txt
-
         timeout-minutes: 10
       - name: Comment PR with test results
         uses: actions/github-script@v6.4.1
