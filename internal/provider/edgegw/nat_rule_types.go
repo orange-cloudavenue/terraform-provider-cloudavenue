@@ -97,7 +97,7 @@ func (rm *NATRuleModel) Copy() *NATRuleModel {
 	return x
 }
 
-func (rm *NATRuleModel) ToNsxtNatRule(ctx context.Context) (values *govcdtypes.NsxtNatRule, err error) {
+func (rm *NATRuleModel) ToNsxtNATRule(ctx context.Context) (values *govcdtypes.NsxtNatRule, err error) {
 	values = &govcdtypes.NsxtNatRule{
 		Name:                     rm.Name.Get(),
 		Description:              rm.Description.Get(),

@@ -12,19 +12,47 @@ The `cloudavenue_edgegateway_nat_rule` resource allows you to manage EdgeGateway
 ## Example Usage
 
 ```terraform
-resource "cloudavenue_edgegateway_nat_rule" "example" {
+# Example NAT Rule SNAT (NAT out from network 11.11.11.0/24 to dest 8.8.8.8 translate in 89.32.25.10)
+resource "cloudavenue_edgegateway_nat_rule" "example-snat" {
   edge_gateway_name = "myEdgeGateway"
 
   name        = "example-snat"
   rule_type   = "SNAT"
   description = "description SNAT example"
 
-  # Using primary_ip from edge gateway
   external_address         = "89.32.25.10"
   internal_address         = "11.11.11.0/24"
   snat_destination_address = "8.8.8.8"
 
   priority = 10
+}
+
+# Example NAT Rule DNAT (Translate 89.32.25.10 to internal dest 4.11.11.11 on port 8080)
+resource "cloudavenue_edgegateway_nat_rule" "example-dnat" {
+  edge_gateway_name = "myEdgeGateway"
+
+  name        = "example-dnat"
+  rule_type   = "DNAT"
+  description = "description DNAT example"
+
+  external_address = "89.32.25.10"
+  internal_address = "4.11.11.11"
+
+  dnat_external_port = "8080"
+}
+
+# Example NAT Rule Reflexive (Nat in both way (in and out) external and internal on all port translated)
+resource "cloudavenue_edgegateway_nat_rule" "example-reflexive" {
+  edge_gateway_name = "myEdgeGateway"
+
+  name        = "example-reflexive"
+  rule_type   = "REFLEXIVE"
+  description = "description REFLEXIVE example"
+
+  external_address = "89.32.25.10"
+  internal_address = "192.168.0.1"
+
+  priority = 25
 }
 ```
 
@@ -46,7 +74,7 @@ resource "cloudavenue_edgegateway_nat_rule" "example" {
 - `edge_gateway_name` (String) (ForceNew) The Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 - `enabled` (Boolean) Enable or Disable the Nat Rule. Value defaults to `true`.
 - `firewall_match` (String) You can set a firewall match rule to determine how firewall is applied during NAT. Value must be one of: `MATCH_INTERNAL_ADDRESS` (Applies firewall rule to the internal address of a NAT rule.), `MATCH_EXTERNAL_ADDRESS` (Applies firewall rule to the external address of a NAT rule.), `BYPASS` (Skip applying firewall rule to NAT rule.).
-- `priority` (Number) If an address has multiple NAT rule, you can assign these rule different priorities to determine the order in which they are applied. A lower value means a higher priority for this rule.
+- `priority` (Number) If an address has multiple NAT rule, you can assign these rule different priorities to determine the order in which they are applied. A lower value means a higher priority for this rule. Value defaults to `0`.
 - `snat_destination_address` (String) The destination addresses to match in the SNAT Rule. This must be supplied as a single IP or Network CIDR. Providing no value for this field results in match with ANY destination network. If rule_type attribute is set and the value is one of `"DNAT"`, `"NO_DNAT"`, `"REFLEXIVE"`, this attribute is NULL.
 
 ### Read-Only

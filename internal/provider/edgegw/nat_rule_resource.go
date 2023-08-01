@@ -124,7 +124,7 @@ func (r *natRuleResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Get data from plan
-	nsxtNATRule, err := plan.ToNsxtNatRule(ctx)
+	nsxtNATRule, err := plan.ToNsxtNATRule(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Error getting NSX-T NAT rule: %s", err.Error())
 		return
@@ -225,7 +225,7 @@ func (r *natRuleResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Get data to plan
-	nsxtNATRule, err := plan.ToNsxtNatRule(ctx)
+	nsxtNATRule, err := plan.ToNsxtNATRule(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Error getting NSX-T NAT rule: %s", err.Error())
 		return

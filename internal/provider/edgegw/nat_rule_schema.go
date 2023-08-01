@@ -12,6 +12,7 @@ import (
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
@@ -226,6 +227,7 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 				},
 				Resource: &schemaR.Int64Attribute{
+					Default:  int64default.StaticInt64(0),
 					Optional: true,
 				},
 			},

@@ -8,7 +8,7 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-const testAccNatRuleDataSourceConfig = `
+const testAccNATRuleDataSourceConfig = `
 data "cloudavenue_edgegateway_nat_rule" "example" {
 	depends_on = [cloudavenue_edgegateway.example_with_vdc, cloudavenue_edgegateway_nat_rule.example]
 	edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
@@ -26,7 +26,7 @@ func TestAccNatRuleDataSource(t *testing.T) {
 			// Read testing
 			{
 				// Apply test
-				Config: tests.ConcatTests(testAccNATRuleResourceConfigSnat, testAccNatRuleDataSourceConfig, testAccEdgeGatewayResourceConfig),
+				Config: tests.ConcatTests(testAccNATRuleResourceConfigSnat, testAccNATRuleDataSourceConfig, testAccEdgeGatewayResourceConfig),
 				Check:  natRuleSnatTestCheck(dataSourceName),
 			},
 		},

@@ -186,4 +186,5 @@ linters-settings:
               "VLAN",
               "IAM",
               "VCDA",
+              "NAT",
             ] 

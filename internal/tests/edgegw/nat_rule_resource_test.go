@@ -232,7 +232,7 @@ func TestAccNATRuleResource(t *testing.T) {
 				Check:  natRuleDnatUpdateTestCheck(resourceName),
 			},
 			{
-				// Delete test Snat
+				// Delete test Dnat
 				Destroy: true,
 				Config:  tests.ConcatTests(testAccNATRuleResourceConfigUpdateDnat, testAccEdgeGatewayResourceConfig),
 			},
