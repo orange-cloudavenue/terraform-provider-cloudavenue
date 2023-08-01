@@ -63,11 +63,8 @@ jobs:
           CATEGORY=$(echo $TEST_NAME | sed -r 's/^TestAcc([A-Z][a-z]*).*$/\1/' | tr '[:upper:]' '[:lower:]')
           if [ -d "./internal/tests/$CATEGORY" ]; then
             go test ./internal/tests/$CATEGORY -run $TEST_NAME > 'test_output.txt'
-            if [ $? -ne 0 ]; then
-              echo "Error: Test $TEST_NAME does not exist" > 'test_output.txt'
-            fi
           else
-            echo "[no tests to run]" > 'test_output.txt'
+            echo "This ressource name does not exist" > 'test_output.txt'
           fi
         timeout-minutes: 20
       - name: Comment PR with test results
@@ -80,13 +77,11 @@ jobs:
             let output = fs.readFileSync('test_output.txt', 'utf8'); // Read the test output file
             let comment = "";
             if (output.includes('[no tests to run]')) {
-                comment = "La ressource n'existe pas";
+                comment = This ressource name does not exist;
             } else if (output.startsWith('ok')) {
-                comment = "La ressource est correcte";
-            } else if (output.includes('Error: Test')) {
-                comment = "Le test spécifié n'existe pas";
+                comment = "Acceptance Test passed : " + output;
             } else {
-                comment = "La ressource n'est pas correcte et renvoie ce message d'erreur : " + output;
+                comment = "Acceptance Test failed : " + output;
             }
             github.rest.issues.createComment({
             issue_number: context.issue.number,
