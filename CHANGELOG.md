@@ -15,6 +15,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps github.com/rs/zerolog from 1.29.1 to 1.30.0 ([GH-438](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/438))
 * deps: bumps github.com/vmware/go-vcloud-director/v2 from 2.20.0 to 2.21.0 ([GH-403](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/403))
 
 ## 0.7.0 (July 25, 2023)
