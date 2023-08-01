@@ -63,6 +63,9 @@ jobs:
           CATEGORY=$(grep -rilE "$TEST_NAME" * | sed 's![^/]*$!!')
           if [ -d "$CATEGORY" ]; then
            go test ./$CATEGORY -run $TEST_NAME  > 'test_output.txt'
+          else
+            echo "[no tests to run]" > 'test_output.txt'
+          fi
         timeout-minutes: 20
       - name: Comment PR with test results
         uses: actions/github-script@v6.4.1
@@ -74,7 +77,7 @@ jobs:
             let output = fs.readFileSync('test_output.txt', 'utf8'); // Read the test output file
             let comment = "";
             if (output.includes('[no tests to run]')) {
-                comment = "This ressource name does not exist";
+                comment = "Ressource not found, please check the name of the ressource";
             } else if (output.startsWith('ok')) {
                 comment = "Acceptance Test passed : " + output;
             } else {
