@@ -1,0 +1,3 @@
+```release-note:new-resource
+`resource/cloudavenue_edgegateway_nat_rule` - New resource to manage a NAT Rule in Edge Gateway.
+```

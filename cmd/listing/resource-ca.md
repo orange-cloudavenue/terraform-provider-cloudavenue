@@ -18,12 +18,12 @@
 | (5) | cloudavenue_edgegateway_dhcp_forwarding | vcd_nsxt_edgegateway_dhcp_forwarding |
 | (6) | cloudavenue_edgegateway_firewall | vcd_nsxt_firewall |
 | (7) | cloudavenue_edgegateway_ip_set | vcd_nsxt_ip_set |
-| (8) | cloudavenue_edgegateway_security_group | vcd_nsxt_security_group |
-| (9) | cloudavenue_edgegateway_static_route | vcd_nsxt_edgegateway_static_route |
+| (8) | cloudavenue_edgegateway_nat_rule | vcd_nsxt_nat_rule |
+| (9) | cloudavenue_edgegateway_security_group | vcd_nsxt_security_group |
 | (10) | cloudavenue_iam_role | vcd_role |
 | (11) | cloudavenue_iam_user | vcd_org_user |
 | (12) | cloudavenue_network_dhcp | vcd_nsxt_network_dhcp |
-| (13) | cloudavenue_network_dhcp_binding | vcd_nsxt_network_dhcp_binding  |
+| (13) | cloudavenue_network_dhcp_binding | vcd_nsxt_network_dhcp_binding |
 | (14) | cloudavenue_network_isolated | vcd_network_isolated |
 | (15) | cloudavenue_network_routed | vcd_network_routed |
 | (16) | cloudavenue_publicip |
@@ -52,14 +52,14 @@
 | (8) | cloudavenue_edgegateway_dhcp_forwarding | vcd_nsxt_edgegateway_dhcp_forwarding |
 | (9) | cloudavenue_edgegateway_firewall | vcd_nsxt_firewall |
 | (10) | cloudavenue_edgegateway_ip_set | vcd_nsxt_ip_set |
-| (11) | cloudavenue_edgegateway_security_group | vcd_nsxt_security_group |
-| (12) | cloudavenue_edgegateway_static_route | vcd_nsxt_edgegateway_static_route |
+| (11) | cloudavenue_edgegateway_nat_rule | vcd_nsxt_nat_rule |
+| (12) | cloudavenue_edgegateway_security_group | vcd_nsxt_security_group |
 | (13) | cloudavenue_edgegateways |
 | (14) | cloudavenue_iam_right | vcd_right |
 | (15) | cloudavenue_iam_role | vcd_role |
 | (16) | cloudavenue_iam_user | vcd_org_user |
 | (17) | cloudavenue_network_dhcp | vcd_nsxt_network_dhcp |
-| (18) | cloudavenue_network_dhcp_binding | vcd_nsxt_network_dhcp_binding  |
+| (18) | cloudavenue_network_dhcp_binding | vcd_nsxt_network_dhcp_binding |
 | (19) | cloudavenue_network_isolated | vcd_network_isolated |
 | (20) | cloudavenue_network_routed | vcd_network_routed |
 | (21) | cloudavenue_publicips |
@@ -132,7 +132,7 @@
 | (50) | vcd_nsxt_firewall | cloudavenue_edgegateway_firewall | :white_check_mark: |
 | (51) | vcd_nsxt_ip_set | cloudavenue_edgegateway_ip_set | :white_check_mark: |
 | (52) | vcd_nsxt_ipsec_vpn_tunnel | Not yet implemented | :x: |
-| (53) | vcd_nsxt_nat_rule | Not yet implemented | :x: |
+| (53) | vcd_nsxt_nat_rule | cloudavenue_edgegateway_nat_rule | :white_check_mark: |
 | (54) | vcd_nsxt_network_dhcp | cloudavenue_network_dhcp | :white_check_mark: |
 | (55) | vcd_nsxt_network_dhcp_binding | cloudavenue_network_dhcp_binding | :white_check_mark: |
 | (56) | vcd_nsxt_network_imported | Not Applicable | :heavy_multiplication_x: |
@@ -232,7 +232,7 @@
 | (49) | vcd_nsxt_ip_set | cloudavenue_edgegateway_ip_set | :white_check_mark: |
 | (50) | vcd_nsxt_ipsec_vpn_tunnel | Not yet implemented | :x: |
 | (51) | vcd_nsxt_manager | Not Applicable | :heavy_multiplication_x: |
-| (52) | vcd_nsxt_nat_rule | Not yet implemented | :x: |
+| (52) | vcd_nsxt_nat_rule | cloudavenue_edgegateway_nat_rule | :white_check_mark: |
 | (53) | vcd_nsxt_network_context_profile | Not yet implemented | :x: |
 | (54) | vcd_nsxt_network_dhcp | cloudavenue_network_dhcp | :white_check_mark: |
 | (55) | vcd_nsxt_network_dhcp_binding | cloudavenue_network_dhcp_binding | :white_check_mark: |

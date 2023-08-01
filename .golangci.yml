@@ -58,11 +58,11 @@ linters:
     - godot # Check if comments end in a period [fast: true, auto-fix: true]
     - unused #(megacheck): Checks Go code for unused constants, variables, functions and types [fast: false, auto-fix: false]
     - unparam # reports unused function parameters
-    - dupl # Tool for code clone detection [fast: true, auto-fix: false]
     - staticcheck #(megacheck): Staticcheck is a go vet on steroids, applying a ton of static analysis checks [fast: false, auto-fix: false]
     - bodyclose # checks whether HTTP response body is closed successfully
 
   disable:
+    - dupl # Tool for code clone detection [fast: true, auto-fix: false]
     - varcheck # Finds unused global variables and constants [fast: false, auto-fix: false]
     - deadcode # Finds unused code [fast: false, auto-fix: false]
     - structcheck # Finds unused struct fields [fast: false, auto-fix: false]
@@ -186,4 +186,5 @@ linters-settings:
               "VLAN",
               "IAM",
               "VCDA",
+              "NAT",
             ] 
