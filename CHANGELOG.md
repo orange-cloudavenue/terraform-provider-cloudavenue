@@ -3,8 +3,10 @@
 ### :rocket: **New Features**
 
 * **New Data Source:** `datasource/cloudavenue_edgegateway_dhcp_forwarding` - New data source to get DHCP forwarding configuration from Edge Gateway. ([GH-422](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/422))
+* **New Data Source:** `datasource/cloudavenue_edgegateway_nat_rule` - New datasource to get a NAT Rule in edge gateway. ([GH-356](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/356))
 * **New Data Source:** `datasource/cloudavenue_edgegateway_static_route` - New data source to fetch static route details from Cloud Avenue Edge Gateway. ([GH-428](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/428))
 * **New Resource:** `resource/cloudavenue_edgegateway_dhcp_forwarding` - New resource to manage DHCP forwarding on Edge Gateway. ([GH-421](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/421))
+* **New Resource:** `resource/cloudavenue_edgegateway_nat_rule` - New resource to manage a NAT Rule in Edge Gateway. ([GH-355](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/355))
 * **New Resource:** `resource/cloudavenue_edgegateway_static_route` - New resource to manage static routes on edge gateway. ([GH-427](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/427))
 
 ### :tada: **Improvements**
