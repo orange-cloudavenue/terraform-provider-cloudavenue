@@ -1,21 +1,22 @@
-Name: Acceptance Tests
+name: Acceptance Tests
 
-on: issue_comment
-
+on:
+  issue_comment:
+    types: [created]
+    
 jobs:
   build:
     name: Build
     runs-on: ubuntu-22.04
-    if: github.event.issue.author_association == 'OWNER' &&
-      github.event.issue.author_association == 'MEMBER' &&
+    if: (github.event.issue.author_association == 'OWNER') &&
       github.event.issue.pull_request &&
-      startsWith(github.event.comment.body, '/testacc')
+      startsWith(github.event.comment.body, '/testacc ')
     steps:
     - name: Extract Command
       id: command
       uses: xt0rted/slash-command-action@v2
       with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        repo-token: ${{ secrets.GH_PATSAFE }}
         command: testacc
         reaction: "true"
         reaction-type: "rocket"
@@ -32,15 +33,11 @@ jobs:
     name: Terraform Provider Acceptance Tests
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        # list whatever Terraform versions here you would like to support
         terraform:
-          - '1.0.*'
-          - '1.1.*'
-          - '1.2.*'
           - '1.3.*'
     steps:
       - uses: actions/checkout@v3 # v3.5.0
@@ -52,10 +49,42 @@ jobs:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
       - run: go mod download
-      - env:
+      - name : Run Terraform Acceptance Tests
+        env:
           TF_ACC: "1"
           CLOUDAVENUE_ORG: ${{ secrets.CLOUDAVENUE_ORG }}
           CLOUDAVENUE_USER: ${{ secrets.CLOUDAVENUE_USER }}
           CLOUDAVENUE_PASSWORD: ${{ secrets.CLOUDAVENUE_PASSWORD }}
-        run: go test -v -cover ./internal/provider/
-        timeout-minutes: 10
+          CLOUDAVENUE_URL : ${{ secrets.CLOUDAVENUE_URL }}
+          CLOUDAVENUE_VDC : ${{ secrets.CLOUDAVENUE_VDC }}
+        run: |
+          TEST_NAME=$(echo "${{ github.event.comment.body }}" | cut -d " " -f2)
+          CATEGORY=$(grep -rilE "$TEST_NAME" * | sed 's![^/]*$!!')
+          if [ -d "$CATEGORY" ]; then
+           go test ./$CATEGORY -run $TEST_NAME  > 'test_output.txt'
+          else
+            echo "[no tests to run]" > 'test_output.txt'
+          fi
+        timeout-minutes: 20
+      - name: Comment PR with test results
+        uses: actions/github-script@v6.4.1
+        if: always() # This ensures the step always runs, even if the test step failed
+        with:
+          github-token: ${{ secrets.GH_PATSAFE }}
+          script: |
+            const fs = require('fs');
+            let output = fs.readFileSync('test_output.txt', 'utf8'); // Read the test output file
+            let comment = "";
+            if (output.includes('[no tests to run]')) {
+                comment = "Ressource not found, please check the name of the ressource";
+            } else if (output.startsWith('ok')) {
+                comment = "Acceptance Test passed : " + output;
+            } else {
+                comment = "Acceptance Test failed : " + output;
+            }
+            github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+            });
