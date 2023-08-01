@@ -130,20 +130,23 @@ func (d *portProfileDataSource) Read(ctx context.Context, req datasource.ReadReq
 
 	// If error len >1 Got the first
 	var (
-		queryParameters url.Values
-		portProfile     *govcd.NsxtAppPortProfile
-		portProfiles    []*govcd.NsxtAppPortProfile
-		err             error
+		queryParams  url.Values
+		portProfile  *govcd.NsxtAppPortProfile
+		portProfiles []*govcd.NsxtAppPortProfile
+		err          error
 	)
 
-	queryParams := queryParameterFilterAnd("name=="+plan.Name.ValueString(), queryParameters)
+	queryParams = queryParameterFilterAnd("name=="+plan.Name.ValueString(), queryParams)
+	// queryParams.Set("pageSize", "1024")
+	// TODO - retrieve vdc ID to apply filter search
+	queryParams = queryParameterFilterAnd("_context==urn:vcloud:vdc:889318ed-e5ea-43a0-a03f-e99d9c06d3e3", queryParams)
 	portProfiles, err = s.org.GetAllNsxtAppPortProfiles(queryParams, "")
 	for _, v := range portProfiles {
 		if v.NsxtAppPortProfile.Name == plan.Name.ValueString() {
-			portProfile, err = s.org.GetNsxtAppPortProfileById(v.NsxtAppPortProfile.ID)
-			// portProfile, err = s.org.GetNsxtAppPortProfileByName(plan.Name.ValueString(), "")
+			// portProfile, err = s.org.GetNsxtAppPortProfileById(v.NsxtAppPortProfile.ID)
+			portProfile, err = s.org.GetNsxtAppPortProfileByName(plan.Name.ValueString(), "")
 			tflog.Info(ctx, pp.Sprint(v.NsxtAppPortProfile))
-			break
+			// tflog.Info(ctx, pp.Sprint(v.NsxtAppPortProfile.Name))
 		}
 	}
 
@@ -152,11 +155,11 @@ func (d *portProfileDataSource) Read(ctx context.Context, req datasource.ReadReq
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		// resp.Diagnostics.AddError(
-		//	"Error reading NSX-T App Port Profile",
-		//	fmt.Sprintf("Error reading NSX-T App Port Profile: %s", err),
-		//)
-		// return
+		resp.Diagnostics.AddError(
+			"Error reading NSX-T App Port Profile",
+			fmt.Sprintf("Error reading NSX-T App Port Profile: %s", err),
+		)
+		return
 	}
 
 	appPortsState, dia := s.AppPortRead(ctx, portProfile)

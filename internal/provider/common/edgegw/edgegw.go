@@ -125,3 +125,6 @@ func (e EdgeGateway) GetIPSetByNameOrID(nsxtFirewallGroupNameOrID string) (*govc
 func (e EdgeGateway) SetIPSet(ipSetConfig *govcdtypes.NsxtFirewallGroup) (*govcd.NsxtFirewallGroup, error) {
 	return e.CreateNsxtFirewallGroup(ipSetConfig)
 }
+
+// GetAppPortProfileByNameOrID
+func (e EdgeGateway) GetAppPortProfileByNameOrID() (*govcd.NsxtAppPortProfile, error)
