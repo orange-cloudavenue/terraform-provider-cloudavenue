@@ -64,7 +64,7 @@ jobs:
           if [ -d "./internal/tests/$CATEGORY" ]; then
            go test ./internal/tests/$CATEGORY -run $TEST_NAME > 'test_output.txt'
           else
-           echo "This resource name does not exist" > 'test_output.txt'
+           echo "This category does not exist" > 'test_output.txt'
           fi
         timeout-minutes: 20
       - name: Comment PR with test results
@@ -78,6 +78,8 @@ jobs:
             let comment = "";
             if (output.includes('[no tests to run]')) {
                 comment = "This ressource name does not exist";
+            } else if (output.includes('This category does not exist')) {
+                comment = "This category does not exist";
             } else if (output.startsWith('ok')) {
                 comment = "Acceptance Test passed : " + output;
             } else {
