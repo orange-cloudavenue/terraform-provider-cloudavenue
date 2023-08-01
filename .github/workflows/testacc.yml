@@ -81,11 +81,11 @@ jobs:
             let comment = "";
             if (output.includes('[no tests to run]')) {
                 comment = "La ressource n'existe pas";
-            } elseif (output.startsWith('ok')) {
+            } else if (output.startsWith('ok')) {
                 comment = "La ressource est correcte";
-            } elseif (output.includes('Error: Test')) {
+            } else if (output.includes('Error: Test')) {
                 comment = "Le test spécifié n'existe pas";
-            else {
+            } else {
                 comment = "La ressource n'est pas correcte et renvoie ce message d'erreur : " + output;
             }
             github.rest.issues.createComment({
