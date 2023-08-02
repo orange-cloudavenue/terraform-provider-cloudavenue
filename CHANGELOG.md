@@ -1,4 +1,12 @@
 ## 0.9.0 (Unreleased)
+
+### :tada: **Improvements**
+
+* `resource/catalog` - Improve example in documentation
+`datasource/edgegateway_nat_rule` - Improve example in documentation
+`datasource/vapp_isolated_network` - Improve example in documentation
+`datasource/vm` - Improve example in documentation ([GH-451](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/451))
+
 ## 0.8.0 (August  1, 2023)
 
 ### :rocket: **New Features**
