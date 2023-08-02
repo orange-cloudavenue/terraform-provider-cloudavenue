@@ -20,7 +20,7 @@ require (
 	github.com/rs/zerolog v1.30.0
 	github.com/vmware/go-vcloud-director/v2 v2.21.0
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
-	golang.org/x/net v0.12.0
+	golang.org/x/net v0.13.0
 )
 
 require (
