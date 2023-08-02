@@ -13,11 +13,11 @@ The virtual machine (vm) data source allows you to read information about a virt
 
 ```terraform
 data "cloudavenue_vapp" "example" {
-  name        = "example-vapp"
+  name = "example-vapp"
 }
 
 data "cloudavenue_vm" "example" {
-  name = "example-vm"
+  name      = "example-vm"
   vapp_name = data.cloudavenue_vapp.example.name
 }
 ```

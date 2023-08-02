@@ -24,10 +24,10 @@ resource "cloudavenue_vapp_isolated_network" "example" {
 }
 
 data "cloudavenue_vapp_isolated_network" "example" {
-    vapp_name = cloudavenue_vapp.example.name
-    name      = cloudavenue_vapp_isolated_network.example.name
+  vapp_name = cloudavenue_vapp.example.name
+  name      = cloudavenue_vapp_isolated_network.example.name
 }
 
 output "dns" {
-    value = cloudavenue_vapp_isolated_network.example.dns2
+  value = cloudavenue_vapp_isolated_network.example.dns2
 }

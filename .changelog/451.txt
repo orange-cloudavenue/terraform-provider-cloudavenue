@@ -1,0 +1,6 @@
+```release-note:enhancement
+`resource/catalog` - Improve example in documentation
+`datasource/edgegateway_nat_rule` - Improve example in documentation
+`datasource/vapp_isolated_network` - Improve example in documentation
+`datasource/vm` - Improve example in documentation
+```
