@@ -2,7 +2,6 @@
 package vm
 
 import (
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -10,14 +9,13 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
-const testAccVMInsertedMediaResourceConfig = `
+const TestAccVMInsertedMediaResourceConfig = `
 resource "cloudavenue_vm_inserted_media" "example" {
 	catalog = "catalog-example"
 	name    = "debian-9.9.0-amd64-netinst.iso"
-	vapp_name = "vapp-example"
-	vm_name   = "vm-example"
-  }
+	vapp_name = cloudavenue_vapp.example.name
+	vm_name   = cloudavenue_vm.example.name
+}
 `
 
 func TestAccVMInsertedMediaResource(t *testing.T) {
@@ -29,14 +27,14 @@ func TestAccVMInsertedMediaResource(t *testing.T) {
 			// Read testing
 			{
 				// Apply test
-				Config: testAccVMInsertedMediaResourceConfig,
+				Config: tests.ConcatTests(TestAccVMResourceConfigFromVappTemplate, TestAccVMInsertedMediaResourceConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
+					resource.TestCheckResourceAttrSet(resourceName, "vdc"),
 					resource.TestCheckResourceAttr(resourceName, "catalog", "catalog-example"),
 					resource.TestCheckResourceAttr(resourceName, "name", "debian-9.9.0-amd64-netinst.iso"),
-					resource.TestCheckResourceAttr(resourceName, "vapp_name", "vapp-example"),
-					resource.TestCheckResourceAttr(resourceName, "vm_name", "vm-example"),
+					resource.TestCheckResourceAttrSet(resourceName, "vapp_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "vm_name"),
 				),
 			},
 		},

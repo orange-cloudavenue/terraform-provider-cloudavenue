@@ -14,30 +14,31 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 )
 
 // Ensure the implementation satisfies the expected interfaces.VAppName.
 var (
-	_ resource.Resource              = &vmInsertedMediaResource{}
-	_ resource.ResourceWithConfigure = &vmInsertedMediaResource{}
+	_ resource.Resource              = &insertedMediaResource{}
+	_ resource.ResourceWithConfigure = &insertedMediaResource{}
 )
 
-// NewVMInsertedMediaResource is a helper function to simplify the provider implementation.
-func NewVMInsertedMediaResource() resource.Resource {
-	return &vmInsertedMediaResource{}
+// NewInsertedMediaResource is a helper function to simplify the provider implementation.
+func NewInsertedMediaResource() resource.Resource {
+	return &insertedMediaResource{}
 }
 
 // Metadata returns the resource type name.
-func (r *vmInsertedMediaResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "inserted_media"
+func (r *insertedMediaResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_inserted_media"
 }
 
 // Schema defines the schema for the resource.
-func (r *vmInsertedMediaResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = vmInsertedMediaSchema()
+func (r *insertedMediaResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = vmInsertedMediaSuperSchema().GetResource(ctx)
 }
 
-func (r *vmInsertedMediaResource) Init(ctx context.Context, rm *vmInsertedMediaResourceModel) (diags diag.Diagnostics) {
+func (r *insertedMediaResource) Init(ctx context.Context, rm *insertedMediaResourceModel) (diags diag.Diagnostics) {
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
 		return
@@ -49,11 +50,19 @@ func (r *vmInsertedMediaResource) Init(ctx context.Context, rm *vmInsertedMediaR
 	}
 
 	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
+	if diags.HasError() {
+		return
+	}
+
+	r.vm, diags = vm.Get(r.vapp, vm.GetVMOpts{
+		ID:   types.StringNull(),
+		Name: rm.VMName,
+	})
 
 	return
 }
 
-func (r *vmInsertedMediaResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *insertedMediaResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -74,10 +83,10 @@ func (r *vmInsertedMediaResource) Configure(ctx context.Context, req resource.Co
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *vmInsertedMediaResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *insertedMediaResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
 	var (
-		plan *vmInsertedMediaResourceModel
+		plan *insertedMediaResourceModel
 		err  error
 	)
 
@@ -100,47 +109,27 @@ func (r *vmInsertedMediaResource) Create(ctx context.Context, req resource.Creat
 	}
 	defer r.vapp.UnlockVAPP(ctx)
 
-	// Check if VM exists
-	vm, err := r.vapp.GetVMByName(plan.VMName.ValueString(), true)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VM", err.Error())
-		return
-	}
-
 	// Insert media
-	task, err := vm.HandleInsertMedia(r.org.Org.Org, plan.Catalog.ValueString(), plan.Name.ValueString())
+	task, err := r.vm.HandleInsertMedia(r.org.Org.Org, plan.Catalog.ValueString(), plan.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error inserting media", err.Error())
 		return
 	}
-	err = task.WaitTaskCompletion()
-	if err != nil {
+	if err = task.WaitTaskCompletion(); err != nil {
 		resp.Diagnostics.AddError("Error during inserting media", err.Error())
 		return
 	}
 
-	// Set Plan state
-	plan = &vmInsertedMediaResourceModel{
-		ID:       types.StringValue(vm.VM.ID),
-		VDC:      types.StringValue(r.vdc.GetName()),
-		Catalog:  plan.Catalog,
-		Name:     plan.Name,
-		VAppName: plan.VAppName,
-		VAppID:   plan.VAppID,
-		VMName:   plan.VMName,
-		// EjectForce: plan.EjectForce,
-	}
+	plan.ID = types.StringValue(r.vm.GetID())
+	plan.VDC = types.StringValue(r.vdc.GetName())
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *vmInsertedMediaResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state *vmInsertedMediaResourceModel
+func (r *insertedMediaResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state *insertedMediaResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -154,22 +143,16 @@ func (r *vmInsertedMediaResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	// Check if VM exists
-	vm, err := r.vapp.GetVMByName(state.VMName.ValueString(), true)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VM", err.Error())
-		return
-	}
-
 	// Check if media is mounted
 	var isIsoMounted bool
 
-	for _, hardwareItem := range vm.VM.VirtualHardwareSection.Item {
-		if hardwareItem.ResourceType == int(15) { // 15 = CD/DVD Drive
+	for _, hardwareItem := range r.vm.GetVirtualHardwareSectionItems() {
+		if hardwareItem.ResourceType == 15 { // 15 = CD/DVD Drive
 			isIsoMounted = true
 			break
 		}
 	}
+
 	if !isIsoMounted {
 		resp.Diagnostics.AddError("Media not mounted", "Media is not mounted on the VM")
 		resp.State.RemoveResource(ctx)
@@ -177,8 +160,8 @@ func (r *vmInsertedMediaResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	// Set Plan state
-	plan := &vmInsertedMediaResourceModel{
-		ID:       types.StringValue(vm.VM.ID),
+	plan := &insertedMediaResourceModel{
+		ID:       types.StringValue(r.vm.GetID()),
 		VDC:      types.StringValue(r.vdc.GetName()),
 		Catalog:  state.Catalog,
 		Name:     state.Name,
@@ -196,9 +179,9 @@ func (r *vmInsertedMediaResource) Read(ctx context.Context, req resource.ReadReq
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *vmInsertedMediaResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *insertedMediaResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	/* linked with issue - Disable attributes - Issue referrer: vmware/go-vcloud-director#552
-	var plan, state *vmInsertedMediaResourceModel
+	var plan, state *insertedMediaResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -227,7 +210,7 @@ func (r *vmInsertedMediaResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	plan = &vmInsertedMediaResourceModel{
+	plan = &insertedMediaResourceModel{
 		ID:       types.StringValue(vm.VM.ID),
 		VDC:      plan.VDC,
 		Catalog:  plan.Catalog,
@@ -246,8 +229,8 @@ func (r *vmInsertedMediaResource) Update(ctx context.Context, req resource.Updat
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *vmInsertedMediaResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state *vmInsertedMediaResourceModel
+func (r *insertedMediaResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state *insertedMediaResourceModel
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -268,17 +251,8 @@ func (r *vmInsertedMediaResource) Delete(ctx context.Context, req resource.Delet
 	}
 	defer r.vapp.UnlockVAPP(ctx)
 
-	// Check if VM exists
-	vm, err := r.vapp.GetVMByName(state.VMName.ValueString(), true)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VM", err.Error())
-		return
-	}
-
 	// Eject media
-	_, err = vm.HandleEjectMediaAndAnswer(r.org.Org.Org, state.Catalog.ValueString(), state.Name.ValueString(), true)
-	if err != nil {
+	if _, err := r.vm.HandleEjectMediaAndAnswer(r.org.Org.Org, state.Catalog.ValueString(), state.Name.ValueString(), true); err != nil {
 		resp.Diagnostics.AddError("Error ejecting media", err.Error())
-		return
 	}
 }

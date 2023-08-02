@@ -10,8 +10,7 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
-const testAccEVappResourceConfig = `
+const TestAccEVappResourceConfig = `
 resource "cloudavenue_vapp" "example" {
 	name        = "MyVapp"
 	description = "This is an example vApp"
@@ -44,7 +43,7 @@ func TestAccVappResource(t *testing.T) {
 			// Read testing
 			{
 				Destroy: false,
-				Config:  testAccEVappResourceConfig,
+				Config:  TestAccEVappResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", "MyVapp"),
 					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),

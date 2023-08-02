@@ -126,6 +126,16 @@ func (v VM) GetCPUCoresCount() int64 {
 	return int64(*v.VM.VM.VM.VmSpecSection.NumCoresPerSocket)
 }
 
+// GetVirtualHardwareSection returns the virtual hardware section of the VM.
+func (v VM) GetVirtualHardwareSection() *govcdtypes.VirtualHardwareSection {
+	return v.VM.VM.VM.VirtualHardwareSection
+}
+
+// GetVirtualHardwareSectionItems returns the virtual hardware section items of the VM.
+func (v VM) GetVirtualHardwareSectionItems() []*govcdtypes.VirtualHardwareItem {
+	return v.VM.VM.VM.VirtualHardwareSection.Item
+}
+
 // IsCPUHotAddEnabled returns true if CPU hot add is enabled.
 func (v VM) IsCPUHotAddEnabled() bool {
 	return v.VM.VM.VM.VMCapabilities.CPUHotAddEnabled

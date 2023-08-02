@@ -59,7 +59,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		// * VM
 		vm.NewDiskResource,
 		vm.NewVMResource,
-		vm.NewVMInsertedMediaResource,
+		vm.NewInsertedMediaResource,
 		vm.NewVMAffinityRuleResource,
 		vm.NewSecurityTagResource,
 
