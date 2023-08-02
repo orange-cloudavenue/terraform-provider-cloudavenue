@@ -7,6 +7,10 @@
 `datasource/vapp_isolated_network` - Improve example in documentation
 `datasource/vm` - Improve example in documentation ([GH-451](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/451))
 
+### :dependabot: **Dependencies**
+
+* deps: bumps golang.org/x/net from 0.12.0 to 0.13.0 ([GH-446](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/446))
+
 ## 0.8.0 (August  1, 2023)
 
 ### :rocket: **New Features**
