@@ -39,4 +39,4 @@ provider "cloudavenue" {
 - `password` (String, Sensitive) The password to use to connect to the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_PASSWORD` environment variable.
 - `url` (String) The URL of the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_URL` environment variable.
 - `user` (String) The username to use to connect to the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_USER` environment variable.
-- `vdc` (String) The VDC used on Cloud Avenue API. Can also be set with the `CLOUDAVENUE_VDC` environment variable.
+- `vdc` (String) The VDC used on Cloud Avenue API. Can also be set with the `CLOUDAVENUE_VDC` environment vareiable.
