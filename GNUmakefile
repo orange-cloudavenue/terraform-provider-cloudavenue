@@ -13,6 +13,7 @@ testacc: lint
 	TF_ACC=1 go test -v -count=1 -timeout 600m $(TEST_FILEPATH)
 
 generate:
+	find examples -name "*.tf" -exec terraform fmt {} \;
 	go install github.com/FrangipaneTeam/tf-doc-extractor@latest
 	go generate -run "tf-doc-extractor" ./...
 	# golang 1.20 feature
