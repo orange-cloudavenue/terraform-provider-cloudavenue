@@ -1,4 +1,11 @@
 ## 0.9.0 (Unreleased)
+### :warning: **Deprecations**
+
+* `resource/cloudavenue_vdc` - The `vdc_group` attribute has been deprecated and will be removed in a `v0.12.0` release. Please use `cloudavenue_vdc_group` resource instead. ([GH-448](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/448))
+
+### :rocket: **New Features**
+
+* **New Resource:** `resource/cloudavenue_vdc_group` - Add new resource to manage VDC Group in Cloud Avenue. ([GH-445](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/445))
 
 ### :tada: **Improvements**
 
@@ -9,6 +16,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps github.com/hashicorp/terraform-plugin-superschema from 1.4.1 to 1.5.1 ([GH-448](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/448))
 * deps: bumps golang.org/x/net from 0.12.0 to 0.13.0 ([GH-446](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/446))
 
 ## 0.8.0 (August  1, 2023)
