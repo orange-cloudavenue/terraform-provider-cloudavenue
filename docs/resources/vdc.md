@@ -57,13 +57,15 @@ resource "cloudavenue_vdc" "example" {
 - `service_class` (String) The service class of the vDC. Value must be one of : `ECO`, `STD`, `HP`, `VOIP`.
 - `storage_billing_model` (String) Choose Billing model of storage resources. Value must be one of : `PAYG`, `RESERVED`.
 - `storage_profiles` (Attributes Set) List of storage profiles for this vDC. Set must contain at least 1 elements. (see [below for nested schema](#nestedatt--storage_profiles))
-- `vdc_group` (String) (ForceNew) vDC group name. This can be an existing vDC group or a new one. This allows you to isolate your vDC.
-VMs of vDCs which belong to the same vDC group can communicate together.
 
 ### Optional
 
 - `description` (String) A description of the vDC.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `vdc_group` (String, Deprecated) (ForceNew) vDC group name. This can be an existing vDC group or a new one. This allows you to isolate your vDC.
+VMs of vDCs which belong to the same vDC group can communicate together. 
+
+ ~> **Attribute deprecated** Remove the `vdc_group` attribute configurationas it replaced by the resource [`cloudavenue_vdc_group`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc_group), it will be removed in the version [`v0.12.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/4) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/448) for more information.
 
 ### Read-Only
 

@@ -1,0 +1,3 @@
+```release-note:new-resource
+`resource/cloudavenue_vdc_group` - Add new resource to manage VDC Group in Cloud Avenue. 
+```

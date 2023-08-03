@@ -15,7 +15,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
@@ -192,10 +191,6 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 	plan.ID = types.StringValue(ID)
 
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
-	tflog.Trace(ctx, "VDC created")
-
 	// Save plan into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -294,7 +289,7 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		ID:                     types.StringValue(ID),
 		Name:                   types.StringValue(vdc.Vdc.Name),
 		Description:            types.StringValue(vdc.Vdc.Description),
-		VDCGroup:               types.StringValue(vdc.VdcGroup),
+		VDCGroup:               state.VDCGroup, // Now due to deprecated field use value in state
 		VDCServiceClass:        types.StringValue(vdc.Vdc.VdcServiceClass),
 		VDCDisponibilityClass:  types.StringValue(vdc.Vdc.VdcDisponibilityClass),
 		VDCBillingModel:        types.StringValue(vdc.Vdc.VdcBillingModel),
@@ -304,7 +299,6 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		VDCStorageBillingModel: types.StringValue(vdc.Vdc.VdcStorageBillingModel),
 		VDCStorageProfiles:     profiles,
 	}
-
 	// Save updated state into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -407,21 +401,15 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
-	tflog.Trace(ctx, "VDC updated")
-
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// Get current state
 	var state *vdcResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -483,10 +471,6 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
 		return
 	}
-
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
-	tflog.Trace(ctx, "VDC deleted")
 }
 
 func (r *vdcResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
