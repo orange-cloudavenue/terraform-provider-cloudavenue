@@ -12,7 +12,7 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-const testAccVMResourceConfigFromVappTemplate = `
+const TestAccVMResourceConfigFromVappTemplate = `
 data "cloudavenue_catalog_vapp_template" "example" {
 	catalog_name = "Orange-Linux"
 	template_name    = "debian_10_X64"
@@ -106,7 +106,7 @@ func TestAccVMResource(t *testing.T) {
 			// Read testing
 			{
 				// Apply test
-				Config: testAccVMResourceConfigFromVappTemplate,
+				Config: TestAccVMResourceConfigFromVappTemplate,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// ! base
 					// ? id
