@@ -62,7 +62,7 @@ jobs:
           CLOUDAVENUE_VDC : ${{ secrets.CLOUDAVENUE_VDC }}
         run: |
           TEST_NAME=$(echo "${{ github.event.comment.body }}" | cut -d " " -f2)
-          CATEGORY=$(grep -rilE "$TEST_NAME" * | sed 's![^/]*$!!')
+          CATEGORY=$(grep -rilE "$TEST_NAME" * | sed 's![^/]*$!!' | head -1)
           if [ -d "$CATEGORY" ]; then
            go test ./$CATEGORY -run $TEST_NAME  > 'test_output.txt'
           else
