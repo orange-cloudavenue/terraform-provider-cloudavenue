@@ -20,6 +20,7 @@ const (
 	Group             = VcloudUUID(VcloudUUIDPrefix + "group:")
 	Gateway           = VcloudUUID(VcloudUUIDPrefix + "gateway:")
 	VDC               = VcloudUUID(VcloudUUIDPrefix + "vdc:")
+	VDCGroup          = VcloudUUID(VcloudUUIDPrefix + "vdcGroup:")
 	Network           = VcloudUUID(VcloudUUIDPrefix + "network:")
 	LoadBalancerPool  = VcloudUUID(VcloudUUIDPrefix + "loadBalancerPool:")
 	VDCStorageProfile = VcloudUUID(VcloudUUIDPrefix + "vdcstorageProfile:")
@@ -37,6 +38,7 @@ var vcloudUUIDs = []VcloudUUID{
 	Group,
 	Gateway,
 	VDC,
+	VDCGroup,
 	Network,
 	LoadBalancerPool,
 	VDCStorageProfile,
@@ -60,7 +62,7 @@ func (uuid VcloudUUID) IsType(prefix VcloudUUID) bool {
 		return false
 	}
 
-	return strings.HasPrefix(string(uuid), string(prefix)) && isUUIDV4(uuid.extractUUIDv4(prefix))
+	return strings.HasPrefix(string(uuid), prefix.String()) && isUUIDV4(uuid.extractUUIDv4(prefix))
 }
 
 // isNotEmpty returns true if the UUID is not empty.
@@ -148,6 +150,11 @@ func (uuid VcloudUUID) IsVDC() bool {
 	return uuid.IsType(VDC)
 }
 
+// IsVDCGroup returns true if the UUID is a VDCGroup UUID.
+func (uuid VcloudUUID) IsVDCGroup() bool {
+	return uuid.IsType(VDCGroup)
+}
+
 // IsNetwork returns true if the UUID is a Network UUID.
 func (uuid VcloudUUID) IsNetwork() bool {
 	return uuid.IsType(Network)
@@ -186,6 +193,11 @@ func IsEdgeGateway(uuid string) bool {
 // IsVDC returns true if the UUID is a VDC UUID.
 func IsVDC(uuid string) bool {
 	return VcloudUUID(uuid).IsType(VDC)
+}
+
+// IsVDCGroup returns true if the UUID is a VDCGroup UUID.
+func IsVDCGroup(uuid string) bool {
+	return VcloudUUID(uuid).IsType(VDCGroup)
 }
 
 // IsNetwork returns true if the UUID is a Network UUID.

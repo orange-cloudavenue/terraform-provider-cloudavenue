@@ -1,7 +1,7 @@
 github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.2 h1:4Lev5yI0V2h3YU/b6fR/L6q1k20sys7lixjY7Aopmos=
 github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.2/go.mod h1:3iRjqbOOGi1VHXIKtgwD7gxNQcFyI+HZq8fhZbSYcLE=
-github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.4.1 h1:6HVVnrHSXJ2/A+8LDj/jFjcIDErkjKgLQN/UN8W/wyE=
-github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.4.1/go.mod h1:RYOqaBnNymIpWdu0UxGtDqNnX9Y1QYmt3bnUvO4Mk1I=
+github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.5.1 h1:cjjvLnQBT/He8SLMTXCCQedi+W+b8oakrHy0w8JG89o=
+github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.5.1/go.mod h1:PmD/Hgbo7uAi0W6HCnZnS6ykXNP8HFxocaa5qMR7p9A=
 github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.0.5 h1:Cz5wnn5hXVeE5ibqi1K9ntrNicpYtHhqxY3cYnxqxVM=
 github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.0.5/go.mod h1:2odt8NV8oEXmS26A3MVrk99oNOnPe9oUE1l5yknkUD4=
 github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.7.0 h1:BbH8mSww0smldxXa9rCe1GIzJck2XjftNKOLTpV+ZOY=

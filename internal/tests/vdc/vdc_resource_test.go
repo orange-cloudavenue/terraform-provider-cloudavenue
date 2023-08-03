@@ -33,6 +33,49 @@ resource "cloudavenue_vdc" "example" {
   }
 `
 
+// Temp test during deprecation notice of vdc_group attribute
+// This test will be removed when vdc_group attribute will be removed
+// Used in vdc_group_resource_test.go.
+const TestAccVDCResourceConfigWithoutVDCGroup = `
+resource "cloudavenue_vdc" "example" {
+	name                  = "MyVDCExample"
+	description           = "Example vDC created by Terraform"
+	cpu_allocated         = 22000
+	memory_allocated      = 30
+	cpu_speed_in_mhz      = 2200
+	billing_model         = "PAYG"
+	disponibility_class   = "ONE-ROOM"
+	service_class         = "STD"
+	storage_billing_model = "PAYG"
+  
+	storage_profiles = [{
+	  class   = "gold"
+	  default = true
+	  limit   = 500
+	}]
+  
+}
+
+resource "cloudavenue_vdc" "example2" {
+	name                  = "MyVDCExample2"
+	description           = "Example vDC created by Terraform"
+	cpu_allocated         = 22000
+	memory_allocated      = 30
+	cpu_speed_in_mhz      = 2200
+	billing_model         = "PAYG"
+	disponibility_class   = "ONE-ROOM"
+	service_class         = "STD"
+	storage_billing_model = "PAYG"
+  
+	storage_profiles = [{
+	  class   = "gold"
+	  default = true
+	  limit   = 500
+	}]
+  
+}
+`
+
 func TestAccVDCResource(t *testing.T) {
 	const resourceName = "cloudavenue_vdc.example"
 	resource.Test(t, resource.TestCase{
@@ -83,10 +126,11 @@ func TestAccVDCResource(t *testing.T) {
 			// ImportruetState testing
 			{
 				// Import test with vdc
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateId:     "MyVDC1",
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateId:           "MyVDC1",
+				ImportStateVerifyIgnore: []string{"vdc_group"},
 			},
 		},
 	})

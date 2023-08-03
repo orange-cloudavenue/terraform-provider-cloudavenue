@@ -5,9 +5,9 @@ on:
     types: [created]
     
 jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-22.04
+  slashCommand:
+    name: SlashCommand
+    runs-on: ubuntu-latest
     if: (github.event.issue.author_association == 'MEMBER') &&
       github.event.issue.pull_request &&
       startsWith(github.event.comment.body, '/testacc ')
@@ -22,34 +22,22 @@ jobs:
         reaction-type: "rocket"
         allow-edits: "false"
         permission-level: write
-    - uses: actions/checkout@v3
-      with:
-        ref: refs/pull/${{ github.event.issue.number }}/head
-    - uses: actions/setup-go@v4.0.1 # v4.0.0
-      with:
-        go-version-file: 'go.mod'
-    - run: go mod download
 
   test:
     name: Terraform Provider Acceptance Tests
-    needs: build
+    needs: slashCommand
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    strategy:
-      fail-fast: false
-      matrix:
-        terraform:
-          - '1.3.*'
     steps:
       - uses: actions/checkout@v3
         with:
           ref: refs/pull/${{ github.event.issue.number }}/head
-      - uses: actions/setup-go@v4.0.1 # v4.0.0
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@633666f66e0061ca3b725c73b2ec20cd13a8fdd1 # v2.0.3
+      - uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: ${{ matrix.terraform }}
+          terraform_version: 1.3.*
           terraform_wrapper: false
       - run: go mod download
       - name : Run Terraform Acceptance Tests
@@ -64,7 +52,7 @@ jobs:
           TEST_NAME=$(echo "${{ github.event.comment.body }}" | cut -d " " -f2)
           CATEGORY=$(grep -rilE "$TEST_NAME" * | sed 's![^/]*$!!')
           if [ -d "$CATEGORY" ]; then
-           go test ./$CATEGORY -run $TEST_NAME  > 'test_output.txt'
+           go test -v ./$CATEGORY -run $TEST_NAME  > 'test_output.txt'
           else
             echo "[no tests to run]" > 'test_output.txt'
           fi
@@ -81,9 +69,9 @@ jobs:
             if (output.includes('[no tests to run]')) {
                 comment = "Ressource not found, please check the name of the ressource";
             } else if (output.startsWith('ok')) {
-                comment = "Acceptance Test passed : " + output;
+                comment = "## :rocket: Acceptance Test passed \n\n" + output;
             } else {
-                comment = "Acceptance Test failed : " + output;
+                comment = "## :bangbang: Acceptance Test failed \n\n" + output;
             }
             github.rest.issues.createComment({
             issue_number: context.issue.number,
