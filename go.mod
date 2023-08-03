@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.2
-	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.4.1
+	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.5.0
 	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.0.5
 	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.7.0
 	github.com/antihax/optional v1.0.0
