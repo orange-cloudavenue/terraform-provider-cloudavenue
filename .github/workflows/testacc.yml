@@ -9,7 +9,7 @@ jobs:
     name: Build
     runs-on: ubuntu-22.04
     if: (github.event.issue.author_association == 'MEMBER') &&
-      (!github.event.issue.pull_request) &&
+      github.event.issue.pull_request &&
       startsWith(github.event.comment.body, '/testacc ')
     steps:
     - name: Extract Command
