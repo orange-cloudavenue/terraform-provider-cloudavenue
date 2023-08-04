@@ -9,10 +9,15 @@
 
 ### :tada: **Improvements**
 
+* `datasource/cloudavenue_catalog_vapp_template` - Now the `template_name` and `template_id` attributes are always returned and improve the documentation. ([GH-443](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/443))
+* `datasource/cloudavenue_catalogs` - Improve the documentation. ([GH-443](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/443))
 * `resource/catalog` - Improve example in documentation
 `datasource/edgegateway_nat_rule` - Improve example in documentation
 `datasource/vapp_isolated_network` - Improve example in documentation
 `datasource/vm` - Improve example in documentation ([GH-451](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/451))
+### :information_source: **Notes**
+
+* `datasource/cloudavenue_catalog_vapp_template` - Now the `id` attribute return URN instead of UUID. ([GH-443](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/443))
 
 ### :dependabot: **Dependencies**
 
