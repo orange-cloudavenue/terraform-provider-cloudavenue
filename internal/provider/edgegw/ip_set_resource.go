@@ -400,6 +400,7 @@ func (r *ipSetResource) read(ctx context.Context, planOrState *IPSetModel) (stat
 			return stateRefreshed, false, nil
 		}
 		diags.AddError("Error retrieving IP Set", err.Error())
+		return
 	}
 
 	stateRefreshed.ID.Set(ipSetConfig.NsxtFirewallGroup.ID)
