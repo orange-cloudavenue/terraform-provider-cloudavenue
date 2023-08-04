@@ -10,7 +10,7 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-const testAccOrgUserResourceConfig = `
+const TestAccOrgUserResourceConfig = `
 resource "cloudavenue_iam_user" "example" {
 	name        = "example"
 	role_name   = "Organization Administrator"
@@ -71,7 +71,7 @@ func TestAccUserResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: testAccOrgUserResourceConfig,
+				Config: TestAccOrgUserResourceConfig,
 				Check:  testsOrgUserResourceConfig(resourceName),
 			},
 			{
