@@ -62,7 +62,7 @@ var (
 
 	vcdNotApplicableCA = []string{
 		"vcd_catalog_item",
-		"vcd_certificate_library",
+		"vcd_certificate_library",  // Certificate library require System Admin
 		"vcd_edgegateway",          // NSX-V not supported on cloudavenue
 		"vcd_edgegateway_settings", // NSX-V not supported on cloudavenue
 		"vcd_edgegateway_vpn",      // NSX-V not supported on cloudavenue
@@ -86,8 +86,14 @@ var (
 		"vcd_nsxt_edgegateway_bgp_configuration",
 		"vcd_nsxt_edgegateway_bgp_ip_prefix_list",
 		"vcd_nsxt_edgegateway_bgp_neighbor",
+		"vcd_nsxt_edgegateway_qos_profile",   // Edgegateway QoS Profile require NSX-T Manager
+		"vcd_nsxt_edgegateway_rate_limiting", // Edgegateway Rate Limiting require Edgegateway QoS Profile to be usefull
 		"vcd_nsxt_network_imported",
 		"vcd_nsxt_route_advertisement",
+		"vcd_nsxt_tier0_router",         // Tier0 router require NSX-T Manager
+		"vcd_nsxv_application",          // NSX-V not supported on cloudavenue
+		"vcd_nsxv_application_finder",   // NSX-V not supported on cloudavenue
+		"vcd_nsxv_application_group",    // NSX-V not supported on cloudavenue
 		"vcd_nsxv_dhcp_relay",           // NSX-V not supported on cloudavenue
 		"vcd_nsxv_dnat",                 // NSX-V not supported on cloudavenue
 		"vcd_nsxv_firewall_rule",        // NSX-V not supported on cloudavenue
@@ -111,9 +117,10 @@ var (
 		"vcd_resource_list",   // Generic data source.
 		"vcd_nsxt_manager",    // NSX-T manager
 		"vcd_cloned_vapp",
-		"vcd_ip_space",              // IP Space require Admin Org
-		"vcd_ip_space_custom_quota", // IP Space require Admin Org
-		"vcd_ip_space_uplink",       // IP Space require Admin Org
+		"vcd_ip_space",               // IP Space require Admin Org
+		"vcd_ip_space_custom_quota",  // IP Space require Admin Org
+		"vcd_ip_space_uplink",        // IP Space require Admin Org
+		"vcd_ip_space_ip_allocation", // IP Space require System Admin
 		"vcd_nsxt_edgegateway_dhcpv6",
 		"vcd_rde",
 		"vcd_rde_interface",

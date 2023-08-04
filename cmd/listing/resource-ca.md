@@ -1,6 +1,6 @@
 # Checking resources and datasources of Orange Cloud Avenue provider
-- Found 28 resources in terraform
-- Found 33 datasources in terraform
+- Found 30 resources in terraform
+- Found 34 datasources in terraform
 
 # Checking resources and datasources of VMware Cloud Director provider (version: unset)
 - Found 98 resources in terraform
@@ -20,25 +20,27 @@
 | (7) | cloudavenue_edgegateway_ip_set | vcd_nsxt_ip_set |
 | (8) | cloudavenue_edgegateway_nat_rule | vcd_nsxt_nat_rule |
 | (9) | cloudavenue_edgegateway_security_group | vcd_nsxt_security_group |
-| (10) | cloudavenue_iam_role | vcd_role |
-| (11) | cloudavenue_iam_user | vcd_org_user |
-| (12) | cloudavenue_network_dhcp | vcd_nsxt_network_dhcp |
-| (13) | cloudavenue_network_dhcp_binding | vcd_nsxt_network_dhcp_binding |
-| (14) | cloudavenue_network_isolated | vcd_network_isolated |
-| (15) | cloudavenue_network_routed | vcd_network_routed |
-| (16) | cloudavenue_publicip |
-| (17) | cloudavenue_vapp | vcd_vapp |
-| (18) | cloudavenue_vapp_acl | vcd_vapp_access_control |
-| (19) | cloudavenue_vapp_isolated_network | vcd_vapp_network |
-| (20) | cloudavenue_vapp_org_network | vcd_vapp_org_network |
-| (21) | cloudavenue_vcda_ip |
-| (22) | cloudavenue_vdc | vcd_org_vdc |
-| (23) | cloudavenue_vdc_acl | vcd_org_vdc_access_control |
-| (24) | cloudavenue_vm | vcd_vm |
-| (25) | cloudavenue_vm_affinity_rule | vcd_vm_affinity_rule |
-| (26) | cloudavenue_vm_disk | vcd_independent_disk |
-| (27) | cloudavenue_vm_inserted_media | vcd_inserted_media |
-| (28) | cloudavenue_vm_security_tag | vcd_security_tag |
+| (10) | cloudavenue_edgegateway_static_route | vcd_nsxt_edgegateway_static_route |
+| (11) | cloudavenue_iam_role | vcd_role |
+| (12) | cloudavenue_iam_user | vcd_org_user |
+| (13) | cloudavenue_network_dhcp | vcd_nsxt_network_dhcp |
+| (14) | cloudavenue_network_dhcp_binding | vcd_nsxt_network_dhcp_binding  |
+| (15) | cloudavenue_network_isolated | vcd_network_isolated |
+| (16) | cloudavenue_network_routed | vcd_network_routed |
+| (17) | cloudavenue_publicip |
+| (18) | cloudavenue_vapp | vcd_vapp |
+| (19) | cloudavenue_vapp_acl | vcd_vapp_access_control |
+| (20) | cloudavenue_vapp_isolated_network | vcd_vapp_network |
+| (21) | cloudavenue_vapp_org_network | vcd_vapp_org_network |
+| (22) | cloudavenue_vcda_ip |
+| (23) | cloudavenue_vdc | vcd_org_vdc |
+| (24) | cloudavenue_vdc_acl | vcd_org_vdc_access_control |
+| (25) | cloudavenue_vdc_group | vcd_vdc_group |
+| (26) | cloudavenue_vm | vcd_vm |
+| (27) | cloudavenue_vm_affinity_rule | vcd_vm_affinity_rule |
+| (28) | cloudavenue_vm_disk | vcd_independent_disk |
+| (29) | cloudavenue_vm_inserted_media | vcd_inserted_media |
+| (30) | cloudavenue_vm_security_tag | vcd_security_tag |
 
 | Number | Datasources Orange Cloud Avenue | Datasources VMware VCD |
 |:--:|:--:|:--:|
@@ -54,27 +56,28 @@
 | (10) | cloudavenue_edgegateway_ip_set | vcd_nsxt_ip_set |
 | (11) | cloudavenue_edgegateway_nat_rule | vcd_nsxt_nat_rule |
 | (12) | cloudavenue_edgegateway_security_group | vcd_nsxt_security_group |
-| (13) | cloudavenue_edgegateways |
-| (14) | cloudavenue_iam_right | vcd_right |
-| (15) | cloudavenue_iam_role | vcd_role |
-| (16) | cloudavenue_iam_user | vcd_org_user |
-| (17) | cloudavenue_network_dhcp | vcd_nsxt_network_dhcp |
-| (18) | cloudavenue_network_dhcp_binding | vcd_nsxt_network_dhcp_binding |
-| (19) | cloudavenue_network_isolated | vcd_network_isolated |
-| (20) | cloudavenue_network_routed | vcd_network_routed |
-| (21) | cloudavenue_publicips |
-| (22) | cloudavenue_storage_profile | vcd_storage_profile |
-| (23) | cloudavenue_storage_profiles |
-| (24) | cloudavenue_tier0_vrf |
-| (25) | cloudavenue_tier0_vrfs |
-| (26) | cloudavenue_vapp | vcd_vapp |
-| (27) | cloudavenue_vapp_isolated_network | vcd_vapp_network |
-| (28) | cloudavenue_vapp_org_network | vcd_vapp_org_network |
-| (29) | cloudavenue_vdc | vcd_org_vdc |
-| (30) | cloudavenue_vdc_group | vcd_vdc_group |
-| (31) | cloudavenue_vdcs |
-| (32) | cloudavenue_vm | vcd_vm |
-| (33) | cloudavenue_vm_affinity_rule | vcd_vm_affinity_rule |
+| (13) | cloudavenue_edgegateway_static_route | vcd_nsxt_edgegateway_static_route |
+| (14) | cloudavenue_edgegateways |
+| (15) | cloudavenue_iam_right | vcd_right |
+| (16) | cloudavenue_iam_role | vcd_role |
+| (17) | cloudavenue_iam_user | vcd_org_user |
+| (18) | cloudavenue_network_dhcp | vcd_nsxt_network_dhcp |
+| (19) | cloudavenue_network_dhcp_binding | vcd_nsxt_network_dhcp_binding  |
+| (20) | cloudavenue_network_isolated | vcd_network_isolated |
+| (21) | cloudavenue_network_routed | vcd_network_routed |
+| (22) | cloudavenue_publicips |
+| (23) | cloudavenue_storage_profile | vcd_storage_profile |
+| (24) | cloudavenue_storage_profiles |
+| (25) | cloudavenue_tier0_vrf |
+| (26) | cloudavenue_tier0_vrfs |
+| (27) | cloudavenue_vapp | vcd_vapp |
+| (28) | cloudavenue_vapp_isolated_network | vcd_vapp_network |
+| (29) | cloudavenue_vapp_org_network | vcd_vapp_org_network |
+| (30) | cloudavenue_vdc | vcd_org_vdc |
+| (31) | cloudavenue_vdc_group | vcd_vdc_group |
+| (32) | cloudavenue_vdcs |
+| (33) | cloudavenue_vm | vcd_vm |
+| (34) | cloudavenue_vm_affinity_rule | vcd_vm_affinity_rule |
 
 # Listing cross resources and datasources from VCD (version: unset)
 
@@ -97,7 +100,7 @@
 | (15) | vcd_inserted_media | cloudavenue_vm_inserted_media | :white_check_mark: |
 | (16) | vcd_ip_space | Not Applicable | :heavy_multiplication_x: |
 | (17) | vcd_ip_space_custom_quota | Not Applicable | :heavy_multiplication_x: |
-| (18) | vcd_ip_space_ip_allocation | Not yet implemented | :x: |
+| (18) | vcd_ip_space_ip_allocation | Not Applicable | :heavy_multiplication_x: |
 | (19) | vcd_ip_space_uplink | Not Applicable | :heavy_multiplication_x: |
 | (20) | vcd_lb_app_profile | Not Applicable | :heavy_multiplication_x: |
 | (21) | vcd_lb_app_rule | Not Applicable | :heavy_multiplication_x: |
@@ -127,7 +130,7 @@
 | (45) | vcd_nsxt_edgegateway_bgp_neighbor | Not Applicable | :heavy_multiplication_x: |
 | (46) | vcd_nsxt_edgegateway_dhcp_forwarding | cloudavenue_edgegateway_dhcp_forwarding | :white_check_mark: |
 | (47) | vcd_nsxt_edgegateway_dhcpv6 | Not Applicable | :heavy_multiplication_x: |
-| (48) | vcd_nsxt_edgegateway_rate_limiting | Not yet implemented | :x: |
+| (48) | vcd_nsxt_edgegateway_rate_limiting | Not Applicable | :heavy_multiplication_x: |
 | (49) | vcd_nsxt_edgegateway_static_route | cloudavenue_edgegateway_static_route | :white_check_mark: |
 | (50) | vcd_nsxt_firewall | cloudavenue_edgegateway_firewall | :white_check_mark: |
 | (51) | vcd_nsxt_ip_set | cloudavenue_edgegateway_ip_set | :white_check_mark: |
@@ -192,7 +195,7 @@
 | (9) | vcd_independent_disk | cloudavenue_vm_disk | :white_check_mark: |
 | (10) | vcd_ip_space | Not Applicable | :heavy_multiplication_x: |
 | (11) | vcd_ip_space_custom_quota | Not Applicable | :heavy_multiplication_x: |
-| (12) | vcd_ip_space_ip_allocation | Not yet implemented | :x: |
+| (12) | vcd_ip_space_ip_allocation | Not Applicable | :heavy_multiplication_x: |
 | (13) | vcd_ip_space_uplink | Not Applicable | :heavy_multiplication_x: |
 | (14) | vcd_lb_app_profile | Not Applicable | :heavy_multiplication_x: |
 | (15) | vcd_lb_app_rule | Not Applicable | :heavy_multiplication_x: |
@@ -225,8 +228,8 @@
 | (42) | vcd_nsxt_edgegateway_bgp_neighbor | Not Applicable | :heavy_multiplication_x: |
 | (43) | vcd_nsxt_edgegateway_dhcp_forwarding | cloudavenue_edgegateway_dhcp_forwarding | :white_check_mark: |
 | (44) | vcd_nsxt_edgegateway_dhcpv6 | Not Applicable | :heavy_multiplication_x: |
-| (45) | vcd_nsxt_edgegateway_qos_profile | Not yet implemented | :x: |
-| (46) | vcd_nsxt_edgegateway_rate_limiting | Not yet implemented | :x: |
+| (45) | vcd_nsxt_edgegateway_qos_profile | Not Applicable | :heavy_multiplication_x: |
+| (46) | vcd_nsxt_edgegateway_rate_limiting | Not Applicable | :heavy_multiplication_x: |
 | (47) | vcd_nsxt_edgegateway_static_route | cloudavenue_edgegateway_static_route | :white_check_mark: |
 | (48) | vcd_nsxt_firewall | cloudavenue_edgegateway_firewall | :white_check_mark: |
 | (49) | vcd_nsxt_ip_set | cloudavenue_edgegateway_ip_set | :white_check_mark: |
@@ -239,10 +242,10 @@
 | (56) | vcd_nsxt_network_imported | Not Applicable | :heavy_multiplication_x: |
 | (57) | vcd_nsxt_route_advertisement | Not Applicable | :heavy_multiplication_x: |
 | (58) | vcd_nsxt_security_group | cloudavenue_edgegateway_security_group | :white_check_mark: |
-| (59) | vcd_nsxt_tier0_router | Not yet implemented | :x: |
-| (60) | vcd_nsxv_application | Not yet implemented | :x: |
-| (61) | vcd_nsxv_application_finder | Not yet implemented | :x: |
-| (62) | vcd_nsxv_application_group | Not yet implemented | :x: |
+| (59) | vcd_nsxt_tier0_router | Not Applicable | :heavy_multiplication_x: |
+| (60) | vcd_nsxv_application | Not Applicable | :heavy_multiplication_x: |
+| (61) | vcd_nsxv_application_finder | Not Applicable | :heavy_multiplication_x: |
+| (62) | vcd_nsxv_application_group | Not Applicable | :heavy_multiplication_x: |
 | (63) | vcd_nsxv_dhcp_relay | Not Applicable | :heavy_multiplication_x: |
 | (64) | vcd_nsxv_distributed_firewall | Not Applicable | :heavy_multiplication_x: |
 | (65) | vcd_nsxv_dnat | Not Applicable | :heavy_multiplication_x: |
