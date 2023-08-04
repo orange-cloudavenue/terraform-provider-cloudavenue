@@ -54,6 +54,31 @@ resource "cloudavenue_catalog_acl" "example" {
 }
 `
 
+var (
+	aclTestCheck = func(resourceName string) resource.TestCheckFunc {
+		return resource.ComposeAggregateTestCheckFunc(
+			resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Catalog)),
+			resource.TestCheckResourceAttr(resourceName, "shared_with_everyone", "true"),
+			resource.TestCheckResourceAttr(resourceName, "everyone_access_level", "ReadOnly"),
+			resource.TestCheckNoResourceAttr(resourceName, "shared_with_users.#"),
+			resource.TestCheckResourceAttrWith(resourceName, "catalog_id", uuid.TestIsType(uuid.Catalog)),
+			resource.TestCheckResourceAttrSet(resourceName, "catalog_name"),
+		)
+	}
+
+	aclTestCheckShareWithUsers = func(resourceName string) resource.TestCheckFunc {
+		return resource.ComposeAggregateTestCheckFunc(
+			resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Catalog)),
+			resource.TestCheckResourceAttr(resourceName, "shared_with_everyone", "false"),
+			resource.TestCheckNoResourceAttr(resourceName, "everyone_access_level"),
+			resource.TestCheckResourceAttrWith(resourceName, "catalog_id", uuid.TestIsType(uuid.Catalog)),
+			resource.TestCheckResourceAttrSet(resourceName, "catalog_name"),
+			resource.TestCheckResourceAttr(resourceName, "shared_with_users.#", "2"),
+			// shared_with_users it's a SetNestedAttribute, so we can't be sure of the order of the elements in the list is not possible to test each attribute
+		)
+	}
+)
+
 func TestCatalogAccACLResource(t *testing.T) {
 	resourceName := "cloudavenue_catalog_acl.example"
 
@@ -65,14 +90,7 @@ func TestCatalogAccACLResource(t *testing.T) {
 			{
 				// Apply test
 				Config: tests.ConcatTests(testAccCatalogResourceConfig, testAccACLResourceConfig),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Catalog)),
-					resource.TestCheckResourceAttr(resourceName, "shared_with_everyone", "true"),
-					resource.TestCheckResourceAttr(resourceName, "everyone_access_level", "ReadOnly"),
-					resource.TestCheckNoResourceAttr(resourceName, "shared_with_users.#"),
-					resource.TestCheckResourceAttrWith(resourceName, "catalog_id", uuid.TestIsType(uuid.Catalog)),
-					resource.TestCheckResourceAttrSet(resourceName, "catalog_name"),
-				),
+				Check:  aclTestCheck(resourceName),
 			},
 			// Update testing
 			{
@@ -90,15 +108,7 @@ func TestCatalogAccACLResource(t *testing.T) {
 			// Update testing
 			{
 				Config: tests.ConcatTests(testAccCatalogResourceConfig, testAccACLResourceConfigUpdateShareWithUsers),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Catalog)),
-					resource.TestCheckResourceAttr(resourceName, "shared_with_everyone", "false"),
-					resource.TestCheckNoResourceAttr(resourceName, "everyone_access_level"),
-					resource.TestCheckResourceAttrWith(resourceName, "catalog_id", uuid.TestIsType(uuid.Catalog)),
-					resource.TestCheckResourceAttrSet(resourceName, "catalog_name"),
-					resource.TestCheckResourceAttr(resourceName, "shared_with_users.#", "2"),
-					// shared_with_users it's a SetNestedAttribute, so we can't be sure of the order of the elements in the list is not possible to test each attribute
-				),
+				Check:  aclTestCheckShareWithUsers(resourceName),
 			},
 			// Import State testing
 			{

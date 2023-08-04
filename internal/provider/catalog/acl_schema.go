@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -34,7 +35,7 @@ func aclSchema(_ context.Context) superschema.Schema {
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
-				Resource: &schemaR.StringAttribute{
+				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID is same as the ID of the catalog.",
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
@@ -43,7 +44,7 @@ func aclSchema(_ context.Context) superschema.Schema {
 				},
 			},
 			"catalog_id": superschema.SuperStringAttribute{
-				Resource: &schemaR.StringAttribute{
+				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the catalog.",
 					Optional:            true,
 					Computed:            true,
@@ -55,7 +56,7 @@ func aclSchema(_ context.Context) superschema.Schema {
 				},
 			},
 			"catalog_name": superschema.SuperStringAttribute{
-				Resource: &schemaR.StringAttribute{
+				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The Name of the catalog.",
 					Optional:            true,
 					Computed:            true,
@@ -65,49 +66,66 @@ func aclSchema(_ context.Context) superschema.Schema {
 				},
 			},
 			"shared_with_everyone": superschema.SuperBoolAttribute{
-				Resource: &schemaR.BoolAttribute{
+				Common: &schemaR.BoolAttribute{
 					MarkdownDescription: "Whether the Catalog is shared with everyone in your organization with right `ReadOnly`.",
-					Optional:            true,
 					Computed:            true,
-					Default:             booldefault.StaticBool(false),
+				},
+				Resource: &schemaR.BoolAttribute{
+					Optional: true,
+					Default:  booldefault.StaticBool(false),
 				},
 			},
 			"everyone_access_level": superschema.SuperStringAttribute{
-				Resource: &schemaR.StringAttribute{
+				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Access level when the Catalog is shared with everyone",
-					Optional:            true,
+				},
+				Resource: &schemaR.StringAttribute{
+					Optional: true,
 					Validators: []validator.String{
 						stringvalidator.OneOf("ReadOnly", "Change", "FullControl"),
 						fstringvalidator.RequireIfAttributeIsOneOf(path.MatchRoot("shared_with_everyone"), []attr.Value{types.BoolValue(true)}),
 						fstringvalidator.NullIfAttributeIsOneOf(path.MatchRoot("shared_with_everyone"), []attr.Value{types.BoolValue(false)}),
 					},
 				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+				},
 			},
 			"shared_with_users": superschema.SuperSetNestedAttribute{
-				Resource: &schemaR.SetNestedAttribute{
+				Common: &schemaR.SetNestedAttribute{
 					MarkdownDescription: "The list of users with whom the Catalog is shared.",
-					Optional:            true,
+					Computed:            true,
+				},
+				Resource: &schemaR.SetNestedAttribute{
+					Optional: true,
 					Validators: []validator.Set{
 						fsetvalidator.NullIfAttributeIsOneOf(path.MatchRoot("shared_with_everyone"), []attr.Value{types.BoolValue(true)}),
 					},
 				},
 				Attributes: superschema.Attributes{
 					"user_id": superschema.SuperStringAttribute{
-						Resource: &schemaR.StringAttribute{
+						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The ID of the user to which we are sharing.",
-							Required:            true,
+						},
+						Resource: &schemaR.StringAttribute{
+							Required: true,
 							Validators: []validator.String{
 								fstringvalidator.IsURN(),
 								fstringvalidator.PrefixContains(uuid.User.String()),
 							},
 						},
+						DataSource: &schemaD.StringAttribute{
+							Computed: true,
+						},
 					},
 					"access_level": superschema.SuperStringAttribute{
-						Resource: &schemaR.StringAttribute{
+						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The access level for the user to which we are sharing.",
-							Optional:            true,
 							Computed:            true,
-							Default:             stringdefault.StaticString("ReadOnly"),
+						},
+						Resource: &schemaR.StringAttribute{
+							Optional: true,
+							Default:  stringdefault.StaticString("ReadOnly"),
 							Validators: []validator.String{
 								stringvalidator.OneOf("ReadOnly", "Change", "FullControl"),
 							},

@@ -22,9 +22,6 @@ var (
 	_ resource.Resource                = &aclResource{}
 	_ resource.ResourceWithConfigure   = &aclResource{}
 	_ resource.ResourceWithImportState = &aclResource{}
-	// _ resource.ResourceWithModifyPlan     = &aclResource{}
-	// _ resource.ResourceWithUpgradeState   = &aclResource{}
-	// _ resource.ResourceWithValidateConfig = &aclResource{}.
 )
 
 // NewACLResource is a helper function to simplify the provider implementation.
