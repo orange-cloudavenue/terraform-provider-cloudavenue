@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 //go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
@@ -24,13 +25,21 @@ func TestAccCatalogVappTemplateDataSource(t *testing.T) {
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: tests.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
+			{
+				PlanOnly: true,
+			},
 			// Read testing
 			{
 				Config: testAccCatalogVappTemplateDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrWith(dataSourceName, "id", uuid.TestIsType(uuid.VAPPTemplate)),
+					// Catalog
 					resource.TestCheckResourceAttr(dataSourceName, "catalog_name", "Orange-Linux"),
+					resource.TestCheckResourceAttrWith(dataSourceName, "catalog_id", uuid.TestIsType(uuid.Catalog)),
+
 					resource.TestCheckResourceAttr(dataSourceName, "template_name", "UBUNTU_20.04"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
+					resource.TestCheckResourceAttrWith(dataSourceName, "template_id", uuid.TestIsType(uuid.VAPPTemplate)),
+					// Other
 					resource.TestCheckResourceAttrSet(dataSourceName, "created_at"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "vm_names.#"),
 				),
