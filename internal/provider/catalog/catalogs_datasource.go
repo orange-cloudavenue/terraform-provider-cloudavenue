@@ -7,8 +7,6 @@ import (
 	"net/url"
 	"sort"
 
-	"github.com/kr/pretty"
-
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -17,8 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
@@ -166,8 +162,6 @@ func (d *catalogsDataSource) Read(ctx context.Context, req datasource.ReadReques
 		Catalogs:     catalogs,
 		CatalogsName: cn,
 	}
-
-	tflog.Info(ctx, pretty.Sprint(updatedState))
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, updatedState)...)

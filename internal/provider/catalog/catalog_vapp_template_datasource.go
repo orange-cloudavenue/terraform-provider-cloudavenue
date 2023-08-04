@@ -100,7 +100,10 @@ func (d *vAppTemplateDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 	for _, vAppTemplate := range vAppTemplates {
 		if (state.TemplateID.IsKnown() && vAppTemplate.ID == state.TemplateID.Get()) || (state.TemplateName.IsKnown() && vAppTemplate.Name == state.TemplateName.Get()) {
+			// govcd.GetUuidFromHref not working here because the href contains vappTemplate- before the uuid
 			// field ID in vAppTemplate attribute is always empty. ID exist in HREF attribute.
+			// get last 36 characters of href
+			// href ex : http://url.com/xx/xx/xx/vappTemplate-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 			vappTemplateID := uuid.Normalize(uuid.VAPPTemplate, vAppTemplate.HREF[len(vAppTemplate.HREF)-36:])
 			stateUpdated.TemplateID.Set(vappTemplateID.String())
 			stateUpdated.ID.Set(vappTemplateID.String())
