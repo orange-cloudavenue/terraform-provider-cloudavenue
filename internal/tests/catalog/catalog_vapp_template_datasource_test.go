@@ -25,9 +25,6 @@ func TestAccCatalogVappTemplateDataSource(t *testing.T) {
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: tests.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			{
-				PlanOnly: true,
-			},
 			// Read testing
 			{
 				Config: testAccCatalogVappTemplateDataSourceConfig,

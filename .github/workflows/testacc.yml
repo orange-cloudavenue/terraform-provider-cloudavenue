@@ -68,7 +68,7 @@ jobs:
             let comment = "";
             if (output.includes('[no tests to run]')) {
                 comment = "Ressource not found, please check the name of the ressource";
-            } else if (output.startsWith('ok')) {
+            } else if (output.includes('--- PASS')) {
                 comment = "## :rocket: Acceptance Test passed \n\n" + output;
             } else {
                 comment = "## :bangbang: Acceptance Test failed \n\n" + output;

@@ -5,3 +5,7 @@
 ```release-note:enhancement
 `datasource/cloudavenue_catalog_vapp_template` - Now the `template_name` and `template_id` attributes are always returned and improve the documentation.
 ```
+
+```release-note:enhancement
+`datasource/cloudavenue_catalogs` - Improve the documentation.
+```

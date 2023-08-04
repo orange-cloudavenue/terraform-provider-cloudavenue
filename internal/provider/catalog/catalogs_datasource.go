@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"sort"
 
+	"github.com/kr/pretty"
+
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -15,6 +17,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
@@ -36,7 +40,7 @@ func NewCatalogsDataSource() datasource.DataSource {
 }
 
 func (d *catalogsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = catalogsSchema()
+	resp.Schema = catalogsSuperSchema(ctx).GetDataSource(ctx)
 }
 
 func (d *catalogsDataSource) Init(ctx context.Context, rm *catalogsDataSourceModel) (diags diag.Diagnostics) {
@@ -88,20 +92,24 @@ func (d *catalogsDataSource) Read(ctx context.Context, req datasource.ReadReques
 			continue
 		} else {
 			s := catalogDataSourceModel{
-				ID:          types.StringValue(catalog.AdminCatalog.ID),
-				Name:        types.StringValue(catalog.AdminCatalog.Name),
-				CreatedAt:   types.StringValue(catalog.AdminCatalog.DateCreated),
-				Description: types.StringValue(catalog.AdminCatalog.Description),
-				IsPublished: types.BoolValue(catalog.AdminCatalog.IsPublished),
-				IsLocal:     types.BoolValue(!catalog.AdminCatalog.IsPublished),
+				ID:                          types.StringValue(catalog.AdminCatalog.ID),
+				Name:                        types.StringValue(catalog.AdminCatalog.Name),
+				CreatedAt:                   types.StringValue(catalog.AdminCatalog.DateCreated),
+				Description:                 utils.StringValueOrNull(catalog.AdminCatalog.Description),
+				IsPublished:                 types.BoolValue(catalog.AdminCatalog.IsPublished),
+				IsLocal:                     types.BoolValue(!catalog.AdminCatalog.IsPublished),
+				IsCached:                    types.BoolNull(),
+				IsShared:                    types.BoolNull(),
+				PreserveIdentityInformation: types.BoolNull(),
+				OwnerName:                   types.StringNull(),
+				MediaItemList:               types.ListNull(types.StringType),
+				NumberOfMedia:               types.Int64Null(),
 			}
 
 			catalogsName = append(catalogsName, catalog.AdminCatalog.Name)
 
 			if catalog.AdminCatalog.Owner != nil && catalog.AdminCatalog.Owner.User != nil {
-				s.OwnerName = types.StringValue(catalog.AdminCatalog.Owner.User.Name)
-			} else {
-				s.OwnerName = types.StringValue("")
+				s.OwnerName = utils.StringValueOrNull(catalog.AdminCatalog.Owner.User.Name)
 			}
 
 			if catalog.AdminCatalog.PublishExternalCatalogParams != nil {
@@ -158,6 +166,8 @@ func (d *catalogsDataSource) Read(ctx context.Context, req datasource.ReadReques
 		Catalogs:     catalogs,
 		CatalogsName: cn,
 	}
+
+	tflog.Info(ctx, pretty.Sprint(updatedState))
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, updatedState)...)

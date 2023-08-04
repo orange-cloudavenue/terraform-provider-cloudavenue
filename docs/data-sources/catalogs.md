@@ -30,7 +30,7 @@ output "catalog_Orange-Linux" {
 
 - `catalogs` (Attributes Map) Map of catalogs. (see [below for nested schema](#nestedatt--catalogs))
 - `catalogs_name` (List of String) List of catalogs name.
-- `id` (String) The ID of this resource.
+- `id` (String) Generated ID of the catalogs.
 
 <a id="nestedatt--catalogs"></a>
 ### Nested Schema for `catalogs`
@@ -39,13 +39,13 @@ Read-Only:
 
 - `created_at` (String) The creation date of the catalog.
 - `description` (String) The description of the catalog.
-- `id` (String) The ID of the catalog. Ensure that one and only one attribute from this collection is set : `name`, `id`.
+- `id` (String) The ID of the catalog.
 - `is_cached` (Boolean) Indicates whether the catalog is cached.
 - `is_local` (Boolean) Indicates whether the catalog is local.
 - `is_published` (Boolean) Indicates whether the catalog is published.
 - `is_shared` (Boolean) Indicates whether the catalog is shared.
 - `media_item_list` (List of String) The list of media items in the catalog.
-- `name` (String) The name of the catalog. Ensure that one and only one attribute from this collection is set : `name`, `id`.
+- `name` (String) The name of the catalog.
 - `number_of_media` (Number) The number of media in the catalog.
 - `owner_name` (String) The owner name of the catalog.
 - `preserve_identity_information` (Boolean) Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Keep in mind that preserving this identity information reduces the package's portability, so only include it when necessary.

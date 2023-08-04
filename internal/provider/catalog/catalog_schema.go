@@ -1,8 +1,6 @@
 package catalog
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,32 +15,6 @@ import (
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
-
-func catalogDatasourceAttributes() map[string]schemaD.Attribute {
-	attr := catalogSchema().GetDataSource(context.Background()).Attributes
-
-	for k, v := range attr {
-		switch val := v.(type) {
-		case schemaD.StringAttribute:
-			val.Computed = true
-			val.Optional = false
-			val.Required = false
-			attr[k] = val
-		case schemaD.BoolAttribute:
-			val.Computed = true
-			val.Optional = false
-			val.Required = false
-			attr[k] = val
-		case schemaD.Int64Attribute:
-			val.Computed = true
-			val.Optional = false
-			val.Required = false
-			attr[k] = val
-		}
-	}
-
-	return attr
-}
 
 /*
 catalogSchema
