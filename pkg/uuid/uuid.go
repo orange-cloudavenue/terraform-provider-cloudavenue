@@ -25,8 +25,10 @@ const (
 	LoadBalancerPool  = VcloudUUID(VcloudUUIDPrefix + "loadBalancerPool:")
 	VDCStorageProfile = VcloudUUID(VcloudUUIDPrefix + "vdcstorageProfile:")
 	VAPP              = VcloudUUID(VcloudUUIDPrefix + "vapp:")
+	VAPPTemplate      = VcloudUUID(VcloudUUIDPrefix + "vappTemplate:")
 	Disk              = VcloudUUID(VcloudUUIDPrefix + "disk:")
 	SecurityGroup     = VcloudUUID(VcloudUUIDPrefix + "firewallGroup:")
+	Catalog           = VcloudUUID(VcloudUUIDPrefix + "catalog:")
 
 	// * CLOUDAVENUE.
 	VCDA = VcloudUUID(CloudAvenueUUIDPrefix + "vcda:")
@@ -43,8 +45,10 @@ var vcloudUUIDs = []VcloudUUID{
 	LoadBalancerPool,
 	VDCStorageProfile,
 	VAPP,
+	VAPPTemplate,
 	Disk,
 	SecurityGroup,
+	Catalog,
 }
 
 type (
@@ -175,6 +179,11 @@ func (uuid VcloudUUID) IsVAPP() bool {
 	return uuid.IsType(VAPP)
 }
 
+// IsVAPPTemplate returns true if the UUID is a VAPPTemplate UUID.
+func (uuid VcloudUUID) IsVAPPTemplate() bool {
+	return uuid.IsType(VAPPTemplate)
+}
+
 // IsDisk returns true if the UUID is a Disk UUID.
 func (uuid VcloudUUID) IsDisk() bool {
 	return uuid.IsType(Disk)
@@ -184,6 +193,13 @@ func (uuid VcloudUUID) IsDisk() bool {
 func (uuid VcloudUUID) IsSecurityGroup() bool {
 	return uuid.IsType(SecurityGroup)
 }
+
+// IsCatalog returns true if the UUID is a Catalog UUID.
+func (uuid VcloudUUID) IsCatalog() bool {
+	return uuid.IsType(Catalog)
+}
+
+// * End Methods
 
 // IsEdgeGateway returns true if the UUID is a EdgeGateway UUID.
 func IsEdgeGateway(uuid string) bool {
@@ -220,6 +236,11 @@ func IsVAPP(uuid string) bool {
 	return VcloudUUID(uuid).IsType(VAPP)
 }
 
+// IsVAPPTemplate returns true if the UUID is a VAPPTemplate UUID.
+func IsVAPPTemplate(uuid string) bool {
+	return VcloudUUID(uuid).IsType(VAPPTemplate)
+}
+
 // IsDisk returns true if the UUID is a Disk UUID.
 func IsDisk(uuid string) bool {
 	return VcloudUUID(uuid).IsType(Disk)
@@ -249,6 +270,13 @@ func IsUser(uuid string) bool {
 func IsGroup(uuid string) bool {
 	return VcloudUUID(uuid).IsType(Group)
 }
+
+// IsCatalog returns true if the UUID is a Catalog UUID.
+func IsCatalog(uuid string) bool {
+	return VcloudUUID(uuid).IsType(Catalog)
+}
+
+// * End Functions
 
 // TestIsType returns true if the UUID is of the specified type.
 func TestIsType(uuidType VcloudUUID) resource.CheckResourceAttrWithFunc {

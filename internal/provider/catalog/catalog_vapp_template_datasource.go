@@ -5,23 +5,18 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var (
 	_ datasource.DataSource              = &vAppTemplateDataSource{}
 	_ datasource.DataSourceWithConfigure = &vAppTemplateDataSource{}
-	_ catalog                            = &vAppTemplateDataSource{}
 )
 
 func NewVAppTemplateDataSource() datasource.DataSource {
@@ -34,7 +29,7 @@ type vAppTemplateDataSource struct {
 	catalog  base
 }
 
-func (d *vAppTemplateDataSource) Init(ctx context.Context, rm *vAppTemplateDataSourceModel) (diags diag.Diagnostics) {
+func (d *vAppTemplateDataSource) Init(ctx context.Context, rm *VAPPTemplateModel) (diags diag.Diagnostics) {
 	d.catalog = base{
 		name: rm.CatalogName.ValueString(),
 		id:   rm.CatalogID.ValueString(),
@@ -46,7 +41,7 @@ func (d *vAppTemplateDataSource) Init(ctx context.Context, rm *vAppTemplateDataS
 }
 
 func (d *vAppTemplateDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "vapp_template"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_vapp_template"
 }
 
 func (d *vAppTemplateDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -70,11 +65,11 @@ func (d *vAppTemplateDataSource) Configure(ctx context.Context, req datasource.C
 }
 
 func (d *vAppTemplateDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = vappTemplateSchema(ctx)
+	resp.Schema = vappTemplateSuperSchema(ctx).GetDataSource(ctx)
 }
 
 func (d *vAppTemplateDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	state := &vAppTemplateDataSourceModel{}
+	state := &VAPPTemplateModel{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, state)...)
@@ -87,78 +82,71 @@ func (d *vAppTemplateDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	catalog, err := d.GetCatalog()
+	catalog, err := d.adminOrg.GetAdminCatalogByNameOrId(d.GetIDOrName(), true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving catalog", err.Error())
 		return
 	}
 
-	if state.TemplateID.IsNull() || state.TemplateID.IsUnknown() {
-		vAppTemplates, err := catalog.QueryVappTemplateList()
-		if err != nil {
-			resp.Diagnostics.AddError("Error retrieving vApp Templates", err.Error())
-			return
-		}
+	stateUpdated := state.Copy()
+	stateUpdated.CatalogID.Set(catalog.AdminCatalog.ID)
+	stateUpdated.CatalogName.Set(catalog.AdminCatalog.Name)
 
-		var href string
+	vAppTemplates, err := catalog.QueryVappTemplateList()
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving vApp Templates", err.Error())
+		return
+	}
 
-		for _, vAppTemplate := range vAppTemplates {
-			if vAppTemplate.Name == state.TemplateName.ValueString() {
-				state.TemplateID = types.StringValue(vAppTemplate.ID)
-				href = vAppTemplate.HREF
-				break
-			}
-		}
-
-		if state.TemplateID.ValueString() == "" {
+	for _, vAppTemplate := range vAppTemplates {
+		if (state.TemplateID.IsKnown() && vAppTemplate.ID == state.TemplateID.Get()) || (state.TemplateName.IsKnown() && vAppTemplate.Name == state.TemplateName.Get()) {
 			// govcd.GetUuidFromHref not working here because the href contains vappTemplate- before the uuid
-
+			// field ID in vAppTemplate attribute is always empty. ID exist in HREF attribute.
 			// get last 36 characters of href
-			uuid := href[len(href)-36:]
+			// href ex : http://url.com/xx/xx/xx/vappTemplate-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+			vappTemplateID := uuid.Normalize(uuid.VAPPTemplate, vAppTemplate.HREF[len(vAppTemplate.HREF)-36:])
+			stateUpdated.TemplateID.Set(vappTemplateID.String())
+			stateUpdated.ID.Set(vappTemplateID.String())
 
-			if uuid != "" {
-				state.TemplateID = types.StringValue(uuid)
-			} else {
-				resp.Diagnostics.AddError("Error retrieving vApp Template", fmt.Sprintf("vApp Template '%s' not found", state.TemplateName.ValueString()))
+			stateUpdated.TemplateName.Set(vAppTemplate.Name)
+
+			vappTemplate, err := d.client.Vmware.GetVAppTemplateById(stateUpdated.TemplateID.Get())
+			if err != nil {
+				resp.Diagnostics.AddError("Error retrieving vApp Template", err.Error())
 				return
 			}
+
+			// This checks that the vApp Template is synchronized in the catalog
+			if _, err = d.client.Vmware.QuerySynchronizedVAppTemplateById(stateUpdated.TemplateID.Get()); err != nil {
+				resp.Diagnostics.AddError("Error check vApp Template synchronization", err.Error())
+				return
+			}
+
+			vmNames := make([]string, 0)
+			if vappTemplate.VAppTemplate.Children != nil {
+				for _, vm := range vappTemplate.VAppTemplate.Children.VM {
+					vmNames = append(vmNames, vm.Name)
+				}
+			}
+
+			stateUpdated.CreatedAt.Set(vappTemplate.VAppTemplate.DateCreated)
+			stateUpdated.Description.Set(vappTemplate.VAppTemplate.Description)
+
+			if len(vmNames) > 0 {
+				resp.Diagnostics.Append(stateUpdated.VMNames.Set(ctx, vmNames)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+			} else {
+				stateUpdated.VMNames.SetNull(ctx)
+			}
+
+			break
 		}
-
-		state.ID = state.TemplateID
 	}
-
-	vappTemplate, err := d.client.Vmware.GetVAppTemplateById(state.TemplateID.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving vApp Template", err.Error())
-		return
-	}
-
-	// This checks that the vApp Template is synchronized in the catalog
-	_, err = d.client.Vmware.QuerySynchronizedVAppTemplateById(vappTemplate.VAppTemplate.ID)
-	if err != nil {
-		resp.Diagnostics.AddError("Error check vApp Template synchronization", err.Error())
-		return
-	}
-
-	var vmNames []attr.Value
-	if vappTemplate.VAppTemplate.Children != nil {
-		for _, vm := range vappTemplate.VAppTemplate.Children.VM {
-			vmNames = append(vmNames, types.StringValue(vm.Name))
-		}
-	}
-	vmS, diag := basetypes.NewListValue(types.StringType, vmNames)
-	resp.Diagnostics.Append(diag...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	updatedState := state
-	updatedState.Description = types.StringValue(vappTemplate.VAppTemplate.Description)
-	updatedState.CreatedAt = types.StringValue(vappTemplate.VAppTemplate.DateCreated)
-	updatedState.VMNames = vmS
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, updatedState)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateUpdated)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -179,9 +167,4 @@ func (d *vAppTemplateDataSource) GetIDOrName() string {
 		return d.GetID()
 	}
 	return d.GetName()
-}
-
-// GetCatalog returns the govcd.Catalog.
-func (d *vAppTemplateDataSource) GetCatalog() (*govcd.AdminCatalog, error) {
-	return d.adminOrg.GetAdminCatalogByNameOrId(d.GetIDOrName(), true)
 }

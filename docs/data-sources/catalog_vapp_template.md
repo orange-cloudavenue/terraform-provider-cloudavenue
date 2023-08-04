@@ -24,14 +24,14 @@ data "cloudavenue_catalog_vapp_template" "example" {
 ### Optional
 
 - `catalog_id` (String) The ID of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
-- `catalog_name` (String) The name of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
-- `template_id` (String) ID of the vApp Template. Required if `template_name` is not set.
-- `template_name` (String) Name of the vApp Template. Required if `template_id` is not set.
+- `catalog_name` (String) The Name of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
+- `template_id` (String) The ID of the vApp Template. Ensure that one and only one attribute from this collection is set : `template_name`, `template_id`.
+- `template_name` (String) The Name of the vApp Template. Ensure that one and only one attribute from this collection is set : `template_name`, `template_id`.
 
 ### Read-Only
 
-- `created_at` (String) Creation date of the vApp Template
-- `description` (String) Description of the vApp Template
-- `id` (String) ID of the vApp Template
-- `vm_names` (List of String) Set of VM names within the vApp template
+- `created_at` (String) Creation date of the vApp Template.
+- `description` (String) Description of the vApp Template.
+- `id` (String) ID of the vApp Template.
+- `vm_names` (Set of String) Set of VM names within the vApp template.
 

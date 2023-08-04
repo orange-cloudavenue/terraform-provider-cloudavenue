@@ -616,6 +616,70 @@ func TestVcloudUUID_IsSecurityGroup(t *testing.T) {
 	}
 }
 
+// IsVAPPTemplate.
+func TestVcloudUUID_IsVAPPTemplate(t *testing.T) {
+	tests := []struct {
+		name string
+		uuid VcloudUUID
+		want bool
+	}{
+		{ // IsVAPPTemplate
+			name: "IsVAPPTemplate",
+			uuid: VcloudUUID(VAPPTemplate.String() + validUUIDv4),
+			want: true,
+		},
+		{ // IsNotVAPPTemplate
+			name: "IsNotVAPPTemplate",
+			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d4791"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.uuid.IsVAPPTemplate(); got != tt.want {
+				t.Errorf("VcloudUUID.IsVAPPTemplate() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// IsCatalog.
+func TestVcloudUUID_IsCatalog(t *testing.T) {
+	tests := []struct {
+		name string
+		uuid VcloudUUID
+		want bool
+	}{
+		{ // IsCatalog
+			name: "IsCatalog",
+			uuid: VcloudUUID(Catalog.String() + validUUIDv4),
+			want: true,
+		},
+		{ // IsNotCatalog
+			name: "IsNotCatalog",
+			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d4791"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.uuid.IsCatalog(); got != tt.want {
+				t.Errorf("VcloudUUID.IsCatalog() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 // TestIsType tests the TestIsType function.
 func TestTestIsType(t *testing.T) {
 	testCases := []struct {
