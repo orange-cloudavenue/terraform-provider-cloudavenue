@@ -1,4 +1,5 @@
-## 0.9.0 (Unreleased)
+## 0.10.0 (Unreleased)
+## 0.9.0 (August  7, 2023)
 ### :warning: **Deprecations**
 
 * `resource/cloudavenue_vdc` - The `vdc_group` attribute has been deprecated and will be removed in a `v0.12.0` release. Please use `cloudavenue_vdc_group` resource instead. ([GH-448](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/448))
