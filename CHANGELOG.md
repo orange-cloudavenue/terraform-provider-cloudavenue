@@ -1,4 +1,9 @@
 ## 0.10.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps golang.org/x/net from 0.13.0 to 0.14.0 ([GH-477](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/477))
+
 ## 0.9.0 (August  7, 2023)
 ### :warning: **Deprecations**
 
