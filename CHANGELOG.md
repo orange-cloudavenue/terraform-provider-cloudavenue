@@ -5,6 +5,8 @@
 
 ### :rocket: **New Features**
 
+* **New Data Source:** `datasource/cloudavenue_catalog_acl` - New data source to get the ACL of a catalog ([GH-472](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/472))
+* **New Resource:** `resource/cloudavenue_catalog_acl` - New resource to manage Cloud Avenue Catalog ACLs ([GH-453](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/453))
 * **New Resource:** `resource/cloudavenue_vdc_group` - Add new resource to manage VDC Group in Cloud Avenue. ([GH-445](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/445))
 
 ### :tada: **Improvements**
