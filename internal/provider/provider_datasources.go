@@ -67,6 +67,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		// * VM
 		vm.NewVMAffinityRuleDatasource,
 		vm.NewVMDataSource,
+		vm.NewDisksDataSource,
 
 		// * NETWORK
 		network.NewNetworkIsolatedDataSource,
