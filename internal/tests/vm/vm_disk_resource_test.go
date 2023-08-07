@@ -131,6 +131,12 @@ func TestAccVMDiskResource(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceNameDetachable, "vm_id"),
 				),
 			},
+			{
+				// Import test
+				ResourceName:      resourceNameDetachable,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 
 			// * EXTERNAL DISK WITH VM
 			{
@@ -157,6 +163,12 @@ func TestAccVMDiskResource(t *testing.T) {
 					resource.TestCheckResourceAttrWith(resourceNameDetachableWithVM, "vm_id", uuid.TestIsType(uuid.VM)),
 				),
 			},
+			{
+				// Import test
+				ResourceName:      resourceNameDetachableWithVM,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 
 			// * INTERNAL DISK
 			{
@@ -180,6 +192,12 @@ func TestAccVMDiskResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameInternal, "is_detachable", "false"),
 					resource.TestCheckResourceAttrWith(resourceNameInternal, "vm_id", uuid.TestIsType(uuid.VM)),
 				),
+			},
+			{
+				// Import test
+				ResourceName:      resourceNameInternal,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

@@ -721,8 +721,6 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	}
 }
 
-// TODO: ImportState not yet implemented
-// func (r *diskResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-// 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
-// }
+func (r *diskResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
