@@ -4,6 +4,7 @@ package vm
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
@@ -22,6 +23,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm/diskparams"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -135,6 +137,14 @@ func (r *diskResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRe
 				"Warning IDE bus type require VM power off to be applied",
 				"IDE bus type require VM power off to be applied. \n"+
 					"If you apply this change, power off before apply and power on after apply will be required.",
+			)
+		}
+
+		// if disk is not detachable, vm_id or vm_name is required
+		if diskPlan.VMID.IsNull() && diskPlan.VMName.IsNull() {
+			resp.Diagnostics.AddError(
+				"VM is required",
+				"if \"is_detachable\" attribute is false \"vm_id\" or \"vm_name\" is required to attach disk to a VM",
 			)
 		}
 	}
@@ -722,5 +732,30 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 }
 
 func (r *diskResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	idParts := strings.Split(req.ID, ".")
+
+	if len(idParts) != 2 {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: VDCOrVDCGroupID.appPortProfileName. Got: %q", req.ID),
+		)
+		return
+	}
+
+	switch {
+	case uuid.IsVAPP(idParts[0]):
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vapp_id"), idParts[0])...)
+	case uuid.IsUUIDV4(idParts[0]):
+		x := uuid.Normalize(uuid.VAPP, idParts[0]).String()
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vapp_id"), x)...)
+	default:
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vapp_name"), idParts[0])...)
+	}
+
+	vdcID := uuid.Normalize(uuid.VDC, idParts[0]).String()
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vdc"), vdcID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[1])...)
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

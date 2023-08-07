@@ -52,7 +52,7 @@ func DiskSuperSchema() superschema.Schema {
 			"vapp_name": vapp.SuperSchema()["vapp_name"],
 			"vm_name": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the VM where the disk will be attached.",
+					MarkdownDescription: "The name of the VM where the disk will be attached. If `is_detachable` is set to `false`, `vm_id` or `vm_name` must be set.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
@@ -63,7 +63,7 @@ func DiskSuperSchema() superschema.Schema {
 			},
 			"vm_id": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the VM where the disk will be attached.",
+					MarkdownDescription: "The ID of the VM where the disk will be attached. If `is_detachable` is set to `false`, `vm_id` or `vm_name` must be set.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,

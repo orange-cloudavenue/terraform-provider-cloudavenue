@@ -136,6 +136,13 @@ func TestAccVMDiskResource(t *testing.T) {
 				ResourceName:      resourceNameDetachable,
 				ImportState:       true,
 				ImportStateVerify: true,
+				Config:            testAccVMDiskResourceConfig,
+			},
+			{
+				// Import test
+				Config:       testAccVMDiskResourceConfig,
+				ResourceName: resourceNameDetachable,
+				Destroy:      true,
 			},
 
 			// * EXTERNAL DISK WITH VM
@@ -168,6 +175,13 @@ func TestAccVMDiskResource(t *testing.T) {
 				ResourceName:      resourceNameDetachableWithVM,
 				ImportState:       true,
 				ImportStateVerify: true,
+				Config:            testAccVMDiskWithVMResourceConfig,
+			},
+			{
+				// Import test
+				Config:       testAccVMDiskWithVMResourceConfig,
+				ResourceName: resourceNameDetachableWithVM,
+				Destroy:      true,
 			},
 
 			// * INTERNAL DISK
@@ -198,6 +212,13 @@ func TestAccVMDiskResource(t *testing.T) {
 				ResourceName:      resourceNameInternal,
 				ImportState:       true,
 				ImportStateVerify: true,
+				Config:            testAccVMDiskInternalResourceConfig,
+			},
+			{
+				// Import test
+				Config:       testAccVMDiskInternalResourceConfig,
+				ResourceName: resourceNameInternal,
+				Destroy:      true,
 			},
 		},
 	})
