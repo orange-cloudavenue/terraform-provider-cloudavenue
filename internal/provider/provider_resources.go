@@ -52,6 +52,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 
 		// * CATALOG
 		catalog.NewCatalogResource,
+		catalog.NewACLResource,
 
 		// * IAM
 		iam.NewIAMUserResource,

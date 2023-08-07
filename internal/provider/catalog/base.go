@@ -22,3 +22,18 @@ type base struct {
 	id   string
 	name string
 }
+
+func (b base) GetID() string {
+	return b.id
+}
+
+func (b base) GetName() string {
+	return b.name
+}
+
+func (b base) GetIDOrName() string {
+	if b.id != "" {
+		return b.id
+	}
+	return b.name
+}

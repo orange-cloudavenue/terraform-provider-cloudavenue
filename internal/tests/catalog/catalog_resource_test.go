@@ -11,7 +11,7 @@ import (
 )
 
 const testAccCatalogResourceConfig = `
-resource "cloudavenue_catalog" "test" {
+resource "cloudavenue_catalog" "example" {
 	name             = "test-catalog"
 	description      = "catalog for files"
 	delete_recursive = true
@@ -20,7 +20,7 @@ resource "cloudavenue_catalog" "test" {
 `
 
 func TestAccCatalogResource(t *testing.T) {
-	resourceName := "cloudavenue_catalog.test"
+	resourceName := "cloudavenue_catalog.example"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },

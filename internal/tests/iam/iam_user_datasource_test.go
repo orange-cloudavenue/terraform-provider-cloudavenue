@@ -24,7 +24,7 @@ func TestAccUserDataSource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: tests.ConcatTests(testAccOrgUserResourceConfig, testAccUserDataSourceConfig),
+				Config: tests.ConcatTests(TestAccOrgUserResourceConfig, testAccUserDataSourceConfig),
 				Check:  testsOrgUserResourceConfig(datasourceName),
 			},
 			{

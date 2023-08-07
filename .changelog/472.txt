@@ -1,0 +1,3 @@
+```release-note:new-data-source
+`datasource/cloudavenue_catalog_acl` - New data source to get the ACL of a catalog
+```
