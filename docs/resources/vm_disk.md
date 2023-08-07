@@ -56,7 +56,7 @@ resource "cloudavenue_vm_disk" "example-detachable" {
 
 ### Required
 
-- `size_in_mb` (Number) The size of the disk in MB.
+- `size_in_mb` (Number) The size of the disk in MB. Value must be at least 1.
 
 ### Optional
 
@@ -69,8 +69,8 @@ resource "cloudavenue_vm_disk" "example-detachable" {
 - `vapp_id` (String) (ForceNew) ID of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
 - `vapp_name` (String) (ForceNew) Name of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_id`, `vapp_name`.
 - `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
-- `vm_id` (String) The ID of the VM where the disk will be attached. Ensure that one and only one attribute from this collection is set : `vm_name`, `vm_id`.
-- `vm_name` (String) The name of the VM where the disk will be attached. Ensure that one and only one attribute from this collection is set : `vm_id`, `vm_name`.
+- `vm_id` (String) The ID of the VM where the disk will be attached. Must be a valid URN. This value must start with `urn:vcloud:vm:`.
+- `vm_name` (String) The name of the VM where the disk will be attached.
 
 ### Read-Only
 
