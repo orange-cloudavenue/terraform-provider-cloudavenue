@@ -2,11 +2,12 @@
 package vm
 
 import (
-	"regexp"
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
@@ -110,25 +111,31 @@ func TestAccVMDiskResource(t *testing.T) {
 			{
 				Config: testAccVMDiskResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceNameDetachable, "id", regexp.MustCompile(`(urn:vcloud:disk:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestCheckResourceAttrWith(resourceNameDetachable, "id", uuid.TestIsType(uuid.Disk)),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "name", "disk-example-detachable"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "storage_profile", "gold"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "size_in_mb", "2048"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "is_detachable", "true"),
+					resource.TestCheckNoResourceAttr(resourceNameDetachable, "vm_name"),
 					resource.TestCheckNoResourceAttr(resourceNameDetachable, "vm_id"),
+					resource.TestCheckNoResourceAttr(resourceNameDetachable, "vapp_name"),
+					resource.TestCheckResourceAttrSet(resourceNameDetachable, "vapp_id"),
 				),
 			},
 			{
 				Config: strings.Replace(testAccVMDiskResourceConfig, "2048", "4096", 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceNameDetachable, "id", regexp.MustCompile(`(urn:vcloud:disk:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestCheckResourceAttrWith(resourceNameDetachable, "id", uuid.TestIsType(uuid.Disk)),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "name", "disk-example-detachable"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "storage_profile", "gold"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "size_in_mb", "4096"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "is_detachable", "true"),
+					resource.TestCheckNoResourceAttr(resourceNameDetachable, "vm_name"),
 					resource.TestCheckNoResourceAttr(resourceNameDetachable, "vm_id"),
+					resource.TestCheckNoResourceAttr(resourceNameDetachable, "vapp_name"),
+					resource.TestCheckResourceAttrSet(resourceNameDetachable, "vapp_id"),
 				),
 			},
 			{
@@ -137,6 +144,15 @@ func TestAccVMDiskResource(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				Config:            testAccVMDiskResourceConfig,
+				ImportStateIdFunc: testAccVMDiskResourceImportStateIDFunc(resourceNameDetachable, 1),
+			},
+			{
+				// Import test
+				ResourceName:      resourceNameDetachable,
+				ImportState:       true,
+				ImportStateVerify: true,
+				Config:            testAccVMDiskResourceConfig,
+				ImportStateIdFunc: testAccVMDiskResourceImportStateIDFunc(resourceNameDetachable, 2),
 			},
 			{
 				// Import test
@@ -149,25 +165,31 @@ func TestAccVMDiskResource(t *testing.T) {
 			{
 				Config: testAccVMDiskWithVMResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceNameDetachableWithVM, "id", regexp.MustCompile(`(urn:vcloud:disk:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestCheckResourceAttrWith(resourceNameDetachableWithVM, "id", uuid.TestIsType(uuid.Disk)),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "name", "disk-example-detachable-with-vm"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "storage_profile", "gold"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "size_in_mb", "2048"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "is_detachable", "true"),
-					resource.TestCheckResourceAttrWith(resourceNameDetachableWithVM, "vm_id", uuid.TestIsType(uuid.VM)),
+					resource.TestCheckNoResourceAttr(resourceNameDetachableWithVM, "vm_name"),
+					resource.TestCheckResourceAttrSet(resourceNameDetachableWithVM, "vm_id"),
+					resource.TestCheckNoResourceAttr(resourceNameDetachableWithVM, "vapp_name"),
+					resource.TestCheckResourceAttrSet(resourceNameDetachableWithVM, "vapp_id"),
 				),
 			},
 			{
 				Config: strings.Replace(testAccVMDiskWithVMResourceConfig, "2048", "4096", 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceNameDetachableWithVM, "id", regexp.MustCompile(`(urn:vcloud:disk:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestCheckResourceAttrWith(resourceNameDetachableWithVM, "id", uuid.TestIsType(uuid.Disk)),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "name", "disk-example-detachable-with-vm"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "storage_profile", "gold"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "size_in_mb", "4096"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "is_detachable", "true"),
-					resource.TestCheckResourceAttrWith(resourceNameDetachableWithVM, "vm_id", uuid.TestIsType(uuid.VM)),
+					resource.TestCheckNoResourceAttr(resourceNameDetachableWithVM, "vm_name"),
+					resource.TestCheckResourceAttrSet(resourceNameDetachableWithVM, "vm_id"),
+					resource.TestCheckNoResourceAttr(resourceNameDetachableWithVM, "vapp_name"),
+					resource.TestCheckResourceAttrSet(resourceNameDetachableWithVM, "vapp_id"),
 				),
 			},
 			{
@@ -176,6 +198,7 @@ func TestAccVMDiskResource(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				Config:            testAccVMDiskWithVMResourceConfig,
+				ImportStateIdFunc: testAccVMDiskResourceImportStateIDFunc(resourceNameDetachableWithVM, 3),
 			},
 			{
 				// Import test
@@ -193,7 +216,10 @@ func TestAccVMDiskResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameInternal, "storage_profile", "gold"),
 					resource.TestCheckResourceAttr(resourceNameInternal, "size_in_mb", "2048"),
 					resource.TestCheckResourceAttr(resourceNameInternal, "is_detachable", "false"),
-					resource.TestCheckResourceAttrWith(resourceNameInternal, "vm_id", uuid.TestIsType(uuid.VM)),
+					resource.TestCheckNoResourceAttr(resourceNameInternal, "vm_name"),
+					resource.TestCheckResourceAttrSet(resourceNameInternal, "vm_id"),
+					resource.TestCheckNoResourceAttr(resourceNameInternal, "vapp_name"),
+					resource.TestCheckResourceAttrSet(resourceNameInternal, "vapp_id"),
 				),
 			},
 			{
@@ -204,7 +230,10 @@ func TestAccVMDiskResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameInternal, "storage_profile", "gold"),
 					resource.TestCheckResourceAttr(resourceNameInternal, "size_in_mb", "4096"),
 					resource.TestCheckResourceAttr(resourceNameInternal, "is_detachable", "false"),
-					resource.TestCheckResourceAttrWith(resourceNameInternal, "vm_id", uuid.TestIsType(uuid.VM)),
+					resource.TestCheckNoResourceAttr(resourceNameInternal, "vm_name"),
+					resource.TestCheckResourceAttrSet(resourceNameInternal, "vm_id"),
+					resource.TestCheckNoResourceAttr(resourceNameInternal, "vapp_name"),
+					resource.TestCheckResourceAttrSet(resourceNameInternal, "vapp_id"),
 				),
 			},
 			{
@@ -213,6 +242,7 @@ func TestAccVMDiskResource(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				Config:            testAccVMDiskInternalResourceConfig,
+				ImportStateIdFunc: testAccVMDiskResourceImportStateIDFunc(resourceNameInternal, 4),
 			},
 			{
 				// Import test
@@ -224,19 +254,32 @@ func TestAccVMDiskResource(t *testing.T) {
 	})
 }
 
-// func getInternalVMDiskID(args ...string) resource.ImportStateIdFunc {
-// 	return func(s *terraform.State) (string, error) {
-// 		disk, ok := s.RootModule().Resources[resourceName]
-// 		if !ok {
-// 			return "", fmt.Errorf("Disk not found: %s", disk)
-// 		}
+// testAccVMDiskResourceConfig is a helper function that returns id of import
+//
+//	`resourceName` is the name of the resource
+//	`typeOfImportID` is the type of import ID that we want to test:
+//	- Option 1: `vapp_id` and `disk_id` -> Detachable disk
+//	- Option 2: `vdc`, `vapp_id` and `disk_id` -> Detachable disk with VDC Parameter
+//	- Option 3: `vapp_id`, vm_id and `disk_id` -> Internal disk or Detachable disk with VM Parameter
+//	- Option 4: `vcd`, `vapp_id`, `vm_id` and `disk_id` -> Internal disk with VCD Parameter or Detachable disk with VCD Parameter and VM Parameter
+func testAccVMDiskResourceImportStateIDFunc(resourceName string, typeOfImportID int) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
 
-// 		if disk.Primary.ID == "" {
-// 			return "", fmt.Errorf("no ID is set for %s", disk)
-// 		}
-// 		if len(args) == 1 {
-// 			return fmt.Sprintf("%s.vapp_test3.TestRomain.%s", args[0], disk.Primary.ID), nil
-// 		}
-// 		return fmt.Sprintf("vapp_test3.TestRomain.%s", disk.Primary.ID), nil
-// 	}
-// }
+		switch typeOfImportID {
+		case 1:
+			return fmt.Sprintf("%s.%s", rs.Primary.Attributes["vapp_id"], rs.Primary.Attributes["id"]), nil
+		case 2:
+			return fmt.Sprintf("%s.%s.%s", rs.Primary.Attributes["vdc"], rs.Primary.Attributes["vapp_id"], rs.Primary.Attributes["id"]), nil
+		case 3:
+			return fmt.Sprintf("%s.%s.%s", rs.Primary.Attributes["vapp_id"], rs.Primary.Attributes["vm_id"], rs.Primary.Attributes["id"]), nil
+		case 4:
+			return fmt.Sprintf("%s.%s.%s.%s", rs.Primary.Attributes["vcd"], rs.Primary.Attributes["vapp_id"], rs.Primary.Attributes["vm_id"], rs.Primary.Attributes["id"]), nil
+		default:
+			return "", fmt.Errorf("Invalid type of import ID")
+		}
+	}
+}
