@@ -774,27 +774,33 @@ func (r *diskResource) ImportState(ctx context.Context, req resource.ImportState
 		diskID = idParts[2]
 		if uuid.IsDisk(diskID) {
 			isDetachable = true
-			// Detachable Disk
-			if uuid.IsVM(idParts[1]) { // FORMAT : vAppIDOrName.VmIDOrName.DiskID
-				if uuid.IsVAPP(idParts[0]) {
-					vAppID = idParts[0]
-				} else {
-					vAppName = idParts[0]
-				}
+		}
 
-				if uuid.IsVM(idParts[1]) {
-					vmID = idParts[1]
-				} else {
-					vmName = idParts[1]
-				}
-			} else { // FORMAT : vdcName.vAppIDOrName.DiskID
+		if isDetachable {
+			_, diags = vdc.Init(r.client, types.StringValue(idParts[0]))
+			if !diags.HasError() {
+				// FORMAT : vdcName.vAppIDOrName.DiskID
 				vdcName = idParts[0]
 				if uuid.IsVAPP(idParts[1]) {
 					vAppID = idParts[1]
 				} else {
 					vAppName = idParts[1]
 				}
+				goto next
 			}
+		}
+
+		// FORMAT : vAppIDOrName.VmIDOrName.DiskID
+		if uuid.IsVAPP(idParts[0]) {
+			vAppID = idParts[0]
+		} else {
+			vAppName = idParts[0]
+		}
+
+		if uuid.IsVM(idParts[1]) {
+			vmID = idParts[1]
+		} else {
+			vmName = idParts[1]
 		}
 
 	// Case 4 : vdcName.vAppIDOrName.VmIDOrName.DiskID
@@ -823,6 +829,8 @@ func (r *diskResource) ImportState(ctx context.Context, req resource.ImportState
 		)
 		return
 	}
+
+next:
 
 	r.org, diags = org.Init(r.client)
 	resp.Diagnostics.Append(diags...)

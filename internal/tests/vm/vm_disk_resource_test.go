@@ -260,8 +260,8 @@ func TestAccVMDiskResource(t *testing.T) {
 //	`typeOfImportID` is the type of import ID that we want to test:
 //	- Option 1: `vapp_id` and `disk_id` -> Detachable disk
 //	- Option 2: `vdc`, `vapp_id` and `disk_id` -> Detachable disk with VDC Parameter
-//	- Option 3: `vapp_id`, vm_id and `disk_id` -> Internal disk or Detachable disk with VM Parameter
-//	- Option 4: `vcd`, `vapp_id`, `vm_id` and `disk_id` -> Internal disk with VCD Parameter or Detachable disk with VCD Parameter and VM Parameter
+//	- Option 3: `vapp_id`, `vm_id` and `disk_id` -> Internal disk or Detachable disk with VM Parameter
+//	- Option 4: `vdc`, `vapp_id`, `vm_id` and `disk_id` -> Internal disk with VDC Parameter or Detachable disk with VDC Parameter and VM Parameter
 func testAccVMDiskResourceImportStateIDFunc(resourceName string, typeOfImportID int) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -277,7 +277,7 @@ func testAccVMDiskResourceImportStateIDFunc(resourceName string, typeOfImportID 
 		case 3:
 			return fmt.Sprintf("%s.%s.%s", rs.Primary.Attributes["vapp_id"], rs.Primary.Attributes["vm_id"], rs.Primary.Attributes["id"]), nil
 		case 4:
-			return fmt.Sprintf("%s.%s.%s.%s", rs.Primary.Attributes["vcd"], rs.Primary.Attributes["vapp_id"], rs.Primary.Attributes["vm_id"], rs.Primary.Attributes["id"]), nil
+			return fmt.Sprintf("%s.%s.%s.%s", rs.Primary.Attributes["vdc"], rs.Primary.Attributes["vapp_id"], rs.Primary.Attributes["vm_id"], rs.Primary.Attributes["id"]), nil
 		default:
 			return "", fmt.Errorf("Invalid type of import ID")
 		}

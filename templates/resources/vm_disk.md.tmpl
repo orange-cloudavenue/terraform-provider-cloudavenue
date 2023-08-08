@@ -26,7 +26,7 @@ resource "cloudavenue_vm_disk" "example-internal" {
 
 ### External Disk
 
-**External disk detached from VM**
+#### External disk detached from VM
 
 ```terraform
 resource "cloudavenue_vm_disk" "example-detachable" {
@@ -38,7 +38,7 @@ resource "cloudavenue_vm_disk" "example-detachable" {
 }
 ```
 
-**External disk attached to VM**
+#### External disk attached to VM
 
 ```terraform
 resource "cloudavenue_vm_disk" "example-detachable" {
@@ -53,9 +53,29 @@ resource "cloudavenue_vm_disk" "example-detachable" {
 
 {{ .SchemaMarkdown | trimspace }}
 
-{{ if .HasImport -}}
 ## Import
 
 Import is supported using the following syntax:
-{{ codefile "shell" .ImportFile }}
-{{- end }}
+
+ -> Note: If `vdcName` is not provided, the default VDC provided by the provider will be used.
+
+### Detachable disk and detached from VM
+
+```shell
+terraform import cloudavenue_vm_disk.example-detachable vAppIDOrName.diskID
+terraform import cloudavenue_vm_disk.example-detachable vdcName.vAppIDOrName.diskID
+```
+
+### Detachable disk and attached to VM
+
+```shell
+terraform import cloudavenue_vm_disk.example-detachable vAppIDOrName.vmID.diskID
+terraform import cloudavenue_vm_disk.example-detachable vdcName.vAppIDOrName.vmID.diskID
+```
+
+### Internal disk
+
+```shell
+terraform import cloudavenue_vm_disk.example-internal vAppIDOrName.vmID.diskID
+terraform import cloudavenue_vm_disk.example-internal vdcName.vAppIDOrName.vmID.diskID
+```
