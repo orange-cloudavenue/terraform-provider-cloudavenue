@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_vm_disk` - Fix bug not possible to create detachable disk with no `vm_id` or `vm_name` specified.
+```

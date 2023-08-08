@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 const testAccVMDiskResourceConfig = `
@@ -141,7 +142,7 @@ func TestAccVMDiskResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "storage_profile", "gold"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "size_in_mb", "2048"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "is_detachable", "true"),
-					resource.TestCheckResourceAttrSet(resourceNameDetachableWithVM, "vm_id"),
+					resource.TestCheckResourceAttrWith(resourceNameDetachableWithVM, "vm_id", uuid.TestIsType(uuid.VM)),
 				),
 			},
 			{
@@ -153,7 +154,7 @@ func TestAccVMDiskResource(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "storage_profile", "gold"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "size_in_mb", "4096"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "is_detachable", "true"),
-					resource.TestCheckResourceAttrSet(resourceNameDetachableWithVM, "vm_id"),
+					resource.TestCheckResourceAttrWith(resourceNameDetachableWithVM, "vm_id", uuid.TestIsType(uuid.VM)),
 				),
 			},
 
@@ -161,23 +162,23 @@ func TestAccVMDiskResource(t *testing.T) {
 			{
 				Config: testAccVMDiskInternalResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceNameInternal, "id", regexp.MustCompile(`(urn:vcloud:disk:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestCheckResourceAttrSet(resourceNameInternal, "id"), // Internal Disk has ID 123456
 					resource.TestCheckResourceAttr(resourceNameInternal, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameInternal, "storage_profile", "gold"),
 					resource.TestCheckResourceAttr(resourceNameInternal, "size_in_mb", "2048"),
 					resource.TestCheckResourceAttr(resourceNameInternal, "is_detachable", "false"),
-					resource.TestCheckResourceAttrSet(resourceNameInternal, "vm_id"),
+					resource.TestCheckResourceAttrWith(resourceNameInternal, "vm_id", uuid.TestIsType(uuid.VM)),
 				),
 			},
 			{
 				Config: strings.Replace(testAccVMDiskInternalResourceConfig, "2048", "4096", 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceNameInternal, "id", regexp.MustCompile(`(urn:vcloud:disk:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestCheckResourceAttrSet(resourceNameInternal, "id"), // Internal Disk has ID 123456
 					resource.TestCheckResourceAttr(resourceNameInternal, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameInternal, "storage_profile", "gold"),
 					resource.TestCheckResourceAttr(resourceNameInternal, "size_in_mb", "4096"),
 					resource.TestCheckResourceAttr(resourceNameInternal, "is_detachable", "false"),
-					resource.TestCheckResourceAttrSet(resourceNameInternal, "vm_id"),
+					resource.TestCheckResourceAttrWith(resourceNameInternal, "vm_id", uuid.TestIsType(uuid.VM)),
 				),
 			},
 		},

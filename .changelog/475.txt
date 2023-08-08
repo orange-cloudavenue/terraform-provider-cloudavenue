@@ -1,0 +1,3 @@
+```release-note:new-data-source
+`datasource/cloudavenue_vm_disks` - New datasource to get the list of disks available on vApp and VM level.
+```

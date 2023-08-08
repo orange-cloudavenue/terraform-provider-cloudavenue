@@ -26,6 +26,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm/diskparams"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // DiskSuperSchema returns the super schema.
@@ -58,15 +59,6 @@ func DiskSuperSchema() superschema.Schema {
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.UseStateForUnknown(),
 					},
-					Validators: []validator.String{
-						fstringvalidator.RequireIfAttributeIsOneOf(
-							path.MatchRoot("is_detachable"),
-							[]attr.Value{
-								types.BoolValue(false),
-							},
-						),
-						stringvalidator.ExactlyOneOf(path.MatchRoot("vm_id"), path.MatchRoot("vm_name")),
-					},
 				},
 			},
 			"vm_id": superschema.StringAttribute{
@@ -79,13 +71,8 @@ func DiskSuperSchema() superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
-						fstringvalidator.RequireIfAttributeIsOneOf(
-							path.MatchRoot("is_detachable"),
-							[]attr.Value{
-								types.BoolValue(false),
-							},
-						),
-						stringvalidator.ExactlyOneOf(path.MatchRoot("vm_name"), path.MatchRoot("vm_id")),
+						fstringvalidator.IsURN(),
+						fstringvalidator.PrefixContains(uuid.VM.String()),
 					},
 				},
 			},
@@ -147,6 +134,9 @@ func DiskSuperSchema() superschema.Schema {
 				},
 				Resource: &schemaR.Int64Attribute{
 					Required: true,
+					Validators: []validator.Int64{
+						int64validator.AtLeast(1),
+					},
 					PlanModifiers: []planmodifier.Int64{
 						int64planmodifier.UseStateForUnknown(),
 					},
