@@ -1,5 +1,13 @@
 ## 0.10.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_vm_disks` - New datasource to get the list of disks available on vApp and VM level. ([GH-475](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/475))
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vm_disk` - Fix bug not possible to create detachable disk with no `vm_id` or `vm_name` specified. ([GH-478](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/478))
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps golang.org/x/net from 0.13.0 to 0.14.0 ([GH-477](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/477))
