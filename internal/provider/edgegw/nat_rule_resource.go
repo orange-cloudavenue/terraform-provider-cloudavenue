@@ -338,7 +338,7 @@ func (r *natRuleResource) ImportState(ctx context.Context, req resource.ImportSt
 		Name: types.StringValue(edgegwName),
 	})
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to import DHCP Forwarding.", err.Error())
+		resp.Diagnostics.AddError("Failed to import NAT Rule.", err.Error())
 		return
 	}
 
@@ -349,7 +349,7 @@ func (r *natRuleResource) ImportState(ctx context.Context, req resource.ImportSt
 		natRule, err = r.edgegw.GetNatRuleByName(idParts[1])
 	}
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to Get DHCP Forwarding.", err.Error())
+		resp.Diagnostics.AddError("Failed to Get NAT Rule.", err.Error())
 		return
 	}
 
@@ -362,11 +362,12 @@ func (r *natRuleResource) ImportState(ctx context.Context, req resource.ImportSt
 func (r *natRuleResource) read(planOrState *NATRuleModel) (stateRefreshed *NATRuleModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
-	// Get Nat Rule by Name or ID
 	var (
 		rule *govcd.NsxtNatRule
 		err  error
 	)
+
+	// Get Nat Rule by Name or ID
 	if stateRefreshed.ID.IsKnown() {
 		rule, err = r.edgegw.GetNatRuleById(stateRefreshed.ID.Get())
 	} else {
