@@ -1,10 +1,9 @@
 resource "cloudavenue_vdc" "example" {
   name                  = "MyVDC"
-  vdc_group             = "MyVDCGroup"
   description           = "Example VDC created by Terraform"
-  cpu_allocated         = 6000
-  memory_allocated      = 10
-  cpu_speed_in_mhz      = 1200
+  cpu_allocated         = 22000
+  memory_allocated      = 30
+  cpu_speed_in_mhz      = 2200
   billing_model         = "PAYG"
   disponibility_class   = "ONE-ROOM"
   service_class         = "STD"
