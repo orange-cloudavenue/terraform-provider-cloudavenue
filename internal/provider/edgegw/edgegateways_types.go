@@ -2,21 +2,22 @@
 package edgegw
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 )
 
-type edgeGatewaysDataSourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	EdgeGateways types.List   `tfsdk:"edge_gateways"`
-}
-
-var edgeGatewayDataSourceModelAttrTypes = map[string]attr.Type{
-	"tier0_vrf_name": types.StringType,
-	"name":           types.StringType,
-	"id":             types.StringType,
-	"owner_type":     types.StringType,
-	"owner_name":     types.StringType,
-	"description":    types.StringType,
-	"lb_enabled":     types.BoolType,
-}
+type (
+	edgeGatewaysDataSourceModel struct {
+		ID           supertypes.StringValue     `tfsdk:"id"`
+		EdgeGateways supertypes.ListNestedValue `tfsdk:"edge_gateways"`
+	}
+	edgeGatewayDataSourceModelEdgeGateways []edgeGatewayDataSourceModelEdgeGateway
+	edgeGatewayDataSourceModelEdgeGateway  struct {
+		Tier0VrfName supertypes.StringValue `tfsdk:"tier0_vrf_name"`
+		Name         supertypes.StringValue `tfsdk:"name"`
+		ID           supertypes.StringValue `tfsdk:"id"`
+		OwnerType    supertypes.StringValue `tfsdk:"owner_type"`
+		OwnerName    supertypes.StringValue `tfsdk:"owner_name"`
+		Description  supertypes.StringValue `tfsdk:"description"`
+		LbEnabled    supertypes.BoolValue   `tfsdk:"lb_enabled"`
+	}
+)
