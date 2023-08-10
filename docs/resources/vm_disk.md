@@ -2,12 +2,15 @@
 page_title: "cloudavenue_vm_disk Resource - cloudavenue"
 subcategory: "VM (Virtual Machine)"
 description: |-
-  The vm_disk resource allows to create a disk and attach it to a VM. The disk resource permit to create Internal or External disks. Internal create non-detachable disks and External create detachable disks.
+  The cloudavenue_vm_disk resource allows to create a disk and attach it to a VM.
+  The disk resource permit to create Internal or External disk. Internal create non-detachable disk and External create detachable disk.
 ---
 
 # cloudavenue_vm_disk (Resource)
 
-The `vm_disk` resource allows to create a disk and attach it to a VM. The disk resource permit to create Internal or External disks. Internal create non-detachable disks and External create detachable disks.
+The `cloudavenue_vm_disk` resource allows to create a disk and attach it to a VM.
+
+The disk resource permit to create **Internal** or **External** disk. Internal create non-detachable disk and External create detachable disk.
 
 ## Examples
 
@@ -26,7 +29,7 @@ resource "cloudavenue_vm_disk" "example-internal" {
 
 ### External Disk
 
-**External disk detached from VM**
+#### External disk detached from VM
 
 ```terraform
 resource "cloudavenue_vm_disk" "example-detachable" {
@@ -38,7 +41,7 @@ resource "cloudavenue_vm_disk" "example-detachable" {
 }
 ```
 
-**External disk attached to VM**
+#### External disk attached to VM
 
 ```terraform
 resource "cloudavenue_vm_disk" "example-detachable" {
@@ -62,17 +65,43 @@ resource "cloudavenue_vm_disk" "example-detachable" {
 
 - `bus_number` (Number) (ForceNew) The bus number of the disk controller. If the disk is attached to a VM and this attribute is not set, the disk will be attached to the first available bus. Value must be between 0 and 3.
 - `bus_type` (String) (ForceNew) The type of disk controller. Value must be one of : `IDE`, `SATA`, `SCSI`, `NVME`. Value defaults to `SCSI`.
-- `is_detachable` (Boolean) (ForceNew) If set to true, the disk could be detached from the VM. If set to false, the disk canot detached to the VM. Value defaults to `false`.
+- `is_detachable` (Boolean) (ForceNew) If set to `true`, the disk could be detached from the VM. If set to `false`, the disk cannot be detached to the VM. Value defaults to `false`.
 - `name` (String) The name of the disk. If is_detachable attribute is set and the value is one of `true`, this attribute is REQUIRED. If is_detachable attribute is set and the value is one of `false`, this attribute is NULL.
 - `storage_profile` (String) The name of the storage profile. If not set, the default storage profile will be used. Value must be one of : `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
 - `unit_number` (Number) (ForceNew) The unit number of the disk controller. If the disk is attached to a VM and this attribute is not set, the disk will be attached to the first available unit. Value must be between 0 and 15.
 - `vapp_id` (String) (ForceNew) ID of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
 - `vapp_name` (String) (ForceNew) Name of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_id`, `vapp_name`.
 - `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
-- `vm_id` (String) The ID of the VM where the disk will be attached. Must be a valid URN. This value must start with `urn:vcloud:vm:`.
-- `vm_name` (String) The name of the VM where the disk will be attached.
+- `vm_id` (String) The ID of the VM where the disk will be attached. If `is_detachable` is set to `false`, `vm_id` or `vm_name` must be set and force the replacement if this attribute is changed. Must be a valid URN. This value must start with `urn:vcloud:vm:`.
+- `vm_name` (String) The name of the VM where the disk will be attached. If `is_detachable` is set to `false`, `vm_id` or `vm_name` must be set and force the replacement if this attribute is changed.
 
 ### Read-Only
 
 - `id` (String) The ID of the Disk.
 
+## Import
+
+Import is supported using the following syntax:
+
+ -> Note: If `vdcName` is not provided, the default VDC provided by the provider will be used.
+
+### Detachable disk and detached from VM
+
+```shell
+terraform import cloudavenue_vm_disk.example-detachable vAppIDOrName.diskID
+terraform import cloudavenue_vm_disk.example-detachable vdcName.vAppIDOrName.diskID
+```
+
+### Detachable disk and attached to VM
+
+```shell
+terraform import cloudavenue_vm_disk.example-detachable vAppIDOrName.vmID.diskID
+terraform import cloudavenue_vm_disk.example-detachable vdcName.vAppIDOrName.vmID.diskID
+```
+
+### Internal disk
+
+```shell
+terraform import cloudavenue_vm_disk.example-internal vAppIDOrName.vmID.diskID
+terraform import cloudavenue_vm_disk.example-internal vdcName.vAppIDOrName.vmID.diskID
+```

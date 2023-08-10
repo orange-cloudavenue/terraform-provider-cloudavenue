@@ -4,6 +4,7 @@ package vm
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
@@ -22,12 +23,15 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm/diskparams"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource              = &diskResource{}
-	_ resource.ResourceWithConfigure = &diskResource{}
+	_ resource.Resource                = &diskResource{}
+	_ resource.ResourceWithConfigure   = &diskResource{}
+	_ resource.ResourceWithImportState = &diskResource{}
+	_ resource.ResourceWithModifyPlan  = &diskResource{}
 )
 
 // NewDiskResource is a helper function to simplify the provider implementation.
@@ -136,6 +140,23 @@ func (r *diskResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRe
 				"IDE bus type require VM power off to be applied. \n"+
 					"If you apply this change, power off before apply and power on after apply will be required.",
 			)
+		}
+
+		// if disk is not detachable, vm_id or vm_name is required
+		if diskPlan.VMID.IsNull() && diskPlan.VMName.IsNull() {
+			resp.Diagnostics.AddError(
+				"VM is required",
+				"if \"is_detachable\" attribute is false \"vm_id\" or \"vm_name\" is required to attach disk to a VM",
+			)
+		}
+
+		// if disk is not detachable, vm_id or vm_name is not editable
+		// This setting is not in schema definition because if is_detachable is true, vm_id and vm_name is editable
+		if !diskPlan.VMID.Equal(diskState.VMID) {
+			resp.RequiresReplace.Append(path.Root("vm_id"))
+		}
+		if !diskPlan.VMName.Equal(diskState.VMName) {
+			resp.RequiresReplace.Append(path.Root("vm_name"))
 		}
 	}
 }
@@ -721,8 +742,140 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	}
 }
 
-// TODO: ImportState not yet implemented
-// func (r *diskResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-// 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+func (r *diskResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	idParts := strings.Split(req.ID, ".")
 
-// }
+	var (
+		vdcName          string
+		vAppID, vAppName string
+		vmID, vmName     string
+		diskID           string
+		isDetachable     bool
+
+		diags diag.Diagnostics
+	)
+
+	switch len(idParts) {
+	// Case 2 : vAppIDOrName.DiskID
+	case 2:
+		if uuid.IsVAPP(idParts[0]) {
+			vAppID = idParts[0]
+		} else {
+			vAppName = idParts[0]
+		}
+
+		diskID = idParts[1]
+		if uuid.IsDisk(idParts[1]) {
+			isDetachable = true
+		}
+
+	// Case 3 : vAppIDOrName.VmIDOrName.DiskID or vdcName.vAppIDOrName.DiskID
+	case 3:
+		diskID = idParts[2]
+		if uuid.IsDisk(diskID) {
+			isDetachable = true
+		}
+
+		if isDetachable {
+			_, diags = vdc.Init(r.client, types.StringValue(idParts[0]))
+			if !diags.HasError() {
+				// FORMAT : vdcName.vAppIDOrName.DiskID
+				vdcName = idParts[0]
+				if uuid.IsVAPP(idParts[1]) {
+					vAppID = idParts[1]
+				} else {
+					vAppName = idParts[1]
+				}
+				goto next
+			}
+		}
+
+		// FORMAT : vAppIDOrName.VmIDOrName.DiskID
+		if uuid.IsVAPP(idParts[0]) {
+			vAppID = idParts[0]
+		} else {
+			vAppName = idParts[0]
+		}
+
+		if uuid.IsVM(idParts[1]) {
+			vmID = idParts[1]
+		} else {
+			vmName = idParts[1]
+		}
+
+	// Case 4 : vdcName.vAppIDOrName.VmIDOrName.DiskID
+	case 4:
+		vdcName = idParts[0]
+		if uuid.IsVAPP(idParts[1]) {
+			vAppID = idParts[1]
+		} else {
+			vAppName = idParts[1]
+		}
+
+		if uuid.IsVM(idParts[2]) {
+			vmID = idParts[2]
+		} else {
+			vmName = idParts[2]
+		}
+
+		diskID = idParts[3]
+		if uuid.IsDisk(diskID) {
+			isDetachable = true
+		}
+	default:
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with formats: vAppIDOrName.DiskID or vAppIDOrName.VmIDOrName.DiskID or vdcName.vAppIDOrName.DiskID or vdcName.vAppIDOrName.VmIDOrName.DiskID Got: %q", req.ID),
+		)
+		return
+	}
+
+next:
+
+	r.org, diags = org.Init(r.client)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	r.vdc, diags = vdc.Init(r.client, utils.StringValueOrNull(vdcName))
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	r.vapp, diags = vapp.Init(r.client, r.vdc, utils.StringValueOrNull(vAppID), utils.StringValueOrNull(vAppName))
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if vmID != "" || vmName != "" {
+		r.vm, diags = vm.Get(r.vapp, vm.GetVMOpts{
+			ID:   utils.StringValueOrNull(vmID),
+			Name: utils.StringValueOrNull(vmName),
+		})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), diskID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vdc"), r.vdc.GetName())...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("is_detachable"), isDetachable)...)
+
+	if vAppID != "" {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vapp_id"), r.vapp.GetID())...)
+	} else {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vapp_name"), r.vapp.GetName())...)
+	}
+
+	if vmID != "" || vmName != "" {
+		if vmID != "" {
+			resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vm_id"), r.vm.GetID())...)
+		} else {
+			resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vm_name"), r.vm.GetName())...)
+		}
+	}
+}

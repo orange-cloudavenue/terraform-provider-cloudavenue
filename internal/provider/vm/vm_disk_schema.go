@@ -33,7 +33,7 @@ import (
 func DiskSuperSchema() superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `vm_disk` resource allows to create a disk and attach it to a VM. The disk resource permit to create Internal or External disks. Internal create non-detachable disks and External create detachable disks.",
+			MarkdownDescription: "The `cloudavenue_vm_disk` resource allows to create a disk and attach it to a VM.\n\nThe disk resource permit to create **Internal** or **External** disk. Internal create non-detachable disk and External create detachable disk.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
@@ -52,7 +52,7 @@ func DiskSuperSchema() superschema.Schema {
 			"vapp_name": vapp.SuperSchema()["vapp_name"],
 			"vm_name": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the VM where the disk will be attached.",
+					MarkdownDescription: "The name of the VM where the disk will be attached. If `is_detachable` is set to `false`, `vm_id` or `vm_name` must be set and force the replacement if this attribute is changed.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
@@ -63,7 +63,7 @@ func DiskSuperSchema() superschema.Schema {
 			},
 			"vm_id": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the VM where the disk will be attached.",
+					MarkdownDescription: "The ID of the VM where the disk will be attached. If `is_detachable` is set to `false`, `vm_id` or `vm_name` must be set and force the replacement if this attribute is changed.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
@@ -78,7 +78,7 @@ func DiskSuperSchema() superschema.Schema {
 			},
 			"is_detachable": superschema.BoolAttribute{
 				Common: &schemaR.BoolAttribute{
-					MarkdownDescription: "If set to true, the disk could be detached from the VM. If set to false, the disk canot detached to the VM.",
+					MarkdownDescription: "If set to `true`, the disk could be detached from the VM. If set to `false`, the disk cannot be detached to the VM.",
 					Computed:            true,
 				},
 				Resource: &schemaR.BoolAttribute{

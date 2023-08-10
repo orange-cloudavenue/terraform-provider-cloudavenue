@@ -1,0 +1,3 @@
+```release-note:enhancement
+`resource/cloudavenue_vm_disk` - Now the attributes `vm_id` and `vm_name` causes replacement if `is_detachable` is set to `false`.
+```
