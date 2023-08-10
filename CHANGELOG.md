@@ -8,6 +8,8 @@
 ### :tada: **Improvements**
 
 * `resource/cloudavenue_vdc` - Improve example in documentation. ([GH-481](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/481))
+* `resource/cloudavenue_vm_disk` - Add import feature and improve documentation. ([GH-344](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/344))
+* `resource/cloudavenue_vm_disk` - Now the attributes `vm_id` and `vm_name` causes replacement if `is_detachable` is set to `false`. ([GH-480](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/480))
 
 ### :bug: **Bug Fixes**
 
