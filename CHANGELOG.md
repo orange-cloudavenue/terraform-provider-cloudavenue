@@ -15,6 +15,7 @@
 ### :dependabot: **Dependencies**
 
 * deps: bumps golang.org/x/net from 0.13.0 to 0.14.0 ([GH-477](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/477))
+* deps: bumps goreleaser/goreleaser-action from 4.3.0 to 4.4.0 ([GH-487](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/487))
 
 ## 0.9.0 (August  7, 2023)
 ### :warning: **Deprecations**
