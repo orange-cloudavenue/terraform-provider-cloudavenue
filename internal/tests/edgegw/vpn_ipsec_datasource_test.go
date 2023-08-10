@@ -8,14 +8,16 @@ import (
 	tests "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/tests/common"
 )
 
-//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
-const testAccVpnIpsecDataSourceConfig = `
-data "cloudavenue_edgegw_vpn_ipsec" "example" {
+const testAccVPNIPSecDataSourceConfig = `
+data "cloudavenue_edgegateway_vpn_ipsec" "example" {
+  depends_on = [ cloudavenue_edgegateway_vpn_ipsec.example ]
+  edge_gateway_id = cloudavenue_edgegateway_vpn_ipsec.example.edge_gateway_id
+  name = cloudavenue_edgegateway_vpn_ipsec.example.name
 }
 `
 
-func TestAccVpnIpsecDataSource(t *testing.T) {
-	dataSourceName := "data.cloudavenue_edgegw_vpn_ipsec.example"
+func TestAccVPNIPSecDataSource(t *testing.T) {
+	dataSourceName := "data.cloudavenue_edgegateway_vpn_ipsec.example"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { tests.TestAccPreCheck(t) },
@@ -24,8 +26,8 @@ func TestAccVpnIpsecDataSource(t *testing.T) {
 			// Read testing
 			{
 				// Apply test
-				Config: tests.ConcatTests(testAccVpnIpsecResourceConfig, testAccVpnIpsecDataSourceConfig),
-				Check: vpnIpsecTestCheck(dataSourceName),
+				Config: tests.ConcatTests(testAccVPNIPSecDataSourceConfig, testAccVPNIPSecResourceConfigCustomize, MytestAccEdgeGatewayGroupResourceConfig, MytestAccVDCResourceConfig),
+				Check:  vpnIPSecTestCheckCustomize(dataSourceName),
 			},
 		},
 	})

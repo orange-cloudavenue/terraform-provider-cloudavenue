@@ -1,3 +1,3 @@
 ```release-note:new-resource
-`resource/cloudavenue_edgegateway_vpn_ipsec` - New resource to manage Cloud Avenue VPN IPSec feature
+`resource/cloudavenue_edgegateway_vpn_ipsec` - New resource to manage Cloud Avenue IPSec VPN Tunnel.
 ```

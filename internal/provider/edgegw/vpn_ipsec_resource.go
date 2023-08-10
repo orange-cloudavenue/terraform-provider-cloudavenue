@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -15,7 +14,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
@@ -126,18 +125,16 @@ func (r *vpnIPSecResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	// Get data from plan
-	var ipSecVPNConfig *govcdtypes.NsxtIpSecVpnTunnel
-	ipSecVPNConfig, err = plan.ToNsxtIPSecVPNTunnel(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Error getting IPsec VPN Tunnel configuration type:", err.Error())
+	ipSecVPNConfig, d := plan.ToNsxtIPSecVPNTunnel(ctx)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Create VPN Config with default profile settings
-	tflog.Info(ctx, "********************* [CREATE] VPN Tunnel")
 	createdIPSecVPNConfig, err := r.edgegw.NsxtEdgeGateway.CreateIpSecVpnTunnel(ipSecVPNConfig)
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating IPsec VPN Tunnel configuration:", err.Error())
+		resp.Diagnostics.AddError("Error creating IPsec VPN Tunnel configuration", err.Error())
 		return
 	}
 
@@ -146,8 +143,7 @@ func (r *vpnIPSecResource) Create(ctx context.Context, req resource.CreateReques
 
 	// Security Type is Set to DEFAULT in stateRefreshed
 	// Check if Tunnel Profile has custom settings and apply them
-	if plan.SecurityProfile.IsKnown() { // plan.SecurityType.Get() == profileCustom {
-		tflog.Info(ctx, "********************* [CREATE] Update VPN Tunnel Profile IPSec Security Profile")
+	if plan.SecurityProfile.IsKnown() {
 		// Get Tunnel Profile from Plan
 		vpnTunnelSecProfile, d := plan.GetNsxtIPSecVPNTunnelSecurityProfile(ctx)
 		resp.Diagnostics.Append(d...)
@@ -162,9 +158,8 @@ func (r *vpnIPSecResource) Create(ctx context.Context, req resource.CreateReques
 		vpnTunnelSecProfile.SecurityType = profileCustom
 
 		// Update Tunnel Profile with custom settings
-		_, err := createdIPSecVPNConfig.UpdateTunnelConnectionProperties(vpnTunnelSecProfile)
-		if err != nil {
-			resp.Diagnostics.AddError("Error updating IPsec VPN Tunnel Security Profile:", err.Error())
+		if _, err := createdIPSecVPNConfig.UpdateTunnelConnectionProperties(vpnTunnelSecProfile); err != nil {
+			resp.Diagnostics.AddError("Error updating IPsec VPN Tunnel Security Profile", err.Error())
 			return
 		}
 	}
@@ -253,9 +248,9 @@ func (r *vpnIPSecResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 
 	// Get VPN Config from plan (without profile settings)
-	planVPNTunnel, err := plan.ToNsxtIPSecVPNTunnel(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Error getting IPsec VPN Tunnel configuration from plan:", err.Error())
+	planVPNTunnel, d := plan.ToNsxtIPSecVPNTunnel(ctx)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -274,9 +269,8 @@ func (r *vpnIPSecResource) Update(ctx context.Context, req resource.UpdateReques
 	}
 
 	// Update VPN Tunnel
-	_, err = existingIPSecVPNConfiguration.Update(planVPNTunnel)
-	if err != nil {
-		resp.Diagnostics.AddError("Error updating VPN Tunnel configuration:", err.Error())
+	if _, err = existingIPSecVPNConfiguration.Update(planVPNTunnel); err != nil {
+		resp.Diagnostics.AddError("Error updating VPN Tunnel configuration", err.Error())
 		return
 	}
 	if !plan.SecurityProfile.IsUnknown() {
@@ -287,9 +281,8 @@ func (r *vpnIPSecResource) Update(ctx context.Context, req resource.UpdateReques
 		planVPNIPSec.SecurityType = profileCustom
 
 		// Update VPN Tunnel with CUSTOM Profile IPsec settings
-		_, err = existingIPSecVPNConfiguration.UpdateTunnelConnectionProperties(planVPNIPSec)
-		if err != nil {
-			resp.Diagnostics.AddError("Error updating VPN Tunnel configuration:", err.Error())
+		if _, err = existingIPSecVPNConfiguration.UpdateTunnelConnectionProperties(planVPNIPSec); err != nil {
+			resp.Diagnostics.AddError("Error updating VPN Tunnel configuration", err.Error())
 			return
 		}
 	}
@@ -346,8 +339,7 @@ func (r *vpnIPSecResource) Delete(ctx context.Context, req resource.DeleteReques
 	}
 
 	// Delete VPN
-	err = ipSecVPNConfig.Delete()
-	if err != nil {
+	if err = ipSecVPNConfig.Delete(); err != nil {
 		resp.Diagnostics.AddError("Error Deleting IPsec VPN Tunnel configuration: %s", err.Error())
 		return
 	}
@@ -361,7 +353,7 @@ func (r *vpnIPSecResource) ImportState(ctx context.Context, req resource.ImportS
 		vpnIPSec             *govcd.NsxtIpSecVpnTunnel
 	)
 
-	// Split req.ID with dot. ID format is EdgeGatewayIDOrName.VPNIPSecID
+	// Split req.ID with dot. ID format is EdgeGatewayIDOrName.VPNIPSecIDOrName
 	idParts := strings.Split(req.ID, ".")
 
 	if len(idParts) != 2 {
@@ -398,18 +390,14 @@ func (r *vpnIPSecResource) ImportState(ctx context.Context, req resource.ImportS
 		vpnIPSec, err = r.edgegw.GetIpSecVpnTunnelById(idParts[1])
 	}
 
-	var listStr string
-	if err != nil && !govcd.ContainsNotFound(err) {
-		allRules, err2 := r.edgegw.GetAllIpSecVpnTunnels(nil)
-		if err2 != nil {
+	if err != nil {
+		allRules, err := r.edgegw.GetAllIpSecVpnTunnels(nil)
+		if err != nil {
 			resp.Diagnostics.AddError("Failed to Get ALL VPN IPSec.", err.Error())
 			return
 		}
-		listStr = getVPNIPSecTunnelsList(idParts[1], allRules)
-	}
-
-	if err != nil {
-		resp.Diagnostics.AddError("Failed to Get VPN IPSec."+listStr, err.Error())
+		listStr := getVPNIPSecTunnelsList(idParts[1], allRules)
+		resp.Diagnostics.AddError("Failed to Get VPN IPSec "+listStr, err.Error())
 		return
 	}
 
@@ -437,7 +425,7 @@ func (r *vpnIPSecResource) read(ctx context.Context, planOrState *VPNIPSecModel)
 		if govcd.ContainsNotFound(err) {
 			return nil, false, diags
 		}
-		diags.AddError("Error retrieving VPN Tunnel ID", err.Error())
+		diags.AddError("Error retrieving VPN Tunnel", err.Error())
 		return nil, true, diags
 	}
 
@@ -454,8 +442,21 @@ func (r *vpnIPSecResource) read(ctx context.Context, planOrState *VPNIPSecModel)
 	stateRefreshed.RemoteNetworks.Set(ctx, vpnTunnel.NsxtIpSecVpn.RemoteEndpoint.RemoteNetworks)
 	stateRefreshed.SecurityType.Set(vpnTunnel.NsxtIpSecVpn.SecurityType)
 
-	// ====== Get IPSec Profile
-	vpnTunnelSecProfile = &VPNIPSecModelSecurityProfile{}
+	// Get IPSec Profile
+	vpnTunnelSecProfile = &VPNIPSecModelSecurityProfile{
+		IkeDhGroups:                supertypes.NewStringNull(),
+		IkeDigestAlgorithm:         supertypes.NewStringNull(),
+		IkeEncryptionAlgorithm:     supertypes.NewStringNull(),
+		IkeSaLifetime:              supertypes.NewInt64Null(),
+		IkeVersion:                 supertypes.NewStringNull(),
+		TunnelDfPolicy:             supertypes.NewStringNull(),
+		TunnelDhGroups:             supertypes.NewStringNull(),
+		TunnelDigestAlgorithms:     supertypes.NewStringNull(),
+		TunnelDpd:                  supertypes.NewInt64Null(),
+		TunnelEncryptionAlgorithms: supertypes.NewStringNull(),
+		TunnelPfs:                  supertypes.NewBoolNull(),
+		TunnelSaLifetime:           supertypes.NewInt64Null(),
+	}
 	secProfile, err := vpnTunnel.GetTunnelConnectionProperties()
 	if err != nil {
 		diags.AddError("Error retrieving VPN Tunnel Security Profile", err.Error())
@@ -469,8 +470,6 @@ func (r *vpnIPSecResource) read(ctx context.Context, planOrState *VPNIPSecModel)
 	// IKE Digest Algorithm
 	if len(secProfile.IkeConfiguration.DigestAlgorithms) > 0 {
 		vpnTunnelSecProfile.IkeDigestAlgorithm.Set(secProfile.IkeConfiguration.DigestAlgorithms[0])
-	} else {
-		vpnTunnelSecProfile.IkeDigestAlgorithm.SetNull()
 	}
 	// IKE Encryption Algorithm
 	if len(secProfile.IkeConfiguration.EncryptionAlgorithms) > 0 {
@@ -489,8 +488,6 @@ func (r *vpnIPSecResource) read(ctx context.Context, planOrState *VPNIPSecModel)
 	// Tunnel Digest Algorithms
 	if len(secProfile.TunnelConfiguration.DigestAlgorithms) > 0 {
 		vpnTunnelSecProfile.TunnelDigestAlgorithms.Set(secProfile.TunnelConfiguration.DigestAlgorithms[0])
-	} else {
-		vpnTunnelSecProfile.TunnelDigestAlgorithms.SetNull()
 	}
 	// Tunnel Encryption Algorithm
 	if len(secProfile.TunnelConfiguration.EncryptionAlgorithms) > 0 {
@@ -503,11 +500,12 @@ func (r *vpnIPSecResource) read(ctx context.Context, planOrState *VPNIPSecModel)
 	// Tunnel DPD
 	vpnTunnelSecProfile.TunnelDpd.Set(int64(secProfile.DpdConfiguration.ProbeInterval))
 
-	if d := stateRefreshed.SecurityProfile.Set(ctx, vpnTunnelSecProfile); d.HasError() {
-		return nil, true, d
+	diags.Append(stateRefreshed.SecurityProfile.Set(ctx, vpnTunnelSecProfile)...)
+	if diags.HasError() {
+		return nil, true, diags
 	}
 
-	return stateRefreshed, true, nil
+	return stateRefreshed, true, diags
 }
 
 func getVPNIPSecTunnelsList(name string, allTunnels []*govcd.NsxtIpSecVpnTunnel) string {

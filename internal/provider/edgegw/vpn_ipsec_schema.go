@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
@@ -44,7 +45,6 @@ func vpnIPSecSchema(_ context.Context) superschema.Schema {
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
-					Computed: true,
 					Optional: true,
 				},
 			},
@@ -116,10 +116,10 @@ func vpnIPSecSchema(_ context.Context) superschema.Schema {
 			"pre_shared_key": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The Pre-Shared Key (PSK) is an Authentication method. Is a complex password (ASCII) that will be exchanged between both sites in order to set up the IPsec tunnel.",
+					Sensitive:           true,
 				},
 				Resource: &schemaR.StringAttribute{
-					Required:  true,
-					Sensitive: true,
+					Required: true,
 				},
 				DataSource: &schemaD.StringAttribute{
 					Computed: true,
@@ -179,7 +179,7 @@ func vpnIPSecSchema(_ context.Context) superschema.Schema {
 			},
 			"security_type": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "Security type which is use for IPsec VPN Tunnel. Let empty if you want to use the default configuration.",
+					MarkdownDescription: "Type of Security Profile used for the IPsec VPN Tunnel.",
 					Computed:            true,
 				},
 			},
@@ -190,18 +190,15 @@ func vpnIPSecSchema(_ context.Context) superschema.Schema {
 				},
 				Resource: &schemaR.SingleNestedAttribute{
 					Optional: true,
-					// PlanModifiers: []planmodifier.Object{
-					//	objectplanmodifier.UseStateForUnknown(),
-					// },
 				},
 				Attributes: map[string]superschema.Attribute{
 					"ike_version": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "IKE (Internet Key Exchange) is an encrypt protocol of your VPN data.",
+							Computed:            true,
 						},
 						Resource: &schemaR.StringAttribute{
 							Optional: true,
-							Computed: true,
 							Validators: []validator.String{
 								fstringvalidator.OneOfWithDescription(
 									fstringvalidator.OneOfWithDescriptionValues{
@@ -219,54 +216,42 @@ func vpnIPSecSchema(_ context.Context) superschema.Schema {
 								),
 							},
 						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
-						},
 					},
 					"ike_encryption_algorithm": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "Encryption algorithms used by IKE.",
+							Computed:            true,
 						},
 						Resource: &schemaR.StringAttribute{
 							Optional: true,
-							Computed: true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("AES_128", "AES_256", "AES_GCM_128", "AES_GCM_192", "AES_GCM_256"),
 							},
-						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
 						},
 					},
 					"ike_digest_algorithm": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "Secure hashing algorithms to use during the IKE negotiation.",
+							Computed:            true,
 						},
 						Resource: &schemaR.StringAttribute{
 							Optional: true,
-							Computed: true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("SHA1", "SHA2_256", "SHA2_384", "SHA2_512"),
 								fstringvalidator.NullIfAttributeIsOneOf(path.MatchRelative().AtParent().AtName("ike_encryption_algorithm"), []attr.Value{types.StringValue("AES_GCM_128"), types.StringValue("AES_GCM_256"), types.StringValue("AES_GCM_512")}),
 							},
 						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
-						},
 					},
 					"ike_dh_groups": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The Diffie-Hellman (DH) key exchange algorithm is a method used to make a shared encryption key available to two entities over an insecure communications channel.",
+							Computed:            true,
 						},
 						Resource: &schemaR.StringAttribute{
 							Optional: true,
-							Computed: true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("GROUP2", "GROUP5", "GROUP14", "GROUP15", "GROUP16", "GROUP19", "GROUP20", "GROUP21"),
 							},
-						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
 						},
 					},
 					"ike_sa_lifetime": superschema.SuperInt64Attribute{
@@ -277,6 +262,9 @@ func vpnIPSecSchema(_ context.Context) superschema.Schema {
 						Resource: &schemaR.Int64Attribute{
 							Optional: true,
 							Default:  int64default.StaticInt64(86400),
+							Validators: []validator.Int64{
+								int64validator.Between(21600, 31536000),
+							},
 						},
 					},
 					"tunnel_pfs": superschema.SuperBoolAttribute{
@@ -289,7 +277,6 @@ func vpnIPSecSchema(_ context.Context) superschema.Schema {
 							Default:    booldefault.StaticBool(true),
 							Validators: []validator.Bool{
 								// TODO - Issue open https://github.com/FrangipaneTeam/terraform-plugin-framework-validators/issues/88
-								// TODO - validator beetween an interval ex: 3-60 for this example
 							},
 						},
 					},
@@ -318,47 +305,38 @@ func vpnIPSecSchema(_ context.Context) superschema.Schema {
 					"tunnel_encryption_algorithms": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "Encryption algorithms to use in IPSec tunnel establishment.",
+							Computed:            true,
 						},
 						Resource: &schemaR.StringAttribute{
 							Optional: true,
-							Computed: true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("AES_128", "AES_256", "AES_GCM_128", "AES_GCM_192", "AES_GCM_256"),
 							},
-						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
 						},
 					},
 					"tunnel_digest_algorithms": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "Digest algorithms to be used for message digest.",
+							Computed:            true,
 						},
 						Resource: &schemaR.StringAttribute{
 							Optional: true,
-							Computed: true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("SHA1", "SHA2_256", "SHA2_384", "SHA2_512"),
 								fstringvalidator.NullIfAttributeIsOneOf(path.MatchRelative().AtParent().AtName("tunnel_encryption_algorithms"), []attr.Value{types.StringValue("AES_GCM_128"), types.StringValue("AES_GCM_256"), types.StringValue("AES_GCM_512")}),
 							},
 						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
-						},
 					},
 					"tunnel_dh_groups": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The Diffie-Hellman (DH) key exchange algorithm is a method used to make a shared encryption key available to two entities over an insecure communications channel.",
+							Computed:            true,
 						},
 						Resource: &schemaR.StringAttribute{
 							Optional: true,
-							Computed: true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("GROUP2", "GROUP5", "GROUP14", "GROUP15", "GROUP16", "GROUP19", "GROUP20", "GROUP21"),
 							},
-						},
-						DataSource: &schemaD.StringAttribute{
-							Computed: true,
 						},
 					},
 					"tunnel_sa_lifetime": superschema.SuperInt64Attribute{
@@ -369,16 +347,22 @@ func vpnIPSecSchema(_ context.Context) superschema.Schema {
 						Resource: &schemaR.Int64Attribute{
 							Optional: true,
 							Default:  int64default.StaticInt64(3600),
+							Validators: []validator.Int64{
+								int64validator.Between(900, 31536000),
+							},
 						},
 					},
 					"tunnel_dpd": superschema.SuperInt64Attribute{
 						Common: &schemaR.Int64Attribute{
-							MarkdownDescription: "Value in seconds of Dead Probe Detection interval. Minimum is 3 seconds and the maximum is 60 seconds.",
+							MarkdownDescription: "Value in seconds of Dead Probe Detection interval.",
 							Computed:            true,
 						},
 						Resource: &schemaR.Int64Attribute{
 							Optional: true,
 							Default:  int64default.StaticInt64(60),
+							Validators: []validator.Int64{
+								int64validator.Between(3, 60),
+							},
 						},
 					},
 				},

@@ -2,12 +2,10 @@ package edgegw
 
 import (
 	"context"
-	"fmt"
 
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
@@ -16,9 +14,6 @@ import (
 )
 
 type VPNIPSecModel struct {
-	// AuthenticationMode supertypes.StringValue       `tfsdk:"authentication_mode"`
-	// CACertificateID    supertypes.StringValue       `tfsdk:"ca_certificate_id"`
-	// CertificateID      supertypes.StringValue       `tfsdk:"certificate_id"`
 	Description     supertypes.StringValue       `tfsdk:"description"`
 	EdgeGatewayID   supertypes.StringValue       `tfsdk:"edge_gateway_id"`
 	EdgeGatewayName supertypes.StringValue       `tfsdk:"edge_gateway_name"`
@@ -61,73 +56,6 @@ const (
 	profileCustom     string = "CUSTOM"
 )
 
-func NewVPNIPSec(t any) *VPNIPSecModel {
-	switch x := t.(type) {
-	case tfsdk.State: //nolint:dupl
-		return &VPNIPSecModel{
-			// AuthenticationMode: supertypes.NewStringUnknown(),
-			// CACertificateID:    supertypes.NewStringNull(),
-			// CertificateID:      supertypes.NewStringNull(),
-			Description:     supertypes.NewStringNull(),
-			EdgeGatewayID:   supertypes.NewStringUnknown(),
-			EdgeGatewayName: supertypes.NewStringUnknown(),
-			Enabled:         supertypes.NewBoolUnknown(),
-			ID:              supertypes.NewStringUnknown(),
-			LocalIPAddress:  supertypes.NewStringNull(),
-			LocalNetworks:   supertypes.NewSetNull(x.Schema.GetAttributes()["local_networks"].GetType().(supertypes.SetType).ElementType()),
-			Name:            supertypes.NewStringNull(),
-			PreSharedKey:    supertypes.NewStringNull(),
-			RemoteIPAddress: supertypes.NewStringNull(),
-			RemoteNetworks:  supertypes.NewSetNull(x.Schema.GetAttributes()["remote_networks"].GetType().(supertypes.SetType).ElementType()),
-			SecurityProfile: supertypes.NewSingleNestedNull(x.Schema.GetAttributes()["security_profile"].GetType().(supertypes.SingleNestedType).AttributeTypes()),
-			SecurityType:    supertypes.NewStringUnknown(),
-		}
-
-	case tfsdk.Plan: //nolint:dupl
-		return &VPNIPSecModel{
-			// AuthenticationMode: supertypes.NewStringUnknown(),
-			// CACertificateID:    supertypes.NewStringNull(),
-			// CertificateID:      supertypes.NewStringNull(),
-			Description:     supertypes.NewStringNull(),
-			EdgeGatewayID:   supertypes.NewStringUnknown(),
-			EdgeGatewayName: supertypes.NewStringUnknown(),
-			Enabled:         supertypes.NewBoolUnknown(),
-			ID:              supertypes.NewStringUnknown(),
-			LocalIPAddress:  supertypes.NewStringNull(),
-			LocalNetworks:   supertypes.NewSetNull(x.Schema.GetAttributes()["local_networks"].GetType().(supertypes.SetType).ElementType()),
-			Name:            supertypes.NewStringNull(),
-			PreSharedKey:    supertypes.NewStringNull(),
-			RemoteIPAddress: supertypes.NewStringNull(),
-			RemoteNetworks:  supertypes.NewSetNull(x.Schema.GetAttributes()["remote_networks"].GetType().(supertypes.SetType).ElementType()),
-			SecurityProfile: supertypes.NewSingleNestedNull(x.Schema.GetAttributes()["security_profile"].GetType().(supertypes.SingleNestedType).AttributeTypes()),
-			SecurityType:    supertypes.NewStringUnknown(),
-		}
-
-	case tfsdk.Config: //nolint:dupl
-		return &VPNIPSecModel{
-			// AuthenticationMode: supertypes.NewStringUnknown(),
-			// CACertificateID:    supertypes.NewStringNull(),
-			// CertificateID:      supertypes.NewStringNull(),
-			Description:     supertypes.NewStringNull(),
-			EdgeGatewayID:   supertypes.NewStringUnknown(),
-			EdgeGatewayName: supertypes.NewStringUnknown(),
-			Enabled:         supertypes.NewBoolUnknown(),
-			ID:              supertypes.NewStringUnknown(),
-			LocalIPAddress:  supertypes.NewStringNull(),
-			LocalNetworks:   supertypes.NewSetNull(x.Schema.GetAttributes()["local_networks"].GetType().(supertypes.SetType).ElementType()),
-			Name:            supertypes.NewStringNull(),
-			PreSharedKey:    supertypes.NewStringNull(),
-			RemoteIPAddress: supertypes.NewStringNull(),
-			RemoteNetworks:  supertypes.NewSetNull(x.Schema.GetAttributes()["remote_networks"].GetType().(supertypes.SetType).ElementType()),
-			SecurityProfile: supertypes.NewSingleNestedNull(x.Schema.GetAttributes()["security_profile"].GetType().(supertypes.SingleNestedType).AttributeTypes()),
-			SecurityType:    supertypes.NewStringUnknown(),
-		}
-
-	default:
-		panic(fmt.Sprintf("unexpected type %T", t))
-	}
-}
-
 func (rm *VPNIPSecModel) Copy() *VPNIPSecModel {
 	x := &VPNIPSecModel{}
 	utils.ModelCopy(rm, x)
@@ -156,13 +84,15 @@ func (rm *VPNIPSecModel) GetSecurityProfile(ctx context.Context) (values VPNIPSe
 }
 
 func (rm *VPNIPSecModel) GetNsxtIPSecVPNTunnelSecurityProfile(ctx context.Context) (values *govcdtypes.NsxtIpSecVpnTunnelSecurityProfile, diags diag.Diagnostics) {
-	if !rm.SecurityProfile.IsKnown() {
-		return &govcdtypes.NsxtIpSecVpnTunnelSecurityProfile{}, nil
-	}
 	values = &govcdtypes.NsxtIpSecVpnTunnelSecurityProfile{}
+	if !rm.SecurityProfile.IsKnown() {
+		return
+	}
+
 	securityProfile, d := rm.GetSecurityProfile(ctx)
+	diags.Append(d...)
 	if d.HasError() {
-		return &govcdtypes.NsxtIpSecVpnTunnelSecurityProfile{}, d
+		return
 	}
 
 	if securityProfile.IkeDhGroups.IsKnown() {
@@ -213,7 +143,7 @@ func (rm VPNIPSecModelRemoteNetworks) Get() []string {
 	return utils.SuperSliceTypesStringToSliceString(rm)
 }
 
-func (rm *VPNIPSecModel) ToNsxtIPSecVPNTunnel(ctx context.Context) (values *govcdtypes.NsxtIpSecVpnTunnel, err error) {
+func (rm *VPNIPSecModel) ToNsxtIPSecVPNTunnel(ctx context.Context) (values *govcdtypes.NsxtIpSecVpnTunnel, diags diag.Diagnostics) {
 	values = &govcdtypes.NsxtIpSecVpnTunnel{
 		Name:                    rm.Name.Get(),
 		Description:             rm.Description.Get(),
@@ -230,6 +160,7 @@ func (rm *VPNIPSecModel) ToNsxtIPSecVPNTunnel(ctx context.Context) (values *govc
 
 	// Get local networks
 	localNet, diags := rm.GetLocalNetworks(ctx)
+	diags.Append(diags...)
 	if diags.HasError() {
 		return
 	}
@@ -239,6 +170,7 @@ func (rm *VPNIPSecModel) ToNsxtIPSecVPNTunnel(ctx context.Context) (values *govc
 
 	// Get remote networks
 	remoteNet, diags := rm.GetRemoteNetworks(ctx)
+	diags.Append(diags...)
 	if diags.HasError() {
 		return
 	}

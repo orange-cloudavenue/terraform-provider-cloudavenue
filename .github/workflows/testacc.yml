@@ -27,7 +27,7 @@ jobs:
     name: Terraform Provider Acceptance Tests
     needs: slashCommand
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v3
         with:
@@ -52,11 +52,11 @@ jobs:
           TEST_NAME=$(echo "${{ github.event.comment.body }}" | cut -d " " -f2)
           CATEGORY=$(grep -rilE "$TEST_NAME" * | sed 's![^/]*$!!' | head -1)
           if [ -d "$CATEGORY" ]; then
-           go test -v ./$CATEGORY -run $TEST_NAME  > 'test_output.txt'
+           go test -timeout 30m -v ./$CATEGORY -run $TEST_NAME > 'test_output.txt'
           else
             echo "[no tests to run]" > 'test_output.txt'
           fi
-        timeout-minutes: 20
+        timeout-minutes: 30
       - name: Comment PR with test results
         uses: actions/github-script@v6.4.1
         if: always() # This ensures the step always runs, even if the test step failed

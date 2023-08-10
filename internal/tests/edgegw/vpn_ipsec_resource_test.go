@@ -165,11 +165,6 @@ resource "cloudavenue_edgegateway_vpn_ipsec" "example" {
 }
 `
 
-// const testAccVPNIPSecResourceConfigUpdate = `
-// resource "cloudavenue_edgegateway_vpn_ipsec" "example" {
-// }
-// `
-
 func vpnIPSecTestCheckDefault(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),

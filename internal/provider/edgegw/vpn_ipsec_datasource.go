@@ -6,11 +6,13 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 var (
@@ -18,51 +20,42 @@ var (
 	_ datasource.DataSourceWithConfigure = &vpnIpsecDataSource{}
 )
 
-func NewVpnIpsecDataSource() datasource.DataSource {
+func NewVPNIPSecDataSource() datasource.DataSource {
 	return &vpnIpsecDataSource{}
 }
 
 type vpnIpsecDataSource struct {
 	client *client.CloudAvenue
-
-	// Uncomment the following lines if you need to access the resource's.
-	// org    org.Org
-	// vdc    vdc.VDC
-	// vapp   vapp.VAPP
+	org    org.Org
+	edgegw edgegw.EdgeGateway
 }
 
-// If the data source don't have same schema/structure as the resource, you can use the following code:
-// type vpnIpsecDataSourceModel struct {
-// 	ID types.String `tfsdk:"id"`
-// }
-
 // Init Initializes the data source.
-func (d *vpnIpsecDataSource) Init(ctx context.Context, dm *vpnIpsecModel) (diags diag.Diagnostics) {
-	
-	// Uncomment the following lines if you need to access to the Org
-	// d.org, diags = org.Init(d.client)
-	// if diags.HasError() {
-	// 	return
-	// }
+func (d *vpnIpsecDataSource) Init(ctx context.Context, dm *VPNIPSecModel) (diags diag.Diagnostics) {
+	var err error
 
-	// Uncomment the following lines if you need to access to the VDC
-	// d.vdc, diags = vdc.Init(d.client, dm.VDC)
-	// if diags.HasError() {
-	// 	return
-	// }
+	d.org, diags = org.Init(d.client)
+	if diags.HasError() {
+		return
+	}
 
-	// Uncomment the following lines if you need to access to the VAPP
-	// d.vapp, diags = vapp.Init(d.client, d.vdc, dm.VAppID, dm.VAppName)
-
+	d.edgegw, err = d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+		ID:   types.StringValue(dm.EdgeGatewayID.Get()),
+		Name: types.StringValue(dm.EdgeGatewayName.Get()),
+	})
+	if err != nil {
+		diags.AddError("Error retrieving Edge Gateway", err.Error())
+		return
+	}
 	return
 }
 
 func (d *vpnIpsecDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + categoryName  + "_vpn_ipsec"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_vpn_ipsec"
 }
 
 func (d *vpnIpsecDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = vpnIpsecSchema(ctx).GetDataSource(ctx)
+	resp.Schema = vpnIPSecSchema(ctx).GetDataSource(ctx)
 }
 
 func (d *vpnIpsecDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -83,10 +76,7 @@ func (d *vpnIpsecDataSource) Configure(ctx context.Context, req datasource.Confi
 }
 
 func (d *vpnIpsecDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	config := &vpnIpsecModel{}
-
-	// If the data source don't have same schema/structure as the resource, you can use the following code:
-	// config := &vpnIpsecDataSourceModel{}
+	config := &VPNIPSecModel{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
@@ -105,12 +95,11 @@ func (d *vpnIpsecDataSource) Read(ctx context.Context, req datasource.ReadReques
 	*/
 
 	// If read function is identical to the resource, you can use the following code:
-	/* 
-	s := &vpnIpsecResource{
+
+	s := &vpnIPSecResource{
 		client: d.client,
-		// org:    d.org,
-		// vdc:    d.vdc,
-		// vapp:   d.vapp,
+		org:    d.org,
+		edgegw: d.edgegw,
 	}
 
 	// Read data from the API
@@ -119,7 +108,6 @@ func (d *vpnIpsecDataSource) Read(ctx context.Context, req datasource.ReadReques
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	*/
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
