@@ -1,0 +1,3 @@
+```release-note:new-resource
+`resource/cloudavenue_iam_token` - New resource to create user token.
+```

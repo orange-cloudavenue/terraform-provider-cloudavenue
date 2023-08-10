@@ -57,6 +57,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		// * IAM
 		iam.NewIAMUserResource,
 		iam.NewRoleResource,
+		iam.NewTokenResource,
 
 		// * VM
 		vm.NewDiskResource,

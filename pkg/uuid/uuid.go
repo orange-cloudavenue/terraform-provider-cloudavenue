@@ -29,6 +29,7 @@ const (
 	Disk              = VcloudUUID(VcloudUUIDPrefix + "disk:")
 	SecurityGroup     = VcloudUUID(VcloudUUIDPrefix + "firewallGroup:")
 	Catalog           = VcloudUUID(VcloudUUIDPrefix + "catalog:")
+	Token             = VcloudUUID(VcloudUUIDPrefix + "token:")
 
 	// * CLOUDAVENUE.
 	VCDA = VcloudUUID(CloudAvenueUUIDPrefix + "vcda:")
@@ -49,6 +50,7 @@ var vcloudUUIDs = []VcloudUUID{
 	Disk,
 	SecurityGroup,
 	Catalog,
+	Token,
 }
 
 type (
@@ -199,6 +201,11 @@ func (uuid VcloudUUID) IsCatalog() bool {
 	return uuid.IsType(Catalog)
 }
 
+// IsToken returns true if the UUID is a Token UUID.
+func (uuid VcloudUUID) IsToken() bool {
+	return uuid.IsType(Token)
+}
+
 // * End Methods
 
 // IsEdgeGateway returns true if the UUID is a EdgeGateway UUID.
@@ -274,6 +281,11 @@ func IsGroup(uuid string) bool {
 // IsCatalog returns true if the UUID is a Catalog UUID.
 func IsCatalog(uuid string) bool {
 	return VcloudUUID(uuid).IsType(Catalog)
+}
+
+// IsToken returns true if the UUID is a Token UUID.
+func IsToken(uuid string) bool {
+	return VcloudUUID(uuid).IsType(Token)
 }
 
 // * End Functions
