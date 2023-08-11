@@ -6,9 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
@@ -36,7 +33,7 @@ func (d *edgeGatewaysDataSource) Metadata(ctx context.Context, req datasource.Me
 }
 
 func (d *edgeGatewaysDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = edgeGatewaysSchema(ctx)
+	resp.Schema = edgeGatewaysSuperSchema(ctx).GetDataSource(ctx)
 }
 
 func (d *edgeGatewaysDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -61,12 +58,11 @@ func (d *edgeGatewaysDataSource) Configure(ctx context.Context, req datasource.C
 
 func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var (
-		data  edgeGatewaysDataSourceModel
+		data  = &edgeGatewaysDataSourceModel{}
 		names []string
 	)
 	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
+	resp.Diagnostics.Append(req.Config.Get(ctx, data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -83,11 +79,10 @@ func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRe
 			return
 		}
 		// Is Not Found
-		data.EdgeGateways = types.ListNull(types.ObjectType{AttrTypes: edgeGatewayDataSourceModelAttrTypes})
-		data.ID = types.StringNull()
+		data.ID.SetNull()
+		data.EdgeGateways.SetNull(ctx)
 	} else {
-		var diag diag.Diagnostics
-		gws := make([]edgeGatewayDataSourceModel, 0)
+		gws := make(edgeGatewayDataSourceModelEdgeGateways, 0)
 		for _, gw := range gateways {
 			// Get LoadBalancing state.
 			gatewaysLoadBalancing, httpR, err := d.client.APIClient.EdgeGatewaysApi.GetEdgeLoadBalancing(d.client.Auth, gw.EdgeId)
@@ -98,27 +93,27 @@ func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRe
 					return
 				}
 			}
-			gws = append(gws, edgeGatewayDataSourceModel{
-				Tier0VrfID:          types.StringValue(gw.Tier0VrfId),
-				Name:                types.StringValue(gw.EdgeName),
-				ID:                  types.StringValue(uuid.Normalize(uuid.Gateway, gw.EdgeId).String()),
-				OwnerType:           types.StringValue(gw.OwnerType),
-				OwnerName:           types.StringValue(gw.OwnerName),
-				Description:         types.StringValue(gw.Description),
-				EnableLoadBalancing: types.BoolValue((gatewaysLoadBalancing.Enabled)),
-			})
-
+			x := edgeGatewayDataSourceModelEdgeGateway{}
+			x.Tier0VrfName.Set(gw.Tier0VrfId)
+			x.Name.Set(gw.EdgeName)
+			x.ID.Set(uuid.Normalize(uuid.Gateway, gw.EdgeId).String())
+			x.OwnerType.Set(gw.OwnerType)
+			x.OwnerName.Set(gw.OwnerName)
+			x.OwnerType.Set(gw.OwnerType)
+			x.Description.Set(gw.Description)
+			x.LbEnabled.Set(gatewaysLoadBalancing.Enabled)
+			gws = append(gws, x)
 			names = append(names, gw.EdgeName)
 		}
 
-		data.EdgeGateways, diag = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: edgeGatewayDataSourceModelAttrTypes}, gws)
-		resp.Diagnostics.Append(diag...)
-		data.ID = utils.GenerateUUID(names)
+		resp.Diagnostics.Append(data.EdgeGateways.Set(ctx, gws)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		data.ID.Set(utils.GenerateUUID(names).ValueString())
 	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }

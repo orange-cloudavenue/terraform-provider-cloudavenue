@@ -25,7 +25,7 @@ output "list_of_gateways" {
 ### Read-Only
 
 - `edge_gateways` (Attributes List) A list of Edge Gateways. (see [below for nested schema](#nestedatt--edge_gateways))
-- `id` (String) The ID of this resource.
+- `id` (String) Generated ID of the resource.
 
 <a id="nestedatt--edge_gateways"></a>
 ### Nested Schema for `edge_gateways`
