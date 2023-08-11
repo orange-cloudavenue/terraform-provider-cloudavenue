@@ -187,4 +187,5 @@ linters-settings:
               "IAM",
               "VCDA",
               "NAT",
+              "VPN",
             ] 

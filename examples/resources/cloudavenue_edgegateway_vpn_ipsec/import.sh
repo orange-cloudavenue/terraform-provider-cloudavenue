@@ -1,0 +1,1 @@
+terraform import cloudavenue_edgegateway_vpn_ipsec.example edgeGatewayIDOrName.vpnIPSecNameOrID
