@@ -2,7 +2,9 @@
 
 ### :rocket: **New Features**
 
+* **New Data Source:** `datasource/cloudavenue_edgegateway_vpn_ipsec` - New data source to read Cloud Avenue IPsec VPN Tunnel. ([GH-353](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/353))
 * **New Data Source:** `datasource/cloudavenue_vm_disks` - New datasource to get the list of disks available on vApp and VM level. ([GH-475](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/475))
+* **New Resource:** `resource/cloudavenue_edgegateway_vpn_ipsec` - New resource to manage Cloud Avenue IPSec VPN Tunnel. ([GH-352](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/352))
 * **New Resource:** `resource/cloudavenue_iam_token` - New resource to create user token. ([GH-423](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/423))
 
 ### :tada: **Improvements**
