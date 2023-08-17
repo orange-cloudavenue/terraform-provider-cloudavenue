@@ -2,6 +2,7 @@
 package testsacc
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -9,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider"
 )
 
@@ -57,4 +59,44 @@ func ContactConfigs(configs ...string) string {
 		result += config + "\n"
 	}
 	return result
+}
+
+type ResourceName string
+
+// String returns the string representation of the ResourceName.
+func (r ResourceName) String() string {
+	return string(r)
+}
+
+type resourceConfig struct {
+	testsacc.TestACC
+}
+
+// GetDefaultConfig returns the create configuration for the test named "example".
+func (r resourceConfig) GetDefaultConfig() testsacc.TFData {
+	return r.Tests(context.Background())["example"](
+		context.Background(),
+		r.GetResourceName(),
+	).Create.TFConfig
+}
+
+// GetSpecificConfig returns the create configuration for the test named "example".
+func (r resourceConfig) GetSpecificConfig(testName string) testsacc.TFData {
+	return r.Tests(context.Background())[testsacc.TestName(testName)](
+		context.Background(),
+		r.GetResourceName(),
+	).Create.TFConfig
+}
+
+// AddConstantConfig returns the create configuration from constant.
+func AddConstantConfig(config string) testsacc.TFData {
+	return testsacc.TFData(config)
+}
+
+func NewResourceConfig(data testsacc.TestACC) func() resourceConfig {
+	return func() resourceConfig {
+		return resourceConfig{
+			TestACC: data,
+		}
+	}
 }
