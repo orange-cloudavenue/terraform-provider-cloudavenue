@@ -1,4 +1,9 @@
 ## 0.11.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps golangci/golangci-lint-action from 3.6.0 to 3.7.0 ([GH-494](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/494))
+
 ## 0.10.0 (August 11, 2023)
 
 ### :rocket: **New Features**
