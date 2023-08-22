@@ -1,3 +1,30 @@
 ```release-note:dependency
 deps: bumps github.com/hashicorp/terraform-plugin-framework-validators from 0.10.0 to 0.11.0
 ```
+```release-note:dependency
+deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-validators from v1.7.0 to v1.8.0
+```
+```release-note:dependency
+deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from v1.5.1 to v1.5.2
+```
+```release-note:enhancement
+`resource/cloudavenue_alb_pool` - Improve documentation.
+```
+```release-note:enhancement
+`resource/cloudavenue_catalog_acl` - Improve documentation.
+```
+```release-note:enhancement
+`resource/cloudavenue_edgegateway_nat_rule` - Improve documentation.
+```
+```release-note:enhancement
+`resource/cloudavenue_edgegateway_vpn_ipsec` - Improve documentation.
+```
+```release-note:enhancement
+`resource/cloudavenue_network_dhcp` - Improve documentation.
+```
+```release-note:enhancement
+`resource/cloudavenue_vm_disk` - Improve documentation.
+```
+```release-note:enhancement
+`resource/cloudavenue_vm` - Improve documentation.
+```
