@@ -69,13 +69,13 @@ resource "cloudavenue_edgegateway_nat_rule" "example-reflexive" {
 ### Optional
 
 - `description` (String) A description of the NAT rule.
-- `dnat_external_port` (String) This represents the external port number or port range when doing DNAT port forwarding from external to internal. If not specify, all ports are translated. If rule_type attribute is set and the value is one of `"SNAT"`, `"NO_SNAT"`, `"REFLEXIVE"`, this attribute is NULL.
+- `dnat_external_port` (String) This represents the external port number or port range when doing DNAT port forwarding from external to internal. If not specify, all ports are translated. If the value of [`rule_type`](#rule_type) attribute is one of `SNAT`, `NO_SNAT` or `REFLEXIVE` this attribute is **NULL**.
 - `edge_gateway_id` (String) (ForceNew) The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 - `edge_gateway_name` (String) (ForceNew) The Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 - `enabled` (Boolean) Enable or Disable the Nat Rule. Value defaults to `true`.
 - `firewall_match` (String) You can set a firewall match rule to determine how firewall is applied during NAT. Value must be one of: `MATCH_INTERNAL_ADDRESS` (Applies firewall rule to the internal address of a NAT rule.), `MATCH_EXTERNAL_ADDRESS` (Applies firewall rule to the external address of a NAT rule.), `BYPASS` (Skip applying firewall rule to NAT rule.).
 - `priority` (Number) If an address has multiple NAT rule, you can assign these rule different priorities to determine the order in which they are applied. A lower value means a higher priority for this rule. Value defaults to `0`.
-- `snat_destination_address` (String) The destination addresses to match in the SNAT Rule. This must be supplied as a single IP or Network CIDR. Providing no value for this field results in match with ANY destination network. If rule_type attribute is set and the value is one of `"DNAT"`, `"NO_DNAT"`, `"REFLEXIVE"`, this attribute is NULL.
+- `snat_destination_address` (String) The destination addresses to match in the SNAT Rule. This must be supplied as a single IP or Network CIDR. Providing no value for this field results in match with ANY destination network. If the value of [`rule_type`](#rule_type) attribute is one of `DNAT`, `NO_DNAT` or `REFLEXIVE` this attribute is **NULL**.
 
 ### Read-Only
 
