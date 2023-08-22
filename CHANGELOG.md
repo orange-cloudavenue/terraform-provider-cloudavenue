@@ -2,6 +2,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.3.4 to 1.3.5 ([GH-497](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/497))
 * deps: bumps golangci/golangci-lint-action from 3.6.0 to 3.7.0 ([GH-494](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/494))
 
 ## 0.10.0 (August 11, 2023)
