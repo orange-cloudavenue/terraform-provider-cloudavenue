@@ -105,7 +105,7 @@ func (rm *VPNIPSecModel) GetNsxtIPSecVPNTunnelSecurityProfile(ctx context.Contex
 		values.IkeConfiguration.EncryptionAlgorithms = append(values.IkeConfiguration.EncryptionAlgorithms, securityProfile.IkeEncryptionAlgorithm.Get())
 	}
 	if securityProfile.IkeSaLifetime.IsKnown() {
-		values.IkeConfiguration.SaLifeTime = utils.TakeIntPointer(int(securityProfile.IkeSaLifetime.Get()))
+		values.IkeConfiguration.SaLifeTime = securityProfile.IkeSaLifetime.GetIntPtr()
 	}
 	if securityProfile.IkeVersion.IsKnown() {
 		values.IkeConfiguration.IkeVersion = securityProfile.IkeVersion.Get()
@@ -126,12 +126,11 @@ func (rm *VPNIPSecModel) GetNsxtIPSecVPNTunnelSecurityProfile(ctx context.Contex
 		values.TunnelConfiguration.PerfectForwardSecrecyEnabled = securityProfile.TunnelPfs.Get()
 	}
 	if securityProfile.TunnelSaLifetime.IsKnown() {
-		values.TunnelConfiguration.SaLifeTime = utils.TakeIntPointer(int(securityProfile.TunnelSaLifetime.Get()))
+		values.TunnelConfiguration.SaLifeTime = securityProfile.TunnelSaLifetime.GetIntPtr()
 	}
 	if securityProfile.TunnelDpd.IsKnown() {
-		values.DpdConfiguration.ProbeInterval = int(securityProfile.TunnelDpd.Get())
+		values.DpdConfiguration.ProbeInterval = securityProfile.TunnelDpd.GetInt()
 	}
-
 	return
 }
 

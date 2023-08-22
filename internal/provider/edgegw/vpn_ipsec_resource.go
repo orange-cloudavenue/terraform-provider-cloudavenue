@@ -476,7 +476,7 @@ func (r *vpnIPSecResource) read(ctx context.Context, planOrState *VPNIPSecModel)
 		vpnTunnelSecProfile.IkeEncryptionAlgorithm.Set(secProfile.IkeConfiguration.EncryptionAlgorithms[0])
 	}
 	// IKE SA Lifetime
-	vpnTunnelSecProfile.IkeSaLifetime.Set(int64(*secProfile.IkeConfiguration.SaLifeTime))
+	vpnTunnelSecProfile.IkeSaLifetime.SetIntPtr(secProfile.IkeConfiguration.SaLifeTime)
 	// IKE Version
 	vpnTunnelSecProfile.IkeVersion.Set(secProfile.IkeConfiguration.IkeVersion)
 	// IKE Dead Peer Detection
@@ -494,11 +494,11 @@ func (r *vpnIPSecResource) read(ctx context.Context, planOrState *VPNIPSecModel)
 		vpnTunnelSecProfile.TunnelEncryptionAlgorithms.Set(secProfile.TunnelConfiguration.EncryptionAlgorithms[0])
 	}
 	// Tunnel SA Lifetime
-	vpnTunnelSecProfile.TunnelSaLifetime.Set(int64(*secProfile.TunnelConfiguration.SaLifeTime))
+	vpnTunnelSecProfile.TunnelSaLifetime.SetIntPtr(secProfile.TunnelConfiguration.SaLifeTime)
 	// Tunnel PFS
 	vpnTunnelSecProfile.TunnelPfs.Set(secProfile.TunnelConfiguration.PerfectForwardSecrecyEnabled)
 	// Tunnel DPD
-	vpnTunnelSecProfile.TunnelDpd.Set(int64(secProfile.DpdConfiguration.ProbeInterval))
+	vpnTunnelSecProfile.TunnelDpd.SetInt(secProfile.DpdConfiguration.ProbeInterval)
 
 	diags.Append(stateRefreshed.SecurityProfile.Set(ctx, vpnTunnelSecProfile)...)
 	if diags.HasError() {
