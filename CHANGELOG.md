@@ -12,8 +12,11 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superchema from v1.5.2 to v1.5.3 ([GH-500](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/500))
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from v1.5.1 to v1.5.2 ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from v0.0.5 to v0.1.0 ([GH-500](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/500))
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-validators from v1.7.0 to v1.8.0 ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
+* deps: bumps github.com/google/uuid from 1.3.0 to 1.3.1 ([GH-499](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/499))
 * deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.3.4 to 1.3.5 ([GH-497](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/497))
 * deps: bumps github.com/hashicorp/terraform-plugin-framework-validators from 0.10.0 to 0.11.0 ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
 * deps: bumps golangci/golangci-lint-action from 3.6.0 to 3.7.0 ([GH-494](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/494))
