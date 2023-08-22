@@ -104,7 +104,7 @@ func (rm *StaticRouteModel) ToNsxtEdgeGatewayStaticRoute(ctx context.Context) (*
 	for _, nextHop := range nextHops {
 		nH := govcdtypes.NsxtEdgeGatewayStaticRouteNextHops{
 			IPAddress:     nextHop.IPAddress.Get(),
-			AdminDistance: int(nextHop.AdminDistance.Get()),
+			AdminDistance: nextHop.AdminDistance.GetInt(),
 		}
 
 		staticRouteConfig.NextHops = append(staticRouteConfig.NextHops, nH)

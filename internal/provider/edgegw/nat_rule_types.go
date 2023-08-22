@@ -108,7 +108,7 @@ func (rm *NATRuleModel) ToNsxtNATRule(ctx context.Context) (values *govcdtypes.N
 		DnatExternalPort:         rm.DnatExternalPort.Get(),
 		Type:                     rm.RuleType.Get(),
 		FirewallMatch:            rm.FirewallMatch.Get(),
-		Priority:                 utils.TakeIntPointer(int(rm.Priority.Get())),
+		Priority:                 rm.Priority.GetIntPtr(),
 	}
 
 	return values, err
