@@ -63,9 +63,9 @@ resource "cloudavenue_network_routed" "example" {
 
 - `dns_servers` (List of String) The DNS server IPs to be assigned by this DHCP service. List must contain at most 2 elements.
 - `lease_time` (Number) The lease time in seconds for the DHCP service. Value must be at least 60. Value defaults to `86400`.
-- `listener_ip_address` (String) (ForceNew) The IP address of the DHCP listener. Must be a valid IP with net.ParseIP. If mode attribute is set and the value is one of `"RELAY"`, `"EDGE"`, this attribute is NULL.
+- `listener_ip_address` (String) (ForceNew) The IP address of the DHCP listener. Must be a valid IP with net.ParseIP. If the value of [`mode`](#mode) attribute is one of `RELAY` or `EDGE` this attribute is **NULL**.
 - `mode` (String) (ForceNew) The mode of the DHCP server. Value must be one of: `EDGE` (The Edge's DHCP service is used to obtain DHCP IP addresses.), `NETWORK` (A new DHCP service directly associated with this network is used to obtain DHCP IP addresses. Use Network Mode if the network is isolated or if you plan to detach this network from the Edge), `RELAY` (DHCP messages are relayed from virtual machines to designated DHCP servers in your physical DHCP infrastructure.). Value defaults to `EDGE`.
-- `pools` (Attributes Set) IP ranges used for DHCP pool allocation in the network. If mode attribute is set and the value is one of `"RELAY"`, this attribute is NULL. If mode attribute is set and the value is one of `"EDGE"`, `"NETWORK"`, this attribute is REQUIRED. (see [below for nested schema](#nestedatt--pools))
+- `pools` (Attributes Set) IP ranges used for DHCP pool allocation in the network. If the value of [`mode`](#mode) attribute is `RELAY` this attribute is **NULL**. If the value of [`mode`](#mode) attribute is one of `EDGE` or `NETWORK` this attribute is **REQUIRED**. (see [below for nested schema](#nestedatt--pools))
 
 ### Read-Only
 

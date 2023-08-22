@@ -78,7 +78,7 @@ resource "cloudavenue_alb_pool" "example" {
 - `edge_gateway_name` (String) (ForceNew) Edge gateway Name in which ALB Pool should be created. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
 - `enabled` (Boolean) Define if ALB Pool is enabled or not. Value defaults to `true`.
 - `graceful_timeout_period` (Number) Maximum time in minutes allowed for gracefully disabling a pool member. Value defaults to `1`.
-- `health_monitors` (Set of String) List of health monitors type to activate. Element value must satisfy all validations: value must be one of: ["\"HTTP\"" "\"HTTPS\"" "\"TCP\"" "\"UDP\"" "\"PING\""].
+- `health_monitors` (Set of String) List of health monitors type to activate. Element value must satisfy all validations: value must be one of: ["HTTP" "HTTPS" "TCP" "UDP" "PING"].
 - `members` (Attributes Set) ALB Pool Member(s). (see [below for nested schema](#nestedatt--members))
 - `passive_monitoring_enabled` (Boolean) Monitors if the traffic is accepted by node. Value defaults to `true`.
 - `persistence_profile` (Attributes) Persistence profile ensures that a user remains connected to the same server for a specified duration. If the persistence profile is unmanaged by Cloud Avenue, updates with unchanged values will continue using the same unmanaged profile. However, any changes to the persistence profile will prompt Cloud Avenue to switch the pool to a profile it manages. (see [below for nested schema](#nestedatt--persistence_profile))
@@ -110,7 +110,7 @@ Required:
 
 Optional:
 
-- `value` (String) Value of attribute based on persistence type. If persistence_profile.type attribute is set and the value is one of `"HTTP_COOKIE"`, this attribute is REQUIRED.
+- `value` (String) Value of attribute based on persistence type. If the value of [`persistence_profile.type`](#persistence_profile.type) attribute is `HTTP_COOKIE` this attribute is **REQUIRED**.
 
 ## Import
 

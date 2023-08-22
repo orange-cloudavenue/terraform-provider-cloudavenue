@@ -4,15 +4,15 @@ go 1.20
 
 require (
 	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.2
-	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.5.1
+	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.5.2
 	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.0.5
-	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.7.0
+	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.0
 	github.com/antihax/optional v1.0.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/terraform-plugin-docs v0.16.0
 	github.com/hashicorp/terraform-plugin-framework v1.3.5
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.1
-	github.com/hashicorp/terraform-plugin-framework-validators v0.10.0
+	github.com/hashicorp/terraform-plugin-framework-validators v0.11.0
 	github.com/hashicorp/terraform-plugin-go v0.18.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.27.0
