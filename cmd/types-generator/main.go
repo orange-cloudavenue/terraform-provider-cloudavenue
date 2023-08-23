@@ -5,7 +5,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"reflect"
@@ -14,6 +13,8 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"github.com/rs/zerolog/log"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -109,24 +110,8 @@ type {{ toUpperCamel $Name }}Model{{ if existKeyValue "SubName" }}{{singular (to
 	{{ end }}
 	{{/* End if isArray */}}
 
-
-
 {{ end }}
 {{ end }}
-
-
-func New{{ toUpperCamel .Name }}(t any) *{{ toUpperCamel .Name }}Model {
-	switch x := t.(type) {
-	case tfsdk.State: //nolint:dupl
-		return {{ template "structNewFunc" . }}
-	case tfsdk.Plan: //nolint:dupl
-		return {{ template "structNewFunc" . }}
-	case tfsdk.Config: //nolint:dupl
-		return {{ template "structNewFunc" . }}
-	default:
-		panic(fmt.Sprintf("unexpected type %T", t))
-	}
-}
 
 func (rm *{{ toUpperCamel .Name }}Model) Copy() *{{ toUpperCamel .Name }}Model {
 	x := &{{ toUpperCamel .Name }}Model{}
@@ -156,25 +141,6 @@ func (rm *{{ toUpperCamel .Name }}Model) Copy() *{{ toUpperCamel .Name }}Model {
 	{{ end }}
 {{ end }}
 
-
-
-{{ define "structNewFunc" }}
-	{{- $Name := (getKeyValue "Name") -}}
-	&{{ toUpperCamel $Name }}Model{
-	{{ range $aN, $aD := .Attributes }}
-		{{- if isNestedOrArrayAttribute . -}}
-			{{ toUpperCamel $aN }}: {{ funcNullOrUnkown . }}(x.Schema.GetAttributes()["{{ toSnakeCase $aN }}"].GetType().({{ terraformType . }}).ElementType()),
-		{{- else if isSingle . -}}
-			{{ toUpperCamel $aN }}: {{ funcNullOrUnkown . }}(x.Schema.GetAttributes()["{{ toSnakeCase $aN }}"].GetType().({{ terraformType . }}).AttributeTypes()),
-		{{- else -}}
-			{{ toUpperCamel $aN }}: {{ funcNullOrUnkown . }}(),
-		{{ end }}
-	{{ end -}}
-	}
-
-{{ end }}
-
-
 `
 
 type templateDataResource struct {
@@ -187,6 +153,22 @@ type templateDataDataSource struct {
 	Name        string
 	PackageName string
 	Attributes  map[string]schemaD.Attribute
+}
+
+type golangCI struct {
+	LintersSettings struct {
+		Revive struct {
+			Revive                interface{} `yaml:"revive"`
+			IgnoreGeneratedHeader bool        `yaml:"ignore-generated-header"`
+			Severity              string      `yaml:"severity"`
+			Rules                 []struct {
+				Name      string          `yaml:"name"`
+				Severity  string          `yaml:"severity"`
+				Disabled  bool            `yaml:"disabled"`
+				Arguments [][]interface{} `yaml:"arguments,omitempty"`
+			} `yaml:"rules"`
+		} `yaml:"revive"`
+	} `yaml:"linters-settings"`
 }
 
 var (
@@ -297,6 +279,34 @@ func main() {
 		return
 	}
 
+	// read file ../.golangci.yml
+	golangCIFile, err := os.ReadFile("../.golangci.yml")
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to read file")
+	}
+
+	// parse file ../.golangci.yml
+	golangCI := &golangCI{}
+	if err := yaml.Unmarshal(golangCIFile, golangCI); err != nil {
+		log.Fatal().Err(err).Msg("Failed to parse file")
+	}
+
+	varNaming := make([]string, 0)
+
+	// get all var-naming rules
+	for _, rule := range golangCI.LintersSettings.Revive.Rules {
+		if rule.Name == "var-naming" {
+			for _, arg := range rule.Arguments {
+				varNaming = append(varNaming, arg[0].(string))
+			}
+		}
+	}
+
+	// configure var-naming rules
+	for _, v := range varNaming {
+		strcase.ConfigureAcronym(strings.ToUpper(v), strings.ToLower(v))
+	}
+
 	log.Info().Msgf("Looking for resource %s", *resourceName)
 
 	ctx := context.Background()
@@ -316,11 +326,11 @@ func main() {
 				res().Schema(ctx, resource.SchemaRequest{}, resp)
 
 				// metadataResponse.TypeName = "_demo_superschema_supertypes"
-				// if metadataResponse.TypeName contains two or more underscores, remove the two first underscores
-
+				// remove first underscore
 				metadataResponse.TypeName = strings.TrimPrefix(metadataResponse.TypeName, "_")
 
-				if strings.Count(metadataResponse.TypeName, "_") > 1 {
+				// if metadataResponse.TypeName contains one or more underscores, remove the two first underscores
+				if strings.Count(metadataResponse.TypeName, "_") >= 1 {
 					first := strings.Split(metadataResponse.TypeName, "_")[0]
 					metadataResponse.TypeName = strings.TrimPrefix(metadataResponse.TypeName, first+"_")
 				}
@@ -348,7 +358,7 @@ func main() {
 					return
 				}
 
-				file := strings.TrimSuffix(*filePath, ".go") + "_types.go"
+				file := strings.TrimSuffix(*filePath, "_schema.go") + "_types.go"
 
 				if err := os.WriteFile(file, tplTypes.Bytes(), 0600); err != nil {
 					log.Fatal().Err(err).Msg("Failed to write file")
@@ -422,7 +432,7 @@ func main() {
 
 func getPackageName(filename string) (string, error) {
 	// read file
-	content, err := ioutil.ReadFile(filename)
+	content, err := os.ReadFile(filename)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to read file")
 	}
