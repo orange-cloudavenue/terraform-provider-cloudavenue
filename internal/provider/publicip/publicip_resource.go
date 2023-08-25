@@ -22,6 +22,7 @@ import (
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
@@ -82,6 +83,8 @@ func (r *publicIPResource) Configure(ctx context.Context, req resource.Configure
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *publicIPResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_publicip", r.client.GetOrgName(), metrics.Create)()
+
 	// Retrieve values from plan
 	plan := &publicIPResourceModel{}
 
@@ -261,6 +264,8 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 
 // Read refreshes the Terraform state with the latest data.
 func (r *publicIPResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_publicip", r.client.GetOrgName(), metrics.Read)()
+
 	state := &publicIPResourceModel{}
 
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -350,6 +355,8 @@ func (r *publicIPResource) Update(ctx context.Context, req resource.UpdateReques
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_publicip", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &publicIPResourceModel{}
 
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -420,6 +427,8 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 }
 
 func (r *publicIPResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_publicip", r.client.GetOrgName(), metrics.Import)()
+
 	// Retrieve import ID and save to id attribute
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

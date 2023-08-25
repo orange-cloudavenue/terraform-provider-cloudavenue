@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -73,6 +74,8 @@ func (r *dhcpResource) Configure(ctx context.Context, req resource.ConfigureRequ
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *dhcpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_network_dhcp", r.client.GetOrgName(), metrics.Create)()
+
 	plan := &dhcpModel{}
 
 	// Retrieve values from plan
@@ -116,6 +119,8 @@ func (r *dhcpResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 // Read refreshes the Terraform state with the latest data.
 func (r *dhcpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_network_dhcp", r.client.GetOrgName(), metrics.Read)()
+
 	state := &dhcpModel{}
 
 	// Get current state
@@ -154,6 +159,8 @@ func (r *dhcpResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *dhcpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_network_dhcp", r.client.GetOrgName(), metrics.Update)()
+
 	var (
 		plan  = &dhcpModel{}
 		state = &dhcpModel{}
@@ -199,6 +206,8 @@ func (r *dhcpResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *dhcpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_network_dhcp", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &dhcpModel{}
 
 	// Get current state
@@ -226,6 +235,8 @@ func (r *dhcpResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 }
 
 func (r *dhcpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_network_dhcp", r.client.GetOrgName(), metrics.Import)()
+
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("org_network_id"), req.ID)...)
 }

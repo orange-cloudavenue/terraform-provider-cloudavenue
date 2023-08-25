@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -77,6 +78,8 @@ func (d *staticRouteDataSource) Configure(ctx context.Context, req datasource.Co
 }
 
 func (d *staticRouteDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_edgegateway_static_route", d.client.GetOrgName(), metrics.Read)()
+
 	config := &StaticRouteModel{}
 
 	// Read Terraform configuration data into the model

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
 
 const vdcStatuses = "`SAVING`, `SAVED`, `CONFIGURING`, `REALIZED`, `REALIZATION_FAILED`," +
@@ -151,6 +152,8 @@ func (d *vdcGroupDataSource) Configure(ctx context.Context, req datasource.Confi
 }
 
 func (d *vdcGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_vdc_group", d.client.GetOrgName(), metrics.Read)()
+
 	var (
 		data vdcGroupDataSourceModel
 		diag diag.Diagnostics

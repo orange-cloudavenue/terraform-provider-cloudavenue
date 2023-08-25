@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
@@ -235,6 +236,8 @@ func (r *firewallResource) Configure(ctx context.Context, req resource.Configure
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *firewallResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) { //nolint:dupl
+	defer metrics.New("cloudavenue_edgegateway_firewall", r.client.GetOrgName(), metrics.Create)()
+
 	plan := &firewallModel{}
 
 	// Retrieve values from plan
@@ -296,6 +299,8 @@ func (r *firewallResource) Create(ctx context.Context, req resource.CreateReques
 
 // Read refreshes the Terraform state with the latest data.
 func (r *firewallResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_edgegateway_firewall", r.client.GetOrgName(), metrics.Read)()
+
 	state := &firewallModel{}
 
 	// Get current state
@@ -326,6 +331,8 @@ func (r *firewallResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *firewallResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { //nolint:dupl
+	defer metrics.New("cloudavenue_edgegateway_firewall", r.client.GetOrgName(), metrics.Update)()
+
 	plan := &firewallModel{}
 
 	// Get current state
@@ -385,6 +392,8 @@ func (r *firewallResource) Update(ctx context.Context, req resource.UpdateReques
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *firewallResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_edgegateway_firewall", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &firewallModel{}
 
 	// Get current state
@@ -425,6 +434,8 @@ func (r *firewallResource) Delete(ctx context.Context, req resource.DeleteReques
 }
 
 func (r *firewallResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_firewall", r.client.GetOrgName(), metrics.Import)()
+
 	var (
 		edgegwID   string
 		edgegwName string

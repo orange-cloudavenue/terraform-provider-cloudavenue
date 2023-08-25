@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
@@ -84,6 +85,8 @@ func (d *orgNetworkDataSource) Configure(ctx context.Context, req datasource.Con
 }
 
 func (d *orgNetworkDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_vapp_org_network", d.client.GetOrgName(), metrics.Read)()
+
 	var data *orgNetworkModel
 
 	// Read Terraform configuration data into the model

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
 
@@ -49,54 +50,6 @@ func (d *catalogMediaDataSource) Metadata(ctx context.Context, req datasource.Me
 
 func (d *catalogMediaDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = mediaSchema().GetDataSource(ctx)
-	// schema.Schema{
-	// 	Description: "The `catalog_media` datasource provides a Cloud Avenue Catalog media data source.",
-
-	// 	Attributes: map[string]schema.Attribute{
-	// 		"id": schema.StringAttribute{
-	// 			Computed:            true,
-	// 			MarkdownDescription: "The ID of the catalog media.",
-	// 		},
-	// 		schemaName: schemaCatalogName(common.IsOptional()),
-	// 		schemaID:   schemaCatalogID(common.IsOptional()),
-	// 		"name": schema.StringAttribute{
-	// 			Required:            true,
-	// 			MarkdownDescription: "The name of the media.",
-	// 		},
-	// 		"description": schema.StringAttribute{
-	// 			Computed:            true,
-	// 			MarkdownDescription: "The description of the media.",
-	// 		},
-	// 		"is_iso": schema.BoolAttribute{
-	// 			Computed:            true,
-	// 			MarkdownDescription: "True if this media file is an Iso.",
-	// 		},
-	// 		"owner_name": schema.StringAttribute{
-	// 			Computed:            true,
-	// 			MarkdownDescription: "The name of the owner.",
-	// 		},
-	// 		"is_published": schema.BoolAttribute{
-	// 			Computed:            true,
-	// 			MarkdownDescription: "True if this media file is in a published catalog.",
-	// 		},
-	// 		"created_at": schema.StringAttribute{
-	// 			Computed:            true,
-	// 			MarkdownDescription: "The creation date of the media.",
-	// 		},
-	// 		"size": schema.Int64Attribute{
-	// 			Computed:            true,
-	// 			MarkdownDescription: "The size of the media in bytes.",
-	// 		},
-	// 		"status": schema.StringAttribute{
-	// 			Computed:            true,
-	// 			MarkdownDescription: "The media status.",
-	// 		},
-	// 		"storage_profile": schema.StringAttribute{
-	// 			Computed:            true,
-	// 			MarkdownDescription: "The name of the storage profile.",
-	// 		},
-	// 	},
-	// }
 }
 
 func (d *catalogMediaDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -120,6 +73,8 @@ func (d *catalogMediaDataSource) Configure(ctx context.Context, req datasource.C
 }
 
 func (d *catalogMediaDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_catalog_media", d.client.GetOrgName(), metrics.Read)()
+
 	state := &catalogMediaDataSourceModel{}
 
 	// Read Terraform configuration data into the model

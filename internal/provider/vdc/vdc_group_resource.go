@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
@@ -70,6 +71,8 @@ func (r *groupResource) Configure(ctx context.Context, req resource.ConfigureReq
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *groupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_vdc_group", r.client.GetOrgName(), metrics.Create)()
+
 	plan := &GroupModel{}
 
 	// Retrieve values from plan
@@ -113,6 +116,8 @@ func (r *groupResource) Create(ctx context.Context, req resource.CreateRequest, 
 
 // Read refreshes the Terraform state with the latest data.
 func (r *groupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_vdc_group", r.client.GetOrgName(), metrics.Read)()
+
 	state := &GroupModel{}
 
 	// Get current state
@@ -147,6 +152,8 @@ func (r *groupResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *groupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_vdc_group", r.client.GetOrgName(), metrics.Update)()
+
 	var (
 		plan  = &GroupModel{}
 		state = &GroupModel{}
@@ -199,6 +206,8 @@ func (r *groupResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *groupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_vdc_group", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &GroupModel{}
 
 	// Get current state
@@ -230,6 +239,8 @@ func (r *groupResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 }
 
 func (r *groupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_vdc_group", r.client.GetOrgName(), metrics.Import)()
+
 	// id format is vdcGroupIDOrName
 
 	var (

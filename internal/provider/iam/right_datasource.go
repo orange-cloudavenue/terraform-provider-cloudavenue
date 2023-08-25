@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
 
 var (
@@ -54,6 +55,8 @@ func (d *iamRightDataSource) Configure(ctx context.Context, req datasource.Confi
 }
 
 func (d *iamRightDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_iam_right", d.client.GetOrgName(), metrics.Read)()
+
 	var data RightModel
 
 	// Read Terraform configuration data into the model

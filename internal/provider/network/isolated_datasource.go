@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 )
 
@@ -56,6 +57,8 @@ func (d *networkIsolatedDataSource) Configure(ctx context.Context, req datasourc
 }
 
 func (d *networkIsolatedDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_network_isolated", d.client.GetOrgName(), metrics.Read)()
+
 	var data networkIsolatedModel
 
 	// Read Terraform configuration data into the model

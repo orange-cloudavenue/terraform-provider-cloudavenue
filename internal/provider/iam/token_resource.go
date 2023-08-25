@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
@@ -67,6 +68,8 @@ func (r *tokenResource) Configure(ctx context.Context, req resource.ConfigureReq
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *tokenResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_iam_token", r.client.GetOrgName(), metrics.Create)()
+
 	plan := &TokenModel{}
 
 	// Retrieve values from plan
@@ -130,6 +133,8 @@ func (r *tokenResource) Create(ctx context.Context, req resource.CreateRequest, 
 
 // Read refreshes the Terraform state with the latest data.
 func (r *tokenResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_iam_token", r.client.GetOrgName(), metrics.Read)()
+
 	state := &TokenModel{}
 
 	// Get current state
@@ -171,6 +176,8 @@ func (r *tokenResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *tokenResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_iam_token", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &TokenModel{}
 
 	// Get current state

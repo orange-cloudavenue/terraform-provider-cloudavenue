@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -91,6 +92,8 @@ func (r *albPoolResource) Configure(ctx context.Context, req resource.ConfigureR
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *albPoolResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_alb_pool", r.client.GetOrgName(), metrics.Create)()
+
 	// Retrieve values from plan
 	var (
 		plan *albPoolModel
@@ -139,6 +142,8 @@ func (r *albPoolResource) Create(ctx context.Context, req resource.CreateRequest
 
 // Read refreshes the Terraform state with the latest data.
 func (r *albPoolResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_alb_pool", r.client.GetOrgName(), metrics.Read)()
+
 	var (
 		state *albPoolModel
 		diags diag.Diagnostics
@@ -221,6 +226,8 @@ func (r *albPoolResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *albPoolResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_alb_pool", r.client.GetOrgName(), metrics.Update)()
+
 	var plan *albPoolModel
 
 	// Get current state
@@ -271,6 +278,8 @@ func (r *albPoolResource) Update(ctx context.Context, req resource.UpdateRequest
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *albPoolResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_alb_pool", r.client.GetOrgName(), metrics.Delete)()
+
 	var state *albPoolModel
 
 	// Get current state
@@ -309,6 +318,8 @@ func (r *albPoolResource) Delete(ctx context.Context, req resource.DeleteRequest
 }
 
 func (r *albPoolResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_alb_pool", r.client.GetOrgName(), metrics.Import)()
+
 	idParts := strings.Split(req.ID, ".")
 
 	if len(idParts) != 2 {

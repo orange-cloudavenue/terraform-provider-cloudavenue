@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
 
@@ -65,6 +66,8 @@ func (d *aclDataSource) Configure(ctx context.Context, req datasource.ConfigureR
 }
 
 func (d *aclDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_catalog_acl", d.client.GetOrgName(), metrics.Read)()
+
 	config := &ACLModel{}
 
 	// Read Terraform configuration data into the model

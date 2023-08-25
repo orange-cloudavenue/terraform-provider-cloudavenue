@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
@@ -69,6 +70,8 @@ func (d *vAppTemplateDataSource) Schema(ctx context.Context, _ datasource.Schema
 }
 
 func (d *vAppTemplateDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_catalog_vapp_template", d.client.GetOrgName(), metrics.Read)()
+
 	state := &VAPPTemplateModel{}
 
 	// Read Terraform configuration data into the model

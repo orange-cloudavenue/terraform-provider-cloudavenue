@@ -74,6 +74,8 @@ jobs:
           # GitHub sets the GITHUB_TOKEN secret automatically.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+          METRICS_TARGET: ${{ secrets.METRICS_TARGET }}
+          METRICS_TOKEN: ${{ secrets.METRICS_TOKEN }}
   highest-version-tag:
     needs: [goreleaser]
     runs-on: ubuntu-latest

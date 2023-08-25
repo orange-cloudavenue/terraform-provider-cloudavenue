@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
@@ -84,6 +85,8 @@ func (r *networkRoutedResource) Configure(ctx context.Context, req resource.Conf
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_network_routed", r.client.GetOrgName(), metrics.Create)()
+
 	// Retrieve values from plan
 	plan := &networkRoutedModel{}
 
@@ -142,6 +145,8 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 
 // Read refreshes the Terraform state with the latest data.
 func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_network_routed", r.client.GetOrgName(), metrics.Read)()
+
 	state := &networkRoutedModel{}
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -191,6 +196,8 @@ func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadReque
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_network_routed", r.client.GetOrgName(), metrics.Update)()
+
 	plan := &networkRoutedModel{}
 
 	// Get current state
@@ -255,6 +262,8 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_network_routed", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &networkRoutedModel{}
 
 	// Get current state
@@ -307,6 +316,8 @@ func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteR
 }
 
 func (r *networkRoutedResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_network_routed", r.client.GetOrgName(), metrics.Import)()
+
 	resourceURI := strings.Split(req.ID, ".")
 
 	if len(resourceURI) != 2 {

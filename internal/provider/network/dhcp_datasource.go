@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -64,6 +65,8 @@ func (d *dhcpDataSource) Configure(ctx context.Context, req datasource.Configure
 }
 
 func (d *dhcpDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_network_dhcp", d.client.GetOrgName(), metrics.Read)()
+
 	config := &dhcpModel{}
 
 	// Read Terraform configuration data into the model

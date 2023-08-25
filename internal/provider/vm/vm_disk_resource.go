@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
@@ -163,6 +164,8 @@ func (r *diskResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRe
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) { //nolint:gocyclo
+	defer metrics.New("cloudavenue_vm_disk", r.client.GetOrgName(), metrics.Create)()
+
 	plan := &vm.Disk{}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -365,6 +368,8 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 // Read refreshes the Terraform state with the latest data.
 func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_vm_disk", r.client.GetOrgName(), metrics.Read)()
+
 	state := &vm.Disk{}
 
 	// Get current state
@@ -445,6 +450,8 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { //nolint:gocyclo
+	defer metrics.New("cloudavenue_vm_disk", r.client.GetOrgName(), metrics.Update)()
+
 	plan := &vm.Disk{}
 	state := &vm.Disk{}
 
@@ -654,6 +661,8 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_vm_disk", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &vm.Disk{}
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -743,6 +752,8 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 }
 
 func (r *diskResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_vm_disk", r.client.GetOrgName(), metrics.Import)()
+
 	idParts := strings.Split(req.ID, ".")
 
 	var (

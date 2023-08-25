@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
@@ -91,6 +92,8 @@ func (r *dhcpForwardingResource) Configure(ctx context.Context, req resource.Con
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *dhcpForwardingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_dhcp_forwarding", r.client.GetOrgName(), metrics.Create)()
+
 	plan := &DhcpForwardingModel{}
 
 	// Retrieve values from plan
@@ -133,6 +136,8 @@ func (r *dhcpForwardingResource) Create(ctx context.Context, req resource.Create
 
 // Read refreshes the Terraform state with the latest data.
 func (r *dhcpForwardingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_edgegateway_dhcp_forwarding", r.client.GetOrgName(), metrics.Read)()
+
 	state := &DhcpForwardingModel{}
 
 	// Get current state
@@ -167,6 +172,8 @@ func (r *dhcpForwardingResource) Read(ctx context.Context, req resource.ReadRequ
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *dhcpForwardingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_dhcp_forwarding", r.client.GetOrgName(), metrics.Update)()
+
 	var (
 		plan  = &DhcpForwardingModel{}
 		state = &DhcpForwardingModel{}
@@ -212,6 +219,8 @@ func (r *dhcpForwardingResource) Update(ctx context.Context, req resource.Update
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *dhcpForwardingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_edgegateway_dhcp_forwarding", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &DhcpForwardingModel{}
 
 	// Get current state
@@ -252,6 +261,8 @@ func (r *dhcpForwardingResource) Delete(ctx context.Context, req resource.Delete
 }
 
 func (r *dhcpForwardingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_dhcp_forwarding", r.client.GetOrgName(), metrics.Import)()
+
 	var (
 		edgegwID, edgegwName string
 		d                    diag.Diagnostics

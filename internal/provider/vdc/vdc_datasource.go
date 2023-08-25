@@ -12,6 +12,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
@@ -58,6 +59,8 @@ func (d *vdcDataSource) Configure(ctx context.Context, req datasource.ConfigureR
 }
 
 func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_vdc", d.client.GetOrgName(), metrics.Read)()
+
 	var data vdcDataSourceModel
 
 	// Read Terraform configuration data into the model

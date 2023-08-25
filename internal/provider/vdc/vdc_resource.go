@@ -20,6 +20,7 @@ import (
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
@@ -74,6 +75,8 @@ func (r *vdcResource) Configure(ctx context.Context, req resource.ConfigureReque
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_vdc", r.client.GetOrgName(), metrics.Create)()
+
 	// Retrieve values from plan
 	var plan *vdcResourceModel
 
@@ -197,6 +200,8 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 // Read refreshes the Terraform state with the latest data.
 func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_vdc", r.client.GetOrgName(), metrics.Read)()
+
 	// Get current state
 	var state *vdcResourceModel
 
@@ -305,6 +310,7 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_vdc", r.client.GetOrgName(), metrics.Update)()
 	var (
 		plan  *vdcResourceModel
 		state *vdcResourceModel
@@ -413,6 +419,8 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_vdc", r.client.GetOrgName(), metrics.Delete)()
+
 	var state *vdcResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -480,6 +488,8 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 }
 
 func (r *vdcResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_vdc", r.client.GetOrgName(), metrics.Import)()
+
 	// Retrieve import ID and save to id attribute
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }

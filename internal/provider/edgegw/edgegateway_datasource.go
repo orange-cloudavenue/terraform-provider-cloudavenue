@@ -13,6 +13,7 @@ import (
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
@@ -63,6 +64,7 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 		data    edgeGatewayDataSourceModel
 		gateway apiclient.EdgeGateway
 	)
+	defer metrics.New("data.cloudavenue_edgegateway", d.client.GetOrgName(), metrics.Read)()
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
