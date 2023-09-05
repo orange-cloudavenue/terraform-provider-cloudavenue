@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v3 # v3.5.0
+      - uses: actions/checkout@v4 # v3.5.0
       - uses: actions/setup-go@v4.0.1 # v4.0.0
         with:
           go-version-file: 'go.mod'
@@ -36,7 +36,7 @@ jobs:
   testsunit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4.0.1
         with:
           go-version-file: 'go.mod'
