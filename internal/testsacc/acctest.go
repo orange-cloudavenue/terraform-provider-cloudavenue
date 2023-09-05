@@ -74,18 +74,17 @@ type resourceConfig struct {
 
 // GetDefaultConfig returns the create configuration for the test named "example".
 func (r resourceConfig) GetDefaultConfig() testsacc.TFData {
-	return r.Tests(context.Background())["example"](
-		context.Background(),
-		r.GetResourceName(),
-	).Create.TFConfig
+	return r.GetSpecificConfig("example")
 }
 
 // GetSpecificConfig returns the create configuration for the test named "example".
 func (r resourceConfig) GetSpecificConfig(testName string) testsacc.TFData {
-	return r.Tests(context.Background())[testsacc.TestName(testName)](
+	x := r.Tests(context.Background())[testsacc.TestName(testName)](
 		context.Background(),
 		r.GetResourceName(),
 	).Create.TFConfig
+	x.Append(r.DependenciesConfig())
+	return x
 }
 
 // AddConstantConfig returns the create configuration from constant.
