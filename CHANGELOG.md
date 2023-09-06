@@ -14,6 +14,7 @@
 
 * deps: bumps actions/checkout from 3 to 4 ([GH-508](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/508))
 * deps: bumps crazy-max/ghaction-import-gpg from 5.3.0 to 5.4.0 ([GH-507](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/507))
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers from 1.3.2 to 1.3.3 ([GH-505](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/505))
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superchema from v1.5.2 to v1.5.3 ([GH-500](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/500))
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from v1.5.1 to v1.5.2 ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from v0.0.5 to v0.1.0 ([GH-500](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/500))
