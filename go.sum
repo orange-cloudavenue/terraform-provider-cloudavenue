@@ -1,5 +1,5 @@
-github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.2 h1:4Lev5yI0V2h3YU/b6fR/L6q1k20sys7lixjY7Aopmos=
-github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.2/go.mod h1:3iRjqbOOGi1VHXIKtgwD7gxNQcFyI+HZq8fhZbSYcLE=
+github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.3 h1:EN8dEPUe7ug/3YvvtSOm0V16yITZKC/aOiXXCgNRpHo=
+github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.3/go.mod h1:UVMaqiY8KZkemfQZ4NclIsIFclq9y52kvhE19sSBcmI=
 github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.5.3 h1:IK/b9zbnYIu3EgSCooYxLG/7QH/B0tAAYlgKyM73VvU=
 github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.5.3/go.mod h1:26B8AffJBj1kUTjmtC8QEYUb41umyqqVebV+XaHAZ8I=
 github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.1.0 h1:QHcnFyAQy/yWcBargdCt8Eprnh7G7vOYOw7z/4LOlM8=
