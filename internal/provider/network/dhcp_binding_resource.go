@@ -16,7 +16,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -291,16 +290,14 @@ func (r *dhcpBindingResource) read(ctx context.Context, planOrState *DHCPBinding
 
 	refreshed.ID.Set(dhcpBinding.OpenApiOrgVdcNetworkDhcpBinding.ID)
 	refreshed.Name.Set(dhcpBinding.OpenApiOrgVdcNetworkDhcpBinding.Name)
-	refreshed.Description = utils.SuperStringValueOrNull(dhcpBinding.OpenApiOrgVdcNetworkDhcpBinding.Description)
+	refreshed.Description.Set(dhcpBinding.OpenApiOrgVdcNetworkDhcpBinding.Description)
 	refreshed.IPAddress.Set(dhcpBinding.OpenApiOrgVdcNetworkDhcpBinding.IpAddress)
 	refreshed.MacAddress.Set(dhcpBinding.OpenApiOrgVdcNetworkDhcpBinding.MacAddress)
+	refreshed.LeaseTime.SetIntPtr(dhcpBinding.OpenApiOrgVdcNetworkDhcpBinding.LeaseTime)
+
 	diags.Append(refreshed.DNSServers.Set(ctx, dhcpBinding.OpenApiOrgVdcNetworkDhcpBinding.DnsServers)...)
 	if diags.HasError() {
 		return nil, true, diags
-	}
-
-	if dhcpBinding.OpenApiOrgVdcNetworkDhcpBinding.LeaseTime != nil {
-		refreshed.LeaseTime.Set(int64(*dhcpBinding.OpenApiOrgVdcNetworkDhcpBinding.LeaseTime))
 	}
 
 	if dhcpBinding.OpenApiOrgVdcNetworkDhcpBinding.DhcpV4BindingConfig != nil {

@@ -132,7 +132,7 @@ func (rm *DHCPBindingModel) ToNetworkDhcpBindingType(ctx context.Context) (value
 		BindingType: "IPV4",
 		MacAddress:  rm.MacAddress.Get(),
 		IpAddress:   rm.IPAddress.Get(),
-		LeaseTime:   utils.TakeIntPointer(int(rm.LeaseTime.Get())),
+		LeaseTime:   rm.LeaseTime.GetIntPtr(),
 	}
 
 	if rm.ID.IsKnown() {
