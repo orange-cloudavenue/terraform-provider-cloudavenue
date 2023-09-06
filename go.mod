@@ -15,6 +15,7 @@ require (
 	github.com/hashicorp/terraform-plugin-framework-validators v0.11.0
 	github.com/hashicorp/terraform-plugin-go v0.18.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
+	github.com/iancoleman/strcase v0.3.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.28.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.1.2
 	github.com/rs/zerolog v1.30.0
@@ -55,7 +56,6 @@ require (
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
-	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/imdario/mergo v0.3.15 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
