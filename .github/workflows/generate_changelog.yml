@@ -8,7 +8,7 @@ jobs:
     if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3 
+      - uses: actions/checkout@v4 # v3.5.3 
         with:
           token: ${{ secrets.CHANGELOG_PAT }}
           fetch-depth: 0
