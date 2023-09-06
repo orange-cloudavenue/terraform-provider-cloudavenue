@@ -24,6 +24,7 @@
 * deps: bumps github.com/hashicorp/terraform-plugin-framework-validators from 0.10.0 to 0.11.0 ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
 * deps: bumps github.com/hashicorp/terraform-plugin-framework-validators from 0.11.0 to 0.12.0 ([GH-506](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/506))
 * deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.27.0 to 2.28.0 ([GH-502](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/502))
+* deps: bumps golang.org/x/net from 0.14.0 to 0.15.0 ([GH-510](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/510))
 * deps: bumps golangci/golangci-lint-action from 3.6.0 to 3.7.0 ([GH-494](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/494))
 * deps: bumps goreleaser/goreleaser-action from 4.4.0 to 4.6.0 ([GH-509](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/509))
 
