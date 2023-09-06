@@ -31,6 +31,22 @@ resource "cloudavenue_iam_user" "example" {
  }
 `
 
+// Deprecated
+// Used for testing the catalog ACL Resource/Datasource.
+const testAccOrgUserResourceConfigForCatalogACL = `
+resource "cloudavenue_iam_user" "example" {
+	name        = "example"
+	role_name   = "Organization Administrator"
+	password    = "Th!s1sSecur3P@ssword"
+}
+
+resource "cloudavenue_iam_user" "example2" {
+	name        = "example2"
+	role_name   = "Organization Administrator"
+	password    = "Th!s1sSecur3P@ssword"
+}
+`
+
 func testsOrgUserResourceConfig(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr(resourceName, "name", "example"),
