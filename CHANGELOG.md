@@ -10,6 +10,10 @@
 * `resource/cloudavenue_vm_disk` - Improve documentation. ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
 * `resource/cloudavenue_vm` - Improve documentation. ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
 
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vcd` - Fix bug to impossible to update a vcd resource with a resource vcd_group define. ([GH-511](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/511))
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps actions/checkout from 3 to 4 ([GH-508](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/508))
