@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_vcd` - Fix bug to impossible to update a vcd resource with a resource vcd_group define.
+```
