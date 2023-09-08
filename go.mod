@@ -15,8 +15,8 @@ require (
 	github.com/hashicorp/terraform-plugin-framework-validators v0.12.0
 	github.com/hashicorp/terraform-plugin-go v0.18.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
-	github.com/iancoleman/strcase v0.3.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.28.0
+	github.com/iancoleman/strcase v0.3.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.1.2
 	github.com/rs/zerolog v1.30.0
 	github.com/vmware/go-vcloud-director/v2 v2.21.0

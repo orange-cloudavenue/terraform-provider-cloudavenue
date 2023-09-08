@@ -337,9 +337,26 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
+	var err error
+	var httpR *http.Response
+	// Get vDC info
+	vdc, httpR, err := r.client.APIClient.VDCApi.GetOrgVdcByName(auth, plan.Name.ValueString())
+	if httpR != nil {
+		defer func() {
+			err = errors.Join(err, httpR.Body.Close())
+		}()
+	}
+	var group string
+	// check if vdcGroup exists
+	if !plan.VDCGroup.IsNull() {
+		group = plan.VDCGroup.ValueString()
+	} else {
+		group = vdc.VdcGroup
+	}
+
 	// Convert from Terraform data model into API data model
 	body := apiclient.UpdateOrgVdcV2{
-		VdcGroup: plan.VDCGroup.ValueString(),
+		VdcGroup: group,
 		Vdc: &apiclient.OrgVdcV2{
 			Name:                   plan.Name.ValueString(),
 			Description:            plan.Description.ValueString(),
@@ -362,9 +379,7 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		})
 	}
 
-	var err error
 	var job apiclient.Jobcreated
-	var httpR *http.Response
 
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
