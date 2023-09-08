@@ -80,9 +80,11 @@ func testCheckFileExists(filename string) resource.TestCheckFunc {
 // This is a helper function that attempts to remove created API token file no matter of the test outcome.
 func deleteAPITokenFile(filename string, t *testing.T) func() {
 	return func() {
-		err := os.Remove(filename)
-		if err != nil {
-			t.Errorf("Failed to delete file: %s", err)
+		if _, err := os.Stat(filename); err == nil {
+			err := os.Remove(filename)
+			if err != nil {
+				t.Errorf("Failed to delete file: %s", err)
+			}
 		}
 	}
 }
