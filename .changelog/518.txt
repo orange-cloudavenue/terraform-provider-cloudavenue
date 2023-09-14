@@ -1,0 +1,7 @@
+```release-note:bug
+`resource/cloudavenue_vcd` - Fix bug to impossible to update a vcd resource without a resource vcd_group define.
+```
+
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.1.2 to 0.1.3
+```

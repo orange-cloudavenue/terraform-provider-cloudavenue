@@ -305,11 +305,14 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan *vdcResourceModel
+	var (
+		plan  *vdcResourceModel
+		state *vdcResourceModel
+	)
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -339,24 +342,9 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	var err error
 	var httpR *http.Response
-	// Get vDC info
-	vdc, httpR, err := r.client.APIClient.VDCApi.GetOrgVdcByName(auth, plan.Name.ValueString())
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-	var group string
-	// check if vdcGroup exists
-	if !plan.VDCGroup.IsNull() {
-		group = plan.VDCGroup.ValueString()
-	} else {
-		group = vdc.VdcGroup
-	}
 
 	// Convert from Terraform data model into API data model
 	body := apiclient.UpdateOrgVdcV2{
-		VdcGroup: group,
 		Vdc: &apiclient.OrgVdcV2{
 			Name:                   plan.Name.ValueString(),
 			Description:            plan.Description.ValueString(),
@@ -368,6 +356,10 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 			MemoryAllocated:        plan.MemoryAllocated.ValueFloat64(),
 			VdcStorageBillingModel: plan.VDCStorageBillingModel.ValueString(),
 		},
+	}
+
+	if !state.VDCGroup.IsNull() {
+		body.VdcGroup = state.VDCGroup.ValueString()
 	}
 
 	// Iterate over the storage profiles and add them to the body.
@@ -386,7 +378,6 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	// Call API to update the resource and test for errors.
 	job, httpR, err = r.client.APIClient.VDCApi.UpdateOrgVdc(auth, body, body.Vdc.Name)
-
 	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
