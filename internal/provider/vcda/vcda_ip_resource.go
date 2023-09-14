@@ -15,6 +15,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
@@ -70,6 +71,8 @@ func (r *vcdaIPResource) Configure(ctx context.Context, req resource.ConfigureRe
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_vcda_ip", r.client.GetOrgName(), metrics.Create)()
+
 	// Retrieve values from plan
 	var plan *vcdaIPResourceModel
 
@@ -109,6 +112,8 @@ func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest,
 
 // Read refreshes the Terraform state with the latest data.
 func (r *vcdaIPResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_vcda_ip", r.client.GetOrgName(), metrics.Read)()
+
 	// Get current state
 	var state *vcdaIPResourceModel
 
@@ -148,6 +153,8 @@ func (r *vcdaIPResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *vcdaIPResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_vcda_ip", r.client.GetOrgName(), metrics.Delete)()
+
 	/// Get current state
 	var state *vcdaIPResourceModel
 

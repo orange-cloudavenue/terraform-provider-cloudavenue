@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
@@ -63,6 +64,8 @@ func (d *vmAffinityRuleDataSource) Configure(ctx context.Context, req datasource
 }
 
 func (d *vmAffinityRuleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_vm_affinity_rule", d.client.GetOrgName(), metrics.Read)()
+
 	var data vmAffinityRuleDataSourceModel
 
 	// Read Terraform configuration data into the model

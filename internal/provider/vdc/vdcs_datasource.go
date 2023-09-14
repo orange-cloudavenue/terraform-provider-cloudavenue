@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -57,6 +58,8 @@ func (d *vdcsDataSource) Configure(ctx context.Context, req datasource.Configure
 }
 
 func (d *vdcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_vdcs", d.client.GetOrgName(), metrics.Read)()
+
 	var (
 		data  vdcsDataSourceModel
 		names []string

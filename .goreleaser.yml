@@ -14,7 +14,7 @@ builds:
   flags:
     - -trimpath
   ldflags:
-    - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}'
+    - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics.version={{.Version}} -X github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics.target={{ .Env.METRICS_TARGET }} -X github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics.token={{ .Env.METRICS_TOKEN }}"'
   goos:
     - freebsd
     - windows

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -77,6 +78,8 @@ func (d *ipSetDataSource) Configure(ctx context.Context, req datasource.Configur
 }
 
 func (d *ipSetDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_edgegateway_ip_set", d.client.GetOrgName(), metrics.Read)()
+
 	config := &IPSetModel{}
 
 	// Read Terraform configuration data into the model

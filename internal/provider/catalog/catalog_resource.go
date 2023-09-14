@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
 
@@ -81,6 +82,8 @@ func (r *catalogResource) Configure(ctx context.Context, req resource.ConfigureR
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *catalogResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_catalog", r.client.GetOrgName(), metrics.Create)()
+
 	// Retrieve values from plan
 	var (
 		plan = &catalogResourceModel{}
@@ -128,6 +131,8 @@ func (r *catalogResource) Create(ctx context.Context, req resource.CreateRequest
 
 // Read refreshes the Terraform state with the latest data.
 func (r *catalogResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_catalog", r.client.GetOrgName(), metrics.Read)()
+
 	state := &catalogResourceModel{}
 
 	// Get current state
@@ -168,6 +173,8 @@ func (r *catalogResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *catalogResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_catalog", r.client.GetOrgName(), metrics.Update)()
+
 	var plan, state *catalogResourceModel
 
 	// Get current state
@@ -234,6 +241,8 @@ func (r *catalogResource) Update(ctx context.Context, req resource.UpdateRequest
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *catalogResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_catalog", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &catalogResourceModel{}
 
 	// Get current state
@@ -266,6 +275,7 @@ func (r *catalogResource) Delete(ctx context.Context, req resource.DeleteRequest
 }
 
 func (r *catalogResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_catalog", r.client.GetOrgName(), metrics.Import)()
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 

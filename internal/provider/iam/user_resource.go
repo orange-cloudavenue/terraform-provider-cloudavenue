@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
@@ -81,6 +82,8 @@ func (r *userResource) Init(_ context.Context, rm *userResourceModel) (diags dia
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_iam_user", r.client.GetOrgName(), metrics.Create)()
+
 	plan := &userResourceModel{}
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -123,6 +126,8 @@ func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 // Read refreshes the Terraform state with the latest data.
 func (r *userResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_iam_user", r.client.GetOrgName(), metrics.Read)()
+
 	state := &userResourceModel{}
 
 	// Get current state
@@ -169,6 +174,8 @@ func (r *userResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_iam_user", r.client.GetOrgName(), metrics.Update)()
+
 	plan := &userResourceModel{}
 
 	// Get current state
@@ -213,6 +220,8 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *userResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_iam_user", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &userResourceModel{}
 
 	// Get current state
@@ -242,6 +251,7 @@ func (r *userResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 }
 
 func (r *userResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_iam_user", r.client.GetOrgName(), metrics.Import)()
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 

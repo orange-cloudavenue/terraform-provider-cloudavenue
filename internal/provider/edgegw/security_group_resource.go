@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
@@ -92,6 +93,8 @@ func (r *securityGroupResource) Configure(ctx context.Context, req resource.Conf
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *securityGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_security_group", r.client.GetOrgName(), metrics.Create)()
+
 	plan := &securityGroupModel{}
 
 	// Retrieve values from plan
@@ -143,6 +146,8 @@ func (r *securityGroupResource) Create(ctx context.Context, req resource.CreateR
 
 // Read refreshes the Terraform state with the latest data.
 func (r *securityGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_edgegateway_security_group", r.client.GetOrgName(), metrics.Read)()
+
 	state := &securityGroupModel{}
 
 	// Get current state
@@ -183,6 +188,8 @@ func (r *securityGroupResource) Read(ctx context.Context, req resource.ReadReque
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *securityGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_security_group", r.client.GetOrgName(), metrics.Update)()
+
 	var (
 		plan  = &securityGroupModel{}
 		state = &securityGroupModel{}
@@ -250,6 +257,8 @@ func (r *securityGroupResource) Update(ctx context.Context, req resource.UpdateR
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *securityGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_edgegateway_security_group", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &securityGroupModel{}
 
 	// Get current state
@@ -291,6 +300,8 @@ func (r *securityGroupResource) Delete(ctx context.Context, req resource.DeleteR
 }
 
 func (r *securityGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_security_group", r.client.GetOrgName(), metrics.Import)()
+
 	// id format is edgeGatewayIDOrName.securityGroupIDOrName
 	idParts := strings.Split(req.ID, ".")
 

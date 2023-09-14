@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
@@ -67,6 +68,8 @@ func (d *profileDataSource) Configure(ctx context.Context, req datasource.Config
 }
 
 func (d *profileDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_storage_profile", d.client.GetOrgName(), metrics.Read)()
+
 	config := &profileDataSourceModel{}
 
 	// Read Terraform configuration data into the model

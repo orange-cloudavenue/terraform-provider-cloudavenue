@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
@@ -69,6 +70,8 @@ func (d *catalogsDataSource) Configure(ctx context.Context, req datasource.Confi
 }
 
 func (d *catalogsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_catalogs", d.client.GetOrgName(), metrics.Read)()
+
 	state := &catalogsDataSourceModel{}
 	resp.Diagnostics.Append(d.Init(ctx, state)...)
 	if resp.Diagnostics.HasError() {

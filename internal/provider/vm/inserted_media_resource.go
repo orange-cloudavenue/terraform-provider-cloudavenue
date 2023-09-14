@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
@@ -84,6 +85,8 @@ func (r *insertedMediaResource) Configure(ctx context.Context, req resource.Conf
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *insertedMediaResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_vm_inserted_media", r.client.GetOrgName(), metrics.Create)()
+
 	// Retrieve values from plan
 	var (
 		plan *insertedMediaResourceModel
@@ -129,6 +132,8 @@ func (r *insertedMediaResource) Create(ctx context.Context, req resource.CreateR
 
 // Read refreshes the Terraform state with the latest data.
 func (r *insertedMediaResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_vm_inserted_media", r.client.GetOrgName(), metrics.Read)()
+
 	var state *insertedMediaResourceModel
 
 	// Get current state
@@ -230,6 +235,8 @@ func (r *insertedMediaResource) Update(ctx context.Context, req resource.UpdateR
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *insertedMediaResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_vm_inserted_media", r.client.GetOrgName(), metrics.Delete)()
+
 	var state *insertedMediaResourceModel
 
 	// Get current state

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
@@ -91,6 +92,8 @@ func (r *isolatedNetworkResource) Configure(ctx context.Context, req resource.Co
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_vapp_isolated_network", r.client.GetOrgName(), metrics.Create)()
+
 	// Retrieve values from plan
 	var (
 		plan *isolatedNetworkResourceModel
@@ -185,6 +188,8 @@ func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.Creat
 
 // Read refreshes the Terraform state with the latest data.
 func (r *isolatedNetworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_vapp_isolated_network", r.client.GetOrgName(), metrics.Read)()
+
 	var (
 		state *isolatedNetworkResourceModel
 		diag  diag.Diagnostics
@@ -278,6 +283,8 @@ func (r *isolatedNetworkResource) Read(ctx context.Context, req resource.ReadReq
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *isolatedNetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_vapp_isolated_network", r.client.GetOrgName(), metrics.Update)()
+
 	var plan *isolatedNetworkResourceModel
 
 	// Get current state
@@ -345,6 +352,8 @@ func (r *isolatedNetworkResource) Update(ctx context.Context, req resource.Updat
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *isolatedNetworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_vapp_isolated_network", r.client.GetOrgName(), metrics.Delete)()
+
 	var state *isolatedNetworkResourceModel
 
 	// Get current state
@@ -374,6 +383,8 @@ func (r *isolatedNetworkResource) Delete(ctx context.Context, req resource.Delet
 }
 
 func (r *isolatedNetworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_vapp_isolated_network", r.client.GetOrgName(), metrics.Import)()
+
 	idParts := strings.Split(req.ID, ".")
 
 	if len(idParts) != 3 && len(idParts) != 2 {

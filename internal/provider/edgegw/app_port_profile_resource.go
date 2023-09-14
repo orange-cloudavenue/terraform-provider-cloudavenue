@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
@@ -156,6 +157,8 @@ func (r *portProfilesResource) Configure(ctx context.Context, req resource.Confi
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *portProfilesResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_app_port_profile", r.client.GetOrgName(), metrics.Create)()
+
 	plan := &portProfilesResourceModel{}
 
 	// Retrieve values from plan
@@ -232,6 +235,8 @@ func (r *portProfilesResource) Create(ctx context.Context, req resource.CreateRe
 
 // Read refreshes the Terraform state with the latest data.
 func (r *portProfilesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_edgegateway_app_port_profile", r.client.GetOrgName(), metrics.Read)()
+
 	state := &portProfilesResourceModel{}
 
 	// Get current state
@@ -287,6 +292,8 @@ func (r *portProfilesResource) Read(ctx context.Context, req resource.ReadReques
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *portProfilesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_app_port_profile", r.client.GetOrgName(), metrics.Update)()
+
 	var (
 		plan  = &portProfilesResourceModel{}
 		state = &portProfilesResourceModel{}
@@ -378,6 +385,8 @@ func (r *portProfilesResource) Update(ctx context.Context, req resource.UpdateRe
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *portProfilesResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_edgegateway_app_port_profile", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &portProfilesResourceModel{}
 
 	// Get current state

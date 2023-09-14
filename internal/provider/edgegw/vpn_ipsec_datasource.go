@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -76,6 +77,8 @@ func (d *vpnIpsecDataSource) Configure(ctx context.Context, req datasource.Confi
 }
 
 func (d *vpnIpsecDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_edgegateway_vpn_ipsec", d.client.GetOrgName(), metrics.Read)()
+
 	config := &VPNIPSecModel{}
 
 	// Read Terraform configuration data into the model

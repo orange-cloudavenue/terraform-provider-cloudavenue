@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -72,6 +73,8 @@ func (r *dhcpBindingResource) Configure(ctx context.Context, req resource.Config
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *dhcpBindingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_network_dhcp_binding", r.client.GetOrgName(), metrics.Create)()
+
 	plan := &DHCPBindingModel{}
 
 	// Retrieve values from plan
@@ -130,6 +133,8 @@ func (r *dhcpBindingResource) Create(ctx context.Context, req resource.CreateReq
 
 // Read refreshes the Terraform state with the latest data.
 func (r *dhcpBindingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_network_dhcp_binding", r.client.GetOrgName(), metrics.Read)()
+
 	state := &DHCPBindingModel{}
 
 	// Get current state
@@ -165,6 +170,8 @@ func (r *dhcpBindingResource) Read(ctx context.Context, req resource.ReadRequest
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *dhcpBindingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_network_dhcp_binding", r.client.GetOrgName(), metrics.Update)()
+
 	var (
 		plan  = &DHCPBindingModel{}
 		state = &DHCPBindingModel{}
@@ -225,6 +232,8 @@ func (r *dhcpBindingResource) Update(ctx context.Context, req resource.UpdateReq
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *dhcpBindingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_network_dhcp_binding", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &DHCPBindingModel{}
 
 	// Get current state
@@ -316,6 +325,8 @@ func (r *dhcpBindingResource) read(ctx context.Context, planOrState *DHCPBinding
 
 // ImportState imports a resource from orgNetworkID.DhcpBindingName.
 func (r *dhcpBindingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_network_dhcp_binding", r.client.GetOrgName(), metrics.Import)()
+
 	// Init the resource
 	resp.Diagnostics.Append(r.Init(ctx, nil)...)
 	if resp.Diagnostics.HasError() {

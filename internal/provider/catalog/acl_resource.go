@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
@@ -76,6 +77,8 @@ func (r *aclResource) Configure(ctx context.Context, req resource.ConfigureReque
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *aclResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_catalog_acl", r.client.GetOrgName(), metrics.Create)()
+
 	plan := &ACLModel{}
 
 	// Retrieve values from plan
@@ -111,6 +114,8 @@ func (r *aclResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 // Read refreshes the Terraform state with the latest data.
 func (r *aclResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_catalog_acl", r.client.GetOrgName(), metrics.Read)()
+
 	state := &ACLModel{}
 
 	// Get current state
@@ -145,6 +150,8 @@ func (r *aclResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *aclResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_catalog_acl", r.client.GetOrgName(), metrics.Update)()
+
 	var (
 		plan  = &ACLModel{}
 		state = &ACLModel{}
@@ -184,6 +191,8 @@ func (r *aclResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *aclResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_catalog_acl", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &ACLModel{}
 
 	// Get current state
@@ -214,8 +223,9 @@ func (r *aclResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 }
 
 func (r *aclResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// import format is catalogIDOrName
+	defer metrics.New("cloudavenue_catalog_acl", r.client.GetOrgName(), metrics.Import)()
 
+	// import format is catalogIDOrName
 	var d diag.Diagnostics
 
 	r.adminOrg, d = adminorg.Init(r.client)

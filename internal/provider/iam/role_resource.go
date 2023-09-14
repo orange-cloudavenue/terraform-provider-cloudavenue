@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
 
@@ -83,6 +84,8 @@ func (r *roleResource) Configure(ctx context.Context, req resource.ConfigureRequ
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_iam_role", r.client.GetOrgName(), metrics.Create)()
+
 	// Retrieve values from plan
 	plan := &roleResourceModel{}
 
@@ -159,6 +162,8 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 // Read refreshes the Terraform state with the latest data.
 func (r *roleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_iam_role", r.client.GetOrgName(), metrics.Read)()
+
 	var state *roleResourceModel
 
 	// Read state
@@ -216,6 +221,8 @@ func (r *roleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 }
 
 func (r *roleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_iam_role", r.client.GetOrgName(), metrics.Delete)()
+
 	var (
 		state *roleResourceModel
 		err   error
@@ -252,6 +259,8 @@ func (r *roleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 }
 
 func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_iam_role", r.client.GetOrgName(), metrics.Update)()
+
 	var (
 		plan, state *roleResourceModel
 		err         error
@@ -354,6 +363,8 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 //go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -resource
 func (r *roleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_iam_role", r.client.GetOrgName(), metrics.Import)()
+
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 

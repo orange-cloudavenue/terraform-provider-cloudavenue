@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -56,6 +57,8 @@ func (d *tier0VrfsDataSource) Configure(ctx context.Context, req datasource.Conf
 }
 
 func (d *tier0VrfsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_tier0_vrfs", d.client.GetOrgName(), metrics.Read)()
+
 	var data tier0VrfsDataSourceModel
 
 	// Read Terraform configuration data into the model

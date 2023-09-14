@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
@@ -87,6 +88,8 @@ func (r *orgNetworkResource) Configure(ctx context.Context, req resource.Configu
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_vapp_org_network", r.client.GetOrgName(), metrics.Create)()
+
 	// Retrieve values from plan
 	var (
 		plan *orgNetworkModel
@@ -164,6 +167,8 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 
 // Read refreshes the Terraform state with the latest data.
 func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_vapp_org_network", r.client.GetOrgName(), metrics.Read)()
+
 	var state *orgNetworkModel
 
 	// Get current state
@@ -225,6 +230,8 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *orgNetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_vapp_org_network", r.client.GetOrgName(), metrics.Update)()
+
 	var plan, state *orgNetworkModel
 
 	// Get current state
@@ -299,6 +306,8 @@ func (r *orgNetworkResource) Update(ctx context.Context, req resource.UpdateRequ
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_vapp_org_network", r.client.GetOrgName(), metrics.Delete)()
+
 	var state *orgNetworkModel
 
 	// Get current state
@@ -388,6 +397,8 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 }
 
 func (r *orgNetworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_vapp_org_network", r.client.GetOrgName(), metrics.Import)()
+
 	var state *orgNetworkModel
 	resourceURI := strings.Split(req.ID, ".")
 

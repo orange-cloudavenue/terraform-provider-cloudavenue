@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
@@ -94,6 +95,8 @@ func (r *ipSetResource) Configure(ctx context.Context, req resource.ConfigureReq
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *ipSetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_ip_set", r.client.GetOrgName(), metrics.Create)()
+
 	plan := &IPSetModel{}
 
 	// Retrieve values from plan
@@ -157,6 +160,8 @@ func (r *ipSetResource) Create(ctx context.Context, req resource.CreateRequest, 
 
 // Read refreshes the Terraform state with the latest data.
 func (r *ipSetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_edgegateway_ip_set", r.client.GetOrgName(), metrics.Read)()
+
 	state := &IPSetModel{}
 
 	// Get current state
@@ -195,6 +200,8 @@ func (r *ipSetResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		plan  = &IPSetModel{}
 		state = &IPSetModel{}
 	)
+
+	defer metrics.New("cloudavenue_edgegateway_ip_set", r.client.GetOrgName(), metrics.Update)()
 
 	// Get current plan and state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -266,6 +273,8 @@ func (r *ipSetResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *ipSetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_edgegateway_ip_set", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &IPSetModel{}
 
 	// Get current state
@@ -313,6 +322,8 @@ func (r *ipSetResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 }
 
 func (r *ipSetResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_ip_set", r.client.GetOrgName(), metrics.Import)()
+
 	// id format is edgeGatewayIDOrName.ipSetName
 	idParts := strings.Split(req.ID, ".")
 

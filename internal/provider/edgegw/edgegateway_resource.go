@@ -20,6 +20,7 @@ import (
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
@@ -113,6 +114,8 @@ func (r *edgeGatewaysResource) Create(
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	defer metrics.New("cloudavenue_edgegateway", r.client.GetOrgName(), metrics.Create)()
 
 	// Create() is passed a default timeout to use if no value
 	// has been supplied in the Terraform configuration.
@@ -282,6 +285,8 @@ func (r *edgeGatewaysResource) Read(
 		return
 	}
 
+	defer metrics.New("cloudavenue_edgegateway", r.client.GetOrgName(), metrics.Read)()
+
 	// Read timeout
 	readTimeout, errTO := state.Timeouts.Read(ctx, 8*time.Minute)
 	if errTO != nil {
@@ -398,10 +403,11 @@ func (r *edgeGatewaysResource) Update(
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	defer metrics.New("cloudavenue_edgegateway", r.client.GetOrgName(), metrics.Update)()
 
 	// Update() is passed a default timeout to use if no value
 	// has been supplied in the Terraform configuration.
@@ -481,6 +487,8 @@ func (r *edgeGatewaysResource) Delete(
 		return
 	}
 
+	defer metrics.New("cloudavenue_edgegateway", r.client.GetOrgName(), metrics.Delete)()
+
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
 
@@ -545,6 +553,8 @@ func (r *edgeGatewaysResource) ImportState(
 	req resource.ImportStateRequest,
 	resp *resource.ImportStateResponse,
 ) {
+	defer metrics.New("cloudavenue_edgegateway", r.client.GetOrgName(), metrics.Import)()
+
 	// Retrieve import Name and save to name attribute
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }

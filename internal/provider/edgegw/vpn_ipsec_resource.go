@@ -17,6 +17,7 @@ import (
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
@@ -92,6 +93,8 @@ func (r *vpnIPSecResource) Configure(ctx context.Context, req resource.Configure
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *vpnIPSecResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_vpn_ipsec", r.client.GetOrgName(), metrics.Create)()
+
 	plan := &VPNIPSecModel{}
 
 	// Retrieve values from plan
@@ -176,6 +179,8 @@ func (r *vpnIPSecResource) Create(ctx context.Context, req resource.CreateReques
 
 // Read refreshes the Terraform state with the latest data.
 func (r *vpnIPSecResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_edgegateway_vpn_ipsec", r.client.GetOrgName(), metrics.Read)()
+
 	state := &VPNIPSecModel{}
 
 	// Get current state
@@ -211,6 +216,8 @@ func (r *vpnIPSecResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vpnIPSecResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_vpn_ipsec", r.client.GetOrgName(), metrics.Update)()
+
 	var (
 		plan  = &VPNIPSecModel{}
 		state = &VPNIPSecModel{}
@@ -300,6 +307,8 @@ func (r *vpnIPSecResource) Update(ctx context.Context, req resource.UpdateReques
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *vpnIPSecResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_edgegateway_vpn_ipsec", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &VPNIPSecModel{}
 
 	// Get current state
@@ -346,6 +355,8 @@ func (r *vpnIPSecResource) Delete(ctx context.Context, req resource.DeleteReques
 }
 
 func (r *vpnIPSecResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_vpn_ipsec", r.client.GetOrgName(), metrics.Import)()
+
 	var (
 		edgegwID, edgegwName string
 		d                    diag.Diagnostics
