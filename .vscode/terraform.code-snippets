@@ -3,9 +3,19 @@
 		"scope": "go",
 		"prefix": "tf-templates",
 		"body": [
-			"//tfname: my_tfname",
-			"// Usage: terraform-templates -filename $RELATIVE_FILEPATH",
-			"package myPkgName"
+			"// tfname: ${TM_DIRECTORY/^.+\\/(.*)$/$1/}_${TM_FILENAME/(.*)_resource\\.go/$1/}",
+			"// ? ---------------------------------------------------------------------------------------------------------------------- ? //",
+			"// * Description",
+			"// terraform-templates create template for terraform resource or data source",
+			"// Some files has been created by terraform-templates",
+			"// - internal/provider/${TM_DIRECTORY/^.+\\/(.*)$/$1/}/${TM_FILENAME/(.*)_resource\\.go/$1/}_types.go",
+			"// - internal/provider/${TM_DIRECTORY/^.+\\/(.*)$/$1/}/${TM_FILENAME/(.*)_resource\\.go/$1/}_schema.go",
+			"// - internal/provider/${TM_DIRECTORY/^.+\\/(.*)$/$1/}/${TM_FILENAME/(.*)_resource\\.go/$1/}_schema_test.go",
+			"// - internal/testsacc/${TM_DIRECTORY/^.+\\/(.*)$/$1/}_${TM_FILENAME/(.*)\\.go/$1/}_test.go",
+			"// * How to use",
+			"// ! Usage: $> terraform-templates -filename $RELATIVE_FILEPATH",
+			"// ? ---------------------------------------------------------------------------------------------------------------------- ? //",
+			"package ${TM_DIRECTORY/^.+\\/(.*)$/$1/}"
 		],
 		"description": "Boilerplate for resource or data source terraform provider"
 	},
@@ -24,44 +34,6 @@
 			"//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename \\$GOFILE -example-dir ../../examples -test"
 		],
 		"description": "Boilerplate for resource or data source terraform provider"
-	},
-	"Terraform Block Init Resource": {
-		"scope": "go",
-		"prefix": "tf-block-init-resource",
-		"body": [
-			"func (r *$struct) Init(ctx context.Context, rm *${struct}Model) (diags diag.Diagnostics) {",
-			"    return",
-			"}",
-		],
-	},
-	"Terraform Block Init Datasource": {
-		"scope": "go",
-		"prefix": "tf-block-init-datasource",
-		"body": [
-			"func (d *$struct) Init(ctx context.Context, dm *${struct}Model) (diags diag.Diagnostics) {",
-			"    return",
-			"}",
-		],
-	},
-	"Terraform Use Init Resource": {
-		"scope": "go",
-		"prefix": "tf-use-init-resource",
-		"body": [
-			"resp.Diagnostics.Append(r.Init(ctx, $struct)...)",
-			"if resp.Diagnostics.HasError() {",
-			"    return",
-			"}"
-		],
-	},
-	"Terraform Use Init Datasource": {
-		"scope": "go",
-		"prefix": "tf-use-init-datasource",
-		"body": [
-			"resp.Diagnostics.Append(d.Init(ctx, $struct)...)",
-			"if resp.Diagnostics.HasError() {",
-			"    return",
-			"}"
-		],
 	},
 	"SuperSchema Base": {
 		"scope": "go",
