@@ -1,4 +1,13 @@
 ## 0.11.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vcd` - Fix bug to impossible to update a vcd resource without a resource vcd_group define. ([GH-518](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/518))
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.1.2 to 0.1.3 ([GH-518](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/518))
+
 ## 0.10.2 (September  8, 2023)
 
 ### :tada: **Improvements**
