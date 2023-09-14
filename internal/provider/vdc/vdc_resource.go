@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kr/pretty"
 	"golang.org/x/exp/slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -16,7 +15,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
@@ -363,7 +361,6 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	if !state.VDCGroup.IsNull() {
 		body.VdcGroup = state.VDCGroup.ValueString()
 	}
-	tflog.Info(ctx, pretty.Sprint(body))
 
 	// Iterate over the storage profiles and add them to the body.
 	for _, storageProfile := range plan.VDCStorageProfiles {
