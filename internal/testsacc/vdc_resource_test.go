@@ -13,7 +13,6 @@ import (
 const testAccVDCResourceConfig = `
 resource "cloudavenue_vdc" "example" {
 	name                  = "MyVDC1"
-	vdc_group             = "MyGroup"
 	description           = "Example vDC created by Terraform"
 	cpu_allocated         = 22000
 	memory_allocated      = 30
@@ -28,8 +27,13 @@ resource "cloudavenue_vdc" "example" {
 	  default = true
 	  limit   = 500
 	}]
-  
-  }
+}
+resource "cloudavenue_vdc_group" "example" {
+	name = "MyGroup"
+	vdc_ids = [
+		cloudavenue_vdc.example.id,
+	]
+}
 `
 
 // Temp test during deprecation notice of vdc_group attribute
@@ -52,7 +56,6 @@ resource "cloudavenue_vdc" "example" {
 	  default = true
 	  limit   = 500
 	}]
-  
 }
 
 resource "cloudavenue_vdc" "example2" {
@@ -87,7 +90,6 @@ func TestAccVDCResource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.VDC.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttr(resourceName, "name", "MyVDC1"),
-					resource.TestCheckResourceAttr(resourceName, "vdc_group", "MyGroup"),
 					resource.TestCheckResourceAttr(resourceName, "description", "Example vDC created by Terraform"),
 					resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22000"),
 					resource.TestCheckResourceAttr(resourceName, "memory_allocated", "30"),
@@ -108,7 +110,6 @@ func TestAccVDCResource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.VDC.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttr(resourceName, "name", "MyVDC1"),
-					resource.TestCheckResourceAttr(resourceName, "vdc_group", "MyGroup"),
 					resource.TestCheckResourceAttr(resourceName, "description", "Example vDC created by Terraform"),
 					resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22000"),
 					resource.TestCheckResourceAttr(resourceName, "memory_allocated", "40"),

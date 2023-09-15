@@ -346,11 +346,26 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	var err error
+	// Get vDC info
 	var httpR *http.Response
+	var err error
+	var group string
+	vdc, httpR, err := r.client.APIClient.VDCApi.GetOrgVdcByName(auth, state.Name.ValueString())
+	if httpR != nil {
+		defer func() {
+			err = errors.Join(err, httpR.Body.Close())
+		}()
+	}
+	// check if vdcGroup exists
+	if !plan.VDCGroup.IsNull() {
+		group = plan.VDCGroup.ValueString()
+	} else {
+		group = vdc.VdcGroup
+	}
 
 	// Convert from Terraform data model into API data model
 	body := apiclient.UpdateOrgVdcV2{
+		VdcGroup: group,
 		Vdc: &apiclient.OrgVdcV2{
 			Name:                   plan.Name.ValueString(),
 			Description:            plan.Description.ValueString(),
