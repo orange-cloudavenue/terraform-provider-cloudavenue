@@ -1,4 +1,9 @@
 ## 0.11.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vdc` - Fix bug in vdc about vdcgroup field or vdc_group resource. ([GH-521](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/521))
+
 ## 0.10.3 (September 14, 2023)
 
 ### :bug: **Bug Fixes**
