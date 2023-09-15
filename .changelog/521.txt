@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_vdc` - Fix bug in vdc about vdcgroup field or vdc_group resource.
+```
