@@ -1,9 +1,11 @@
 module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 
-go 1.21.0
+go 1.20
+
+toolchain go1.21.1
 
 require (
-	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.11
+	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
 	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.3
 	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.5.3
 	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.1.0
@@ -42,7 +44,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.8.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fatih/color v1.15.0 // indirect
-	github.com/go-chi/chi v4.0.2+incompatible // indirect
+	github.com/go-chi/chi v4.1.2+incompatible // indirect
 	github.com/go-chi/render v1.0.3 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
