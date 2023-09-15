@@ -1,4 +1,5 @@
 ## 0.11.0 (Unreleased)
+## 0.10.4 (September 15, 2023)
 
 ### :bug: **Bug Fixes**
 
