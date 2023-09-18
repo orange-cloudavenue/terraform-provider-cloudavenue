@@ -29,7 +29,6 @@ func (r *CatalogResource) GetResourceName() string {
 }
 
 func (r *CatalogResource) DependenciesConfig() (configs testsacc.TFData) {
-	// configs.Append(GetResourceConfig()[EdgeGatewatResourceName]().GetDefaultConfig())
 	return
 }
 
@@ -40,7 +39,6 @@ func (r *CatalogResource) Tests(ctx context.Context) map[testsacc.TestName]func(
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Catalog)),
-					resource.TestCheckResourceAttr(resourceName, "name", "example"),
 					resource.TestCheckResourceAttr(resourceName, "delete_recursive", "true"),
 					resource.TestCheckResourceAttr(resourceName, "delete_force", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
@@ -48,36 +46,38 @@ func (r *CatalogResource) Tests(ctx context.Context) map[testsacc.TestName]func(
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
-					TFConfig: `
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 					resource "cloudavenue_catalog" "example" {
-						name             = "example"
-						description      = "catalog for files"
+						name             = {{ generate . "name" }}
+						description      = {{ generate . "description" "longString" }}
 						delete_recursive = true
 						delete_force     = true
-					}`,
+					}`),
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "description", "catalog for files"),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 					},
 				},
 				// ! Updates testing
 				Updates: []testsacc.TFConfig{
 					{
-						TFConfig: `
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_catalog" "example" {
-							name             = "example"
-							description      = "updated catalog for files"
+							name             = {{ get . "name" }}
+							description      = {{ generate . "description" "longString"}}
 							delete_recursive = true
 							delete_force     = true
-						}`,
+						}`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "description", "updated catalog for files"),
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 						},
 					},
 				},
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateID:           "example",
+						ImportStateID:           testsacc.GetValueFromTemplate(resourceName, "name"),
 						ImportState:             true,
 						ImportStateVerify:       true,
 						ImportStateVerifyIgnore: []string{"delete_force", "delete_recursive"},
@@ -85,22 +85,6 @@ func (r *CatalogResource) Tests(ctx context.Context) map[testsacc.TestName]func(
 				},
 			}
 		},
-		// * Test Two
-		// "test_two": func(_ context.Context) testsacc.Test {
-		// 	return testsacc.Test{
-		// 		Create: testsacc.TFConfig{
-		// 			TFConfig: ``,
-		// 		},
-		// 		Updates: []testsacc.TFConfig{
-		// 			{
-		// 				TFConfig: ``,
-		// 			},
-		// 			{
-		// 				TFConfig: ``,
-		// 			},
-		// 		},
-		// 	}
-		// },
 	}
 }
 

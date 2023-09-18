@@ -9,6 +9,7 @@ require (
 	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.1.0
 	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.0
 	github.com/antihax/optional v1.0.0
+	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/google/uuid v1.3.1
 	github.com/hashicorp/terraform-plugin-docs v0.16.0
 	github.com/hashicorp/terraform-plugin-framework v1.4.0
@@ -20,6 +21,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.1.3
 	github.com/rs/zerolog v1.30.0
+	github.com/thanhpk/randstr v1.0.6
 	github.com/vmware/go-vcloud-director/v2 v2.21.0
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 	golang.org/x/net v0.15.0

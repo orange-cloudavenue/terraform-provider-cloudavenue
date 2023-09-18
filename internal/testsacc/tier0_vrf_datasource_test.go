@@ -2,39 +2,69 @@
 package testsacc
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
-const testAccTier0VrfDataSourceConfig = `
-data "cloudavenue_tier0_vrf" "test" {
-	name = "prvrf01eocb0006205allsp01"
+var _ testsacc.TestACC = &Tier0VRFACLDataSource{}
+
+const (
+	Tier0VRFACLDataSourceName = ResourceName("data.cloudavenue_tier0_vrf")
+)
+
+type Tier0VRFACLDataSource struct{}
+
+func NewTier0VRFACLDataSourceTest() testsacc.TestACC {
+	return &Tier0VRFACLDataSource{}
 }
-`
+
+// GetResourceName returns the name of the resource.
+func (r *Tier0VRFACLDataSource) GetResourceName() string {
+	return Tier0VRFACLDataSourceName.String()
+}
+
+func (r *Tier0VRFACLDataSource) DependenciesConfig() (configs testsacc.TFData) {
+	return
+}
+
+func (r *Tier0VRFACLDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
+		// * Test One (example)
+		"example": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_tier0_vrf" "example" {
+						name = "prvrf01eocb0006205allsp01"
+					}`,
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrSet(resourceName, "id"),
+						resource.TestCheckResourceAttr(resourceName, "name", "prvrf01eocb0006205allsp01"),
+						resource.TestCheckResourceAttr(resourceName, "class_service", "VRF_STANDARD"),
+						resource.TestCheckResourceAttr(resourceName, "tier0_provider", "pr01e02t0sp16"),
+						resource.TestCheckResourceAttr(resourceName, "services.#", "3"),
+						resource.TestCheckResourceAttr(resourceName, "services.0.service", "OBJECT_STORAGE"),
+						resource.TestCheckResourceAttr(resourceName, "services.0.vlan_id", ""),
+						resource.TestCheckResourceAttr(resourceName, "services.1.service", "INTERNET"),
+						resource.TestCheckResourceAttr(resourceName, "services.1.vlan_id", ""),
+						resource.TestCheckResourceAttr(resourceName, "services.2.service", "ADMIN"),
+						resource.TestCheckResourceAttr(resourceName, "services.2.vlan_id", ""),
+					},
+				},
+			}
+		},
+	}
+}
 
 func TestAccTier0VrfDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Read testing.
-			{
-				Config: testAccTier0VrfDataSourceConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.cloudavenue_tier0_vrf.test", "name", "prvrf01eocb0006205allsp01"),
-					resource.TestCheckResourceAttr("data.cloudavenue_tier0_vrf.test", "id", "ca606aba-4bd2-5e66-a975-1ebb3ae2eca9"),
-					resource.TestCheckResourceAttr("data.cloudavenue_tier0_vrf.test", "class_service", "VRF_STANDARD"),
-					resource.TestCheckResourceAttr("data.cloudavenue_tier0_vrf.test", "tier0_provider", "pr01e02t0sp16"),
-					resource.TestCheckResourceAttr("data.cloudavenue_tier0_vrf.test", "services.#", "3"),
-					resource.TestCheckResourceAttr("data.cloudavenue_tier0_vrf.test", "services.0.service", "OBJECT_STORAGE"),
-					resource.TestCheckResourceAttr("data.cloudavenue_tier0_vrf.test", "services.0.vlan_id", ""),
-					resource.TestCheckResourceAttr("data.cloudavenue_tier0_vrf.test", "services.1.service", "INTERNET"),
-					resource.TestCheckResourceAttr("data.cloudavenue_tier0_vrf.test", "services.1.vlan_id", ""),
-					resource.TestCheckResourceAttr("data.cloudavenue_tier0_vrf.test", "services.2.service", "ADMIN"),
-					resource.TestCheckResourceAttr("data.cloudavenue_tier0_vrf.test", "services.2.vlan_id", ""),
-				),
-			},
-		},
+		Steps:                    testsacc.GenerateTests(&Tier0VRFACLDataSource{}),
 	})
 }

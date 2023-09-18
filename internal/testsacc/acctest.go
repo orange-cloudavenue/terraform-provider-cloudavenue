@@ -6,11 +6,14 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider"
 )
 
@@ -45,6 +48,11 @@ func TestAccPreCheck(t *testing.T) {
 	if v := os.Getenv("CLOUDAVENUE_VDC"); v == "" {
 		t.Fatal("CLOUDAVENUE_VDC must be set for acceptance tests")
 	}
+
+	// Generate a new execution ID for this run.
+	// Not error checking here because it's not critical.
+	x, _ := uuid.NewUUID()
+	metrics.GlobalExecutionID = "testacc_" + x.String()
 }
 
 // Deprecated: Use ContactConfigs instead.

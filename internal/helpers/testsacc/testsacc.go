@@ -10,8 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-// TODO : ADD Generic func ImportStateIDFunc to generate the ID for the ImportState tests
-
 type (
 	TFData   string
 	TestName string
@@ -42,6 +40,9 @@ type (
 
 		// Import returns the Terraform configurations to use for the import test.
 		Imports []TFImport
+
+		// cacheDependenciesConfig is used to cache the dependencies config.
+		cacheDependenciesConfig TFData
 	}
 
 	TFConfig struct {
@@ -114,6 +115,7 @@ func (e TestName) ComputeResourceName(resourceName string) string {
 }
 
 // *TFData
+
 // Get returns the Terraform configuration as a string.
 func (t TFData) Get() string {
 	return t.String()
@@ -131,7 +133,7 @@ func (t TFData) String() string {
 
 // Append appends the given Terraform configuration to the current one.
 func (t *TFData) Append(tf TFData) {
-	*t = TFData(fmt.Sprintf("%s\n%s", t, tf))
+	*t = TFData(fmt.Sprintf("%s\n%s", t, tf.String()))
 }
 
 // *TFConfig
@@ -139,9 +141,9 @@ func (t *TFData) Append(tf TFData) {
 // Generate creates the Terraform configuration for the resource under test.
 // It returns the Terraform configuration as a string.
 // Concatenate the dependencies config and the resource config.
-func (t TFConfig) Generate(ctx context.Context, dependencies TFData) string {
-	dependencies.Append(t.TFConfig)
-	return dependencies.Get()
+func (t TFConfig) Generate(_ context.Context, dependencies TFData) string {
+	t.TFConfig.Append(dependencies)
+	return t.TFConfig.Get()
 }
 
 // *Test
@@ -155,9 +157,13 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 	listOfChecks := t.CommonChecks
 	listOfChecks = append(listOfChecks, t.Create.Checks...)
 
+	if t.cacheDependenciesConfig == "" {
+		t.cacheDependenciesConfig = testACC.DependenciesConfig()
+	}
+
 	// * Create step
 	steps = append(steps, resource.TestStep{
-		Config: t.Create.Generate(ctx, testACC.DependenciesConfig()),
+		Config: t.Create.Generate(ctx, t.cacheDependenciesConfig),
 		Check: resource.ComposeAggregateTestCheckFunc(
 			listOfChecks...,
 		),
@@ -170,7 +176,7 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 			listOfChecks = append(listOfChecks, update.Checks...)
 
 			steps = append(steps, resource.TestStep{
-				Config: update.Generate(ctx, testACC.DependenciesConfig()),
+				Config: update.Generate(ctx, t.cacheDependenciesConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					listOfChecks...,
 				),
