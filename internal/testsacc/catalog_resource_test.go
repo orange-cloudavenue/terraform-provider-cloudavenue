@@ -14,7 +14,7 @@ import (
 var _ testsacc.TestACC = &CatalogResource{}
 
 const (
-	CatalogResourceName = ResourceName("cloudavenue_catalog")
+	CatalogResourceName = testsacc.ResourceName("cloudavenue_catalog")
 )
 
 type CatalogResource struct{}

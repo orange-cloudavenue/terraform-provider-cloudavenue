@@ -39,7 +39,7 @@ resource "cloudavenue_edgegateway" "example_with_group" {
 var _ testsacc.TestACC = &EdgeGatewayResource{}
 
 const (
-	EdgeGatewayResourceName = ResourceName("cloudavenue_edgegateway")
+	EdgeGatewayResourceName = testsacc.ResourceName("cloudavenue_edgegateway")
 )
 
 type EdgeGatewayResource struct{}
@@ -55,7 +55,7 @@ func (r *EdgeGatewayResource) GetResourceName() string {
 
 func (r *EdgeGatewayResource) DependenciesConfig() (configs testsacc.TFData) {
 	configs.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig())
-	configs.Append(GetDataSourceConfig()[Tier0VRFACLDataSourceName]().GetDefaultConfig())
+	configs.Append(GetDataSourceConfig()[Tier0VRFDataSourceName]().GetDefaultConfig())
 	return
 }
 

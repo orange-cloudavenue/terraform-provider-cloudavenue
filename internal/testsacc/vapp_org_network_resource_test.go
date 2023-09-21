@@ -1,82 +1,99 @@
 package testsacc
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
-const testAccOrgNetworkResourceConfig = `
-data "cloudavenue_tier0_vrfs" "example" {}
+var _ testsacc.TestACC = &VAppOrgNetworkResource{}
 
-resource "cloudavenue_edgegateway" "example" {
-  owner_name     = "MyVDC"
-  tier0_vrf_name = data.cloudavenue_tier0_vrfs.example.names.0
-  owner_type     = "vdc"
+const (
+	VAppOrgNetworkResourceName = testsacc.ResourceName("cloudavenue_vapp_org_network")
+)
+
+type VAppOrgNetworkResource struct{}
+
+func NewVAppOrgNetworkResourceTest() testsacc.TestACC {
+	return &VAppOrgNetworkResource{}
 }
 
-resource "cloudavenue_network_routed" "example" {
-  name        = "MyOrgNet"
-  description = "This is an example Net"
-
-  edge_gateway_id = cloudavenue_edgegateway.example.id
-
-  gateway       = "192.168.1.254"
-  prefix_length = 24
-
-  dns1 = "1.1.1.1"
-  dns2 = "8.8.8.8"
-
-  dns_suffix = "example"
-
-  static_ip_pool = [
-    {
-      start_address = "192.168.1.10"
-      end_address   = "192.168.1.20"
-    }
-  ]
+// GetResourceName returns the name of the resource.
+func (r *VAppOrgNetworkResource) GetResourceName() string {
+	return VAppOrgNetworkResourceName.String()
 }
 
-resource "cloudavenue_vapp" "example" {
-  name        = "MyVapp"
-  description = "This is an example vApp"
-  vdc         = "MyVDC"
+func (r *VAppOrgNetworkResource) DependenciesConfig() (configs testsacc.TFData) {
+	configs.Append(GetResourceConfig()[VAppResourceName]().GetDefaultConfig())
+	configs.Append(GetResourceConfig()[NetworkRoutedResourceName]().GetDefaultConfig())
+	return
 }
 
-resource "cloudavenue_vapp_org_network" "example" {
-  vapp_name    = cloudavenue_vapp.example.name
-  network_name = cloudavenue_network_routed.example.name
-  vdc          = "MyVDC"
+func (r *VAppOrgNetworkResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
+		// * First test named "example"
+		"example": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
+					resource.TestCheckResourceAttrSet(resourceName, "vapp_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "vdc"),
+					// TODO : https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/527
+					// resource.TestCheckResourceAttrSet(resourceName, "vapp_id"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_vapp_org_network" "example" {
+						vapp_name    = cloudavenue_vapp.example.name
+						network_name = cloudavenue_network_routed.example.name
+						vdc          = cloudavenue_vdc.example.name
+					  }`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "is_fenced", "false"),
+						resource.TestCheckResourceAttr(resourceName, "retain_ip_mac_enabled", "false"),
+					},
+				},
+				// TODO : Impossible to update due to https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/531 and https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/529
+				// // ! Updates testing
+				// Updates: []testsacc.TFConfig{
+				// 	{
+				// 		TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+				// 		resource "cloudavenue_vapp_org_network" "example" {
+				// 			vapp_name    = cloudavenue_vapp.example.name
+				// 			network_name = cloudavenue_network_routed.example.name
+				// 			vdc          = cloudavenue_vdc.example.name
+
+				// 			retain_ip_mac_enabled = true
+				// 		  }`),
+				// 		Checks: []resource.TestCheckFunc{
+				// 			resource.TestCheckResourceAttr(resourceName, "retain_ip_mac_enabled", "true"),
+				// 		},
+				// 	},
+				// },
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"vdc", "vapp_name", "network_name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
+			}
+		},
+	}
+	// TODO: ADD Test with VDC Group
 }
-`
 
 func TestAccOrgNetworkResource(t *testing.T) {
-	resourceName := "cloudavenue_vapp_org_network.example"
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Read testing
-			{
-				// Apply test
-				Config: testAccOrgNetworkResourceConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "vdc", "MyVDC"),
-					resource.TestCheckResourceAttr(resourceName, "vapp_name", "MyVapp"),
-					resource.TestCheckResourceAttr(resourceName, "network_name", "MyOrgNet"),
-				),
-			},
-			// Import
-			{
-				// Import test with vdc
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateId:     "MyVDC.MyVapp.MyOrgNet",
-			},
-		},
+		Steps:                    testsacc.GenerateTests(&VAppOrgNetworkResource{}),
 	})
 }

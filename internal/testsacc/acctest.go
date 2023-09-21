@@ -69,13 +69,6 @@ func ContactConfigs(configs ...string) string {
 	return result
 }
 
-type ResourceName string
-
-// String returns the string representation of the ResourceName.
-func (r ResourceName) String() string {
-	return string(r)
-}
-
 type resourceConfig struct {
 	testsacc.TestACC
 }

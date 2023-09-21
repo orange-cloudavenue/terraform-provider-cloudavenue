@@ -10,28 +10,28 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
-var _ testsacc.TestACC = &Tier0VRFACLDataSource{}
+var _ testsacc.TestACC = &Tier0VRFDataSource{}
 
 const (
-	Tier0VRFACLDataSourceName = ResourceName("data.cloudavenue_tier0_vrf")
+	Tier0VRFDataSourceName = testsacc.ResourceName("data.cloudavenue_tier0_vrf")
 )
 
-type Tier0VRFACLDataSource struct{}
+type Tier0VRFDataSource struct{}
 
-func NewTier0VRFACLDataSourceTest() testsacc.TestACC {
-	return &Tier0VRFACLDataSource{}
+func NewTier0VRFDataSourceTest() testsacc.TestACC {
+	return &Tier0VRFDataSource{}
 }
 
 // GetResourceName returns the name of the resource.
-func (r *Tier0VRFACLDataSource) GetResourceName() string {
-	return Tier0VRFACLDataSourceName.String()
+func (r *Tier0VRFDataSource) GetResourceName() string {
+	return Tier0VRFDataSourceName.String()
 }
 
-func (r *Tier0VRFACLDataSource) DependenciesConfig() (configs testsacc.TFData) {
+func (r *Tier0VRFDataSource) DependenciesConfig() (configs testsacc.TFData) {
 	return
 }
 
-func (r *Tier0VRFACLDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *Tier0VRFDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
@@ -65,6 +65,6 @@ func TestAccTier0VrfDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps:                    testsacc.GenerateTests(&Tier0VRFACLDataSource{}),
+		Steps:                    testsacc.GenerateTests(&Tier0VRFDataSource{}),
 	})
 }

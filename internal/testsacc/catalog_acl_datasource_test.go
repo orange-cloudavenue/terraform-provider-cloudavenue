@@ -12,7 +12,7 @@ import (
 var _ testsacc.TestACC = &CatalogACLDataSource{}
 
 const (
-	CatalogACLDataSourceName = ResourceName("data.cloudavenue_catalog_acl")
+	CatalogACLDataSourceName = testsacc.ResourceName("data.cloudavenue_catalog_acl")
 )
 
 type CatalogACLDataSource struct{}

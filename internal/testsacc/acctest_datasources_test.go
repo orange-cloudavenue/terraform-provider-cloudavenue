@@ -1,7 +1,9 @@
 package testsacc
 
-func GetDataSourceConfig() map[ResourceName]func() resourceConfig {
-	return map[ResourceName]func() resourceConfig{
-		Tier0VRFACLDataSourceName: NewResourceConfig(NewTier0VRFACLDataSourceTest()),
+import "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
+
+func GetDataSourceConfig() map[testsacc.ResourceName]func() resourceConfig {
+	return map[testsacc.ResourceName]func() resourceConfig{
+		Tier0VRFDataSourceName: NewResourceConfig(NewTier0VRFDataSourceTest()),
 	}
 }

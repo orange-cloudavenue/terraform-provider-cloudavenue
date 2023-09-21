@@ -55,7 +55,7 @@ resource "cloudavenue_vdc" "example2" {
 var _ testsacc.TestACC = &VDCResource{}
 
 const (
-	VDCResourceName = ResourceName("cloudavenue_vdc")
+	VDCResourceName = testsacc.ResourceName("cloudavenue_vdc")
 )
 
 type VDCResource struct{}
@@ -70,9 +70,6 @@ func (r *VDCResource) GetResourceName() string {
 }
 
 func (r *VDCResource) DependenciesConfig() (configs testsacc.TFData) {
-	// configs.Append(testsacc.NewTFData("fsdfsdfsd"))
-	configs.Append(AddConstantConfig(testAccOrgUserResourceConfigForCatalogACL))
-
 	return
 }
 

@@ -1,151 +1,138 @@
 package testsacc
 
 import (
-	"regexp"
-	"strings"
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
-const testAccNetworkRoutedResourceConfig = `
-data "cloudavenue_edgegateway" "example" {
-  name = "tn01e02ocb0006205spt101"
+var _ testsacc.TestACC = &NetworkRoutedResource{}
+
+const (
+	NetworkRoutedResourceName = testsacc.ResourceName("cloudavenue_network_routed")
+)
+
+type NetworkRoutedResource struct{}
+
+func NewNetworkRoutedResourceTest() testsacc.TestACC {
+	return &NetworkRoutedResource{}
 }
 
-resource "cloudavenue_network_routed" "example" {
-  name        = "OrgNetExampleOnVDCGroup"
-  description = "Org Net Example"
-
-  edge_gateway_id = data.cloudavenue_edgegateway.example.id
-
-  gateway       = "192.168.1.254"
-  prefix_length = 24
-
-  dns1 = "1.1.1.1"
-  dns2 = "8.8.8.8"
-
-  dns_suffix = "example"
-
-  static_ip_pool = [
-    {
-      start_address = "192.168.1.10"
-      end_address   = "192.168.1.20"
-    }
-  ]
+// GetResourceName returns the name of the resource.
+func (r *NetworkRoutedResource) GetResourceName() string {
+	return NetworkRoutedResourceName.String()
 }
-`
 
-const testAccNetworkRoutedResourceOnVDCConfig = `
-	data "cloudavenue_tier0_vrfs" "example_with_vdc" {}
+func (r *NetworkRoutedResource) DependenciesConfig() (configs testsacc.TFData) {
+	configs.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig())
+	return
+}
 
-	resource "cloudavenue_edgegateway" "example_with_vdc" {
-	  owner_name     = "MyVDC"
-	  tier0_vrf_name = data.cloudavenue_tier0_vrfs.example_with_vdc.names.0
-	  owner_type     = "vdc"
+func (r *NetworkRoutedResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
+		// * First test named "example"
+		"example": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
+					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_network_routed" "example" {
+						name        = {{ generate . "name" }}
+						description = {{ generate . "description" }}
+					  
+						edge_gateway_id = cloudavenue_edgegateway.example.id
+					  
+						gateway       = "192.168.1.254"
+						prefix_length = 24
+					  
+						dns1 = "1.1.1.1"
+						dns2 = "8.8.8.8"
+					  
+						dns_suffix = "example"
+					  
+						static_ip_pool = [
+						  {
+							start_address = "192.168.1.10"
+							end_address   = "192.168.1.20"
+						  }
+						]
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.1.254"),
+						resource.TestCheckResourceAttr(resourceName, "dns1", "1.1.1.1"),
+						resource.TestCheckResourceAttr(resourceName, "dns2", "8.8.8.8"),
+						resource.TestCheckResourceAttr(resourceName, "dns_suffix", "example"),
+						resource.TestCheckResourceAttr(resourceName, "static_ip_pool.0.start_address", "192.168.1.10"),
+						resource.TestCheckResourceAttr(resourceName, "static_ip_pool.0.end_address", "192.168.1.20"),
+					},
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_network_routed" "example" {
+							name        = {{ get . "name" }}
+							description = {{ get . "description" }}
+						  
+							edge_gateway_id = cloudavenue_edgegateway.example.id
+						  
+							gateway       = "192.168.1.250"
+							prefix_length = 24
+						  
+							dns1 = "1.1.1.2"
+							dns2 = "8.8.8.9"
+						  
+							dns_suffix = "exampleupdated"
+						  
+							static_ip_pool = [
+							  {
+								start_address = "192.168.1.1"
+								end_address   = "192.168.1.30"
+							  }
+							]
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.1.250"),
+							resource.TestCheckResourceAttr(resourceName, "dns1", "1.1.1.2"),
+							resource.TestCheckResourceAttr(resourceName, "dns2", "8.8.8.9"),
+							resource.TestCheckResourceAttr(resourceName, "dns_suffix", "exampleupdated"),
+							resource.TestCheckResourceAttr(resourceName, "static_ip_pool.0.start_address", "192.168.1.1"),
+							resource.TestCheckResourceAttr(resourceName, "static_ip_pool.0.end_address", "192.168.1.30"),
+						},
+					},
+				},
+				// ! Imports testing
+				// TODO : Add import test after resolving this issue https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/526
+				// Imports: []testsacc.TFImport{
+				// 	{
+				// 		ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+				// 		ImportState:          true,
+				// 		ImportStateVerify:    true,
+				// 	},
+				// },
+			}
+		},
 	}
-
-	resource "cloudavenue_network_routed" "example" {
-	  name        = "OrgNetExampleOnVDC"
-	  description = "Org Net Example"
-
-	  edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
-
-		gateway       = "192.168.1.254"
-	  prefix_length = 24
-
-	  dns1 = "1.1.1.1"
-	  dns2 = "8.8.8.8"
-
-	  dns_suffix = "example"
-
-	  static_ip_pool = [
-	    {
-	      start_address = "192.168.1.10"
-	      end_address   = "192.168.1.20"
-	    }
-	  ]
-	}
-`
+	// TODO: ADD Test with VDC Group
+}
 
 func TestAccNetworkRoutedResource(t *testing.T) {
-	const resourceName = "cloudavenue_network_routed.example"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Test on VDC Group
-			{
-				// Apply test
-				Config: testAccNetworkRoutedResourceConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.Network.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
-					resource.TestCheckResourceAttr(resourceName, "name", "OrgNetExampleOnVDCGroup"),
-					resource.TestCheckResourceAttr(resourceName, "description", "Org Net Example"),
-					resource.TestMatchResourceAttr(resourceName, "edge_gateway_id", regexp.MustCompile(uuid.Gateway.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
-					resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.1.254"),
-					resource.TestCheckResourceAttr(resourceName, "dns1", "1.1.1.1"),
-					resource.TestCheckResourceAttr(resourceName, "dns2", "8.8.8.8"),
-					resource.TestCheckResourceAttr(resourceName, "dns_suffix", "example"),
-					resource.TestCheckResourceAttr(resourceName, "static_ip_pool.0.start_address", "192.168.1.10"),
-					resource.TestCheckResourceAttr(resourceName, "static_ip_pool.0.end_address", "192.168.1.20"),
-				),
-			},
-			{
-				// Update test
-				Config: newUpdatedConfig(),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.Network.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
-					resource.TestCheckResourceAttr(resourceName, "description", "Example"),
-					resource.TestCheckResourceAttr(resourceName, "dns1", "1.1.1.2"),
-					resource.TestCheckResourceAttr(resourceName, "dns2", "8.8.8.9"),
-					resource.TestCheckResourceAttr(resourceName, "static_ip_pool.0.end_address", "192.168.1.30"),
-				),
-			},
-			// Import test
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateId:     "HackathonShared.OrgNetExampleOnVDCGroup",
-			},
-			// Test on VDC
-			{
-				// Apply test
-				Config: testAccNetworkRoutedResourceOnVDCConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.Network.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
-					resource.TestCheckResourceAttr(resourceName, "name", "OrgNetExampleOnVDC"),
-					resource.TestCheckResourceAttr(resourceName, "description", "Org Net Example"),
-					// resource.TestCheckResourceAttr(resourceName, "vdc", "MyVDC"),
-					resource.TestMatchResourceAttr(resourceName, "edge_gateway_id", regexp.MustCompile(uuid.Gateway.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
-					resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.1.254"),
-					resource.TestCheckResourceAttr(resourceName, "dns1", "1.1.1.1"),
-					resource.TestCheckResourceAttr(resourceName, "dns2", "8.8.8.8"),
-					resource.TestCheckResourceAttr(resourceName, "dns_suffix", "example"),
-					resource.TestCheckResourceAttr(resourceName, "static_ip_pool.0.start_address", "192.168.1.10"),
-					resource.TestCheckResourceAttr(resourceName, "static_ip_pool.0.end_address", "192.168.1.20"),
-				),
-			},
-			// Import test
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateId:     "MyVDC.OrgNetExampleOnVDC",
-			},
-		},
+		Steps:                    testsacc.GenerateTests(&NetworkRoutedResource{}),
 	})
-}
-
-func newUpdatedConfig() string {
-	s := strings.Replace(testAccNetworkRoutedResourceConfig, "Org Net Example", "Example", 1)
-	s = strings.Replace(s, "1.1.1.1", "1.1.1.2", 1)
-	s = strings.Replace(s, "8.8.8.8", "8.8.8.9", 1)
-	s = strings.Replace(s, "192.168.1.20", "192.168.1.30", 1)
-
-	return s
 }
