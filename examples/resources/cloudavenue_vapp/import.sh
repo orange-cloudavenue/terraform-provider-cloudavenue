@@ -1,2 +1,1 @@
-# use the public ip to import the public ip
-terraform import cloudavenue_vapp.example vapp_name
+terraform import cloudavenue_vapp.example VDCName.VAppNameOrID Or VAppNameOrID

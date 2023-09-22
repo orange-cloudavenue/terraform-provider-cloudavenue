@@ -55,8 +55,18 @@ Optional:
 
 ## Import
 
+## Import
+
+vApp can be imported using any of these accepted formats:
+
+- `vdc_name.vapp_name`
+- `vdc_name.vapp_id`
+- `vapp_name`
+- `vapp_id`
+
+If `vdc_name` is not provided, the VDC defined in the provider configuration will be used.
+
 Import is supported using the following syntax:
 ```shell
-# use the public ip to import the public ip
-terraform import cloudavenue_vapp.example vapp_name
+terraform import cloudavenue_vapp.example VDCName.VAppNameOrID Or VAppNameOrID
 ```

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
@@ -332,8 +333,43 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 func (r *vappResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	defer metrics.New("cloudavenue_vapp", r.client.GetOrgName(), metrics.Import)()
 
-	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
+	var (
+		diags        diag.Diagnostics
+		vAppIDOrName string
+	)
+
+	// Split req.ID with dot. ID format is EdgeGatewayIDOrName.StaticRouteNameOrID
+	idParts := strings.Split(req.ID, ".")
+
+	switch len(idParts) {
+	case 1:
+		vAppIDOrName = idParts[0]
+		r.vdc, diags = vdc.Init(r.client, basetypes.NewStringNull())
+		resp.Diagnostics.Append(diags...)
+	case 2:
+		vAppIDOrName = idParts[1]
+		r.vdc, diags = vdc.Init(r.client, basetypes.NewStringValue(idParts[0]))
+		resp.Diagnostics.Append(diags...)
+	default:
+		resp.Diagnostics.AddError("Invalid ID format", fmt.Sprintf("ID format is VDCName.VAppIDOrName or VAppIDOrName, got: %s", req.ID))
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	vapp, err := r.vdc.GetVAppByNameOrId(vAppIDOrName, true)
+	if err != nil {
+		if errors.Is(err, govcd.ErrorEntityNotFound) {
+			resp.Diagnostics.AddError("vApp not found", err.Error())
+			return
+		}
+		resp.Diagnostics.AddError("Error retrieving vApp", err.Error())
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), vapp.VApp.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), vapp.VApp.Name)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vdc"), r.vdc.GetName())...)
 }
 
 // tryUndeploy try to undeploy a vApp, but do not throw an error if the vApp is powered off.

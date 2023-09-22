@@ -3,6 +3,7 @@ package testsacc
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/iancoleman/strcase"
 
@@ -10,9 +11,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+var listOfDeps = make(ListOfDependencies, 0)
+
 type (
-	TFData   string
-	TestName string
+	ResourceName       string
+	TFData             string
+	TestName           string
+	ListOfDependencies []ResourceName
 
 	TestACC interface {
 		// GetResourceName returns the name of the resource under test.
@@ -97,6 +102,34 @@ type (
 	}
 )
 
+// * ResourceName
+// String returns the string representation of the ResourceName.
+func (r ResourceName) String() string {
+	return string(r)
+}
+
+// * ListOfDependencies
+// Append appends the given dependency to the list of dependencies.
+// resourceName is a concatenation of the resource name and the name. For example, "cloudavenue_catalog.example".
+func (l *ListOfDependencies) Append(resourceName ResourceName) {
+	x := strings.Split(resourceName.String(), ".")
+
+	if len(x) == 2 && !l.Exists(resourceName) {
+		*l = append(*l, resourceName)
+	}
+}
+
+// Exists checks if the given dependency exists in the list of dependencies.
+// resourceName is a concatenation of the resource name and the name. For example, "cloudavenue_catalog.example".
+func (l *ListOfDependencies) Exists(resourceName ResourceName) bool {
+	for _, v := range *l {
+		if v == resourceName {
+			return true
+		}
+	}
+	return false
+}
+
 // * TestName
 // Get return the name of the example formatted as a lower camel case string.
 func (e TestName) Get() string {
@@ -133,7 +166,31 @@ func (t TFData) String() string {
 
 // Append appends the given Terraform configuration to the current one.
 func (t *TFData) Append(tf TFData) {
+	if !listOfDeps.Exists(ResourceName(tf.extractResourceName())) {
+		t.append(tf)
+		listOfDeps.Append(ResourceName(tf.extractResourceName()))
+	}
+}
+
+// appendWithoutResourceName appends the given Terraform configuration to the current one.
+func (t *TFData) appendWithoutResourceName(tf TFData) {
+	t.append(tf)
+}
+
+// append appends the given Terraform configuration to the current one.
+func (t *TFData) append(tf TFData) {
 	*t = TFData(fmt.Sprintf("%s\n%s", t, tf.String()))
+}
+
+// extractResourceName extracts the resource name and config name from the Terraform configuration.
+// example: "resource "cloudavenue_catalog" "example" {}" => "cloudavenue_catalog.example"
+func (t *TFData) extractResourceName() string {
+	x := strings.Split(t.String(), " ")
+	// for each word remove the double quotes
+	for i, v := range x {
+		x[i] = strings.ReplaceAll(v, "\"", "")
+	}
+	return fmt.Sprintf("%s.%s", x[1], x[2])
 }
 
 // *TFConfig
@@ -142,7 +199,7 @@ func (t *TFData) Append(tf TFData) {
 // It returns the Terraform configuration as a string.
 // Concatenate the dependencies config and the resource config.
 func (t TFConfig) Generate(_ context.Context, dependencies TFData) string {
-	t.TFConfig.Append(dependencies)
+	t.TFConfig.appendWithoutResourceName(dependencies)
 	return t.TFConfig.Get()
 }
 
