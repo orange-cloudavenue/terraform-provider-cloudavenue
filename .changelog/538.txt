@@ -1,0 +1,7 @@
+```release-note:breaking-change
+`resource/cloudavenue_vapp_org_network` - `is_fenced` and `retain_ip_mac_enabled` are now removed from the schema.
+```
+
+```release-note:breaking-change
+`datasource/cloudavenue_vapp_org_network` - `is_fenced` and `retain_ip_mac_enabled` are now removed from the schema.
+```

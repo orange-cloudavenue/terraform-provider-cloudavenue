@@ -16,13 +16,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
@@ -120,12 +119,10 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	retainIPMac := plan.RetainIPMacEnabled.ValueBool()
-	isFenced := plan.IsFenced.ValueBool()
+	// RetainIpMacEnabled and IsFenced are always false in CloudAvenue
 
-	vappNetworkSettings := &govcd.VappNetworkSettings{RetainIpMacEnabled: &retainIPMac}
-
-	vAppNetworkConfig, err := r.vapp.AddOrgNetwork(vappNetworkSettings, orgNetwork.OrgVDCNetwork, isFenced)
+	vappNetworkSettings := &govcd.VappNetworkSettings{RetainIpMacEnabled: utils.TakeBoolPointer(false)}
+	vAppNetworkConfig, err := r.vapp.AddOrgNetwork(vappNetworkSettings, orgNetwork.OrgVDCNetwork, false)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating vApp network", err.Error())
 		return
@@ -150,20 +147,15 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	state := &orgNetworkModel{
-		ID:                 types.StringValue(uuid.Normalize(uuid.Network, networkID).String()),
-		VAppName:           plan.VAppName,
-		VAppID:             plan.VAppID,
-		VDC:                types.StringValue(r.vdc.GetName()),
-		NetworkName:        plan.NetworkName,
-		IsFenced:           plan.IsFenced,
-		RetainIPMacEnabled: plan.RetainIPMacEnabled,
+		ID:          types.StringValue(uuid.Normalize(uuid.Network, networkID).String()),
+		VAppName:    plan.VAppName,
+		VAppID:      plan.VAppID,
+		VDC:         types.StringValue(r.vdc.GetName()),
+		NetworkName: plan.NetworkName,
 	}
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -184,7 +176,6 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	// Delete resource require vApp is Powered Off
 	// Lock
 	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
 	if resp.Diagnostics.HasError() {
@@ -199,8 +190,8 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	vAppNetwork, networkID, errFindNetwork := state.findOrgNetwork(vAppNetworkConfig)
-	resp.Diagnostics.Append(errFindNetwork...)
+	vAppNetwork, networkID, d := state.findOrgNetwork(vAppNetworkConfig)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -210,99 +201,22 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	isFenced := vAppNetwork.Configuration.FenceMode == govcdtypes.FenceModeNAT
-
 	plan := &orgNetworkModel{
-		ID:                 types.StringValue(uuid.Normalize(uuid.Network, *networkID).String()),
-		VAppName:           state.VAppName,
-		VAppID:             state.VAppID,
-		VDC:                types.StringValue(r.vdc.GetName()),
-		NetworkName:        state.NetworkName,
-		IsFenced:           types.BoolValue(isFenced),
-		RetainIPMacEnabled: types.BoolValue(*vAppNetwork.Configuration.RetainNetInfoAcrossDeployments),
+		ID:          types.StringValue(uuid.Normalize(uuid.Network, *networkID).String()),
+		VAppName:    state.VAppName,
+		VAppID:      state.VAppID,
+		VDC:         types.StringValue(r.vdc.GetName()),
+		NetworkName: state.NetworkName,
 	}
 
 	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *orgNetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	defer metrics.New("cloudavenue_vapp_org_network", r.client.GetOrgName(), metrics.Update)()
-
-	var plan, state *orgNetworkModel
-
-	// Get current state
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Init resource
-	resp.Diagnostics.Append(r.Init(ctx, plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	defer r.vapp.UnlockVAPP(ctx)
-
-	vAppNetworkConfig, err := r.vapp.GetNetworkConfig()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving vApp network config", err.Error())
-		return
-	}
-
-	vAppNetwork, _, errFindNetwork := plan.findOrgNetwork(vAppNetworkConfig)
-	resp.Diagnostics.Append(errFindNetwork...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if vAppNetwork == (&govcdtypes.VAppNetworkConfiguration{}) {
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
-	isFenced := vAppNetwork.Configuration.FenceMode == govcdtypes.FenceModeNAT
-
-	if plan.IsFenced.ValueBool() != isFenced || plan.RetainIPMacEnabled.ValueBool() != *vAppNetwork.Configuration.RetainNetInfoAcrossDeployments {
-		tflog.Debug(ctx, "updating vApp network")
-		retainIP := plan.RetainIPMacEnabled.ValueBool()
-		vappNetworkSettings := &govcd.VappNetworkSettings{
-			ID:                 state.ID.ValueString(),
-			RetainIpMacEnabled: &retainIP,
-		}
-		_, err = r.vapp.UpdateOrgNetwork(vappNetworkSettings, plan.IsFenced.ValueBool())
-		if err != nil {
-			resp.Diagnostics.AddError("Error updating vApp network", err.Error())
-			return
-		}
-	}
-
-	plan = &orgNetworkModel{
-		ID:                 state.ID,
-		VAppName:           state.VAppName,
-		VAppID:             state.VAppID,
-		VDC:                state.VDC,
-		NetworkName:        state.NetworkName,
-		IsFenced:           plan.IsFenced,
-		RetainIPMacEnabled: plan.RetainIPMacEnabled,
-	}
-
-	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	// No update for this resource
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -423,7 +337,4 @@ func (r *orgNetworkResource) ImportState(ctx context.Context, req resource.Impor
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }

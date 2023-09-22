@@ -7,7 +7,6 @@ import (
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -354,26 +353,6 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-			},
-		}
-		_schema.Attributes["is_fenced"] = superschema.BoolAttribute{
-			Common: &schemaR.BoolAttribute{
-				MarkdownDescription: "Defines if the network is fenced. Fencing allows identical virtual machines in different vApp networks connect to organization VDC networks that are accessed in this vApp.",
-				Computed:            true,
-			},
-			Resource: &schemaR.BoolAttribute{
-				Optional: true,
-				Default:  booldefault.StaticBool(false),
-			},
-		}
-		_schema.Attributes["retain_ip_mac_enabled"] = superschema.BoolAttribute{
-			Common: &schemaR.BoolAttribute{
-				MarkdownDescription: "Specifies whether the network resources such as IP/MAC of router will be retained across deployments.",
-				Computed:            true,
-			},
-			Resource: &schemaR.BoolAttribute{
-				Optional: true,
-				Default:  booldefault.StaticBool(false),
 			},
 		}
 	}
