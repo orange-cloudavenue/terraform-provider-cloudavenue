@@ -111,15 +111,27 @@ func vdcSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"cpu_allocated": superschema.Float64Attribute{
-				Common: &schemaR.Float64Attribute{
+			// "cpu_allocated": superschema.Float64Attribute{
+			// 	Common: &schemaR.Float64Attribute{
+			// 		MarkdownDescription: "CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.",
+			// 	},
+			// 	Resource: &schemaR.Float64Attribute{
+			// 		MarkdownDescription: "\n\n -> Note: Reserved capacity is automatically set according to the service class.",
+			// 		Required:            true,
+			// 	},
+			// 	DataSource: &schemaD.Float64Attribute{
+			// 		Computed: true,
+			// 	},
+			// },
+			"cpu_allocated": superschema.Int64Attribute{
+				Common: &schemaR.Int64Attribute{
 					MarkdownDescription: "CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.",
 				},
-				Resource: &schemaR.Float64Attribute{
+				Resource: &schemaR.Int64Attribute{
 					MarkdownDescription: "\n\n -> Note: Reserved capacity is automatically set according to the service class.",
 					Required:            true,
 				},
-				DataSource: &schemaD.Float64Attribute{
+				DataSource: &schemaD.Int64Attribute{
 					Computed: true,
 				},
 			},

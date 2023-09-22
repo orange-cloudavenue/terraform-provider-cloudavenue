@@ -125,7 +125,7 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		VDCDisponibilityClass:  types.StringValue(vdc.Vdc.VdcDisponibilityClass),
 		VDCBillingModel:        types.StringValue(vdc.Vdc.VdcBillingModel),
 		VcpuInMhz2:             types.Float64Value(vdc.Vdc.VcpuInMhz2),
-		CPUAllocated:           types.Float64Value(vdc.Vdc.CpuAllocated),
+		CPUAllocated:           types.Int64Value(int64(vdc.Vdc.CpuAllocated)),
 		MemoryAllocated:        types.Float64Value(vdc.Vdc.MemoryAllocated),
 		VDCStorageBillingModel: types.StringValue(vdc.Vdc.VdcStorageBillingModel),
 		VDCStorageProfiles:     profiles,

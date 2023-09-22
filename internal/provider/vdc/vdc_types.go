@@ -14,7 +14,7 @@ type vdcDataSourceModel struct {
 	VDCDisponibilityClass  types.String             `tfsdk:"disponibility_class"`
 	VDCBillingModel        types.String             `tfsdk:"billing_model"`
 	VcpuInMhz2             types.Float64            `tfsdk:"cpu_speed_in_mhz"`
-	CPUAllocated           types.Float64            `tfsdk:"cpu_allocated"`
+	CPUAllocated           types.Int64              `tfsdk:"cpu_allocated"`
 	MemoryAllocated        types.Float64            `tfsdk:"memory_allocated"`
 	VDCStorageBillingModel types.String             `tfsdk:"storage_billing_model"`
 	VDCStorageProfiles     []vdcStorageProfileModel `tfsdk:"storage_profiles"`
@@ -30,7 +30,7 @@ type vdcResourceModel struct {
 	VDCDisponibilityClass  types.String             `tfsdk:"disponibility_class"`
 	VDCBillingModel        types.String             `tfsdk:"billing_model"`
 	VcpuInMhz2             types.Float64            `tfsdk:"cpu_speed_in_mhz"`
-	CPUAllocated           types.Float64            `tfsdk:"cpu_allocated"`
+	CPUAllocated           types.Int64              `tfsdk:"cpu_allocated"`
 	MemoryAllocated        types.Float64            `tfsdk:"memory_allocated"`
 	VDCStorageBillingModel types.String             `tfsdk:"storage_billing_model"`
 	VDCStorageProfiles     []vdcStorageProfileModel `tfsdk:"storage_profiles"`
