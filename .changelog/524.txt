@@ -1,0 +1,3 @@
+```release-note:doc
+`resource/cloudavenue_vdc` - Only attributs `cpu_allocated`, `memory_allocated`, `storage_profile`, `cpu_speed_in_mhz` and description can be modified. ForceNew for other.
+```

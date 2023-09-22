@@ -1,11 +1,16 @@
 package vdc
 
 import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
@@ -84,6 +89,20 @@ func vdcSchema() superschema.Schema {
 				},
 				Resource: &schemaR.Float64Attribute{
 					Required: true,
+					PlanModifiers: []planmodifier.Float64{
+						float64planmodifier.RequiresReplaceIf(func(ctx context.Context, request planmodifier.Float64Request, resp *float64planmodifier.RequiresReplaceIfFuncResponse) {
+							billingModel := new(types.String)
+							resp.Diagnostics.Append(request.Plan.GetAttribute(ctx, path.Root("billing_model"), billingModel)...)
+							if resp.Diagnostics.HasError() {
+								return
+							}
+							if billingModel.ValueString() != "RESERVED" {
+								resp.RequiresReplace = true
+								resp.Diagnostics.AddAttributeWarning(path.Root("cpu_speed_in_mhz"), "Force replacement attributes", "You can change the cpu_speed_in_mhz attribute only if the billing_model is set to RESERVED.")
+							}
+						}, "", ""),
+					},
+					MarkdownDescription: "Force replacement attributes, however you can change the `cpu_speed_in_mhz` attribute only if the `billing_model` is set to **RESERVED**.",
 					Validators: []validator.Float64{
 						float64validator.AtLeast(1200),
 					},
@@ -151,6 +170,9 @@ func vdcSchema() superschema.Schema {
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplace(),
+					},
 					Validators: []validator.String{
 						stringvalidator.OneOf("ECO", "STD", "HP", "VOIP"),
 					},
@@ -165,6 +187,9 @@ func vdcSchema() superschema.Schema {
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplace(),
+					},
 					Validators: []validator.String{
 						stringvalidator.OneOf("ONE-ROOM", "DUAL-ROOM", "HA-DUAL-ROOM"),
 					},
@@ -179,6 +204,9 @@ func vdcSchema() superschema.Schema {
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplace(),
+					},
 					Validators: []validator.String{
 						stringvalidator.OneOf("PAYG", "DRAAS", "RESERVED"),
 					},
@@ -193,6 +221,9 @@ func vdcSchema() superschema.Schema {
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplace(),
+					},
 					Validators: []validator.String{
 						stringvalidator.OneOf("PAYG", "RESERVED"),
 					},
