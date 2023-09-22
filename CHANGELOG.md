@@ -1,4 +1,7 @@
 ## 0.11.0 (Unreleased)
+### :rotating_light: **Breaking Changes**
+
+* `resource/cloudavenue_network_routed` - Change attribute field for import resource by EdgeGatewayName or EdgeGatewayID. ([GH-526](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/526))
 ### :information_source: **Notes**
 
 * `resource/cloudavenue_vdc` - Only attributs `cpu_allocated`, `memory_allocated`, `storage_profile`, `cpu_speed_in_mhz` and description can be modified. ForceNew for other. ([GH-524](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/524))
