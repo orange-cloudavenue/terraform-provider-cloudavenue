@@ -1,4 +1,5 @@
-## 0.11.0 (Unreleased)
+## 0.12.0 (Unreleased)
+## 0.11.0 (September 22, 2023)
 ### :rotating_light: **Breaking Changes**
 
 * `datasource/cloudavenue_vapp_org_network` - `is_fenced` and `retain_ip_mac_enabled` are now removed from the schema. ([GH-538](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/538))
