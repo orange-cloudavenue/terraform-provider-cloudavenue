@@ -75,5 +75,5 @@ Required:
 
 Import is supported using the following syntax:
 ```shell
-terraform import vdc-or-vdc-group-name.NetworkName
+terraform import EdgeGatewayName.NetworkName Or EdgeGatewayID.NetworkName
 ```

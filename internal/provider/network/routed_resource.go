@@ -22,6 +22,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -325,11 +326,37 @@ func (r *networkRoutedResource) ImportState(ctx context.Context, req resource.Im
 		return
 	}
 
-	vdcOrVDCGroupName, networkName := resourceURI[0], resourceURI[1]
+	// Init resource
+	resp.Diagnostics.Append(r.Init(ctx, nil)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	v, err := r.client.GetVDCOrVDCGroup(vdcOrVDCGroupName)
-	if err != nil && govcd.ContainsNotFound(err) {
-		resp.Diagnostics.AddError("Error retrieving VDC", err.Error())
+	edgeGatewayNameOrEdgeGatewayID, networkName := resourceURI[0], resourceURI[1]
+
+	// Get Edge Gateway
+	var (
+		edgeGWName string
+		edgeGWID   string
+	)
+	if uuid.IsEdgeGateway(edgeGatewayNameOrEdgeGatewayID) {
+		edgeGWID = edgeGatewayNameOrEdgeGatewayID
+	} else {
+		edgeGWName = edgeGatewayNameOrEdgeGatewayID
+	}
+	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+		ID:   types.StringValue(edgeGWID),
+		Name: types.StringValue(edgeGWName),
+	})
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
+		return
+	}
+
+	// get vdc or vdc group
+	v, err := edgegw.GetParent()
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
 		return
 	}
 

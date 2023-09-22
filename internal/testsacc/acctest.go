@@ -84,7 +84,7 @@ func (r resourceConfig) GetSpecificConfig(testName string) testsacc.TFData {
 		context.Background(),
 		r.GetResourceName(),
 	).Create.TFConfig
-	x.Append(r.DependenciesConfig())
+	x.AppendWithoutResourceName(r.DependenciesConfig())
 	return x
 }
 
