@@ -3,6 +3,7 @@ package testsacc
 
 import (
 	"context"
+	"log"
 	"os"
 	"testing"
 
@@ -53,6 +54,7 @@ func TestAccPreCheck(t *testing.T) {
 	// Not error checking here because it's not critical.
 	x, _ := uuid.NewUUID()
 	metrics.GlobalExecutionID = "testacc_" + x.String()
+	log.Default().Printf("TestACC: execution ID is %s", metrics.GlobalExecutionID)
 }
 
 // Deprecated: Use ContactConfigs instead.

@@ -121,24 +121,13 @@ func (d *orgNetworkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	// Set Attributes
-	var isFenced, retainIPMacEnabled bool
-	if vAppNetwork.Configuration == nil {
-		// Set default value if configuration return is nil
-		vAppNetwork.Configuration = &govcdtypes.NetworkConfiguration{}
-	} else {
-		isFenced = vAppNetwork.Configuration.FenceMode == govcdtypes.FenceModeNAT
-		retainIPMacEnabled = *vAppNetwork.Configuration.RetainNetInfoAcrossDeployments
-	}
 	// Set data
 	plan := &orgNetworkModel{
-		ID:                 types.StringValue(uuid.Normalize(uuid.Network, *networkID).String()),
-		VAppName:           utils.StringValueOrNull(d.vapp.GetName()),
-		VAppID:             utils.StringValueOrNull(d.vapp.GetID()),
-		VDC:                types.StringValue(d.vdc.GetName()),
-		NetworkName:        data.NetworkName,
-		IsFenced:           types.BoolValue(isFenced),
-		RetainIPMacEnabled: types.BoolValue(retainIPMacEnabled),
+		ID:          types.StringValue(uuid.Normalize(uuid.Network, *networkID).String()),
+		VAppName:    utils.StringValueOrNull(d.vapp.GetName()),
+		VAppID:      utils.StringValueOrNull(d.vapp.GetID()),
+		VDC:         types.StringValue(d.vdc.GetName()),
+		NetworkName: data.NetworkName,
 	}
 
 	// Save data into Terraform state

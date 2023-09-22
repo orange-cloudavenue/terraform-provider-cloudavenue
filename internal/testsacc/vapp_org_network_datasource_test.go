@@ -74,8 +74,6 @@ func TestAccOrgNetworkDataSource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.Network.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
 					resource.TestCheckResourceAttrPair(dataSourceName, "network_name", resourceName, "network_name"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "is_fenced", resourceName, "is_fenced"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "retain_ip_mac_enabled", resourceName, "retain_ip_mac_enabled"),
 				),
 			},
 		},

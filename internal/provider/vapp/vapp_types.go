@@ -16,11 +16,9 @@ var vappLeaseAttrTypes = map[string]attr.Type{
 }
 
 type orgNetworkModel struct {
-	ID                 types.String `tfsdk:"id"`
-	VAppName           types.String `tfsdk:"vapp_name"`
-	VAppID             types.String `tfsdk:"vapp_id"`
-	VDC                types.String `tfsdk:"vdc"`
-	NetworkName        types.String `tfsdk:"network_name"`
-	IsFenced           types.Bool   `tfsdk:"is_fenced"`
-	RetainIPMacEnabled types.Bool   `tfsdk:"retain_ip_mac_enabled"`
+	ID          types.String `tfsdk:"id"`
+	VAppName    types.String `tfsdk:"vapp_name"`
+	VAppID      types.String `tfsdk:"vapp_id"`
+	VDC         types.String `tfsdk:"vdc"`
+	NetworkName types.String `tfsdk:"network_name"`
 }

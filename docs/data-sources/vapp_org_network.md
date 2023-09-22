@@ -77,6 +77,4 @@ data "cloudavenue_vapp_org_network" "example" {
 ### Read-Only
 
 - `id` (String) The ID of the network.
-- `is_fenced` (Boolean) Defines if the network is fenced. Fencing allows identical virtual machines in different vApp networks connect to organization VDC networks that are accessed in this vApp.
-- `retain_ip_mac_enabled` (Boolean) Specifies whether the network resources such as IP/MAC of router will be retained across deployments.
 
