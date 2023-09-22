@@ -1,4 +1,8 @@
 ## 0.11.0 (Unreleased)
+### :information_source: **Notes**
+
+* `resource/cloudavenue_vdc` - Only attributs `cpu_allocated`, `memory_allocated`, `storage_profile`, `cpu_speed_in_mhz` and description can be modified. ForceNew for other. ([GH-524](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/524))
+
 ## 0.10.4 (September 15, 2023)
 
 ### :bug: **Bug Fixes**
