@@ -149,9 +149,10 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	plan = &orgNetworkModel{
+	state := &orgNetworkModel{
 		ID:                 types.StringValue(uuid.Normalize(uuid.Network, networkID).String()),
 		VAppName:           plan.VAppName,
+		VAppID:             plan.VAppID,
 		VDC:                types.StringValue(r.vdc.GetName()),
 		NetworkName:        plan.NetworkName,
 		IsFenced:           plan.IsFenced,
@@ -159,7 +160,7 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
