@@ -75,5 +75,5 @@ Required:
 
 Import is supported using the following syntax:
 ```shell
-terraform import edge-gateway-name-or-id.NetworkName
+terraform import EdgeGatewayName.NetworkName Or EdgeGatewayID.NetworkName
 ```

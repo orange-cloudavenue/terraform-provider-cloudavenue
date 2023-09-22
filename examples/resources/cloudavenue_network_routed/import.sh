@@ -1,1 +1,2 @@
-terraform import edge-gateway-name-or-id.NetworkName
+terraform import EdgeGatewayName.NetworkName Or EdgeGatewayID.NetworkName
+

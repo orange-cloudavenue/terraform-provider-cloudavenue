@@ -166,10 +166,20 @@ func (t TFData) String() string {
 
 // Append appends the given Terraform configuration to the current one.
 func (t *TFData) Append(tf TFData) {
-	if !listOfDeps.Exists(ResourceName(tf.extractResourceName())) {
+	if !tf.IsEmpty() && !listOfDeps.Exists(ResourceName(tf.extractResourceName())) {
 		t.append(tf)
 		listOfDeps.Append(ResourceName(tf.extractResourceName()))
 	}
+}
+
+// AppendWithoutResourceName appends the given Terraform configuration to the current one.
+func (t *TFData) AppendWithoutResourceName(tf TFData) {
+	t.appendWithoutResourceName(tf)
+}
+
+// is empty.
+func (t *TFData) IsEmpty() bool {
+	return t.String() == ""
 }
 
 // appendWithoutResourceName appends the given Terraform configuration to the current one.

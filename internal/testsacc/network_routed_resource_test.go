@@ -84,18 +84,13 @@ func (r *NetworkRoutedResource) Tests(ctx context.Context) map[testsacc.TestName
 						resource "cloudavenue_network_routed" "example" {
 							name        = {{ get . "name" }}
 							description = {{ get . "description" }}
-						  
-							edge_gateway_id = cloudavenue_edgegateway.example.id
-						  
-							gateway       = "192.168.1.250"
+											edge_gateway_id = cloudavenue_edgegateway.example.id
+											gateway       = "192.168.1.250"
 							prefix_length = 24
-						  
-							dns1 = "1.1.1.2"
+											dns1 = "1.1.1.2"
 							dns2 = "8.8.8.9"
-						  
-							dns_suffix = "exampleupdated"
-						  
-							static_ip_pool = [
+											dns_suffix = "exampleupdated"
+											static_ip_pool = [
 							  {
 								start_address = "192.168.1.1"
 								end_address   = "192.168.1.30"
@@ -115,14 +110,18 @@ func (r *NetworkRoutedResource) Tests(ctx context.Context) map[testsacc.TestName
 					},
 				},
 				// ! Imports testing
-				// TODO : Add import test after resolving this issue https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/526
-				// Imports: []testsacc.TFImport{
-				// 	{
-				// 		ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
-				// 		ImportState:          true,
-				// 		ImportStateVerify:    true,
-				// 	},
-				// },
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
 			}
 		},
 	}
