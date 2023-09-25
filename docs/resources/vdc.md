@@ -49,9 +49,9 @@ resource "cloudavenue_vdc" "example" {
 - `cpu_allocated` (Number) CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode. 
 
  -> Note: Reserved capacity is automatically set according to the service class.
-- `cpu_speed_in_mhz` (Number) Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM. Force replacement attributes, however you can change the `cpu_speed_in_mhz` attribute only if the `billing_model` is set to **RESERVED**. Value must be at least 1200.000000.
+- `cpu_speed_in_mhz` (Number) Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM. Force replacement attributes, however you can change the `cpu_speed_in_mhz` attribute only if the `billing_model` is set to **RESERVED**. Value must be at least 1200.
 - `disponibility_class` (String) (ForceNew) The disponibility class of the vDC. Value must be one of : `ONE-ROOM`, `DUAL-ROOM`, `HA-DUAL-ROOM`.
-- `memory_allocated` (Number) Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode. Value must be between 1.000000 and 500.000000.
+- `memory_allocated` (Number) Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode. Value must be between 1 and 500.
 - `name` (String) (ForceNew) The name of the vDC. String length must be between 2 and 27.
 - `service_class` (String) (ForceNew) The service class of the vDC. Value must be one of : `ECO`, `STD`, `HP`, `VOIP`.
 - `storage_billing_model` (String) (ForceNew) Choose Billing model of storage resources. Value must be one of : `PAYG`, `RESERVED`.

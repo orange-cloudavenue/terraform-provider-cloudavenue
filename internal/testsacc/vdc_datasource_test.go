@@ -45,10 +45,7 @@ func (r *VDCDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ct
 					data "cloudavenue_vdc" "example" {
 						name = cloudavenue_vdc.example.name
 					}`,
-					// TFConfig: testsacc.GenerateFromTemplate("cloudavenue_vdc",`
-					// data "cloudavenue_vdc" "example" {
-					// 	name = {{ get . "name" }}
-					// }`,
+					// TODO: Bug to get value from template in dependencies issue #543
 					// Checks: NewVDCResourceTest().Tests(ctx)["example"](ctx, resourceName).GenerateCheckWithCommonChecks(),
 					Checks: []resource.TestCheckFunc{
 						resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.VDC.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),

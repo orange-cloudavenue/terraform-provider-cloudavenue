@@ -10,7 +10,6 @@ import (
 
 	"golang.org/x/exp/slices"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -126,9 +125,8 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	// Get the storage profiles
-	var diags diag.Diagnostics
 	storageProfiles, d := plan.GetVDCStorageProfiles(ctx)
-	diags.Append(d...)
+	resp.Diagnostics.Append(d...)
 	if d.HasError() {
 		return
 	}
@@ -136,7 +134,7 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	for _, storageProfile := range storageProfiles {
 		body.Vdc.VdcStorageProfiles = append(body.Vdc.VdcStorageProfiles, apiclient.VdcStorageProfilesV2{
 			Class:    storageProfile.Class.Get(),
-			Limit:    int32(storageProfile.Limit.Get()),
+			Limit:    storageProfile.Limit.GetInt32(),
 			Default_: storageProfile.Default.Get(),
 		})
 	}
@@ -299,7 +297,7 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.ID.Set(ID)
 	state.Name.Set(vdc.Vdc.Name)
 	state.Description.Set(vdc.Vdc.Description)
-	state.VDCGroup.Set(vdc.VdcGroup)
+	state.VDCGroup.Set(vdc.VdcGroup) // Now due to deprecated field use value in state
 	state.VDCServiceClass.Set(vdc.Vdc.VdcServiceClass)
 	state.VDCDisponibilityClass.Set(vdc.Vdc.VdcDisponibilityClass)
 	state.VDCBillingModel.Set(vdc.Vdc.VdcBillingModel)
@@ -392,9 +390,8 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 
 	// Get the storage profiles
-	var diags diag.Diagnostics
 	storageProfiles, d := plan.GetVDCStorageProfiles(ctx)
-	diags.Append(d...)
+	resp.Diagnostics.Append(d...)
 	if d.HasError() {
 		return
 	}
@@ -403,7 +400,7 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	for _, storageProfile := range storageProfiles {
 		body.Vdc.VdcStorageProfiles = append(body.Vdc.VdcStorageProfiles, apiclient.VdcStorageProfilesV2{
 			Class:    storageProfile.Class.Get(),
-			Limit:    int32(storageProfile.Limit.Get()),
+			Limit:    storageProfile.Limit.GetInt32(),
 			Default_: storageProfile.Default.Get(),
 		})
 	}
