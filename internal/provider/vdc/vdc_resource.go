@@ -10,8 +10,8 @@ import (
 
 	"golang.org/x/exp/slices"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
@@ -111,26 +111,33 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Prepare the body to create a VDC.
 	body := apiclient.CreateOrgVdcV2{
-		VdcGroup: plan.VDCGroup.ValueString(),
+		VdcGroup: plan.VDCGroup.Get(),
 		Vdc: &apiclient.OrgVdcV2{
-			Name:                   plan.Name.ValueString(),
-			Description:            plan.Description.ValueString(),
-			VdcServiceClass:        plan.VDCServiceClass.ValueString(),
-			VdcDisponibilityClass:  plan.VDCDisponibilityClass.ValueString(),
-			VdcBillingModel:        plan.VDCBillingModel.ValueString(),
-			VcpuInMhz2:             plan.VcpuInMhz2.ValueFloat64(),
-			CpuAllocated:           float64(plan.CPUAllocated.ValueInt64()),
-			MemoryAllocated:        plan.MemoryAllocated.ValueFloat64(),
-			VdcStorageBillingModel: plan.VDCStorageBillingModel.ValueString(),
+			Name:                   plan.Name.Get(),
+			Description:            plan.Description.Get(),
+			VdcServiceClass:        plan.VDCServiceClass.Get(),
+			VdcDisponibilityClass:  plan.VDCDisponibilityClass.Get(),
+			VdcBillingModel:        plan.VDCBillingModel.Get(),
+			VcpuInMhz2:             float64(plan.VcpuInMhz2.Get()),
+			CpuAllocated:           float64(plan.CPUAllocated.Get()),
+			MemoryAllocated:        float64(plan.MemoryAllocated.Get()),
+			VdcStorageBillingModel: plan.VDCStorageBillingModel.Get(),
 		},
 	}
 
+	// Get the storage profiles
+	var diags diag.Diagnostics
+	storageProfiles, d := plan.GetVDCStorageProfiles(ctx)
+	diags.Append(d...)
+	if d.HasError() {
+		return
+	}
 	// Iterate over the storage profiles and add them to the body.
-	for _, storageProfile := range plan.VDCStorageProfiles {
+	for _, storageProfile := range storageProfiles {
 		body.Vdc.VdcStorageProfiles = append(body.Vdc.VdcStorageProfiles, apiclient.VdcStorageProfilesV2{
-			Class:    storageProfile.Class.ValueString(),
-			Limit:    int32(storageProfile.Limit.ValueInt64()),
-			Default_: storageProfile.Default.ValueBool(),
+			Class:    storageProfile.Class.Get(),
+			Limit:    int32(storageProfile.Limit.Get()),
+			Default_: storageProfile.Default.Get(),
 		})
 	}
 
@@ -192,7 +199,8 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 			break
 		}
 	}
-	plan.ID = types.StringValue(ID)
+
+	plan.ID.Set(ID)
 
 	// Save plan into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -270,40 +278,40 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	for _, v := range vdcs {
-		if state.Name.ValueString() == v.VdcName {
+		if state.Name.Get() == v.VdcName {
 			ID = uuid.Normalize(uuid.VDC, v.VdcUuid).String()
 			break
 		}
 	}
 
 	// Get storageProfile
-	var profiles []vdcStorageProfileModel
+	profiles := make(vdcResourceModelVDCStorageProfiles, 0)
 	for _, profile := range vdc.Vdc.VdcStorageProfiles {
-		p := vdcStorageProfileModel{
-			Class:   types.StringValue(profile.Class),
-			Limit:   types.Int64Value(int64(profile.Limit)),
-			Default: types.BoolValue(profile.Default_),
-		}
+		p := vdcResourceModelVDCStorageProfile{}
+		p.Class.Set(profile.Class)
+		p.Limit.SetInt32(profile.Limit)
+		p.Default.Set(profile.Default_)
 		profiles = append(profiles, p)
 	}
 
 	// Convert from the API data model to the Terraform data model
 	// and refresh any attribute values.
-	state = &vdcResourceModel{
-		Timeouts:               state.Timeouts,
-		ID:                     types.StringValue(ID),
-		Name:                   types.StringValue(vdc.Vdc.Name),
-		Description:            types.StringValue(vdc.Vdc.Description),
-		VDCGroup:               state.VDCGroup, // Now due to deprecated field use value in state
-		VDCServiceClass:        types.StringValue(vdc.Vdc.VdcServiceClass),
-		VDCDisponibilityClass:  types.StringValue(vdc.Vdc.VdcDisponibilityClass),
-		VDCBillingModel:        types.StringValue(vdc.Vdc.VdcBillingModel),
-		VcpuInMhz2:             types.Float64Value(vdc.Vdc.VcpuInMhz2),
-		CPUAllocated:           types.Int64Value(int64(vdc.Vdc.CpuAllocated)),
-		MemoryAllocated:        types.Float64Value(vdc.Vdc.MemoryAllocated),
-		VDCStorageBillingModel: types.StringValue(vdc.Vdc.VdcStorageBillingModel),
-		VDCStorageProfiles:     profiles,
+	state.ID.Set(ID)
+	state.Name.Set(vdc.Vdc.Name)
+	state.Description.Set(vdc.Vdc.Description)
+	state.VDCGroup.Set(vdc.VdcGroup)
+	state.VDCServiceClass.Set(vdc.Vdc.VdcServiceClass)
+	state.VDCDisponibilityClass.Set(vdc.Vdc.VdcDisponibilityClass)
+	state.VDCBillingModel.Set(vdc.Vdc.VdcBillingModel)
+	state.VcpuInMhz2.Set(int64(vdc.Vdc.VcpuInMhz2))
+	state.CPUAllocated.Set(int64(vdc.Vdc.CpuAllocated))
+	state.MemoryAllocated.Set(int64(vdc.Vdc.MemoryAllocated))
+	state.VDCStorageBillingModel.Set(vdc.Vdc.VdcStorageBillingModel)
+	resp.Diagnostics.Append(state.VDCStorageProfiles.Set(ctx, profiles)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+
 	// Save updated state into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -350,7 +358,7 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	var httpR *http.Response
 	var err error
 	var group string
-	vdc, httpR, err := r.client.APIClient.VDCApi.GetOrgVdcByName(auth, state.Name.ValueString())
+	vdc, httpR, err := r.client.APIClient.VDCApi.GetOrgVdcByName(auth, state.Name.Get())
 	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
@@ -358,7 +366,7 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 	// check if vdcGroup exists
 	if !plan.VDCGroup.IsNull() {
-		group = plan.VDCGroup.ValueString()
+		group = plan.VDCGroup.Get()
 	} else {
 		group = vdc.VdcGroup
 	}
@@ -367,28 +375,36 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	body := apiclient.UpdateOrgVdcV2{
 		VdcGroup: group,
 		Vdc: &apiclient.OrgVdcV2{
-			Name:                   plan.Name.ValueString(),
-			Description:            plan.Description.ValueString(),
-			VdcServiceClass:        plan.VDCServiceClass.ValueString(),
-			VdcDisponibilityClass:  plan.VDCDisponibilityClass.ValueString(),
-			VdcBillingModel:        plan.VDCBillingModel.ValueString(),
-			VcpuInMhz2:             plan.VcpuInMhz2.ValueFloat64(),
-			CpuAllocated:           float64(plan.CPUAllocated.ValueInt64()),
-			MemoryAllocated:        plan.MemoryAllocated.ValueFloat64(),
-			VdcStorageBillingModel: plan.VDCStorageBillingModel.ValueString(),
+			Name:                   plan.Name.Get(),
+			Description:            plan.Description.Get(),
+			VdcServiceClass:        plan.VDCServiceClass.Get(),
+			VdcDisponibilityClass:  plan.VDCDisponibilityClass.Get(),
+			VdcBillingModel:        plan.VDCBillingModel.Get(),
+			VcpuInMhz2:             float64(plan.VcpuInMhz2.Get()),
+			CpuAllocated:           float64(plan.CPUAllocated.Get()),
+			MemoryAllocated:        float64(plan.MemoryAllocated.Get()),
+			VdcStorageBillingModel: plan.VDCStorageBillingModel.Get(),
 		},
 	}
 
 	if !state.VDCGroup.IsNull() {
-		body.VdcGroup = state.VDCGroup.ValueString()
+		body.VdcGroup = state.VDCGroup.Get()
+	}
+
+	// Get the storage profiles
+	var diags diag.Diagnostics
+	storageProfiles, d := plan.GetVDCStorageProfiles(ctx)
+	diags.Append(d...)
+	if d.HasError() {
+		return
 	}
 
 	// Iterate over the storage profiles and add them to the body.
-	for _, storageProfile := range plan.VDCStorageProfiles {
+	for _, storageProfile := range storageProfiles {
 		body.Vdc.VdcStorageProfiles = append(body.Vdc.VdcStorageProfiles, apiclient.VdcStorageProfilesV2{
-			Class:    storageProfile.Class.ValueString(),
-			Limit:    int32(storageProfile.Limit.ValueInt64()),
-			Default_: storageProfile.Default.ValueBool(),
+			Class:    storageProfile.Class.Get(),
+			Limit:    int32(storageProfile.Limit.Get()),
+			Default_: storageProfile.Default.Get(),
 		})
 	}
 
