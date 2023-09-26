@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
@@ -17,8 +15,8 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &vdcsDataSource{}
-	_ datasource.DataSourceWithConfigure = &vdcsDataSource{}
+	_ datasource.DataSource              = &vdcDataSource{}
+	_ datasource.DataSourceWithConfigure = &vdcDataSource{}
 )
 
 // NewVDCDataSource returns a new resource implementing the vdcs data source.
@@ -106,29 +104,29 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	}
 
 	// Get storageProfile
-	var profiles []vdcStorageProfileModel
+	profiles := make(vdcResourceModelVDCStorageProfiles, 0)
 	for _, profile := range vdc.Vdc.VdcStorageProfiles {
-		p := vdcStorageProfileModel{
-			Class:   types.StringValue(profile.Class),
-			Limit:   types.Int64Value(int64(profile.Limit)),
-			Default: types.BoolValue(profile.Default_),
-		}
+		p := vdcResourceModelVDCStorageProfile{}
+		p.Class.Set(profile.Class)
+		p.Limit.SetInt32(profile.Limit)
+		p.Default.Set(profile.Default_)
 		profiles = append(profiles, p)
 	}
 
-	data = vdcDataSourceModel{
-		ID:                     types.StringValue(ID),
-		VDCGroup:               types.StringValue(vdc.VdcGroup),
-		Name:                   types.StringValue(vdc.Vdc.Name),
-		Description:            types.StringValue(vdc.Vdc.Description),
-		VDCServiceClass:        types.StringValue(vdc.Vdc.VdcServiceClass),
-		VDCDisponibilityClass:  types.StringValue(vdc.Vdc.VdcDisponibilityClass),
-		VDCBillingModel:        types.StringValue(vdc.Vdc.VdcBillingModel),
-		VcpuInMhz2:             types.Float64Value(vdc.Vdc.VcpuInMhz2),
-		CPUAllocated:           types.Float64Value(vdc.Vdc.CpuAllocated),
-		MemoryAllocated:        types.Float64Value(vdc.Vdc.MemoryAllocated),
-		VDCStorageBillingModel: types.StringValue(vdc.Vdc.VdcStorageBillingModel),
-		VDCStorageProfiles:     profiles,
+	data.ID.Set(ID)
+	data.VDCGroup.Set(vdc.VdcGroup)
+	data.Name.Set(vdc.Vdc.Name)
+	data.Description.Set(vdc.Vdc.Description)
+	data.VDCServiceClass.Set(vdc.Vdc.VdcServiceClass)
+	data.VDCDisponibilityClass.Set(vdc.Vdc.VdcDisponibilityClass)
+	data.VDCBillingModel.Set(vdc.Vdc.VdcBillingModel)
+	data.VcpuInMhz2.Set(int64(vdc.Vdc.VcpuInMhz2))
+	data.CPUAllocated.Set(int64(vdc.Vdc.CpuAllocated))
+	data.MemoryAllocated.Set(int64(vdc.Vdc.MemoryAllocated))
+	data.VDCStorageBillingModel.Set(vdc.Vdc.VdcStorageBillingModel)
+	resp.Diagnostics.Append(data.VDCStorageProfiles.Set(ctx, profiles)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Save data into Terraform state

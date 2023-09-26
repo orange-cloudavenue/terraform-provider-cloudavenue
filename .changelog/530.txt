@@ -1,0 +1,3 @@
+```release-note:note
+`resource/cloudavenue_vdc` - Fix values in documentation for attributes `cpu_allocated`, `memory_allocated`, `cpu_speed_in_mhz`.
+```

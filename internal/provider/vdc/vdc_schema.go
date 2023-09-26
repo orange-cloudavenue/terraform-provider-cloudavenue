@@ -10,11 +10,10 @@ import (
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -47,7 +46,7 @@ func vdcSchema() superschema.Schema {
 					Update: true,
 				},
 			},
-			"id": superschema.StringAttribute{
+			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the vDC.",
 					Computed:            true,
@@ -58,7 +57,7 @@ func vdcSchema() superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.StringAttribute{
+			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the vDC.",
 					Required:            true,
@@ -72,7 +71,7 @@ func vdcSchema() superschema.Schema {
 					},
 				},
 			},
-			"description": superschema.StringAttribute{
+			"description": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "A description of the vDC.",
 				},
@@ -83,14 +82,14 @@ func vdcSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"cpu_speed_in_mhz": superschema.Float64Attribute{
-				Common: &schemaR.Float64Attribute{
+			"cpu_speed_in_mhz": superschema.SuperInt64Attribute{
+				Common: &schemaR.Int64Attribute{
 					MarkdownDescription: "Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM.",
 				},
-				Resource: &schemaR.Float64Attribute{
+				Resource: &schemaR.Int64Attribute{
 					Required: true,
-					PlanModifiers: []planmodifier.Float64{
-						float64planmodifier.RequiresReplaceIf(func(ctx context.Context, request planmodifier.Float64Request, resp *float64planmodifier.RequiresReplaceIfFuncResponse) {
+					PlanModifiers: []planmodifier.Int64{
+						int64planmodifier.RequiresReplaceIf(func(ctx context.Context, request planmodifier.Int64Request, resp *int64planmodifier.RequiresReplaceIfFuncResponse) {
 							billingModel := new(types.String)
 							resp.Diagnostics.Append(request.Plan.GetAttribute(ctx, path.Root("billing_model"), billingModel)...)
 							if resp.Diagnostics.HasError() {
@@ -103,41 +102,42 @@ func vdcSchema() superschema.Schema {
 						}, "", ""),
 					},
 					MarkdownDescription: "Force replacement attributes, however you can change the `cpu_speed_in_mhz` attribute only if the `billing_model` is set to **RESERVED**.",
-					Validators: []validator.Float64{
-						float64validator.AtLeast(1200),
+					Validators: []validator.Int64{
+						int64validator.AtLeast(1200),
 					},
 				},
-				DataSource: &schemaD.Float64Attribute{
+				DataSource: &schemaD.Int64Attribute{
 					Computed: true,
 				},
 			},
-			"cpu_allocated": superschema.Float64Attribute{
-				Common: &schemaR.Float64Attribute{
+
+			"cpu_allocated": superschema.SuperInt64Attribute{
+				Common: &schemaR.Int64Attribute{
 					MarkdownDescription: "CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.",
 				},
-				Resource: &schemaR.Float64Attribute{
+				Resource: &schemaR.Int64Attribute{
 					MarkdownDescription: "\n\n -> Note: Reserved capacity is automatically set according to the service class.",
 					Required:            true,
 				},
-				DataSource: &schemaD.Float64Attribute{
+				DataSource: &schemaD.Int64Attribute{
 					Computed: true,
 				},
 			},
-			"memory_allocated": superschema.Float64Attribute{
-				Common: &schemaR.Float64Attribute{
+			"memory_allocated": superschema.SuperInt64Attribute{
+				Common: &schemaR.Int64Attribute{
 					MarkdownDescription: "Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode.",
 				},
-				Resource: &schemaR.Float64Attribute{
+				Resource: &schemaR.Int64Attribute{
 					Required: true,
-					Validators: []validator.Float64{
-						float64validator.Between(1, 500),
+					Validators: []validator.Int64{
+						int64validator.Between(1, 500),
 					},
 				},
-				DataSource: &schemaD.Float64Attribute{
+				DataSource: &schemaD.Int64Attribute{
 					Computed: true,
 				},
 			},
-			"vdc_group": superschema.StringAttribute{
+			"vdc_group": superschema.SuperStringAttribute{
 				Deprecated: &superschema.Deprecated{
 					DeprecationMessage:                "Remove the vdc_group attribute configuration as it replaced by the resource cloudavenue_vdc_group and the attribute will be removed in the version 0.12.0 of the provider.",
 					ComputeMarkdownDeprecationMessage: true,
@@ -164,7 +164,7 @@ func vdcSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"service_class": superschema.StringAttribute{
+			"service_class": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The service class of the vDC.",
 				},
@@ -181,7 +181,7 @@ func vdcSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"disponibility_class": superschema.StringAttribute{
+			"disponibility_class": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The disponibility class of the vDC.",
 				},
@@ -198,7 +198,7 @@ func vdcSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"billing_model": superschema.StringAttribute{
+			"billing_model": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Choose Billing model of compute resources.",
 				},
@@ -215,7 +215,7 @@ func vdcSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"storage_billing_model": superschema.StringAttribute{
+			"storage_billing_model": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Choose Billing model of storage resources.",
 				},
@@ -232,7 +232,7 @@ func vdcSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"storage_profiles": superschema.SetNestedAttribute{
+			"storage_profiles": superschema.SuperSetNestedAttribute{
 				Common: &schemaR.SetNestedAttribute{
 					MarkdownDescription: "List of storage profiles for this vDC.",
 				},
@@ -246,7 +246,7 @@ func vdcSchema() superschema.Schema {
 					Computed: true,
 				},
 				Attributes: map[string]superschema.Attribute{
-					"class": superschema.StringAttribute{
+					"class": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The storage class of the storage profile.",
 						},
@@ -260,7 +260,7 @@ func vdcSchema() superschema.Schema {
 							Computed: true,
 						},
 					},
-					"limit": superschema.Int64Attribute{
+					"limit": superschema.SuperInt64Attribute{
 						Common: &schemaR.Int64Attribute{
 							MarkdownDescription: "Max number in *Gb* of units allocated for this storage profile.",
 						},
@@ -274,7 +274,7 @@ func vdcSchema() superschema.Schema {
 							Computed: true,
 						},
 					},
-					"default": superschema.BoolAttribute{
+					"default": superschema.SuperBoolAttribute{
 						Common: &schemaR.BoolAttribute{
 							MarkdownDescription: "Set this storage profile as default for this vDC. Only one storage profile can be default per vDC.",
 						},
