@@ -1,4 +1,8 @@
 ## 0.12.0 (Unreleased)
+### :information_source: **Notes**
+
+* `resource/cloudavenue_vdc` - Fix values in documentation for attributes `cpu_allocated`, `memory_allocated`, `cpu_speed_in_mhz`. ([GH-530](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/530))
+
 ## 0.11.0 (September 22, 2023)
 ### :rotating_light: **Breaking Changes**
 
