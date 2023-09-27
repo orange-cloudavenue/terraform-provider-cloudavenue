@@ -47,7 +47,7 @@ func (p *cloudavenueProvider) Schema(ctx context.Context, _ provider.SchemaReque
 	resp.Schema = providerSchema(ctx)
 }
 
-func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) { //nolint:gocyclo
 	var config cloudavenueProviderModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
@@ -62,6 +62,9 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 	password := os.Getenv("CLOUDAVENUE_PASSWORD")
 	org := os.Getenv("CLOUDAVENUE_ORG")
 	vdc := os.Getenv("CLOUDAVENUE_VDC")
+	netbackupURL := os.Getenv("NETBACKUP_URL")
+	netbackupUser := os.Getenv("NETBACKUP_USER")
+	netbackupPassword := os.Getenv("NETBACKUP_PASSWORD")
 
 	if !config.URL.IsNull() && config.URL.ValueString() != "" {
 		urlCloudAvenue = config.URL.ValueString()
@@ -80,6 +83,15 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 	}
 	if !config.VDC.IsNull() && config.VDC.ValueString() != "" {
 		vdc = config.VDC.ValueString()
+	}
+	if !config.NetBackupURL.IsNull() {
+		netbackupURL = config.NetBackupURL.ValueString()
+	}
+	if !config.NetBackupUser.IsNull() {
+		netbackupUser = config.NetBackupUser.ValueString()
+	}
+	if !config.NetBackupPassword.IsNull() {
+		netbackupPassword = config.NetBackupPassword.ValueString()
 	}
 
 	// Default URL to the public Cloud Avenue API if not set.
@@ -102,7 +114,7 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 			path.Root("password"),
 			"Missing Cloud Avenue API Password",
 			"The provider cannot create the Cloud Avenue API client as there is a missing or empty value for the Cloud Avenue API password. "+
-				"Set the host value in the configuration or use the CLOUDAVENUE_PASWWORD environment variable. "+
+				"Set the host value in the configuration or use the CLOUDAVENUE_PASSWORD environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
@@ -112,6 +124,28 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 			"Missing Cloud Avenue API Org",
 			"The provider cannot create the Cloud Avenue API client as there is a missing or empty value for the Cloud Avenue API org. "+
 				"Set the host value in the configuration or use the CLOUDAVENUE_ORG environment variable. "+
+				"If either is already set, ensure the value is not empty.",
+		)
+	}
+	// Default URL to the public NetBackup API if not set.
+	if netbackupURL == "" {
+		netbackupURL = "https://backup1.cloudavenue.orange-business.com/NetBackupSelfServiceNetBackupPanels/Api"
+	}
+	if netbackupUser == "" && netbackupPassword != "" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("netbackup_user"),
+			"Missing NetBackup API User",
+			"The provider cannot create the NetBackup API client as there is a missing or empty value for the NetBackup API user. "+
+				"Set the host value in the configuration or use the NETBACKUP_USER environment variable. "+
+				"If either is already set, ensure the value is not empty.",
+		)
+	}
+	if netbackupPassword == "" && netbackupUser != "" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("netbackup_password"),
+			"Missing NetBackup API Password",
+			"The provider cannot create the NetBackup API client as there is a missing or empty value for the NetBackup API password. "+
+				"Set the host value in the configuration or use the NETBACKUP_PASSWORD environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
@@ -125,6 +159,10 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 	ctx = tflog.SetField(ctx, "cloudavenue_org", org)
 	ctx = tflog.SetField(ctx, "cloudavenue_password", password)
 	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "cloudavenue_password")
+	ctx = tflog.SetField(ctx, "netbackup_host", netbackupURL)
+	ctx = tflog.SetField(ctx, "netbackup_username", netbackupUser)
+	ctx = tflog.SetField(ctx, "netbackup_password", netbackupPassword)
+	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "netbackup_password")
 
 	tflog.Debug(ctx, "Creating CloudAvenue client")
 
@@ -137,6 +175,9 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 		TerraformVersion:   req.TerraformVersion,
 		CloudAvenueVersion: p.version,
 		VCDVersion:         VCDVersion,
+		NetBackupURL:       netbackupURL,
+		NetBackupUser:      netbackupUser,
+		NetBackupPassword:  netbackupPassword,
 	}
 
 	cA, err := cloudAvenue.New()
@@ -172,6 +213,14 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 				"An unexpected error occurred when creating the VMWare VCD Client. "+
 					"If the error is not clear, please contact the provider developers.\n\n"+
 					"VMWare VCD version is empty",
+			)
+			return
+		case errors.Is(err, client.ErrConfigureNetBackup):
+			resp.Diagnostics.AddError(
+				"Unable to Configure NetBackup Client",
+				"An unexpected error occurred when creating the NetBackup Client. "+
+					"If the error is not clear, please contact the provider developers.\n\n"+
+					"NetBackup Client Error: "+err.Error(),
 			)
 			return
 		default:

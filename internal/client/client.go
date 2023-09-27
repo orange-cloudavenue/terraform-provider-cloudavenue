@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/url"
 
+	netbackupclient "github.com/orange-cloudavenue/netbackup-sdk-go"
+
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
@@ -20,6 +22,8 @@ var (
 	// ErrConfigureVmware is returned when the configuration of vmware failed.
 	ErrConfigureVmware = errors.New("error configuring vmware")
 	ErrVCDVersionEmpty = errors.New("empty vcd version")
+	// ErrConfigureNetBackup is returned when the configuration of netbackup failed.
+	ErrConfigureNetBackup = errors.New("error configuring netbackup")
 )
 
 // CloudAvenue is the main struct for the CloudAvenue client.
@@ -40,6 +44,12 @@ type CloudAvenue struct {
 	Vmware     *govcd.VCDClient
 	urlVmware  *url.URL
 	VCDVersion string
+
+	// API NetBackup
+	NetBackupClient   *netbackupclient.Client
+	NetBackupURL      string
+	NetBackupUser     string
+	NetBackupPassword string
 }
 
 // New creates a new CloudAvenue client.
@@ -74,6 +84,19 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 	err = c.Vmware.SetToken(c.Org, govcd.AuthorizationHeader, token)
 	if err != nil {
 		return nil, fmt.Errorf("%w : %w", ErrConfigureVmware, err)
+	}
+
+	// API NetBackup
+	if c.NetBackupURL != "" && c.NetBackupUser != "" && c.NetBackupPassword != "" {
+		c.NetBackupClient, err = netbackupclient.New(netbackupclient.Opts{
+			APIEndpoint: c.NetBackupURL,
+			Username:    c.NetBackupUser,
+			Password:    c.NetBackupPassword,
+			Debug:       false,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("%w : %w", ErrConfigureNetBackup, err)
+		}
 	}
 
 	return c, nil

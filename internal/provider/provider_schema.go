@@ -41,6 +41,25 @@ func providerSchema(_ context.Context) schema.Schema {
 				MarkdownDescription: "The VDC used on Cloud Avenue API. Can also be set with the `CLOUDAVENUE_VDC` environment variable.",
 				Optional:            true,
 			},
+			"netbackup_url": schema.StringAttribute{
+				MarkdownDescription: "The URL of the NetBackup API. Can also be set with the `NETBACKUP_URL` environment variable.",
+				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^https?:\/\/\S+\w$`),
+						"must end with a letter",
+					),
+				},
+			},
+			"netbackup_user": schema.StringAttribute{
+				MarkdownDescription: "The username to use to connect to the NetBackup API. Can also be set with the `NETBACKUP_USER` environment variable.",
+				Optional:            true,
+			},
+			"netbackup_password": schema.StringAttribute{
+				MarkdownDescription: "The password to use to connect to the NetBackup API. Can also be set with the `NETBACKUP_PASSWORD` environment variable.",
+				Sensitive:           true,
+				Optional:            true,
+			},
 		},
 	}
 }

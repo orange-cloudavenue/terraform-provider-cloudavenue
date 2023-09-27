@@ -1,0 +1,3 @@
+```release-note:feature
+`client/cloudavenue` - Add `NetBackup` credentials in provider configuration.
+```

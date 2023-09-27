@@ -35,6 +35,9 @@ provider "cloudavenue" {
 
 ### Optional
 
+- `netbackup_password` (String, Sensitive) The password to use to connect to the NetBackup API. Can also be set with the `NETBACKUP_PASSWORD` environment variable.
+- `netbackup_url` (String) The URL of the NetBackup API. Can also be set with the `NETBACKUP_URL` environment variable.
+- `netbackup_user` (String) The username to use to connect to the NetBackup API. Can also be set with the `NETBACKUP_USER` environment variable.
 - `org` (String) The organization used on Cloud Avenue API. Can also be set with the `CLOUDAVENUE_ORG` environment variable.
 - `password` (String, Sensitive) The password to use to connect to the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_PASSWORD` environment variable.
 - `url` (String) The URL of the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_URL` environment variable.
