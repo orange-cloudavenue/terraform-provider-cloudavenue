@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"net/url"
 
-	netbackupclient "github.com/orange-cloudavenue/netbackup-sdk-go"
-
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
@@ -46,20 +44,14 @@ type CloudAvenue struct {
 	VCDVersion string
 
 	// API NetBackup
-	NetBackupClient   *netbackupclient.Client
-	NetBackupURL      string
-	NetBackupUser     string
-	NetBackupPassword string
+	NetBackup *NetBackup
 }
 
 // New creates a new CloudAvenue client.
 func (c *CloudAvenue) New() (*CloudAvenue, error) {
 	// API CLOUDAVENUE
-	auth := c.createBasicAuthContext()
-	cfg := c.createConfiguration()
-
-	c.APIClient = apiclient.NewAPIClient(cfg)
-	_, ret, err := c.APIClient.AuthenticationApi.GetToken(auth)
+	c.APIClient = apiclient.NewAPIClient(c.createConfiguration())
+	_, ret, err := c.APIClient.AuthenticationApi.GetToken(c.createBasicAuthContext())
 	if err != nil {
 		return nil, fmt.Errorf("%w : %w", ErrAuthFailed, err)
 	}
@@ -71,8 +63,7 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 	c.Auth = createTokenInContext(token)
 
 	// API VMWARE
-	err = c.configureVmware()
-	if err != nil {
+	if err = c.configureVmware(); err != nil {
 		return nil, fmt.Errorf("%w : %w", ErrConfigureVmware, err)
 	}
 
@@ -81,21 +72,14 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 	}
 
 	c.Vmware = govcd.NewVCDClient(*c.urlVmware, false, govcd.WithAPIVersion(c.VCDVersion))
-	err = c.Vmware.SetToken(c.Org, govcd.AuthorizationHeader, token)
-	if err != nil {
+	if err = c.Vmware.SetToken(c.Org, govcd.AuthorizationHeader, token); err != nil {
 		return nil, fmt.Errorf("%w : %w", ErrConfigureVmware, err)
 	}
 
 	// API NetBackup
-	if c.NetBackupURL != "" && c.NetBackupUser != "" && c.NetBackupPassword != "" {
-		c.NetBackupClient, err = netbackupclient.New(netbackupclient.Opts{
-			APIEndpoint: c.NetBackupURL,
-			Username:    c.NetBackupUser,
-			Password:    c.NetBackupPassword,
-			Debug:       false,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("%w : %w", ErrConfigureNetBackup, err)
+	if c.NetBackup.IsDefined() {
+		if err := c.NewNetBackupClient(); err != nil {
+			return nil, err
 		}
 	}
 
@@ -105,23 +89,19 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 // createBasicAuthContext creates a new context with the basic auth values.
 func (c *CloudAvenue) createBasicAuthContext() context.Context {
 	// Create a new CloudAvenue client using the configuration values
-	auth := context.WithValue(context.Background(), apiclient.ContextBasicAuth, apiclient.BasicAuth{
+	return context.WithValue(context.Background(), apiclient.ContextBasicAuth, apiclient.BasicAuth{
 		UserName: c.User + "@" + c.Org,
 		Password: c.Password,
 	})
-
-	return auth
 }
 
 // createConfiguration creates a new configuration for the CloudAvenue client.
 func (c *CloudAvenue) createConfiguration() *apiclient.Configuration {
-	cfg := &apiclient.Configuration{
+	return &apiclient.Configuration{
 		BasePath:      c.URL,
 		DefaultHeader: make(map[string]string),
 		UserAgent:     c.createUserAgent(),
 	}
-
-	return cfg
 }
 
 // configurVmware creates a new configuration for the Vmware client.
@@ -156,7 +136,6 @@ func (c *CloudAvenue) GetURL() string {
 }
 
 // GetOrgName() returns the name of the organization.
-// Deprecated: use GetOrg instead.
 func (c *CloudAvenue) GetOrgName() string {
 	return c.Org
 }
