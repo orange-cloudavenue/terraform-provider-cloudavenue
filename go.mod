@@ -20,6 +20,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.29.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.1.3
+	github.com/orange-cloudavenue/netbackup-sdk-go v0.0.2-0.20230928095122-108fd1ec28ae
 	github.com/rs/zerolog v1.30.0
 	github.com/thanhpk/randstr v1.0.6
 	github.com/vmware/go-vcloud-director/v2 v2.21.0
@@ -47,6 +48,7 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible // indirect
 	github.com/go-chi/render v1.0.3 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
+	github.com/go-resty/resty/v2 v2.8.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
