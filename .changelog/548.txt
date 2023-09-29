@@ -1,0 +1,3 @@
+```release-note:note
+`provider` - Improve documentation for provider authentication and configuration.
+```
