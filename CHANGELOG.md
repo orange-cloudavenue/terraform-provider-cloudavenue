@@ -5,6 +5,7 @@
 * `client/cloudavenue` - Add `NetBackup` credentials in provider configuration. ([GH-546](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/546))
 ### :information_source: **Notes**
 
+* `provider` - Improve documentation for provider authentication and configuration. ([GH-548](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/548))
 * `resource/cloudavenue_vdc` - Fix values in documentation for attributes `cpu_allocated`, `memory_allocated`, `cpu_speed_in_mhz`. ([GH-530](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/530))
 
 ## 0.11.0 (September 22, 2023)
