@@ -1,0 +1,3 @@
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/netbackup-sdk-go from 0.0.2-0.20230928095122-108fd1ec28ae to 0.0.2
+```
