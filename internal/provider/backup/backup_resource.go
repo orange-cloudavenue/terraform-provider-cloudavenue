@@ -1,8 +1,10 @@
-package netbackup
+package backup
 
 import (
 	"context"
 	"fmt"
+
+	"github.com/orange-cloudavenue/netbackup-sdk-go/netbackupclient"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
@@ -13,36 +15,35 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &BackupResource{}
-	_ resource.ResourceWithConfigure   = &BackupResource{}
-	_ resource.ResourceWithImportState = &BackupResource{}
-	// _ resource.ResourceWithModifyPlan     = &BackupResource{}
-	// _ resource.ResourceWithUpgradeState   = &BackupResource{}
-	// _ resource.ResourceWithValidateConfig = &BackupResource{}.
+	_ resource.Resource                = &backupResource{}
+	_ resource.ResourceWithConfigure   = &backupResource{}
+	_ resource.ResourceWithImportState = &backupResource{}
+	// _ resource.ResourceWithModifyPlan     = &backupResource{}
+	// _ resource.ResourceWithUpgradeState   = &backupResource{}
+	// _ resource.ResourceWithValidateConfig = &backupResource{}.
 )
 
-// NewBackupResource is a helper function to simplify the provider implementation.
+// NewbackupResource is a helper function to simplify the provider implementation.
 func NewBackupResource() resource.Resource {
-	return &BackupResource{}
+	return &backupResource{}
 }
 
-// BackupResource is the resource implementation.
-type BackupResource struct {
+// backupResource is the resource implementation.
+type backupResource struct {
 	client *client.CloudAvenue
-
 	// Uncomment the following lines if you need to access the resource's.
 	// org    org.Org
-	// vdc    vdc.VDC
+	// vdc vdc.VDC
 	// vapp   vapp.VAPP
 }
 
 // If the resource don't have same schema/structure as the data source, you can use the following code:
-// type BackupResourceModel struct {
+// type backupResourceModel struct {
 // 	ID types.String `tfsdk:"id"`
 // }
 
 // Init Initializes the resource.
-func (r *BackupResource) Init(ctx context.Context, rm *BackupModel) (diags diag.Diagnostics) {
+func (r *backupResource) Init(ctx context.Context, rm *backupModel) (diags diag.Diagnostics) {
 	// Uncomment the following lines if you need to access to the Org
 	// r.org, diags = org.Init(r.client)
 	// if diags.HasError() {
@@ -62,16 +63,16 @@ func (r *BackupResource) Init(ctx context.Context, rm *BackupModel) (diags diag.
 }
 
 // Metadata returns the resource type name.
-func (r *BackupResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *backupResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
 // Schema defines the schema for the resource.
-func (r *BackupResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *backupResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = backupSchema(ctx).GetResource(ctx)
 }
 
-func (r *BackupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *backupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -89,8 +90,8 @@ func (r *BackupResource) Configure(ctx context.Context, req resource.ConfigureRe
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *BackupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	plan := &BackupModel{}
+func (r *backupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	plan := &backupModel{}
 
 	// Retrieve values from plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -108,20 +109,65 @@ func (r *BackupResource) Create(ctx context.Context, req resource.CreateRequest,
 		Implement the resource creation logic here.
 	*/
 
-	// Use generic read function to refresh the state
-	state, _, d := r.read(ctx, plan)
+	// Define if the target is a VDC ID or a VDC Name
+	var nameOrID string
+	if plan.TargetID.IsNull() {
+		nameOrID = plan.TargetName.Get()
+	} else {
+		nameOrID = plan.TargetID.Get()
+	}
+
+	// for policies extract values from the plan
+	policies, d := plan.GetPolicies(ctx)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
 	}
 
+	// switch on the type of the backup
+	switch plan.Type.Get() {
+	case "vdc":
+		vdc, err := r.client.NetBackupClient.VCloud.GetVdcByNameOrIdentifier(nameOrID)
+		if err != nil {
+			resp.Diagnostics.AddError("Error getting vCloud Director Virtual Data Center", err.Error())
+			return
+		}
+		// for each policy, protect the VDC
+		for _, policy := range policies {
+			if policy.Enabled.Get() {
+				job, err := vdc.Protect(netbackupclient.ProtectUnprotectRequest{
+					ProtectionLevelName: policy.PolicyName.Get(),
+					ProtectionLevelID:   policy.PolicyID.GetIntPtr(),
+				})
+				if err != nil {
+					resp.Diagnostics.AddError("Error protecting vCloud Director Virtual Data Center", err.Error())
+					return
+				}
+				if err := job.Wait(1, 15); err != nil {
+					resp.Diagnostics.AddError("Error waiting for job", err.Error())
+				}
+			}
+		}
+	case "vapp":
+		// TODO: Create a backup for a VAPP
+	case "vm":
+		// TODO: Create a backup for a VM
+	}
+
+	// Use generic read function to refresh the state
+	// state, _, d := r.read(ctx, plan)
+	// if d.HasError() {
+	// 	resp.Diagnostics.Append(d...)
+	// 	return
+	// }
+
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *BackupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	state := &BackupModel{}
+func (r *backupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	state := &backupModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -151,10 +197,10 @@ func (r *BackupResource) Read(ctx context.Context, req resource.ReadRequest, res
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *BackupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *backupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var (
-		plan  = &BackupModel{}
-		state = &BackupModel{}
+		plan  = &backupModel{}
+		state = &backupModel{}
 	)
 
 	// Get current plan and state
@@ -186,8 +232,8 @@ func (r *BackupResource) Update(ctx context.Context, req resource.UpdateRequest,
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *BackupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	state := &BackupModel{}
+func (r *backupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	state := &backupModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -206,7 +252,7 @@ func (r *BackupResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	*/
 }
 
-func (r *BackupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *backupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// * Import basic
 	// resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
@@ -228,7 +274,7 @@ func (r *BackupResource) ImportState(ctx context.Context, req resource.ImportSta
 // * CustomFuncs
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
-func (r *BackupResource) read(ctx context.Context, planOrState *BackupModel) (stateRefreshed *BackupModel, found bool, diags diag.Diagnostics) {
+func (r *backupResource) read(ctx context.Context, planOrState *backupModel) (stateRefreshed *backupModel, found bool, diags diag.Diagnostics) {
 	// TODO : Remove the comment line after you have run the types generator
 	// stateRefreshed is commented because the Copy function is not before run the types generator
 	// stateRefreshed = planOrState.Copy()

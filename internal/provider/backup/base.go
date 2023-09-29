@@ -1,5 +1,5 @@
-package netbackup
+package backup
 
 const (
-	categoryName = "netbackup"
+	categoryName = "backup"
 )

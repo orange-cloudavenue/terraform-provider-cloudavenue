@@ -1,4 +1,4 @@
-package netbackup
+package backup
 
 import (
 	"context"
@@ -94,7 +94,7 @@ func backupSchema(_ context.Context) superschema.Schema {
 				Resource: &schemaR.StringAttribute{
 					Required: true,
 					Validators: []validator.String{
-						stringvalidator.OneOf("vdc", "vapp", "vm"),
+						stringvalidator.OneOf("vdc", "VDC", "VAPP", "vapp", "VM", "vm"),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -147,16 +147,17 @@ func backupSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 				Attributes: map[string]superschema.Attribute{
-					"policy_id": superschema.SuperStringAttribute{
-						Common: &schemaR.StringAttribute{
+					"policy_id": superschema.SuperInt64Attribute{
+						Common: &schemaR.Int64Attribute{
 							MarkdownDescription: "The ID of the backup policy.",
 							Computed:            true,
 						},
-						Resource: &schemaR.StringAttribute{
+						Resource: &schemaR.Int64Attribute{
 							Optional: true,
-							Validators: []validator.String{
-								stringvalidator.ExactlyOneOf(path.MatchRoot("policy_id"), path.MatchRoot("policy_name")),
-							},
+							// Validators: []validator.Int64{
+							// 	int64validator.NullIfAttributeIsSet(path.MatchRoot("policy_name")),
+							// 	// int64validator.ExactlyOneOf(path.MatchRoot("policy_id"), path.MatchRoot("policy_name")),
+							// },
 						},
 					},
 					"policy_name": superschema.SuperStringAttribute{
@@ -166,9 +167,9 @@ func backupSchema(_ context.Context) superschema.Schema {
 						},
 						Resource: &schemaR.StringAttribute{
 							Optional: true,
-							Validators: []validator.String{
-								stringvalidator.ExactlyOneOf(path.MatchRoot("policy_id"), path.MatchRoot("policy_name")),
-							},
+							// Validators: []validator.String{
+							// 	stringvalidator.ExactlyOneOf(path.MatchRoot("policy_id"), path.MatchRoot("policy_name")),
+							// },
 						},
 					},
 					"enabled": superschema.SuperBoolAttribute{

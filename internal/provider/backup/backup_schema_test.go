@@ -1,4 +1,4 @@
-package netbackup_test
+package backup_test
 
 import (
 	"context"
