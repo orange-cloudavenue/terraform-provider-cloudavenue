@@ -12,11 +12,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider"
 )
+
+var localCacheResource = map[string]testsacc.Test{}
 
 // TestAccProtoV6ProviderFactories are used to instantiate a provider during
 // acceptance testing. The factory function will be invoked for every Terraform
@@ -82,11 +85,45 @@ func (r resourceConfig) GetDefaultConfig() testsacc.TFData {
 
 // GetSpecificConfig returns the create configuration for the test named "example".
 func (r resourceConfig) GetSpecificConfig(testName string) testsacc.TFData {
-	x := r.Tests(context.Background())[testsacc.TestName(testName)](
-		context.Background(),
-		r.GetResourceName(),
-	).Create.TFConfig
+	var x testsacc.TFData
+
+	if test, ok := localCacheResource[r.GetResourceName()+"."+testName]; ok {
+		x = test.Create.TFConfig
+	} else {
+		t := r.Tests(context.Background())[testsacc.TestName(testName)](
+			context.Background(),
+			r.GetResourceName()+"."+testName,
+		)
+		x = t.Create.TFConfig
+
+		localCacheResource[r.GetResourceName()+"."+testName] = t
+	}
+
 	x.AppendWithoutResourceName(r.DependenciesConfig())
+	return x
+}
+
+// GetDefaultChecks returns the checks for the test named "example".
+func (r resourceConfig) GetDefaultChecks() []resource.TestCheckFunc {
+	return r.GetSpecificChecks("example")
+}
+
+// GetSpecificChecks returns the checks for the test named.
+func (r resourceConfig) GetSpecificChecks(testName string) []resource.TestCheckFunc {
+	var x []resource.TestCheckFunc
+
+	if test, ok := localCacheResource[r.GetResourceName()+"."+testName]; ok {
+		x = test.Create.Checks
+	} else {
+		t := r.Tests(context.Background())[testsacc.TestName(testName)](
+			context.Background(),
+			r.GetResourceName()+"."+testName,
+		)
+		x = t.Create.Checks
+
+		localCacheResource[r.GetResourceName()+"."+testName] = t
+	}
+
 	return x
 }
 

@@ -3,13 +3,11 @@ package testsacc
 
 import (
 	"context"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &VDCDataSource{}
@@ -37,7 +35,7 @@ func (r *VDCDataSource) DependenciesConfig() (configs testsacc.TFData) {
 func (r *VDCDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		"example": func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -45,28 +43,14 @@ func (r *VDCDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ct
 					data "cloudavenue_vdc" "example" {
 						name = cloudavenue_vdc.example.name
 					}`,
-					// TODO: Bug to get value from template in dependencies issue #543
-					// Checks: NewVDCResourceTest().Tests(ctx)["example"](ctx, resourceName).GenerateCheckWithCommonChecks(),
-					Checks: []resource.TestCheckFunc{
-						resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.VDC.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
-						resource.TestCheckResourceAttrSet(resourceName, "name"),
-						resource.TestCheckResourceAttrSet(resourceName, "description"),
-						resource.TestCheckResourceAttrSet(resourceName, "service_class"),
-						resource.TestCheckResourceAttrSet(resourceName, "disponibility_class"),
-						resource.TestCheckResourceAttrSet(resourceName, "billing_model"),
-						resource.TestCheckResourceAttrSet(resourceName, "cpu_speed_in_mhz"),
-						resource.TestCheckResourceAttrSet(resourceName, "cpu_allocated"),
-						resource.TestCheckResourceAttrSet(resourceName, "memory_allocated"),
-						resource.TestCheckResourceAttrSet(resourceName, "storage_billing_model"),
-						resource.TestCheckResourceAttr(resourceName, "storage_profiles.#", "1"),
-					},
+					Checks: GetResourceConfig()[VDCResourceName]().GetDefaultChecks(),
 				},
 			}
 		},
 	}
 }
 
-func TestVDCDataSource(t *testing.T) {
+func TestAccVDCDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,

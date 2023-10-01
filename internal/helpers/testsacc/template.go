@@ -20,11 +20,11 @@ var (
 			}
 
 			randomString := generateRandomString(extraOpts[0])
-			(*KeyValueStore)[buildkeyValueStore(resourceName, key)] = randomString
+			(*KeyValueStore)[buildKeyValueStore(resourceName, key)] = randomString
 			return returnWithQuotes(randomString)
 		},
 		"get": func(resourceName, key string) string {
-			if v, ok := (*KeyValueStore)[buildkeyValueStore(resourceName, key)]; ok {
+			if v, ok := (*KeyValueStore)[buildKeyValueStore(resourceName, key)]; ok {
 				if s, ok := v.(string); ok {
 					return returnWithQuotes(s)
 				}
@@ -50,6 +50,9 @@ var (
 //   - generate: generates a random string and stores it in the key-value store. Generate accepts an optional argument that specifies the format of the random string (available formats: "shortString", "longString"). Default format is "shortString".
 //   - get: returns the value of the given key from the key-value store.
 func GenerateFromTemplate(resourceName, templateData string) TFData {
+	// if prefix of resourceName is "data." then remove it
+	resourceName = strings.TrimPrefix(resourceName, "data.")
+
 	t, _ := template.New(resourceName).Funcs(templateFuncs).Parse(templateData)
 	var tplTypes bytes.Buffer
 	_ = t.Execute(&tplTypes, resourceName)
@@ -60,16 +63,20 @@ func GenerateFromTemplate(resourceName, templateData string) TFData {
 
 // GetValueFromTemplate returns the value of the given key from the key-value store.
 func GetValueFromTemplate(resourceName, key string) string {
-	if v, ok := (*KeyValueStore)[buildkeyValueStore(resourceName, key)]; ok {
+	// if prefix of resourceName is "data." then remove it
+	resourceName = strings.TrimPrefix(resourceName, "data.")
+
+	if v, ok := (*KeyValueStore)[buildKeyValueStore(resourceName, key)]; ok {
 		if s, ok := v.(string); ok {
 			return s
 		}
 	}
+
 	return ""
 }
 
-// buildkeyValueStore builds the key-value store.
-func buildkeyValueStore(resourceName, key string) string {
+// buildKeyValueStore builds the key-value store.
+func buildKeyValueStore(resourceName, key string) string {
 	return resourceName + "." + key
 }
 
