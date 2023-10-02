@@ -1,46 +1,58 @@
 package testsacc
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
-const testAccVDCGroupDataSourceConfig = `
-data "cloudavenue_vdc_group" "example" {
-	name = "MyVDCGroup"
+var _ testsacc.TestACC = &VDCGroupDataSource{}
+
+const (
+	VDCGroupDataSourceName = testsacc.ResourceName("data.cloudavenue_vdc_group")
+)
+
+type VDCGroupDataSource struct{}
+
+func NewVDCGroupDataSourceTest() testsacc.TestACC {
+	return &VDCGroupDataSource{}
 }
-`
+
+// GetResourceName returns the name of the resource.
+func (r *VDCGroupDataSource) GetResourceName() string {
+	return VDCGroupDataSourceName.String()
+}
+
+func (r *VDCGroupDataSource) DependenciesConfig() (configs testsacc.TFData) {
+	configs.Append(GetResourceConfig()[VDCGroupResourceName]().GetDefaultConfig())
+	return
+}
+
+func (r *VDCGroupDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
+		// * Test One (example)
+		"example": func(_ context.Context, _ string) testsacc.Test {
+			return testsacc.Test{
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_vdc_group" "example" {
+						name = cloudavenue_vdc_group.example.name
+					}`,
+					Checks: GetResourceConfig()[VDCResourceName]().GetDefaultChecks(),
+				},
+			}
+		},
+	}
+}
 
 func TestAccVDCGroupDataSource(t *testing.T) {
-	const dataSourceName = "data.cloudavenue_vdc_group.example"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{ // Read testing
-			{
-				Config: testAccVDCGroupDataSourceConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "name", "MyVDCGroup"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "dfw_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "local_egress"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "network_pool_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "network_provider_type"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "status"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "universal_networking_enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "vdcs.0.fault_domain_tag"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "vdcs.0.network_provider_scope"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "vdcs.0.is_remote_org"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "vdcs.0.status"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "vdcs.0.site_name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "vdcs.0.site_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "vdcs.0.name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "vdcs.0.id"),
-				),
-			},
-		},
+		Steps:                    testsacc.GenerateTests(&VDCGroupDataSource{}),
 	})
 }

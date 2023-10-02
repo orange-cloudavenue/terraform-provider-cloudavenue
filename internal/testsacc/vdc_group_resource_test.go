@@ -1,78 +1,107 @@
 package testsacc
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-const TestAccGroupResourceConfig = `
-resource "cloudavenue_vdc_group" "example" {
-	name = "example"
-	vdc_ids = [
-		cloudavenue_vdc.example.id,
-	]
-}
-`
+var _ testsacc.TestACC = &VDCGroupResource{}
 
-const TestAccGroupResourceConfigUpdate = `
-resource "cloudavenue_vdc_group" "example" {
-	name = "example2"
-	description = "Description of example2"
-	vdc_ids = [
-		cloudavenue_vdc.example.id,
-		cloudavenue_vdc.example2.id,
-	]
-}
-`
+const (
+	VDCGroupResourceName = testsacc.ResourceName("cloudavenue_vdc_group")
+)
 
-func groupTestCheck(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet(resourceName, "id"),
-		resource.TestCheckResourceAttr(resourceName, "name", "example"),
-		resource.TestCheckResourceAttr(resourceName, "vdc_ids.#", "1"),
-		resource.TestCheckResourceAttrSet(resourceName, "status"),
-		resource.TestCheckResourceAttrSet(resourceName, "type"),
-	)
+type VDCGroupResource struct{}
+
+func NewVDCGroupResourceTest() testsacc.TestACC {
+	return &VDCGroupResource{}
 }
 
-func groupTestCheckUpdated(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet(resourceName, "id"),
-		resource.TestCheckResourceAttr(resourceName, "name", "example2"),
-		resource.TestCheckResourceAttr(resourceName, "description", "Description of example2"),
-		resource.TestCheckResourceAttr(resourceName, "vdc_ids.#", "2"),
-		resource.TestCheckResourceAttrSet(resourceName, "status"),
-		resource.TestCheckResourceAttrSet(resourceName, "type"),
-	)
+// GetResourceName returns the name of the resource.
+func (r *VDCGroupResource) GetResourceName() string {
+	return VDCGroupResourceName.String()
 }
 
-func TestAccGroupResource(t *testing.T) {
-	resourceName := "cloudavenue_vdc_group.example"
+func (r *VDCGroupResource) DependenciesConfig() (configs testsacc.TFData) {
+	configs.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example"))
+	configs.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example2"))
 
+	return
+}
+
+func (r *VDCGroupResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
+		// * Test One (example)
+		"example": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VDCGroup)),
+					resource.TestCheckResourceAttrSet(resourceName, "status"),
+					resource.TestCheckResourceAttrSet(resourceName, "type"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_vdc_group" "example" {
+						name = {{ generate . "name" }}
+						description = {{ generate . "description" }}
+						vdc_ids = [
+							cloudavenue_vdc.example.id,
+						]
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "vdc_ids.#", "1"),
+					},
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{
+					// Update description
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdc_group" "example" {
+							name = {{ get . "name" }}
+							description = {{ generate . "description" }}
+							vdc_ids = [
+								cloudavenue_vdc.example.id,
+								cloudavenue_vdc.example2.id,
+							]
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "vdc_ids.#", "2"),
+						},
+					},
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateID:     testsacc.GetValueFromTemplate(resourceName, "name"),
+						ImportState:       true,
+						ImportStateVerify: true,
+					},
+					{
+						ImportStateID:     testsacc.GetValueFromTemplate(resourceName, "id"),
+						ImportState:       true,
+						ImportStateVerify: true,
+					},
+				},
+			}
+		},
+	}
+}
+
+func TestAccVDCGroupResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Read testing
-			{
-				// Apply test
-				Config: ConcatTests(TestAccVDCResourceConfigWithoutVDCGroup, TestAccGroupResourceConfig),
-				Check:  groupTestCheck(resourceName),
-			},
-			// Update testing
-			{
-				// Update test
-				Config: ConcatTests(TestAccVDCResourceConfigWithoutVDCGroup, TestAccGroupResourceConfigUpdate),
-				Check:  groupTestCheckUpdated(resourceName),
-			},
-			// Import State testing
-			{
-				// Import test
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
+		Steps:                    testsacc.GenerateTests(&VDCGroupResource{}),
 	})
 }

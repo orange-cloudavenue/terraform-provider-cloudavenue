@@ -1,8 +1,6 @@
 package vdc
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
@@ -19,7 +17,7 @@ import (
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 )
 
-func groupSchema(_ context.Context) superschema.Schema {
+func groupSchema() superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
 			MarkdownDescription: "The `cloudavenue_vdc_group` resource allows you to manage VDC Group.",
@@ -80,6 +78,9 @@ func groupSchema(_ context.Context) superschema.Schema {
 					Validators: []validator.Set{
 						setvalidator.SizeAtLeast(1),
 					},
+				},
+				DataSource: &schemaD.SetAttribute{
+					Computed: true,
 				},
 			},
 			"status": superschema.SuperStringAttribute{

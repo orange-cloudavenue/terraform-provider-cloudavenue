@@ -49,7 +49,7 @@ func (r *groupResource) Metadata(_ context.Context, req resource.MetadataRequest
 
 // Schema defines the schema for the resource.
 func (r *groupResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = groupSchema(ctx).GetResource(ctx)
+	resp.Schema = groupSchema().GetResource(ctx)
 }
 
 func (r *groupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
