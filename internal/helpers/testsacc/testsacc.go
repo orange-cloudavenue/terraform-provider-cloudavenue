@@ -303,6 +303,11 @@ func GenerateTests(tacc TestACC) []resource.TestStep {
 	return steps
 }
 
+// GenerateTestChecks Generate the checks for a specific test.
+func GenerateTestChecks(ctx context.Context, tacc TestACC, resourceName string, testName TestName) []resource.TestCheckFunc {
+	return tacc.Tests(ctx)[testName](ctx, resourceName).GenerateCheckWithCommonChecks()
+}
+
 // * Other
 
 // ImportStateIDBuilder is a function that can be used to dynamically generate
