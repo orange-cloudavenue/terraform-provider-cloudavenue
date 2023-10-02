@@ -6,129 +6,40 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
-
-const vdcStatuses = "`SAVING`, `SAVED`, `CONFIGURING`, `REALIZED`, `REALIZATION_FAILED`," +
-	" `DELETING`, `DELETE_FAILED`, `OBJECT_NOT_FOUND`, `UNCONFIGURED`."
 
 var (
 	_ datasource.DataSource              = &vdcGroupDataSource{}
 	_ datasource.DataSourceWithConfigure = &vdcGroupDataSource{}
 )
 
-func NewVDCGroupDataSource() datasource.DataSource {
+func NewGroupDataSource() datasource.DataSource {
 	return &vdcGroupDataSource{}
 }
 
 type vdcGroupDataSource struct {
-	client *client.CloudAvenue
+	client   *client.CloudAvenue
+	adminOrg adminorg.AdminOrg
 }
 
 func (d *vdcGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "group"
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_group"
+}
+
+// Init Initializes the resource.
+func (d *vdcGroupDataSource) Init(ctx context.Context, rm *GroupModel) (diags diag.Diagnostics) {
+	d.adminOrg, diags = adminorg.Init(d.client)
+	return
 }
 
 func (d *vdcGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Provides a data source to read vDC group information and reference it in other resources.",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the vDC Group.",
-				Computed:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "The name of the vDC Group.",
-				Required:            true,
-			},
-			"description": schema.StringAttribute{
-				MarkdownDescription: "The description of the vDC Group.",
-				Computed:            true,
-			},
-			"error_message": schema.StringAttribute{
-				MarkdownDescription: "A more detailed error message is provided when the vDC group has an error status.",
-				Computed:            true,
-			},
-			"dfw_enabled": schema.BoolAttribute{
-				MarkdownDescription: "Distributed firewall status.",
-				Computed:            true,
-			},
-			"local_egress": schema.BoolAttribute{
-				MarkdownDescription: "Status whether local egress is enabled for a universal router belonging to a universal vDC group.",
-				Computed:            true,
-			},
-			"network_pool_id": schema.StringAttribute{
-				MarkdownDescription: "ID of used network pool of the vDC Group.",
-				Computed:            true,
-			},
-			"network_pool_universal_id": schema.StringAttribute{
-				MarkdownDescription: "The network provider’s universal id that is backing the universal network pool.",
-				Computed:            true,
-			},
-			"network_provider_type": schema.StringAttribute{
-				MarkdownDescription: "Defines the networking provider backing the vDC Group.",
-				Computed:            true,
-			},
-			"status": schema.StringAttribute{
-				MarkdownDescription: "The status of the group can be in " + vdcStatuses,
-				Computed:            true,
-			},
-			"type": schema.StringAttribute{
-				MarkdownDescription: "The type of the vDC Group (e.g. `LOCAL`, `UNIVERSAL`).",
-				Computed:            true,
-			},
-			"universal_networking_enabled": schema.BoolAttribute{
-				MarkdownDescription: "True means that a vDC group router has been created.",
-				Computed:            true,
-			},
-			"vdcs": schema.ListNestedAttribute{
-				MarkdownDescription: "The list of organization vDCs that are participating in this group.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"fault_domain_tag": schema.StringAttribute{
-							MarkdownDescription: "Represents the fault domain of a given organization vDC.",
-							Computed:            true,
-						},
-						"network_provider_scope": schema.StringAttribute{
-							MarkdownDescription: "Specifies the network provider scope of the vDC.",
-							Computed:            true,
-						},
-						"is_remote_org": schema.BoolAttribute{
-							MarkdownDescription: "Specifies whether the vDC is local to this VCD site.",
-							Computed:            true,
-						},
-						"status": schema.StringAttribute{
-							MarkdownDescription: "The status of the vDC can be in " + vdcStatuses,
-							Computed:            true,
-						},
-						"site_name": schema.StringAttribute{
-							MarkdownDescription: "Site name that vDC belongs.",
-							Computed:            true,
-						},
-						"site_id": schema.StringAttribute{
-							MarkdownDescription: "Site ID that vDC belongs.",
-							Computed:            true,
-						},
-						"name": schema.StringAttribute{
-							MarkdownDescription: "vDC name.",
-							Computed:            true,
-						},
-						"id": schema.StringAttribute{
-							MarkdownDescription: "vDC ID.",
-							Computed:            true,
-						},
-					},
-				},
-			},
-		},
-	}
+	resp.Schema = groupSchema().GetDataSource(ctx)
 }
 
 func (d *vdcGroupDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -154,67 +65,35 @@ func (d *vdcGroupDataSource) Configure(ctx context.Context, req datasource.Confi
 func (d *vdcGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_vdc_group", d.client.GetOrgName(), metrics.Read)()
 
-	var (
-		data vdcGroupDataSourceModel
-		diag diag.Diagnostics
-	)
-	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	config := &GroupModel{}
 
+	// Read Terraform configuration data into the model
+	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	// Init the resource
+	resp.Diagnostics.Append(d.Init(ctx, config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	adminOrg, err := d.client.Vmware.GetAdminOrgByNameOrId(d.client.GetOrgName())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Org", err.Error())
+	/*
+		Implement the data source read logic here.
+	*/
+
+	s := &groupResource{
+		client:   d.client,
+		adminOrg: d.adminOrg,
+	}
+
+	// Read data from the API
+	data, _, diags := s.read(ctx, config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	// Get the vdcGroup.
-	vdcGroup, err := adminOrg.GetVdcGroupByName(data.Name.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving vDC Group", err.Error())
-		return
-	}
-
-	// populate the data source model with the vdcGroup data
-	data = vdcGroupDataSourceModel{
-		ID:                         types.StringValue(vdcGroup.VdcGroup.Id),
-		Name:                       types.StringValue(vdcGroup.VdcGroup.Name),
-		Description:                types.StringValue(vdcGroup.VdcGroup.Description),
-		DFWEnabled:                 types.BoolValue(vdcGroup.VdcGroup.DfwEnabled),
-		ErrorMessage:               types.StringValue(vdcGroup.VdcGroup.ErrorMessage),
-		LocalEgress:                types.BoolValue(vdcGroup.VdcGroup.LocalEgress),
-		NetworkPoolID:              types.StringValue(vdcGroup.VdcGroup.NetworkPoolId),
-		NetworkPoolUniversalID:     types.StringValue(vdcGroup.VdcGroup.NetworkPoolUniversalId),
-		NetworkProviderType:        types.StringValue(vdcGroup.VdcGroup.NetworkProviderType),
-		Status:                     types.StringValue(vdcGroup.VdcGroup.Status),
-		Type:                       types.StringValue(vdcGroup.VdcGroup.Type),
-		UniversalNetworkingEnabled: types.BoolValue(vdcGroup.VdcGroup.UniversalNetworkingEnabled),
-	}
-
-	listVdcs := make([]vdcModel, 0)
-	for _, vdc := range vdcGroup.VdcGroup.ParticipatingOrgVdcs {
-		listVdcs = append(listVdcs, vdcModel{
-			FaultDomainTag:       types.StringValue(vdc.FaultDomainTag),
-			NetworkProviderScope: types.StringValue(vdc.NetworkProviderScope),
-			IsRemoteOrg:          types.BoolValue(vdc.RemoteOrg),
-			Status:               types.StringValue(vdc.Status),
-			SiteID:               types.StringValue(vdc.SiteRef.ID),
-			SiteName:             types.StringValue(vdc.SiteRef.Name),
-			ID:                   types.StringValue(vdc.VdcRef.ID),
-			Name:                 types.StringValue(vdc.VdcRef.Name),
-		})
-	}
-
-	data.Vdcs, diag = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: vdcModelAttrTypes}, listVdcs)
-
-	resp.Diagnostics.Append(diag...)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }

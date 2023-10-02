@@ -9,7 +9,8 @@ func GetResourceConfig() map[testsacc.ResourceName]func() resourceConfig {
 		CatalogACLResourceName: NewResourceConfig(NewCatalogACLResourceTest()),
 
 		// * VDC
-		VDCResourceName: NewResourceConfig(NewVDCResourceTest()),
+		VDCResourceName:      NewResourceConfig(NewVDCResourceTest()),
+		VDCGroupResourceName: NewResourceConfig(NewVDCGroupResourceTest()),
 
 		// * VAPP
 		VAppResourceName:           NewResourceConfig(NewVAppResourceTest()),

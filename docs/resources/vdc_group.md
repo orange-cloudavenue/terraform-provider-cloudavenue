@@ -15,7 +15,7 @@ The `cloudavenue_vdc_group` resource allows you to manage VDC Group.
 resource "cloudavenue_vdc_group" "example" {
   name = "example"
   vdc_ids = [
-    cloudavenue_vdc.example-without-vdc-group.id,
+    cloudavenue_vdc.example.id,
   ]
 }
 ```
@@ -38,3 +38,9 @@ resource "cloudavenue_vdc_group" "example" {
 - `status` (String) The status of the VDC Group. Value must be one of : `SAVING`, `SAVED`, `CONFIGURING`, `REALIZED`, `REALIZATION_FAILED`, `DELETING`, `DELETE_FAILED`, `OBJECT_NOT_FOUND`, `UNCONFIGURED`.
 - `type` (String) The type of the VDC Group. Value must be one of : `LOCAL`, `UNIVERSAL`.
 
+## Import
+
+Import is supported using the following syntax:
+```shell
+terraform import cloudavenue_vdc_group.example vdcGroupNameOrID
+```

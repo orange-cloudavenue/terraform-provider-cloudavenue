@@ -1,0 +1,8 @@
+```release-note:note
+`resource/cloudavenue_vdc_group` - Add import documentation.
+```
+
+```release-note:breaking-change
+`datasource/cloudavenue_vdc_group` - Remove attributes `local_egress`, `error_message`, `dfw_enabled`, `network_pool_id`, `network_pool_universal_id`, `network_provider_type`, `universal_networking_enabled`, `vdcs`, `fault_domain_tag`, `is_remote_org`, `name`, `network_provider_scope`, `site_id`, `site_name` from the datasource. 
+The attribute `vdc_ids` is added to the datasource and return the list of VDC IDs of the VDC Group.
+```
