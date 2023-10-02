@@ -1,0 +1,7 @@
+```release-note:breaking-change
+`resource/cloudavenue_vdc` - Announced in the release [v0.0.9](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.9.0) the attribute `vdc_group` is now **removed**.
+```
+
+```release-note:breaking-change
+`datasource/cloudavenue_vdc` - The `vdc_group` attribute is now **removed**.
+```

@@ -23,7 +23,6 @@ type vdcResourceModel struct {
 	MemoryAllocated        supertypes.Int64Value     `tfsdk:"memory_allocated"`
 	VDCStorageBillingModel supertypes.StringValue    `tfsdk:"storage_billing_model"`
 	VDCStorageProfiles     supertypes.SetNestedValue `tfsdk:"storage_profiles"`
-	VDCGroup               supertypes.StringValue    `tfsdk:"vdc_group"`
 }
 
 // * VDCStorageProfiles.
@@ -48,7 +47,6 @@ type vdcDataSourceModel struct {
 	MemoryAllocated        supertypes.Int64Value     `tfsdk:"memory_allocated"`
 	VDCStorageBillingModel supertypes.StringValue    `tfsdk:"storage_billing_model"`
 	VDCStorageProfiles     supertypes.SetNestedValue `tfsdk:"storage_profiles"`
-	VDCGroup               supertypes.StringValue    `tfsdk:"vdc_group"`
 }
 
 // * VDCStorageProfiles.
