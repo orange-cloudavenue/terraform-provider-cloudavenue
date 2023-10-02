@@ -99,9 +99,8 @@ func vdcSchema() superschema.Schema {
 								resp.RequiresReplace = true
 								resp.Diagnostics.AddAttributeWarning(path.Root("cpu_speed_in_mhz"), "Force replacement attributes", "You can change the cpu_speed_in_mhz attribute only if the billing_model is set to RESERVED.")
 							}
-						}, "", ""),
+						}, "", "Force replacement attributes, however you can change the `cpu_speed_in_mhz` attribute only if the `billing_model` is set to **RESERVED**."),
 					},
-					MarkdownDescription: "Force replacement attributes, however you can change the `cpu_speed_in_mhz` attribute only if the `billing_model` is set to **RESERVED**.",
 					Validators: []validator.Int64{
 						int64validator.AtLeast(1200),
 					},

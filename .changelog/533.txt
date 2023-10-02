@@ -1,0 +1,11 @@
+```release-note:dependency
+deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.5.3 to 1.5.4
+```
+
+```release-note:note
+`resource/cloudavenue_vm_disk` - Improve documentation.
+```
+
+```release-note:note
+`resource/cloudavenue_vdc` - Improve documentation.
+```
