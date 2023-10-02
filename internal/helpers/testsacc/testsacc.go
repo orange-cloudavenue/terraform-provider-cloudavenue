@@ -3,6 +3,7 @@ package testsacc
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/iancoleman/strcase"
@@ -58,6 +59,51 @@ type (
 
 		// TFCongig is the Terraform configuration to use for the test.
 		TFConfig TFData
+
+		// TFAdvanced is the Terraform advanced configuration to use for the test.
+		TFAdvanced TFAdvanced
+	}
+
+	TFAdvanced struct {
+		// PreConfig is called before the Config is applied to perform any per-step
+		// setup that needs to happen. This is called regardless of "test mode"
+		// below.
+		PreConfig func()
+
+		// Taint is a list of resource addresses to taint prior to the execution of
+		// the step. Be sure to only include this at a step where the referenced
+		// address will be present in state, as it will fail the test if the resource
+		// is missing.
+		//
+		// This option is ignored on ImportState tests, and currently only works for
+		// resources in the root module path.
+		Taint []string
+
+		// Destroy will create a destroy plan if set to true.
+		Destroy bool
+
+		// ExpectNonEmptyPlan can be set to true for specific types of tests that are
+		// looking to verify that a diff occurs
+		ExpectNonEmptyPlan bool
+
+		// ExpectError allows the construction of test cases that we expect to fail
+		// with an error. The specified regexp must match against the error for the
+		// test to pass.
+		ExpectError *regexp.Regexp
+
+		// PlanOnly can be set to only run `plan` with this configuration, and not
+		// actually apply it. This is useful for ensuring config changes result in
+		// no-op plans
+		PlanOnly bool
+
+		// PreventDiskCleanup can be set to true for testing terraform modules which
+		// require access to disk at runtime. Note that this will leave files in the
+		// temp folder
+		PreventDiskCleanup bool
+
+		// PreventPostDestroyRefresh can be set to true for cases where data sources
+		// are tested alongside real resources
+		PreventPostDestroyRefresh bool
 	}
 
 	TFImport struct {
@@ -101,6 +147,13 @@ type (
 		ImportState bool
 	}
 )
+
+// * TFAdvanced
+
+// IsEmpty returns true if the TFAdvanced is empty.
+func (t *TFAdvanced) IsEmpty() bool {
+	return t == nil
+}
 
 // * ResourceName
 // String returns the string representation of the ResourceName.
@@ -229,12 +282,25 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 	}
 
 	// * Create step
-	steps = append(steps, resource.TestStep{
+	createTestStep := resource.TestStep{
 		Config: t.Create.Generate(ctx, t.cacheDependenciesConfig),
 		Check: resource.ComposeAggregateTestCheckFunc(
 			listOfChecks...,
 		),
-	})
+	}
+
+	if !t.Create.TFAdvanced.IsEmpty() {
+		createTestStep.PreConfig = t.Create.TFAdvanced.PreConfig
+		createTestStep.Taint = t.Create.TFAdvanced.Taint
+		createTestStep.Destroy = t.Create.TFAdvanced.Destroy
+		createTestStep.ExpectNonEmptyPlan = t.Create.TFAdvanced.ExpectNonEmptyPlan
+		createTestStep.ExpectError = t.Create.TFAdvanced.ExpectError
+		createTestStep.PlanOnly = t.Create.TFAdvanced.PlanOnly
+		createTestStep.PreventDiskCleanup = t.Create.TFAdvanced.PreventDiskCleanup
+		createTestStep.PreventPostDestroyRefresh = t.Create.TFAdvanced.PreventPostDestroyRefresh
+	}
+
+	steps = append(steps, createTestStep)
 
 	// * Update steps
 	if len(t.Updates) > 0 {
@@ -242,12 +308,25 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 			listOfChecks := t.CommonChecks
 			listOfChecks = append(listOfChecks, update.Checks...)
 
-			steps = append(steps, resource.TestStep{
+			updateTestStep := resource.TestStep{
 				Config: update.Generate(ctx, t.cacheDependenciesConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					listOfChecks...,
 				),
-			})
+			}
+
+			if !update.TFAdvanced.IsEmpty() {
+				updateTestStep.PreConfig = update.TFAdvanced.PreConfig
+				updateTestStep.Taint = update.TFAdvanced.Taint
+				updateTestStep.Destroy = update.TFAdvanced.Destroy
+				updateTestStep.ExpectNonEmptyPlan = update.TFAdvanced.ExpectNonEmptyPlan
+				updateTestStep.ExpectError = update.TFAdvanced.ExpectError
+				updateTestStep.PlanOnly = update.TFAdvanced.PlanOnly
+				updateTestStep.PreventDiskCleanup = update.TFAdvanced.PreventDiskCleanup
+				updateTestStep.PreventPostDestroyRefresh = update.TFAdvanced.PreventPostDestroyRefresh
+			}
+
+			steps = append(steps, updateTestStep)
 		}
 	}
 

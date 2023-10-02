@@ -41,6 +41,10 @@ func GetJobStatus(
 		err = errors.Join(err, httpR.Body.Close())
 	}()
 
+	if len(jobStatus) == 0 {
+		return "", errors.New("no job found")
+	}
+
 	// Find the action name with failed status if global status is failed
 	if jobStatus[0].Status == string(FAILED) {
 		for _, action := range jobStatus[0].Actions {

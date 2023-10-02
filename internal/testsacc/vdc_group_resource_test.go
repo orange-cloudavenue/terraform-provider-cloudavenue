@@ -29,7 +29,7 @@ func (r *VDCGroupResource) GetResourceName() string {
 
 func (r *VDCGroupResource) DependenciesConfig() (configs testsacc.TFData) {
 	configs.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example"))
-	configs.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example2"))
+	configs.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example_2"))
 
 	return
 }
@@ -70,7 +70,7 @@ func (r *VDCGroupResource) Tests(ctx context.Context) map[testsacc.TestName]func
 							description = {{ generate . "description" }}
 							vdc_ids = [
 								cloudavenue_vdc.example.id,
-								cloudavenue_vdc.example2.id,
+								cloudavenue_vdc.example_2.id,
 							]
 						}`),
 						Checks: []resource.TestCheckFunc{
