@@ -137,33 +137,6 @@ func vdcSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"vdc_group": superschema.SuperStringAttribute{
-				Deprecated: &superschema.Deprecated{
-					DeprecationMessage:                "Remove the vdc_group attribute configuration as it replaced by the resource cloudavenue_vdc_group and the attribute will be removed in the version 0.12.0 of the provider.",
-					ComputeMarkdownDeprecationMessage: true,
-					Removed:                           true,
-					FromAttributeName:                 "vdc_group",
-					TargetRelease:                     "v0.12.0",
-					LinkToMilestone:                   "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/4",
-					TargetResourceName:                "cloudavenue_vdc_group",
-					LinkToResourceDoc:                 "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc_group",
-					LinkToIssue:                       "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/448",
-				},
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "vDC group name.",
-				},
-				Resource: &schemaR.StringAttribute{
-					MarkdownDescription: "This can be an existing vDC group or a new one. This allows you to isolate your vDC.\n" +
-						"VMs of vDCs which belong to the same vDC group can communicate together.",
-					Optional: true,
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.RequiresReplaceIfConfigured(),
-					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
-				},
-			},
 			"service_class": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The service class of the vDC.",

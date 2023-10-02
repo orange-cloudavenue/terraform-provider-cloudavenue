@@ -110,7 +110,6 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Prepare the body to create a VDC.
 	body := apiclient.CreateOrgVdcV2{
-		VdcGroup: plan.VDCGroup.Get(),
 		Vdc: &apiclient.OrgVdcV2{
 			Name:                   plan.Name.Get(),
 			Description:            plan.Description.Get(),
@@ -297,7 +296,6 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	state.ID.Set(ID)
 	state.Name.Set(vdc.Vdc.Name)
 	state.Description.Set(vdc.Vdc.Description)
-	state.VDCGroup.Set(vdc.VdcGroup) // Now due to deprecated field use value in state
 	state.VDCServiceClass.Set(vdc.Vdc.VdcServiceClass)
 	state.VDCDisponibilityClass.Set(vdc.Vdc.VdcDisponibilityClass)
 	state.VDCBillingModel.Set(vdc.Vdc.VdcBillingModel)
@@ -355,23 +353,17 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	// Get vDC info
 	var httpR *http.Response
 	var err error
-	var group string
+	// Due a bug in CloudAvenue the field VdcGroup is mandatory in the body
 	vdc, httpR, err := r.client.APIClient.VDCApi.GetOrgVdcByName(auth, state.Name.Get())
 	if httpR != nil {
 		defer func() {
 			err = errors.Join(err, httpR.Body.Close())
 		}()
 	}
-	// check if vdcGroup exists
-	if !plan.VDCGroup.IsNull() {
-		group = plan.VDCGroup.Get()
-	} else {
-		group = vdc.VdcGroup
-	}
 
 	// Convert from Terraform data model into API data model
 	body := apiclient.UpdateOrgVdcV2{
-		VdcGroup: group,
+		VdcGroup: vdc.VdcGroup,
 		Vdc: &apiclient.OrgVdcV2{
 			Name:                   plan.Name.Get(),
 			Description:            plan.Description.Get(),
@@ -383,10 +375,6 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 			MemoryAllocated:        float64(plan.MemoryAllocated.Get()),
 			VdcStorageBillingModel: plan.VDCStorageBillingModel.Get(),
 		},
-	}
-
-	if !state.VDCGroup.IsNull() {
-		body.VdcGroup = state.VDCGroup.Get()
 	}
 
 	// Get the storage profiles

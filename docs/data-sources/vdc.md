@@ -42,9 +42,6 @@ output "example" {
 - `service_class` (String) The service class of the vDC.
 - `storage_billing_model` (String) Choose Billing model of storage resources.
 - `storage_profiles` (Attributes Set) List of storage profiles for this vDC. (see [below for nested schema](#nestedatt--storage_profiles))
-- `vdc_group` (String, Deprecated) vDC group name. 
-
- ~> **Attribute deprecated** Remove the `vdc_group` attribute configurationas it replaced by the resource [`cloudavenue_vdc_group`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc_group), it will be removed in the version [`v0.12.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/4) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/448) for more information.
 
 <a id="nestedatt--storage_profiles"></a>
 ### Nested Schema for `storage_profiles`

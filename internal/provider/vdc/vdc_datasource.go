@@ -114,7 +114,6 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	}
 
 	data.ID.Set(ID)
-	data.VDCGroup.Set(vdc.VdcGroup)
 	data.Name.Set(vdc.Vdc.Name)
 	data.Description.Set(vdc.Vdc.Description)
 	data.VDCServiceClass.Set(vdc.Vdc.VdcServiceClass)
