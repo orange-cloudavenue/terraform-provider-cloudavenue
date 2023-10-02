@@ -1,6 +1,8 @@
 ## 0.12.0 (Unreleased)
 ### :rotating_light: **Breaking Changes**
 
+* `datasource/cloudavenue_vdc_group` - Remove attributes `local_egress`, `error_message`, `dfw_enabled`, `network_pool_id`, `network_pool_universal_id`, `network_provider_type`, `universal_networking_enabled`, `vdcs`, `fault_domain_tag`, `is_remote_org`, `name`, `network_provider_scope`, `site_id`, `site_name` from the datasource. 
+The attribute `vdc_ids` is added to the datasource and return the list of VDC IDs of the VDC Group. ([GH-442](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/442))
 * `datasource/cloudavenue_vdc` - The `vdc_group` attribute is now **removed**. ([GH-447](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/447))
 * `resource/cloudavenue_vdc` - Announced in the release [v0.0.9](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.9.0) the attribute `vdc_group` is now **removed**. ([GH-447](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/447))
 
@@ -10,6 +12,7 @@
 ### :information_source: **Notes**
 
 * `provider` - Improve documentation for provider authentication and configuration. ([GH-548](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/548))
+* `resource/cloudavenue_vdc_group` - Add import documentation. ([GH-442](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/442))
 * `resource/cloudavenue_vdc` - Fix values in documentation for attributes `cpu_allocated`, `memory_allocated`, `cpu_speed_in_mhz`. ([GH-530](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/530))
 * `resource/cloudavenue_vdc` - Improve documentation. ([GH-533](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/533))
 * `resource/cloudavenue_vm_disk` - Improve documentation. ([GH-533](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/533))
