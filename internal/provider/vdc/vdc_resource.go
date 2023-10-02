@@ -163,10 +163,10 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	errRetry := retry.RetryContext(ctxTO, createTimeout, func() *retry.RetryError {
 		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
 		if errGetJob != nil {
-			retry.NonRetryableError(err)
+			retry.NonRetryableError(errGetJob)
 		}
 		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
-			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))
+			return retry.RetryableError(fmt.Errorf("expected job done but was %s - %w", jobStatus, errGetJob))
 		}
 
 		return nil
