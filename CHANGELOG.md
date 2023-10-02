@@ -1,4 +1,5 @@
-## 0.12.0 (Unreleased)
+## 0.13.0 (Unreleased)
+## 0.12.0 (October  2, 2023)
 ### :rotating_light: **Breaking Changes**
 
 * `datasource/cloudavenue_vdc_group` - Remove attributes `local_egress`, `error_message`, `dfw_enabled`, `network_pool_id`, `network_pool_universal_id`, `network_provider_type`, `universal_networking_enabled`, `vdcs`, `fault_domain_tag`, `is_remote_org`, `name`, `network_provider_scope`, `site_id`, `site_name` from the datasource. 
