@@ -11,9 +11,12 @@
 
 * `provider` - Improve documentation for provider authentication and configuration. ([GH-548](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/548))
 * `resource/cloudavenue_vdc` - Fix values in documentation for attributes `cpu_allocated`, `memory_allocated`, `cpu_speed_in_mhz`. ([GH-530](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/530))
+* `resource/cloudavenue_vdc` - Improve documentation. ([GH-533](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/533))
+* `resource/cloudavenue_vm_disk` - Improve documentation. ([GH-533](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/533))
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.5.3 to 1.5.4 ([GH-533](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/533))
 * deps: bumps github.com/rs/zerolog from 1.30.0 to 1.31.0 ([GH-541](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/541))
 
 ## 0.11.0 (September 22, 2023)
