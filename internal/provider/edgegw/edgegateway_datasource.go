@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	apiclient "github.com/orange-cloudavenue/infrapi-sdk-go"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"

@@ -19,7 +19,7 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.29.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.1.3
+	github.com/orange-cloudavenue/infrapi-sdk-go v0.1.4-0.20231005074857-89878ea119fb
 	github.com/orange-cloudavenue/netbackup-sdk-go v0.0.2-0.20230928095122-108fd1ec28ae
 	github.com/rs/zerolog v1.31.0
 	github.com/thanhpk/randstr v1.0.6

@@ -108,7 +108,7 @@ linters-settings:
       - prefix(github.com/hashicorp/terraform-plugin-framework-validators/)
       - prefix(github.com/hashicorp)
       - prefix(github.com/FrangipaneTeam)
-      - prefix(github.com/orange-cloudavenue/terraform-provider-cloudavenue,github.com/orange-cloudavenue/cloudavenue-sdk-go)
+      - prefix(github.com/orange-cloudavenue/terraform-provider-cloudavenue,github.com/orange-cloudavenue/cloudavenue-sdk-go,github.com/orange-cloudavenue/infrapi-sdk-go)
       - blank # Blank section: contains all blank imports. This section is not present unless explicitly enabled.
       - dot # Dot section: contains all dot imports. This section is not present unless explicitly enabled.
     skip-generated: true

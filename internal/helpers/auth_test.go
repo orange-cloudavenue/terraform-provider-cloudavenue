@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	apiclient "github.com/orange-cloudavenue/infrapi-sdk-go"
 )
 
 func TestGetAuthContextWithTO(t *testing.T) {
