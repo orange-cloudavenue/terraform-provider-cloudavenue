@@ -9,7 +9,7 @@ import (
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
-	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	apiclient "github.com/orange-cloudavenue/infrapi-sdk-go"
 )
 
 var (

@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 
-	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	apiclient "github.com/orange-cloudavenue/infrapi-sdk-go"
 )
 
 // GetAuthContextWithTO is a helper function to create the auth context with the token api and the terraform context with timeout.

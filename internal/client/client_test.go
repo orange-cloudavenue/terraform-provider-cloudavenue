@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	apiclient "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	apiclient "github.com/orange-cloudavenue/infrapi-sdk-go"
 )
 
 func TestCloudAvenueClient(t *testing.T) {

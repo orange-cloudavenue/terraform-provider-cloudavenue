@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	cloudavenue "github.com/orange-cloudavenue/infrapi-sdk-go"
 )
 
 // APIError is an error returned by the CloudAvenue API.
