@@ -9,7 +9,7 @@ import (
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
@@ -17,74 +17,31 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
+	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 )
 
-// TODO : Remove unused imports.
-// ! This is outside import block because golangci-lint remove commented import.
-// * Hashicorp Validators
-// "github.com/Hashicorp/terraform-plugin-framework-validators/stringvalidator"
-// "github.com/Hashicorp/terraform-plugin-framework-validators/boolvalidator"
-// "github.com/Hashicorp/terraform-plugin-framework-validators/int64validator"
-// "github.com/Hashicorp/terraform-plugin-framework-validators/float64validator"
-// "github.com/Hashicorp/terraform-plugin-framework-validators/listvalidator"
-// "github.com/Hashicorp/terraform-plugin-framework-validators/mapvalidator"
-// "github.com/Hashicorp/terraform-plugin-framework-validators/setvalidator"
-
-// * Hashicorp Plan Modifiers Resource
-// "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-// "github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
-// "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
-// "github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
-// "github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
-// "github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
-
-// * Hashicorp Plan Modifiers DataSource
-// "github.com/hashicorp/terraform-plugin-framework/datasource/schema/stringplanmodifier"
-// "github.com/hashicorp/terraform-plugin-framework/datasource/schema/boolplanmodifier"
-// "github.com/hashicorp/terraform-plugin-framework/datasource/schema/int64planmodifier"
-// "github.com/hashicorp/terraform-plugin-framework/datasource/schema/listplanmodifier"
-// "github.com/hashicorp/terraform-plugin-framework/datasource/schema/mapplanmodifier"
-// "github.com/hashicorp/terraform-plugin-framework/datasource/schema/setplanmodifier"
-
-// * Hashicorp Default Values
-// "github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-// "github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
-// "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
-
-// * FrangipaneTeam Custom Validators
-// fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
-// fboolvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/boolvalidator"
-// fint64validator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/int64validator"
-// flistvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/listvalidator"
-// fmapvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/mapvalidator"
-// fsetvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/setvalidator"
-
-// * FrangipaneTeam Custom Plan Modifiers
-// fstringplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/stringplanmodifier"
-// fboolplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/boolplanmodifier"
-// fint64planmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/int64planmodifier"
-// flistplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/listplanmodifier"
-// fmapplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/mapplanmodifier"
-// fsetplanmodifier "github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers/setplanmodifier"
-
-// How to use types generator:
-// 1. Define the schema in the file internal/provider/backup/backup_schema.go
-// 2. Add the resource or data source to the file internal/provider/provider_resources.go or internal/provider/provider_data_sources.go respectively
-// 3. Launch the following command to generate golang structs for the schema:
-// go run ./cmd/types-generator/*.go -file internal/provider/backup/backup_schema.go -resource cloudavenue_backup -is-resource.
+// BackupSchema returns the schema for the backup resource.
 func backupSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_backup` resource allows you to manage ...",
+			MarkdownDescription: "The `cloudavenue_backup` resource allows you to manage backup strategy for `vdc`,`vapp` and 'vm' from NetBackup solution. Please refer to the documentation for more information. https://wiki.cloudavenue.orange-business.com/wiki/Backup",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_backup` data source allows you to retrieve information about an ...",
+			MarkdownDescription: "The `cloudavenue_backup` data source allows you to retrieve information about a backup of NetBackup solution.",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"id": superschema.SuperStringAttribute{
-				Common: &schemaR.StringAttribute{
+			"id": superschema.SuperInt64Attribute{
+				Common: &schemaR.Int64Attribute{
 					Computed:            true,
 					MarkdownDescription: "The ID of the backup.",
+				},
+				Resource: &schemaR.Int64Attribute{
+					PlanModifiers: []planmodifier.Int64{
+						int64planmodifier.UseStateForUnknown(),
+					},
+				},
+				DataSource: &schemaD.Int64Attribute{
+					Optional: true,
 				},
 			},
 			"type": superschema.SuperStringAttribute{
@@ -94,7 +51,10 @@ func backupSchema(_ context.Context) superschema.Schema {
 				Resource: &schemaR.StringAttribute{
 					Required: true,
 					Validators: []validator.String{
-						stringvalidator.OneOf("vdc", "VDC", "VAPP", "vapp", "VM", "vm"),
+						stringvalidator.OneOf("vdc", "vapp", "vm"),
+					},
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplace(),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -103,13 +63,13 @@ func backupSchema(_ context.Context) superschema.Schema {
 			},
 			"target_id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the target.",
-					Computed:            true,
+					MarkdownDescription: "The ID of the target. A target can be a VDC, a VApp or a VM.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("target_id"), path.MatchRoot("target_name")),
+						fstringvalidator.IsUUID(),
 					},
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
@@ -119,8 +79,7 @@ func backupSchema(_ context.Context) superschema.Schema {
 			},
 			"target_name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the target.",
-					Computed:            true,
+					MarkdownDescription: "The name of the target. A target can be a VDC, a VApp or a VM.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
@@ -152,34 +111,20 @@ func backupSchema(_ context.Context) superschema.Schema {
 							MarkdownDescription: "The ID of the backup policy.",
 							Computed:            true,
 						},
-						Resource: &schemaR.Int64Attribute{
-							Optional: true,
-							// Validators: []validator.Int64{
-							// 	int64validator.NullIfAttributeIsSet(path.MatchRoot("policy_name")),
-							// 	// int64validator.ExactlyOneOf(path.MatchRoot("policy_id"), path.MatchRoot("policy_name")),
-							// },
-						},
 					},
 					"policy_name": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The name of the backup policy.",
-							Computed:            true,
 						},
 						Resource: &schemaR.StringAttribute{
-							Optional: true,
-							// Validators: []validator.String{
-							// 	stringvalidator.ExactlyOneOf(path.MatchRoot("policy_id"), path.MatchRoot("policy_name")),
-							// },
+							Required: true,
+							Validators: []validator.String{
+								stringvalidator.OneOf("D6", "D30", "D30NQ", "D60", "W4", "M3", "M12", "XD6", "XD30", "XD60", "XW4", "XM3", "XM12"),
+							},
+							MarkdownDescription: "Each letter represent a strategy predefined: D = Daily, W = Weekly, M = Monthly, X = Replication, The number is the retention period. Please refer to the documentation for more information. https://wiki.cloudavenue.orange-business.com/wiki/Backup",
 						},
-					},
-					"enabled": superschema.SuperBoolAttribute{
-						Common: &schemaR.BoolAttribute{
-							MarkdownDescription: "Whether the backup policy is enabled or not.",
-							Computed:            true,
-						},
-						Resource: &schemaR.BoolAttribute{
-							Optional: true,
-							Default:  booldefault.StaticBool(true),
+						DataSource: &schemaD.StringAttribute{
+							Computed: true,
 						},
 					},
 				},

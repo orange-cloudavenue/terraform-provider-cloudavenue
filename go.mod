@@ -104,3 +104,5 @@ require (
 	google.golang.org/grpc v1.57.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )
+
+replace github.com/orange-cloudavenue/netbackup-sdk-go => /Users/micheneaudavid/go/src/github.com/orange-cloudavenue/netbackup-sdk-go

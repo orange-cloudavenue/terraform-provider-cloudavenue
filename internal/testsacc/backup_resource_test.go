@@ -2,12 +2,13 @@ package testsacc
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &BackupResource{}
@@ -29,7 +30,7 @@ func (r *BackupResource) GetResourceName() string {
 
 func (r *BackupResource) DependenciesConfig() (configs testsacc.TFData) {
 	// TODO : Add dependencies config
-	// configs.Append(GetResourceConfig()[CatalogResourceName]().GetDefaultConfig())
+	configs.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig())
 
 	// This is method for add dependencies legacy config
 	// configs.Append(AddConstantConfig(constantName))
@@ -39,20 +40,26 @@ func (r *BackupResource) DependenciesConfig() (configs testsacc.TFData) {
 func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// TODO : Complete tests
-		// * First test named "example"
+		// * First For a VDC Backup named "example"
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Catalog)), // TODO : Change type
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "target_name", "example"),
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					resource "cloudavenue_backup" "example" {
-						foo = "bar"
+						type = "vdc"
+						target_name = cloudavenue_vdc.example.name
+						policies = [{
+								policy_name = "D6"
+							}]
 					}`,
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "foo", "bar"),
+						resource.TestCheckResourceAttr(resourceName, "type", "vdc"),
+						resource.TestCheckResourceAttr(resourceName, "policies.0.policy_name", "D6"),
 					},
 				},
 				// ! Updates testing
@@ -60,30 +67,27 @@ func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(c
 					{
 						TFConfig: `
 						resource "cloudavenue_backup" "example" {
-							foo = "barUpdated"
+							type = "vdc"
+							target_name = cloudavenue_vdc.example.name
+							policies = [{
+									policy_name = "D6"
+								},
+								{
+									policy_name = "D30"
+								}]
 						}`,
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "foo", "barUpdated"),
-						},
-					},
-					{
-						TFConfig: `
-						resource "cloudavenue_backup" "example" {
-							foo = "barUpdated"
-							bar = "foo"
-						}`,
-						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "foo", "barUpdated"),
-							resource.TestCheckResourceAttr(resourceName, "bar", "foo"),
+							resource.TestCheckResourceAttr(resourceName, "policies.0.policy_name", "D6"),
+							resource.TestCheckResourceAttr(resourceName, "policies.1.policy_name", "D30"),
 						},
 					},
 				},
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"id"},
-						ImportState:          true,
-						ImportStateVerify:    true,
+						ImportStateIDFunc: testAccBackupResourceImportStateIDFuncWithTypeAndTargetName(resourceName),
+						ImportState:       true,
+						ImportStateVerify: true,
 					},
 				},
 			}
@@ -171,6 +175,18 @@ func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(c
 				}
 			},
 		*/
+	}
+}
+
+func testAccBackupResourceImportStateIDFuncWithTypeAndTargetName(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		// Type.Target_name
+		return fmt.Sprintf("%s.%s", rs.Primary.Attributes["type"], rs.Primary.Attributes["target_name"]), nil
 	}
 }
 

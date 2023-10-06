@@ -3,24 +3,29 @@ package backup
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/orange-cloudavenue/netbackup-sdk-go/netbackupclient"
+	"github.com/orange-cloudavenue/netbackup-sdk-go/netbackupclient/common"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
 
-// Ensure the implementation satisfies the expected interfaces.
 var (
 	_ resource.Resource                = &backupResource{}
 	_ resource.ResourceWithConfigure   = &backupResource{}
 	_ resource.ResourceWithImportState = &backupResource{}
-	// _ resource.ResourceWithModifyPlan     = &backupResource{}
-	// _ resource.ResourceWithUpgradeState   = &backupResource{}
-	// _ resource.ResourceWithValidateConfig = &backupResource{}.
+)
+
+const (
+	vdc  string = "vdc"
+	vapp string = "vapp"
+	vm   string = "vm"
 )
 
 // NewbackupResource is a helper function to simplify the provider implementation.
@@ -31,35 +36,6 @@ func NewBackupResource() resource.Resource {
 // backupResource is the resource implementation.
 type backupResource struct {
 	client *client.CloudAvenue
-	// Uncomment the following lines if you need to access the resource's.
-	// org    org.Org
-	// vdc vdc.VDC
-	// vapp   vapp.VAPP
-}
-
-// If the resource don't have same schema/structure as the data source, you can use the following code:
-// type backupResourceModel struct {
-// 	ID types.String `tfsdk:"id"`
-// }
-
-// Init Initializes the resource.
-func (r *backupResource) Init(ctx context.Context, rm *backupModel) (diags diag.Diagnostics) {
-	// Uncomment the following lines if you need to access to the Org
-	// r.org, diags = org.Init(r.client)
-	// if diags.HasError() {
-	// 	return
-	// }
-
-	// Uncomment the following lines if you need to access to the VDC
-	// r.vdc, diags = vdc.Init(r.client, rm.VDC)
-	// if diags.HasError() {
-	// 	return
-	// }
-
-	// Uncomment the following lines if you need to access to the VAPP
-	// r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
-
-	return
 }
 
 // Metadata returns the resource type name.
@@ -91,6 +67,8 @@ func (r *backupResource) Configure(ctx context.Context, req resource.ConfigureRe
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *backupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_backup", r.client.GetOrgName(), metrics.Create)()
+
 	plan := &backupModel{}
 
 	// Retrieve values from plan
@@ -99,84 +77,53 @@ func (r *backupResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	/*
-		Implement the resource creation logic here.
-	*/
-
-	// Define if the target is a VDC ID or a VDC Name
-	var nameOrID string
-	if plan.TargetID.IsNull() {
-		nameOrID = plan.TargetName.Get()
-	} else {
-		nameOrID = plan.TargetID.Get()
-	}
-
-	// for policies extract values from the plan
-	policies, d := plan.GetPolicies(ctx)
+	// Extract policies from plan
+	policies, d := plan.getPolicies(ctx)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
 	}
 
-	// switch on the type of the backup
-	switch plan.Type.Get() {
-	case "vdc":
-		vdc, err := r.client.NetBackupClient.VCloud.GetVdcByNameOrIdentifier(nameOrID)
-		if err != nil {
-			resp.Diagnostics.AddError("Error getting vCloud Director Virtual Data Center", err.Error())
-			return
-		}
-		// for each policy, protect the VDC
-		for _, policy := range policies {
-			if policy.Enabled.Get() {
-				job, err := vdc.Protect(netbackupclient.ProtectUnprotectRequest{
-					ProtectionLevelName: policy.PolicyName.Get(),
-					ProtectionLevelID:   policy.PolicyID.GetIntPtr(),
-				})
-				if err != nil {
-					resp.Diagnostics.AddError("Error protecting vCloud Director Virtual Data Center", err.Error())
-					return
-				}
-				if err := job.Wait(1, 15); err != nil {
-					resp.Diagnostics.AddError("Error waiting for job", err.Error())
-				}
-			}
-		}
-	case "vapp":
-		// TODO: Create a backup for a VAPP
-	case "vm":
-		// TODO: Create a backup for a VM
+	// Get the type target object
+	typeTarget, d := r.getTarget(plan)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
 	}
 
+	// Apply the protection levels policies for each policy
+	if err := applyPolicies(typeTarget, policies); err != nil {
+		resp.Diagnostics.AddError("Error applying VDC protection levels", err.Error())
+		return
+	}
+
+	d = plan.Policies.Set(ctx, policies)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	plan.ID.SetInt(typeTarget.GetID())
+
 	// Use generic read function to refresh the state
-	// state, _, d := r.read(ctx, plan)
-	// if d.HasError() {
-	// 	resp.Diagnostics.Append(d...)
-	// 	return
-	// }
+	stateRefreshed, _, d := r.read(ctx, plan)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (r *backupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_backup", r.client.GetOrgName(), metrics.Read)()
+
 	state := &backupModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -198,6 +145,8 @@ func (r *backupResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *backupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_backup", r.client.GetOrgName(), metrics.Update)()
+
 	var (
 		plan  = &backupModel{}
 		state = &backupModel{}
@@ -210,15 +159,66 @@ func (r *backupResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
+	// Extract policies values from the plan
+	policiesPlan, d := plan.getPolicies(ctx)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
 
-	/*
-		Implement the resource update here
-	*/
+	// Extract policies values from the state
+	policiesState, d := state.getPolicies(ctx)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	// Get the type target object
+	typeTarget, d := r.getTarget(plan)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	// For each Policy in plan not found in state => apply the protection levels
+	// For each Policy in state not found in plan => apply the unprotection levels
+	// For each Policy found in plan and state => nothing to do
+	toProtect := make(backupModelPolicies, 0)
+	toUnprotect := make(backupModelPolicies, 0)
+	for _, policyPlan := range *policiesPlan {
+		var found bool
+		for _, policyState := range *policiesState {
+			if policyPlan.PolicyName.Get() == policyState.PolicyName.Get() {
+				found = true
+			}
+		}
+		if !found {
+			toProtect = append(toProtect, policyPlan)
+		}
+	}
+	for _, policyState := range *policiesState {
+		var found bool
+		for _, policyPlan := range *policiesPlan {
+			if policyState.PolicyName.Get() == policyPlan.PolicyName.Get() {
+				found = true
+			}
+		}
+		if !found {
+			toUnprotect = append(toUnprotect, policyState)
+		}
+	}
+
+	// Apply the protection levels policies for each policy
+	if err := applyPolicies(typeTarget, &toProtect); err != nil {
+		resp.Diagnostics.AddError(fmt.Sprintf("Error applying %s protection levels", plan.Type.Get()), err.Error())
+		return
+	}
+
+	// Unapply the protection levels policies for each policy
+	if err := unApplyPolicies(typeTarget, &toUnprotect); err != nil {
+		resp.Diagnostics.AddError(fmt.Sprintf("Error unprotecting %s", plan.Type.Get()), err.Error())
+		return
+	}
 
 	// Use generic read function to refresh the state
 	stateRefreshed, _, d := r.read(ctx, plan)
@@ -233,6 +233,8 @@ func (r *backupResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *backupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_backup", r.client.GetOrgName(), metrics.Delete)()
+
 	state := &backupModel{}
 
 	// Get current state
@@ -241,63 +243,211 @@ func (r *backupResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
+	// Extract policies from plan
+	policies, d := state.getPolicies(ctx)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
 
-	/*
-		Implement the resource deletion here
-	*/
+	// Get the target type object (vdc, vapp or vm)
+	typeTarget, d := r.getTarget(state)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	// apply the unprotection levels
+	for _, policy := range *policies {
+		if err := unApplyPolicy(typeTarget, policy); err != nil {
+			resp.Diagnostics.AddError(fmt.Sprintf("Error unprotecting %s", state.Type.Get()), err.Error())
+			return
+		}
+	}
 }
 
+// ImportState imports the resource into the Terraform state.
 func (r *backupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// * Import basic
-	// resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	defer metrics.New("cloudavenue_backup", r.client.GetOrgName(), metrics.Import)()
 
 	// * Import with custom logic
-	// idParts := strings.Split(req.ID, ".")
+	idParts := strings.Split(req.ID, ".")
 
-	// if len(idParts) != 2 {
-	// 	resp.Diagnostics.AddError(
-	// 		"Unexpected Import Identifier",
-	// 		fmt.Sprintf("Expected import identifier with format: xx.xx. Got: %q", req.ID),
-	// 	)
-	// 	return
-	// }
+	if len(idParts) != 2 {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: Type.TargetName Got: %q", req.ID),
+		)
+		return
+	}
 
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("xx"), var1)...)
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("xx"), var2)...)
+	data := NewBackup()
+	data.Type.Set(idParts[0])
+	data.TargetName.Set(idParts[1])
+
+	// Use generic read function to refresh the state
+	stateRefreshed, _, d := r.read(ctx, data)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	// Set state to fully populated data
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // * CustomFuncs
 
+type target interface {
+	GetProtectionLevelAvailableByName(string) (*netbackupclient.ProtectionLevel, error)
+	Protect(netbackupclient.ProtectUnprotectRequest) (*common.JobAPIResponse, error)
+	Unprotect(netbackupclient.ProtectUnprotectRequest) (*common.JobAPIResponse, error)
+	GetID() int
+	ListProtectionLevels() (*netbackupclient.ProtectionLevels, error)
+}
+
+// Apply the protection level for a policy to the target.
+// A target can be a vdc, vapp or vm.
+// Return a policy with the protection level ID.
+// Return an error if any.
+func applyPolicy[T target](t T, policy backupModelPolicy) (backupModelPolicy, error) {
+	var job *common.JobAPIResponse
+	var err error
+
+	// apply the protection levels
+	job, err = t.Protect(netbackupclient.ProtectUnprotectRequest{
+		ProtectionLevelID:   policy.PolicyID.GetIntPtr(),
+		ProtectionLevelName: policy.PolicyName.Get(),
+	})
+	if err != nil {
+		return backupModelPolicy{}, err
+	}
+	if err := job.Wait(1, 15); err != nil {
+		return backupModelPolicy{}, err
+	}
+
+	// get the protection level ID
+	if policy.PolicyID.Get() == 0 {
+		pl, err := t.GetProtectionLevelAvailableByName(policy.PolicyName.Get())
+		if err != nil {
+			return backupModelPolicy{}, err
+		}
+		policy.PolicyID.SetInt(pl.ID)
+	}
+	return policy, nil
+}
+
+// Apply policies to the target.
+// A target can be a vdc, vapp or vm.
+// Return an error if any.
+func applyPolicies[T target](t T, policies *backupModelPolicies) (err error) {
+	for i, policy := range *policies {
+		p, err := applyPolicy(t, policy)
+		if err != nil {
+			return err
+		}
+		(*policies)[i] = p
+	}
+	return nil
+}
+
+// Unapply policies to the target.
+// A target can be a vdc, vapp or vm.
+// Return an error if any.
+func unApplyPolicies[T target](t T, policies *backupModelPolicies) (err error) {
+	for _, policy := range *policies {
+		err := unApplyPolicy(t, policy)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Unapply the protection level for a policy to the target.
+// A target can be a VDC, VAPP or VM.
+// Return an error if any.
+func unApplyPolicy[T target](t T, policy backupModelPolicy) error {
+	// apply the protection levels
+	job, err := t.Unprotect(netbackupclient.ProtectUnprotectRequest{
+		ProtectionLevelID:   policy.PolicyID.GetIntPtr(),
+		ProtectionLevelName: policy.PolicyName.Get(),
+	})
+	if err != nil {
+		return err
+	}
+	if err := job.Wait(1, 15); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
 func (r *backupResource) read(ctx context.Context, planOrState *backupModel) (stateRefreshed *backupModel, found bool, diags diag.Diagnostics) {
-	// TODO : Remove the comment line after you have run the types generator
-	// stateRefreshed is commented because the Copy function is not before run the types generator
-	// stateRefreshed = planOrState.Copy()
+	stateRefreshed = planOrState.Copy()
 
-	/*
-		Implement the resource read here
-	*/
+	var policiesFromAPI *netbackupclient.ProtectionLevels
 
-	/* Example
+	// Get the type target object
+	typeTarget, d := r.getTarget(planOrState)
+	if d.HasError() {
+		diags.Append(d...)
+		return
+	}
 
-	data, err := r.foo.GetData()
+	// Set ID
+	if !planOrState.ID.IsKnown() {
+		stateRefreshed.ID.SetInt(typeTarget.GetID())
+	}
+
+	// get VDC Protection Levels from NetBackup
+	policiesFromAPI, err := typeTarget.ListProtectionLevels()
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
-			return nil, false, nil
-		}
-		diags.AddError("Error retrieving foo", err.Error())
+		diags.AddError("Error listing protection levels", err.Error())
 		return nil, true, diags
 	}
 
-	if !stateRefreshed.ID.IsKnown() {
-		stateRefreshed.ID.Set(r.foo.GetID())
+	// Add policies from API
+	policies := backupModelPolicies{}
+	for _, policyFromAPI := range *policiesFromAPI {
+		x := backupModelPolicy{}
+		x.PolicyName.Set(policyFromAPI.Name)
+		x.PolicyID.SetInt(policyFromAPI.ID)
+		policies = append(policies, x)
 	}
-	*/
+
+	// set policies to the state
+	d = stateRefreshed.Policies.Set(ctx, policies)
+	if d.HasError() {
+		diags.Append(d...)
+		return
+	}
 
 	return stateRefreshed, true, nil
+}
+
+// getTarget returns the target object from the plan or state.
+// A target can be a vdc, vapp or vm netbackup object.
+func (r *backupResource) getTarget(data *backupModel) (typeTarget target, d diag.Diagnostics) {
+	var err error
+	switch data.Type.Get() {
+	case vdc:
+		typeTarget, err = r.client.NetBackup.Client.VCloud.GetVdcByNameOrIdentifier(data.getTargetIDOrName())
+	case vapp:
+		typeTarget, err = r.client.NetBackup.Client.VCloud.GetVAppByNameOrIdentifier(data.getTargetIDOrName())
+	case vm:
+		typeTarget, err = r.client.NetBackup.Client.Machines.GetMachineByNameOrIdentifier(data.getTargetIDOrName())
+	}
+	if err != nil {
+		d.AddError(fmt.Sprintf("Error getting vCloud Director %s", data.Type.Get()), err.Error())
+		return nil, d
+	}
+
+	if data.ID.IsKnown() && typeTarget.GetID() != data.ID.GetInt() {
+		d.AddError(fmt.Sprintf("Error getting vCloud Director %s", data.Type.Get()), "ID not match")
+		return nil, d
+	}
+
+	return typeTarget, d
 }

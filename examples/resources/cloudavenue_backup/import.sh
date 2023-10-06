@@ -1,0 +1,1 @@
+terraform import cloudavenue_backup.example type.targetName

@@ -1,0 +1,3 @@
+```release-note:feature
+`resource/cloudavenue_backup` - New resource to manage NetBackup feature.
+```

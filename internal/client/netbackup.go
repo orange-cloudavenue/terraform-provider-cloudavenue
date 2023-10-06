@@ -17,9 +17,9 @@ type NetBackup struct {
 // NewNetBackup creates a new NetBackup client.
 func (c *CloudAvenue) NewNetBackupClient() (err error) {
 	c.NetBackup.Client, err = netbackupclient.New(netbackupclient.Opts{
-		APIEndpoint: c.URL,
-		Username:    c.User,
-		Password:    c.Password,
+		APIEndpoint: c.NetBackup.URL,
+		Username:    c.NetBackup.User,
+		Password:    c.NetBackup.Password,
 		Debug:       false,
 	})
 	if err != nil {
