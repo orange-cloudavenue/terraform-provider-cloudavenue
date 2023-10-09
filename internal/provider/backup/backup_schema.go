@@ -24,7 +24,7 @@ import (
 func backupSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_backup` resource allows you to manage backup strategy for `vdc`,`vapp` and 'vm' from NetBackup solution. Please refer to the documentation for more information. https://wiki.cloudavenue.orange-business.com/wiki/Backup",
+			MarkdownDescription: "The `cloudavenue_backup` resource allows you to manage backup strategy for `vdc`, `vapp` and `vm` from NetBackup solution. [Please refer to the documentation for more information.](https://wiki.cloudavenue.orange-business.com/wiki/Backup)",
 		},
 		DataSource: superschema.SchemaDetails{
 			MarkdownDescription: "The `cloudavenue_backup` data source allows you to retrieve information about a backup of NetBackup solution.",
@@ -117,14 +117,13 @@ func backupSchema(_ context.Context) superschema.Schema {
 					},
 					"policy_name": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The name of the backup policy.",
+							MarkdownDescription: "The name of the backup policy. Each letter represent a strategy predefined: D = Daily, W = Weekly, M = Monthly, X = Replication, The number is the retention period. [Please refer to the documentation for more information.](https://wiki.cloudavenue.orange-business.com/wiki/Backup)",
 						},
 						Resource: &schemaR.StringAttribute{
 							Required: true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("D6", "D30", "D30NQ", "D60", "W4", "M3", "M12", "XD6", "XD30", "XD60", "XW4", "XM3", "XM12"),
 							},
-							MarkdownDescription: "Each letter represent a strategy predefined: D = Daily, W = Weekly, M = Monthly, X = Replication, The number is the retention period. Please refer to the documentation for more information. https://wiki.cloudavenue.orange-business.com/wiki/Backup",
 						},
 						DataSource: &schemaD.StringAttribute{
 							Computed: true,

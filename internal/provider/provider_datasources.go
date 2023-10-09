@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/alb"
-	netbackup "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/backup"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/backup"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/catalog"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/iam"
@@ -82,6 +82,6 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		storage.NewProfilesDataSource,
 
 		// * BACKUP
-		netbackup.NewBackupDataSource,
+		backup.NewBackupDataSource,
 	}
 }

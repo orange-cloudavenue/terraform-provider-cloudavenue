@@ -36,7 +36,7 @@ func (r *BackupDataSource) DependenciesConfig() (configs testsacc.TFData) {
 func (r *BackupDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (backup vdc example)
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		"example": func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -45,7 +45,21 @@ func (r *BackupDataSource) Tests(ctx context.Context) map[testsacc.TestName]func
 						type = "vdc"
 						target_name = cloudavenue_backup.example.target_name
 					}`,
-					Checks: NewBackupResourceTest().Tests(ctx)["example"](ctx, resourceName).GenerateCheckWithCommonChecks(),
+					Checks: GetResourceConfig()[BackupResourceName]().GetDefaultChecks(),
+				},
+			}
+		},
+		// * Test Two (datasource with vdc ID example)
+		"example_2": func(_ context.Context, _ string) testsacc.Test {
+			return testsacc.Test{
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_backup" "example" {
+						type = "vdc"
+						target_id = cloudavenue_backup.example.target_id
+					}`,
+					Checks: GetResourceConfig()[BackupResourceName]().GetDefaultChecks(),
 				},
 			}
 		},

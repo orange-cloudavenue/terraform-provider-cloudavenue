@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/orange-cloudavenue/netbackup-sdk-go/netbackupclient"
-	"github.com/orange-cloudavenue/netbackup-sdk-go/netbackupclient/common"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	v1common "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/common/netbackup"
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -84,6 +83,17 @@ func (r *backupResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
+	// Refresh data NetBackup from the API
+	job, err := r.client.NetBackupClient.V1.Netbackup.Inventory.Refresh()
+	if err != nil {
+		resp.Diagnostics.AddError("Error refreshing NetBackup inventory", err.Error())
+		return
+	}
+	if err := job.Wait(1, 45); err != nil {
+		resp.Diagnostics.AddError("Error waiting for NetBackup inventory refresh", err.Error())
+		return
+	}
+
 	// Get the type target object
 	typeTarget, d := r.getTarget(plan)
 	if d.HasError() {
@@ -93,7 +103,7 @@ func (r *backupResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Apply the protection levels policies for each policy
 	if err := applyPolicies(typeTarget, policies); err != nil {
-		resp.Diagnostics.AddError("Error applying VDC protection levels", err.Error())
+		resp.Diagnostics.AddError("Error applying protection levels", err.Error())
 		return
 	}
 
@@ -281,6 +291,17 @@ func (r *backupResource) ImportState(ctx context.Context, req resource.ImportSta
 		return
 	}
 
+	// Refresh data NetBackup from the API
+	job, err := r.client.NetBackupClient.V1.Netbackup.Inventory.Refresh()
+	if err != nil {
+		resp.Diagnostics.AddError("Error refreshing NetBackup inventory", err.Error())
+		return
+	}
+	if err := job.Wait(1, 45); err != nil {
+		resp.Diagnostics.AddError("Error waiting for NetBackup inventory refresh", err.Error())
+		return
+	}
+
 	data := NewBackup()
 	data.Type.Set(idParts[0])
 	data.TargetName.Set(idParts[1])
@@ -299,11 +320,11 @@ func (r *backupResource) ImportState(ctx context.Context, req resource.ImportSta
 // * CustomFuncs
 
 type target interface {
-	GetProtectionLevelAvailableByName(string) (*netbackupclient.ProtectionLevel, error)
-	Protect(netbackupclient.ProtectUnprotectRequest) (*common.JobAPIResponse, error)
-	Unprotect(netbackupclient.ProtectUnprotectRequest) (*common.JobAPIResponse, error)
+	GetProtectionLevelAvailableByName(string) (*v1.ProtectionLevel, error)
+	Protect(v1.ProtectUnprotectRequest) (*v1common.JobAPIResponse, error)
+	Unprotect(v1.ProtectUnprotectRequest) (*v1common.JobAPIResponse, error)
 	GetID() int
-	ListProtectionLevels() (*netbackupclient.ProtectionLevels, error)
+	ListProtectionLevels() (*v1.ProtectionLevels, error)
 }
 
 // Apply the protection level for a policy to the target.
@@ -311,11 +332,8 @@ type target interface {
 // Return a policy with the protection level ID.
 // Return an error if any.
 func applyPolicy[T target](t T, policy backupModelPolicy) (backupModelPolicy, error) {
-	var job *common.JobAPIResponse
-	var err error
-
 	// apply the protection levels
-	job, err = t.Protect(netbackupclient.ProtectUnprotectRequest{
+	job, err := t.Protect(v1.ProtectUnprotectRequest{
 		ProtectionLevelID:   policy.PolicyID.GetIntPtr(),
 		ProtectionLevelName: policy.PolicyName.Get(),
 	})
@@ -356,8 +374,7 @@ func applyPolicies[T target](t T, policies *backupModelPolicies) (err error) {
 // Return an error if any.
 func unApplyPolicies[T target](t T, policies *backupModelPolicies) (err error) {
 	for _, policy := range *policies {
-		err := unApplyPolicy(t, policy)
-		if err != nil {
+		if err := unApplyPolicy(t, policy); err != nil {
 			return err
 		}
 	}
@@ -369,7 +386,7 @@ func unApplyPolicies[T target](t T, policies *backupModelPolicies) (err error) {
 // Return an error if any.
 func unApplyPolicy[T target](t T, policy backupModelPolicy) error {
 	// apply the protection levels
-	job, err := t.Unprotect(netbackupclient.ProtectUnprotectRequest{
+	job, err := t.Unprotect(v1.ProtectUnprotectRequest{
 		ProtectionLevelID:   policy.PolicyID.GetIntPtr(),
 		ProtectionLevelName: policy.PolicyName.Get(),
 	})
@@ -387,7 +404,7 @@ func unApplyPolicy[T target](t T, policy backupModelPolicy) error {
 func (r *backupResource) read(ctx context.Context, planOrState *backupModel) (stateRefreshed *backupModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
-	var policiesFromAPI *netbackupclient.ProtectionLevels
+	var policiesFromAPI *v1.ProtectionLevels // *netbackupclient.ProtectionLevels
 
 	// Get the type target object
 	typeTarget, d := r.getTarget(planOrState)
@@ -433,11 +450,11 @@ func (r *backupResource) getTarget(data *backupModel) (typeTarget target, d diag
 	var err error
 	switch data.Type.Get() {
 	case vdc:
-		typeTarget, err = r.client.NetBackup.Client.VCloud.GetVdcByNameOrIdentifier(data.getTargetIDOrName())
+		typeTarget, err = r.client.NetBackupClient.V1.Netbackup.VCloud.GetVdcByNameOrIdentifier(data.getTargetIDOrName())
 	case vapp:
-		typeTarget, err = r.client.NetBackup.Client.VCloud.GetVAppByNameOrIdentifier(data.getTargetIDOrName())
+		typeTarget, err = r.client.NetBackupClient.V1.Netbackup.VCloud.GetVAppByNameOrIdentifier(data.getTargetIDOrName())
 	case vm:
-		typeTarget, err = r.client.NetBackup.Client.Machines.GetMachineByNameOrIdentifier(data.getTargetIDOrName())
+		typeTarget, err = r.client.NetBackupClient.V1.Netbackup.Machines.GetMachineByNameOrIdentifier(data.getTargetIDOrName())
 	}
 	if err != nil {
 		d.AddError(fmt.Sprintf("Error getting vCloud Director %s", data.Type.Get()), err.Error())

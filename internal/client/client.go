@@ -9,6 +9,7 @@ import (
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
+	clientca "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 	apiclient "github.com/orange-cloudavenue/infrapi-sdk-go"
 )
 
@@ -44,7 +45,9 @@ type CloudAvenue struct {
 	VCDVersion string
 
 	// API NetBackup
-	NetBackup *NetBackup
+	// NetBackup *NetBackup
+	NetBackupClient *clientca.Client
+	NetBackupOpts   *clientca.ClientOpts
 }
 
 // New creates a new CloudAvenue client.
@@ -77,11 +80,15 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 	}
 
 	// API NetBackup
-	if c.NetBackup.IsDefined() {
-		if err := c.NewNetBackupClient(); err != nil {
-			return nil, err
-		}
+	// if c.NetBackup.Netbackup.Endpoint != "" || c.NetBackup.Netbackup.Username != "" || c.NetBackup.Netbackup.Password != "" {
+	c.NetBackupClient, err = clientca.New(*c.NetBackupOpts)
+	if err != nil {
+		return nil, fmt.Errorf("%w : %w", ErrConfigureNetBackup, err)
 	}
+	// if err := c.NewNetBackupClient(); err != nil {
+	// 	return nil, err
+	// }
+	// }
 
 	return c, nil
 }

@@ -7,6 +7,7 @@ import (
 	// The fwresource import alias is so there is no collistion
 	// with the more typical acceptance testing import:
 	// "github.com/hashicorp/terraform-plugin-testing/helper/resource".
+	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 
 	netbackup "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/backup"
@@ -36,16 +37,16 @@ func TestBackupResourceSchema(t *testing.T) {
 	}
 }
 
-// Unit test for the schema of the datasource cloudavenue_netbackup_Backup
-/*
+// Unit test for the schema of the datasource cloudavenue_backup
+
 func TestBackupDataSourceSchema(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	schemaResponse := &fwresource.SchemaResponse{}
+	schemaResponse := &fwdatasource.SchemaResponse{}
 
 	// Instantiate the datasource.Datasource and call its Schema method
-	netbackup.NewBackupDataSource().Schema(ctx, fwresource.SchemaRequest{}, schemaResponse)
+	netbackup.NewBackupDataSource().Schema(ctx, fwdatasource.SchemaRequest{}, schemaResponse)
 
 	if schemaResponse.Diagnostics.HasError() {
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
@@ -58,4 +59,3 @@ func TestBackupDataSourceSchema(t *testing.T) {
 		t.Fatalf("Schema validation diagnostics: %+v", diagnostics)
 	}
 }
-*/
