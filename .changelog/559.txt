@@ -1,0 +1,3 @@
+```release-note:dependency
+deps: bumps stefanzweifel/git-auto-commit-action from 4 to 5
+```
