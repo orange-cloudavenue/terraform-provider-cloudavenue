@@ -1,4 +1,9 @@
 ## 0.13.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps stefanzweifel/git-auto-commit-action from 4 to 5 ([GH-559](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/559))
+
 ## 0.12.0 (October  2, 2023)
 ### :rotating_light: **Breaking Changes**
 
