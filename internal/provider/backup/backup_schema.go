@@ -47,9 +47,9 @@ func backupSchema(_ context.Context) superschema.Schema {
 			"type": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Scope of the backup.",
+					Required:            true,
 				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
 					Validators: []validator.String{
 						stringvalidator.OneOf("vdc", "vapp", "vm"),
 					},
@@ -57,16 +57,13 @@ func backupSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.RequiresReplace(),
 					},
 				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
-				},
 			},
 			"target_id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the target. A target can be a VDC, a VApp or a VM.",
+					Optional:            true,
 				},
 				Resource: &schemaR.StringAttribute{
-					Optional: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("target_id"), path.MatchRoot("target_name")),
 						fstringvalidator.IsUUID(),
@@ -76,13 +73,16 @@ func backupSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+				},
 			},
 			"target_name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the target. A target can be a VDC, a VApp or a VM.",
+					Optional:            true,
 				},
 				Resource: &schemaR.StringAttribute{
-					Optional: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("target_id"), path.MatchRoot("target_name")),
 					},
@@ -90,6 +90,9 @@ func backupSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.RequiresReplaceIfConfigured(),
 						stringplanmodifier.UseStateForUnknown(),
 					},
+				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
 				},
 			},
 			"policies": superschema.SuperSetNestedAttribute{

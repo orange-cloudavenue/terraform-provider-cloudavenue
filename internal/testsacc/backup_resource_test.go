@@ -31,16 +31,15 @@ func (r *BackupResource) GetResourceName() string {
 func (r *BackupResource) DependenciesConfig() (configs testsacc.TFData) {
 	// TODO : Add dependencies config
 	configs.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig())
-
-	// This is method for add dependencies legacy config
-	// configs.Append(AddConstantConfig(constantName))
+	// configs.Append(GetResourceConfig()[VAPPResourceName]().GetDefaultConfig())
+	// configs.Append(GetResourceConfig()[VMResourceName]().GetDefaultConfig())
 	return
 }
 
 func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// TODO : Complete tests
-		// * First For a VDC Backup named "example"
+		// * First Test For a VDC Backup named "example"
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
@@ -92,89 +91,110 @@ func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(c
 				},
 			}
 		},
-		// It's possible to add multiple tests
-
-		// Complete and functional example :
-		/*
-			// * Test One (example)
-			"example": func(_ context.Context, resourceName string) testsacc.Test {
-				return testsacc.Test{
-					CommonChecks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttrSet(resourceName, "catalog_name"),
-
-						resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Catalog)),
-						resource.TestCheckResourceAttrWith(resourceName, "catalog_id", uuid.TestIsType(uuid.Catalog)),
+		// * Second Test For a VAPP Backup named "example"
+		"example2": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "target_name", "example"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					resource "cloudavenue_backup" "example" {
+						type = "vapp"
+						target_name = cloudavenue_vapp.example.name
+						policies = [{
+								policy_name = "D6"
+							}]
+					}`,
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "type", "vapp"),
+						resource.TestCheckResourceAttr(resourceName, "policies.0.policy_name", "D6"),
 					},
-					// ! Create testing
-					Create: testsacc.TFConfig{
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{
+					{
 						TFConfig: `
-						resource "cloudavenue_catalog_acl" "example" {
-							catalog_id = cloudavenue_catalog.example.id
-							shared_with_everyone = true
-							everyone_access_level = "ReadOnly"
+						resource "cloudavenue_backup" "example" {
+							type = "vapp"
+							target_name = cloudavenue_vapp.example.name
+							policies = [{
+									policy_name = "D6"
+								},
+								{
+									policy_name = "D30"
+								}]
 						}`,
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckNoResourceAttr(resourceName, "shared_with_users.#"),
-
-							resource.TestCheckResourceAttr(resourceName, "everyone_access_level", "ReadOnly"),
-							resource.TestCheckResourceAttr(resourceName, "shared_with_everyone", "true"),
+							resource.TestCheckResourceAttr(resourceName, "policies.0.policy_name", "D6"),
+							resource.TestCheckResourceAttr(resourceName, "policies.1.policy_name", "D30"),
 						},
 					},
-					// ! Updates testing
-					Updates: []testsacc.TFConfig{
-						{
-							TFConfig: `
-							resource "cloudavenue_catalog_acl" "example" {
-								catalog_id = cloudavenue_catalog.example.id
-								shared_with_everyone = true
-								everyone_access_level = "FullControl"
-							}`,
-							Checks: []resource.TestCheckFunc{
-								resource.TestCheckNoResourceAttr(resourceName, "shared_with_users.#"),
-
-								resource.TestCheckResourceAttr(resourceName, "everyone_access_level", "FullControl"),
-								resource.TestCheckResourceAttr(resourceName, "shared_with_everyone", "true"),
-							},
-						},
-						{
-							TFConfig: `
-							resource "cloudavenue_catalog_acl" "example" {
-								catalog_id = cloudavenue_catalog.example.id
-								shared_with_everyone = false
-								shared_with_users = [
-									{
-										user_id = cloudavenue_iam_user.example.id
-										access_level = "ReadOnly"
-									},
-									{
-										user_id = cloudavenue_iam_user.example2.id
-										access_level = "FullControl"
-									}
-								]
-							}`,
-							Checks: []resource.TestCheckFunc{
-								resource.TestCheckNoResourceAttr(resourceName, "everyone_access_level"),
-
-								resource.TestCheckResourceAttr(resourceName, "shared_with_everyone", "false"),
-								resource.TestCheckResourceAttr(resourceName, "shared_with_users.#", "2"),
-
-								resource.TestCheckResourceAttrWith(resourceName, "shared_with_users.0.user_id", uuid.TestIsType(uuid.User)),
-								resource.TestCheckResourceAttrWith(resourceName, "shared_with_users.1.user_id", uuid.TestIsType(uuid.User)),
-								// shared_with_users it's a SetNestedAttribute, so we can't be sure of the order of the elements in the list is not possible to test each attribute
-							},
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDFunc: testAccBackupResourceImportStateIDFuncWithTypeAndTargetName(resourceName),
+						ImportState:       true,
+						ImportStateVerify: true,
+					},
+				},
+			}
+		},
+		// * Second Test For a VM Backup named "example"
+		"example3": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "target_name", "example"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					resource "cloudavenue_backup" "example" {
+						type = "vm"
+						target_name = cloudavenue_vm.example.name
+						policies = [{
+								policy_name = "D6"
+							}]
+					}`,
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "type", "vm"),
+						resource.TestCheckResourceAttr(resourceName, "policies.0.policy_name", "D6"),
+					},
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: `
+						resource "cloudavenue_backup" "example" {
+							type = "vm"
+							target_name = cloudavenue_vm.example.name
+							policies = [{
+									policy_name = "D6"
+								},
+								{
+									policy_name = "D30"
+								}]
+						}`,
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "policies.0.policy_name", "D6"),
+							resource.TestCheckResourceAttr(resourceName, "policies.1.policy_name", "D30"),
 						},
 					},
-					// ! Imports testing
-					Imports: []testsacc.TFImport{
-						{
-							ImportStateIDBuilder: []string{"id"},
-							ImportState:          true,
-							ImportStateVerify:    true,
-						},
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDFunc: testAccBackupResourceImportStateIDFuncWithTypeAndTargetName(resourceName),
+						ImportState:       true,
+						ImportStateVerify: true,
 					},
-				}
-			},
-		*/
+				},
+			}
+		},
 	}
 }
 
