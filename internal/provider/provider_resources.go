@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/alb"
-	netbackup "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/backup"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/backup"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/catalog"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/iam"
@@ -75,6 +75,6 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		network.NewDhcpResource,
 
 		// * BACKUP
-		netbackup.NewBackupResource,
+		backup.NewBackupResource,
 	}
 }

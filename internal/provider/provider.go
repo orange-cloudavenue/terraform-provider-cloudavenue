@@ -13,7 +13,6 @@ import (
 	casdk "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 	clientcloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/clients/cloudavenue"
 	clientnetbackup "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/clients/netbackup"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
 
@@ -79,7 +78,7 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 		TerraformVersion:   req.TerraformVersion,
 		CloudAvenueVersion: p.version,
 		VCDVersion:         VCDVersion,
-		NetBackupOpts:      &casdk.ClientOpts{Netbackup: netbackup, CloudAvenue: clientcloudavenue.Opts{}},
+		BackupOpts:         &casdk.ClientOpts{Netbackup: netbackup, CloudAvenue: clientcloudavenue.Opts{}},
 	}
 
 	// If any of the expected configurations are missing, return
@@ -112,30 +111,25 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 		)
 	}
 
-	// if cloudAvenue.NetBackupOpts.IsDefined() {
-	// 	// Default URL to the public NetBackup API if not set.
-	// 	if cloudAvenue.NetBackupOpts.URL == "" {
-	// 		cloudAvenue.NetBackupOpts.URL = "https://backup1.cloudavenue.orange-business.com/NetBackupSelfServiceNetBackupPanels/Api"
-	// 	}
-	// 	if cloudAvenue.NetBackup.User == "" {
-	// 		resp.Diagnostics.AddAttributeError(
-	// 			path.Root("netbackup_user"),
-	// 			"Missing NetBackup API User",
-	// 			"The provider cannot create the NetBackup API client as there is a missing or empty value for the NetBackup API user. "+
-	// 				"Set the host value in the configuration or use the NETBACKUP_USER environment variable. "+
-	// 				"If either is already set, ensure the value is not empty.",
-	// 		)
-	// 	}
-	// 	if cloudAvenue.NetBackup.Password == "" {
-	// 		resp.Diagnostics.AddAttributeError(
-	// 			path.Root("netbackup_password"),
-	// 			"Missing NetBackup API Password",
-	// 			"The provider cannot create the NetBackup API client as there is a missing or empty value for the NetBackup API password. "+
-	// 				"Set the host value in the configuration or use the NETBACKUP_PASSWORD environment variable. "+
-	// 				"If either is already set, ensure the value is not empty.",
-	// 		)
-	// 	}
-	// }
+	if cloudAvenue.BackupOpts.Netbackup.Username == "" && cloudAvenue.BackupOpts.Netbackup.Password != "" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("netbackup_user"),
+			"Missing NetBackup API User",
+			"The provider cannot create the NetBackup API client as there is a missing or empty value for the NetBackup API user. "+
+				"Set the host value in the configuration or use the NETBACKUP_USER environment variable. "+
+				"If either is already set, ensure the value is not empty.",
+		)
+	}
+	if cloudAvenue.BackupOpts.Netbackup.Password == "" && cloudAvenue.BackupOpts.Netbackup.Username != "" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("netbackup_password"),
+			"Missing NetBackup API Password",
+			"The provider cannot create the NetBackup API client as there is a missing or empty value for the NetBackup API password. "+
+				"Set the host value in the configuration or use the NETBACKUP_PASSWORD environment variable. "+
+				"If either is already set, ensure the value is not empty.",
+		)
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}

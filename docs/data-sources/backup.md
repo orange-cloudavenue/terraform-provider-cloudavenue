@@ -9,6 +9,8 @@ description: |-
 
 The `cloudavenue_backup` data source allows you to retrieve information about a backup of NetBackup solution.
 
+ ~> The credentials NetBackup are Requires to use this feature. [Please refer to the documentation for more information.](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs#netbackup-configuration)
+
 ## Example Usage
 
 ```terraform
@@ -23,13 +25,13 @@ data "cloudavenue_backup" "example" {
 
 ### Required
 
-- `type` (String) Scope of the backup.
+- `type` (String) Scope of the backup. Value must be one of : `vdc`, `vapp`, `vm`.
 
 ### Optional
 
 - `id` (Number) The ID of the backup.
-- `target_id` (String) The ID of the target. A target can be a VDC, a VApp or a VM.
-- `target_name` (String) The name of the target. A target can be a VDC, a VApp or a VM.
+- `target_id` (String) The URN of the target. A target can be a VDC, a VApp or a VM. Ensure that one and only one attribute from this collection is set : `target_id`, `target_name`. Must be a valid URN.
+- `target_name` (String) The name of the target. A target can be a VDC, a VApp or a VM. Ensure that one and only one attribute from this collection is set : `target_id`, `target_name`.
 
 ### Read-Only
 
@@ -41,5 +43,5 @@ data "cloudavenue_backup" "example" {
 Read-Only:
 
 - `policy_id` (Number) The ID of the backup policy.
-- `policy_name` (String) The name of the backup policy.
+- `policy_name` (String) The name of the backup policy. Each letter represent a strategy predefined: D = Daily, W = Weekly, M = Monthly, X = Replication, The number is the retention period. [Please refer to the documentation for more information.](https://wiki.cloudavenue.orange-business.com/wiki/Backup).
 

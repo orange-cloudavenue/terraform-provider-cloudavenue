@@ -64,6 +64,17 @@ func (d *backupDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		client: d.client,
 	}
 
+	// Refresh data NetBackup from the API
+	job, err := d.client.BackupClient.V1.Netbackup.Inventory.Refresh()
+	if err != nil {
+		resp.Diagnostics.AddError("Error refreshing NetBackup inventory", err.Error())
+		return
+	}
+	if err := job.Wait(1, 45); err != nil {
+		resp.Diagnostics.AddError("Error waiting for NetBackup inventory refresh", err.Error())
+		return
+	}
+
 	// Read data from the API
 	data, _, diags := s.read(ctx, config)
 	resp.Diagnostics.Append(diags...)

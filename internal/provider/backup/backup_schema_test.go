@@ -13,8 +13,6 @@ import (
 	netbackup "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/backup"
 )
 
-// TODO : Comment or uncomment the following imports if you are using resources or/and datasources
-
 // Unit test for the schema of the resource cloudavenue_netbackup_Backup.
 func TestBackupResourceSchema(t *testing.T) {
 	t.Parallel()

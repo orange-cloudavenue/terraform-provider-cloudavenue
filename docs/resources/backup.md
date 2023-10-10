@@ -2,12 +2,14 @@
 page_title: "cloudavenue_backup Resource - cloudavenue"
 subcategory: "Backup"
 description: |-
-  The cloudavenue_backup resource allows you to manage backup strategy for vdc,vapp and 'vm' from NetBackup solution. Please refer to the documentation for more information. https://wiki.cloudavenue.orange-business.com/wiki/Backup
+  The cloudavenue_backup resource allows you to manage backup strategy for vdc, vapp and vm from NetBackup solution. Please refer to the documentation for more information. https://wiki.cloudavenue.orange-business.com/wiki/Backup
 ---
 
 # cloudavenue_backup (Resource)
 
-The `cloudavenue_backup` resource allows you to manage backup strategy for `vdc`,`vapp` and 'vm' from NetBackup solution. Please refer to the documentation for more information. https://wiki.cloudavenue.orange-business.com/wiki/Backup
+The `cloudavenue_backup` resource allows you to manage backup strategy for `vdc`, `vapp` and `vm` from NetBackup solution. [Please refer to the documentation for more information.](https://wiki.cloudavenue.orange-business.com/wiki/Backup)
+
+ ~> The credentials NetBackup are Requires to use this feature. [Please refer to the documentation for more information.](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs#netbackup-configuration)
 
 ## Examples
 ### Example Usage of a VDC Backup with 2 policy sets
@@ -17,9 +19,10 @@ resource "cloudavenue_backup" "example-vdc" {
   target_name = cloudavenue_vdc.example.name
   policies = [{
       policy_name = "D6"
-    } ,{
+    },
+    {
       policy_name = "M3"
-     }
+    }
   ]
 }
 ```
@@ -39,7 +42,7 @@ resource "cloudavenue_backup" "example-vapp" {
 ```hcl
 resource "cloudavenue_backup" "example-vm" {
   type = "vm"
-  target_name = "vmdemo"
+  target_name = cloudavenue_vm.example.name
   policies = [{
       policy_name = "D6"
     }]
@@ -56,7 +59,7 @@ resource "cloudavenue_backup" "example-vm" {
 
 ### Optional
 
-- `target_id` (String) (ForceNew) The ID of the target. A target can be a VDC, a VApp or a VM. Ensure that one and only one attribute from this collection is set : `target_id`, `target_name`. Must be a valid UUID.
+- `target_id` (String) (ForceNew) The URN of the target. A target can be a VDC, a VApp or a VM. Ensure that one and only one attribute from this collection is set : `target_id`, `target_name`. Must be a valid URN.
 - `target_name` (String) (ForceNew) The name of the target. A target can be a VDC, a VApp or a VM. Ensure that one and only one attribute from this collection is set : `target_id`, `target_name`.
 
 ### Read-Only
@@ -68,7 +71,7 @@ resource "cloudavenue_backup" "example-vm" {
 
 Required:
 
-- `policy_name` (String) The name of the backup policy. Each letter represent a strategy predefined: D = Daily, W = Weekly, M = Monthly, X = Replication, The number is the retention period. Please refer to the documentation for more information. https://wiki.cloudavenue.orange-business.com/wiki/Backup. Value must be one of : `D6`, `D30`, `D30NQ`, `D60`, `W4`, `M3`, `M12`, `XD6`, `XD30`, `XD60`, `XW4`, `XM3`, `XM12`.
+- `policy_name` (String) The name of the backup policy. Each letter represent a strategy predefined: D = Daily, W = Weekly, M = Monthly, X = Replication, The number is the retention period. [Please refer to the documentation for more information.](https://wiki.cloudavenue.orange-business.com/wiki/Backup). Value must be one of : `D6`, `D30`, `D30NQ`, `D60`, `W4`, `M3`, `M12`, `XD6`, `XD30`, `XD60`, `XW4`, `XM3`, `XM12`.
 
 Read-Only:
 

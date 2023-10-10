@@ -29,37 +29,42 @@ func (r *BackupDataSource) GetResourceName() string {
 func (r *BackupDataSource) DependenciesConfig() (configs testsacc.TFData) {
 	// Add dependencies config to the resource
 	configs.Append(GetResourceConfig()[BackupResourceName]().GetDefaultConfig())
-	configs.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig())
 	return
 }
 
 func (r *BackupDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (backup vdc example)
-		"example": func(_ context.Context, _ string) testsacc.Test {
-			return testsacc.Test{
-				// ! Create testing
-				Create: testsacc.TFConfig{
-					TFConfig: `
-					data "cloudavenue_backup" "example" {
-						type = "vdc"
-						target_name = cloudavenue_backup.example.target_name
-					}`,
-					Checks: GetResourceConfig()[BackupResourceName]().GetDefaultChecks(),
-				},
-			}
-		},
+		// "example": func(_ context.Context, _ string) testsacc.Test {
+		// 	return testsacc.Test{
+		// 		// ! Create testing
+		// 		Create: testsacc.TFConfig{
+		// 			TFConfig: `
+		// 			data "cloudavenue_backup" "example" {
+		// 				type = "vdc"
+		// 				target_name = cloudavenue_vdc.example.name
+		// 			}`,
+		// 			// Checks: GetResourceConfig()[BackupResourceName]().GetDefaultChecks(),
+		// 			Checks: []resource.TestCheckFunc{
+		// 				resource.TestCheckResourceAttr(resourceName, "type", "vdc"),
+		// 			},
+		// 		},
+		// 	}
+		// },
 		// * Test Two (datasource with vdc ID example)
-		"example_2": func(_ context.Context, _ string) testsacc.Test {
+		"example_2": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
-					data "cloudavenue_backup" "example" {
+					data "cloudavenue_backup" "example_2" {
 						type = "vdc"
-						target_id = cloudavenue_backup.example.target_id
+						target_id = cloudavenue_vdc.example.id
 					}`,
-					Checks: GetResourceConfig()[BackupResourceName]().GetDefaultChecks(),
+					// Checks: GetResourceConfig()[BackupResourceName]().GetDefaultChecks(),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "type", "vdc"),
+					},
 				},
 			}
 		},

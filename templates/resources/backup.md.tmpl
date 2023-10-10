@@ -9,6 +9,8 @@ description: |-
 
 {{ .Description | trimspace }}
 
+ ~> The credentials NetBackup are Requires to use this feature. [Please refer to the documentation for more information.](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs#netbackup-configuration)
+
 ## Examples
 ### Example Usage of a VDC Backup with 2 policy sets
 ```hcl
@@ -17,9 +19,10 @@ resource "cloudavenue_backup" "example-vdc" {
   target_name = cloudavenue_vdc.example.name
   policies = [{
       policy_name = "D6"
-    } ,{
+    },
+    {
       policy_name = "M3"
-     }
+    }
   ]
 }
 ```
@@ -39,7 +42,7 @@ resource "cloudavenue_backup" "example-vapp" {
 ```hcl
 resource "cloudavenue_backup" "example-vm" {
   type = "vm"
-  target_name = "vmdemo"
+  target_name = cloudavenue_vm.example.name
   policies = [{
       policy_name = "D6"
     }]

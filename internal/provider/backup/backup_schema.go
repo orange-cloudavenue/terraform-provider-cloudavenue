@@ -48,11 +48,11 @@ func backupSchema(_ context.Context) superschema.Schema {
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Scope of the backup.",
 					Required:            true,
-				},
-				Resource: &schemaR.StringAttribute{
 					Validators: []validator.String{
 						stringvalidator.OneOf("vdc", "vapp", "vm"),
 					},
+				},
+				Resource: &schemaR.StringAttribute{
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
@@ -60,14 +60,14 @@ func backupSchema(_ context.Context) superschema.Schema {
 			},
 			"target_id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the target. A target can be a VDC, a VApp or a VM.",
+					MarkdownDescription: "The URN of the target. A target can be a VDC, a VApp or a VM.",
 					Optional:            true,
-				},
-				Resource: &schemaR.StringAttribute{
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("target_id"), path.MatchRoot("target_name")),
-						fstringvalidator.IsUUID(),
+						fstringvalidator.IsURN(),
 					},
+				},
+				Resource: &schemaR.StringAttribute{
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
 						stringplanmodifier.UseStateForUnknown(),
@@ -81,18 +81,16 @@ func backupSchema(_ context.Context) superschema.Schema {
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the target. A target can be a VDC, a VApp or a VM.",
 					Optional:            true,
-				},
-				Resource: &schemaR.StringAttribute{
+					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("target_id"), path.MatchRoot("target_name")),
 					},
+				},
+				Resource: &schemaR.StringAttribute{
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
 						stringplanmodifier.UseStateForUnknown(),
 					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
 				},
 			},
 			"policies": superschema.SuperSetNestedAttribute{

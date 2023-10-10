@@ -29,9 +29,8 @@ resource "cloudavenue_vdc_acl" "example" {
 }
 `
 
-const resourceName = "cloudavenue_vdc_acl.example"
-
 func TestAccVDCACLResource(t *testing.T) {
+	const resourceName = "cloudavenue_vdc_acl.example"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
