@@ -7,6 +7,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.4.0 to 1.4.1 ([GH-560](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/560))
 * deps: bumps golang.org/x/net from 0.15.0 to 0.16.0 ([GH-557](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/557))
 * deps: bumps stefanzweifel/git-auto-commit-action from 4 to 5 ([GH-559](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/559))
 
