@@ -280,7 +280,7 @@ func main() {
 	}
 
 	// read file ../.golangci.yml
-	golangCIFile, err := os.ReadFile("../.golangci.yml")
+	golangCIFile, err := os.ReadFile("../../.golangci.yml")
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to read file")
 	}
