@@ -1,5 +1,10 @@
 ## 0.13.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* `datasource/cloudavenue_backup` - New datasource to manage NetBackup feature. The `cloudavenue_backup` data source allows you to retrieve information about a backup of NetBackup solution. ([GH-558](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/558))
+* `resource/cloudavenue_backup` - New resource to manage NetBackup feature. The `cloudavenue_backup` resource allows you to manage backup strategy for `vdc`, `vapp` and `vm` from NetBackup solution. [Please refer to the documentation for more information.](https://wiki.cloudavenue.orange-business.com/wiki/Backup) ([GH-558](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/558))
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps golang.org/x/net from 0.15.0 to 0.16.0 ([GH-557](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/557))
