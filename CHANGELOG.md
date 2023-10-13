@@ -1,4 +1,7 @@
 ## 0.14.0 (Unreleased)
+### :information_source: **Notes**
+
+* bump VCD API Version from 37.1 to 37.2 ([GH-562](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/562))
 
 ### :dependabot: **Dependencies**
 
