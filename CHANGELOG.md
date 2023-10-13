@@ -1,4 +1,9 @@
 ## 0.14.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers from 1.3.3 to 1.3.4 ([GH-566](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/566))
+
 ## 0.13.0 (October 11, 2023)
 
 ### :rocket: **New Features**
