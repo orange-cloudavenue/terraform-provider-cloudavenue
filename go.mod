@@ -7,7 +7,7 @@ require (
 	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.4
 	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.5.4
 	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.1.0
-	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.0
+	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1
 	github.com/antihax/optional v1.0.0
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/google/uuid v1.3.1
