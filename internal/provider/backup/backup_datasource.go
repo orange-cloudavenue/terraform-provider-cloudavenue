@@ -50,7 +50,7 @@ func (d *backupDataSource) Configure(ctx context.Context, req datasource.Configu
 }
 
 func (d *backupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	defer metrics.New("cloudavenue_backup", d.client.GetOrgName(), metrics.Read)()
+	defer metrics.New("data.cloudavenue_backup", d.client.GetOrgName(), metrics.Read)()
 
 	config := &backupModel{}
 
