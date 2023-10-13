@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
-	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.3
+	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.4
 	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.5.4
 	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.1.0
 	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.0
