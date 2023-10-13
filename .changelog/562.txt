@@ -1,0 +1,3 @@
+```release-note:note
+bump VCD API Version from 37.1 to 37.2
+```
