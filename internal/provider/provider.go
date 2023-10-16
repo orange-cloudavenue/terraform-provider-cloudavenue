@@ -57,13 +57,9 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
-	netbackup := clientnetbackup.Opts{
-		Endpoint: findValue(config.NetBackupURL, "NETBACKUP_URL"),
-		Username: findValue(config.NetBackupUser, "NETBACKUP_USER"),
-		Password: findValue(config.NetBackupPassword, "NETBACKUP_PASSWORD"),
-	}
-
 	cloudAvenue := client.CloudAvenue{
+		CloudAvenueVersion: p.version,
+		// Legacy SDK Cloudavenue
 		URL: func() string {
 			url := findValue(config.URL, "CLOUDAVENUE_URL")
 			if url == "" {
@@ -71,14 +67,35 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 			}
 			return url
 		}(),
-		User:               findValue(config.User, "CLOUDAVENUE_USER"),
-		Password:           findValue(config.Password, "CLOUDAVENUE_PASSWORD"),
-		Org:                findValue(config.Org, "CLOUDAVENUE_ORG"),
-		VDC:                findValue(config.VDC, "CLOUDAVENUE_VDC"),
-		TerraformVersion:   req.TerraformVersion,
-		CloudAvenueVersion: p.version,
-		VCDVersion:         VCDVersion,
-		BackupOpts:         &casdk.ClientOpts{Netbackup: netbackup, CloudAvenue: clientcloudavenue.Opts{}},
+		User:             findValue(config.User, "CLOUDAVENUE_USER"),
+		Password:         findValue(config.Password, "CLOUDAVENUE_PASSWORD"),
+		Org:              findValue(config.Org, "CLOUDAVENUE_ORG"),
+		VDC:              findValue(config.VDC, "CLOUDAVENUE_VDC"),
+		TerraformVersion: req.TerraformVersion,
+		VCDVersion:       VCDVersion,
+
+		// This is a new SDK Cloudavenue
+		CAVSDKOpts: &casdk.ClientOpts{
+			Netbackup: clientnetbackup.Opts{
+				Endpoint: findValue(config.NetBackupURL, "NETBACKUP_URL"),
+				Username: findValue(config.NetBackupUser, "NETBACKUP_USER"),
+				Password: findValue(config.NetBackupPassword, "NETBACKUP_PASSWORD"),
+			},
+			CloudAvenue: clientcloudavenue.Opts{
+				Endpoint: func() string {
+					url := findValue(config.URL, "CLOUDAVENUE_URL")
+					if url == "" {
+						url = "https://console1.cloudavenue.orange-business.com"
+					}
+					return url
+				}(),
+				Username:   findValue(config.User, "CLOUDAVENUE_USER"),
+				Password:   findValue(config.Password, "CLOUDAVENUE_PASSWORD"),
+				Org:        findValue(config.Org, "CLOUDAVENUE_ORG"),
+				VDC:        findValue(config.VDC, "CLOUDAVENUE_VDC"),
+				VCDVersion: VCDVersion,
+			},
+		},
 	}
 
 	// If any of the expected configurations are missing, return
@@ -111,7 +128,7 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 		)
 	}
 
-	if cloudAvenue.BackupOpts.Netbackup.Username == "" && cloudAvenue.BackupOpts.Netbackup.Password != "" {
+	if cloudAvenue.CAVSDKOpts.Netbackup.Username == "" && cloudAvenue.CAVSDKOpts.Netbackup.Password != "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("netbackup_user"),
 			"Missing NetBackup API User",
@@ -120,7 +137,7 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
-	if cloudAvenue.BackupOpts.Netbackup.Password == "" && cloudAvenue.BackupOpts.Netbackup.Username != "" {
+	if cloudAvenue.CAVSDKOpts.Netbackup.Password == "" && cloudAvenue.CAVSDKOpts.Netbackup.Username != "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("netbackup_password"),
 			"Missing NetBackup API Password",

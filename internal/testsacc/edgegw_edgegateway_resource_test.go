@@ -65,12 +65,12 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
 					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
 					resource.TestCheckResourceAttr(resourceName, "owner_type", "vdc"),
 
 					// Read-Only attributes
-					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(`tn01e02ocb0006205spt[0-9]{3}`)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				},
 				// ! Create testing
@@ -80,34 +80,64 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						owner_name     = cloudavenue_vdc.example.name
 						tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
 						owner_type     = "vdc"
-						lb_enabled     = false
 					  }`),
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"),
+						resource.TestCheckResourceAttrSet(resourceName, "bandwidth"),
+						resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"), // Deprecated attribute
 					},
 				},
 				// ! Updates testing
 				Updates: []testsacc.TFConfig{
-					// Update lb_enabled
-					// {
-					// 	TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-					// 	resource "cloudavenue_edgegateway" "example" {
-					// 		owner_name     = cloudavenue_vdc.example.name
-					// 		tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-					// 		owner_type     = "vdc"
-					// 		lb_enabled     = true
-					// 	  }`),
-					// 	Checks: []resource.TestCheckFunc{
-					// 		resource.TestCheckResourceAttr(resourceName, "lb_enabled", "true"),
-					// 	},
-					// },
+					// Test one of range value allowed in bandwidth attribute
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_edgegateway" "example" {
+							owner_name     = cloudavenue_vdc.example.name
+							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+							owner_type     = "vdc"
+							bandwidth      = 20
+						  }`),
+						TFAdvanced: testsacc.TFAdvanced{
+							PlanOnly:           true,
+							ExpectNonEmptyPlan: true,
+							ExpectError:        regexp.MustCompile(`Invalid Bandwidth value`),
+						},
+					},
+					// Test overcommit bandwidth
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_edgegateway" "example" {
+							owner_name     = cloudavenue_vdc.example.name
+							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+							owner_type     = "vdc"
+							bandwidth      = 300
+						  }`),
+						TFAdvanced: testsacc.TFAdvanced{
+							PlanOnly:           true,
+							ExpectNonEmptyPlan: true,
+							ExpectError:        regexp.MustCompile(`Overcommitting bandwidth`),
+						},
+					},
+					// Update bandwidth
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+											resource "cloudavenue_edgegateway" "example" {
+												owner_name     = cloudavenue_vdc.example.name
+												tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+												owner_type     = "vdc"
+												bandwidth      = 25
+											  }`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "bandwidth", "25"),
+							resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"),
+						},
+					},
 				},
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
 						ImportStateIDBuilder: []string{"name"},
 						ImportState:          true,
-						ImportStateVerify:    true,
 					},
 				},
 			}

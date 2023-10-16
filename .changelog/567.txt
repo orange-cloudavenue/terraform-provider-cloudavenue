@@ -1,0 +1,8 @@
+```release-note:note
+`resource/cloudavenue_edgegateway` - The `lb_enabled` attribute is now deprecated and will be removed in the version [`v0.16.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/8) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/567) for more information.
+```
+
+```release-note:note
+`datasource/cloudavenue_edgegateway` - The `lb_enabled` attribute is now deprecated and will be removed in the version [`v0.16.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/8) of the provider.
+```
+

@@ -2,40 +2,58 @@
 package testsacc
 
 import (
-	"regexp"
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
-const testAccEdgeGatewayDataSourceConfig = `
-data "cloudavenue_edgegateway" "test" {
-	name = "tn01e02ocb0006205spt101"
+var _ testsacc.TestACC = &EdgeGatewayDataSource{}
+
+const (
+	EdgeGatewayDataSourceName = testsacc.ResourceName("data.cloudavenue_edgegateway")
+)
+
+type EdgeGatewayDataSource struct{}
+
+func NewEdgeGatewayDataSourceTest() testsacc.TestACC {
+	return &EdgeGatewayDataSource{}
 }
-`
+
+// GetResourceName returns the name of the resource.
+func (r *EdgeGatewayDataSource) GetResourceName() string {
+	return EdgeGatewayDataSourceName.String()
+}
+
+func (r *EdgeGatewayDataSource) DependenciesConfig() (configs testsacc.TFData) {
+	configs.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig())
+	return
+}
+
+func (r *EdgeGatewayDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
+		// * Test One (backup vdc example)
+		"example": func(_ context.Context, _ string) testsacc.Test {
+			return testsacc.Test{
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_edgegateway" "example" {
+						name = cloudavenue_edgegateway.example.name
+					}`,
+					Checks: GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultChecks(),
+				},
+			}
+		},
+	}
+}
 
 func TestAccEdgeGatewayDataSource(t *testing.T) {
-	dataSourceName := "data.cloudavenue_edgegateway.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Read testing
-			{
-				Config: testAccEdgeGatewayDataSourceConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					// Verify placeholder id attribute
-					resource.TestMatchResourceAttr(dataSourceName, "id", regexp.MustCompile(uuid.Gateway.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
-					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "tier0_vrf_name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "owner_type"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "owner_name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "lb_enabled"),
-				),
-			},
-		},
+		Steps:                    testsacc.GenerateTests(&EdgeGatewayDataSource{}),
 	})
 }

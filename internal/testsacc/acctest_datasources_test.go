@@ -12,5 +12,8 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() resourceConfig {
 
 		// * Backup
 		BackupDataSourceName: NewResourceConfig(NewBackupDataSourceTest()),
+
+		// * EdgeGateway
+		EdgeGatewayDataSourceName: NewResourceConfig(NewEdgeGatewayDataSourceTest()),
 	}
 }

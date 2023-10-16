@@ -84,7 +84,7 @@ func (r *backupResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Refresh data NetBackup from the API
-	job, err := r.client.BackupClient.V1.Netbackup.Inventory.Refresh()
+	job, err := r.client.CAVSDK.V1.Netbackup.Inventory.Refresh()
 	if err != nil {
 		resp.Diagnostics.AddError("Error refreshing NetBackup inventory", err.Error())
 		return
@@ -297,7 +297,7 @@ func (r *backupResource) ImportState(ctx context.Context, req resource.ImportSta
 	}
 
 	// Refresh data NetBackup from the API
-	job, err := r.client.BackupClient.V1.Netbackup.Inventory.Refresh()
+	job, err := r.client.CAVSDK.V1.Netbackup.Inventory.Refresh()
 	if err != nil {
 		resp.Diagnostics.AddError("Error refreshing NetBackup inventory", err.Error())
 		return
@@ -459,11 +459,11 @@ func (r *backupResource) getTarget(data *backupModel) (typeTarget target, d diag
 	var err error
 	switch data.Type.Get() {
 	case vdc:
-		typeTarget, err = r.client.BackupClient.V1.Netbackup.VCloud.GetVdcByNameOrIdentifier(data.getTargetIDOrName())
+		typeTarget, err = r.client.CAVSDK.V1.Netbackup.VCloud.GetVdcByNameOrIdentifier(data.getTargetIDOrName())
 	case vapp:
-		typeTarget, err = r.client.BackupClient.V1.Netbackup.VCloud.GetVAppByNameOrIdentifier(data.getTargetIDOrName())
+		typeTarget, err = r.client.CAVSDK.V1.Netbackup.VCloud.GetVAppByNameOrIdentifier(data.getTargetIDOrName())
 	case vm:
-		typeTarget, err = r.client.BackupClient.V1.Netbackup.Machines.GetMachineByNameOrIdentifier(data.getTargetIDOrName())
+		typeTarget, err = r.client.CAVSDK.V1.Netbackup.Machines.GetMachineByNameOrIdentifier(data.getTargetIDOrName())
 	}
 	if err != nil {
 		d.AddError(fmt.Sprintf("Error getting vCloud Director %s", data.Type.Get()), err.Error())
