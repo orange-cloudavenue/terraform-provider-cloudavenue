@@ -44,9 +44,9 @@ type CloudAvenue struct {
 	urlVmware  *url.URL
 	VCDVersion string
 
-	// API Backup of NetBackup
-	BackupClient *clientca.Client
-	BackupOpts   *clientca.ClientOpts
+	// SDK CLOUDAVENUE
+	CAVSDK     *clientca.Client
+	CAVSDKOpts *clientca.ClientOpts
 }
 
 // New creates a new CloudAvenue client.
@@ -78,12 +78,10 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 		return nil, fmt.Errorf("%w : %w", ErrConfigureVmware, err)
 	}
 
-	// API Backup of NetBackup
-	if c.BackupOpts.Netbackup.Username != "" && c.BackupOpts.Netbackup.Password != "" {
-		c.BackupClient, err = clientca.New(*c.BackupOpts)
-		if err != nil {
-			return nil, fmt.Errorf("%w : %w", ErrConfigureNetBackup, err)
-		}
+	// New SDK CloudAvenue
+	c.CAVSDK, err = clientca.New(*c.CAVSDKOpts)
+	if err != nil {
+		return nil, fmt.Errorf("%w : %w", ErrConfigureNetBackup, err)
 	}
 
 	return c, nil

@@ -65,7 +65,7 @@ func (d *backupDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	// Refresh data NetBackup from the API
-	job, err := d.client.BackupClient.V1.Netbackup.Inventory.Refresh()
+	job, err := d.client.CAVSDK.V1.Netbackup.Inventory.Refresh()
 	if err != nil {
 		resp.Diagnostics.AddError("Error refreshing NetBackup inventory", err.Error())
 		return

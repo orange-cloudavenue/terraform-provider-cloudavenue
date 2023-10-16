@@ -30,10 +30,13 @@ output "gateway" {
 
 ### Read-Only
 
+- `bandwidth` (Number) The bandwidth in Mbps of the Edge Gateway.
 - `description` (String) The description of the Edge Gateway.
 - `id` (String) The ID of the Edge Gateway.
-- `lb_enabled` (Boolean) Load Balancing state on the Edge Gateway.
+- `lb_enabled` (Boolean, Deprecated) Load Balancing state on the Edge Gateway. 
+
+ ~> **Attribute deprecated** Remove the `lb_enabled` attribute configuration, it will be removed in the version [`v0.16.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/8) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/567) for more information.
 - `owner_name` (String) The name of the Edge Gateway owner.
-- `owner_type` (String) The type of the Edge Gateway owner. Must be vdc or vdc-group.
+- `owner_type` (String) The type of the Edge Gateway owner. Value must be one of : `vdc`, `vdc-group`.
 - `tier0_vrf_name` (String) The name of the Tier-0 VRF to which the Edge Gateway is attached.
 

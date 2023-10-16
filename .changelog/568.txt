@@ -1,0 +1,12 @@
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.0.4 to 0.1.0
+```
+
+```release-note:enhancement
+`resource/cloudavenue_edgegateway` - Add new `bandwidth` attribute to manage bandwidth of the edge gateway (in Mbps).
+```
+
+```release-note:enhancement
+`datasource/cloudavenue_edgegateway` - Add new `bandwidth` attribute to retrieve bandwidth of the edge gateway (in Mbps).
+```
+

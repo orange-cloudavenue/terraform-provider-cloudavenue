@@ -1,14 +1,11 @@
 package edgegw
 
 import (
-	"regexp"
-
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
@@ -42,7 +39,7 @@ func edgegwSchema() superschema.Schema {
 					Update: true,
 				},
 			},
-			"id": &superschema.StringAttribute{
+			"id": &superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the Edge Gateway.",
 					Computed:            true,
@@ -53,7 +50,7 @@ func edgegwSchema() superschema.Schema {
 					},
 				},
 			},
-			"name": &superschema.StringAttribute{
+			"name": &superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the Edge Gateway.",
 				},
@@ -67,7 +64,7 @@ func edgegwSchema() superschema.Schema {
 					Required: true,
 				},
 			},
-			"tier0_vrf_name": &superschema.StringAttribute{
+			"tier0_vrf_name": &superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the Tier-0 VRF to which the Edge Gateway is attached.",
 				},
@@ -81,14 +78,11 @@ func edgegwSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"owner_type": &superschema.StringAttribute{
+			"owner_type": &superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The type of the Edge Gateway owner.",
 					Validators: []validator.String{
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^(vdc|vdc-group)$`),
-							"must be vdc or vdc-group",
-						),
+						stringvalidator.OneOf("vdc", "vdc-group"),
 					},
 				},
 				Resource: &schemaR.StringAttribute{
@@ -101,7 +95,7 @@ func edgegwSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"owner_name": &superschema.StringAttribute{
+			"owner_name": &superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the Edge Gateway owner.",
 				},
@@ -115,7 +109,7 @@ func edgegwSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"description": &superschema.StringAttribute{
+			"description": &superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The description of the Edge Gateway.",
 					Computed:            true,
@@ -126,14 +120,32 @@ func edgegwSchema() superschema.Schema {
 					},
 				},
 			},
-			"lb_enabled": &superschema.BoolAttribute{
+			"bandwidth": &superschema.SuperInt64Attribute{
+				Common: &schemaR.Int64Attribute{
+					MarkdownDescription: "The bandwidth in Mbps of the Edge Gateway.",
+					Computed:            true,
+				},
+				Resource: &schemaR.Int64Attribute{
+					Optional:            true,
+					MarkdownDescription: "If no value is not specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF.",
+				},
+			},
+			"lb_enabled": &superschema.SuperBoolAttribute{
+				Deprecated: &superschema.Deprecated{
+					DeprecationMessage:                "Remove the lb_enabled attribute configuration and the attribute will be removed in the version 0.16.0 of the provider. This field have does not work and will be replaced soon by a new resource.",
+					ComputeMarkdownDeprecationMessage: true,
+					Removed:                           true,
+					FromAttributeName:                 "lb_enabled",
+					TargetRelease:                     "v0.16.0",
+					LinkToMilestone:                   "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/8",
+					LinkToIssue:                       "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/567",
+				},
 				Common: &schemaR.BoolAttribute{
 					MarkdownDescription: "Load Balancing state on the Edge Gateway.",
 					Computed:            true,
 				},
 				Resource: &schemaR.BoolAttribute{
 					Optional: true,
-					Default:  booldefault.StaticBool(true),
 				},
 			},
 		},

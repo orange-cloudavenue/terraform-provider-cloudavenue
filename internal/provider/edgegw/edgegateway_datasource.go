@@ -3,16 +3,11 @@ package edgegw
 
 import (
 	"context"
-	"errors"
 	"fmt"
-
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	apiclient "github.com/orange-cloudavenue/infrapi-sdk-go"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
@@ -60,67 +55,37 @@ func (d *edgeGatewayDataSource) Configure(ctx context.Context, req datasource.Co
 }
 
 func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var (
-		data    edgeGatewayDataSourceModel
-		gateway apiclient.EdgeGateway
-	)
 	defer metrics.New("data.cloudavenue_edgegateway", d.client.GetOrgName(), metrics.Read)()
 
+	config := &edgeGatewayDatasourceModel{}
+
 	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
+	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	gateways, httpR, err := d.client.APIClient.EdgeGatewaysApi.GetEdges(d.client.Auth)
+	data := config.Copy()
 
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+	// Read data from the API
+	edgegw, err := d.client.CAVSDK.V1.EdgeGateway.GetByName(config.Name.Get())
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving edge gateway", err.Error())
 		return
 	}
 
-	found := false
-	for _, gateway = range gateways {
-		if data.Name.Equal(types.StringValue(gateway.EdgeName)) {
-			found = true
-			break
-		}
+	data.ID.Set(uuid.Normalize(uuid.Gateway, edgegw.GetID()).String())
+	data.Tier0VrfID.Set(edgegw.GetTier0VrfID())
+	data.OwnerName.Set(edgegw.GetOwnerName())
+	data.OwnerType.Set(string(edgegw.GetOwnerType()))
+	data.Description.Set(edgegw.GetDescription())
+	data.Bandwidth.SetInt(int(edgegw.GetBandwidth()))
+
+	// EnableLoadBalancing is now deprecated, but we still need to set it to false if it is unknown
+	if !data.EnableLoadBalancing.IsKnown() {
+		data.EnableLoadBalancing.Set(false)
 	}
 
-	if !found {
-		data.ID = types.StringValue("")
-	} else {
-		// Get LoadBalancing state.
-		gatewaysLoadBalancing, httpR, err := d.client.APIClient.EdgeGatewaysApi.GetEdgeLoadBalancing(d.client.Auth, gateway.EdgeId)
-		if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-			defer httpR.Body.Close()
-			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-			if resp.Diagnostics.HasError() {
-				return
-			}
-		}
-
-		data = edgeGatewayDataSourceModel{
-			Tier0VrfID:          types.StringValue(gateway.Tier0VrfId),
-			Name:                types.StringValue(gateway.EdgeName),
-			ID:                  types.StringValue(uuid.Normalize(uuid.Gateway, gateway.EdgeId).String()),
-			OwnerType:           types.StringValue(gateway.OwnerType),
-			OwnerName:           types.StringValue(gateway.OwnerName),
-			Description:         types.StringValue(gateway.Description),
-			EnableLoadBalancing: types.BoolValue((gatewaysLoadBalancing.Enabled)),
-		}
-	}
-
-	// Save data into Terraform state
+	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }

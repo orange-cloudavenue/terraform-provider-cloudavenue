@@ -14,11 +14,10 @@ The Edge Gateway resource allows you to create and delete Edge Gateways in Cloud
 ```terraform
 data "cloudavenue_tier0_vrfs" "example_with_vdc" {}
 
-resource "cloudavenue_edgegateway" "example_with_vdc" {
-  owner_name     = "MyVDC"
+resource "cloudavenue_edgegateway" "example" {
   tier0_vrf_name = data.cloudavenue_tier0_vrfs.example_with_vdc.names.0
+  owner_name     = "MyVDC"
   owner_type     = "vdc"
-  lb_enabled     = false
 }
 ```
 
@@ -28,12 +27,15 @@ resource "cloudavenue_edgegateway" "example_with_vdc" {
 ### Required
 
 - `owner_name` (String) (ForceNew) The name of the Edge Gateway owner.
-- `owner_type` (String) (ForceNew) The type of the Edge Gateway owner. Must be vdc or vdc-group.
+- `owner_type` (String) (ForceNew) The type of the Edge Gateway owner. Value must be one of : `vdc`, `vdc-group`.
 - `tier0_vrf_name` (String) (ForceNew) The name of the Tier-0 VRF to which the Edge Gateway is attached.
 
 ### Optional
 
-- `lb_enabled` (Boolean) Load Balancing state on the Edge Gateway. Value defaults to `true`.
+- `bandwidth` (Number) The bandwidth in Mbps of the Edge Gateway. If no value is not specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF.
+- `lb_enabled` (Boolean, Deprecated) Load Balancing state on the Edge Gateway. 
+
+ ~> **Attribute deprecated** Remove the `lb_enabled` attribute configuration, it will be removed in the version [`v0.16.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/8) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/567) for more information.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
