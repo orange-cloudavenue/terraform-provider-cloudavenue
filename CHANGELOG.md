@@ -1,6 +1,13 @@
 ## 0.14.0 (Unreleased)
+
+### :tada: **Improvements**
+
+* `datasource/cloudavenue_edgegateway` - Add new `bandwidth` attribute to retrieve bandwidth of the edge gateway (in Mbps). ([GH-568](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/568))
+* `resource/cloudavenue_edgegateway` - Add new `bandwidth` attribute to manage bandwidth of the edge gateway (in Mbps). ([GH-568](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/568))
 ### :information_source: **Notes**
 
+* `datasource/cloudavenue_edgegateway` - The `lb_enabled` attribute is now deprecated and will be removed in the version [`v0.16.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/8) of the provider. ([GH-567](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/567))
+* `resource/cloudavenue_edgegateway` - The `lb_enabled` attribute is now deprecated and will be removed in the version [`v0.16.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/8) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/567) for more information. ([GH-567](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/567))
 * bump VCD API Version from 37.1 to 37.2 ([GH-562](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/562))
 
 ### :dependabot: **Dependencies**
@@ -8,6 +15,7 @@
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers from 1.3.3 to 1.3.4 ([GH-566](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/566))
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.5.4 to 1.5.5 ([GH-565](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/565))
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-validators from 1.8.0 to 1.8.1 ([GH-564](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/564))
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.0.4 to 0.1.0 ([GH-568](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/568))
 
 ## 0.13.0 (October 11, 2023)
 
