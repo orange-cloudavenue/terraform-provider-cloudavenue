@@ -87,7 +87,7 @@ func generateRandomString(format string) string {
 	case "longString":
 		return lorem.Sentence(1, 5)
 	default:
-		return randstr.String(16)
+		return randstr.String(16, "abcdefghijklmnopqrstuvwxyz")
 	}
 }
 
