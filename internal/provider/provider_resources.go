@@ -12,6 +12,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/iam"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/publicip"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/s3"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vcda"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdc"
@@ -76,5 +77,8 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 
 		// * BACKUP
 		backup.NewBackupResource,
+
+		// * S3
+		s3.NewBucketResource,
 	}
 }

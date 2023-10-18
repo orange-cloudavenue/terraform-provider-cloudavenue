@@ -24,5 +24,8 @@ func GetResourceConfig() map[testsacc.ResourceName]func() resourceConfig {
 
 		// * Backup
 		BackupResourceName: NewResourceConfig(NewBackupResourceTest()),
+
+		// * S3
+		S3BucketResourceName: NewResourceConfig(NewS3BucketResourceTest()),
 	}
 }
