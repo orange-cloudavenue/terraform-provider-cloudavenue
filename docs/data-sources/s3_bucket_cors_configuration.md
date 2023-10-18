@@ -2,12 +2,12 @@
 page_title: "cloudavenue_s3_bucket_cors_configuration Data Source - cloudavenue"
 subcategory: "S3 (Object Storage)"
 description: |-
-  The cloudavenue_s3_bucket_cors_configuration data source allows you to retrieve information about an S3 bucket's CORS configuration.
+  The cloudavenue_s3_bucket_cors_configuration data source allows you to retrieve information about an S3 bucket's Cross-Origin Resource Sharing https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors.html configuration.
 ---
 
 # cloudavenue_s3_bucket_cors_configuration (Data Source)
 
-The `cloudavenue_s3_bucket_cors_configuration` data source allows you to retrieve information about an S3 bucket's CORS configuration.
+The `cloudavenue_s3_bucket_cors_configuration` data source allows you to retrieve information about an S3 bucket's [Cross-Origin Resource Sharing](https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors.html) configuration.
 
 ## Example Usage
 

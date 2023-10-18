@@ -2,16 +2,16 @@
 page_title: "cloudavenue_s3_bucket_cors_configuration Resource - cloudavenue"
 subcategory: "S3 (Object Storage)"
 description: |-
-  The cloudavenue_s3_bucket_cors_configuration resource allows you to manage the CORS configuration of an S3 bucket.
+  The cloudavenue_s3_bucket_cors_configuration resource allows you to manage the Cross-Origin Resource Sharing https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors.html configuration of an S3 bucket.
 ---
 
 # cloudavenue_s3_bucket_cors_configuration (Resource)
 
-The `cloudavenue_s3_bucket_cors_configuration` resource allows you to manage the CORS configuration of an S3 bucket.
+The `cloudavenue_s3_bucket_cors_configuration` resource allows you to manage the [Cross-Origin Resource Sharing](https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors.html) configuration of an S3 bucket.
 
  ~> S3 Buckets only support a single CORS configuration. Declaring multiple `cloudavenue_s3_bucket_cors_configuration` resources to the same S3 Bucket will cause a perpetual difference in configuration.
 
-## Example Usage
+## Examples Usage
 
 ### Basic example
 
@@ -51,7 +51,7 @@ resource "cloudavenue_s3_bucket_cors_configuration" "example" {
 
 ### Required
 
-- `bucket` (String) The name of the bucket.
+- `bucket` (String) (ForceNew) The name of the bucket.
 - `cors_rules` (Attributes Set) Set of origins and methods (cross-origin access that you want to allow). Set must contain at least 1 elements and at most 100 elements. (see [below for nested schema](#nestedatt--cors_rules))
 
 ### Optional

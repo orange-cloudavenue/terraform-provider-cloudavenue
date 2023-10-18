@@ -246,10 +246,9 @@ func (r *BucketCorsConfigurationResource) Delete(ctx context.Context, req resour
 	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
 	defer cancel()
 
-	_, err := r.s3Client.DeleteBucketCorsWithContext(ctx, &s3.DeleteBucketCorsInput{
+	if _, err := r.s3Client.DeleteBucketCorsWithContext(ctx, &s3.DeleteBucketCorsInput{
 		Bucket: state.Bucket.GetPtr(),
-	})
-	if err != nil {
+	}); err != nil {
 		resp.Diagnostics.AddError("Error deleting CORS policy", err.Error())
 		return
 	}

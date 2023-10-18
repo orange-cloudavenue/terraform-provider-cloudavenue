@@ -7,14 +7,13 @@ import (
 	// The fwresource import alias is so there is no collistion
 	// with the more typical acceptance testing import:
 	// "github.com/hashicorp/terraform-plugin-testing/helper/resource".
+	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/s3"
 )
 
-// TODO : Comment or uncomment the following imports if you are using resources or/and datasources
-
-// Unit test for the schema of the resource cloudavenue_s3_3BucketCorsConfiguration.
+// Unit test for the schema of the resource cloudavenue_s3_bucket_cors_configuration.
 func Test3BucketCorsConfigurationResourceSchema(t *testing.T) {
 	t.Parallel()
 
@@ -36,16 +35,15 @@ func Test3BucketCorsConfigurationResourceSchema(t *testing.T) {
 	}
 }
 
-// Unit test for the schema of the datasource cloudavenue_s3_3BucketCorsConfiguration
-/*
+// Unit test for the schema of the datasource cloudavenue_s3_bucket_cors_configuration.
 func Test3BucketCorsConfigurationDataSourceSchema(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	schemaResponse := &fwresource.SchemaResponse{}
+	schemaResponse := &fwdatasource.SchemaResponse{}
 
 	// Instantiate the datasource.Datasource and call its Schema method
-	s3.New3BucketCorsConfigurationDataSource().Schema(ctx, fwresource.SchemaRequest{}, schemaResponse)
+	s3.NewBucketCorsConfigurationDatasource().Schema(ctx, fwdatasource.SchemaRequest{}, schemaResponse)
 
 	if schemaResponse.Diagnostics.HasError() {
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
@@ -58,4 +56,3 @@ func Test3BucketCorsConfigurationDataSourceSchema(t *testing.T) {
 		t.Fatalf("Schema validation diagnostics: %+v", diagnostics)
 	}
 }
-*/

@@ -8,6 +8,9 @@ import (
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
@@ -18,10 +21,10 @@ import (
 func bucketCorsConfigurationSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_s3_bucket_cors_configuration` resource allows you to manage the CORS configuration of an S3 bucket.",
+			MarkdownDescription: "The `cloudavenue_s3_bucket_cors_configuration` resource allows you to manage the [Cross-Origin Resource Sharing](https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors.html) configuration of an S3 bucket.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_s3_bucket_cors_configuration` data source allows you to retrieve information about an S3 bucket's CORS configuration.",
+			MarkdownDescription: "The `cloudavenue_s3_bucket_cors_configuration` data source allows you to retrieve information about an S3 bucket's [Cross-Origin Resource Sharing](https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors.html) configuration.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"timeouts": superschema.TimeoutAttribute{
@@ -45,6 +48,11 @@ func bucketCorsConfigurationSchema(_ context.Context) superschema.Schema {
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the bucket.",
 					Required:            true,
+				},
+				Resource: &schemaR.StringAttribute{
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplace(),
+					},
 				},
 			},
 			"cors_rules": superschema.SuperSetNestedAttribute{
