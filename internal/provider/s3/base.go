@@ -75,11 +75,16 @@ type RetryWhenConfig[T any] struct {
 	Function func() (T, error)
 }
 
+const (
+	lifeCycleStatusEnabled  = "Enabled"
+	lifeCycleStatusDisabled = "Disabled"
+)
+
 var ErrRetryWhenTimeout = errors.New("timeout reached")
 
 // retryWhen executes the function passed in the configuration object until the timeout is reached or the context is cancelled.
 // It will retry if the shouldRetry function returns true. It will stop if the shouldRetry function returns false.
-func retryWhen[T any](ctx context.Context, config *RetryWhenConfig[T], shouldRetry func(error) bool) (T, error) { //nolint: ireturn,unused
+func retryWhen[T any](ctx context.Context, config *RetryWhenConfig[T], shouldRetry func(error) bool) (T, error) { //nolint: ireturn
 	retryInterval := config.Interval
 	if DefaultWaitRetryInterval != nil {
 		retryInterval = *DefaultWaitRetryInterval
@@ -106,7 +111,7 @@ func retryWhen[T any](ctx context.Context, config *RetryWhenConfig[T], shouldRet
 }
 
 // retryWhenAWSErrCodeEquals retries a function when it returns a specific AWS error.
-func retryWhenAWSErrCodeEquals[T any](ctx context.Context, codes []string, config *RetryWhenConfig[T]) (T, error) { //nolint: ireturn,unused
+func retryWhenAWSErrCodeEquals[T any](ctx context.Context, codes []string, config *RetryWhenConfig[T]) (T, error) { //nolint: ireturn
 	return retryWhen(ctx, config, func(err error) bool {
 		return tfawserr.ErrCodeEquals(err, codes...)
 	})

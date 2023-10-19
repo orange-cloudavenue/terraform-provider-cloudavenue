@@ -1,0 +1,19 @@
+```release-note:dependency
+deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.1.0 to 0.2.0
+```
+
+```release-note:dependency
+deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.5.5 to 1.6.0
+```
+
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.3.0 to 0.3.1
+```
+
+```release-note:new-resource
+`resource/cloudavenue_s3_lifecycle_configuration` is a new resource type that allows to manage S3 lifecycle configuration.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_s3_lifecycle_configuration` is a new data source type that allows to retrieve S3 lifecycle configuration.
+```

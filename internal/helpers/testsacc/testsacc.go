@@ -19,6 +19,11 @@ type (
 	ListOfDependencies         []ResourceName
 	DependenciesConfigResponse []func() TFData
 
+	// TODO : Add TFACCLog management.
+	TFACCLog struct {
+		Level string `env:"LEVEL,default=info"`
+	}
+
 	TestACC interface {
 		// GetResourceName returns the name of the resource under test.
 		GetResourceName() string
@@ -45,6 +50,9 @@ type (
 
 		// Import returns the Terraform configurations to use for the import test.
 		Imports []TFImport
+
+		// Destroy will create a destroy plan if set to true.
+		Destroy bool
 
 		// CacheDependenciesConfig is used to cache the dependencies config.
 		CacheDependenciesConfig TFData
@@ -306,12 +314,16 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 	listOfChecks := t.CommonChecks
 	listOfChecks = append(listOfChecks, t.Create.Checks...)
 
+	// lastConfigGenerated is the last Terraform configuration generated. (Used for destroy step)
+	var lastConfigGenerated string
+
 	// * Compute dependencies config
 	t.ComputeDependenciesConfig(testACC)
 
 	// * Create step
+	lastConfigGenerated = t.Create.Generate(ctx, t.CacheDependenciesConfig)
 	createTestStep := resource.TestStep{
-		Config: t.Create.Generate(ctx, t.CacheDependenciesConfig),
+		Config: lastConfigGenerated,
 		Check: resource.ComposeAggregateTestCheckFunc(
 			listOfChecks...,
 		),
@@ -336,8 +348,9 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 			listOfChecks := t.CommonChecks
 			listOfChecks = append(listOfChecks, update.Checks...)
 
+			lastConfigGenerated = update.Generate(ctx, t.CacheDependenciesConfig)
 			updateTestStep := resource.TestStep{
-				Config: update.Generate(ctx, t.CacheDependenciesConfig),
+				Config: lastConfigGenerated,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					listOfChecks...,
 				),
@@ -377,6 +390,16 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 
 			steps = append(steps, importTest)
 		}
+	}
+
+	// * Destroy step
+	if t.Destroy {
+		destroyTestStep := resource.TestStep{
+			Config:  lastConfigGenerated,
+			Destroy: true,
+		}
+
+		steps = append(steps, destroyTestStep)
 	}
 
 	return

@@ -1,0 +1,188 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "S3 (Object Storage)"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+Provides an independent configuration resource for S3 bucket [lifecycle configuration](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html).
+
+{{ .Description | trimspace }}
+
+An S3 Lifecycle configuration consists of one or more Lifecycle rules. Each rule consists of the following:
+
+* An ID that identifies the rule. The ID must be unique within the configuration.
+* A Status that indicates whether the rule is currently being applied.
+* A Filter that identifies a subset of objects to which the rule applies.
+* One or more Lifecycle actions that you want S3 to perform on the objects identified by the Filter.
+
+For more information about Lifecycle configuration, see [Lifecycle Configuration Elements](https://docs.aws.amazon.com/AmazonS3/latest/userguide/intro-lifecycle-rules.html).
+
+ ~> **NOTE** S3 Buckets only support a single lifecycle configuration. Declaring multiple `cloudavenue_s3_bucket_lifecycle_configuration` resources to the same S3 Bucket will cause a perpetual difference in configuration.
+
+ ~> **NOTE** Lifecycle configurations may take some time to fully propagate to all CloudAvenue S3 systems. Running Terraform operations shortly after creating a lifecycle configuration may result in changes that affect configuration idempotence. See the S3 User Guide on [setting lifecycle configuration on a bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/how-to-set-lifecycle-configuration-intro.html).
+
+## Examples Usage
+
+### Specifying a filter using key prefixes
+
+The Lifecycle rule applies to a subset of objects based on the key name prefix (`logs/`).
+
+```hcl
+resource "cloudavenue_s3_bucket_lifecycle_configuration" "example" {
+	bucket = cloudavenue_s3_bucket.example.name
+  
+	rules = [{
+	  id = "rule_id_1"
+  
+	  filter = {
+		prefix = "logs/"
+	  }
+  
+	  noncurrent_version_expiration = {
+		noncurrent_days = 90
+	  }
+  
+	  status = "Enabled"
+	}]
+}
+```
+
+If you want to apply a Lifecycle action to a subset of objects based on different key name prefixes, specify separate rules.
+
+```hcl
+resource "cloudavenue_s3_bucket_lifecycle_configuration" "example" {
+	bucket = cloudavenue_s3_bucket.example.name
+  
+	rules = [
+	{
+	  id = "rule_id_1"
+  
+	  filter = {
+		prefix = "config/"
+	  }
+  
+	  noncurrent_version_expiration = {
+		noncurrent_days = 180
+	  }
+  
+	  status = "Enabled"
+	},
+	{
+	  id = "rule_id_2"
+	
+	  filter = {
+		prefix = "cache/"
+	  }
+	
+	  noncurrent_version_expiration = {
+		noncurrent_days = 10
+	  }
+	
+	  status = "Enabled"
+	}]
+}
+```
+
+### Specifying a filter based on tag
+
+The Lifecycle rule applies to a subset of objects based on the tag key and value (`tag1` and `value1`).
+
+```hcl
+resource "cloudavenue_s3_bucket_lifecycle_configuration" "example" {
+	bucket = cloudavenue_s3_bucket.example.name
+  
+	rules = [{
+	  id = "rule_id_1"
+  
+	  filter = {
+		tag = {
+			key   = "tag1"
+			value = "value1"
+		}
+	  }
+  
+	  expiration = {
+	    days = 90
+	  }
+  
+	  status = "Enabled"
+	}]
+}
+```
+
+### Specifying a filter based on tags range and prefix
+
+The Lifecycle rule applies to a subset of objects based on the tag key and value (`tag1` and `value1`) and the key name prefix (`logs/`).
+
+```hcl
+resource "cloudavenue_s3_bucket_lifecycle_configuration" "example" {
+	bucket = cloudavenue_s3_bucket.example.name
+	
+	rules = [{
+	  id = "rule_id_1"
+	
+	  filter = {
+		and {
+			prefix = "logs/"
+			tags = [
+				{
+					key   = "tag1"
+					value = "value1"
+				}
+			]
+		}
+	  }
+
+	  expiration = {
+	    days = 90
+	  }
+	
+	  status = "Enabled"
+	}]
+}
+```
+
+### Creating a Lifecycle Configuration for a bucket with versioning
+
+```hcl
+resource "cloudavenue_s3_bucket" "example" {
+	name = "example"
+}
+
+resource "cloudavenue_s3_bucket_versioning_configuration" "example" {
+  bucket = cloudavenue_s3_bucket.example.name
+  status = "Enabled"
+}
+
+resource "cloudavenue_s3_bucket_lifecycle_configuration" "example" {
+	bucket = cloudavenue_s3_bucket_versioning_configuration.example.bucket
+	
+	rules = [{
+	  id = "rule_id_1"
+	
+	  filter = {
+		prefix = "logs/"
+	  }
+	
+	  expiration {
+	  	days = 90
+	  }
+
+	  status = "Enabled"
+	}]
+}
+```
+
+{{ .SchemaMarkdown | trimspace }}
+
+ -> **Timeout** Default timeout is **5 minutes**.
+
+{{ if .HasImport -}}
+## Import
+
+Import is supported using the following syntax:
+{{ codefile "shell" .ImportFile }}
+{{- end }}
