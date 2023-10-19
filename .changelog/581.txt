@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_s3_bucket_ownership_controls` - Manage S3 Bucket Ownership Controls.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_s3_bucket_ownership_controls` - Get S3 Bucket Ownership Controls.
+```

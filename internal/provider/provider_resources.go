@@ -83,5 +83,6 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		s3.NewBucketResource,
 		s3.NewBucketCorsConfigurationResource,
 		s3.NewBucketLifecycleConfigurationResource,
+		s3.NewBucketOwnershipControlsResource,
 	}
 }
