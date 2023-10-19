@@ -113,6 +113,24 @@ func SuperSliceTypesStringToSliceString(slice []supertypes.StringValue) []string
 	return result
 }
 
+func SlicePointerToSlice[T any](slicePointer []*T) []T {
+	slice := make([]T, 0)
+	for _, item := range slicePointer {
+		slice = append(slice, *item)
+	}
+	return slice
+}
+
+func SliceToSlicePointer[T any](slice []T) []*T {
+	slicePointer := make([]*T, len(slice))
+	for i, item := range slice {
+		// FIX variable into the local variable for bypassing the pointer aliasing (https://stackoverflow.com/a/64715804)
+		item := item
+		slicePointer[i] = &item
+	}
+	return slicePointer
+}
+
 type OpenAPIValues []string
 
 // OpenApiReferenceToSliceID converts a slice of OpenApiReference to a slice of ID.

@@ -1,0 +1,1 @@
+terraform import cloudavenue_s3_bucket_cors_configuration.example bucketName

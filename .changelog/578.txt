@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_s3_bucket_cors_configuration` - Manage S3 bucket CORS configuration.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_s3_bucket_cors_configuration` - Get information about S3 bucket CORS configuration.
+```
