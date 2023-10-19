@@ -2,7 +2,9 @@
 
 ### :rocket: **New Features**
 
+* **New Data Source:** `datasource/cloudavenue_s3_bucket_versioning_configuration` - Get S3 bucket versioning configuration. ([GH-584](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/584))
 * **New Data Source:** `datasource/cloudavenue_s3_bucket` - Retrieve information about S3 buckets. ([GH-576](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/576))
+* **New Resource:** `resource/cloudavenue_s3_bucket_versioning_configuration` - Manage S3 bucket versioning configuration. ([GH-584](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/584))
 * **New Resource:** `resource/cloudavenue_s3_bucket` - Create and manage S3 buckets. ([GH-576](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/576))
 
 ### :dependabot: **Dependencies**
