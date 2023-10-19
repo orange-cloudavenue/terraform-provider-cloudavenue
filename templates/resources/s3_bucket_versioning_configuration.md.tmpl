@@ -1,0 +1,39 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "S3 (Object Storage)"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+ ~> **NOTE:** If you are enabling versioning on the bucket for the first time, it's recommends that you wait for 15 minutes after enabling versioning before issuing write operations (`PUT` or `DELETE`) on objects in the bucket.
+
+## Examples Usage
+
+### With Versioning Enabled
+```hcl
+resource "cloudavenue_s3_bucket_versioning_configuration" "example" {
+  bucket = cloudavenue_s3_bucket.example.name
+  status = "Enabled"
+}
+```
+
+### With Versioning Suspended
+```hcl
+resource "cloudavenue_s3_bucket_versioning_configuration" "example" {
+  bucket = cloudavenue_s3_bucket.example.name
+  status = "Suspended"
+}
+```
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+Import is supported using the following syntax:
+{{ codefile "shell" .ImportFile }}
+{{- end }}

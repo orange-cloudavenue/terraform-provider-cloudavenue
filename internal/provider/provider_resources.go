@@ -79,6 +79,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		backup.NewBackupResource,
 
 		// * S3
+		s3.NewBucketVersioningConfigurationResource,
 		s3.NewBucketResource,
 	}
 }

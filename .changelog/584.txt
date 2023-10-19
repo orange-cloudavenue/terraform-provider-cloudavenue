@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_s3_bucket_versioning_configuration` - Manage S3 bucket versioning configuration.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_s3_bucket_versioning_configuration` - Get S3 bucket versioning configuration.
+```
