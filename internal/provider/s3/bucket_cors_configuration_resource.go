@@ -95,7 +95,6 @@ func (r *BucketCorsConfigurationResource) Create(ctx context.Context, req resour
 	if diags.HasError() {
 		return
 	}
-
 	ctx, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 
@@ -144,7 +143,6 @@ func (r *BucketCorsConfigurationResource) Read(ctx context.Context, req resource
 	if diags.HasError() {
 		return
 	}
-
 	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
