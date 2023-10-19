@@ -20,6 +20,10 @@ const (
 	defaultUpdateTimeout = 5 * time.Minute
 	// defaultDeleteTimeout is the default timeout for delete operations.
 	defaultDeleteTimeout = 5 * time.Minute
+
+	// General timeout for S3 bucket changes to propagate.
+	// See https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html#ConsistencyModel.
+	s3BucketPropagationTimeout = 2 * time.Minute // nosemgrep:ci.s3-in-const-name, ci.s3-in-var-name
 )
 
 // Error code constants missing from AWS Go SDK:
@@ -126,4 +130,9 @@ func retryWhenAWSErrCodeNotEquals[T any](ctx context.Context, codes []string, co
 
 		return !tfawserr.ErrCodeEquals(err, codes...)
 	})
+}
+
+// RetryWhenNotFound retries the specified function when it returns a retry.NotFoundError.
+func retryWhenNotFound(ctx context.Context, timeout time.Duration, f func() (interface{}, error)) (interface{}, error) { //nolint: ireturn
+	return retryWhen(ctx, &RetryWhenConfig[interface{}]{Timeout: timeout, Function: f}, NotFound)
 }
