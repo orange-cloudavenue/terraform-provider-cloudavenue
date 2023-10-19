@@ -58,6 +58,11 @@ func TakeInt64Pointer(x int64) *int64 {
 	return &x
 }
 
+// TakePointer return a pointer to the value.
+func TakePointer[T any](value T) *T {
+	return &value
+}
+
 // StringValueOrNull return a null StringValue if value is "" or return StringValue(value) if not.
 func StringValueOrNull(value string) basetypes.StringValue {
 	if value == "" {

@@ -1,0 +1,1 @@
+terraform import cloudavenue_s3_bucket_versioning_configuration.example bucket-name

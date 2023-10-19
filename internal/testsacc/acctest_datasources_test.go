@@ -15,5 +15,8 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() resourceConfig {
 
 		// * EdgeGateway
 		EdgeGatewayDataSourceName: NewResourceConfig(NewEdgeGatewayDataSourceTest()),
+
+		// * S3
+		S3BucketVersioningConfigurationDatasourceName: NewResourceConfig(NewS3BucketVersioningConfigurationDatasourceTest()),
 	}
 }
