@@ -28,5 +28,6 @@ func GetResourceConfig() map[testsacc.ResourceName]func() resourceConfig {
 		// * S3
 		S3BucketResourceName:                        NewResourceConfig(NewS3BucketResourceTest()),
 		S3BucketVersioningConfigurationResourceName: NewResourceConfig(NewS3BucketVersioningConfigurationResourceTest()),
+		S3BucketCorsConfigurationResourceName:       NewResourceConfig(NewS3BucketCorsConfigurationResourceTest()),
 	}
 }

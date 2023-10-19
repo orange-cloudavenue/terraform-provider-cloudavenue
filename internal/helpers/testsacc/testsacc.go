@@ -399,16 +399,26 @@ func ImportStateIDBuilder(resourceName string, attributeNames []string) resource
 	return func(state *terraform.State) (string, error) {
 		rs, ok := state.RootModule().Resources[resourceName]
 		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
+			return "", fmt.Errorf("ImportStateIDBuilder : Resource %s not found", resourceName)
 		}
 
 		// Build the ID
 		id := ""
 		for _, attributeName := range attributeNames {
-			id += rs.Primary.Attributes[attributeName]
+			// Catch attribute not found
+			i, ok := rs.Primary.Attributes[attributeName]
+			if !ok {
+				return "", fmt.Errorf("ImportStateIDBuilder : Attribute %s not found", attributeName)
+			}
+
+			id += i
 			if attributeName != attributeNames[len(attributeNames)-1] {
 				id += "."
 			}
+		}
+
+		if id == "" {
+			return "", fmt.Errorf("ImportStateIDBuilder : ID is empty after building")
 		}
 
 		return id, nil

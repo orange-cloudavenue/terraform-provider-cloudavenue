@@ -88,5 +88,6 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		// * S3
 		s3.NewBucketDataSource,
 		s3.NewBucketVersioningConfigurationDatasource,
+		s3.NewBucketCorsConfigurationDatasource,
 	}
 }

@@ -12,8 +12,50 @@ import (
 const (
 	categoryName = "s3"
 
-	// ErrCodeObjectLockConfigurationNotFoundError object lock configuration not found.
-	ErrCodeObjectLockConfigurationNotFoundError = "ObjectLockConfigurationNotFoundError"
+	// defaultReadTimeout is the default timeout for read operations.
+	defaultReadTimeout = 5 * time.Minute
+	// defaultCreateTimeout is the default timeout for create operations.
+	defaultCreateTimeout = 5 * time.Minute
+	// defaultUpdateTimeout is the default timeout for update operations.
+	defaultUpdateTimeout = 5 * time.Minute
+	// defaultDeleteTimeout is the default timeout for delete operations.
+	defaultDeleteTimeout = 5 * time.Minute
+)
+
+// Error code constants missing from AWS Go SDK:
+// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/#pkg-constants
+
+const (
+	ErrCodeAccessDenied                         = "AccessDenied"
+	ErrCodeBucketNotEmpty                       = "BucketNotEmpty"
+	ErrCodeInvalidBucketState                   = "InvalidBucketState"
+	ErrCodeInvalidRequest                       = "InvalidRequest"
+	ErrCodeMalformedPolicy                      = "MalformedPolicy"
+	ErrCodeMethodNotAllowed                     = "MethodNotAllowed"
+	ErrCodeNoSuchBucket                         = "NoSuchBucket"
+	ErrCodeNoSuchBucketPolicy                   = "NoSuchBucketPolicy"
+	ErrCodeNoSuchConfiguration                  = "NoSuchConfiguration"
+	ErrCodeNoSuchCORSConfiguration              = "NoSuchCORSConfiguration"
+	ErrCodeNoSuchLifecycleConfiguration         = "NoSuchLifecycleConfiguration"
+	ErrCodeNoSuchKey                            = "NoSuchKey"
+	ErrCodeNoSuchPublicAccessBlockConfiguration = "NoSuchPublicAccessBlockConfiguration"
+	ErrCodeNoSuchTagSet                         = "NoSuchTagSet"
+	ErrCodeNoSuchTagSetError                    = "NoSuchTagSetError"
+	ErrCodeNoSuchWebsiteConfiguration           = "NoSuchWebsiteConfiguration"
+	ErrCodeNotImplemented                       = "NotImplemented"
+	// ErrCodeObjectLockConfigurationNotFound should be used with tfawsErr.ErrCodeContains, not tfawsErr.ErrCodeEquals.
+	// Reference: https://github.com/hashicorp/tErraform-provider-aws/pull/26317
+	ErrCodeObjectLockConfigurationNotFound           = "ObjectLockConfigurationNotFound"
+	ErrCodeObjectLockConfigurationNotFoundError      = "ObjectLockConfigurationNotFoundError"
+	ErrCodeOperationAborted                          = "OperationAborted"
+	ErrCodeOwnershipControlsNotFoundError            = "OwnershipControlsNotFoundError"
+	ErrCodeReplicationConfigurationNotFound          = "ReplicationConfigurationNotFoundError"
+	ErrCodeServerSideEncryptionConfigurationNotFound = "ServerSideEncryptionConfigurationNotFoundError"
+	ErrCodeUnsupportedArgument                       = "UnsupportedArgument"
+	// ErrCodeXNotImplemented is returned from Third Party S3 implementations
+	// and so far has been noticed with calls to GetBucketWebsite.
+	// Reference: https://github.com/hashicorp/tErraform-provider-aws/issues/14645
+	ErrCodeXNotImplemented = "XNotImplemented"
 )
 
 // DefaultWaitRetryInterval is used to set the retry interval to 0 during acceptance tests.
