@@ -12,20 +12,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-var listOfDeps = make(ListOfDependencies, 0)
-
 type (
-	ResourceName       string
-	TFData             string
-	TestName           string
-	ListOfDependencies []ResourceName
+	ResourceName               string
+	TFData                     string
+	TestName                   string
+	ListOfDependencies         []ResourceName
+	DependenciesConfigResponse []func() TFData
 
 	TestACC interface {
 		// GetResourceName returns the name of the resource under test.
 		GetResourceName() string
 
 		// DependenciesConfig returns the Terraform configuration used to create any dependencies of the resource under test.
-		DependenciesConfig() TFData
+		DependenciesConfig() DependenciesConfigResponse
 
 		// Tests returns the acceptance tests to run for the resource under test.
 		// resourceName is a concatenation of the resource name and the example name. For example, "cloudavenue_catalog.example".
@@ -47,8 +46,11 @@ type (
 		// Import returns the Terraform configurations to use for the import test.
 		Imports []TFImport
 
-		// cacheDependenciesConfig is used to cache the dependencies config.
-		cacheDependenciesConfig TFData
+		// CacheDependenciesConfig is used to cache the dependencies config.
+		CacheDependenciesConfig TFData
+
+		// listOfDeps is a list of dependencies.
+		listOfDeps ListOfDependencies
 	}
 
 	TFConfig struct {
@@ -148,6 +150,12 @@ type (
 	}
 )
 
+// * DependenciesConfigResponse
+// Append appends the given dependencies config to the current one.
+func (d *DependenciesConfigResponse) Append(tf func() TFData) {
+	*d = append(*d, tf)
+}
+
 // * TFAdvanced
 
 // IsEmpty returns true if the TFAdvanced is empty.
@@ -219,10 +227,7 @@ func (t TFData) String() string {
 
 // Append appends the given Terraform configuration to the current one.
 func (t *TFData) Append(tf TFData) {
-	if !tf.IsEmpty() && !listOfDeps.Exists(ResourceName(tf.extractResourceName())) {
-		t.append(tf)
-		listOfDeps.Append(ResourceName(tf.extractResourceName()))
-	}
+	t.append(tf)
 }
 
 // AppendWithoutResourceName appends the given Terraform configuration to the current one.
@@ -248,7 +253,11 @@ func (t *TFData) append(tf TFData) {
 // extractResourceName extracts the resource name and config name from the Terraform configuration.
 // example: "resource "cloudavenue_catalog" "example" {}" => "cloudavenue_catalog.example"
 func (t *TFData) extractResourceName() string {
-	x := strings.Split(t.String(), " ")
+	// find the first occurrence of "resource" or "data"
+	re := regexp.MustCompile(`(resource|data) \"(.*)\" \"(.*)\"`)
+	line := re.FindString(t.String())
+
+	x := strings.Split(line, " ")
 	// for each word remove the double quotes
 	for i, v := range x {
 		x[i] = strings.ReplaceAll(v, "\"", "")
@@ -268,6 +277,26 @@ func (t TFConfig) Generate(_ context.Context, dependencies TFData) string {
 
 // *Test
 
+// initListOfDeps initializes the list of dependencies.
+func (t *Test) initListOfDeps() {
+	if t.listOfDeps == nil {
+		t.listOfDeps = make(ListOfDependencies, 0)
+	}
+}
+
+// Compute Dependencies config.
+func (t *Test) ComputeDependenciesConfig(testACC TestACC) {
+	t.initListOfDeps()
+	for _, v := range testACC.DependenciesConfig() {
+		// tf contains terraform configuration for a dependency
+		tf := v()
+		if !tf.IsEmpty() && !t.listOfDeps.Exists(ResourceName(tf.extractResourceName())) {
+			t.CacheDependenciesConfig.append(tf)
+			t.listOfDeps.Append(ResourceName(tf.extractResourceName()))
+		}
+	}
+}
+
 // GenerateSteps generates the structure of the acceptance tests.
 func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC TestACC) (steps []resource.TestStep) {
 	// Init Slice
@@ -277,13 +306,12 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 	listOfChecks := t.CommonChecks
 	listOfChecks = append(listOfChecks, t.Create.Checks...)
 
-	if t.cacheDependenciesConfig == "" {
-		t.cacheDependenciesConfig = testACC.DependenciesConfig()
-	}
+	// * Compute dependencies config
+	t.ComputeDependenciesConfig(testACC)
 
 	// * Create step
 	createTestStep := resource.TestStep{
-		Config: t.Create.Generate(ctx, t.cacheDependenciesConfig),
+		Config: t.Create.Generate(ctx, t.CacheDependenciesConfig),
 		Check: resource.ComposeAggregateTestCheckFunc(
 			listOfChecks...,
 		),
@@ -309,7 +337,7 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 			listOfChecks = append(listOfChecks, update.Checks...)
 
 			updateTestStep := resource.TestStep{
-				Config: update.Generate(ctx, t.cacheDependenciesConfig),
+				Config: update.Generate(ctx, t.CacheDependenciesConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					listOfChecks...,
 				),
@@ -376,7 +404,7 @@ func GenerateTests(tacc TestACC) []resource.TestStep {
 		// resourceName is a concatenation of the resource name and the example name. For example, "cloudavenue_catalog.example".
 		resourceName := testName.ComputeResourceName(tacc.GetResourceName())
 
-		steps = step(ctx, resourceName).GenerateSteps(ctx, testName, tacc)
+		steps = append(steps, step(ctx, resourceName).GenerateSteps(ctx, testName, tacc)...)
 	}
 
 	return steps

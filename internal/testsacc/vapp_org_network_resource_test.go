@@ -27,9 +27,9 @@ func (r *VAppOrgNetworkResource) GetResourceName() string {
 	return VAppOrgNetworkResourceName.String()
 }
 
-func (r *VAppOrgNetworkResource) DependenciesConfig() (configs testsacc.TFData) {
-	configs.Append(GetResourceConfig()[VAppResourceName]().GetDefaultConfig())
-	configs.Append(GetResourceConfig()[NetworkRoutedResourceName]().GetDefaultConfig())
+func (r *VAppOrgNetworkResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[VAppResourceName]().GetDefaultConfig)
+	resp.Append(GetResourceConfig()[NetworkRoutedResourceName]().GetDefaultConfig)
 	return
 }
 

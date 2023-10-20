@@ -26,8 +26,8 @@ func (r *CatalogACLDataSource) GetResourceName() string {
 	return CatalogACLDataSourceName.String()
 }
 
-func (r *CatalogACLDataSource) DependenciesConfig() (configs testsacc.TFData) {
-	configs.Append(GetResourceConfig()[CatalogACLResourceName]().GetDefaultConfig())
+func (r *CatalogACLDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[CatalogACLResourceName]().GetDefaultConfig)
 	return
 }
 

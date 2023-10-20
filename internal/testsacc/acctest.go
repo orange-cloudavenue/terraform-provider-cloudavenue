@@ -80,27 +80,29 @@ type resourceConfig struct {
 
 // GetDefaultConfig returns the create configuration for the test named "example".
 func (r resourceConfig) GetDefaultConfig() testsacc.TFData {
-	return r.GetSpecificConfig("example")
+	return r.GetSpecificConfig("example")()
 }
 
 // GetSpecificConfig returns the create configuration for the test named "example".
-func (r resourceConfig) GetSpecificConfig(testName string) testsacc.TFData {
-	var x testsacc.TFData
-
-	if test, ok := localCacheResource[r.GetResourceName()+"."+testName]; ok {
-		x = test.Create.TFConfig
-	} else {
-		t := r.Tests(context.Background())[testsacc.TestName(testName)](
+func (r resourceConfig) GetSpecificConfig(testName string) func() testsacc.TFData {
+	// Load from cache
+	t, ok := localCacheResource[r.GetResourceName()+"."+testName]
+	// If not found, compute it
+	if !ok {
+		t = r.Tests(context.Background())[testsacc.TestName(testName)](
 			context.Background(),
 			r.GetResourceName()+"."+testName,
 		)
-		x = t.Create.TFConfig
-
+		t.ComputeDependenciesConfig(r.TestACC)
 		localCacheResource[r.GetResourceName()+"."+testName] = t
 	}
 
-	x.AppendWithoutResourceName(r.DependenciesConfig())
-	return x
+	x := t.Create.TFConfig
+	x.Append(t.CacheDependenciesConfig)
+
+	return func() testsacc.TFData {
+		return x
+	}
 }
 
 // GetDefaultChecks returns the checks for the test named "example".
@@ -128,8 +130,10 @@ func (r resourceConfig) GetSpecificChecks(testName string) []resource.TestCheckF
 }
 
 // AddConstantConfig returns the create configuration from constant.
-func AddConstantConfig(config string) testsacc.TFData {
-	return testsacc.TFData(config)
+func AddConstantConfig(config string) func() testsacc.TFData {
+	return func() testsacc.TFData {
+		return testsacc.TFData(config)
+	}
 }
 
 func NewResourceConfig(data testsacc.TestACC) func() resourceConfig {

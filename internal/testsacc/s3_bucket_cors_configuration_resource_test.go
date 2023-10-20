@@ -26,8 +26,8 @@ func (r *S3BucketCorsConfigurationResource) GetResourceName() string {
 	return S3BucketCorsConfigurationResourceName.String()
 }
 
-func (r *S3BucketCorsConfigurationResource) DependenciesConfig() (configs testsacc.TFData) {
-	configs.Append(GetResourceConfig()[S3BucketResourceName]().GetDefaultConfig())
+func (r *S3BucketCorsConfigurationResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[S3BucketResourceName]().GetDefaultConfig)
 	return
 }
 

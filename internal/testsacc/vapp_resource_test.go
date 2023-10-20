@@ -44,8 +44,8 @@ func (r *VAppResource) GetResourceName() string {
 	return VAppResourceName.String()
 }
 
-func (r *VAppResource) DependenciesConfig() (configs testsacc.TFData) {
-	configs.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig())
+func (r *VAppResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
 	return
 }
 
