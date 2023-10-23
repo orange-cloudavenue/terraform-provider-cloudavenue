@@ -59,9 +59,9 @@ linters:
     - unparam # reports unused function parameters
     - staticcheck #(megacheck): Staticcheck is a go vet on steroids, applying a ton of static analysis checks [fast: false, auto-fix: false]
     - bodyclose # checks whether HTTP response body is closed successfully
+    - goconst # Finds repeated strings that could be replaced by a constant [fast: true, auto-fix: false]
 
   disable:
-    - goconst # Finds repeated strings that could be replaced by a constant [fast: true, auto-fix: false]
     - dupl # Tool for code clone detection [fast: true, auto-fix: false]
     - varcheck # Finds unused global variables and constants [fast: false, auto-fix: false]
     - deadcode # Finds unused code [fast: false, auto-fix: false]
