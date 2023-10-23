@@ -28,7 +28,7 @@ func (r *VDCResource) GetResourceName() string {
 	return VDCResourceName.String()
 }
 
-func (r *VDCResource) DependenciesConfig() (configs testsacc.TFData) {
+func (r *VDCResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	return
 }
 

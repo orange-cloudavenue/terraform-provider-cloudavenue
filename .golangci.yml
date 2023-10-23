@@ -18,7 +18,6 @@ linters:
     - exportloopref # checks for pointers to enclosing loop variables [fast: false, auto-fix: false]
     - forbidigo # Forbids identifiers [fast: true, auto-fix: false]
     - gci # Gci controls golang package import order and makes it always deterministic. [fast: true, auto-fix: false]
-    - goconst # Finds repeated strings that could be replaced by a constant [fast: true, auto-fix: false]
     - gocritic # Provides diagnostics that check for bugs, performance and style issues. [fast: false, auto-fix: false]
     - gocyclo # Computes and checks the cyclomatic complexity of functions [fast: true, auto-fix: false]
     - gofmt # Gofmt checks whether code was gofmt-ed. By default this tool runs with -s option to check for code simplification [fast: true, auto-fix: true]
@@ -62,6 +61,7 @@ linters:
     - bodyclose # checks whether HTTP response body is closed successfully
 
   disable:
+    - goconst # Finds repeated strings that could be replaced by a constant [fast: true, auto-fix: false]
     - dupl # Tool for code clone detection [fast: true, auto-fix: false]
     - varcheck # Finds unused global variables and constants [fast: false, auto-fix: false]
     - deadcode # Finds unused code [fast: false, auto-fix: false]

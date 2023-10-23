@@ -26,9 +26,9 @@ func (r *BackupDataSource) GetResourceName() string {
 	return BackupDataSourceName.String()
 }
 
-func (r *BackupDataSource) DependenciesConfig() (configs testsacc.TFData) {
+func (r *BackupDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	// Add dependencies config to the resource
-	configs.Append(GetResourceConfig()[BackupResourceName]().GetDefaultConfig())
+	resp.Append(GetResourceConfig()[BackupResourceName]().GetDefaultConfig)
 	return
 }
 

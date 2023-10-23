@@ -27,11 +27,11 @@ func (r *CatalogACLResource) GetResourceName() string {
 	return CatalogACLResourceName.String()
 }
 
-func (r *CatalogACLResource) DependenciesConfig() (configs testsacc.TFData) {
-	configs.Append(GetResourceConfig()[CatalogResourceName]().GetDefaultConfig())
+func (r *CatalogACLResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[CatalogResourceName]().GetDefaultConfig)
 
 	// TODO After the implementation of the user resource we can use new resourceConfig
-	configs.Append(AddConstantConfig(testAccOrgUserResourceConfigForCatalogACL))
+	resp.Append(AddConstantConfig(testAccOrgUserResourceConfigForCatalogACL))
 	return
 }
 

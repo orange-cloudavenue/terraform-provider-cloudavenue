@@ -27,7 +27,7 @@ func (r *Tier0VRFDataSource) GetResourceName() string {
 	return Tier0VRFDataSourceName.String()
 }
 
-func (r *Tier0VRFDataSource) DependenciesConfig() (configs testsacc.TFData) {
+func (r *Tier0VRFDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	return
 }
 

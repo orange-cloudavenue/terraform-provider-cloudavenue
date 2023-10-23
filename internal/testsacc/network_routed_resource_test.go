@@ -27,8 +27,8 @@ func (r *NetworkRoutedResource) GetResourceName() string {
 	return NetworkRoutedResourceName.String()
 }
 
-func (r *NetworkRoutedResource) DependenciesConfig() (configs testsacc.TFData) {
-	configs.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig())
+func (r *NetworkRoutedResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
 	return
 }
 

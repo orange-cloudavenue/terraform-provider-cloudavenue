@@ -26,9 +26,9 @@ func (r *S3BucketVersioningConfigurationDatasource) GetResourceName() string {
 	return S3BucketVersioningConfigurationDatasourceName.String()
 }
 
-func (r *S3BucketVersioningConfigurationDatasource) DependenciesConfig() (configs testsacc.TFData) {
+func (r *S3BucketVersioningConfigurationDatasource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	// Add dependencies config to the resource
-	configs.Append(GetResourceConfig()[S3BucketVersioningConfigurationResourceName]().GetDefaultConfig())
+	resp.Append(GetResourceConfig()[S3BucketVersioningConfigurationResourceName]().GetDefaultConfig)
 	return
 }
 

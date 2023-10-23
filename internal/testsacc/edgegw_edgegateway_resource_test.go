@@ -53,9 +53,9 @@ func (r *EdgeGatewayResource) GetResourceName() string {
 	return EdgeGatewayResourceName.String()
 }
 
-func (r *EdgeGatewayResource) DependenciesConfig() (configs testsacc.TFData) {
-	configs.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig())
-	configs.Append(GetDataSourceConfig()[Tier0VRFDataSourceName]().GetDefaultConfig())
+func (r *EdgeGatewayResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
+	resp.Append(GetDataSourceConfig()[Tier0VRFDataSourceName]().GetDefaultConfig)
 	return
 }
 

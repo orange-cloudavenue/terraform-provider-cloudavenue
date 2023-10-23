@@ -26,8 +26,8 @@ func (r *VDCGroupDataSource) GetResourceName() string {
 	return VDCGroupDataSourceName.String()
 }
 
-func (r *VDCGroupDataSource) DependenciesConfig() (configs testsacc.TFData) {
-	configs.Append(GetResourceConfig()[VDCGroupResourceName]().GetDefaultConfig())
+func (r *VDCGroupDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[VDCGroupResourceName]().GetDefaultConfig)
 	return
 }
 

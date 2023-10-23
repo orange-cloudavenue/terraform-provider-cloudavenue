@@ -27,8 +27,8 @@ func (r *EdgeGatewayDataSource) GetResourceName() string {
 	return EdgeGatewayDataSourceName.String()
 }
 
-func (r *EdgeGatewayDataSource) DependenciesConfig() (configs testsacc.TFData) {
-	configs.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig())
+func (r *EdgeGatewayDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
 	return
 }
 

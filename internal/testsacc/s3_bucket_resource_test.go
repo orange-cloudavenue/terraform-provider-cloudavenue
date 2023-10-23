@@ -27,7 +27,7 @@ func (r *S3BucketResource) GetResourceName() string {
 	return S3BucketResourceName.String()
 }
 
-func (r *S3BucketResource) DependenciesConfig() (configs testsacc.TFData) {
+func (r *S3BucketResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	return
 }
 

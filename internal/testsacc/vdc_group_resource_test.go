@@ -27,9 +27,9 @@ func (r *VDCGroupResource) GetResourceName() string {
 	return VDCGroupResourceName.String()
 }
 
-func (r *VDCGroupResource) DependenciesConfig() (configs testsacc.TFData) {
-	configs.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example"))
-	configs.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example_2"))
+func (r *VDCGroupResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example"))
+	resp.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example_2"))
 
 	return
 }

@@ -26,8 +26,8 @@ func (r *S3BucketDatasource) GetResourceName() string {
 	return S3BucketDatasourceName.String()
 }
 
-func (r *S3BucketDatasource) DependenciesConfig() (configs testsacc.TFData) {
-	configs.Append(GetResourceConfig()[S3BucketResourceName]().GetDefaultConfig())
+func (r *S3BucketDatasource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[S3BucketResourceName]().GetDefaultConfig)
 	return
 }
 
