@@ -136,7 +136,7 @@ func Test_extractUUIDv4(t *testing.T) {
 		{
 			name: "ExtractUUID",
 			args: args{
-				uuid:   "urn:vcloud:vm:" + validUUIDv4,
+				uuid:   VM.String() + validUUIDv4,
 				prefix: VM,
 			},
 			want: validUUIDv4,
@@ -171,7 +171,7 @@ func TestIsValid(t *testing.T) {
 		{
 			name: "ValidUUID",
 			args: args{
-				uuid: "urn:vcloud:vm:" + validUUIDv4,
+				uuid: VM.String() + validUUIDv4,
 			},
 			want: true,
 		},
@@ -222,7 +222,7 @@ func TestNormalize(t *testing.T) {
 				prefix: VM,
 				uuid:   validUUIDv4,
 			},
-			want: VcloudUUID("urn:vcloud:vm:" + validUUIDv4),
+			want: VcloudUUID(VM.String() + validUUIDv4),
 		},
 	}
 	for _, tt := range tests {

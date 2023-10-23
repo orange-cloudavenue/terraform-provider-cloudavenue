@@ -1,7 +1,6 @@
 package testsacc
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -51,7 +50,7 @@ func TestAccNetworkRoutedDataSource(t *testing.T) {
 				// Apply test
 				Config: testAccNetworkRoutedDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.Network.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
 					resource.TestCheckResourceAttrPair(dataSourceName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "static_ip_pool.#", resourceName, "static_ip_pool.#"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "gateway", resourceName, "gateway"),

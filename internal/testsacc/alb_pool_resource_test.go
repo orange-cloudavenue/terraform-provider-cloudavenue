@@ -1,7 +1,6 @@
 package testsacc
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -55,7 +54,7 @@ func TestAccAlbPoolResource(t *testing.T) {
 				// Apply test
 				Config: testAccAlbPoolResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.LoadBalancerPool.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.LoadBalancerPool)),
 					resource.TestCheckResourceAttr(resourceName, "name", "Example"),
 					resource.TestCheckResourceAttr(resourceName, "persistence_profile.type", "CLIENT_IP"),
 				),
@@ -64,7 +63,7 @@ func TestAccAlbPoolResource(t *testing.T) {
 				// Update test
 				Config: testAccAlbPoolResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.LoadBalancerPool.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.LoadBalancerPool)),
 					resource.TestCheckResourceAttr(resourceName, "name", "Example"),
 					resource.TestCheckNoResourceAttr(resourceName, "persistence_profile"),
 					resource.TestCheckNoResourceAttr(resourceName, "members"),

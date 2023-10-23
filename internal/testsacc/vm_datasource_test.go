@@ -2,10 +2,11 @@ package testsacc
 
 import (
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 const testAccVMDataSourceConfig = `
@@ -56,10 +57,10 @@ func TestAccVMDataSource(t *testing.T) {
 				Config: testAccVMDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// ! basic
-					resource.TestMatchResourceAttr(dataSourceName, "id", regexp.MustCompile(`(urn:vcloud:vm:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestCheckResourceAttrWith(dataSourceName, "id", uuid.TestIsType(uuid.VM)),
 					resource.TestCheckResourceAttr(dataSourceName, "name", "example-vm"),
 					resource.TestCheckResourceAttr(dataSourceName, "vapp_name", "example-vapp"),
-					resource.TestMatchResourceAttr(dataSourceName, "vapp_id", regexp.MustCompile(`(urn:vcloud:vapp:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestCheckResourceAttrWith(dataSourceName, "vapp_id", uuid.TestIsType(uuid.VAPP)),
 					resource.TestCheckResourceAttr(dataSourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
 					// ! resource
 					resource.TestCheckResourceAttr(dataSourceName, "resource.cpus", "1"),
@@ -69,7 +70,7 @@ func TestAccVMDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "resource.memory_hot_add_enabled", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "resource.networks.#", "0"),
 					// ! settings
-					resource.TestMatchResourceAttr(dataSourceName, "settings.affinity_rule_id", regexp.MustCompile(`(urn:vcloud:vdcComputePolicy:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestCheckResourceAttrWith(dataSourceName, "settings.affinity_rule_id", uuid.TestIsType(uuid.VDCComputePolicy)),
 					resource.TestCheckResourceAttrSet(dataSourceName, "settings.customization.allow_local_admin_password"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "settings.customization.auto_generate_password"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "settings.customization.change_sid"),

@@ -98,6 +98,8 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 		},
 	}
 
+	const valueNotEmpty = "If either is already set, ensure the value is not empty."
+
 	// If any of the expected configurations are missing, return
 	// errors with provider-specific guidance.
 	if cloudAvenue.User == "" {
@@ -106,7 +108,7 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 			"Missing Cloud Avenue API User",
 			"The provider cannot create the Cloud Avenue API client as there is a missing or empty value for the Cloud Avenue API user. "+
 				"Set the host value in the configuration or use the CLOUDAVENUE_USER environment variable. "+
-				"If either is already set, ensure the value is not empty.",
+				valueNotEmpty,
 		)
 	}
 	if cloudAvenue.Password == "" {
@@ -115,7 +117,7 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 			"Missing Cloud Avenue API Password",
 			"The provider cannot create the Cloud Avenue API client as there is a missing or empty value for the Cloud Avenue API password. "+
 				"Set the host value in the configuration or use the CLOUDAVENUE_PASSWORD environment variable. "+
-				"If either is already set, ensure the value is not empty.",
+				valueNotEmpty,
 		)
 	}
 	if cloudAvenue.Org == "" {
@@ -124,7 +126,7 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 			"Missing Cloud Avenue API Org",
 			"The provider cannot create the Cloud Avenue API client as there is a missing or empty value for the Cloud Avenue API org. "+
 				"Set the host value in the configuration or use the CLOUDAVENUE_ORG environment variable. "+
-				"If either is already set, ensure the value is not empty.",
+				valueNotEmpty,
 		)
 	}
 
@@ -134,7 +136,7 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 			"Missing NetBackup API User",
 			"The provider cannot create the NetBackup API client as there is a missing or empty value for the NetBackup API user. "+
 				"Set the host value in the configuration or use the NETBACKUP_USER environment variable. "+
-				"If either is already set, ensure the value is not empty.",
+				valueNotEmpty,
 		)
 	}
 	if cloudAvenue.CAVSDKOpts.Netbackup.Password == "" && cloudAvenue.CAVSDKOpts.Netbackup.Username != "" {
@@ -143,7 +145,7 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 			"Missing NetBackup API Password",
 			"The provider cannot create the NetBackup API client as there is a missing or empty value for the NetBackup API password. "+
 				"Set the host value in the configuration or use the NETBACKUP_PASSWORD environment variable. "+
-				"If either is already set, ensure the value is not empty.",
+				valueNotEmpty,
 		)
 	}
 
@@ -151,56 +153,31 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
+	const (
+		summaryErrorAPICAV = "Unable to Create Cloud Avenue API Client"
+		summaryErrorVCD    = "Unable to Create VMWare VCD Client"
+	)
+
 	cA, err := cloudAvenue.New()
 	if err != nil {
 		switch {
 		case errors.Is(err, client.ErrAuthFailed):
-			resp.Diagnostics.AddError(
-				"Unable to Create Cloud Avenue API Client",
-				"An unexpected error occurred when creating the Cloud Avenue API client. "+
-					"If the error is not clear, please contact the provider developers.\n\n"+
-					"Cloud Avenue Client Error: "+err.Error(),
-			)
+			resp.Diagnostics.AddError(summaryErrorAPICAV, err.Error())
 			return
 		case errors.Is(err, client.ErrTokenEmpty):
-			resp.Diagnostics.AddError(
-				"Unable to Create Cloud Avenue API Client",
-				"An unexpected error occurred when creating the Cloud Avenue API client. "+
-					"If the error is not clear, please contact the provider developers.\n\n"+
-					"Cloud Avenue Client Error: empty token",
-			)
+			resp.Diagnostics.AddError(summaryErrorAPICAV, "Cloud Avenue Client Error: empty token")
 			return
 		case errors.Is(err, client.ErrConfigureVmware):
-			resp.Diagnostics.AddError(
-				"Unable to Configure VMWare VCD Client",
-				"An unexpected error occurred when creating the VMWare VCD Client. "+
-					"If the error is not clear, please contact the provider developers.\n\n"+
-					"VMWare VCD Client Error: "+err.Error(),
-			)
+			resp.Diagnostics.AddError(summaryErrorVCD, "VMWare VCD Client Error: "+err.Error())
 			return
 		case errors.Is(err, client.ErrVCDVersionEmpty):
-			resp.Diagnostics.AddError(
-				"Unable to Configure VMWare VCD Client",
-				"An unexpected error occurred when creating the VMWare VCD Client. "+
-					"If the error is not clear, please contact the provider developers.\n\n"+
-					"VMWare VCD version is empty",
-			)
+			resp.Diagnostics.AddError(summaryErrorVCD, "VMWare VCD version is empty")
 			return
 		case errors.Is(err, client.ErrConfigureNetBackup):
-			resp.Diagnostics.AddError(
-				"Unable to Configure NetBackup Client",
-				"An unexpected error occurred when creating the NetBackup Client. "+
-					"If the error is not clear, please contact the provider developers.\n\n"+
-					"NetBackup Client Error: "+err.Error(),
-			)
+			resp.Diagnostics.AddError("Unable to Configure NetBackup Client", err.Error())
 			return
 		default:
-			resp.Diagnostics.AddError(
-				"Unable to Create Cloud Avenue API Client",
-				"An unexpected error occurred when creating the Cloud Avenue API client. "+
-					"If the error is not clear, please contact the provider developers.\n\n"+
-					"unknown error: "+err.Error(),
-			)
+			resp.Diagnostics.AddError(summaryErrorAPICAV, "unknown error: "+err.Error())
 			return
 		}
 	}

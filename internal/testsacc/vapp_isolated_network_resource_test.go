@@ -2,7 +2,6 @@ package testsacc
 
 import (
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -49,7 +48,7 @@ func TestAccIsolatedNetworkResource(t *testing.T) {
 				// Apply test
 				Config: testAccIsolatedNetworkResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.Network.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
 					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
 					resource.TestCheckResourceAttr(resourceName, "name", "MyVappNet"),
 					resource.TestCheckResourceAttr(resourceName, "vapp_name", "MyVapp"),
@@ -72,7 +71,7 @@ func TestAccIsolatedNetworkResource(t *testing.T) {
 			// 	// Update test
 			// 	Config: testAccIsolatedNetworkResourceConfigUpdate,
 			// 	Check: resource.ComposeAggregateTestCheckFunc(
-			// 		resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.Network.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
+			// 		resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
 			// 		resource.TestCheckResourceAttr(resourceName, "vdc", "MyVDC"),
 			// 		resource.TestCheckResourceAttr(resourceName, "name", "MyVappNet"),
 			// 		resource.TestCheckResourceAttr(resourceName, "vapp_name", "MyVapp"),

@@ -1,7 +1,6 @@
 package testsacc
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -115,7 +114,7 @@ func TestAccSecurityTagResource(t *testing.T) {
 				Config: testAccSecurityTagResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "id", "tag-example"),
-					resource.TestMatchResourceAttr(resourceName, "vm_ids.0", regexp.MustCompile(uuid.VM.String()+`:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
+					resource.TestCheckResourceAttrWith(resourceName, "vm_ids.0", uuid.TestIsType(uuid.VM)),
 				),
 			},
 			{
@@ -123,8 +122,8 @@ func TestAccSecurityTagResource(t *testing.T) {
 				Config: testAccSecurityTagResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "id", "tag-example"),
-					resource.TestMatchResourceAttr(resourceName, "vm_ids.0", regexp.MustCompile(uuid.VM.String()+`:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
-					resource.TestMatchResourceAttr(resourceName, "vm_ids.1", regexp.MustCompile(uuid.VM.String()+`:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
+					resource.TestCheckResourceAttrWith(resourceName, "vm_ids.0", uuid.TestIsType(uuid.VM)),
+					resource.TestCheckResourceAttrWith(resourceName, "vm_ids.1", uuid.TestIsType(uuid.VM)),
 				),
 			},
 			// Import testing

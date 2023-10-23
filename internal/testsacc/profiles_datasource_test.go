@@ -1,10 +1,11 @@
 package testsacc
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 //go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
@@ -25,7 +26,7 @@ func TestAccProfilesDataSource(t *testing.T) {
 				// Apply test
 				Config: testAccProfilesDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(dataSourceName, "id", regexp.MustCompile(`([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestCheckResourceAttrWith(dataSourceName, "id", uuid.TestIsType(uuid.VDCStorageProfile)),
 					resource.TestCheckResourceAttrSet(dataSourceName, "vdc"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "storage_profiles.0.id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "storage_profiles.0.vdc"),

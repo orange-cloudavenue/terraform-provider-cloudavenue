@@ -2,10 +2,11 @@
 package testsacc
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 const testAccVDCsDataSourceConfig = `
@@ -23,7 +24,7 @@ func TestAccVDCsDataSource(t *testing.T) {
 			{
 				Config: testAccVDCsDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(dataSourceName, "id", regexp.MustCompile(`([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`)),
+					resource.TestCheckResourceAttrWith(dataSourceName, "id", uuid.TestIsType(uuid.VDC)),
 				),
 			},
 		},

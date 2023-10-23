@@ -1,7 +1,6 @@
 package testsacc
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -40,7 +39,7 @@ func TestAccVDCACLResource(t *testing.T) {
 				// Apply test
 				Config: testAccVDCACLResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.VDC.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VDC)),
 					resource.TestCheckResourceAttr(resourceName, "vdc", "VDC_Test"),
 					resource.TestCheckResourceAttr(resourceName, "everyone_access_level", "ReadOnly"),
 				),
@@ -49,7 +48,7 @@ func TestAccVDCACLResource(t *testing.T) {
 				// Apply test
 				Config: testAccVDCACLResourceSharedWithConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.VDC.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VDC)),
 					resource.TestCheckResourceAttr(resourceName, "vdc", "VDC_Test"),
 					resource.TestCheckResourceAttrSet(resourceName, "shared_with.0.subject_name"),
 				),

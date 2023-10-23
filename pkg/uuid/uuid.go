@@ -21,6 +21,7 @@ const (
 	Gateway           = VcloudUUID(VcloudUUIDPrefix + "gateway:")
 	VDC               = VcloudUUID(VcloudUUIDPrefix + "vdc:")
 	VDCGroup          = VcloudUUID(VcloudUUIDPrefix + "vdcGroup:")
+	VDCComputePolicy  = VcloudUUID(VcloudUUIDPrefix + "vdcComputePolicy:")
 	Network           = VcloudUUID(VcloudUUIDPrefix + "network:")
 	LoadBalancerPool  = VcloudUUID(VcloudUUIDPrefix + "loadBalancerPool:")
 	VDCStorageProfile = VcloudUUID(VcloudUUIDPrefix + "vdcstorageProfile:")
@@ -42,6 +43,7 @@ var vcloudUUIDs = []VcloudUUID{
 	Gateway,
 	VDC,
 	VDCGroup,
+	VDCComputePolicy,
 	Network,
 	LoadBalancerPool,
 	VDCStorageProfile,
@@ -206,6 +208,11 @@ func (uuid VcloudUUID) IsToken() bool {
 	return uuid.IsType(Token)
 }
 
+// IsVDCComputePolicy returns true if the UUID is a VDCComputePolicy UUID.
+func (uuid VcloudUUID) IsVDCComputePolicy() bool {
+	return uuid.IsType(VDCComputePolicy)
+}
+
 // * End Methods
 
 // IsEdgeGateway returns true if the UUID is a EdgeGateway UUID.
@@ -286,6 +293,11 @@ func IsCatalog(uuid string) bool {
 // IsToken returns true if the UUID is a Token UUID.
 func IsToken(uuid string) bool {
 	return VcloudUUID(uuid).IsType(Token)
+}
+
+// IsVDCComputePolicy returns true if the UUID is a VDCComputePolicy UUID.
+func IsVDCComputePolicy(uuid string) bool {
+	return VcloudUUID(uuid).IsType(VDCComputePolicy)
 }
 
 // * End Functions

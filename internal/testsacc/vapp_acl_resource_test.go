@@ -3,7 +3,6 @@ package testsacc
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -63,7 +62,7 @@ func TestAccVAPPACLResource(t *testing.T) {
 				// Apply test
 				Config: testAccVAPPACLResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.VAPP.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VAPP)),
 					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
 					resource.TestCheckResourceAttr(resourceName, "vapp_name", "MyVapp"),
 					resource.TestCheckResourceAttrSet(resourceName, "shared_with.0.subject_name"),
@@ -74,13 +73,13 @@ func TestAccVAPPACLResource(t *testing.T) {
 				// Update test
 				Config: testAccVAPPACLResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(uuid.VAPP.String()+`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VAPP)),
 					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
 					resource.TestCheckResourceAttr(resourceName, "vapp_name", "MyVapp"),
 					resource.TestCheckResourceAttr(resourceName, "everyone_access_level", "Change"),
 				),
 			},
-			// // ImportruetState testing
+			// Import testing
 			{
 				// Import test
 				ResourceName:      resourceName,
