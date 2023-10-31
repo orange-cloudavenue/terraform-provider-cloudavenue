@@ -18,6 +18,7 @@
 * deps: bumps github.com/aws/aws-sdk-go from 1.45.26 to 1.45.28 ([GH-592](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/592))
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.2.0 to 0.3.0 ([GH-576](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/576))
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.3.0 to 0.3.1 ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
+* deps: bumps hashicorp/setup-terraform from 2 to 3 ([GH-601](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/601))
 
 ## 0.14.0 (October 16, 2023)
 
