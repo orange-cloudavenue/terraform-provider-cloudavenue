@@ -314,14 +314,11 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 	listOfChecks := t.CommonChecks
 	listOfChecks = append(listOfChecks, t.Create.Checks...)
 
-	// lastConfigGenerated is the last Terraform configuration generated. (Used for destroy step)
-	var lastConfigGenerated string
-
 	// * Compute dependencies config
 	t.ComputeDependenciesConfig(testACC)
 
 	// * Create step
-	lastConfigGenerated = t.Create.Generate(ctx, t.CacheDependenciesConfig)
+	lastConfigGenerated := t.Create.Generate(ctx, t.CacheDependenciesConfig)
 	createTestStep := resource.TestStep{
 		Config: lastConfigGenerated,
 		Check: resource.ComposeAggregateTestCheckFunc(

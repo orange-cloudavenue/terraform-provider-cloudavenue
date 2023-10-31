@@ -154,7 +154,7 @@ func (r *S3BucketLifecycleConfigurationResource) Tests(ctx context.Context) map[
 				Destroy: true,
 			}
 		},
-		// * Example with a filter object size greater than
+		// * Example with a tag filter
 		"example_filter_tag": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
@@ -238,7 +238,7 @@ func (r *S3BucketLifecycleConfigurationResource) Tests(ctx context.Context) map[
 				Destroy: true,
 			}
 		},
-		// * Example Specifying a filter based on object size range and prefix
+		// * Example Specifying a filter based on tags and prefix
 		"example_filter_tags_and_prefix": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
