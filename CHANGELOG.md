@@ -5,14 +5,19 @@
 * **New Data Source:** `datasource/cloudavenue_s3_bucket_cors_configuration` - Get information about S3 bucket CORS configuration. ([GH-578](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/578))
 * **New Data Source:** `datasource/cloudavenue_s3_bucket_versioning_configuration` - Get S3 bucket versioning configuration. ([GH-584](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/584))
 * **New Data Source:** `datasource/cloudavenue_s3_bucket` - Retrieve information about S3 buckets. ([GH-576](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/576))
+* **New Data Source:** `datasource/cloudavenue_s3_lifecycle_configuration` is a new data source type that allows to retrieve S3 lifecycle configuration. ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
 * **New Resource:** `resource/cloudavenue_s3_bucket_cors_configuration` - Manage S3 bucket CORS configuration. ([GH-578](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/578))
 * **New Resource:** `resource/cloudavenue_s3_bucket_versioning_configuration` - Manage S3 bucket versioning configuration. ([GH-584](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/584))
 * **New Resource:** `resource/cloudavenue_s3_bucket` - Create and manage S3 buckets. ([GH-576](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/576))
+* **New Resource:** `resource/cloudavenue_s3_lifecycle_configuration` is a new resource type that allows to manage S3 lifecycle configuration. ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.5.5 to 1.6.0 ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.1.0 to 0.2.0 ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
 * deps: bumps github.com/aws/aws-sdk-go from 1.45.26 to 1.45.28 ([GH-592](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/592))
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.2.0 to 0.3.0 ([GH-576](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/576))
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.3.0 to 0.3.1 ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
 
 ## 0.14.0 (October 16, 2023)
 
