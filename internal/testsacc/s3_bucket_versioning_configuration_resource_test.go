@@ -27,6 +27,7 @@ func (r *S3BucketVersioningConfigurationResource) GetResourceName() string {
 }
 
 func (r *S3BucketVersioningConfigurationResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[S3BucketResourceName]().GetSpecificConfig("examplewithobjectlock"))
 	resp.Append(GetResourceConfig()[S3BucketResourceName]().GetDefaultConfig)
 	return
 }

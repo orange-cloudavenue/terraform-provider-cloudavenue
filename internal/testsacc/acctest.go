@@ -112,21 +112,16 @@ func (r resourceConfig) GetDefaultChecks() []resource.TestCheckFunc {
 
 // GetSpecificChecks returns the checks for the test named.
 func (r resourceConfig) GetSpecificChecks(testName string) []resource.TestCheckFunc {
-	var x []resource.TestCheckFunc
-
-	if test, ok := localCacheResource[r.GetResourceName()+"."+testName]; ok {
-		x = test.Create.Checks
-	} else {
-		t := r.Tests(context.Background())[testsacc.TestName(testName)](
+	t, ok := localCacheResource[r.GetResourceName()+"."+testName]
+	if !ok {
+		t = r.Tests(context.Background())[testsacc.TestName(testName)](
 			context.Background(),
 			r.GetResourceName()+"."+testName,
 		)
-		x = t.Create.Checks
-
+		t.ComputeDependenciesConfig(r.TestACC)
 		localCacheResource[r.GetResourceName()+"."+testName] = t
 	}
-
-	return x
+	return t.Create.Checks
 }
 
 // AddConstantConfig returns the create configuration from constant.

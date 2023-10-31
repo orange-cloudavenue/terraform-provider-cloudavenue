@@ -5,8 +5,8 @@ go 1.20
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
 	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.4
-	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.5.5
-	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.1.0
+	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.6.0
+	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.2.0
 	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1
 	github.com/antihax/optional v1.0.0
 	github.com/aws/aws-sdk-go v1.45.28
@@ -14,14 +14,14 @@ require (
 	github.com/google/uuid v1.3.1
 	github.com/hashicorp/aws-sdk-go-base v1.1.0
 	github.com/hashicorp/terraform-plugin-docs v0.16.0
-	github.com/hashicorp/terraform-plugin-framework v1.4.1
+	github.com/hashicorp/terraform-plugin-framework v1.4.2
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.1
 	github.com/hashicorp/terraform-plugin-framework-validators v0.12.0
 	github.com/hashicorp/terraform-plugin-go v0.19.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.29.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.3.0
+	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.3.1
 	github.com/orange-cloudavenue/infrapi-sdk-go v0.1.4-0.20231005074857-89878ea119fb
 	github.com/rs/zerolog v1.31.0
 	github.com/thanhpk/randstr v1.0.6
@@ -52,7 +52,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-resty/resty/v2 v2.10.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-checkpoint v0.5.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
