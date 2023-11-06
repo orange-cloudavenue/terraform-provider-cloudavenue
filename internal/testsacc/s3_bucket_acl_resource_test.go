@@ -33,8 +33,7 @@ func (r *S3BucketACLResource) DependenciesConfig() (resp testsacc.DependenciesCo
 
 func (r *S3BucketACLResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		// TODO : Complete tests
-		// * First test named "example"
+		// * First test named "example" with an ACL canned policy
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
@@ -44,49 +43,46 @@ func (r *S3BucketACLResource) Tests(ctx context.Context) map[testsacc.TestName]f
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
-					resource "cloudavenue_s3_bucket_acl" "example" {
-						bucket = cloudavenue_s3_bucket.example.name
-						acl = "public-read"
-					}`,
+							resource "cloudavenue_s3_bucket_acl" "example" {
+								bucket = cloudavenue_s3_bucket.example.name
+								acl = "public-read"
+							}`,
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttr(resourceName, "acl", "public-read"),
-						resource.TestCheckResourceAttr(resourceName, "access_control_policies.#", "1"),
-						resource.TestCheckResourceAttr(resourceName, "access_control_policies.0.grants.#", "2"),
-						resource.TestCheckResourceAttr(resourceName, "access_control_policies.0.grants.1.permission", "READ"),
-						resource.TestCheckResourceAttr(resourceName, "access_control_policies.0.grants.1.grantee.uri", "http://acs.amazonaws.com/groups/global/AllUsers"),
-						resource.TestCheckResourceAttrSet(resourceName, "access_control_policies.0.owner.id"),
+						resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.#", "2"),
+						resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.1.permission", "READ"),
+						resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.1.grantee.uri", "http://acs.amazonaws.com/groups/global/AllUsers"),
+						resource.TestCheckResourceAttrSet(resourceName, "access_control_policy.owner.id"),
 					},
 				},
 				// ! Updates testing
 				Updates: []testsacc.TFConfig{
 					{
 						TFConfig: `
-						resource "cloudavenue_s3_bucket_acl" "example" {
-							bucket = cloudavenue_s3_bucket.example.name
-							acl = "public-read"
-						}`,
+							resource "cloudavenue_s3_bucket_acl" "example" {
+								bucket = cloudavenue_s3_bucket.example.name
+								acl = "public-read"
+							}`,
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "acl", "public-read"),
-							resource.TestCheckResourceAttr(resourceName, "access_control_policies.#", "1"),
-							resource.TestCheckResourceAttr(resourceName, "access_control_policies.0.grants.#", "2"),
-							resource.TestCheckResourceAttr(resourceName, "access_control_policies.0.grants.1.permission", "READ"),
-							resource.TestCheckResourceAttr(resourceName, "access_control_policies.0.grants.1.grantee.uri", "http://acs.amazonaws.com/groups/global/AllUsers"),
-							resource.TestCheckResourceAttrSet(resourceName, "access_control_policies.0.owner.id"),
+							resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.#", "2"),
+							resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.1.permission", "READ"),
+							resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.1.grantee.uri", "http://acs.amazonaws.com/groups/global/AllUsers"),
+							resource.TestCheckResourceAttrSet(resourceName, "access_control_policy.owner.id"),
 						},
 					},
 					{
 						TFConfig: `
-						resource "cloudavenue_s3_bucket_acl" "example" {
-							bucket = cloudavenue_s3_bucket.example.name
-							acl = "private"
-						}`,
+							resource "cloudavenue_s3_bucket_acl" "example" {
+								bucket = cloudavenue_s3_bucket.example.name
+								acl = "private"
+							}`,
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "acl", "private"),
-							resource.TestCheckResourceAttr(resourceName, "access_control_policies.#", "1"),
-							resource.TestCheckResourceAttr(resourceName, "access_control_policies.0.grants.#", "1"),
-							resource.TestCheckResourceAttr(resourceName, "access_control_policies.0.grants.0.permission", "FULL_CONTROL"),
-							resource.TestCheckResourceAttr(resourceName, "access_control_policies.0.grants.0.grantee.type", "CanonicalUser"),
-							resource.TestCheckResourceAttrSet(resourceName, "access_control_policies.0.owner.id"),
+							resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.#", "1"),
+							resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.0.permission", "FULL_CONTROL"),
+							resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.0.grantee.type", "CanonicalUser"),
+							resource.TestCheckResourceAttrSet(resourceName, "access_control_policy.owner.id"),
 						},
 					},
 				},
@@ -99,91 +95,105 @@ func (r *S3BucketACLResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						ImportStateVerify:       true,
 					},
 				},
+				// ! Destroy
+				Destroy: true,
 			}
 		},
-		// It's possible to add multiple tests
-
-		// Complete and functional example :
-		/*
-			// * Test One (example)
-			"example": func(_ context.Context, resourceName string) testsacc.Test {
-				return testsacc.Test{
-					CommonChecks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttrSet(resourceName, "catalog_name"),
-
-						resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Catalog)),
-						resource.TestCheckResourceAttrWith(resourceName, "catalog_id", uuid.TestIsType(uuid.Catalog)),
-					},
-					// ! Create testing
-					Create: testsacc.TFConfig{
-						TFConfig: `
-						resource "cloudavenue_catalog_ACL" "example" {
-							catalog_id = cloudavenue_catalog.example.id
-							shared_with_everyone = true
-							everyone_access_level = "ReadOnly"
+		// *  Second test named "example_with_custom_policy"
+		"example_with_custom_policy": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "bucket"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: `
+						resource "cloudavenue_s3_bucket_acl" "example_with_custom_policy" {
+							bucket = cloudavenue_s3_bucket.example.name
+							access_control_policy = {
+              					grants = [{
+                    	  			grantee    = {
+                    	      			type = "Group"
+                    	      			uri  = "http://acs.amazonaws.com/groups/global/AllUsers"
+                    	    		},
+                    	  			permission = "READ"
+                    			}]
+              					owner  = {
+                  					id           = "1f680dc8d84ca778f885628a39e1980850d408dbc3ca3a706bc182a9672f95ce"
+                				}
+            				}
 						}`,
-						Checks: []resource.TestCheckFunc{
-							resource.TestCheckNoResourceAttr(resourceName, "shared_with_users.#"),
-
-							resource.TestCheckResourceAttr(resourceName, "everyone_access_level", "ReadOnly"),
-							resource.TestCheckResourceAttr(resourceName, "shared_with_everyone", "true"),
-						},
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.#", "1"),
+						resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.0.permission", "READ"),
+						resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.0.grantee.uri", "http://acs.amazonaws.com/groups/global/AllUsers"),
+						resource.TestCheckResourceAttrSet(resourceName, "access_control_policy.owner.id"),
 					},
-					// ! Updates testing
-					Updates: []testsacc.TFConfig{
-						{
-							TFConfig: `
-							resource "cloudavenue_catalog_ACL" "example" {
-								catalog_id = cloudavenue_catalog.example.id
-								shared_with_everyone = true
-								everyone_access_level = "FullControl"
-							}`,
-							Checks: []resource.TestCheckFunc{
-								resource.TestCheckNoResourceAttr(resourceName, "shared_with_users.#"),
-
-								resource.TestCheckResourceAttr(resourceName, "everyone_access_level", "FullControl"),
-								resource.TestCheckResourceAttr(resourceName, "shared_with_everyone", "true"),
-							},
-						},
-						{
-							TFConfig: `
-							resource "cloudavenue_catalog_ACL" "example" {
-								catalog_id = cloudavenue_catalog.example.id
-								shared_with_everyone = false
-								shared_with_users = [
-									{
-										user_id = cloudavenue_iam_user.example.id
-										access_level = "ReadOnly"
-									},
-									{
-										user_id = cloudavenue_iam_user.example2.id
-										access_level = "FullControl"
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: `
+							resource "cloudavenue_s3_bucket_acl" "example_with_custom_policy" {
+								bucket = cloudavenue_s3_bucket.example.name
+								access_control_policy = {
+									grants = [{
+										grantee    = {
+											type = "Group"
+											uri  = "http://acs.amazonaws.com/groups/global/AllUsers"
+										},
+										permission = "READ"
+									}]
+									owner  = {
+										id           = "1f680dc8d84ca778f885628a39e1980850d408dbc3ca3a706bc182a9672f95ce"
 									}
-								]
+								}
 							}`,
-							Checks: []resource.TestCheckFunc{
-								resource.TestCheckNoResourceAttr(resourceName, "everyone_access_level"),
-
-								resource.TestCheckResourceAttr(resourceName, "shared_with_everyone", "false"),
-								resource.TestCheckResourceAttr(resourceName, "shared_with_users.#", "2"),
-
-								resource.TestCheckResourceAttrWith(resourceName, "shared_with_users.0.user_id", uuid.TestIsType(uuid.User)),
-								resource.TestCheckResourceAttrWith(resourceName, "shared_with_users.1.user_id", uuid.TestIsType(uuid.User)),
-								// shared_with_users it's a SetNestedAttribute, so we can't be sure of the order of the elements in the list is not possible to test each attribute
-							},
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.#", "1"),
+							resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.0.permission", "READ"),
+							resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.0.grantee.uri", "http://acs.amazonaws.com/groups/global/AllUsers"),
+							resource.TestCheckResourceAttrSet(resourceName, "access_control_policy.owner.id"),
 						},
 					},
-					// ! Imports testing
-					Imports: []testsacc.TFImport{
-						{
-							ImportStateIDBuilder: []string{"id"},
-							ImportState:          true,
-							ImportStateVerify:    true,
+					{
+						TFConfig: `
+							resource "cloudavenue_s3_bucket_acl" "example_with_custom_policy" {
+								bucket = cloudavenue_s3_bucket.example.name
+								access_control_policy = {
+									grants = [{
+										grantee    = {
+											type = "CanonicalUser"
+											id  = "1f680dc8d84ca778f885628a39e1980850d408dbc3ca3a706bc182a9672f95ce"
+										}
+										permission = "FULL_CONTROL"
+									}],
+									owner  = {
+										id           = "1f680dc8d84ca778f885628a39e1980850d408dbc3ca3a706bc182a9672f95ce"
+									}
+								}
+							}`,
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.#", "1"),
+							resource.TestCheckResourceAttr(resourceName, "access_control_policy.grants.0.permission", "FULL_CONTROL"),
+							resource.TestCheckResourceAttrSet(resourceName, "access_control_policy.grants.0.grantee.id"),
+							resource.TestCheckResourceAttrSet(resourceName, "access_control_policy.owner.id"),
 						},
 					},
-				}
-			},
-		*/
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"bucket"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
+				// ! Destroy
+				Destroy: true,
+			}
+		},
 	}
 }
 

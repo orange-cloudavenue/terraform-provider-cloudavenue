@@ -9,11 +9,11 @@ import (
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
@@ -69,7 +69,7 @@ func bucketACLSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The canned ACL to apply to the bucket. Each canned ACL has a predefined set of grantees and permissions. [For more information](https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#specifying-grantee-predefined-acl).",
 					Validators: []validator.String{
 						stringvalidator.OneOf("private", "public-read", "public-read-write", "authenticated-read", "bucket-owner-read", "bucket-owner-full-control"),
-						stringvalidator.ConflictsWith(path.MatchRoot("access_control_policies"), path.MatchRoot("acl")),
+						stringvalidator.ConflictsWith(path.MatchRoot("access_control_policy"), path.MatchRoot("acl")),
 					},
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
@@ -79,20 +79,18 @@ func bucketACLSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The ACL applied to the bucket.",
 				},
 			},
-			"access_control_policies": superschema.SuperListNestedAttributeOf[BucketACLModelAccessControlPolicy]{
-				Common: &schemaR.ListNestedAttribute{
+			"access_control_policy": superschema.SuperSingleNestedAttributeOf[BucketACLModelAccessControlPolicy]{
+				Common: &schemaR.SingleNestedAttribute{
 					Computed:            true,
 					MarkdownDescription: "A configuration block that sets the ACL permissions for an object per grantee.",
 				},
-				Resource: &schemaR.ListNestedAttribute{
+				Resource: &schemaR.SingleNestedAttribute{
 					Optional: true,
-					Validators: []validator.List{
-						listvalidator.ConflictsWith(path.MatchRoot("access_control_policies"), path.MatchRoot("acl")),
-						listvalidator.SizeAtMost(1),
+					Validators: []validator.Object{
+						objectvalidator.ConflictsWith(path.MatchRoot("access_control_policy"), path.MatchRoot("acl")),
 					},
-					PlanModifiers: []planmodifier.List{
-						// stringplanmodifier.RequiresReplaceIfConfigured(),
-						listplanmodifier.UseStateForUnknown(),
+					PlanModifiers: []planmodifier.Object{
+						objectplanmodifier.UseStateForUnknown(),
 					},
 				},
 				Attributes: superschema.Attributes{
@@ -163,6 +161,11 @@ func bucketACLSchema(_ context.Context) superschema.Schema {
 										},
 										Resource: &schemaR.StringAttribute{
 											Optional: true,
+											// TODO - Fix validator path expression
+											// Validators: []validator.String{
+											// 	// fstringvalidator.RequireIfAttributeIsOneOf(path.MatchRelative().AtParent().AtName("type"), []attr.Value{types.StringValue("CanonicalUser")}),
+
+											// },
 										},
 										DataSource: &schemaD.StringAttribute{
 											Computed: true,

@@ -6,14 +6,11 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/k0kubun/pp"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
@@ -76,15 +73,11 @@ func (r *BucketACLResource) Create(ctx context.Context, req resource.CreateReque
 
 	plan := &BucketACLModel{}
 
-	tflog.Debug(ctx, pp.Sprint("=====> Before reading Plan: %s", plan))
-
 	// Retrieve values from plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	tflog.Debug(ctx, pp.Sprint("=====> input.plan: %s", plan))
 
 	// Init the resource
 	resp.Diagnostics.Append(r.Init(ctx, plan)...)
@@ -93,7 +86,7 @@ func (r *BucketACLResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Set default timeouts
-	createTimeout, diags := plan.Timeouts.Read(ctx, defaultCreateTimeout)
+	createTimeout, diags := plan.Timeouts.Create(ctx, defaultCreateTimeout)
 	diags.Append(diags...)
 	if diags.HasError() {
 		return
@@ -104,91 +97,12 @@ func (r *BucketACLResource) Create(ctx context.Context, req resource.CreateReque
 	/*
 		Implement the resource creation logic here.
 	*/
-	var err error
 
-	// Set Bucket in input
-	input := &s3.PutBucketAclInput{
-		Bucket: plan.Bucket.GetPtr(),
-	}
-
-	if plan.ACL.IsKnown() {
-		input.ACL = plan.ACL.GetPtr()
-		tflog.Debug(ctx, pp.Sprint("=====> input.ACL: %s", input.ACL))
-	} else {
-		// ? Get AccessControlPolicy
-		accessControlPolicies, diags := plan.AccessControlPolicies.Get(ctx)
-		accessControlPolicy := accessControlPolicies[0]
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
-			return
-		}
-
-		// ? Set Owner
-		owner, diags := accessControlPolicy.GetOwner(ctx)
-		// owner := NewBucketACLModelOwner()
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
-			return
-		}
-		input.AccessControlPolicy = &s3.AccessControlPolicy{
-			Owner: &s3.Owner{
-				DisplayName: owner.DisplayName.GetPtr(),
-				ID:          owner.ID.GetPtr(),
-			},
-		}
-
-		// ? Set Grants
-		if accessControlPolicy.Grants.IsKnown() {
-			input.AccessControlPolicy.Grants = make([]*s3.Grant, 0)
-			// Get Array of grants
-			grants, diags := accessControlPolicy.GetGrants(ctx)
-			if diags.HasError() {
-				resp.Diagnostics.Append(diags...)
-				return
-			}
-			// ? Set Grantee / Permission for each grant
-			for i := 0; i < len(grants); i++ {
-				grant := grants.GetGrant(ctx, i)
-				grantee, diags := grant.GetGrantee(ctx)
-				if diags.HasError() {
-					resp.Diagnostics.Append(diags...)
-					return
-				}
-				Grantee := &s3.Grantee{}
-				if grantee.ID.IsKnown() {
-					Grantee.ID = grantee.ID.GetPtr()
-				}
-				if grantee.DisplayName.IsKnown() {
-					Grantee.DisplayName = grantee.DisplayName.GetPtr()
-				}
-				if grantee.EmailAddress.IsKnown() {
-					Grantee.EmailAddress = grantee.EmailAddress.GetPtr()
-				}
-				if grantee.URI.IsKnown() {
-					Grantee.URI = grantee.URI.GetPtr()
-				}
-				Grantee.Type = grantee.Type.GetPtr()
-				input.AccessControlPolicy.Grants = append(input.AccessControlPolicy.Grants, &s3.Grant{
-					Grantee:    Grantee,
-					Permission: grants[i].Permission.GetPtr(),
-				})
-			}
-		}
-	}
-
-	_, err = r.s3Client.PutBucketAclWithContext(ctx, input)
-	if err != nil {
-		switch {
-		case strings.Contains(err.Error(), ErrCodeNoSuchBucket):
-			resp.Diagnostics.AddError("Bucket not found", err.Error())
-			return
-		case strings.Contains(err.Error(), ErrCodeObjectLockConfigurationNotFoundError):
-			resp.Diagnostics.AddError("Bucket object lock configuration was not found", err.Error())
-			return
-		default:
-			resp.Diagnostics.AddError("Bucket ACL not found", err.Error())
-			return
-		}
+	// Use generic createOrUpdate function to create the resource
+	diags = r.createOrUpdate(ctx, plan)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
 	}
 
 	// Use generic read function to refresh the state
@@ -265,93 +179,24 @@ func (r *BucketACLResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
+	// Set default timeouts
+	updateTimeout, diags := plan.Timeouts.Update(ctx, defaultCreateTimeout)
+	diags.Append(diags...)
+	if diags.HasError() {
+		return
+	}
+	ctx, cancel := context.WithTimeout(ctx, updateTimeout)
+	defer cancel()
+
 	/*
 		Implement the resource update here
 	*/
-	input := &s3.PutBucketAclInput{
-		Bucket: plan.Bucket.GetPtr(),
-	}
 
-	if !plan.ACL.Equal(state.ACL) {
-		input.ACL = plan.ACL.GetPtr()
-	}
-
-	if !plan.AccessControlPolicies.Equal(state.AccessControlPolicies) {
-		// ? Get AccessControlPolicy
-		accessControlPolicies, diags := plan.AccessControlPolicies.Get(ctx)
-		accessControlPolicy := accessControlPolicies[0]
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
-			return
-		}
-
-		// ? Set Owner
-		owner, diags := accessControlPolicy.GetOwner(ctx)
-		// owner := NewBucketACLModelOwner()
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
-			return
-		}
-
-		input.AccessControlPolicy = &s3.AccessControlPolicy{
-			Owner: &s3.Owner{
-				DisplayName: owner.DisplayName.GetPtr(),
-				ID:          owner.ID.GetPtr(),
-			},
-		}
-
-		// ? Set Grants
-		if accessControlPolicy.Grants.IsKnown() {
-			input.AccessControlPolicy.Grants = make([]*s3.Grant, 0)
-			// Get Array of grants
-			grants, diags := accessControlPolicy.GetGrants(ctx)
-			if diags.HasError() {
-				resp.Diagnostics.Append(diags...)
-				return
-			}
-			// ? Set Grantee / Permission for each grant
-			for i := 0; i < len(grants); i++ {
-				grant := grants.GetGrant(ctx, i)
-				grantee, diags := grant.GetGrantee(ctx)
-				if diags.HasError() {
-					resp.Diagnostics.Append(diags...)
-					return
-				}
-				Grantee := &s3.Grantee{}
-				if grantee.ID.IsKnown() {
-					Grantee.ID = grantee.ID.GetPtr()
-				}
-				if grantee.DisplayName.IsKnown() {
-					Grantee.DisplayName = grantee.DisplayName.GetPtr()
-				}
-				if grantee.EmailAddress.IsKnown() {
-					Grantee.EmailAddress = grantee.EmailAddress.GetPtr()
-				}
-				if grantee.URI.IsKnown() {
-					Grantee.URI = grantee.URI.GetPtr()
-				}
-				Grantee.Type = grantee.Type.GetPtr()
-				input.AccessControlPolicy.Grants = append(input.AccessControlPolicy.Grants, &s3.Grant{
-					Grantee:    Grantee,
-					Permission: grants[i].Permission.GetPtr(),
-				})
-			}
-		}
-	}
-
-	_, err := r.s3Client.PutBucketAclWithContext(ctx, input)
-	if err != nil {
-		switch {
-		case strings.Contains(err.Error(), ErrCodeNoSuchBucket):
-			resp.Diagnostics.AddError("Bucket not found", err.Error())
-			return
-		case strings.Contains(err.Error(), ErrCodeObjectLockConfigurationNotFoundError):
-			resp.Diagnostics.AddError("Bucket object lock configuration was not found", err.Error())
-			return
-		default:
-			resp.Diagnostics.AddError("Bucket ACL not found", err.Error())
-			return
-		}
+	// Use generic createOrUpdate function to create the resource
+	diags = r.createOrUpdate(ctx, plan)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
 	}
 
 	// Use generic read function to refresh the state
@@ -386,132 +231,104 @@ func (r *BucketACLResource) Delete(ctx context.Context, req resource.DeleteReque
 	/*
 		Implement the resource deletion here
 	*/
+
 	resp.Diagnostics.AddWarning("Note:",
 		"\"terraform destroy\" does not delete the S3 Bucket ACL but does remove the resource from Terraform state.",
 	)
-	resp.State.RemoveResource(ctx)
 }
 
 func (r *BucketACLResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	defer metrics.New("cloudavenue_backup", r.client.GetOrgName(), metrics.Import)()
+	defer metrics.New("cloudavenue_s3_bucket_acl", r.client.GetOrgName(), metrics.Import)()
 
 	// * Import basic
 	resource.ImportStatePassthroughID(ctx, path.Root("bucket"), req, resp)
-
-	// * Import with custom logic
-	// idParts := strings.Split(req.ID, ".")
-
-	// if len(idParts) != 2 {
-	// 	resp.Diagnostics.AddError(
-	// 		"Unexpected Import Identifier",
-	// 		fmt.Sprintf("Expected import identifier with format: xx.xx. Got: %q", req.ID),
-	// 	)
-	// 	return
-	// }
-
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("xx"), var1)...)
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("xx"), var2)...)
 }
 
 // * CustomFuncs
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
 func (r *BucketACLResource) read(ctx context.Context, planOrState *BucketACLModel) (stateRefreshed *BucketACLModel, found bool, diags diag.Diagnostics) {
-	// stateRefreshed is commented because the Copy function is not before run the types generator
-	stateRefreshed = planOrState.Copy()
+	return genericReadACL(ctx, &readBucketACLGeneric[*BucketACLModel]{
+		Client: r.s3Client,
+		BucketName: func() *string {
+			return planOrState.Bucket.GetPtr()
+		},
+	}, planOrState)
+}
 
-	/*
-		Implement the resource read here
-	*/
-
-	bucketACLOutput, err := r.s3Client.GetBucketAclWithContext(ctx, &s3.GetBucketAclInput{
+// createOrUpdate is a generic create or update function that can be used by the resource Create and Update functions.
+func (r *BucketACLResource) createOrUpdate(ctx context.Context, planOrState *BucketACLModel) (diags diag.Diagnostics) {
+	// Set Bucket in input
+	input := &s3.PutBucketAclInput{
 		Bucket: planOrState.Bucket.GetPtr(),
-	})
-	if err != nil {
+	}
+
+	if planOrState.ACL.IsKnown() {
+		input.ACL = planOrState.ACL.GetPtr()
+	} else {
+		// ? Get AccessControlPolicy
+		accessControlPolicy, d := planOrState.AccessControlPolicy.Get(ctx)
+		diags.Append(d...)
+		if diags.HasError() {
+			return diags
+		}
+
+		// ? Set Owner
+		owner, d := accessControlPolicy.Owner.Get(ctx)
+		diags.Append(d...)
+		if diags.HasError() {
+			return diags
+		}
+		input.AccessControlPolicy = &s3.AccessControlPolicy{
+			Owner: &s3.Owner{
+				DisplayName: owner.DisplayName.GetPtr(),
+				ID:          owner.ID.GetPtr(),
+			},
+		}
+
+		// ? Set Grants
+		if accessControlPolicy.Grants.IsKnown() {
+			input.AccessControlPolicy.Grants = make([]*s3.Grant, 0)
+			// Get Array of grants
+			grants, d := accessControlPolicy.Grants.Get(ctx)
+			diags.Append(d...)
+			if diags.HasError() {
+				return diags
+			}
+			// ? Set Grantee and Permission for each grant
+			for _, grant := range grants {
+				grantee, d := grant.Grantee.Get(ctx)
+				diags.Append(d...)
+				if diags.HasError() {
+					return diags
+				}
+				input.AccessControlPolicy.Grants = append(input.AccessControlPolicy.Grants, &s3.Grant{
+					Grantee: &s3.Grantee{
+						ID:           grantee.ID.GetPtr(),
+						DisplayName:  grantee.DisplayName.GetPtr(),
+						EmailAddress: grantee.EmailAddress.GetPtr(),
+						URI:          grantee.URI.GetPtr(),
+						Type:         grantee.Type.GetPtr(),
+					},
+					Permission: grant.Permission.GetPtr(),
+				})
+			}
+		}
+	}
+
+	if _, err := r.s3Client.PutBucketAclWithContext(ctx, input); err != nil {
 		switch {
 		case strings.Contains(err.Error(), ErrCodeNoSuchBucket):
 			diags.AddError("Bucket not found", err.Error())
-			return nil, false, diags
+			return diags
+		case strings.Contains(err.Error(), ErrCodeObjectLockConfigurationNotFoundError):
+			diags.AddError("Bucket object lock configuration was not found", err.Error())
+			return diags
 		default:
 			diags.AddError("Bucket ACL not found", err.Error())
-			return nil, false, diags
+			return diags
 		}
 	}
-	if bucketACLOutput == nil {
-		diags.AddError("Bucket ACL not found", "bucketACLOutput is nil")
-		return nil, false, diags
-	}
 
-	// If no grants in the bucket ACL returned, return the stateRefreshed
-	// if len(bucketACLOutput.Grants) == 0 {
-	// 	return stateRefreshed, true, nil
-	// }
-
-	// ? Set Owner
-	s3Owner := bucketACLOutput.Owner
-	if s3Owner == nil {
-		diags.AddError("Bucket ACL not found", "Owner is nil")
-		return nil, false, diags
-	}
-	owner := NewBucketACLModelOwner()
-	owner.DisplayName.Set(*s3Owner.DisplayName)
-	owner.ID.Set(*s3Owner.ID)
-
-	// ? Set Grants
-	grants := make(BucketACLModelGrants, 0)
-	for _, s3Grant := range bucketACLOutput.Grants {
-		// ? Set Grant
-		grantModel := NewBucketACLModelGrant(ctx)
-
-		// ? Set Permission in grant
-		grantModel.Permission.Set(*s3Grant.Permission)
-
-		// ? Set Grantee in grant
-		s3Grantee := s3Grant.Grantee
-		if s3Grantee == nil {
-			diags.AddError("Bucket ACL not found", "Grantee is nil")
-			return nil, false, diags
-		}
-		grantee := NewBucketACLModelGrantee()
-		grantee.Type.SetPtr(s3Grantee.Type)
-		if s3Grantee.ID != nil {
-			grantee.ID.Set(*s3Grantee.ID)
-		}
-		if s3Grantee.DisplayName != nil {
-			grantee.DisplayName.Set(*s3Grantee.DisplayName)
-		}
-		if s3Grantee.EmailAddress != nil {
-			grantee.EmailAddress.Set(*s3Grantee.EmailAddress)
-		}
-		if s3Grantee.URI != nil {
-			grantee.URI.SetPtr(s3Grantee.URI)
-		}
-
-		if d := grantModel.SetGrantee(ctx, grantee); d.HasError() {
-			diags.Append(d...)
-			return nil, false, diags
-		}
-		grants = append(grants, grantModel)
-	}
-	tflog.Debug(ctx, pp.Sprint("=====> grants: %s", grants))
-
-	//  ? Set AccessControlPolicy
-	accessControlPolicy := NewBucketACLModelAccessControlPolicy(ctx)
-	accessControlPolicy.Grants.Set(ctx, grants)
-	accessControlPolicy.Owner.Set(ctx, owner)
-
-	tflog.Debug(ctx, pp.Sprint("accessControlPolicy: %s", accessControlPolicy))
-
-	// Set the accessControlPolicy in the stateRefreshed
-	slice := make(BucketACLModelAccessControlPolicies, 0)
-	if d := stateRefreshed.AccessControlPolicies.Set(ctx, append(slice, accessControlPolicy)); d.HasError() {
-		diags.Append(d...)
-		return nil, false, diags
-	}
-
-	if !stateRefreshed.ID.IsKnown() {
-		stateRefreshed.ID.Set(planOrState.Bucket.Get())
-	}
-
-	return stateRefreshed, true, nil
+	return
 }
