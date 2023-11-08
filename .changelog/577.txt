@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_s3_bucket_acl` - Manage S3 bucket ACL (Access Control List).
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_s3_bucket_acl` - Get information about S3 bucket ACL (Access Control List).
+```

@@ -22,5 +22,6 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() resourceConfig {
 		S3BucketCorsConfigurationDataSourceName:       NewResourceConfig(NewS3BucketCorsConfigurationDataSourceTest()),
 		S3BucketLifecycleConfigurationDataSourceName:  NewResourceConfig(NewS3BucketLifecycleConfigurationDataSourceTest()),
 		S3BucketWebsiteConfigurationDataSourceName:    NewResourceConfig(NewS3BucketWebsiteConfigurationDataSourceTest()),
+		S3BucketACLDataSourceName:                     NewResourceConfig(NewS3BucketACLDataSourceTest()),
 	}
 }

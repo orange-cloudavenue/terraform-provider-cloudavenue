@@ -1,0 +1,76 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "S3 (Object Storage)"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+ ~> `terraform destroy` does not delete the S3 Bucket ACL but does remove the resource from Terraform state.
+
+## Examples Usage
+
+### With canned ACL (private)
+
+```hcl
+resource "cloudavenue_s3_bucket_acl" "example" {
+  bucket = data.cloudavenue_s3_bucket.example.id
+  acl    = "private"
+}
+```
+
+### With Grant (public-read)
+
+```hcl
+resource "cloudavenue_s3_bucket_acl" "example" {
+  bucket = data.cloudavenue_s3_bucket.example.id
+
+  access_control_policy = {
+	grants = [{
+	  grantee = {
+		type = "Group"
+		uri  = "http://acs.amazonaws.com/groups/global/AllUsers"
+	  },
+	  permission = "READ"
+	}]
+	owner = {
+	  id = "bcaf1ffd86f461ca5fb16fd081034f"
+  	}
+  }
+}
+```
+
+### With Grant (private)
+
+```hcl
+resource "cloudavenue_s3_bucket_acl" "example" {
+  bucket = data.cloudavenue_s3_bucket.example.name
+
+  access_control_policy = {
+	grants = [{
+	  grantee = {
+		type = "CanonicalUser"
+		id  = "bcaf1ffd86f461ca5fb16fd081034f"
+	  },
+	  permission = "FULL_CONTROL"
+	}]
+	owner = {
+	  id = "bcaf1ffd86f461ca5fb16fd081034f"
+  	}
+  }
+}
+```
+
+{{ .SchemaMarkdown | trimspace }}
+
+ -> **Timeout** Default timeout is **5 minutes**.
+
+{{ if .HasImport -}}
+## Import
+
+Import is supported using the following syntax:
+{{ codefile "shell" .ImportFile }}
+{{- end }}
