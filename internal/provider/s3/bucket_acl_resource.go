@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -31,7 +32,7 @@ func NewBucketACLResource() resource.Resource {
 // BucketACLResource is the resource implementation.
 type BucketACLResource struct {
 	client   *client.CloudAvenue
-	s3Client *s3.S3
+	s3Client v1.S3Client
 }
 
 // Init Initializes the resource.
@@ -247,7 +248,7 @@ func (r *BucketACLResource) ImportState(ctx context.Context, req resource.Import
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
 func (r *BucketACLResource) read(ctx context.Context, planOrState *BucketACLModel) (stateRefreshed *BucketACLModel, found bool, diags diag.Diagnostics) {
 	return genericReadACL(ctx, &readBucketACLGeneric[*BucketACLModel]{
-		Client: r.s3Client,
+		Client: r.s3Client.S3,
 		BucketName: func() *string {
 			return planOrState.Bucket.GetPtr()
 		},

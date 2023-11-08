@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -35,9 +36,8 @@ func NewBucketLifecycleConfigurationResource() resource.Resource {
 
 // BucketLifecycleConfigurationResource is the resource implementation.
 type BucketLifecycleConfigurationResource struct {
-	client *client.CloudAvenue
-
-	s3Client *s3.S3
+	client   *client.CloudAvenue
+	s3Client v1.S3Client
 }
 
 // Init Initializes the resource.
@@ -257,7 +257,7 @@ func (r *BucketLifecycleConfigurationResource) ImportState(ctx context.Context, 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
 func (r *BucketLifecycleConfigurationResource) read(ctx context.Context, planOrState *BucketLifecycleConfigurationModel) (stateRefreshed *BucketLifecycleConfigurationModel, found bool, diags diag.Diagnostics) {
 	return genericReadLifeCycleConfiguration(ctx, &readLifeCycleConfigurationConfig[*BucketLifecycleConfigurationModel]{
-		Client: r.s3Client,
+		Client: r.s3Client.S3,
 		Timeout: func() (time.Duration, diag.Diagnostics) {
 			return planOrState.Timeouts.Read(ctx, defaultReadTimeout)
 		},
@@ -427,7 +427,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 		return
 	}
 
-	if err := waitForLifecycleConfigurationRulesStatus(ctx, r.s3Client, planOrState.Bucket.Get(), rules); err != nil {
+	if err := waitForLifecycleConfigurationRulesStatus(ctx, r.s3Client.S3, planOrState.Bucket.Get(), rules); err != nil {
 		diags.AddError("Error waiting for S3 Lifecycle Configuration for bucket to reach expected rules status", err.Error())
 	}
 

@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -28,7 +29,7 @@ func NewBucketCorsConfigurationDatasource() datasource.DataSource {
 
 type BucketCorsConfigurationDatasource struct {
 	client   *client.CloudAvenue
-	s3Client *s3.S3
+	s3Client v1.S3Client
 }
 
 // Init Initializes the data source.
