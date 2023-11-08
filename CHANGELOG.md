@@ -21,6 +21,7 @@
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.6.0 to 1.6.1 ([GH-587](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/587))
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.1.0 to 0.2.0 ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
 * deps: bumps github.com/aws/aws-sdk-go from 1.45.26 to 1.45.28 ([GH-592](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/592))
+* deps: bumps github.com/aws/aws-sdk-go from 1.45.28 to 1.47.5 ([GH-612](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/612))
 * deps: bumps github.com/google/uuid from 1.3.1 to 1.4.0 ([GH-600](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/600))
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.2.0 to 0.3.0 ([GH-576](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/576))
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.3.0 to 0.3.1 ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
