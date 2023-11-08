@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_s3_credential` - Allows to create S3 credentials for the current user.
+```
+
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.4.0 to 0.4.1
+```
