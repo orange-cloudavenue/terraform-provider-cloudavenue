@@ -1,0 +1,94 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "S3 (Object Storage)"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Examples Usage
+
+### Simple routing rule 
+
+```hcl
+resource "cloudavenue_s3_bucket_website_configuration" "example" {
+	bucket = cloudavenue_s3_bucket.example.name
+	index_document = {
+	  suffix = "index.html"
+	}
+	
+	error_document = {
+	  key = "error.html"
+	}
+	
+	routing_rules = [{
+		condition = {
+		  key_prefix_equals = "docs/"
+		}
+		redirect = {
+		  replace_key_prefix_with = "documents/"
+		}
+	}]
+}
+```
+
+### Multiple routing rules
+
+```hcl
+resource "cloudavenue_s3_bucket_website_configuration" "example" {
+	bucket = cloudavenue_s3_bucket.example.name
+	index_document = {
+	  suffix = "home.html"
+	}
+	
+	error_document = {
+	  key = "errors.html"
+	}
+	
+	routing_rules = [{
+		condition = {
+		  key_prefix_equals = "img/"
+		}
+		redirect = {
+		  replace_key_prefix_with = "imgs/"
+		  hostname = "www.example.com"
+		  http_redirect_code = "302"
+		  protocol = "https"
+		}
+	},
+	{
+	  condition = {
+		http_error_code_returned_equals = "404"
+	  }
+	  redirect = {
+		replace_key_with = "errors.html"
+		hostname = "www.example.com"
+		http_redirect_code = "301"
+		protocol = "https"
+	  }
+	}]
+}
+```
+
+### Redirect all requests to a specific hostname
+
+```hcl
+resource "cloudavenue_s3_bucket_website_configuration" "example" {
+	bucket = cloudavenue_s3_bucket.example.name
+	redirect_all_requests_to = {
+		hostname = "example.com"
+	}
+}
+```
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+Import is supported using the following syntax:
+{{ codefile "shell" .ImportFile }}
+{{- end }}
