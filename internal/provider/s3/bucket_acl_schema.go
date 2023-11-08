@@ -32,7 +32,7 @@ func bucketACLSchema(_ context.Context) superschema.Schema {
 				Resource: &superschema.ResourceTimeoutAttribute{
 					Create: true,
 					Update: true,
-					Delete: true,
+					Delete: false,
 					Read:   true,
 				},
 				DataSource: &superschema.DatasourceTimeoutAttribute{

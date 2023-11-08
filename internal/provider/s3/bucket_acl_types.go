@@ -88,11 +88,6 @@ func (rm *BucketACLModelDatasource) SetID(id *string) {
 	rm.ID.Set(*id)
 }
 
-// BucketACLModel SetACL.
-func (rm *BucketACLModel) SetACL(acl string) {
-	rm.ACL.Set(acl)
-}
-
 // SetAccessControlPolicy sets the value of the AccessControlPolicy field.
 func (rm *BucketACLModel) SetAccessControlPolicy(ctx context.Context, values *BucketACLModelAccessControlPolicy) (diags diag.Diagnostics) {
 	return rm.AccessControlPolicy.Set(ctx, values)

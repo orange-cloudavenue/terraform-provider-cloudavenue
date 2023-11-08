@@ -3,7 +3,7 @@ package s3
 import (
 	"context"
 	"fmt"
-	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/service/s3"
 
@@ -99,16 +99,15 @@ func (r *BucketACLResource) Create(ctx context.Context, req resource.CreateReque
 	*/
 
 	// Use generic createOrUpdate function to create the resource
-	diags = r.createOrUpdate(ctx, plan)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(r.createOrUpdate(ctx, plan, createTimeout)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Use generic read function to refresh the state
 	state, _, d := r.read(ctx, plan)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -180,9 +179,9 @@ func (r *BucketACLResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Set default timeouts
-	updateTimeout, diags := plan.Timeouts.Update(ctx, defaultCreateTimeout)
-	diags.Append(diags...)
-	if diags.HasError() {
+	updateTimeout, d := plan.Timeouts.Update(ctx, defaultUpdateTimeout)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, updateTimeout)
@@ -193,16 +192,15 @@ func (r *BucketACLResource) Update(ctx context.Context, req resource.UpdateReque
 	*/
 
 	// Use generic createOrUpdate function to create the resource
-	diags = r.createOrUpdate(ctx, plan)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(r.createOrUpdate(ctx, plan, updateTimeout)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Use generic read function to refresh the state
 	stateRefreshed, _, d := r.read(ctx, plan)
+	resp.Diagnostics.Append(d...)
 	if d.HasError() {
-		resp.Diagnostics.Append(d...)
 		return
 	}
 
@@ -257,7 +255,7 @@ func (r *BucketACLResource) read(ctx context.Context, planOrState *BucketACLMode
 }
 
 // createOrUpdate is a generic create or update function that can be used by the resource Create and Update functions.
-func (r *BucketACLResource) createOrUpdate(ctx context.Context, planOrState *BucketACLModel) (diags diag.Diagnostics) {
+func (r *BucketACLResource) createOrUpdate(ctx context.Context, planOrState *BucketACLModel, timeout time.Duration) (diags diag.Diagnostics) {
 	// Set Bucket in input
 	input := &s3.PutBucketAclInput{
 		Bucket: planOrState.Bucket.GetPtr(),
@@ -316,18 +314,15 @@ func (r *BucketACLResource) createOrUpdate(ctx context.Context, planOrState *Buc
 		}
 	}
 
-	if _, err := r.s3Client.PutBucketAclWithContext(ctx, input); err != nil {
-		switch {
-		case strings.Contains(err.Error(), ErrCodeNoSuchBucket):
-			diags.AddError("Bucket not found", err.Error())
-			return diags
-		case strings.Contains(err.Error(), ErrCodeObjectLockConfigurationNotFoundError):
-			diags.AddError("Bucket object lock configuration was not found", err.Error())
-			return diags
-		default:
-			diags.AddError("Bucket ACL not found", err.Error())
-			return diags
-		}
+	if _, err := retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket, ErrCodeObjectLockConfigurationNotFoundError}, &RetryWhenConfig[*s3.PutBucketAclOutput]{
+		Timeout:  timeout,
+		Interval: 15 * time.Second,
+		Function: func() (*s3.PutBucketAclOutput, error) {
+			return r.s3Client.PutBucketAcl(input)
+		},
+	}); err != nil {
+		diags.AddError("Error putting website configuration", err.Error())
+		return
 	}
 
 	return
