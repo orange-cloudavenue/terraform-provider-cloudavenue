@@ -86,5 +86,6 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		s3.NewBucketWebsiteConfigurationResource,
 		s3.NewBucketACLResource,
 		s3.NewCredentialResource,
+		s3.NewBucketPolicyResource,
 	}
 }
