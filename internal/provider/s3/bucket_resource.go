@@ -99,6 +99,11 @@ func (r *BucketResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
+	if err := r.s3Client.SyncBucket(plan.Name.Get()); err != nil {
+		resp.Diagnostics.AddError("Error syncing bucket", fmt.Sprintf("Error syncing bucket (name=%s): %s", plan.Name.Get(), err.Error()))
+		return
+	}
+
 	// Use generic read function to refresh the state
 	state, _, d := r.read(ctx, plan)
 	if d.HasError() {
