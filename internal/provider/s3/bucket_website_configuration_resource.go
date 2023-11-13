@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -34,9 +35,8 @@ func NewBucketWebsiteConfigurationResource() resource.Resource {
 
 // BucketWebsiteConfigurationResource is the resource implementation.
 type BucketWebsiteConfigurationResource struct {
-	client *client.CloudAvenue
-
-	s3Client *s3.S3
+	client   *client.CloudAvenue
+	s3Client v1.S3Client
 }
 
 // Init Initializes the resource.
@@ -124,7 +124,7 @@ func (r *BucketWebsiteConfigurationResource) Create(ctx context.Context, req res
 	}
 
 	if _, err := retryWhenNotFound(ctx, s3BucketPropagationTimeout, func() (interface{}, error) {
-		return findBucketWebsite(ctx, r.s3Client, plan.Bucket.Get())
+		return findBucketWebsite(ctx, r.s3Client.S3, plan.Bucket.Get())
 	}); err != nil {
 		resp.Diagnostics.AddError("Waiting for S3 Bucket Website Configuration", err.Error())
 		return
@@ -293,7 +293,7 @@ func (r *BucketWebsiteConfigurationResource) ImportState(ctx context.Context, re
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
 func (r *BucketWebsiteConfigurationResource) read(ctx context.Context, planOrState *BucketWebsiteConfigurationModel) (stateRefreshed *BucketWebsiteConfigurationModel, found bool, diags diag.Diagnostics) {
 	return genericReadWebsiteConfiguration(ctx, &readWebsiteConfigurationConfig[*BucketWebsiteConfigurationModel]{
-		Client:     r.s3Client,
+		Client:     r.s3Client.S3,
 		BucketName: planOrState.Bucket.GetPtr(),
 	}, planOrState)
 }
