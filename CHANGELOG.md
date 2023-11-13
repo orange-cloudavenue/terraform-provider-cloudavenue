@@ -15,6 +15,10 @@
 * **New Resource:** `resource/cloudavenue_s3_bucket` - Create and manage S3 buckets. ([GH-576](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/576))
 * **New Resource:** `resource/cloudavenue_s3_lifecycle_configuration` is a new resource type that allows to manage S3 lifecycle configuration. ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
 
+### :tada: **Improvements**
+
+* `resource/cloudavenue_s3_bucket` - Now the bucket can be visualized in the Cloud Avenue console. ([GH-608](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/608))
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.5.5 to 1.6.0 ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
