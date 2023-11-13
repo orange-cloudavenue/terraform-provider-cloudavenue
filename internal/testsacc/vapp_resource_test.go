@@ -11,22 +11,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-const TestAccEVAppResourceConfig = `
-resource "cloudavenue_vapp" "example" {
-	name        = "MyVapp"
-	description = "This is an example vApp"
-
-	lease = {
-		runtime_lease_in_sec = 3600
-		storage_lease_in_sec = 3600
-	}
-
-	guest_properties = {
-		"key" = "Value"
-	}
-  }
-`
-
 var _ testsacc.TestACC = &VAppResource{}
 
 const (
@@ -97,6 +81,30 @@ func (r *VAppResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckResourceAttr(resourceName, "lease.runtime_lease_in_sec", "3600"),
 							resource.TestCheckResourceAttr(resourceName, "lease.storage_lease_in_sec", "3600"),
+							resource.TestCheckResourceAttr(resourceName, "guest_properties.key", "Value"),
+						},
+					},
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vapp" "example" {
+							name        = {{ get . "name" }}
+							description = {{ get . "description" }}
+							vdc 		= cloudavenue_vdc.example.name
+
+							lease = {
+								runtime_lease_in_sec = 36000
+								storage_lease_in_sec = 360000
+							}
+						
+							guest_properties = {
+								"key" = "Value"
+							}
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "lease.runtime_lease_in_sec", "36000"),
+							resource.TestCheckResourceAttr(resourceName, "lease.storage_lease_in_sec", "360000"),
 							resource.TestCheckResourceAttr(resourceName, "guest_properties.key", "Value"),
 						},
 					},

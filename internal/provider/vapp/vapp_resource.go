@@ -15,7 +15,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -28,7 +27,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -67,7 +65,7 @@ func (r *vappResource) Init(ctx context.Context, rm *vappResourceModel) (diags d
 		return
 	}
 
-	r.vdc, diags = vdc.Init(r.client, rm.VDC)
+	r.vdc, diags = vdc.Init(r.client, rm.VDC.StringValue)
 	return
 }
 
@@ -138,33 +136,40 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	// Update vApp
-	state := &vappResourceModel{
-		Description: types.StringValue(r.vapp.GetDescription()),
+	stateRefreshed, found, d := r.read(ctx, plan)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		return
 	}
-	resp.Diagnostics.Append(r.updateVapp(ctx, plan, state)...)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	plan.VAppID = types.StringValue(r.vapp.GetID())
-	plan.VDC = types.StringValue(r.vdc.GetName())
+	// Update vApp
+	resp.Diagnostics.Append(r.updateVapp(ctx, plan, stateRefreshed)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	stateRefreshed, _, d = r.read(ctx, plan)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (r *vappResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	defer metrics.New("cloudavenue_vapp", r.client.GetOrgName(), metrics.Read)()
 
-	var (
-		state *vappResourceModel
-		diags diag.Diagnostics
-	)
+	state := new(vappResourceModel)
 
 	// Get current state
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -175,61 +180,18 @@ func (r *vappResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	r.vapp, diags = vapp.Init(r.client, r.vdc, state.VAppID, state.VAppName)
-	if diags.Contains(vapp.DiagVAppNotFound) {
+	stateRefreshed, found, d := r.read(ctx, state)
+	if !found {
 		resp.State.RemoveResource(ctx)
 		return
 	}
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Set data
-	plan := &vappResourceModel{
-		VAppID:          types.StringValue(r.vapp.GetID()),
-		VAppName:        types.StringValue(r.vapp.GetName()),
-		VDC:             types.StringValue(r.vdc.GetName()),
-		Description:     utils.StringValueOrNull(r.vapp.GetDescription()),
-		Lease:           types.ObjectNull(vappLeaseAttrTypes),
-		GuestProperties: types.MapNull(types.StringType),
-	}
-
-	// Get guest properties
-	guestProperties, diags := processGuestProperties(r.vapp)
-	resp.Diagnostics.Append(diags...)
-	if diags.HasError() {
-		return
-	}
-
-	if len(guestProperties) > 0 {
-		plan.GuestProperties, diags = types.MapValue(types.StringType, guestProperties)
-		resp.Diagnostics.Append(diags...)
-		if diags.HasError() {
-			return
-		}
-	}
-
-	// Get lease info
-	leaseInfo, err := r.vapp.GetLease()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving lease info", err.Error())
-		return
-	}
-
-	if leaseInfo != nil {
-		plan.Lease, diags = types.ObjectValueFrom(ctx, vappLeaseAttrTypes, vappLeaseModel{
-			RuntimeLeaseInSec: types.Int64Value(int64(leaseInfo.DeploymentLeaseInSeconds)),
-			StorageLeaseInSec: types.Int64Value(int64(leaseInfo.StorageLeaseInSeconds)),
-		})
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-	}
-
 	// Set refreshed plan
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -237,13 +199,14 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	defer metrics.New("cloudavenue_vapp", r.client.GetOrgName(), metrics.Update)()
 
 	var (
-		plan, state *vappResourceModel
-		diags       diag.Diagnostics
+		plan  = new(vappResourceModel)
+		state = new(vappResourceModel)
+		diags diag.Diagnostics
 	)
 
 	// Get current state
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -255,7 +218,7 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	// Request vApp
-	r.vapp, diags = vapp.Init(r.client, r.vdc, plan.VAppID, plan.VAppName)
+	r.vapp, diags = vapp.Init(r.client, r.vdc, plan.VAppID.StringValue, plan.VAppName.StringValue)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -267,8 +230,18 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
+	stateRefreshed, found, d := r.read(ctx, state)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -276,9 +249,9 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	defer metrics.New("cloudavenue_vapp", r.client.GetOrgName(), metrics.Delete)()
 
 	// Get current state
-	var state *vappResourceModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
+	state := new(vappResourceModel)
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -290,7 +263,7 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	}
 
 	// Request vApp
-	vapp, err := r.vdc.GetVAppByNameOrId(state.VAppID.ValueString(), true)
+	vapp, err := r.vdc.GetVAppByNameOrId(state.VAppID.Get(), true)
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			resp.Diagnostics.AddError("vApp not found", err.Error())
@@ -305,14 +278,12 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		resp.Diagnostics.AddError("Error delete VAPP", err.Error())
 		return
 	}
-	err = task.WaitTaskCompletion()
-	if err != nil {
+	if err := task.WaitTaskCompletion(); err != nil {
 		resp.Diagnostics.AddError("Error delete VAPP", err.Error())
 		return
 	}
 
-	err = tryUndeploy(*vapp)
-	if err != nil {
+	if err := tryUndeploy(*vapp); err != nil {
 		resp.Diagnostics.AddError("Error delete VAPP", err.Error())
 		return
 	}
@@ -323,8 +294,7 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	err = task.WaitTaskCompletion()
-	if err != nil {
+	if err := task.WaitTaskCompletion(); err != nil {
 		resp.Diagnostics.AddError("Error delete VAPP", err.Error())
 		return
 	}
@@ -394,43 +364,38 @@ func tryUndeploy(vapp govcd.VApp) error {
 }
 
 // updateVapp make updates only on elements that must be updated.
-func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResourceModel) (d diag.Diagnostics) {
-	var runtimeLease, storageLease int
+func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResourceModel) (diags diag.Diagnostics) {
+	// Set default lease values
+	var (
+		runtimeLease = *r.adminorg.GetOrgVAppLeaseSettings().DeploymentLeaseSeconds
+		storageLease = *r.adminorg.GetOrgVAppLeaseSettings().StorageLeaseSeconds
+	)
 
 	// Get lease config
 	if !plan.Lease.IsNull() {
-		l := &vappLeaseModel{}
-		d.Append(plan.Lease.As(ctx, l, basetypes.ObjectAsOptions{
-			UnhandledNullAsEmpty:    false,
-			UnhandledUnknownAsEmpty: false,
-		})...)
-		if d.HasError() {
+		lease, d := plan.Lease.Get(ctx)
+		diags.Append(d...)
+		if diags.HasError() {
 			return
 		}
-		runtimeLease = int(l.RuntimeLeaseInSec.ValueInt64())
-		storageLease = int(l.StorageLeaseInSec.ValueInt64())
-	} else {
-		runtimeLease = *r.adminorg.GetOrgVAppLeaseSettings().DeploymentLeaseSeconds
-		storageLease = *r.adminorg.GetOrgVAppLeaseSettings().StorageLeaseSeconds
+
+		runtimeLease = lease.RuntimeLeaseInSec.GetInt()
+		storageLease = lease.StorageLeaseInSec.GetInt()
 	}
 
 	// Update lease if needed
 	if runtimeLease != r.vapp.GetDeploymentLeaseInSeconds() ||
 		storageLease != r.vapp.GetStorageLeaseInSeconds() {
 		if err := r.vapp.RenewLease(runtimeLease, storageLease); err != nil {
-			d.AddError("Error renewing lease", err.Error())
+			diags.AddError("Error renewing lease", err.Error())
 			return
 		}
-	}
-	if err := r.vapp.RenewLease(runtimeLease, storageLease); err != nil {
-		d.AddError("Error renewing lease", err.Error())
-		return
 	}
 
 	// Update description if needed
 	if !plan.Description.Equal(state.Description) {
 		if err := r.vapp.UpdateDescription(plan.Description.ValueString()); err != nil {
-			d.AddError("Error updating VApp description", err.Error())
+			diags.AddError("Error updating VApp description", err.Error())
 			return
 		}
 	}
@@ -448,10 +413,11 @@ func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResource
 		// Extract values from plan
 		if !plan.GuestProperties.IsNull() {
 			guestProperties := make(map[string]string)
-			d.Append(plan.GuestProperties.ElementsAs(ctx, &guestProperties, true)...)
-			if d.HasError() {
+			diags.Append(plan.GuestProperties.Get(ctx, &guestProperties, true)...)
+			if diags.HasError() {
 				return
 			}
+
 			for k, v := range guestProperties {
 				oneProp := &govcdtypes.Property{
 					UserConfigurable: true,
@@ -464,10 +430,75 @@ func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResource
 			}
 		}
 		if _, err := r.vapp.SetProductSectionList(x); err != nil {
-			d.AddError("Error updating VApp guest properties", err.Error())
+			diags.AddError("Error updating VApp guest properties", err.Error())
 			return
 		}
 	}
 
 	return nil
+}
+
+// read is a generic read function that can be used by the resource Create, Read and Update functions.
+func (r *vappResource) read(ctx context.Context, planOrState *vappResourceModel) (stateRefreshed *vappResourceModel, found bool, diags diag.Diagnostics) {
+	stateRefreshed = planOrState.Copy()
+
+	/*
+		Implement the resource read here
+	*/
+
+	var d diag.Diagnostics
+
+	r.vapp, d = vapp.Init(r.client, r.vdc, planOrState.VAppID.StringValue, planOrState.VAppName.StringValue)
+	diags.Append(d...)
+	if diags.HasError() {
+		if diags.Contains(vapp.DiagVAppNotFound) {
+			return nil, false, diags
+		}
+		return nil, true, diags
+	}
+
+	// * Guest properties
+	guestProperties, err := r.vapp.GetProductSectionList()
+	if err != nil {
+		diags.AddError("Error retrieving guest properties", err.Error())
+		return
+	}
+
+	properties := make(map[string]string)
+	if guestProperties != nil && guestProperties.ProductSection != nil && guestProperties.ProductSection.Property != nil {
+		for _, guestProperty := range guestProperties.ProductSection.Property {
+			if guestProperty.Value != nil {
+				properties[guestProperty.Key] = guestProperty.Value.Value
+			}
+		}
+	}
+
+	if len(properties) > 0 {
+		diags.Append(stateRefreshed.GuestProperties.Set(ctx, properties)...)
+		if diags.HasError() {
+			return nil, true, diags
+		}
+	}
+
+	// * Lease
+	leaseInfo, err := r.vapp.GetLease()
+	if err != nil {
+		diags.AddError("Error retrieving lease info", err.Error())
+		return
+	}
+
+	if leaseInfo != nil {
+		vappLease := new(vappResourceModelLease)
+		vappLease.RuntimeLeaseInSec.SetInt(leaseInfo.DeploymentLeaseInSeconds)
+		vappLease.StorageLeaseInSec.SetInt(leaseInfo.StorageLeaseInSeconds)
+
+		stateRefreshed.Lease.Set(ctx, vappLease)
+	}
+
+	stateRefreshed.VAppID.Set(r.vapp.GetID())
+	stateRefreshed.VAppName.Set(r.vapp.GetName())
+	stateRefreshed.VDC.Set(r.vdc.GetName())
+	stateRefreshed.Description.Set(r.vapp.GetDescription())
+
+	return stateRefreshed, true, nil
 }

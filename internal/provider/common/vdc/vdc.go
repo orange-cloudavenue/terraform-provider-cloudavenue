@@ -68,6 +68,22 @@ func SuperSchema() superschema.StringAttribute {
 	}
 }
 
+func SuperSchemaSuperType() superschema.SuperStringAttribute {
+	return superschema.SuperStringAttribute{
+		Common: &schemaR.StringAttribute{
+			MarkdownDescription: "The name of vDC to use, optional if defined at provider level.",
+			Optional:            true,
+			Computed:            true,
+		},
+		Resource: &schemaR.StringAttribute{
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+				stringplanmodifier.RequiresReplace(),
+			},
+		},
+	}
+}
+
 /*
 Init
 
