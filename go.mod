@@ -27,7 +27,7 @@ require (
 	github.com/thanhpk/randstr v1.0.6
 	github.com/vmware/go-vcloud-director/v2 v2.21.0
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
-	golang.org/x/net v0.17.0
+	golang.org/x/net v0.18.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
