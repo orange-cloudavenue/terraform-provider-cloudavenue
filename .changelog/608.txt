@@ -1,0 +1,3 @@
+```release-note:enhancement
+`resource/cloudavenue_s3_bucket` - Now the bucket can be visualized in the Cloud Avenue console.
+```
