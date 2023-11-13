@@ -83,8 +83,8 @@ func (d *BucketPolicyDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 	// Set timeouts
 	readTimeout, diags := config.Timeouts.Read(ctx, defaultReadTimeout)
-	diags.Append(diags...)
-	if diags.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, readTimeout)

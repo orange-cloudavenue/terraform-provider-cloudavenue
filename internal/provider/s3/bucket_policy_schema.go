@@ -24,7 +24,7 @@ func bucketPolicySchema(_ context.Context) superschema.Schema {
 			"timeouts": superschema.TimeoutAttribute{
 				Resource: &superschema.ResourceTimeoutAttribute{
 					Create: true,
-					Update: true,
+					Update: false,
 					Delete: true,
 					Read:   true,
 				},

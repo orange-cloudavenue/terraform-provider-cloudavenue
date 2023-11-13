@@ -92,8 +92,8 @@ func (r *BucketPolicyResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Set timeouts
 	createTimeout, diags := plan.Timeouts.Create(ctx, defaultCreateTimeout)
-	diags.Append(diags...)
-	if diags.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, createTimeout)
@@ -133,16 +133,21 @@ func (r *BucketPolicyResource) Read(ctx context.Context, req resource.ReadReques
 
 	// Set timeouts
 	readTimeout, diags := state.Timeouts.Read(ctx, defaultReadTimeout)
-	diags.Append(diags...)
-	if diags.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
+	// Refresh the state
 	stateRefreshed, found, diags := r.read(ctx, readTimeout, state)
 	if !found {
 		resp.State.RemoveResource(ctx)
+		return
+	}
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
 		return
 	}
 
@@ -158,47 +163,7 @@ func (r *BucketPolicyResource) Read(ctx context.Context, req resource.ReadReques
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *BucketPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	defer metrics.New("cloudavenue_s3_bucket_policy", r.client.GetOrgName(), metrics.Update)()
-
-	var (
-		plan  = &BucketPolicyModel{}
-		state = &BucketPolicyModel{}
-	)
-
-	// Get current plan and state
-	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Set timeouts
-	updateTimeout, diags := plan.Timeouts.Update(ctx, defaultUpdateTimeout)
-	diags.Append(diags...)
-	if diags.HasError() {
-		return
-	}
-	ctx, cancel := context.WithTimeout(ctx, updateTimeout)
-	defer cancel()
-
-	/*
-		Implement the resource update here
-	*/
-
-	stateRefreshed, d := r.genericCreateOrUpdate(ctx, updateTimeout, plan)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
+	// No update for this resource, only delete and create for a change.
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -224,9 +189,9 @@ func (r *BucketPolicyResource) Delete(ctx context.Context, req resource.DeleteRe
 	*/
 
 	// Set timeouts
-	deleteTimeout, diags := state.Timeouts.Delete(ctx, defaultDeleteTimeout)
-	diags.Append(diags...)
-	if diags.HasError() {
+	deleteTimeout, d := state.Timeouts.Delete(ctx, defaultDeleteTimeout)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)

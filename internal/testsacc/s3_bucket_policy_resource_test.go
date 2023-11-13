@@ -13,10 +13,6 @@ var _ testsacc.TestACC = &S3BucketPolicyResource{}
 
 const (
 	S3BucketPolicyResourceName = testsacc.ResourceName("cloudavenue_s3_bucket_policy")
-	S3Bucket4Policy            = `
-	resource "cloudavenue_s3_bucket" "example" {
-		name = "example-bucket"
-	}`
 )
 
 type S3BucketPolicyResource struct{}
@@ -31,9 +27,7 @@ func (r *S3BucketPolicyResource) GetResourceName() string {
 }
 
 func (r *S3BucketPolicyResource) DependenciesConfig() (deps testsacc.DependenciesConfigResponse) {
-	// Add constant dependencies config to give the good path in resource json policy
-	deps.Append(AddConstantConfig(S3Bucket4Policy))
-	// deps.Append(GetResourceConfig()[S3BucketResourceName]().GetDefaultConfig)
+	deps.Append(GetResourceConfig()[S3BucketResourceName]().GetDefaultConfig)
 	return
 }
 
@@ -43,7 +37,7 @@ func (r *S3BucketPolicyResource) Tests(ctx context.Context) map[testsacc.TestNam
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttr(resourceName, "id", "example-bucket"),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -60,7 +54,7 @@ func (r *S3BucketPolicyResource) Tests(ctx context.Context) map[testsacc.TestNam
 						      "s3:*"
 						    ]
 						    Resource = [
-						      "arn:aws:s3:::example-bucket/*"
+						      "arn:aws:s3:::${cloudavenue_s3_bucket.example.name}/*"
 						    ]
 						  }
 						]
@@ -86,7 +80,7 @@ func (r *S3BucketPolicyResource) Tests(ctx context.Context) map[testsacc.TestNam
 									  "s3:*"
 									]
 									Resource = [
-									  "arn:aws:s3:::example-bucket/*"
+									  "arn:aws:s3:::${cloudavenue_s3_bucket.example.name}/*"
 									]
 								  }
 								]
@@ -112,8 +106,8 @@ func (r *S3BucketPolicyResource) Tests(ctx context.Context) map[testsacc.TestNam
 									  "s3:ListBucketVersions",
 									]
 									Resource = [
-									  "arn:aws:s3:::example-bucket",
-									  "arn:aws:s3:::example-bucket/*",
+									  "arn:aws:s3:::${cloudavenue_s3_bucket.example.name}",
+									  "arn:aws:s3:::${cloudavenue_s3_bucket.example.name}/*",
 									]
 								  }
 								]
@@ -132,6 +126,8 @@ func (r *S3BucketPolicyResource) Tests(ctx context.Context) map[testsacc.TestNam
 						ImportStateVerify:    true,
 					},
 				},
+				// ! Destroy testing
+				Destroy: true,
 			}
 		},
 	}

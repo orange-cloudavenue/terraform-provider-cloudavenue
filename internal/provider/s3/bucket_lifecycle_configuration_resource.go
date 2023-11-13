@@ -96,12 +96,12 @@ func (r *BucketLifecycleConfigurationResource) Create(ctx context.Context, req r
 		Implement the resource creation logic here.
 	*/
 
+	// Set default timeouts
 	createTimeout, diags := plan.Timeouts.Create(ctx, defaultCreateTimeout)
-	diags.Append(diags...)
-	if diags.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	ctx, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 
@@ -112,9 +112,9 @@ func (r *BucketLifecycleConfigurationResource) Create(ctx context.Context, req r
 	}
 
 	// Use generic read function to refresh the state
-	state, _, d := r.read(ctx, plan)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	state, _, diags := r.read(ctx, plan)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
 		return
 	}
 
@@ -182,8 +182,8 @@ func (r *BucketLifecycleConfigurationResource) Update(ctx context.Context, req r
 	*/
 
 	updateTimeout, diags := plan.Timeouts.Update(ctx, defaultUpdateTimeout)
-	diags.Append(diags...)
-	if diags.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -230,8 +230,8 @@ func (r *BucketLifecycleConfigurationResource) Delete(ctx context.Context, req r
 	*/
 
 	deleteTimeout, diags := state.Timeouts.Update(ctx, defaultUpdateTimeout)
-	diags.Append(diags...)
-	if diags.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

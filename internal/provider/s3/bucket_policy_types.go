@@ -34,14 +34,6 @@ type BucketPolicyModelDatasource struct {
 	Timeouts timeoutsD.Value        `tfsdk:"timeouts"`
 }
 
-// * Timeouts.
-type BucketPolicyModelTimeout struct {
-	Create supertypes.StringValue `tfsdk:"create"`
-	Delete supertypes.StringValue `tfsdk:"delete"`
-	Read   supertypes.StringValue `tfsdk:"read"`
-	Update supertypes.StringValue `tfsdk:"update"`
-}
-
 func (rm *BucketPolicyModel) Copy() any {
 	x := &BucketPolicyModel{}
 	utils.ModelCopy(rm, x)

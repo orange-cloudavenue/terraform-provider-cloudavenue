@@ -91,9 +91,10 @@ func (r *BucketCorsConfigurationResource) Create(ctx context.Context, req resour
 		Implement the resource creation logic here.
 	*/
 
+	// Set timeouts
 	createTimeout, diags := plan.Timeouts.Create(ctx, defaultCreateTimeout)
-	diags.Append(diags...)
-	if diags.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, createTimeout)
@@ -106,14 +107,14 @@ func (r *BucketCorsConfigurationResource) Create(ctx context.Context, req resour
 	}
 
 	// Use generic read function to refresh the state
-	state, found, d := r.read(ctx, plan)
+	state, found, diags := r.read(ctx, plan)
 	if !found {
 		diags.AddWarning("Resource not found", "The resource was not found after creation")
 		resp.State.RemoveResource(ctx)
 		return
 	}
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
 		return
 	}
 
@@ -139,22 +140,23 @@ func (r *BucketCorsConfigurationResource) Read(ctx context.Context, req resource
 		return
 	}
 
+	// Set timeouts
 	readTimeout, diags := state.Timeouts.Read(ctx, defaultReadTimeout)
-	diags.Append(diags...)
-	if diags.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
 	// Refresh the state
-	stateRefreshed, found, d := r.read(ctx, state)
+	stateRefreshed, found, diags := r.read(ctx, state)
 	if !found {
 		resp.State.RemoveResource(ctx)
 		return
 	}
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
 		return
 	}
 
@@ -188,12 +190,12 @@ func (r *BucketCorsConfigurationResource) Update(ctx context.Context, req resour
 		Implement the resource update here
 	*/
 
+	// Set default timeouts
 	updateTimeout, diags := plan.Timeouts.Update(ctx, defaultUpdateTimeout)
 	diags.Append(diags...)
 	if diags.HasError() {
 		return
 	}
-
 	ctx, cancel := context.WithTimeout(ctx, updateTimeout)
 	defer cancel()
 
@@ -204,9 +206,9 @@ func (r *BucketCorsConfigurationResource) Update(ctx context.Context, req resour
 	}
 
 	// Use generic read function to refresh the state
-	stateRefreshed, _, d := r.read(ctx, plan)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	stateRefreshed, _, diags := r.read(ctx, plan)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
 		return
 	}
 
@@ -236,12 +238,12 @@ func (r *BucketCorsConfigurationResource) Delete(ctx context.Context, req resour
 		Implement the resource deletion here
 	*/
 
+	// Set timeouts
 	deleteTimeout, diags := state.Timeouts.Delete(ctx, defaultDeleteTimeout)
-	diags.Append(diags...)
-	if diags.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
 	defer cancel()
 

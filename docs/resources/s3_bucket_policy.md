@@ -9,10 +9,12 @@ description: |-
 
 The `cloudavenue_s3_bucket_policy` resource allows you to manage a policy to an S3 bucket resource.
 
+ ~> S3 Buckets only support a single Policy configuration. Declaring multiple `cloudavenue_s3_bucket_policy` resources to the same S3 Bucket will cause a perpetual difference in configuration.
+
 ## Example Usage
 
 ```terraform
-data "aws_s3_bucket" "example" {
+data "cloudavenue_s3_bucket" "example" {
   bucket = "example-bucket"
 }
 
@@ -63,7 +65,6 @@ Optional:
 - `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 
 ## Import
 

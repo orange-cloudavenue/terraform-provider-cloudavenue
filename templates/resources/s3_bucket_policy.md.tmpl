@@ -9,6 +9,8 @@ description: |-
 
 {{ .Description | trimspace }}
 
+ ~> S3 Buckets only support a single Policy configuration. Declaring multiple `cloudavenue_s3_bucket_policy` resources to the same S3 Bucket will cause a perpetual difference in configuration.
+
 {{ if .HasExample -}}
 ## Example Usage
 

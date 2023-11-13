@@ -4,17 +4,11 @@ import (
 	"context"
 	"testing"
 
-	// The fwresource import alias is so there is no collistion
-	// with the more typical acceptance testing import:
-	// "github.com/hashicorp/terraform-plugin-testing/helper/resource".
-	// The fwdatasource import alias is so there is no collistion
-	// fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource".
+	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/s3"
 )
-
-// TODO : Comment or uncomment the following imports if you are using resources or/and datasources
 
 // Unit test for the schema of the resource cloudavenue_s3_BucketPolicy.
 func TestBucketPolicyResourceSchema(t *testing.T) {
@@ -38,8 +32,7 @@ func TestBucketPolicyResourceSchema(t *testing.T) {
 	}
 }
 
-// Unit test for the schema of the datasource cloudavenue_s3_BucketPolicy
-/*
+// Unit test for the schema of the datasource cloudavenue_s3_BucketPolicy.
 func TestBucketPolicyDataSourceSchema(t *testing.T) {
 	t.Parallel()
 
@@ -60,4 +53,3 @@ func TestBucketPolicyDataSourceSchema(t *testing.T) {
 		t.Fatalf("Schema validation diagnostics: %+v", diagnostics)
 	}
 }
-*/
