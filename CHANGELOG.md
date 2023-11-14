@@ -13,6 +13,7 @@
 * **New Resource:** `resource/cloudavenue_s3_bucket_versioning_configuration` - Manage S3 bucket versioning configuration. ([GH-584](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/584))
 * **New Resource:** `resource/cloudavenue_s3_bucket_website_configuration`- Allow to configure website on your S3 Bucket. ([GH-587](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/587))
 * **New Resource:** `resource/cloudavenue_s3_bucket` - Create and manage S3 buckets. ([GH-576](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/576))
+* **New Resource:** `resource/cloudavenue_s3_credential` - Allows to create S3 credentials for the current user. ([GH-603](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/603))
 * **New Resource:** `resource/cloudavenue_s3_lifecycle_configuration` is a new resource type that allows to manage S3 lifecycle configuration. ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
 
 ### :tada: **Improvements**
@@ -31,6 +32,7 @@
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.2.0 to 0.3.0 ([GH-576](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/576))
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.3.0 to 0.3.1 ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.3.1 to 0.4.0 ([GH-609](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/609))
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.4.0 to 0.4.1 ([GH-603](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/603))
 * deps: bumps golang.org/x/net from 0.17.0 to 0.18.0 ([GH-613](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/613))
 * deps: bumps hashicorp/setup-terraform from 2 to 3 ([GH-601](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/601))
 
