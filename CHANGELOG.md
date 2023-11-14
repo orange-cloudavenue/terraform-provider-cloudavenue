@@ -22,6 +22,10 @@
 
 * `resource/cloudavenue_s3_bucket` - Now the bucket can be visualized in the Cloud Avenue console. ([GH-608](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/608))
 
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vapp` - Fix `lease.runtime_lease_in_sec` and `lease.storage_lease_in_sec` values allowed to `0` (default) for never expiring or range from `3600` to `31536000` seconds (1 hour to 365 days). ([GH-617](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/617))
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.5.5 to 1.6.0 ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
