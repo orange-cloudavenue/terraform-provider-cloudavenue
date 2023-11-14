@@ -28,6 +28,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps actions/github-script from 6.4.1 to 7.0.0 ([GH-625](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/625))
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.5.5 to 1.6.0 ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.6.0 to 1.6.1 ([GH-587](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/587))
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.1.0 to 0.2.0 ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
