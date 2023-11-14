@@ -13,7 +13,7 @@ import (
 	awspolicy "github.com/hashicorp/awspolicyequivalence"
 	timeoutsD "github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
 	timeoutsR "github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
