@@ -3,18 +3,16 @@ package vcda
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
-	"golang.org/x/exp/slices"
-
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -36,6 +34,7 @@ func NewVCDAIPResource() resource.Resource {
 // vcdaIPResource is the resource implementation.
 type vcdaIPResource struct {
 	client *client.CloudAvenue
+	vcda   v1.VCDA
 }
 
 // Metadata returns the resource type name.
@@ -67,18 +66,16 @@ func (r *vcdaIPResource) Configure(ctx context.Context, req resource.ConfigureRe
 	}
 
 	r.client = client
+	r.vcda = r.client.CAVSDK.V1.VCDA
 }
 
 // Create creates the resource and sets the initial Terraform state.
 func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	defer metrics.New("cloudavenue_vcda_ip", r.client.GetOrgName(), metrics.Create)()
 
-	// Retrieve values from plan
-	var plan *vcdaIPResourceModel
+	plan := new(vcdaIPResourceModel)
 
-	// Read Terraform plan data into the model.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -86,65 +83,59 @@ func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest,
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
 
-	// Call API to create the resource and check for errors.
-	_, httpR, err := r.client.APIClient.VCDAApi.CreateVcdaIP(r.client.Auth, plan.IPAddress.ValueString())
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+	listOfIPS, err := r.vcda.List()
+	if err != nil {
+		resp.Diagnostics.AddError("Error on list VDCA IPs", err.Error())
 		return
 	}
 
-	// Set the ID
-	plan.ID = types.StringValue(uuid.Normalize(
-		uuid.VCDA,
-		utils.GenerateUUID(
-			plan.IPAddress.ValueString(),
-		).ValueString(),
-	).String())
+	if listOfIPS.IsIPExists(plan.IPAddress.Get()) {
+		resp.Diagnostics.AddError("IP address already registered", fmt.Sprintf("The IP address %s is already registered", plan.IPAddress.Get()))
+		return
+	}
+
+	if err := r.vcda.RegisterIP(plan.IPAddress.Get()); err != nil {
+		resp.Diagnostics.AddError("Error on register new VDCA IP", err.Error())
+		return
+	}
+
+	stateRefreshed, found, diags := r.read(ctx, plan)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Save plan into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (r *vcdaIPResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	defer metrics.New("cloudavenue_vcda_ip", r.client.GetOrgName(), metrics.Read)()
 
-	// Get current state
-	var state *vcdaIPResourceModel
+	state := new(vcdaIPResourceModel)
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Call API to get list of VCDA and check for errors.
-	vcdaIPList, httpR, err := r.client.APIClient.VCDAApi.GetVcdaIPs(r.client.Auth)
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+	stateRefreshed, found, diags := r.read(ctx, state)
+	if !found {
+		resp.State.RemoveResource(ctx)
 		return
 	}
-
-	found := slices.Contains(vcdaIPList, state.IPAddress.ValueString())
-	// Check if the VCDA is in the list
-	if !found {
-		// If the VCDA is not in the list, remove it from the state
-		resp.State.RemoveResource(ctx)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -155,11 +146,9 @@ func (r *vcdaIPResource) Update(ctx context.Context, req resource.UpdateRequest,
 func (r *vcdaIPResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	defer metrics.New("cloudavenue_vcda_ip", r.client.GetOrgName(), metrics.Delete)()
 
-	/// Get current state
-	var state *vcdaIPResourceModel
+	state := new(vcdaIPResourceModel)
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -167,16 +156,17 @@ func (r *vcdaIPResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
 
-	// Call API to delete the resource and check for errors.
-	_, httpR, err := r.client.APIClient.VCDAApi.DeleteVcdaIP(r.client.Auth, state.IPAddress.ValueString())
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+	listOfIPs, err := r.vcda.List()
+	if err != nil {
+		resp.Diagnostics.AddError("Error on list VDCA IPs", err.Error())
 		return
+	}
+
+	if listOfIPs.IsIPExists(state.IPAddress.Get()) {
+		if err := listOfIPs.DeleteIP(state.IPAddress.Get()); err != nil {
+			resp.Diagnostics.AddError("Error on delete VDCA IP", err.Error())
+			return
+		}
 	}
 }
 
@@ -188,4 +178,26 @@ func (r *vcdaIPResource) ImportState(ctx context.Context, req resource.ImportSta
 			req.ID,
 		).ValueString(),
 	).String()))...)
+}
+
+// read is a generic read function that can be used by the resource Create, Read and Update functions.
+func (r *vcdaIPResource) read(_ context.Context, planOrState *vcdaIPResourceModel) (stateRefreshed *vcdaIPResourceModel, found bool, diags diag.Diagnostics) {
+	stateRefreshed = planOrState.Copy()
+
+	listOfIps, err := r.vcda.List()
+	if err != nil {
+		diags.AddError("Error on list VDCA IPs", err.Error())
+		return nil, true, diags
+	}
+
+	if !listOfIps.IsIPExists(planOrState.IPAddress.Get()) {
+		return nil, false, diags
+	}
+
+	stateRefreshed.ID.Set(uuid.Normalize(
+		uuid.VCDA,
+		utils.GenerateUUID(planOrState.IPAddress.Get()).ValueString(),
+	).String())
+
+	return stateRefreshed, true, nil
 }

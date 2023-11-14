@@ -34,5 +34,8 @@ func GetResourceConfig() map[testsacc.ResourceName]func() resourceConfig {
 		S3BucketACLResourceName:                     NewResourceConfig(NewS3BucketACLResourceTest()),
 		S3CredentialResourceName:                    NewResourceConfig(NewS3CredentialResourceTest()),
 		S3BucketPolicyResourceName:                  NewResourceConfig(NewS3BucketPolicyResourceTest()),
+
+		// * VCDA
+		VCDAIPResourceName: NewResourceConfig(NewVCDAIPResourceTest()),
 	}
 }
