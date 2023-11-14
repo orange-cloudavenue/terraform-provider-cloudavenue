@@ -88,8 +88,8 @@ func (r *BucketACLResource) Create(ctx context.Context, req resource.CreateReque
 
 	// Set default timeouts
 	createTimeout, diags := plan.Timeouts.Create(ctx, defaultCreateTimeout)
-	diags.Append(diags...)
-	if diags.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, createTimeout)
@@ -135,8 +135,8 @@ func (r *BucketACLResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 
 	readTimeout, diags := state.Timeouts.Read(ctx, defaultReadTimeout)
-	diags.Append(diags...)
-	if diags.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, readTimeout)
@@ -180,8 +180,8 @@ func (r *BucketACLResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// Set default timeouts
-	updateTimeout, d := plan.Timeouts.Update(ctx, defaultUpdateTimeout)
-	resp.Diagnostics.Append(d...)
+	updateTimeout, diags := plan.Timeouts.Update(ctx, defaultUpdateTimeout)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

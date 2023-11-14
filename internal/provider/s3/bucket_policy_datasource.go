@@ -4,6 +4,7 @@ package s3
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
@@ -15,35 +16,34 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &BucketACLDataSource{}
-	_ datasource.DataSourceWithConfigure = &BucketACLDataSource{}
+	_ datasource.DataSource              = &BucketPolicyDataSource{}
+	_ datasource.DataSourceWithConfigure = &BucketPolicyDataSource{}
 )
 
-func NewBucketACLDataSource() datasource.DataSource {
-	return &BucketACLDataSource{}
+func NewBucketPolicyDataSource() datasource.DataSource {
+	return &BucketPolicyDataSource{}
 }
 
-type BucketACLDataSource struct {
+type BucketPolicyDataSource struct {
 	client   *client.CloudAvenue
 	s3Client v1.S3Client
 }
 
 // Init Initializes the data source.
-func (d *BucketACLDataSource) Init(ctx context.Context, dm *BucketACLModelDatasource) (diags diag.Diagnostics) {
+func (d *BucketPolicyDataSource) Init(ctx context.Context, dm *BucketPolicyModelDatasource) (diags diag.Diagnostics) {
 	d.s3Client = d.client.CAVSDK.V1.S3()
-
 	return
 }
 
-func (d *BucketACLDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_bucket_acl"
+func (d *BucketPolicyDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_bucket_policy"
 }
 
-func (d *BucketACLDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = bucketACLSchema(ctx).GetDataSource(ctx)
+func (d *BucketPolicyDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = bucketPolicySchema(ctx).GetDataSource(ctx)
 }
 
-func (d *BucketACLDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *BucketPolicyDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -60,10 +60,10 @@ func (d *BucketACLDataSource) Configure(ctx context.Context, req datasource.Conf
 	d.client = client
 }
 
-func (d *BucketACLDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	defer metrics.New("data.cloudavenue_s3_bucket_acl", d.client.GetOrgName(), metrics.Read)()
+func (d *BucketPolicyDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_s3_bucket_policy", d.client.GetOrgName(), metrics.Read)()
 
-	config := &BucketACLModelDatasource{}
+	config := &BucketPolicyModelDatasource{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
@@ -81,7 +81,7 @@ func (d *BucketACLDataSource) Read(ctx context.Context, req datasource.ReadReque
 		Implement the data source read logic here.
 	*/
 
-	// Set default timeouts
+	// Set timeouts
 	readTimeout, diags := config.Timeouts.Read(ctx, defaultReadTimeout)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -90,18 +90,24 @@ func (d *BucketACLDataSource) Read(ctx context.Context, req datasource.ReadReque
 	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
-	// Read data from the API
-	data, _, diags := genericReadACL(ctx, &readBucketACLGeneric[*BucketACLModelDatasource]{
+	// Get Policy
+	policy, err := findBucketPolicy(ctx, &readPolicyConfig[*BucketPolicyModel]{
+		Timeout: func() (time.Duration, diag.Diagnostics) {
+			return readTimeout, diags
+		},
 		Client: d.s3Client.S3,
 		BucketName: func() *string {
 			return config.Bucket.GetPtr()
 		},
-	}, config)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	})
+	if err != nil {
+		resp.Diagnostics.AddError("Bucket Policy not found", err.Error())
 		return
 	}
 
+	config.ID.Set(config.Bucket.Get())
+	config.Policy.Set(policy)
+
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &config)...)
 }

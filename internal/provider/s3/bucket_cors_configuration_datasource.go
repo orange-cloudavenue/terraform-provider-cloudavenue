@@ -80,6 +80,15 @@ func (d *BucketCorsConfigurationDatasource) Read(ctx context.Context, req dataso
 		return
 	}
 
+	// Set timeouts
+	readTimeout, diags := data.Timeouts.Read(ctx, defaultReadTimeout)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	ctx, cancel := context.WithTimeout(ctx, readTimeout)
+	defer cancel()
+
 	/*
 		Implement the data source read logic here.
 	*/
