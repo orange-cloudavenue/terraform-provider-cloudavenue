@@ -1,12 +1,9 @@
 package testsacc
 
 import (
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
@@ -34,7 +31,7 @@ resource "cloudavenue_iam_token" "example" {
 func TestAccTokenResource(t *testing.T) {
 	resourceName := "cloudavenue_iam_token.example"
 
-	t.Cleanup(deleteAPITokenFile("token.json", t))
+	t.Cleanup(deleteFile("token.json", t))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
@@ -64,27 +61,4 @@ func TestAccTokenResource(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testCheckFileExists(filename string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		filename = filepath.Clean(filename)
-		_, err := os.ReadFile(filename)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-}
-
-// This is a helper function that attempts to remove created API token file no matter of the test outcome.
-func deleteAPITokenFile(filename string, t *testing.T) func() {
-	return func() {
-		if _, err := os.Stat(filename); err == nil {
-			err := os.Remove(filename)
-			if err != nil {
-				t.Errorf("Failed to delete file: %s", err)
-			}
-		}
-	}
 }

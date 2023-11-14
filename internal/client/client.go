@@ -140,3 +140,8 @@ func (c *CloudAvenue) GetURL() string {
 func (c *CloudAvenue) GetOrgName() string {
 	return c.Org
 }
+
+// GetUserName() returns the name of the user.
+func (c *CloudAvenue) GetUserName() string {
+	return c.User
+}
