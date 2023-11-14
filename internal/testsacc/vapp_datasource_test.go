@@ -1,39 +1,60 @@
-// package testsacc provides the acceptance tests for the provider.
 package testsacc
 
 import (
-	"os"
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
-const testAccVappDataSourceConfig = `
-resource "cloudavenue_vapp" "example" {
-	name        = "MyVapp"
-	description = "This is an example vApp"
-  }
+var _ testsacc.TestACC = &VAppDatasource{}
 
-data "cloudavenue_vapp" "test" {
-	name = cloudavenue_vapp.example.name
+const (
+	VAppDatasourceName = testsacc.ResourceName("data.cloudavenue_s3_bucket")
+)
+
+type VAppDatasource struct{}
+
+func NewVAppDatasourceTest() testsacc.TestACC {
+	return &VAppDatasource{}
 }
-`
 
-func TestAccVappDataSource(t *testing.T) {
-	dataSourceName := "data.cloudavenue_vapp.test"
+// GetResourceName returns the name of the resource.
+func (r *VAppDatasource) GetResourceName() string {
+	return VAppDatasourceName.String()
+}
+
+func (r *VAppDatasource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[VAppResourceName]().GetDefaultConfig)
+	return
+}
+
+func (r *VAppDatasource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
+		// * Test One (example)
+		"example": func(_ context.Context, _ string) testsacc.Test {
+			return testsacc.Test{
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_vapp" "example" {
+						name = cloudavenue_vapp.example.name
+						vdc = cloudavenue_vapp.example.vdc
+					}`,
+					// Here use resource config test to test the data source
+					Checks: GetResourceConfig()[VAppResourceName]().GetDefaultChecks(),
+				},
+			}
+		},
+	}
+}
+
+func TestAccVAppDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Read testing.
-			{
-				Config: testAccVappDataSourceConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", "MyVapp"),
-					resource.TestCheckResourceAttr(dataSourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
-				),
-			},
-		},
+		Steps:                    testsacc.GenerateTests(&VAppDatasource{}),
 	})
 }

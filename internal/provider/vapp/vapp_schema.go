@@ -39,7 +39,7 @@ func vappSchema() superschema.Schema {
 			MarkdownDescription: "data source. This can be used to reference vApps.",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
+			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "ID of the vApp.",
 					Computed:            true,
@@ -56,7 +56,7 @@ func vappSchema() superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.StringAttribute{
+			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Name of the vApp.",
 				},
@@ -74,8 +74,8 @@ func vappSchema() superschema.Schema {
 					},
 				},
 			},
-			"vdc": vdc.SuperSchema(),
-			"description": superschema.StringAttribute{
+			"vdc": vdc.SuperSchemaSuperType(),
+			"description": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Description of the vApp.",
 				},
@@ -86,7 +86,7 @@ func vappSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"guest_properties": superschema.MapAttribute{
+			"guest_properties": superschema.SuperMapAttribute{
 				Common: &schemaR.MapAttribute{
 					MarkdownDescription: "Key/value settings for guest properties.",
 					ElementType:         types.StringType,
@@ -98,7 +98,7 @@ func vappSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"lease": superschema.SingleNestedAttribute{
+			"lease": superschema.SuperSingleNestedAttributeOf[vappResourceModelLease]{
 				Common: &schemaR.SingleNestedAttribute{
 					MarkdownDescription: "Informations about vApp lease",
 				},
@@ -118,16 +118,19 @@ func vappSchema() superschema.Schema {
 				DataSource: &schemaD.SingleNestedAttribute{
 					Computed: true,
 				},
-				Attributes: map[string]superschema.Attribute{
-					"runtime_lease_in_sec": superschema.Int64Attribute{
+				Attributes: superschema.Attributes{
+					"runtime_lease_in_sec": superschema.SuperInt64Attribute{
 						Common: &schemaR.Int64Attribute{
-							MarkdownDescription: "How long any of the VMs in the vApp can run before the vApp is automatically powered off or suspended. 0 means never expires.",
+							MarkdownDescription: "How long any of the VMs in the vApp can run before the vApp is automatically powered off or suspended. Allowed values are 3600 to 31536000 seconds (1 hour to 365 days) or 0 means never expires.",
 						},
 						Resource: &schemaR.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							Validators: []validator.Int64{
-								int64validator.Between(0, 3600),
+								int64validator.Any(
+									int64validator.OneOf(0),                // 0 is never expires
+									int64validator.Between(3600, 31536000), // 1 hour to 365 days
+								),
 							},
 							Default: int64default.StaticInt64(0),
 						},
@@ -135,15 +138,18 @@ func vappSchema() superschema.Schema {
 							Computed: true,
 						},
 					},
-					"storage_lease_in_sec": superschema.Int64Attribute{
+					"storage_lease_in_sec": superschema.SuperInt64Attribute{
 						Common: &schemaR.Int64Attribute{
-							MarkdownDescription: "How long the vApp is available before being automatically deleted or marked as expired. 0 means never expires.",
+							MarkdownDescription: "How long the vApp is available before being automatically deleted or marked as expired. Allowed values are 3600 to 31536000 seconds (1 hour to 365 days) or 0 means never expires.",
 						},
 						Resource: &schemaR.Int64Attribute{
 							Optional: true,
 							Computed: true,
 							Validators: []validator.Int64{
-								int64validator.Between(0, 3600),
+								int64validator.Any(
+									int64validator.OneOf(0),                // 0 is never expires
+									int64validator.Between(3600, 31536000), // 1 hour to 365 days
+								),
 							},
 							Default: int64default.StaticInt64(0),
 						},

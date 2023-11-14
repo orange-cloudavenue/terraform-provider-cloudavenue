@@ -1,24 +1,29 @@
 package vapp
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
-type vappLeaseModel struct {
-	RuntimeLeaseInSec types.Int64 `tfsdk:"runtime_lease_in_sec"`
-	StorageLeaseInSec types.Int64 `tfsdk:"storage_lease_in_sec"`
-}
+type (
+	vappResourceModel struct {
+		VAppName        supertypes.StringValue                                       `tfsdk:"name"`
+		VAppID          supertypes.StringValue                                       `tfsdk:"id"`
+		VDC             supertypes.StringValue                                       `tfsdk:"vdc"`
+		Description     supertypes.StringValue                                       `tfsdk:"description"`
+		GuestProperties supertypes.MapValue                                          `tfsdk:"guest_properties"`
+		Lease           supertypes.SingleNestedObjectValueOf[vappResourceModelLease] `tfsdk:"lease"`
+	}
 
-var vappLeaseAttrTypes = map[string]attr.Type{
-	"runtime_lease_in_sec": types.Int64Type,
-	"storage_lease_in_sec": types.Int64Type,
-}
+	vappResourceModelLease struct {
+		RuntimeLeaseInSec supertypes.Int64Value `tfsdk:"runtime_lease_in_sec"`
+		StorageLeaseInSec supertypes.Int64Value `tfsdk:"storage_lease_in_sec"`
+	}
+)
 
-type orgNetworkModel struct {
-	ID          types.String `tfsdk:"id"`
-	VAppName    types.String `tfsdk:"vapp_name"`
-	VAppID      types.String `tfsdk:"vapp_id"`
-	VDC         types.String `tfsdk:"vdc"`
-	NetworkName types.String `tfsdk:"network_name"`
+func (rm *vappResourceModel) Copy() *vappResourceModel {
+	x := &vappResourceModel{}
+	utils.ModelCopy(rm, x)
+	return x
 }

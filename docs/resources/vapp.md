@@ -50,8 +50,8 @@ resource "cloudavenue_vapp" "example" {
 
 Optional:
 
-- `runtime_lease_in_sec` (Number) How long any of the VMs in the vApp can run before the vApp is automatically powered off or suspended. 0 means never expires. Value must be between 0 and 3600. Value defaults to `0`.
-- `storage_lease_in_sec` (Number) How long the vApp is available before being automatically deleted or marked as expired. 0 means never expires. Value must be between 0 and 3600. Value defaults to `0`.
+- `runtime_lease_in_sec` (Number) How long any of the VMs in the vApp can run before the vApp is automatically powered off or suspended. Allowed values are 3600 to 31536000 seconds (1 hour to 365 days) or 0 means never expires. Value must satisfy at least one of the validations: value must be one of: ["0"] + value must be between 3600 and 31536000. Value defaults to `0`.
+- `storage_lease_in_sec` (Number) How long the vApp is available before being automatically deleted or marked as expired. Allowed values are 3600 to 31536000 seconds (1 hour to 365 days) or 0 means never expires. Value must satisfy at least one of the validations: value must be one of: ["0"] + value must be between 3600 and 31536000. Value defaults to `0`.
 
 ## Import
 

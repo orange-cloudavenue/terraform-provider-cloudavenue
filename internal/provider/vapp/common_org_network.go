@@ -5,7 +5,16 @@ import (
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+type orgNetworkModel struct {
+	ID          types.String `tfsdk:"id"`
+	VAppName    types.String `tfsdk:"vapp_name"`
+	VAppID      types.String `tfsdk:"vapp_id"`
+	VDC         types.String `tfsdk:"vdc"`
+	NetworkName types.String `tfsdk:"network_name"`
+}
 
 func (s *orgNetworkModel) findOrgNetwork(vAppNetworkConfig *govcdtypes.NetworkConfigSection) (*govcdtypes.VAppNetworkConfiguration, *string, diag.Diagnostics) {
 	// vAppNetwork govcdtypes.VAppNetworkConfiguration
