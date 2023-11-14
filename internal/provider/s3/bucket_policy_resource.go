@@ -13,7 +13,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
