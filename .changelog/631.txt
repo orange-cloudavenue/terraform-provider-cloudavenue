@@ -1,0 +1,7 @@
+```release-note:enhancement
+`resource/cloudavenue_vcda_ip` - Now check if the IP is already in use before registering it.
+```
+
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.4.1 to 0.5.0
+```

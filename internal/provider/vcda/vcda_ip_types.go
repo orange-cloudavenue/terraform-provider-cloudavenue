@@ -1,8 +1,18 @@
 package vcda
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import (
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+)
 
 type vcdaIPResourceModel struct {
-	ID        types.String `tfsdk:"id"`
-	IPAddress types.String `tfsdk:"ip_address"`
+	ID        supertypes.StringValue `tfsdk:"id"`
+	IPAddress supertypes.StringValue `tfsdk:"ip_address"`
+}
+
+func (rm *vcdaIPResourceModel) Copy() *vcdaIPResourceModel {
+	x := &vcdaIPResourceModel{}
+	utils.ModelCopy(rm, x)
+	return x
 }

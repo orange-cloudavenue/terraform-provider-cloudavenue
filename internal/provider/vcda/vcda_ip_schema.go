@@ -18,11 +18,11 @@ func vcdaIPSchema() superschema.Schema {
 			MarkdownDescription: "The VCDa",
 		},
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "resource allows you to declare or remove your on-premises IP address for the DRaaS service..\n" +
+			MarkdownDescription: "resource allows you to declare or remove your on-premises IP address for the DRaaS service.\n" +
 				" -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://wiki.cloudavenue.orange-business.com/wiki/DRaaS_with_VCDA).",
 		},
-		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
+		Attributes: superschema.Attributes{
+			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the VCDa resource.",
 				},
@@ -33,7 +33,7 @@ func vcdaIPSchema() superschema.Schema {
 					},
 				},
 			},
-			"ip_address": superschema.StringAttribute{
+			"ip_address": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The on-premises IP address refers to the IP address of your local infrastructure running vCloud Extender.",
 				},
