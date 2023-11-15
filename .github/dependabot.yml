@@ -12,5 +12,5 @@ updates:
       interval: "daily"
     ignore:
       # for 'aws' package ignore all patch updates
-      - dependency-name: "aws*"
+      - dependency-name: "*aws*"
         update-types: ["version-update:semver-patch"]
