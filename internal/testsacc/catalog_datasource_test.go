@@ -1,43 +1,58 @@
-// package testsacc provides the acceptance tests for the provider.
 package testsacc
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
-const testAccCatalogDataSourceConfig = `
-resource "cloudavenue_catalog" "test" {
-	name             = "test-catalog"
-	description      = "catalog for files"
-	delete_recursive = true
-	delete_force     = true
+var _ testsacc.TestACC = &CatalogDataSource{}
+
+const (
+	CatalogDataSourceName = testsacc.ResourceName("data.cloudavenue_catalog")
+)
+
+type CatalogDataSource struct{}
+
+func NewCatalogDataSourceTest() testsacc.TestACC {
+	return &CatalogDataSource{}
 }
 
-data "cloudavenue_catalog" "test" {
-	name = cloudavenue_catalog.test.name
+// GetResourceName returns the name of the resource.
+func (r *CatalogDataSource) GetResourceName() string {
+	return CatalogDataSourceName.String()
 }
-`
+
+func (r *CatalogDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[CatalogResourceName]().GetDefaultConfig)
+	return
+}
+
+func (r *CatalogDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
+		// * Test One (example)
+		"example": func(_ context.Context, _ string) testsacc.Test {
+			return testsacc.Test{
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_catalog" "example" {
+						name = cloudavenue_catalog.example.name
+					}`,
+					Checks: GetResourceConfig()[CatalogResourceName]().GetDefaultChecks(),
+				},
+			}
+		},
+	}
+}
 
 func TestAccCatalogDataSource(t *testing.T) {
-	dataSourceName := "data.cloudavenue_catalog.test"
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Read testing
-			{
-				Config: testAccCatalogDataSourceConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "name", "test-catalog"),
-					resource.TestCheckResourceAttr(dataSourceName, "description", "catalog for files"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "owner_name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "created_at"),
-				),
-			},
-		},
+		Steps:                    testsacc.GenerateTests(&CatalogDataSource{}),
 	})
 }
