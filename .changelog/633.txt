@@ -1,0 +1,7 @@
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.0 to 0.5.1
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_s3_user` - Get informations about S3 user (username/canonicalID).
+```

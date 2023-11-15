@@ -122,9 +122,13 @@ func (r *CredentialResource) Create(ctx context.Context, req resource.CreateRequ
 		Implement the resource creation logic here.
 	*/
 
-	user, err := r.s3Client.GetUser(r.client.GetUserName())
-	if err != nil {
-		resp.Diagnostics.AddError("Error getting user", err.Error())
+	user, oseErr := r.s3Client.GetUser(r.client.GetUserName())
+	if oseErr != nil {
+		if oseErr.IsNotFountError() {
+			resp.Diagnostics.AddError("User not found", fmt.Sprintf("The user %s is not found", r.client.GetUserName()))
+			return
+		}
+		resp.Diagnostics.AddError("Error getting user", oseErr.Error())
 		return
 	}
 
@@ -248,9 +252,9 @@ func (r *CredentialResource) Delete(ctx context.Context, req resource.DeleteRequ
 		Implement the resource deletion here
 	*/
 
-	user, err := r.s3Client.GetUser(state.Username.Get())
-	if err != nil {
-		resp.Diagnostics.AddError("Error getting user", err.Error())
+	user, oseErr := r.s3Client.GetUser(state.Username.Get())
+	if oseErr != nil {
+		resp.Diagnostics.AddError("Error getting user", oseErr.Error())
 		return
 	}
 
