@@ -1,4 +1,13 @@
 ## 0.16.0 (Unreleased)
+
+### :tada: **Improvements**
+
+* `resource/cloudavenue_vcda_ip` - Now check if the IP is already in use before registering it. (GH-631)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.4.1 to 0.5.0 (GH-631)
+
 ## 0.15.0 (November 14, 2023)
 
 ### :rocket: **New Features**
