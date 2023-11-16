@@ -278,7 +278,7 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 			}
 		},
 		// This is used to test vdc_group resource
-		"example_2": func(_ context.Context, resourceName string) testsacc.Test {
+		"example_vdc_group_1": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VDC)),
@@ -293,7 +293,50 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-					resource "cloudavenue_vdc" "example_2" {
+					resource "cloudavenue_vdc" "example_vdc_group_1" {
+						name                  = {{ generate . "name" }}
+						description           = {{ generate . "description" "longString"}}
+						cpu_allocated         = 22000
+						memory_allocated      = 30
+						cpu_speed_in_mhz      = 2200
+						billing_model         = "PAYG"
+						disponibility_class   = "ONE-ROOM"
+						service_class         = "STD"
+						storage_billing_model = "PAYG"
+					  
+						storage_profiles = [{
+						  class   = "gold"
+						  default = true
+						  limit   = 500
+						}]
+					  
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22000"),
+						resource.TestCheckResourceAttr(resourceName, "memory_allocated", "30"),
+						resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
+					},
+				},
+			}
+		},
+		"example_vdc_group_2": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VDC)),
+					resource.TestCheckResourceAttr(resourceName, "billing_model", "PAYG"),
+					resource.TestCheckResourceAttr(resourceName, "disponibility_class", "ONE-ROOM"),
+					resource.TestCheckResourceAttr(resourceName, "service_class", "STD"),
+					resource.TestCheckResourceAttr(resourceName, "storage_billing_model", "PAYG"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profiles.0.class", "gold"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profiles.0.default", "true"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profiles.0.limit", "500"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_vdc" "example_vdc_group_2" {
 						name                  = {{ generate . "name" }}
 						description           = {{ generate . "description" "longString"}}
 						cpu_allocated         = 22000

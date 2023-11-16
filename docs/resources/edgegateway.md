@@ -9,15 +9,25 @@ description: |-
 
 The Edge Gateway resource allows you to create and delete Edge Gateways in Cloud Avenue.
 
-## Example Usage
+## Examples Usage
 
-```terraform
-data "cloudavenue_tier0_vrfs" "example_with_vdc" {}
+### Example with VDC
 
+```hcl
 resource "cloudavenue_edgegateway" "example" {
-  tier0_vrf_name = data.cloudavenue_tier0_vrfs.example_with_vdc.names.0
-  owner_name     = "MyVDC"
+  owner_name     = cloudavenue_vdc.example.name
+  tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
   owner_type     = "vdc"
+}
+```
+
+### Example with VDC Group
+
+```hcl
+resource "cloudavenue_edgegateway" "example" {
+  owner_name     = cloudavenue_vdc_group.example.name
+  tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+  owner_type     = "vdc-group"
 }
 ```
 

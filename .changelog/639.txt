@@ -1,0 +1,7 @@
+```release-note:enhancement
+`resource/cloudavenue_edgegateway` - Improve examples in documentation.
+```
+
+```release-note:enhancement
+`resource/cloudavenue_edgegateway_firewall` - Improve examples in documentation.
+```

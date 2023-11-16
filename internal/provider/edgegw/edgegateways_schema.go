@@ -21,7 +21,7 @@ func edgeGatewaysSuperSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "Generated ID of the resource.",
 				},
 			},
-			"edge_gateways": superschema.SuperListNestedAttribute{
+			"edge_gateways": superschema.SuperListNestedAttributeOf[edgeGatewayDataSourceModelEdgeGateway]{
 				DataSource: &schemaD.ListNestedAttribute{
 					Computed:            true,
 					MarkdownDescription: "A list of Edge Gateways.",

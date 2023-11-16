@@ -9,20 +9,41 @@ description: |-
 
 The firewall resource allows you to manage rules on an Firewall.
 
-## Example Usage
+## Examples Usage
 
-```terraform
-data "cloudavenue_edgegateways" "example" {}
+### Basic Example
 
+```hcl
 resource "cloudavenue_edgegateway_firewall" "example" {
-
-  edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[0].id
+  edge_gateway_id = cloudavenue_edgegateway.example.id
   rules = [
     {
       action      = "ALLOW"
       name        = "allow all IPv4 traffic"
       direction   = "IN_OUT"
       ip_protocol = "IPV4"
+    }
+  ]
+}
+```
+
+### Advanced Example
+
+```hcl
+resource "cloudavenue_edgegateway_firewall" "example" {
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+  rules = [
+    {
+  	  action      = "ALLOW"
+  	  name        = "allow all IPv4 traffic"
+  	  direction   = "IN_OUT"
+  	  ip_protocol = "IPV4"
+    },
+    {
+  	  action      = "ALLOW"
+  	  name        = "allow OUT IPv4 traffic"
+  	  direction   = "OUT"
+  	  ip_protocol = "IPV4"
     }
   ]
 }
