@@ -4,6 +4,13 @@ import "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/he
 
 func GetDataSourceConfig() map[testsacc.ResourceName]func() resourceConfig {
 	return map[testsacc.ResourceName]func() resourceConfig{
+		// * Catalog
+		CatalogDataSourceName:             NewResourceConfig(NewCatalogDataSourceTest()),
+		CatalogACLDataSourceName:          NewResourceConfig(NewCatalogACLDataSourceTest()),
+		CatalogsDataSourceName:            NewResourceConfig(NewCatalogsDataSourceTest()),
+		CatalogVAppTemplateDataSourceName: NewResourceConfig(NewCatalogVAppTemplateDataSourceTest()),
+
+		// * Tier0
 		Tier0VRFDataSourceName: NewResourceConfig(NewTier0VRFDataSourceTest()),
 
 		// * VDC
