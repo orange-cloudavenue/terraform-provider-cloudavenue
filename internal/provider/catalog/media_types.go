@@ -18,3 +18,7 @@ type catalogMediaDataSourceModel struct {
 	Status         types.String `tfsdk:"status"`
 	StorageProfile types.String `tfsdk:"storage_profile"`
 }
+
+type MediaModel struct {
+	ID types.String `tfsdk:"id"`
+}
