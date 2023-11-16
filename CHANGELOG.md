@@ -1,5 +1,9 @@
 ## 0.16.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_s3_user` - Get informations about S3 user (username/canonicalID). (GH-633)
+
 ### :tada: **Improvements**
 
 * `resource/cloudavenue_vcda_ip` - Now check if the IP is already in use before registering it. (GH-631)
@@ -7,6 +11,7 @@
 ### :dependabot: **Dependencies**
 
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.4.1 to 0.5.0 (GH-631)
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.0 to 0.5.1 (GH-633)
 
 ## 0.15.0 (November 14, 2023)
 
