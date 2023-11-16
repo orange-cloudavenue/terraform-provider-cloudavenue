@@ -93,5 +93,6 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		s3.NewBucketWebsiteConfigurationDataSource,
 		s3.NewBucketACLDataSource,
 		s3.NewBucketPolicyDataSource,
+		s3.NewUserDataSource,
 	}
 }
