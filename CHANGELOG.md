@@ -14,6 +14,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps github.com/hashicorp/terraform-plugin-go from 0.19.0 to 0.19.1 (GH-636)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.4.1 to 0.5.0 (GH-631)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.0 to 0.5.1 (GH-633)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.1 to 0.5.3 (GH-637)
