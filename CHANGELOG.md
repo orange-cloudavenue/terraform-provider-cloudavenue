@@ -8,10 +8,15 @@
 
 * `resource/cloudavenue_vcda_ip` - Now check if the IP is already in use before registering it. (GH-631)
 
+### :bug: **Bug Fixes**
+
+* `resource/s3_*` - fix error if your organization is not in `console1` (GH-637)
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.4.1 to 0.5.0 (GH-631)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.0 to 0.5.1 (GH-633)
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.1 to 0.5.3 (GH-637)
 
 ## 0.15.0 (November 14, 2023)
 
