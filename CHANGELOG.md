@@ -1,4 +1,5 @@
 ## 0.16.0 (Unreleased)
+## 0.15.1 (November 17, 2023)
 
 ### :rocket: **New Features**
 
