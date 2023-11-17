@@ -1,0 +1,6 @@
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.1 to 0.5.3
+```
+```release-note:bug
+`resource/s3_*` - fix error if your organization is not in `console1`
+```
