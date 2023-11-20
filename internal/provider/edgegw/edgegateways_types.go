@@ -7,11 +7,10 @@ import (
 
 type (
 	edgeGatewaysDataSourceModel struct {
-		ID           supertypes.StringValue     `tfsdk:"id"`
-		EdgeGateways supertypes.ListNestedValue `tfsdk:"edge_gateways"`
+		ID           supertypes.StringValue                                                    `tfsdk:"id"`
+		EdgeGateways supertypes.ListNestedObjectValueOf[edgeGatewayDataSourceModelEdgeGateway] `tfsdk:"edge_gateways"`
 	}
-	edgeGatewayDataSourceModelEdgeGateways []edgeGatewayDataSourceModelEdgeGateway
-	edgeGatewayDataSourceModelEdgeGateway  struct {
+	edgeGatewayDataSourceModelEdgeGateway struct {
 		Tier0VrfName supertypes.StringValue `tfsdk:"tier0_vrf_name"`
 		Name         supertypes.StringValue `tfsdk:"name"`
 		ID           supertypes.StringValue `tfsdk:"id"`

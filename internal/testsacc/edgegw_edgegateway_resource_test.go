@@ -54,6 +54,7 @@ func (r *EdgeGatewayResource) GetResourceName() string {
 }
 
 func (r *EdgeGatewayResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[VDCGroupResourceName]().GetDefaultConfig)
 	resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
 	resp.Append(GetDataSourceConfig()[Tier0VRFDataSourceName]().GetDefaultConfig)
 	return
@@ -70,6 +71,7 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 
 					// Read-Only attributes
 					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
+					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				},
@@ -80,7 +82,7 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						owner_name     = cloudavenue_vdc.example.name
 						tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
 						owner_type     = "vdc"
-					  }`),
+					}`),
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "bandwidth"),
 						resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"), // Deprecated attribute
@@ -121,14 +123,14 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 					// Update bandwidth
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-											resource "cloudavenue_edgegateway" "example" {
-												owner_name     = cloudavenue_vdc.example.name
-												tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-												owner_type     = "vdc"
-												bandwidth      = 25
-											  }`),
+						resource "cloudavenue_edgegateway" "example" {
+							owner_name     = cloudavenue_vdc.example.name
+							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+							owner_type     = "vdc"
+							bandwidth      = 5
+						  }`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "bandwidth", "25"),
+							resource.TestCheckResourceAttr(resourceName, "bandwidth", "5"),
 							resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"),
 						},
 					},
@@ -140,59 +142,58 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						ImportState:          true,
 					},
 				},
+				Destroy: true,
 			}
 		},
-		// TODO After the implementation of the VDC_GROUP resource we can use new resourceConfig
-		// "example_with_group": func(_ context.Context, resourceName string) testsacc.Test {
-		// 	return testsacc.Test{
-		// 		CommonChecks: []resource.TestCheckFunc{
-		// 			resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
-		// 			resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
-		// 			resource.TestCheckResourceAttr(resourceName, "owner_type", "vdc"),
+		"example_with_vdc_group": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
+					resource.TestCheckResourceAttr(resourceName, "owner_type", "vdc-group"),
 
-		// 			// Read-Only attributes
-		// 			resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile(`tn01e02ocb0006205spt[0-9]{3}`)),
-		// 			resource.TestCheckResourceAttrSet(resourceName, "description"),
-		// 		},
-		// 		// ! Create testing
-		// 		Create: testsacc.TFConfig{
-		// 			TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-		// 			resource "cloudavenue_edgegateway" "example_with_vdc" {
-		// 				owner_name     = cloudavenue_vdc.example.name
-		// 				tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-		// 				owner_type     = "vdc-group"
-		// 				lb_enabled     = false
-		// 			  }`),
-		// 			Checks: []resource.TestCheckFunc{
-		// 				resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"),
-		// 			},
-		// 		},
-		// 		// ! Updates testing
-		// 		Updates: []testsacc.TFConfig{
-		// 			// Update lb_enabled
-		// 			{
-		// 				TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-		// 				resource "cloudavenue_edgegateway" "example_with_vdc" {
-		// 					owner_name     = cloudavenue_vdc.example.name
-		// 					tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-		// 					owner_type     = "vdc"
-		// 					lb_enabled     = true
-		// 				  }`),
-		// 				Checks: []resource.TestCheckFunc{
-		// 					resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"),
-		// 				},
-		// 			},
-		// 		},
-		// 		// ! Imports testing
-		// 		Imports: []testsacc.TFImport{
-		// 			{
-		// 				ImportStateIDBuilder: []string{"name"},
-		// 				ImportState:          true,
-		// 				ImportStateVerify:    true,
-		// 			},
-		// 		},
-		// 	}
-		// },
+					// Read-Only attributes
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
+					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_edgegateway" "example_with_vdc_group" {
+						owner_name     = cloudavenue_vdc_group.example.name
+						tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+						owner_type     = "vdc-group"
+					  }`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"),
+					},
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_edgegateway" "example_with_vdc_group" {
+							owner_name     = cloudavenue_vdc_group.example.name
+							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+							owner_type     = "vdc-group"
+							bandwidth      = 5
+						  }`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "bandwidth", "5"),
+							resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"),
+						},
+					},
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
+			}
+		},
 	}
 }
 

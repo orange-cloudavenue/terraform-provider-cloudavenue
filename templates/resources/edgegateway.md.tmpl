@@ -9,11 +9,27 @@ description: |-
 
 {{ .Description | trimspace }}
 
-{{ if .HasExample -}}
-## Example Usage
+## Examples Usage
 
-{{ tffile .ExampleFile }}
-{{- end }}
+### Example with VDC
+
+```hcl
+resource "cloudavenue_edgegateway" "example" {
+  owner_name     = cloudavenue_vdc.example.name
+  tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+  owner_type     = "vdc"
+}
+```
+
+### Example with VDC Group
+
+```hcl
+resource "cloudavenue_edgegateway" "example" {
+  owner_name     = cloudavenue_vdc_group.example.name
+  tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+  owner_type     = "vdc-group"
+}
+```
 
 {{ .SchemaMarkdown | trimspace }}
 

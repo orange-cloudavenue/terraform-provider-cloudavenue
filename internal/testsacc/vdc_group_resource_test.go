@@ -28,8 +28,8 @@ func (r *VDCGroupResource) GetResourceName() string {
 }
 
 func (r *VDCGroupResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	resp.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example"))
-	resp.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example_2"))
+	resp.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example_vdc_group_1"))
+	resp.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example_vdc_group_2"))
 
 	return
 }
@@ -51,7 +51,7 @@ func (r *VDCGroupResource) Tests(ctx context.Context) map[testsacc.TestName]func
 						name = {{ generate . "name" }}
 						description = {{ generate . "description" }}
 						vdc_ids = [
-							cloudavenue_vdc.example.id,
+							cloudavenue_vdc.example_vdc_group_1.id,
 						]
 					}`),
 					Checks: []resource.TestCheckFunc{
@@ -69,8 +69,8 @@ func (r *VDCGroupResource) Tests(ctx context.Context) map[testsacc.TestName]func
 							name = {{ get . "name" }}
 							description = {{ generate . "description" }}
 							vdc_ids = [
-								cloudavenue_vdc.example.id,
-								cloudavenue_vdc.example_2.id,
+								cloudavenue_vdc.example_vdc_group_1.id,
+								cloudavenue_vdc.example_vdc_group_2.id,
 							]
 						}`),
 						Checks: []resource.TestCheckFunc{

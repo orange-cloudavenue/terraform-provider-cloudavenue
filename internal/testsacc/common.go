@@ -10,6 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+const (
+	regexpTier0VRFName = `prvrf[0-9]{2}eocb[0-9]{7}allsp[0-9]{2}`
+)
+
 func testCheckFileExists(filename string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		filename = filepath.Clean(filename)

@@ -3,13 +3,11 @@ package edgegw
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
@@ -58,11 +56,11 @@ func (d *edgeGatewaysDataSource) Configure(ctx context.Context, req datasource.C
 }
 
 func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var (
-		data  = &edgeGatewaysDataSourceModel{}
-		names []string
-	)
 	defer metrics.New("data.cloudavenue_edgegateways", d.client.GetOrgName(), metrics.Read)()
+	var (
+		data  = new(edgeGatewaysDataSourceModel)
+		names = make([]string, 0)
+	)
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, data)...)
@@ -70,52 +68,28 @@ func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	gateways, httpR, err := d.client.APIClient.EdgeGatewaysApi.GetEdges(d.client.Auth)
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
+	gateways, err := d.client.CAVSDK.V1.EdgeGateway.List()
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to list edge gateways", err.Error())
+		return
 	}
-	if x := helpers.CheckAPIError(err, httpR); x != nil {
-		if !x.IsNotFound() {
-			resp.Diagnostics.Append(x.GetTerraformDiagnostic())
-			return
-		}
-		// Is Not Found
-		data.ID.SetNull()
-		data.EdgeGateways.SetNull(ctx)
-	} else {
-		gws := make(edgeGatewayDataSourceModelEdgeGateways, 0)
-		for _, gw := range gateways {
-			// Get LoadBalancing state.
-			gatewaysLoadBalancing, httpR, err := d.client.APIClient.EdgeGatewaysApi.GetEdgeLoadBalancing(d.client.Auth, gw.EdgeId)
-			if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-				defer httpR.Body.Close()
-				resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-				if resp.Diagnostics.HasError() {
-					return
-				}
-			}
-			x := edgeGatewayDataSourceModelEdgeGateway{}
-			x.Tier0VrfName.Set(gw.Tier0VrfId)
-			x.Name.Set(gw.EdgeName)
-			x.ID.Set(uuid.Normalize(uuid.Gateway, gw.EdgeId).String())
-			x.OwnerType.Set(gw.OwnerType)
-			x.OwnerName.Set(gw.OwnerName)
-			x.OwnerType.Set(gw.OwnerType)
-			x.Description.Set(gw.Description)
-			x.LbEnabled.Set(gatewaysLoadBalancing.Enabled)
-			gws = append(gws, x)
-			names = append(names, gw.EdgeName)
-		}
 
-		resp.Diagnostics.Append(data.EdgeGateways.Set(ctx, gws)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	gws := make([]*edgeGatewayDataSourceModelEdgeGateway, 0)
+	for _, edge := range *gateways {
+		gw := new(edgeGatewayDataSourceModelEdgeGateway)
+		gw.ID.Set(uuid.Normalize(uuid.Gateway, edge.GetID()).String())
+		gw.Name.Set(edge.GetName())
+		gw.Description.Set(edge.GetDescription())
+		gw.OwnerType.Set(string(edge.GetOwnerType()))
+		gw.OwnerName.Set(edge.GetOwnerName())
+		gw.Tier0VrfName.Set(edge.GetT0())
 
-		data.ID.Set(utils.GenerateUUID(names).ValueString())
+		gws = append(gws, gw)
+		names = append(names, edge.GetName())
 	}
+
+	data.ID.Set(utils.GenerateUUID(names).ValueString())
+	data.EdgeGateways.Set(ctx, gws)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
