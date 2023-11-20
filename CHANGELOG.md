@@ -5,6 +5,10 @@
 * `resource/cloudavenue_edgegateway_firewall` - Improve examples in documentation. (GH-639)
 * `resource/cloudavenue_edgegateway` - Improve examples in documentation. (GH-639)
 
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.3 to 0.5.5 (GH-644)
+
 ## 0.15.2 (November 20, 2023)
 
 ### :bug: **Bug Fixes**
