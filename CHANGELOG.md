@@ -1,4 +1,10 @@
 ## 0.16.0 (Unreleased)
+
+### :tada: **Improvements**
+
+* `resource/cloudavenue_edgegateway_firewall` - Improve examples in documentation. (GH-639)
+* `resource/cloudavenue_edgegateway` - Improve examples in documentation. (GH-639)
+
 ## 0.15.2 (November 20, 2023)
 
 ### :bug: **Bug Fixes**
