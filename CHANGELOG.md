@@ -1,5 +1,9 @@
 ## 0.16.0 (Unreleased)
 
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_s3_bucket_acl` - Fix catch error when bucket read return a error. (GH-641)
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps actions/github-script from 7.0.0 to 7.0.1 (GH-640)
