@@ -76,12 +76,12 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 
 		// This is a new SDK Cloudavenue
 		CAVSDKOpts: &casdk.ClientOpts{
-			Netbackup: clientnetbackup.Opts{
+			Netbackup: &clientnetbackup.Opts{
 				Endpoint: findValue(config.NetBackupURL, "NETBACKUP_URL"),
 				Username: findValue(config.NetBackupUser, "NETBACKUP_USER"),
 				Password: findValue(config.NetBackupPassword, "NETBACKUP_PASSWORD"),
 			},
-			CloudAvenue: clientcloudavenue.Opts{
+			CloudAvenue: &clientcloudavenue.Opts{
 				Endpoint: func() string {
 					url := findValue(config.URL, "CLOUDAVENUE_URL")
 					if url == "" {

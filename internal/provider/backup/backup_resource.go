@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	v1common "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/common/netbackup"
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/netbackup"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -325,12 +325,12 @@ func (r *backupResource) ImportState(ctx context.Context, req resource.ImportSta
 // * CustomFuncs
 
 type target interface {
-	GetProtectionLevelAvailableByName(string) (*v1.ProtectionLevel, error)
-	Protect(v1.ProtectUnprotectRequest) (*v1common.JobAPIResponse, error)
-	Unprotect(v1.ProtectUnprotectRequest) (*v1common.JobAPIResponse, error)
+	GetProtectionLevelAvailableByName(string) (*netbackup.ProtectionLevel, error)
+	Protect(netbackup.ProtectUnprotectRequest) (*v1common.JobAPIResponse, error)
+	Unprotect(netbackup.ProtectUnprotectRequest) (*v1common.JobAPIResponse, error)
 	GetID() int
 	GetName() string
-	ListProtectionLevels() (*v1.ProtectionLevels, error)
+	ListProtectionLevels() (*netbackup.ProtectionLevels, error)
 }
 
 // Apply the protection level for a policy to the target.
@@ -339,7 +339,7 @@ type target interface {
 // Return an error if any.
 func applyPolicy[T target](t T, policy backupModelPolicy) (backupModelPolicy, error) {
 	// apply the protection levels
-	job, err := t.Protect(v1.ProtectUnprotectRequest{
+	job, err := t.Protect(netbackup.ProtectUnprotectRequest{
 		ProtectionLevelID:   policy.PolicyID.GetIntPtr(),
 		ProtectionLevelName: policy.PolicyName.Get(),
 	})
@@ -392,7 +392,7 @@ func unApplyPolicies[T target](t T, policies *backupModelPolicies) (err error) {
 // Return an error if any.
 func unApplyPolicy[T target](t T, policy backupModelPolicy) error {
 	// apply the protection levels
-	job, err := t.Unprotect(v1.ProtectUnprotectRequest{
+	job, err := t.Unprotect(netbackup.ProtectUnprotectRequest{
 		ProtectionLevelID:   policy.PolicyID.GetIntPtr(),
 		ProtectionLevelName: policy.PolicyName.Get(),
 	})
