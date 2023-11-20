@@ -1,4 +1,9 @@
 ## 0.16.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps actions/github-script from 7.0.0 to 7.0.1 (GH-640)
+
 ## 0.15.1 (November 17, 2023)
 
 ### :rocket: **New Features**
