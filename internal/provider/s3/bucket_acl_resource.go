@@ -315,14 +315,14 @@ func (r *BucketACLResource) createOrUpdate(ctx context.Context, planOrState *Buc
 		}
 	}
 
-	if _, err := retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket, ErrCodeObjectLockConfigurationNotFoundError}, &RetryWhenConfig[*s3.PutBucketAclOutput]{
+	if _, err := retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket}, &RetryWhenConfig[*s3.PutBucketAclOutput]{
 		Timeout:  timeout,
-		Interval: 15 * time.Second,
+		Interval: 5 * time.Second,
 		Function: func() (*s3.PutBucketAclOutput, error) {
-			return r.s3Client.PutBucketAcl(input)
+			return r.s3Client.PutBucketAclWithContext(ctx, input)
 		},
 	}); err != nil {
-		diags.AddError("Error putting website configuration", err.Error())
+		diags.AddError("Error putting ACL configuration", err.Error())
 		return
 	}
 

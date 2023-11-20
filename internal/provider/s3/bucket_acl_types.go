@@ -160,8 +160,8 @@ func genericReadACL[T readACLResourceDatasource](ctx context.Context, config *re
 			diags.AddError("Bucket not found", err.Error())
 			return nil, false, diags
 		default:
-			diags.AddError("Bucket ACL not found", err.Error())
-			return nil, false, diags
+			diags.AddError("Error on requesting ACL Bucket", err.Error())
+			return nil, true, diags
 		}
 	}
 	if bucketACLOutput == nil {
@@ -207,6 +207,11 @@ func genericReadACL[T readACLResourceDatasource](ctx context.Context, config *re
 		grants = append(grants, grantModel)
 	}
 
+	if len(grants) == 0 {
+		diags.AddError("Bucket ACL not found", "Grants or AccessControlPolicy is empty")
+		return nil, false, diags
+	}
+
 	//  ? Set AccessControlPolicy
 	accessControlPolicy := NewBucketACLModelAccessControlPolicy(ctx)
 	diags.Append(accessControlPolicy.Grants.Set(ctx, grants)...)
@@ -215,14 +220,9 @@ func genericReadACL[T readACLResourceDatasource](ctx context.Context, config *re
 		return nil, true, diags
 	}
 
-	if len(grants) == 0 {
-		diags.AddError("Bucket ACL not found", "Grants or AccessControlPolicy is empty")
-		return nil, false, diags
-	}
-
 	// Set the accessControlPolicy in the stateRefreshed
-	if d := stateRefreshed.SetAccessControlPolicy(ctx, accessControlPolicy); d.HasError() {
-		diags.Append(d...)
+	diags.Append(stateRefreshed.SetAccessControlPolicy(ctx, accessControlPolicy)...)
+	if diags.HasError() {
 		return nil, true, diags
 	}
 
