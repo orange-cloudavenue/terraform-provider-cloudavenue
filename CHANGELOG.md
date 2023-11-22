@@ -1,4 +1,5 @@
 ## 0.16.0 (Unreleased)
+## 0.15.3 (November 22, 2023)
 
 ### :tada: **Improvements**
 
