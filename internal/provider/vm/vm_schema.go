@@ -423,7 +423,6 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 											path.MatchRelative().AtParent().AtName("ip_allocation_mode"),
 											[]attr.Value{
 												types.StringValue("MANUAL"),
-												types.StringValue("POOL"),
 											},
 										),
 										fstringvalidator.NullIfAttributeIsOneOf(
@@ -431,6 +430,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 											[]attr.Value{
 												types.StringValue("DHCP"),
 												types.StringValue("NONE"),
+												types.StringValue("POOL"),
 											},
 										),
 									},
