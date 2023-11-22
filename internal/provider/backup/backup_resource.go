@@ -459,7 +459,7 @@ func (r *backupResource) getTarget(data *backupModel) (typeTarget target, d diag
 	var err error
 	switch data.Type.Get() {
 	case vdc:
-		typeTarget, err = r.client.CAVSDK.V1.Netbackup.VCloud.GetVdcByNameOrIdentifier(data.getTargetIDOrName())
+		typeTarget, err = r.client.CAVSDK.V1.Netbackup.VCloud.GetVDCByNameOrIdentifier(data.getTargetIDOrName())
 	case vapp:
 		typeTarget, err = r.client.CAVSDK.V1.Netbackup.VCloud.GetVAppByNameOrIdentifier(data.getTargetIDOrName())
 	case vm:

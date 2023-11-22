@@ -3,15 +3,12 @@ package vdc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var (
@@ -59,74 +56,38 @@ func (d *vdcDataSource) Configure(ctx context.Context, req datasource.ConfigureR
 func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_vdc", d.client.GetOrgName(), metrics.Read)()
 
-	var data vdcDataSourceModel
+	data := new(vdcDataSourceModel)
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get vDC info
-	vdc, httpR, err := d.client.APIClient.VDCApi.GetOrgVdcByName(d.client.Auth, data.Name.ValueString())
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
+	s := &vdcResource{
+		client: d.client,
 	}
 
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		return
-	}
+	dataResource := new(vdcResourceModel)
+	dataResource.Name = data.Name
 
-	// Get vDC UUID by parsing vDCs list and set URN ID
-	var ID string
-	vdcs, httpR, err := d.client.APIClient.VDCApi.GetOrgVdcs(d.client.Auth)
-
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read vdcs detail, got error: %s", err))
-		return
-	}
-
-	for _, v := range vdcs {
-		if data.Name.ValueString() == v.VdcName {
-			ID = uuid.Normalize(uuid.VDC, v.VdcUuid).String()
-			break
-		}
-	}
-
-	// Get storageProfile
-	profiles := make(vdcResourceModelVDCStorageProfiles, 0)
-	for _, profile := range vdc.Vdc.VdcStorageProfiles {
-		p := vdcResourceModelVDCStorageProfile{}
-		p.Class.Set(profile.Class)
-		p.Limit.SetInt32(profile.Limit)
-		p.Default.Set(profile.Default_)
-		profiles = append(profiles, p)
-	}
-
-	data.ID.Set(ID)
-	data.Name.Set(vdc.Vdc.Name)
-	data.Description.Set(vdc.Vdc.Description)
-	data.VDCServiceClass.Set(vdc.Vdc.VdcServiceClass)
-	data.VDCDisponibilityClass.Set(vdc.Vdc.VdcDisponibilityClass)
-	data.VDCBillingModel.Set(vdc.Vdc.VdcBillingModel)
-	data.VcpuInMhz2.Set(int64(vdc.Vdc.VcpuInMhz2))
-	data.CPUAllocated.Set(int64(vdc.Vdc.CpuAllocated))
-	data.MemoryAllocated.Set(int64(vdc.Vdc.MemoryAllocated))
-	data.VDCStorageBillingModel.Set(vdc.Vdc.VdcStorageBillingModel)
-	resp.Diagnostics.Append(data.VDCStorageProfiles.Set(ctx, profiles)...)
+	// Read data from the API
+	dataRefreshed, _, diags := s.read(ctx, dataResource)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	data.BillingModel = dataRefreshed.BillingModel
+	data.CPUAllocated = dataRefreshed.CPUAllocated
+	data.Description = dataRefreshed.Description
+	data.DisponibilityClass = dataRefreshed.DisponibilityClass
+	data.ID = dataRefreshed.ID
+	data.MemoryAllocated = dataRefreshed.MemoryAllocated
+	data.Name = dataRefreshed.Name
+	data.ServiceClass = dataRefreshed.ServiceClass
+	data.StorageBillingModel = dataRefreshed.StorageBillingModel
+	data.VCPUInMhz = dataRefreshed.VCPUInMhz
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

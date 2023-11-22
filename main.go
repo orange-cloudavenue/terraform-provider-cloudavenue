@@ -22,6 +22,7 @@ var version = "dev"
 
 // Provider documentation generation.
 //go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --provider-name cloudavenue
+//go:generate go run github.com/orange-cloudavenue/terraform-provider-cloudavenue/cmd/vdc-doc
 
 func main() {
 	var debug bool

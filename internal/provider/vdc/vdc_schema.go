@@ -1,25 +1,23 @@
 package vdc
 
 import (
-	"context"
-
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
+
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/infrapi/rules"
 )
+
+const seeVDCRules = "See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information."
 
 /*
 vdcSchema
@@ -50,11 +48,6 @@ func vdcSchema() superschema.Schema {
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the vDC.",
 					Computed:            true,
-				},
-				Resource: &schemaR.StringAttribute{
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.UseStateForUnknown(),
-					},
 				},
 			},
 			"name": superschema.SuperStringAttribute{
@@ -87,23 +80,8 @@ func vdcSchema() superschema.Schema {
 					MarkdownDescription: "Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM.",
 				},
 				Resource: &schemaR.Int64Attribute{
-					Required: true,
-					PlanModifiers: []planmodifier.Int64{
-						int64planmodifier.RequiresReplaceIf(func(ctx context.Context, request planmodifier.Int64Request, resp *int64planmodifier.RequiresReplaceIfFuncResponse) {
-							billingModel := new(types.String)
-							resp.Diagnostics.Append(request.Plan.GetAttribute(ctx, path.Root("billing_model"), billingModel)...)
-							if resp.Diagnostics.HasError() {
-								return
-							}
-							if billingModel.ValueString() != "RESERVED" {
-								resp.RequiresReplace = true
-								resp.Diagnostics.AddAttributeWarning(path.Root("cpu_speed_in_mhz"), "Force replacement attributes", "You can change the cpu_speed_in_mhz attribute only if the billing_model is set to RESERVED.")
-							}
-						}, "", "Force replacement attributes, however you can change the `cpu_speed_in_mhz` attribute only if the `billing_model` is set to **RESERVED**."),
-					},
-					Validators: []validator.Int64{
-						int64validator.AtLeast(1200),
-					},
+					Required:            true,
+					MarkdownDescription: seeVDCRules,
 				},
 				DataSource: &schemaD.Int64Attribute{
 					Computed: true,
@@ -115,7 +93,7 @@ func vdcSchema() superschema.Schema {
 					MarkdownDescription: "CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.",
 				},
 				Resource: &schemaR.Int64Attribute{
-					MarkdownDescription: "\n\n -> Note: Reserved capacity is automatically set according to the service class.",
+					MarkdownDescription: seeVDCRules,
 					Required:            true,
 				},
 				DataSource: &schemaD.Int64Attribute{
@@ -128,9 +106,6 @@ func vdcSchema() superschema.Schema {
 				},
 				Resource: &schemaR.Int64Attribute{
 					Required: true,
-					Validators: []validator.Int64{
-						int64validator.Between(1, 500),
-					},
 				},
 				DataSource: &schemaD.Int64Attribute{
 					Computed: true,
@@ -146,7 +121,13 @@ func vdcSchema() superschema.Schema {
 						stringplanmodifier.RequiresReplace(),
 					},
 					Validators: []validator.String{
-						stringvalidator.OneOf("ECO", "STD", "HP", "VOIP"),
+						stringvalidator.OneOf(func() []string {
+							var serviceClasses []string
+							for _, sC := range rules.ALLServiceClasses {
+								serviceClasses = append(serviceClasses, string(sC))
+							}
+							return serviceClasses
+						}()...),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -158,12 +139,19 @@ func vdcSchema() superschema.Schema {
 					MarkdownDescription: "The disponibility class of the vDC.",
 				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
+					Required:            true,
+					MarkdownDescription: "The disponibility class available are different depending on the service class. " + seeVDCRules,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
 					Validators: []validator.String{
-						stringvalidator.OneOf("ONE-ROOM", "DUAL-ROOM", "HA-DUAL-ROOM"),
+						stringvalidator.OneOf(func() []string {
+							var disponibilityClasses []string
+							for _, dC := range rules.ALLDisponibilityClasses {
+								disponibilityClasses = append(disponibilityClasses, string(dC))
+							}
+							return disponibilityClasses
+						}()...),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -175,12 +163,19 @@ func vdcSchema() superschema.Schema {
 					MarkdownDescription: "Choose Billing model of compute resources.",
 				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
+					Required:            true,
+					MarkdownDescription: "The billing model available are different depending on the service class. " + seeVDCRules,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
 					Validators: []validator.String{
-						stringvalidator.OneOf("PAYG", "DRAAS", "RESERVED"),
+						stringvalidator.OneOf(func() []string {
+							var billingModels []string
+							for _, bM := range rules.ALLBillingModels {
+								billingModels = append(billingModels, string(bM))
+							}
+							return billingModels
+						}()...),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -192,19 +187,26 @@ func vdcSchema() superschema.Schema {
 					MarkdownDescription: "Choose Billing model of storage resources.",
 				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
+					Required:            true,
+					MarkdownDescription: "The billing model available are different depending on the service class. " + seeVDCRules,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
 					Validators: []validator.String{
-						stringvalidator.OneOf("PAYG", "RESERVED"),
+						stringvalidator.OneOf(func() []string {
+							var billingModels []string
+							for _, bM := range rules.ALLStorageBillingModels {
+								billingModels = append(billingModels, string(bM))
+							}
+							return billingModels
+						}()...),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
 					Computed: true,
 				},
 			},
-			"storage_profiles": superschema.SuperSetNestedAttribute{
+			"storage_profiles": superschema.SuperSetNestedAttributeOf[vdcResourceModelVDCStorageProfile]{
 				Common: &schemaR.SetNestedAttribute{
 					MarkdownDescription: "List of storage profiles for this vDC.",
 				},
@@ -223,9 +225,16 @@ func vdcSchema() superschema.Schema {
 							MarkdownDescription: "The storage class of the storage profile.",
 						},
 						Resource: &schemaR.StringAttribute{
-							Required: true,
+							Required:            true,
+							MarkdownDescription: "The storage class available are different depending on the service class. " + seeVDCRules,
 							Validators: []validator.String{
-								stringvalidator.OneOf("silver", "silver_r1", "silver_r2", "gold", "gold_r1", "gold_r2", "gold_hm", "platinum3k", "platinum3k_r1", "platinum3k_r2", "platinum3k_hm", "platinum7k", "platinum7k_r1", "platinum7k_r2", "platinum7k_hm"),
+								stringvalidator.OneOf(func() []string {
+									var storageProfileClasses []string
+									for _, sPC := range rules.ALLStorageProfilesClass {
+										storageProfileClasses = append(storageProfileClasses, string(sPC))
+									}
+									return storageProfileClasses
+								}()...),
 							},
 						},
 						DataSource: &schemaD.StringAttribute{
@@ -238,9 +247,6 @@ func vdcSchema() superschema.Schema {
 						},
 						Resource: &schemaR.Int64Attribute{
 							Required: true,
-							Validators: []validator.Int64{
-								int64validator.Between(500, 10000),
-							},
 						},
 						DataSource: &schemaD.Int64Attribute{
 							Computed: true,

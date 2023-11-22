@@ -1,0 +1,11 @@
+```release-note:enhancement
+`resource/cloudavenue_vdc` - Big improvement in the documentation. Now find all the configuration combinations in a table.
+```
+
+```release-note:enhancement
+`resource/cloudavenue_vdc` - Improve errors messages returned in case of invalid configuration
+```
+
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.5 to 0.7.0
+```
