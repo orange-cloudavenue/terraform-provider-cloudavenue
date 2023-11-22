@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/vm` - Fix ip not required when ip_allocation_mode is POOL.
+```
