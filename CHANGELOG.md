@@ -5,6 +5,10 @@
 * `resource/cloudavenue_edgegateway_firewall` - Improve examples in documentation. (GH-639)
 * `resource/cloudavenue_edgegateway` - Improve examples in documentation. (GH-639)
 
+### :bug: **Bug Fixes**
+
+* `resource/vm` - Fix ip not required when ip_allocation_mode is POOL. (GH-649)
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.3 to 0.5.5 (GH-644)
