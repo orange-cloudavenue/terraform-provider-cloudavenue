@@ -87,15 +87,21 @@ func (r resourceConfig) GetDefaultConfig() testsacc.TFData {
 func (r resourceConfig) GetSpecificConfig(testName string) func() testsacc.TFData {
 	// Load from cache
 	t, ok := localCacheResource[r.GetResourceName()+"."+testName]
-	// If not found, compute it
-	if !ok {
-		t = r.Tests(context.Background())[testsacc.TestName(testName)](
-			context.Background(),
-			r.GetResourceName()+"."+testName,
-		)
-		t.ComputeDependenciesConfig(r.TestACC)
-		localCacheResource[r.GetResourceName()+"."+testName] = t
+
+	// If found, return only dependencies (resource config already computed)
+	if ok {
+		return func() testsacc.TFData {
+			return t.CacheDependenciesConfig
+		}
 	}
+
+	// If not found, compute dependencies and cache it
+	t = r.Tests(context.Background())[testsacc.TestName(testName)](
+		context.Background(),
+		r.GetResourceName()+"."+testName,
+	)
+	t.ComputeDependenciesConfig(r.TestACC)
+	localCacheResource[r.GetResourceName()+"."+testName] = t
 
 	x := t.Create.TFConfig
 	x.Append(t.CacheDependenciesConfig)

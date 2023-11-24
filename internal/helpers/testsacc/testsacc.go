@@ -199,6 +199,15 @@ func (l *ListOfDependencies) Exists(resourceName ResourceName) bool {
 	return false
 }
 
+// Get returns the list of dependencies as a slice of string.
+func (l *ListOfDependencies) Get() []string {
+	x := make([]string, 0)
+	for _, v := range *l {
+		x = append(x, v.String())
+	}
+	return x
+}
+
 // * TestName
 // Get return the name of the example formatted as a lower camel case string.
 func (e TestName) Get() string {

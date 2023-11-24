@@ -417,6 +417,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 								},
 								Resource: &schemaR.StringAttribute{
 									Optional: true,
+									Computed: true,
 									Validators: []validator.String{
 										fstringvalidator.IsIP(),
 										fstringvalidator.RequireIfAttributeIsOneOf(
