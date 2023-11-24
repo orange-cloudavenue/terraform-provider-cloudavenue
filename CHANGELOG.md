@@ -1,4 +1,8 @@
 ## 0.16.0 (Unreleased)
+### :information_source: **Notes**
+
+* `resource/cloudavenue_vm` - Now if the attribute `ip_allocation_mode` is set to `pool`, the `ip` attribute will be set to the IP address of the VM. (GH-651)
+
 ## 0.15.3 (November 22, 2023)
 
 ### :tada: **Improvements**
