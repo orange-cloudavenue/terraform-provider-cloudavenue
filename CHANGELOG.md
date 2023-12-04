@@ -1,4 +1,9 @@
 ## 0.16.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps golang.org/x/net from 0.18.0 to 0.19.0 (GH-653)
+
 ## 0.15.4 (November 24, 2023)
 ### :information_source: **Notes**
 
