@@ -27,7 +27,7 @@ require (
 	github.com/orange-cloudavenue/infrapi-sdk-go v0.1.4-0.20231005074857-89878ea119fb
 	github.com/rs/zerolog v1.31.0
 	github.com/thanhpk/randstr v1.0.6
-	github.com/vmware/go-vcloud-director/v2 v2.21.0
+	github.com/vmware/go-vcloud-director/v2 v2.22.0
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
 	golang.org/x/net v0.20.0
 	gopkg.in/yaml.v3 v3.0.1
