@@ -2,6 +2,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps actions/upload-artifact from 3 to 4 (GH-663)
 * deps: bumps golang.org/x/net from 0.18.0 to 0.19.0 (GH-653)
 
 ## 0.15.4 (November 24, 2023)
