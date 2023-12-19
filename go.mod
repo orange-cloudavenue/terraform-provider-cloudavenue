@@ -9,7 +9,7 @@ require (
 	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.2.0
 	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1
 	github.com/antihax/optional v1.0.0
-	github.com/aws/aws-sdk-go v1.47.10
+	github.com/aws/aws-sdk-go v1.49.5
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/google/uuid v1.4.0
 	github.com/hashicorp/aws-sdk-go-base v1.1.0
