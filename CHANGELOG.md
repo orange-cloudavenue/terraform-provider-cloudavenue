@@ -4,6 +4,7 @@
 
 * deps: bumps actions/download-artifact from 3.0.2 to 4.0.0 (GH-662)
 * deps: bumps actions/upload-artifact from 3 to 4 (GH-663)
+* deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.30.0 to 2.31.0 (GH-661)
 * deps: bumps golang.org/x/net from 0.18.0 to 0.19.0 (GH-653)
 
 ## 0.15.4 (November 24, 2023)
