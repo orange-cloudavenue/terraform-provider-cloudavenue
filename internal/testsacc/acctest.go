@@ -33,10 +33,6 @@ var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 // about the appropriate environment variables being set are common to see in a pre-check
 // function.
 func TestAccPreCheck(t *testing.T) {
-	if v := os.Getenv("CLOUDAVENUE_URL"); v == "" {
-		t.Fatal("CLOUDAVENUE_URL must be set for acceptance tests")
-	}
-
 	if v := os.Getenv("CLOUDAVENUE_USER"); v == "" {
 		t.Fatal("CLOUDAVENUE_USER must be set for acceptance tests")
 	}
@@ -85,30 +81,24 @@ func (r resourceConfig) GetDefaultConfig() testsacc.TFData {
 
 // GetSpecificConfig returns the create configuration for the test named "example".
 func (r resourceConfig) GetSpecificConfig(testName string) func() testsacc.TFData {
-	// Load from cache
-	t, ok := localCacheResource[r.GetResourceName()+"."+testName]
-
-	// If found, return only dependencies (resource config already computed)
-	if ok {
-		return func() testsacc.TFData {
-			return t.CacheDependenciesConfig
-		}
-	}
-
-	// If not found, compute dependencies and cache it
-	t = r.Tests(context.Background())[testsacc.TestName(testName)](
-		context.Background(),
-		r.GetResourceName()+"."+testName,
-	)
-	t.ComputeDependenciesConfig(r.TestACC)
-	localCacheResource[r.GetResourceName()+"."+testName] = t
-
-	x := t.Create.TFConfig
-	x.Append(t.CacheDependenciesConfig)
-
 	return func() testsacc.TFData {
-		return x
+		return r.fromCache(testName).CacheDependenciesConfig
 	}
+}
+
+func (r resourceConfig) fromCache(testName string) testsacc.Test {
+	t, ok := localCacheResource[r.GetResourceName()+"."+testName]
+	if !ok {
+		t = r.Tests(context.Background())[testsacc.TestName(testName)](
+			context.Background(),
+			r.GetResourceName()+"."+testName,
+		)
+		t.ComputeDependenciesConfig(r.TestACC)
+		t.CacheDependenciesConfig.Append(t.Create.TFConfig)
+		localCacheResource[r.GetResourceName()+"."+testName] = t
+	}
+
+	return t
 }
 
 // GetDefaultChecks returns the checks for the test named "example".
@@ -118,16 +108,7 @@ func (r resourceConfig) GetDefaultChecks() []resource.TestCheckFunc {
 
 // GetSpecificChecks returns the checks for the test named.
 func (r resourceConfig) GetSpecificChecks(testName string) []resource.TestCheckFunc {
-	t, ok := localCacheResource[r.GetResourceName()+"."+testName]
-	if !ok {
-		t = r.Tests(context.Background())[testsacc.TestName(testName)](
-			context.Background(),
-			r.GetResourceName()+"."+testName,
-		)
-		t.ComputeDependenciesConfig(r.TestACC)
-		localCacheResource[r.GetResourceName()+"."+testName] = t
-	}
-	return t.Create.Checks
+	return r.fromCache(testName).Create.Checks
 }
 
 // AddConstantConfig returns the create configuration from constant.

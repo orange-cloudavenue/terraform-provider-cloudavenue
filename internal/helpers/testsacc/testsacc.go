@@ -183,7 +183,7 @@ func (r ResourceName) String() string {
 func (l *ListOfDependencies) Append(resourceName ResourceName) {
 	x := strings.Split(resourceName.String(), ".")
 
-	if len(x) == 2 && !l.Exists(resourceName) {
+	if (len(x) == 2 || len(x) == 3) && !l.Exists(resourceName) {
 		*l = append(*l, resourceName)
 	}
 }
@@ -269,6 +269,7 @@ func (t *TFData) append(tf TFData) {
 
 // extractResourceName extracts the resource name and config name from the Terraform configuration.
 // example: "resource "cloudavenue_catalog" "example" {}" => "cloudavenue_catalog.example"
+// example: "data "cloudavenue_catalog" "example" {}" => "data.cloudavenue_catalog.example"
 func (t *TFData) extractResourceName() string {
 	// find the first occurrence of "resource" or "data"
 	re := regexp.MustCompile(`(resource|data) \"(.*)\" \"(.*)\"`)
@@ -279,7 +280,14 @@ func (t *TFData) extractResourceName() string {
 	for i, v := range x {
 		x[i] = strings.ReplaceAll(v, "\"", "")
 	}
-	return fmt.Sprintf("%s.%s", x[1], x[2])
+
+	// Result is <resource_name>.<config_name>
+	if x[0] == "resource" {
+		return fmt.Sprintf("%s.%s", x[1], x[2])
+	}
+
+	// Result is data.<resource_name>.<config_name>
+	return fmt.Sprintf("%s.%s.%s", x[0], x[1], x[2])
 }
 
 // *TFConfig
@@ -301,6 +309,11 @@ func (t *Test) initListOfDeps() {
 	}
 }
 
+// ExistInListOfDeps.
+func (t *Test) ExistInListOfDeps(resourceName string) bool {
+	return t.listOfDeps.Exists(ResourceName(resourceName))
+}
+
 // Compute Dependencies config.
 func (t *Test) ComputeDependenciesConfig(testACC TestACC) {
 	t.initListOfDeps()
@@ -320,8 +333,7 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 	steps = make([]resource.TestStep, 0)
 
 	// listOfChecks is a concatenation of the common checks and the specific checks.
-	listOfChecks := t.CommonChecks
-	listOfChecks = append(listOfChecks, t.Create.Checks...)
+	listOfChecks := t.GenerateCheckWithCommonChecks()
 
 	// * Compute dependencies config
 	t.ComputeDependenciesConfig(testACC)
