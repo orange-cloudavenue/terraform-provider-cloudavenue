@@ -111,9 +111,10 @@ func (d *catalogDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	if catalog.AdminCatalog.PublishExternalCatalogParams != nil {
-		updatedState.IsCached = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsCachedEnabled)
-		updatedState.IsShared = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsPublishedExternally)
-		updatedState.PreserveIdentityInformation = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.PreserveIdentityInfoFlag)
+		// Fx Issue #657 - The IsCachedEnabled flag is not always set. Now use BoolPointerValue to avoid panic
+		updatedState.IsCached = types.BoolPointerValue(catalog.AdminCatalog.PublishExternalCatalogParams.IsCachedEnabled)
+		updatedState.IsShared = types.BoolPointerValue(catalog.AdminCatalog.PublishExternalCatalogParams.IsPublishedExternally)
+		updatedState.PreserveIdentityInformation = types.BoolPointerValue(catalog.AdminCatalog.PublishExternalCatalogParams.PreserveIdentityInfoFlag)
 	}
 
 	var (
