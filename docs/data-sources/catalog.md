@@ -13,7 +13,7 @@ The Catalog allows you to retrieve information about a catalog in Cloud Avenue.
 
 ```terraform
 data "cloudavenue_catalog" "example" {
-  catalog_name = "catalogExample"
+  name = "catalogExample"
 }
 ```
 
