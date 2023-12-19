@@ -3,6 +3,7 @@
 ### :dependabot: **Dependencies**
 
 * deps: bumps actions/download-artifact from 3.0.2 to 4.0.0 (GH-662)
+* deps: bumps actions/setup-go from 4 to 5 (GH-655)
 * deps: bumps actions/upload-artifact from 3 to 4 (GH-663)
 * deps: bumps github.com/aws/aws-sdk-go from 1.47.10 to 1.49.5 (GH-668)
 * deps: bumps github.com/google/uuid from 1.4.0 to 1.5.0 (GH-659)
