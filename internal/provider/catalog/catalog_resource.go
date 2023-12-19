@@ -208,7 +208,7 @@ func (r *catalogResource) Update(ctx context.Context, req resource.UpdateRequest
 			newAdminCatalog.AdminCatalog.CatalogStorageProfiles = &govcdtypes.CatalogStorageProfiles{VdcStorageProfile: []*govcdtypes.Reference{}}
 		} else {
 			// If StorageProfile is not empty, add storage profile to catalog
-			storageProfileID, err := r.adminOrg.FindStorageProfileID(plan.StorageProfile.ValueString())
+			storageProfileID, err := r.adminOrg.FindStorageProfileName(plan.StorageProfile.ValueString())
 			if err != nil {
 				resp.Diagnostics.AddError("Error retrieving Storage Profile", err.Error())
 				return

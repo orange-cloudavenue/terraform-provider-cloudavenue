@@ -18,14 +18,14 @@ import (
 )
 
 var (
-	ErrStorageProfileIDIsEmpty = errors.New("storage profile ID is empty")
-	ErrStorageProfileNotFound  = errors.New("storage profile not found")
+	ErrStorageProfileNameIsEmpty = errors.New("storage profile Name is empty")
+	ErrStorageProfileNotFound    = errors.New("storage profile not found")
 )
 
 type Handler interface {
-	GetStorageProfile(storageProfileID string, refresh bool) (*govcdtypes.CatalogStorageProfiles, error)
-	GetStorageProfileReference(storageProfileID string, refresh bool) (*govcdtypes.Reference, error)
-	FindStorageProfileID(storageProfileName string) (string, error)
+	GetStorageProfile(storageProfileName string, refresh bool) (*govcdtypes.CatalogStorageProfiles, error)
+	GetStorageProfileReference(storageProfileName string, refresh bool) (*govcdtypes.Reference, error)
+	FindStorageProfileName(storageProfileName string) (string, error)
 }
 
 const (
@@ -78,7 +78,7 @@ var storageProfileValues = []string{
 func SuperSchema() superschema.StringAttribute {
 	return superschema.StringAttribute{
 		Common: &schemaR.StringAttribute{
-			MarkdownDescription: "The storage profile to use.",
+			MarkdownDescription: "The storage profile name to use.",
 			Computed:            true,
 		},
 		Resource: &schemaR.StringAttribute{

@@ -88,7 +88,7 @@ func (d *profileDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		Implement the data source read logic here.
 	*/
 
-	storageProfileID, err := d.vdc.FindStorageProfileID(config.Name.ValueString())
+	storageProfileID, err := d.vdc.FindStorageProfileName(config.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Storage Profile (ID) not found",
