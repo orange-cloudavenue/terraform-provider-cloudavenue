@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
 const testAccNetworkIsolatedDataSourceConfig = `
 data "cloudavenue_network_isolated" "example" {
 	  name = "net-isolated"

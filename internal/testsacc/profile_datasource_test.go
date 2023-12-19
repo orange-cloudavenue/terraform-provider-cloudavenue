@@ -8,7 +8,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
 const testAccProfileDataSourceConfig = `
 data "cloudavenue_storage_profile" "example" {
 	name = "gold"

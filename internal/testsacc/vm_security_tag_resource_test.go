@@ -8,7 +8,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
 const testAccSecurityTagResourceConfig = `
 data "cloudavenue_catalog_vapp_template" "example" {
 	catalog_name = "Orange-Linux"

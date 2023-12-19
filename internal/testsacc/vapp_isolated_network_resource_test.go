@@ -9,7 +9,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
 const testAccIsolatedNetworkResourceConfig = `
 resource "cloudavenue_vapp" "example" {
 	name        = "MyVapp"

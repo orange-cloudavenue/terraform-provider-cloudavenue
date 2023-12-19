@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
 const testAccVMAffinityRuleDataSourceConfig = `
 data "cloudavenue_vm_affinity_rule" "example" {
 	id = cloudavenue_vm_affinity_rule.example.id

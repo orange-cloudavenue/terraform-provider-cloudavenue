@@ -8,7 +8,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-//go:generate go run github.com/FrangipaneTeam/tf-doc-extractor@latest -filename $GOFILE -example-dir ../../../examples -test
 const testAccNetworkRoutedDataSourceConfig = `
 data "cloudavenue_edgegateway" "example" {
 	name = "tn01e02ocb0006205spt101"

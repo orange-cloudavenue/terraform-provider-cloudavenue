@@ -14,10 +14,7 @@ testacc: lint
 
 generate:
 	find examples -name "*.tf" -exec terraform fmt {} \;
-	go install github.com/FrangipaneTeam/tf-doc-extractor@latest
-	go generate -run "tf-doc-extractor" ./...
-	# golang 1.20 feature
-	go generate -skip "tf-doc-extractor" ./...
+	go generate ./...
 
 lint:
 	golangci-lint run
