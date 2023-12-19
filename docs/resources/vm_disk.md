@@ -19,7 +19,6 @@ The disk resource permit to create **Internal** or **External** disk. Internal c
 ```terraform
 resource "cloudavenue_vm_disk" "example-internal" {
 	vapp_id = cloudavenue_vapp.example.id
-	name = "disk-example-internal"
 	bus_type = "NVME"
 	size_in_mb = 104800
 	is_detachable = false
