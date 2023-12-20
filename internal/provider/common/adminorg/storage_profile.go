@@ -11,7 +11,7 @@ var _ storageprofile.Handler = (*AdminOrg)(nil)
 // GetStorageProfile returns the storage profile.
 func (ao *AdminOrg) GetStorageProfile(storageProfileID string, refresh bool) (*govcdtypes.CatalogStorageProfiles, error) {
 	if storageProfileID == "" {
-		return nil, storageprofile.ErrStorageProfileIDIsEmpty
+		return nil, storageprofile.ErrStorageProfileNameIsEmpty
 	}
 
 	// Get the storage profile
@@ -26,14 +26,14 @@ func (ao *AdminOrg) GetStorageProfile(storageProfileID string, refresh bool) (*g
 // GetStorageProfileReference returns the storage profile reference.
 func (ao *AdminOrg) GetStorageProfileReference(storageProfileID string, refresh bool) (*govcdtypes.Reference, error) {
 	if storageProfileID == "" {
-		return nil, storageprofile.ErrStorageProfileIDIsEmpty
+		return nil, storageprofile.ErrStorageProfileNameIsEmpty
 	}
 
 	return ao.GetStorageProfileReferenceById(storageProfileID, refresh)
 }
 
 // GetStorageProfileID returns the storage profile ID.
-func (ao *AdminOrg) FindStorageProfileID(storageProfileName string) (string, error) {
+func (ao *AdminOrg) FindStorageProfileName(storageProfileName string) (string, error) {
 	refs, err := ao.GetAllStorageProfileReferences(true)
 	if err != nil {
 		return "", err

@@ -78,7 +78,7 @@ Read-Only:
 - `expose_hardware_virtualization` (Boolean) Whether to expose hardware CPU virtualization to the guest OS.
 - `guest_properties` (Map of String) Key/Value settings for guest properties.
 - `os_type` (String) The Operating System type installed on the VM.
-- `storage_profile` (String) The storage profile to use.
+- `storage_profile` (String) The storage profile name to use.
 
 <a id="nestedatt--settings--customization"></a>
 ### Nested Schema for `settings.customization`

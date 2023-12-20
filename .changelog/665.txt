@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_vm` - Fixed the issue with the resource not being able to set `storage_profile` with name.
+```

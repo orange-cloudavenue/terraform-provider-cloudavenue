@@ -9,13 +9,13 @@ import (
 var _ storageprofile.Handler = (*VDC)(nil)
 
 // GetStorageProfile returns the storage profile.
-func (v *VDC) GetStorageProfile(storageProfileID string, refresh bool) (*govcdtypes.CatalogStorageProfiles, error) {
-	if storageProfileID == "" {
-		return nil, storageprofile.ErrStorageProfileIDIsEmpty
+func (v *VDC) GetStorageProfile(storageProfileName string, refresh bool) (*govcdtypes.CatalogStorageProfiles, error) {
+	if storageProfileName == "" {
+		return nil, storageprofile.ErrStorageProfileNameIsEmpty
 	}
 
 	// Get the storage profile
-	storageProfileReference, err := v.GetStorageProfileReference(storageProfileID, refresh)
+	storageProfileReference, err := v.GetStorageProfileReference(storageProfileName, refresh)
 	if err != nil {
 		return nil, err
 	}
@@ -24,13 +24,13 @@ func (v *VDC) GetStorageProfile(storageProfileID string, refresh bool) (*govcdty
 }
 
 // GetStorageProfileReference returns the storage profile reference.
-func (v *VDC) GetStorageProfileReference(storageProfileID string, refresh bool) (*govcdtypes.Reference, error) {
-	if storageProfileID == "" {
-		return nil, storageprofile.ErrStorageProfileIDIsEmpty
+func (v *VDC) GetStorageProfileReference(storageProfileName string, refresh bool) (*govcdtypes.Reference, error) {
+	if storageProfileName == "" {
+		return nil, storageprofile.ErrStorageProfileNameIsEmpty
 	}
 
 	for _, sp := range v.Vdc.Vdc.VdcStorageProfiles.VdcStorageProfile {
-		if sp.ID == storageProfileID {
+		if sp.Name == storageProfileName {
 			return &govcdtypes.Reference{HREF: sp.HREF, Name: sp.Name, ID: sp.ID}, nil
 		}
 	}
@@ -39,7 +39,7 @@ func (v *VDC) GetStorageProfileReference(storageProfileID string, refresh bool) 
 }
 
 // GetStorageProfileID returns the storage profile ID.
-func (v *VDC) FindStorageProfileID(storageProfileName string) (string, error) {
+func (v *VDC) FindStorageProfileName(storageProfileName string) (string, error) {
 	refs, err := v.FindStorageProfileReference(storageProfileName)
 	if err != nil {
 		return "", err
