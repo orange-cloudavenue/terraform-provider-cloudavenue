@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
 const testAccCatalogMediaDataSourceConfig = `
 data "cloudavenue_catalog_media" "example" {
 	catalog_name = "catalog-example"

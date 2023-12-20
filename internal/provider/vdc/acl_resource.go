@@ -234,7 +234,6 @@ func (r *aclResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 }
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -resource
 func (r *aclResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	defer metrics.New("cloudavenue_vdc_acl", r.client.GetOrgName(), metrics.Import)()
 

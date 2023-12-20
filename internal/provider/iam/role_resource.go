@@ -361,7 +361,6 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 }
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -resource
 func (r *roleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	defer metrics.New("cloudavenue_iam_role", r.client.GetOrgName(), metrics.Import)()
 

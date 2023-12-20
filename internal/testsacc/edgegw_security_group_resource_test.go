@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
 const testAccSecurityGroupResourceConfig = `
 resource "cloudavenue_edgegateway_security_group" "example" {
 

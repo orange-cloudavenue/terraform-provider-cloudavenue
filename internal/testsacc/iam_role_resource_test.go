@@ -1,5 +1,4 @@
 // package testsacc provides the acceptance tests for the provider.
-// package testsacc provides the acceptance tests for the provider.
 package testsacc
 
 import (
@@ -8,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
 const testAccRoleResourceConfig = `
 resource "cloudavenue_iam_role" "example" {
     name        = "roletest"

@@ -14,7 +14,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
 const testAccEdgeGatewayResourceConfig = `
 data "cloudavenue_tier0_vrfs" "example_with_vdc" {}
 

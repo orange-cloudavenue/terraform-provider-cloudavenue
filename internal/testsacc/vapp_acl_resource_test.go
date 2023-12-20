@@ -11,7 +11,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-//go:generate tf-doc-extractor -filename $GOFILE -example-dir ../../../examples -test
 const testAccVAPPACLResourceConfig = `
 resource "cloudavenue_iam_user" "example" {
 	name   		= "example"
