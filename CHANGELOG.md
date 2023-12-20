@@ -4,6 +4,10 @@
 
 * `resource/cloudavenue_vm_disk` - Improved documentation example for the internal disk. (GH-667)
 
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vm` - Fixed the issue with the resource not being able to set `storage_profile` with name. (GH-665)
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps actions/download-artifact from 3.0.2 to 4.0.0 (GH-662)
