@@ -1,5 +1,9 @@
 ## 0.16.0 (Unreleased)
 
+### :tada: **Improvements**
+
+* `resource/cloudavenue_vm_disk` - Improved documentation example for the internal disk. (GH-667)
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps actions/download-artifact from 3.0.2 to 4.0.0 (GH-662)
