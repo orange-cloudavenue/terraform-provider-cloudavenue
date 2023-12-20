@@ -21,7 +21,6 @@ resource "cloudavenue_edgegateway" "example_with_vdc" {
   owner_name     = "MyEdgeGateway"
   tier0_vrf_name = data.cloudavenue_tier0_vrfs.example_with_vdc.names.0
   owner_type     = "vdc"
-  lb_enabled     = false
 }
 `
 
@@ -84,7 +83,6 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 					}`),
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "bandwidth"),
-						resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"), // Deprecated attribute
 					},
 				},
 				// ! Updates testing
@@ -130,7 +128,6 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						  }`),
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "bandwidth", "5"),
-							resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"),
 						},
 					},
 				},
@@ -163,9 +160,7 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
 						owner_type     = "vdc-group"
 					  }`),
-					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"),
-					},
+					Checks: []resource.TestCheckFunc{},
 				},
 				// ! Updates testing
 				Updates: []testsacc.TFConfig{
@@ -179,7 +174,6 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						  }`),
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "bandwidth", "5"),
-							resource.TestCheckResourceAttr(resourceName, "lb_enabled", "false"),
 						},
 					},
 				},

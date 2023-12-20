@@ -130,24 +130,6 @@ func edgegwSchema() superschema.Schema {
 					MarkdownDescription: "If no value is not specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF.",
 				},
 			},
-			"lb_enabled": &superschema.SuperBoolAttribute{
-				Deprecated: &superschema.Deprecated{
-					DeprecationMessage:                "Remove the lb_enabled attribute configuration and the attribute will be removed in the version 0.16.0 of the provider. This field have does not work and will be replaced soon by a new resource.",
-					ComputeMarkdownDeprecationMessage: true,
-					Removed:                           true,
-					FromAttributeName:                 "lb_enabled",
-					TargetRelease:                     "v0.16.0",
-					LinkToMilestone:                   "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/8",
-					LinkToIssue:                       "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/567",
-				},
-				Common: &schemaR.BoolAttribute{
-					MarkdownDescription: "Load Balancing state on the Edge Gateway.",
-					Computed:            true,
-				},
-				Resource: &schemaR.BoolAttribute{
-					Optional: true,
-				},
-			},
 		},
 	}
 }
