@@ -124,6 +124,55 @@ func (r *NetworkRoutedResource) Tests(ctx context.Context) map[testsacc.TestName
 				},
 			}
 		},
+		"without_ip_pool": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
+					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_network_routed" "without_ip_pool" {
+						name        = {{ generate . "name" }}
+						description = {{ generate . "description" }}
+					  
+						edge_gateway_id = cloudavenue_edgegateway.example.id
+					  
+						gateway       = "192.168.1.254"
+						prefix_length = 24
+					  
+						dns1 = "1.1.1.1"
+						dns2 = "8.8.8.8"
+					  
+						dns_suffix = "example"
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.1.254"),
+						resource.TestCheckResourceAttr(resourceName, "dns1", "1.1.1.1"),
+						resource.TestCheckResourceAttr(resourceName, "dns2", "8.8.8.8"),
+						resource.TestCheckResourceAttr(resourceName, "dns_suffix", "example"),
+						resource.TestCheckNoResourceAttr(resourceName, "static_ip_pool"),
+					},
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
+			}
+		},
 	}
 	// TODO: ADD Test with VDC Group
 }
