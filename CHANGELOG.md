@@ -1,4 +1,9 @@
 ## 0.16.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps crazy-max/ghaction-import-gpg from 6.0.0 to 6.1.0 (GH-679)
+
 ## 0.15.5 (December 21, 2023)
 
 ### :tada: **Improvements**
