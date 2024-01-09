@@ -3,6 +3,7 @@
 ### :dependabot: **Dependencies**
 
 * deps: bumps crazy-max/ghaction-import-gpg from 6.0.0 to 6.1.0 (GH-679)
+* deps: bumps golang.org/x/net from 0.19.0 to 0.20.0 (GH-681)
 
 ## 0.15.5 (December 21, 2023)
 
