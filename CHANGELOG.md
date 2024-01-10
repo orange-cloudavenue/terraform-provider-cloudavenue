@@ -1,8 +1,14 @@
 ## 0.16.0 (Unreleased)
 
+### :tada: **Improvements**
+
+* `resource/cloudavenue_vdc` - Big improvement in the documentation. Now find all the configuration combinations in a table. (GH-650)
+* `resource/cloudavenue_vdc` - Improve errors messages returned in case of invalid configuration (GH-650)
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps crazy-max/ghaction-import-gpg from 6.0.0 to 6.1.0 (GH-679)
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.5 to 0.7.0 (GH-650)
 * deps: bumps golang.org/x/net from 0.19.0 to 0.20.0 (GH-681)
 
 ## 0.15.5 (December 21, 2023)
