@@ -1,4 +1,5 @@
-## 0.16.0 (Unreleased)
+## 0.17.0 (Unreleased)
+## 0.16.0 (January 10, 2024)
 ### :rotating_light: **Breaking Changes**
 
 * `datasource/cloudavenue_edgegateway` - Announced in release [v0.14.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.14.0) the attribute `lb_enabled` is now removed. (GH-575)
