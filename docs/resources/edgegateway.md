@@ -43,9 +43,6 @@ resource "cloudavenue_edgegateway" "example" {
 ### Optional
 
 - `bandwidth` (Number) The bandwidth in Mbps of the Edge Gateway. If no value is not specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF.
-- `lb_enabled` (Boolean, Deprecated) Load Balancing state on the Edge Gateway. 
-
- ~> **Attribute deprecated** Remove the `lb_enabled` attribute configuration, it will be removed in the version [`v0.16.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/8) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/567) for more information.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

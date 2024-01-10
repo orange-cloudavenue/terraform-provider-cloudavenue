@@ -515,10 +515,5 @@ func (r *edgeGatewayResource) read(_ context.Context, planOrState *edgeGatewayRe
 	stateRefreshed.Description.Set(edgegw.GetDescription())
 	stateRefreshed.Bandwidth.SetInt(int(edgegw.GetBandwidth()))
 
-	// EnableLoadBalancing is now deprecated, but we still need to set it to false if it is unknown
-	if !stateRefreshed.EnableLoadBalancing.IsKnown() {
-		stateRefreshed.EnableLoadBalancing.Set(false)
-	}
-
 	return stateRefreshed, true, nil
 }

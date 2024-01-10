@@ -81,11 +81,6 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 	data.Description.Set(edgegw.GetDescription())
 	data.Bandwidth.SetInt(int(edgegw.GetBandwidth()))
 
-	// EnableLoadBalancing is now deprecated, but we still need to set it to false if it is unknown
-	if !data.EnableLoadBalancing.IsKnown() {
-		data.EnableLoadBalancing.Set(false)
-	}
-
 	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
