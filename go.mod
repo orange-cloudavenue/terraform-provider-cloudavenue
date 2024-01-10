@@ -9,7 +9,7 @@ require (
 	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.2.0
 	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1
 	github.com/antihax/optional v1.0.0
-	github.com/aws/aws-sdk-go v1.49.5
+	github.com/aws/aws-sdk-go v1.49.16
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/google/uuid v1.5.0
 	github.com/hashicorp/aws-sdk-go-base v1.1.0
@@ -22,7 +22,7 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.31.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.5.5
+	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.7.0
 	github.com/orange-cloudavenue/infrapi-sdk-go v0.1.4-0.20231005074857-89878ea119fb
 	github.com/rs/zerolog v1.31.0
 	github.com/thanhpk/randstr v1.0.6
@@ -48,10 +48,11 @@ require (
 	github.com/deepmap/oapi-codegen v1.8.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fatih/color v1.15.0 // indirect
+	github.com/fbiville/markdown-table-formatter v0.3.0 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible // indirect
 	github.com/go-chi/render v1.0.3 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/go-resty/resty/v2 v2.10.0 // indirect
+	github.com/go-resty/resty/v2 v2.11.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -102,6 +103,7 @@ require (
 	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/oauth2 v0.13.0 // indirect
+	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect

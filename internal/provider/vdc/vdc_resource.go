@@ -5,30 +5,29 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
-	"golang.org/x/exp/slices"
+	"github.com/vmware/go-vcloud-director/v2/govcd"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-
-	apiclient "github.com/orange-cloudavenue/infrapi-sdk-go"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/infrapi"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/infrapi/rules"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &vdcResource{}
-	_ resource.ResourceWithConfigure   = &vdcResource{}
-	_ resource.ResourceWithImportState = &vdcResource{}
+	_ resource.Resource                   = &vdcResource{}
+	_ resource.ResourceWithConfigure      = &vdcResource{}
+	_ resource.ResourceWithImportState    = &vdcResource{}
+	_ resource.ResourceWithValidateConfig = &vdcResource{}
+	_ resource.ResourceWithModifyPlan     = &vdcResource{}
 )
 
 // NewVDCResource is a helper function to simplify the provider implementation.
@@ -72,18 +71,114 @@ func (r *vdcResource) Configure(ctx context.Context, req resource.ConfigureReque
 	r.client = client
 }
 
+func (r *vdcResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	config := new(vdcResourceModel)
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	StorageProfiles, d := config.StorageProfiles.Get(ctx)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if err := rules.Validate(rules.ValidateData{
+		ServiceClass:        rules.ServiceClass(config.ServiceClass.Get()),
+		DisponibilityClass:  rules.DisponibilityClass(config.DisponibilityClass.Get()),
+		BillingModel:        rules.BillingModel(config.BillingModel.Get()),
+		VCPUInMhz:           config.VCPUInMhz.GetInt(),
+		CPUAllocated:        config.CPUAllocated.GetInt(),
+		MemoryAllocated:     config.MemoryAllocated.GetInt(),
+		StorageBillingModel: rules.BillingModel(config.StorageBillingModel.Get()),
+		StorageProfiles: func() map[rules.StorageProfileClass]struct {
+			Limit   int
+			Default bool
+		} {
+			storageProfiles := make(map[rules.StorageProfileClass]struct {
+				Limit   int
+				Default bool
+			})
+			for _, sP := range StorageProfiles {
+				storageProfiles[rules.StorageProfileClass(sP.Class.Get())] = struct {
+					Limit   int
+					Default bool
+				}{Limit: sP.Limit.GetInt(), Default: sP.Default.Get()}
+			}
+			return storageProfiles
+		}(),
+	}, false); err != nil {
+		switch {
+		case errors.Is(err, rules.ErrBillingModelNotAvailable):
+			resp.Diagnostics.AddAttributeError(path.Root("billing_model"), "Billing model attribute is not valid", err.Error())
+		case errors.Is(err, rules.ErrServiceClassNotFound):
+			resp.Diagnostics.AddAttributeError(path.Root("service_class"), "Service class attribute is not valid", err.Error())
+		case errors.Is(err, rules.ErrDisponibilityClassNotFound):
+			resp.Diagnostics.AddAttributeError(path.Root("disponibility_class"), "Disponibility class attribute is not valid", err.Error())
+		case errors.Is(err, rules.ErrStorageBillingModelNotFound):
+			resp.Diagnostics.AddAttributeError(path.Root("storage_billing_model"), "Storage billing model attribute is not valid", err.Error())
+		case errors.Is(err, rules.ErrStorageProfileClassNotFound):
+			resp.Diagnostics.AddAttributeError(path.Root("storage_profiles"), "Storage profile class attribute is not valid", err.Error())
+		case errors.Is(err, rules.ErrCPUAllocatedInvalid):
+			resp.Diagnostics.AddAttributeError(path.Root("cpu_allocated"), "CPU allocated attribute is not valid", err.Error())
+		case errors.Is(err, rules.ErrMemoryAllocatedInvalid):
+			resp.Diagnostics.AddAttributeError(path.Root("memory_allocated"), "Memory allocated attribute is not valid", err.Error())
+		case errors.Is(err, rules.ErrVCPUInMhzInvalid):
+			resp.Diagnostics.AddAttributeError(path.Root("cpu_speed_in_mhz"), "CPU speed in MHz attribute is not valid", err.Error())
+		case errors.Is(err, rules.ErrStorageProfileLimitInvalid) || errors.Is(err, rules.ErrStorageProfileLimitNotIntegrer):
+			resp.Diagnostics.AddAttributeError(path.Root("storage_profiles").AtName("limit"), "Storage profile limit attribute is not valid", err.Error())
+		case errors.Is(err, rules.ErrStorageProfileDefault):
+			resp.Diagnostics.AddAttributeError(path.Root("storage_profiles").AtName("default"), "Storage profile default attribute is not valid", err.Error())
+		default:
+			resp.Diagnostics.AddError("Error validating VDC", err.Error())
+		}
+	}
+}
+
+func (r *vdcResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	var (
+		plan  = new(vdcResourceModel)
+		state = new(vdcResourceModel)
+	)
+
+	// Retrieve values from plan
+	d := req.Plan.Get(ctx, plan)
+	if d.HasError() {
+		// If there is an error in the plan, we don't need to continue
+		return
+	}
+
+	d = req.State.Get(ctx, state)
+	// If error in state will be is in create mode
+	if !d.HasError() {
+		return
+	}
+
+	// If there is no error in the state, we are in update mode
+
+	// "Force replacement attributes, however you can change the `cpu_speed_in_mhz` attribute only if the `billing_model` is set to **RESERVED**."
+	if plan.VCPUInMhz.Equal(state.VCPUInMhz) && plan.BillingModel.Get() != string(rules.BillingModelReserved) {
+		resp.RequiresReplace = append(resp.RequiresReplace, path.Root("cpu_speed_in_mhz"))
+		resp.Diagnostics.AddAttributeWarning(path.Root("cpu_speed_in_mhz"), "CPU speed in MHz attribute require replacement", "You can change the `cpu_speed_in_mhz` attribute only if the `billing_model` is set to **RESERVED**.")
+	}
+}
+
 // Create creates the resource and sets the initial Terraform state.
 func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	defer metrics.New("cloudavenue_vdc", r.client.GetOrgName(), metrics.Create)()
 
 	// Retrieve values from plan
-	var plan *vdcResourceModel
+	plan := new(vdcResourceModel)
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	cloudavenue.Lock(ctx)
+	defer cloudavenue.Unlock(ctx)
 
 	// Create() is passed a default timeout to use if no value
 	// has been supplied in the Terraform configuration.
@@ -96,111 +191,34 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	ctxTO, cancel := context.WithTimeout(ctx, createTimeout)
+	ctx, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 
-	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
-	if errCtx != nil {
-		resp.Diagnostics.AddError(
-			"Error creating context",
-			"Could not create context, context value token is not a string ?",
-		)
-		return
-	}
-
-	// Prepare the body to create a VDC.
-	body := apiclient.CreateOrgVdcV2{
-		Vdc: &apiclient.OrgVdcV2{
-			Name:                   plan.Name.Get(),
-			Description:            plan.Description.Get(),
-			VdcServiceClass:        plan.VDCServiceClass.Get(),
-			VdcDisponibilityClass:  plan.VDCDisponibilityClass.Get(),
-			VdcBillingModel:        plan.VDCBillingModel.Get(),
-			VcpuInMhz2:             float64(plan.VcpuInMhz2.Get()),
-			CpuAllocated:           float64(plan.CPUAllocated.Get()),
-			MemoryAllocated:        float64(plan.MemoryAllocated.Get()),
-			VdcStorageBillingModel: plan.VDCStorageBillingModel.Get(),
-		},
-	}
-
-	// Get the storage profiles
-	storageProfiles, d := plan.GetVDCStorageProfiles(ctx)
+	body, d := plan.ToCAVVirtualDataCenter(ctx)
 	resp.Diagnostics.Append(d...)
-	if d.HasError() {
-		return
-	}
-	// Iterate over the storage profiles and add them to the body.
-	for _, storageProfile := range storageProfiles {
-		body.Vdc.VdcStorageProfiles = append(body.Vdc.VdcStorageProfiles, apiclient.VdcStorageProfilesV2{
-			Class:    storageProfile.Class.Get(),
-			Limit:    storageProfile.Limit.GetInt32(),
-			Default_: storageProfile.Default.Get(),
-		})
-	}
-
-	var err error
-	var job apiclient.Jobcreated
-	var httpR *http.Response
-
-	cloudavenue.Lock(ctx)
-	defer cloudavenue.Unlock(ctx)
-
-	// Call API to create the resource and test for errors.
-	job, httpR, err = r.client.APIClient.VDCApi.CreateOrgVdc(auth, body)
-
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Wait for job to complete
-	errRetry := retry.RetryContext(ctxTO, createTimeout, func() *retry.RetryError {
-		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
-		if errGetJob != nil {
-			retry.NonRetryableError(errGetJob)
-		}
-		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
-			return retry.RetryableError(fmt.Errorf("expected job done but was %s - %w", jobStatus, errGetJob))
-		}
-
-		return nil
-	})
-
-	if errRetry != nil {
-		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
-		return
-	}
-
-	// Get vDC UUID by parsing vDCs list and set URN ID
-	var ID string
-	vdcs, httpR, err := r.client.APIClient.VDCApi.GetOrgVdcs(auth)
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
+	_, err := r.client.CAVSDK.V1.VDC().New(body)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read vdcs detail, got error: %s", err))
+		resp.Diagnostics.AddError("Error creating VDC", err.Error())
 		return
 	}
 
-	for _, v := range vdcs {
-		if plan.Name.ValueString() == v.VdcName {
-			ID = uuid.Normalize(uuid.VDC, v.VdcUuid).String()
-			break
-		}
+	stateRefreshed, found, d := r.read(ctx, plan)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		resp.Diagnostics.AddWarning("Resource not found", fmt.Sprintf("Unable to find resource %s after creation", plan.Name.Get()))
+		return
 	}
-
-	plan.ID.Set(ID)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Save plan into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -208,11 +226,10 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	defer metrics.New("cloudavenue_vdc", r.client.GetOrgName(), metrics.Read)()
 
 	// Get current state
-	var state *vdcResourceModel
+	state := new(vdcResourceModel)
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -227,98 +244,34 @@ func (r *vdcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
-	ctxTO, cancel := context.WithTimeout(ctx, readTimeout)
+	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
-	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
-	if errCtx != nil {
-		resp.Diagnostics.AddError(
-			"Error creating context",
-			"Could not create context, context value token is not a string ?",
-		)
-		return
-	}
-
-	// Get vDC info
-	vdc, httpR, err := r.client.APIClient.VDCApi.GetOrgVdcByName(auth, state.Name.ValueString())
-
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		if !apiErr.IsNotFound() {
-			resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-			return
-		}
-		// 404, resource was not found, remove it from state
+	stateRefreshed, found, d := r.read(ctx, state)
+	if !found {
 		resp.State.RemoveResource(ctx)
-
+		resp.Diagnostics.AddWarning("Resource not found", fmt.Sprintf("Unable to find resource %s", state.Name.Get()))
 		return
 	}
-
-	// Get vDC UUID by parsing vDCs list and set URN ID
-	var ID string
-	vdcs, httpR, err := r.client.APIClient.VDCApi.GetOrgVdcs(auth)
-
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read vdcs detail, got error: %s", err))
-		return
-	}
-
-	for _, v := range vdcs {
-		if state.Name.Get() == v.VdcName {
-			ID = uuid.Normalize(uuid.VDC, v.VdcUuid).String()
-			break
-		}
-	}
-
-	// Get storageProfile
-	profiles := make(vdcResourceModelVDCStorageProfiles, 0)
-	for _, profile := range vdc.Vdc.VdcStorageProfiles {
-		p := vdcResourceModelVDCStorageProfile{}
-		p.Class.Set(profile.Class)
-		p.Limit.SetInt32(profile.Limit)
-		p.Default.Set(profile.Default_)
-		profiles = append(profiles, p)
-	}
-
-	// Convert from the API data model to the Terraform data model
-	// and refresh any attribute values.
-	state.ID.Set(ID)
-	state.Name.Set(vdc.Vdc.Name)
-	state.Description.Set(vdc.Vdc.Description)
-	state.VDCServiceClass.Set(vdc.Vdc.VdcServiceClass)
-	state.VDCDisponibilityClass.Set(vdc.Vdc.VdcDisponibilityClass)
-	state.VDCBillingModel.Set(vdc.Vdc.VdcBillingModel)
-	state.VcpuInMhz2.Set(int64(vdc.Vdc.VcpuInMhz2))
-	state.CPUAllocated.Set(int64(vdc.Vdc.CpuAllocated))
-	state.MemoryAllocated.Set(int64(vdc.Vdc.MemoryAllocated))
-	state.VDCStorageBillingModel.Set(vdc.Vdc.VdcStorageBillingModel)
-	resp.Diagnostics.Append(state.VDCStorageProfiles.Set(ctx, profiles)...)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Save updated state into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	defer metrics.New("cloudavenue_vdc", r.client.GetOrgName(), metrics.Update)()
 	var (
-		plan  *vdcResourceModel
-		state *vdcResourceModel
+		plan  = new(vdcResourceModel)
+		state = new(vdcResourceModel)
 	)
+
+	cloudavenue.Lock(ctx)
+	defer cloudavenue.Unlock(ctx)
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -338,167 +291,95 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	ctxTO, cancel := context.WithTimeout(ctx, updateTimeout)
+	ctx, cancel := context.WithTimeout(ctx, updateTimeout)
 	defer cancel()
 
-	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
-	if errCtx != nil {
-		resp.Diagnostics.AddError(
-			"Error creating context",
-			"Could not create context, context value token is not a string ?",
-		)
+	vdc, err := r.client.CAVSDK.V1.VDC().GetVDC(plan.Name.Get())
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading VDC", err.Error())
 		return
 	}
 
-	// Get vDC info
-	var httpR *http.Response
-	var err error
-	// Due a bug in CloudAvenue the field VdcGroup is mandatory in the body
-	vdc, httpR, err := r.client.APIClient.VDCApi.GetOrgVdcByName(auth, state.Name.Get())
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
+	// Update the VDC
+	if !plan.Description.Equal(state.Description) {
+		vdc.SetDescription(plan.Description.Get())
 	}
 
-	// Convert from Terraform data model into API data model
-	body := apiclient.UpdateOrgVdcV2{
-		VdcGroup: vdc.VdcGroup,
-		Vdc: &apiclient.OrgVdcV2{
-			Name:                   plan.Name.Get(),
-			Description:            plan.Description.Get(),
-			VdcServiceClass:        plan.VDCServiceClass.Get(),
-			VdcDisponibilityClass:  plan.VDCDisponibilityClass.Get(),
-			VdcBillingModel:        plan.VDCBillingModel.Get(),
-			VcpuInMhz2:             float64(plan.VcpuInMhz2.Get()),
-			CpuAllocated:           float64(plan.CPUAllocated.Get()),
-			MemoryAllocated:        float64(plan.MemoryAllocated.Get()),
-			VdcStorageBillingModel: plan.VDCStorageBillingModel.Get(),
-		},
+	if !plan.VCPUInMhz.Equal(state.VCPUInMhz) {
+		vdc.SetVCPUInMhz(plan.VCPUInMhz.GetInt())
 	}
 
-	// Get the storage profiles
-	storageProfiles, d := plan.GetVDCStorageProfiles(ctx)
+	if !plan.CPUAllocated.Equal(state.CPUAllocated) {
+		vdc.SetCPUAllocated(plan.CPUAllocated.GetInt())
+	}
+
+	if !plan.MemoryAllocated.Equal(state.MemoryAllocated) {
+		vdc.SetMemoryAllocated(plan.MemoryAllocated.GetInt())
+	}
+
+	if !plan.StorageProfiles.Equal(state.StorageProfiles) {
+		vdcStorageProfiles := make([]infrapi.StorageProfile, 0)
+
+		storageProfiles, d := plan.StorageProfiles.Get(ctx)
+		resp.Diagnostics.Append(d...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		for _, storageProfile := range storageProfiles {
+			vdcStorageProfiles = append(vdcStorageProfiles, infrapi.StorageProfile{
+				Class:   infrapi.StorageProfileClass(storageProfile.Class.Get()),
+				Limit:   storageProfile.Limit.GetInt(),
+				Default: storageProfile.Default.Get(),
+			})
+		}
+
+		vdc.SetStorageProfiles(vdcStorageProfiles)
+	}
+
+	if err := vdc.Update(); err != nil {
+		resp.Diagnostics.AddError("Error updating VDC", err.Error())
+		return
+	}
+
+	stateRefreshed, _, d := r.read(ctx, state)
 	resp.Diagnostics.Append(d...)
-	if d.HasError() {
-		return
-	}
-
-	// Iterate over the storage profiles and add them to the body.
-	for _, storageProfile := range storageProfiles {
-		body.Vdc.VdcStorageProfiles = append(body.Vdc.VdcStorageProfiles, apiclient.VdcStorageProfilesV2{
-			Class:    storageProfile.Class.Get(),
-			Limit:    storageProfile.Limit.GetInt32(),
-			Default_: storageProfile.Default.Get(),
-		})
-	}
-
-	var job apiclient.Jobcreated
-
-	cloudavenue.Lock(ctx)
-	defer cloudavenue.Unlock(ctx)
-
-	// Call API to update the resource and test for errors.
-	job, httpR, err = r.client.APIClient.VDCApi.UpdateOrgVdc(auth, body, body.Vdc.Name)
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		return
-	}
-
-	// Wait for job to complete
-	errRetry := retry.RetryContext(ctxTO, updateTimeout, func() *retry.RetryError {
-		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
-		if errGetJob != nil {
-			retry.NonRetryableError(err)
-		}
-		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
-			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))
-		}
-
-		return nil
-	})
-
-	if errRetry != nil {
-		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	defer metrics.New("cloudavenue_vdc", r.client.GetOrgName(), metrics.Delete)()
 
-	var state *vdcResourceModel
+	state := new(vdcResourceModel)
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Delete() is passed a default timeout to use if no value
-	// has been supplied in the Terraform configuration.
-	deleteTimeout, errTO := state.Timeouts.Delete(ctx, 8*time.Minute)
-	if errTO != nil {
-		resp.Diagnostics.AddError(
-			"Error creating timeout",
-			"Could not create timeout, unexpected error",
-		)
-		return
-	}
-
-	ctxTO, cancel := context.WithTimeout(ctx, deleteTimeout)
-	defer cancel()
-
-	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
-	if errCtx != nil {
-		resp.Diagnostics.AddError(
-			"Error creating context",
-			"Could not create context, context value token is not a string ?",
-		)
-		return
-	}
-
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
 
-	// Delete the VDC
-	job, httpR, err := r.client.APIClient.VDCApi.DeleteOrgVdc(auth, state.Name.ValueString())
-
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+	vdc, err := r.client.CAVSDK.V1.VDC().GetVDC(state.Name.Get())
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading VDC", err.Error())
 		return
 	}
 
-	// Wait for job to complete
-	errRetry := retry.RetryContext(ctxTO, deleteTimeout, func() *retry.RetryError {
-		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
-		if errGetJob != nil {
-			retry.NonRetryableError(err)
-		}
-		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
-			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))
-		}
+	job, err := vdc.Delete()
+	if err != nil {
+		resp.Diagnostics.AddError("Error deleting VDC", err.Error())
+		return
+	}
 
-		return nil
-	})
-
-	if errRetry != nil {
-		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
+	if err := job.Wait(1, 600); err != nil {
+		resp.Diagnostics.AddError("Error deleting VDC", err.Error())
 		return
 	}
 }
@@ -508,4 +389,46 @@ func (r *vdcResource) ImportState(ctx context.Context, req resource.ImportStateR
 
 	// Retrieve import ID and save to id attribute
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
+}
+
+// * Custom Functions.
+// read is a generic function to read a resource.
+func (r *vdcResource) read(ctx context.Context, planOrState *vdcResourceModel) (stateRefreshed *vdcResourceModel, found bool, diags diag.Diagnostics) {
+	stateRefreshed = planOrState.Copy()
+
+	vdc, err := r.client.CAVSDK.V1.VDC().GetVDC(planOrState.Name.Get())
+	if err != nil {
+		if govcd.IsNotFound(err) {
+			return nil, false, nil
+		}
+		diags.AddError("Error reading VDC", err.Error())
+		return nil, true, diags
+	}
+
+	stateRefreshed.ID.Set(vdc.GetID())
+	stateRefreshed.Name.Set(vdc.GetName())
+	stateRefreshed.Description.Set(vdc.GetDescription())
+	stateRefreshed.ServiceClass.Set(string(vdc.GetServiceClass()))
+	stateRefreshed.StorageBillingModel.Set(string(vdc.GetStorageBillingModel()))
+	stateRefreshed.DisponibilityClass.Set(string(vdc.GetDisponibilityClass()))
+	stateRefreshed.BillingModel.Set(string(vdc.GetBillingModel()))
+	stateRefreshed.VCPUInMhz.SetInt(vdc.GetVCPUInMhz())
+	stateRefreshed.CPUAllocated.SetInt(vdc.GetCPUAllocated())
+	stateRefreshed.MemoryAllocated.SetInt(vdc.GetMemoryAllocated())
+
+	storageProfiles := make([]*vdcResourceModelVDCStorageProfile, 0)
+	for _, storageProfile := range vdc.GetStorageProfiles() {
+		p := new(vdcResourceModelVDCStorageProfile)
+		p.Class.Set(string(storageProfile.Class))
+		p.Limit.SetInt(storageProfile.Limit)
+		p.Default.Set(storageProfile.Default)
+		storageProfiles = append(storageProfiles, p)
+	}
+
+	diags.Append(stateRefreshed.StorageProfiles.Set(ctx, storageProfiles)...)
+	if diags.HasError() {
+		return
+	}
+
+	return stateRefreshed, true, diags
 }

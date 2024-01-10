@@ -45,16 +45,14 @@ resource "cloudavenue_vdc" "example" {
 
 ### Required
 
-- `billing_model` (String) (ForceNew) Choose Billing model of compute resources. Value must be one of : `PAYG`, `DRAAS`, `RESERVED`.
-- `cpu_allocated` (Number) CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode. 
-
- -> Note: Reserved capacity is automatically set according to the service class.
-- `cpu_speed_in_mhz` (Number) (ForceNew) Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM. Force replacement attributes, however you can change the `cpu_speed_in_mhz` attribute only if the `billing_model` is set to **RESERVED**. Value must be at least 1200.
-- `disponibility_class` (String) (ForceNew) The disponibility class of the vDC. Value must be one of : `ONE-ROOM`, `DUAL-ROOM`, `HA-DUAL-ROOM`.
-- `memory_allocated` (Number) Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode. Value must be between 1 and 500.
+- `billing_model` (String) (ForceNew) Choose Billing model of compute resources. The billing model available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of : `RESERVED`, `PAYG`, `DRAAS`.
+- `cpu_allocated` (Number) CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information.
+- `cpu_speed_in_mhz` (Number) Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information.
+- `disponibility_class` (String) (ForceNew) The disponibility class of the vDC. The disponibility class available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of : `ONE-ROOM`, `HA-DUAL-ROOM`, `DUAL-ROOM`.
+- `memory_allocated` (Number) Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode.
 - `name` (String) (ForceNew) The name of the vDC. String length must be between 2 and 27.
 - `service_class` (String) (ForceNew) The service class of the vDC. Value must be one of : `ECO`, `STD`, `HP`, `VOIP`.
-- `storage_billing_model` (String) (ForceNew) Choose Billing model of storage resources. Value must be one of : `PAYG`, `RESERVED`.
+- `storage_billing_model` (String) (ForceNew) Choose Billing model of storage resources. The billing model available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of : `PAYG`, `RESERVED`.
 - `storage_profiles` (Attributes Set) List of storage profiles for this vDC. Set must contain at least 1 elements. (see [below for nested schema](#nestedatt--storage_profiles))
 
 ### Optional
@@ -71,9 +69,9 @@ resource "cloudavenue_vdc" "example" {
 
 Required:
 
-- `class` (String) The storage class of the storage profile. Value must be one of : `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
+- `class` (String) The storage class of the storage profile. The storage class available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of : `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
 - `default` (Boolean) Set this storage profile as default for this vDC. Only one storage profile can be default per vDC.
-- `limit` (Number) Max number in *Gb* of units allocated for this storage profile. Value must be between 500 and 10000.
+- `limit` (Number) Max number in *Gb* of units allocated for this storage profile.
 
 
 <a id="nestedatt--timeouts"></a>
@@ -85,6 +83,110 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+<!-- TABLE VDC ATTRIBUTES PARAMETERS -->
+## Rules
+More information about rules can be found [here](https://wiki.cloudavenue.orange-business.com/wiki/Virtual_Datacenter).All fields with a ** are editable.
+
+### ServiceClass ECO
+| BillingModels | StorageBillingModels | DisponibilityClasses | CPUInMhz (Mhz)          | CPUAllocated (Mhz)         | MemoryAllocated (Gb) |
+| ------------- | -------------------- | -------------------- | ----------------------- | -------------------------- | -------------------- |
+| RESERVED      | PAYG, RESERVED       | ONE-ROOM, DUAL-ROOM  | ** min: 1200, max: 2200 | ** min: 3000, max: 2500000 | ** min: 1, max: 5120 |
+| PAYG          | PAYG, RESERVED       | ONE-ROOM, DUAL-ROOM  | equal: 2200             | ** min: 11000, max: 440000 | ** min: 1, max: 5120 |
+| DRAAS         | PAYG, RESERVED       | ONE-ROOM, DUAL-ROOM  | equal: 2200             | ** min: 11000, max: 440000 | ** min: 1, max: 5120 |
+
+### ServiceClass STD
+| BillingModels | StorageBillingModels | DisponibilityClasses              | CPUInMhz (Mhz)          | CPUAllocated (Mhz)         | MemoryAllocated (Gb) |
+| ------------- | -------------------- | --------------------------------- | ----------------------- | -------------------------- | -------------------- |
+| RESERVED      | PAYG, RESERVED       | ONE-ROOM, HA-DUAL-ROOM, DUAL-ROOM | ** min: 1200, max: 2200 | ** min: 3000, max: 2500000 | ** min: 1, max: 5120 |
+| PAYG          | PAYG, RESERVED       | ONE-ROOM, HA-DUAL-ROOM, DUAL-ROOM | equal: 2200             | ** min: 11000, max: 440000 | ** min: 1, max: 5120 |
+| DRAAS         | PAYG, RESERVED       | ONE-ROOM, HA-DUAL-ROOM, DUAL-ROOM | equal: 2200             | ** min: 11000, max: 440000 | ** min: 1, max: 5120 |
+
+### ServiceClass HP
+| BillingModels | StorageBillingModels | DisponibilityClasses              | CPUInMhz (Mhz) | CPUAllocated (Mhz)         | MemoryAllocated (Gb) |
+| ------------- | -------------------- | --------------------------------- | -------------- | -------------------------- | -------------------- |
+| RESERVED      | PAYG, RESERVED       | ONE-ROOM, HA-DUAL-ROOM, DUAL-ROOM | equal: 2200    | ** min: 3000, max: 2500000 | ** min: 1, max: 5120 |
+| PAYG          | PAYG, RESERVED       | ONE-ROOM, HA-DUAL-ROOM, DUAL-ROOM | equal: 2200    | ** min: 11000, max: 440000 | ** min: 1, max: 5120 |
+
+### ServiceClass VOIP
+| BillingModels | StorageBillingModels | DisponibilityClasses              | CPUInMhz (Mhz) | CPUAllocated (Mhz)         | MemoryAllocated (Gb) |
+| ------------- | -------------------- | --------------------------------- | -------------- | -------------------------- | -------------------- |
+| RESERVED      | PAYG, RESERVED       | ONE-ROOM, HA-DUAL-ROOM, DUAL-ROOM | equal: 3000    | ** min: 3000, max: 2500000 | ** min: 1, max: 5120 |
+
+
+<!-- TABLE STORAGE PROFILES ATTRIBUTES PARAMETERS -->
+## Storage Profiles
+More information about storage profiles can be found [here](https://wiki.cloudavenue.orange-business.com/wiki/Storage).All fields with a ** are editable.
+
+### ServiceClass ECO
+| StorageProfileClass | SizeLimit (Gb)          | IOPSLimit   | BillingModels  | DisponibilityClasses |
+| ------------------- | ----------------------- | ----------- | -------------- | -------------------- |
+| silver              | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | ONE-ROOM             |
+| silver_r1           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| silver_r2           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| gold                | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | ONE-ROOM             |
+| gold_r1             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| gold_r2             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+
+### ServiceClass STD
+| StorageProfileClass | SizeLimit (Gb)          | IOPSLimit   | BillingModels  | DisponibilityClasses |
+| ------------------- | ----------------------- | ----------- | -------------- | -------------------- |
+| silver              | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | ONE-ROOM             |
+| silver_r1           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| silver_r2           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| gold                | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | ONE-ROOM             |
+| gold_r1             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| gold_r2             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| gold_hm             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| platinum3k          | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | ONE-ROOM             |
+| platinum3k_r1       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum3k_r2       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum3k_hm       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| platinum7k          | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | ONE-ROOM             |
+| platinum7k_r1       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum7k_r2       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum7k_hm       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+
+### ServiceClass HP
+| StorageProfileClass | SizeLimit (Gb)          | IOPSLimit   | BillingModels  | DisponibilityClasses |
+| ------------------- | ----------------------- | ----------- | -------------- | -------------------- |
+| silver              | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | ONE-ROOM             |
+| silver_r1           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| silver_r2           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| gold                | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | ONE-ROOM             |
+| gold_r1             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| gold_r2             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| gold_hm             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| platinum3k          | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | ONE-ROOM             |
+| platinum3k_r1       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum3k_r2       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum3k_hm       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| platinum7k          | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | ONE-ROOM             |
+| platinum7k_r1       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum7k_r2       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum7k_hm       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+
+### ServiceClass VOIP
+| StorageProfileClass | SizeLimit (Gb)          | IOPSLimit   | BillingModels  | DisponibilityClasses |
+| ------------------- | ----------------------- | ----------- | -------------- | -------------------- |
+| silver              | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | ONE-ROOM             |
+| silver_r1           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| silver_r2           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| gold                | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | ONE-ROOM             |
+| gold_r1             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| gold_r2             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| gold_hm             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| platinum3k          | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | ONE-ROOM             |
+| platinum3k_r1       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum3k_r2       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum3k_hm       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| platinum7k          | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | ONE-ROOM             |
+| platinum7k_r1       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum7k_r2       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum7k_hm       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+
+
+
 
 ## Import
 

@@ -188,7 +188,7 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 						TFAdvanced: testsacc.TFAdvanced{
 							PlanOnly:           true,
 							ExpectNonEmptyPlan: true,
-							ExpectError:        regexp.MustCompile("You can change the cpu_speed_in_mhz attribute only if the billing_model is set to RESERVED."),
+							ExpectError:        regexp.MustCompile(`CPU speed in MHz attribute is not valid`),
 						},
 					},
 				},
@@ -253,7 +253,7 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 							description           = {{ generate . "description" "longString"}}
 							cpu_allocated         = 22000
 							memory_allocated      = 30
-							cpu_speed_in_mhz      = 2300
+							cpu_speed_in_mhz      = 2000
 							billing_model         = "RESERVED"
 							disponibility_class   = "ONE-ROOM"
 							service_class         = "STD"
@@ -271,7 +271,7 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22000"),
 							resource.TestCheckResourceAttr(resourceName, "memory_allocated", "30"),
-							resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2300"),
+							resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2000"),
 						},
 					},
 				},
