@@ -3,6 +3,7 @@
 ### :dependabot: **Dependencies**
 
 * deps: bumps actions/download-artifact from 4.1.0 to 4.1.1 (GH-683)
+* deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.4.2 to 1.5.0 (GH-684)
 
 ## 0.16.0 (January 10, 2024)
 ### :rotating_light: **Breaking Changes**
