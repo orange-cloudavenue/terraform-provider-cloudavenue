@@ -8,15 +8,12 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
@@ -45,146 +42,6 @@ type firewallResource struct {
 	edgegw edgegw.EdgeGateway
 }
 
-// RulesFromPlan.
-func (rm *firewallModel) RulesFromPlan(ctx context.Context) (rules firewallModelRules, diags diag.Diagnostics) {
-	tflog.Info(ctx, "firewallModel.RulesFromPlan")
-	rules = make(firewallModelRules, 0)
-	diags.Append(rm.Rules.ElementsAs(ctx, &rules, false)...)
-	return
-}
-
-// rulesToNsxtFirewallRule.
-func (rules *firewallModelRules) rulesToNsxtFirewallRule(ctx context.Context) (nsxtFirewallRules []*govcdtypes.NsxtFirewallRule, diags diag.Diagnostics) {
-	nsxtFirewallRules = make([]*govcdtypes.NsxtFirewallRule, len(*rules))
-	for i, rule := range *rules {
-		nsxtFirewallRules[i] = &govcdtypes.NsxtFirewallRule{
-			Name:       rule.Name.ValueString(),
-			Action:     rule.Action.ValueString(),
-			Enabled:    rule.Enabled.ValueBool(),
-			IpProtocol: rule.IPProtocol.ValueString(),
-			Logging:    rule.Logging.ValueBool(),
-			Direction:  rule.Direction.ValueString(),
-			Version:    nil,
-		}
-
-		// ! If sourceIDs/destinationIDs is Null, it's an equivalent of any (source/destination)
-
-		// * sourceIDs
-		if !rule.SourceIDs.IsNull() {
-			nsxtFirewallRules[i].SourceFirewallGroups = make([]govcdtypes.OpenApiReference, 0)
-			sourcesIDs := make([]string, 0)
-			if d := rule.SourceIDs.ElementsAs(ctx, &sourcesIDs, false); d.HasError() {
-				diags.Append(d...)
-				return
-			}
-
-			for index, sourceID := range sourcesIDs {
-				nsxtFirewallRules[i].SourceFirewallGroups[index] = govcdtypes.OpenApiReference{
-					ID: sourceID,
-				}
-			}
-		}
-
-		// * destinationIDs
-		if !rule.DestinationIDs.IsNull() {
-			nsxtFirewallRules[i].DestinationFirewallGroups = make([]govcdtypes.OpenApiReference, 0)
-			destinationIDs := make([]string, 0)
-			if d := rule.DestinationIDs.ElementsAs(ctx, &destinationIDs, false); d.HasError() {
-				diags.Append(d...)
-				return
-			}
-
-			for index, destinationID := range destinationIDs {
-				nsxtFirewallRules[i].DestinationFirewallGroups[index] = govcdtypes.OpenApiReference{
-					ID: destinationID,
-				}
-			}
-		}
-
-		// * appPortProfilesIDs
-		if !rule.AppPortProfileIDs.IsNull() {
-			nsxtFirewallRules[i].ApplicationPortProfiles = make([]govcdtypes.OpenApiReference, 0)
-			appPortProfilesIDs := make([]string, 0)
-			if d := rule.AppPortProfileIDs.ElementsAs(ctx, &appPortProfilesIDs, false); d.HasError() {
-				diags.Append(d...)
-				return
-			}
-
-			for index, appPortProfileID := range appPortProfilesIDs {
-				nsxtFirewallRules[i].ApplicationPortProfiles[index] = govcdtypes.OpenApiReference{
-					ID: appPortProfileID,
-				}
-			}
-		}
-	}
-
-	return
-}
-
-// attrTypes returns the attribute types for the resource.
-func (rules *firewallModelRules) AttrTypes(_ context.Context) map[string]attr.Type {
-	return map[string]attr.Type{
-		"id":                   types.StringType,
-		"name":                 types.StringType,
-		"enabled":              types.BoolType,
-		"direction":            types.StringType,
-		"ip_protocol":          types.StringType,
-		"action":               types.StringType,
-		"logging":              types.BoolType,
-		"source_ids":           types.SetType{ElemType: types.StringType},
-		"destination_ids":      types.SetType{ElemType: types.StringType},
-		"app_port_profile_ids": types.SetType{ElemType: types.StringType},
-	}
-}
-
-// objectTypes returns the object types for the resource.
-func (rules *firewallModelRules) ObjectType(ctx context.Context) types.ObjectType {
-	return types.ObjectType{
-		AttrTypes: rules.AttrTypes(ctx),
-	}
-}
-
-// ToPlan.
-func (rules *firewallModelRules) ToPlan(ctx context.Context) (lV basetypes.ListValue, diags diag.Diagnostics) {
-	if rules == nil {
-		diags.AddError("Rules not initialized", "Failed to convert rules to plan")
-		return types.ListNull(rules.ObjectType(ctx)), diags
-	}
-
-	return types.ListValueFrom(ctx, rules.ObjectType(ctx), rules)
-}
-
-// fwRulesRead.
-func fwRulesRead(ctx context.Context, fwRules *govcd.NsxtFirewall) (rules firewallModelRules, diags diag.Diagnostics) {
-	rules = make(firewallModelRules, 0)
-
-	for _, rule := range fwRules.NsxtFirewallRuleContainer.UserDefinedRules {
-		sourceIDs, d := types.SetValueFrom(ctx, types.StringType, rule.SourceFirewallGroups)
-		diags.Append(d...)
-		destinationIDs, d := types.SetValueFrom(ctx, types.StringType, rule.DestinationFirewallGroups)
-		diags.Append(d...)
-		appPortProfileIDs, d := types.SetValueFrom(ctx, types.StringType, rule.ApplicationPortProfiles)
-		diags.Append(d...)
-		if diags.HasError() {
-			return
-		}
-		rules = append(rules, firewallModelRule{
-			ID:                types.StringValue(rule.ID),
-			Name:              types.StringValue(rule.Name),
-			Enabled:           types.BoolValue(rule.Enabled),
-			Direction:         types.StringValue(rule.Direction),
-			IPProtocol:        types.StringValue(rule.IpProtocol),
-			Action:            types.StringValue(rule.Action),
-			Logging:           types.BoolValue(rule.Logging),
-			SourceIDs:         sourceIDs,
-			DestinationIDs:    destinationIDs,
-			AppPortProfileIDs: appPortProfileIDs,
-		})
-	}
-
-	return
-}
-
 // Init Initializes the resource.
 func (r *firewallResource) Init(ctx context.Context, rm *firewallModel) (diags diag.Diagnostics) {
 	var err error
@@ -195,8 +52,8 @@ func (r *firewallResource) Init(ctx context.Context, rm *firewallModel) (diags d
 	}
 
 	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   rm.EdgeGatewayID,
-		Name: rm.EdgeGatewayName,
+		ID:   rm.EdgeGatewayID.StringValue,
+		Name: rm.EdgeGatewayName.StringValue,
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
@@ -252,59 +109,43 @@ func (r *firewallResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	// Rules
-	rules, d := plan.RulesFromPlan(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	/*
 		Implement the resource creation logic here.
 	*/
 
-	// Lock object VDC or VDC Group
-	vdcOrVDCGroup, err := r.edgegw.GetParent()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+	// Create or update the resource
+	resp.Diagnostics.Append(r.createOrUpdate(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
-
-	// Set the rules
-	vcdRules, d := rules.rulesToNsxtFirewallRule(ctx)
+	stateRefreshed, found, d := r.read(ctx, plan)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		resp.Diagnostics.AddWarning("Resource not found", fmt.Sprintf("Unable to find firewall on edge %s", plan.EdgeGatewayName.Get()))
+		return
+	}
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if _, err := r.edgegw.UpdateNsxtFirewall(&govcdtypes.NsxtFirewallRuleContainer{
-		UserDefinedRules: vcdRules,
-	}); err != nil {
-		resp.Diagnostics.AddError("Error to create Firewall", err.Error())
-		return
-	}
-
-	state, d := r.read(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	// Save updated state into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
-// Read refreshes the Terraform state with the latest data.
-func (r *firewallResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	defer metrics.New("cloudavenue_edgegateway_firewall", r.client.GetOrgName(), metrics.Read)()
+// Update updates the resource and sets the updated Terraform state on success.
+func (r *firewallResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_firewall", r.client.GetOrgName(), metrics.Update)()
 
-	state := &firewallModel{}
+	var (
+		plan  = new(firewallModel)
+		state = new(firewallModel)
+	)
 
-	// Get current state
-	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	// Read Terraform plan data into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -316,78 +157,24 @@ func (r *firewallResource) Read(ctx context.Context, req resource.ReadRequest, r
 	}
 
 	/*
-		Implement the resource read here
-	*/
-
-	plan, d := r.read(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-}
-
-// Update updates the resource and sets the updated Terraform state on success.
-func (r *firewallResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { //nolint:dupl
-	defer metrics.New("cloudavenue_edgegateway_firewall", r.client.GetOrgName(), metrics.Update)()
-
-	plan := &firewallModel{}
-
-	// Get current state
-	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Rules
-	rules, d := plan.RulesFromPlan(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	/*
 		Implement the resource update here
 	*/
 
-	vdcOrVDCGroup, err := r.edgegw.GetParent()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
-		return
-	}
-
-	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
-
-	vcdRules, d := rules.rulesToNsxtFirewallRule(ctx)
-	resp.Diagnostics.Append(d...)
+	// Use generic createOrUpdate function to update the resource
+	resp.Diagnostics.Append(r.createOrUpdate(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if _, err := r.edgegw.UpdateNsxtFirewall(&govcdtypes.NsxtFirewallRuleContainer{
-		UserDefinedRules: vcdRules,
-	}); err != nil {
-		resp.Diagnostics.AddError("Error to create Firewall", err.Error())
-		return
-	}
-
-	plan, d = r.read(ctx)
+	// Use generic read function to refresh the state
+	stateRefreshed, _, d := r.read(ctx, plan)
 	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
+	if d.HasError() {
 		return
 	}
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -429,8 +216,40 @@ func (r *firewallResource) Delete(ctx context.Context, req resource.DeleteReques
 
 	if err := fwRules.DeleteAllRules(); err != nil {
 		resp.Diagnostics.AddError("Error deleting Edge Gateway Firewall", err.Error())
+	}
+}
+
+// Read refreshes the Terraform state with the latest data.
+func (r *firewallResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_edgegateway_firewall", r.client.GetOrgName(), metrics.Read)()
+
+	state := &firewallModel{}
+
+	// Get current state
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Init the resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Refresh the state
+	stateRefreshed, found, d := r.read(ctx, state)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	// Set refreshed state
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 func (r *firewallResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -440,6 +259,7 @@ func (r *firewallResource) ImportState(ctx context.Context, req resource.ImportS
 		edgegwID   string
 		edgegwName string
 		d          diag.Diagnostics
+		err        error
 	)
 
 	r.org, d = org.Init(r.client)
@@ -454,7 +274,7 @@ func (r *firewallResource) ImportState(ctx context.Context, req resource.ImportS
 		edgegwName = req.ID
 	}
 
-	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
 		ID:   types.StringValue(edgegwID),
 		Name: types.StringValue(edgegwName),
 	})
@@ -463,39 +283,106 @@ func (r *firewallResource) ImportState(ctx context.Context, req resource.ImportS
 		return
 	}
 
-	// ID
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), edgegw.GetID())...)
-	// edge_gateway_id
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_id"), edgegw.GetID())...)
-	// edge_gateway_name
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), edgegw.GetName())...)
+	state := &firewallModel{}
+	state.ID.Set(r.edgegw.GetID())
+	state.EdgeGatewayID.Set(r.edgegw.GetID())
+	state.EdgeGatewayName.Set(r.edgegw.GetName())
+
+	// Refresh the state
+	stateRefreshed, found, d := r.read(ctx, state)
+	if !found {
+		resp.Diagnostics.AddError("Failed to import firewall.", fmt.Sprintf("Unable to find firewall on edge %s", r.edgegw.GetName()))
+		return
+	}
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	// Set refreshed state
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
-func (r *firewallResource) read(ctx context.Context) (plan *firewallModel, diags diag.Diagnostics) {
-	fwRules, err := r.edgegw.GetNsxtFirewall()
+// * custom functions
+
+// createOrUpdate creates or updates the resource and sets the Terraform state.
+func (r *firewallResource) createOrUpdate(ctx context.Context, plan *firewallModel) (diags diag.Diagnostics) {
+	// Lock object VDC or VDC Group
+	vdcOrVDCGroup, err := r.edgegw.GetParent()
 	if err != nil {
-		diags.AddError("Error retrieving Edge Gateway Firewall", err.Error())
+		diags.AddError("Error retrieving Edge Gateway parent", err.Error())
 		return
 	}
 
-	rules, d := fwRulesRead(ctx, fwRules)
+	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+
+	// Set the rules
+	fwRules, d := plan.rulesToNsxtFirewallRule(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
 		return
 	}
 
-	plan = &firewallModel{
-		// ID is stored as Edge Gateway ID - because this is a "container" for all firewall rules at once and each child
-		// TypeSet element will have a computed ID field for each rule
-		ID:              types.StringValue(r.edgegw.GetID()),
-		EdgeGatewayID:   types.StringValue(r.edgegw.GetID()),
-		EdgeGatewayName: types.StringValue(r.edgegw.GetName()),
-	}
-	plan.Rules, d = rules.ToPlan(ctx)
-	diags.Append(d...)
-	if diags.HasError() {
+	if _, err := r.edgegw.UpdateNsxtFirewall(&govcdtypes.NsxtFirewallRuleContainer{
+		UserDefinedRules: fwRules,
+	}); err != nil {
+		diags.AddError("Error to create Firewall", err.Error())
 		return
 	}
 
 	return
+}
+
+// read is a generic read function for the resource.
+func (r *firewallResource) read(ctx context.Context, planOrState *firewallModel) (stateRefreshed *firewallModel, found bool, diags diag.Diagnostics) {
+	stateRefreshed = planOrState.Copy()
+
+	fwRules, err := r.edgegw.GetNsxtFirewall()
+	if err != nil {
+		if govcd.IsNotFound(err) {
+			return stateRefreshed, false, nil
+		}
+		diags.AddError("Error retrieving Edge Gateway Firewall", err.Error())
+		return stateRefreshed, true, diags
+	}
+
+	stateRefreshed.ID.Set(r.edgegw.GetID())
+	stateRefreshed.EdgeGatewayID.Set(r.edgegw.GetID())
+	stateRefreshed.EdgeGatewayName.Set(r.edgegw.GetName())
+
+	rules := make([]*firewallModelRule, 0)
+
+	if fwRules.NsxtFirewallRuleContainer == nil {
+		return stateRefreshed, true, nil
+	}
+
+	for _, rule := range fwRules.NsxtFirewallRuleContainer.UserDefinedRules {
+		fwRule := &firewallModelRule{
+			ID:                supertypes.NewStringNull(),
+			Name:              supertypes.NewStringNull(),
+			Enabled:           supertypes.NewBoolNull(),
+			Direction:         supertypes.NewStringNull(),
+			IPProtocol:        supertypes.NewStringNull(),
+			Action:            supertypes.NewStringNull(),
+			Logging:           supertypes.NewBoolNull(),
+			SourceIDs:         supertypes.NewSetValueOfNull[string](ctx),
+			DestinationIDs:    supertypes.NewSetValueOfNull[string](ctx),
+			AppPortProfileIDs: supertypes.NewSetValueOfNull[string](ctx),
+		}
+		fwRule.ID.Set(rule.ID)
+		fwRule.Name.Set(rule.Name)
+		fwRule.Enabled.Set(rule.Enabled)
+		fwRule.Direction.Set(rule.Direction)
+		fwRule.IPProtocol.Set(rule.IpProtocol)
+		fwRule.Action.Set(rule.Action)
+		fwRule.Logging.Set(rule.Logging)
+		fwRule.SourceIDs.Set(ctx, fromOpenAPIReference(ctx, rule.SourceFirewallGroups))
+		fwRule.DestinationIDs.Set(ctx, fromOpenAPIReference(ctx, rule.DestinationFirewallGroups))
+		fwRule.AppPortProfileIDs.Set(ctx, fromOpenAPIReference(ctx, rule.ApplicationPortProfiles))
+		rules = append(rules, fwRule)
+	}
+
+	diags.Append(stateRefreshed.Rules.Set(ctx, rules)...)
+	return stateRefreshed, true, diags
 }

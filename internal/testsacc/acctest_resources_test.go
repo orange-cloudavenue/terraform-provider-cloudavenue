@@ -21,8 +21,9 @@ func GetResourceConfig() map[testsacc.ResourceName]func() resourceConfig {
 		NetworkRoutedResourceName: NewResourceConfig(NewNetworkRoutedResourceTest()),
 
 		// * Edge Gateway
-		EdgeGatewayResourceName:         NewResourceConfig(NewEdgeGatewayResourceTest()),
-		EdgeGatewayFirewallResourceName: NewResourceConfig(NewEdgeGatewayFirewallResourceTest()),
+		EdgeGatewayResourceName:              NewResourceConfig(NewEdgeGatewayResourceTest()),
+		EdgeGatewayFirewallResourceName:      NewResourceConfig(NewEdgeGatewayFirewallResourceTest()),
+		EdgeGatewaySecurityGroupResourceName: NewResourceConfig(NewEdgeGatewaySecurityGroupResourceTest()),
 
 		// * Backup
 		BackupResourceName: NewResourceConfig(NewBackupResourceTest()),

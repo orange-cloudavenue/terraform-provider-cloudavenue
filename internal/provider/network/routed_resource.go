@@ -20,6 +20,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
@@ -118,8 +119,8 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	networkMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer networkMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Set Network
 	orgVDCNetworkConfig, diag := r.SetNetworkAPIObject(ctx, plan)
@@ -229,8 +230,8 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	networkMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer networkMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Get current network
 	orgNetwork, err := r.org.GetOpenApiOrgVdcNetworkById(plan.ID.ValueString())
@@ -295,8 +296,8 @@ func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	networkMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer networkMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Get current network
 	orgNetwork, err := r.org.GetOpenApiOrgVdcNetworkById(state.ID.ValueString())

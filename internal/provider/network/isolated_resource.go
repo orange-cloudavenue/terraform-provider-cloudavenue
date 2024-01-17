@@ -130,9 +130,8 @@ func (r *networkIsolatedResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	// Lock VDC or VDCGroup
-	vcdMutexKV := mutex.NewKV()
-	vcdMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer vcdMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Set network type
 	networkType, diag := r.SetNetworkAPIObject(ctx, plan)
@@ -261,9 +260,8 @@ func (r *networkIsolatedResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Lock VDC or VDCGroup
-	vcdMutexKV := mutex.NewKV()
-	vcdMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer vcdMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Get network
 	orgNetwork, err := vdcOrVDCGroup.GetOpenApiOrgVdcNetworkByName(state.Name.ValueString())
@@ -335,9 +333,8 @@ func (r *networkIsolatedResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	// Lock VDC or VDCGroup
-	vcdMutexKV := mutex.NewKV()
-	vcdMutexKV.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer vcdMutexKV.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
 
 	// Delete network
 	err = orgNetwork.Delete()

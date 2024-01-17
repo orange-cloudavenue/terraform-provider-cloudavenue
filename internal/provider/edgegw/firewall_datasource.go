@@ -40,8 +40,8 @@ func (d *firewallDataSource) Init(ctx context.Context, dm *firewallModel) (diags
 	}
 
 	d.edgegw, err = d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   dm.EdgeGatewayID,
-		Name: dm.EdgeGatewayName,
+		ID:   dm.EdgeGatewayID.StringValue,
+		Name: dm.EdgeGatewayName.StringValue,
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
@@ -96,18 +96,23 @@ func (d *firewallDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	f := &firewallResource{
+	/*
+		Implement the data source read logic here.
+	*/
+
+	s := &firewallResource{
 		client: d.client,
 		org:    d.org,
 		edgegw: d.edgegw,
 	}
 
-	data, diag := f.read(ctx)
-	resp.Diagnostics.Append(diag...)
+	// Read data from the API
+	data, _, diags := s.read(ctx, config)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Save data into Terraform state
+	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 )
 
 func firewallSchema(_ context.Context) superschema.Schema {
@@ -30,18 +31,13 @@ func firewallSchema(_ context.Context) superschema.Schema {
 			MarkdownDescription: "The firewall data source allows you to retrieve information about an Firewall.",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
+			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					Computed:            true,
 					MarkdownDescription: "The ID of the Firewall Edge Gateway Service.",
 				},
-				Resource: &schemaR.StringAttribute{
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.UseStateForUnknown(),
-					},
-				},
 			},
-			"edge_gateway_name": superschema.StringAttribute{
+			"edge_gateway_name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the Edge Gateway.",
 					Optional:            true,
@@ -54,7 +50,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"edge_gateway_id": superschema.StringAttribute{
+			"edge_gateway_id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the Edge Gateway.",
 					Optional:            true,
@@ -67,7 +63,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"rules": superschema.ListNestedAttribute{
+			"rules": superschema.SuperListNestedAttributeOf[firewallModelRule]{
 				Common: &schemaR.ListNestedAttribute{
 					MarkdownDescription: "The list of rules to apply to the firewall.",
 				},
@@ -81,13 +77,13 @@ func firewallSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 				Attributes: superschema.Attributes{
-					"id": superschema.StringAttribute{
+					"id": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "The ID of the rule.",
 						},
 					},
-					"name": superschema.StringAttribute{
+					"name": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The name of the rule.",
 						},
@@ -98,7 +94,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 					},
-					"direction": superschema.StringAttribute{
+					"direction": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The direction of the rule.",
 						},
@@ -112,7 +108,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 					},
-					"ip_protocol": superschema.StringAttribute{
+					"ip_protocol": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The IP protocol of the rule.",
 							Computed:            true,
@@ -125,7 +121,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 							},
 						},
 					},
-					"action": superschema.StringAttribute{
+					"action": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "Defines if the rule should `ALLOW` or `DROP` matching traffic.",
 						},
@@ -139,7 +135,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 					},
-					"enabled": superschema.BoolAttribute{
+					"enabled": superschema.SuperBoolAttribute{
 						Common: &schemaR.BoolAttribute{
 							MarkdownDescription: "Defines if the rule is enabled or not.",
 							Computed:            true,
@@ -149,7 +145,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 							Default:  booldefault.StaticBool(true),
 						},
 					},
-					"logging": superschema.BoolAttribute{
+					"logging": superschema.SuperBoolAttribute{
 						Common: &schemaR.BoolAttribute{
 							MarkdownDescription: "Defines if the rule should log matching traffic.",
 							Computed:            true,
@@ -159,10 +155,10 @@ func firewallSchema(_ context.Context) superschema.Schema {
 							Default:  booldefault.StaticBool(false),
 						},
 					},
-					"source_ids": superschema.SetAttribute{
+					"source_ids": superschema.SuperSetAttributeOf[string]{
 						Common: &schemaR.SetAttribute{
 							MarkdownDescription: "A set of Source Firewall Group IDs (`IP Sets` or `Security Groups`). Leaving it empty means `Any` (all).",
-							ElementType:         types.StringType,
+							ElementType:         supertypes.StringType{},
 						},
 						Resource: &schemaR.SetAttribute{
 							Optional: true,
@@ -171,10 +167,10 @@ func firewallSchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 					},
-					"destination_ids": superschema.SetAttribute{
+					"destination_ids": superschema.SuperSetAttributeOf[string]{
 						Common: &schemaR.SetAttribute{
 							MarkdownDescription: "A set of Destination Firewall Group IDs (`IP Sets` or `Security Groups`). Leaving it empty means `Any` (all).",
-							ElementType:         types.StringType,
+							ElementType:         supertypes.StringType{},
 						},
 						Resource: &schemaR.SetAttribute{
 							Optional: true,
@@ -183,7 +179,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 					},
-					"app_port_profile_ids": superschema.SetAttribute{
+					"app_port_profile_ids": superschema.SuperSetAttributeOf[string]{
 						Common: &schemaR.SetAttribute{
 							MarkdownDescription: "A set of Application Port Profile IDs. Leaving it empty means `Any` (all).",
 							ElementType:         types.StringType,

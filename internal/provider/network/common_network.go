@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
@@ -49,8 +48,6 @@ type networkRoutedModel struct {
 	DNSSuffix       types.String `tfsdk:"dns_suffix"`
 	StaticIPPool    types.Set    `tfsdk:"static_ip_pool"`
 }
-
-var networkMutexKV = mutex.NewKV()
 
 // Get parent edge gateway ID.
 func GetParentEdgeGatewayID(org org.Org, edgeGatewayID string) (*string, diag.Diagnostic) {
