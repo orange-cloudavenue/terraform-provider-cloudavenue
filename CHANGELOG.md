@@ -1,4 +1,9 @@
 ## 0.17.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps actions/download-artifact from 4.1.0 to 4.1.1 (GH-683)
+
 ## 0.16.0 (January 10, 2024)
 ### :rotating_light: **Breaking Changes**
 
