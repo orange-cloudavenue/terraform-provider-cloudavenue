@@ -1,162 +1,105 @@
 package testsacc
 
 import (
-	"fmt"
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-const testAccSecurityGroupResourceConfig = `
-resource "cloudavenue_edgegateway_security_group" "example" {
+var _ testsacc.TestACC = &EdgeGatewaySecurityGroupResource{}
 
-  edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[0].id
-  name            = "example"
-  description     = "This is an example security group"
-  member_org_network_ids = [
-    cloudavenue_network_routed.example.id
-  ]
+const (
+	EdgeGatewaySecurityGroupResourceName = testsacc.ResourceName("cloudavenue_edgegateway_security_group")
+)
+
+type EdgeGatewaySecurityGroupResource struct{}
+
+func NewEdgeGatewaySecurityGroupResourceTest() testsacc.TestACC {
+	return &EdgeGatewaySecurityGroupResource{}
 }
 
-data "cloudavenue_edgegateways" "example" {}
+// GetResourceName returns the name of the resource.
+func (r *EdgeGatewaySecurityGroupResource) GetResourceName() string {
+	return EdgeGatewaySecurityGroupResourceName.String()
+}
 
+func (r *EdgeGatewaySecurityGroupResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[NetworkRoutedResourceName]().GetDefaultConfig)
+	return
+}
 
-resource "cloudavenue_network_routed" "example" {
-	name        = "MyOrgNet"
-	description = "This is an example Net"
-  
-	edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[0].id
-  
-	gateway       = "192.168.1.254"
-	prefix_length = 24
-  
-	dns1 = "1.1.1.1"
-	dns2 = "8.8.8.8"
-  
-	dns_suffix = "example"
-  
-	static_ip_pool = [
-	  {
-		start_address = "192.168.1.10"
-		end_address   = "192.168.1.20"
-	  }
-	]
-  }
-`
-
-const testAccSecurityGroupResourceConfigUpdate = `
-resource "cloudavenue_edgegateway_security_group" "example" {
-
-	edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[0].id
-	name            = "example-updated"
-	description     = "This is an example security group updated"
-	member_org_network_ids = [
-	  cloudavenue_network_routed.example.id
-	]
-  }
-  
-  data "cloudavenue_edgegateways" "example" {}
-  
-  
-  resource "cloudavenue_network_routed" "example" {
-	  name        = "MyOrgNet"
-	  description = "This is an example Net"
-	
-	  edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[0].id
-	
-	  gateway       = "192.168.1.254"
-	  prefix_length = 24
-	
-	  dns1 = "1.1.1.1"
-	  dns2 = "8.8.8.8"
-	
-	  dns_suffix = "example"
-	
-	  static_ip_pool = [
-		{
-		  start_address = "192.168.1.10"
-		  end_address   = "192.168.1.20"
-		}
-	  ]
+func (r *EdgeGatewaySecurityGroupResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
+		"example": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.SecurityGroup)),
+					resource.TestCheckResourceAttr(resourceName, "member_org_network_ids.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_edgegateway_security_group" "example" {
+						name            = {{ generate . "name" }}
+						description     = "This is an example security group"
+						
+						edge_gateway_id = cloudavenue_edgegateway.example.id
+						member_org_network_ids = [
+						  cloudavenue_network_routed.example.id
+						]
+					  }`),
+					Checks: []resource.TestCheckFunc{
+						// id
+						resource.TestCheckResourceAttr(resourceName, "description", "This is an example security group"),
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+					},
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_edgegateway_security_group" "example" {
+							name            = {{ generate . "newname" }}
+							description     = "updated"
+							
+							edge_gateway_id = cloudavenue_edgegateway.example.id
+							member_org_network_ids = [
+							  cloudavenue_network_routed.example.id
+							]
+						  }`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "description", "updated"),
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "newname")),
+						},
+					},
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_id", "id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
+			}
+		},
 	}
-`
-
-func securityGroupTestCheck(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet(resourceName, "id"),
-		resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
-		resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
-		resource.TestCheckResourceAttr(resourceName, "description", "This is an example security group"),
-		resource.TestCheckResourceAttr(resourceName, "name", "example"),
-		resource.TestCheckResourceAttr(resourceName, "member_org_network_ids.#", "1"),
-		resource.TestCheckResourceAttrSet(resourceName, "member_org_network_ids.0"),
-	)
 }
 
-func TestAccSecurityGroupResource(t *testing.T) {
-	resourceName := "cloudavenue_edgegateway_security_group.example"
-
+func TestAccEdgeGatewaySecurityGroupResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Read testing
-			{
-				// Apply test
-				Config: testAccSecurityGroupResourceConfig,
-				Check:  securityGroupTestCheck(resourceName),
-			},
-			{
-				// Update test
-				Config: testAccSecurityGroupResourceConfigUpdate,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
-					resource.TestCheckResourceAttr(resourceName, "description", "This is an example security group updated"),
-					resource.TestCheckResourceAttr(resourceName, "name", "example-updated"),
-					resource.TestCheckResourceAttr(resourceName, "member_org_network_ids.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "member_org_network_ids.0"),
-				),
-			},
-			// ImportruetState testing
-			{
-				// Import test
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: testAccSecurityGroupResourceImportStateIDFuncWithID(resourceName),
-			},
-			{
-				// Import test
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: testAccSecurityGroupResourceImportStateIDFuncWithName(resourceName),
-			},
-		},
+		Steps:                    testsacc.GenerateTests(&EdgeGatewaySecurityGroupResource{}),
 	})
-}
-
-func testAccSecurityGroupResourceImportStateIDFuncWithID(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		return fmt.Sprintf("%s.%s", rs.Primary.Attributes["edge_gateway_id"], rs.Primary.Attributes["id"]), nil
-	}
-}
-
-func testAccSecurityGroupResourceImportStateIDFuncWithName(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		return fmt.Sprintf("%s.%s", rs.Primary.Attributes["edge_gateway_name"], rs.Primary.Attributes["name"]), nil
-	}
 }
