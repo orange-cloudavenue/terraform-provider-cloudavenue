@@ -1,0 +1,15 @@
+```release-note:feature
+`datasource/cloudavenue_edgegateway_app_port_profile` - New datasource to retrieve edgegateway app port profile information.
+```
+
+```release-note:enhancement
+`resource/cloudavenue_edgegateway_app_port_profile` - Improve documentation and examples.
+```
+
+```release-note:enhancement
+`datasource/cloudavenue_edgegateway_app_port_profile` - Improve documentation and examples.
+```
+
+```release-note:note
+`resource/cloudavenue_edgegateway_app_port_profile` - The `vdc` attribute is deprecated and will be removed in the release `v0.19.0`. Please use `edgegateway_id` and `edgegateway_name` attributes instead.
+```

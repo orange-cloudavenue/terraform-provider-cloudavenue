@@ -17,6 +17,38 @@ description: |-
 
 {{ .SchemaMarkdown | trimspace }}
 
+## Advanced Usage
+
+Reference the App Port Profile in the Firewall Rule.
+
+```terraform
+resource "cloudavenue_edgegateway_app_port_profile" "example" {
+  name            = "MyApplication"
+  description     = "Application port profile for my application"
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+  app_ports = [
+    {
+      protocol = "TCP"
+      ports = [
+        "8080",
+      ]
+    },
+  ]
+}
+
+resource "cloudavenue_edgegateway_firewall" "example" {
+	edge_gateway_id = cloudavenue_edgegateway.example.id
+	rules = [{
+		action      = "ALLOW"
+		name        = "From Internet to Application example"
+		direction   = "IN"
+		ip_protocol = "IPV4"
+		destination_ids = [cloudavenue_edgegateway_security_group.example.id]
+		app_port_profile_ids = [cloudavenue_edgegateway_app_port_profile.example.id]
+	}]
+}
+```
+
 {{ if .HasImport -}}
 ## Import
 

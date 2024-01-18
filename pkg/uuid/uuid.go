@@ -31,6 +31,7 @@ const (
 	SecurityGroup     = VcloudUUID(VcloudUUIDPrefix + "firewallGroup:")
 	Catalog           = VcloudUUID(VcloudUUIDPrefix + "catalog:")
 	Token             = VcloudUUID(VcloudUUIDPrefix + "token:")
+	AppPortProfile    = VcloudUUID(VcloudUUIDPrefix + "applicationPortProfile:")
 
 	// * CLOUDAVENUE.
 	VCDA = VcloudUUID(CloudAvenueUUIDPrefix + "vcda:")
@@ -53,6 +54,7 @@ var vcloudUUIDs = []VcloudUUID{
 	SecurityGroup,
 	Catalog,
 	Token,
+	AppPortProfile,
 }
 
 type (
@@ -131,6 +133,11 @@ func Normalize(prefix VcloudUUID, uuid string) VcloudUUID {
 	}
 
 	return prefix + u
+}
+
+// IsAppPortProfile returns true if the UUID is a AppPortProfile UUID.
+func (uuid VcloudUUID) IsAppPortProfile() bool {
+	return uuid.IsType(AppPortProfile)
 }
 
 // IsVM returns true if the UUID is a VM UUID.
@@ -214,6 +221,11 @@ func (uuid VcloudUUID) IsVDCComputePolicy() bool {
 }
 
 // * End Methods
+
+// IsAppPortProfile returns true if the UUID is a AppPortProfile UUID.
+func IsAppPortProfile(uuid string) bool {
+	return VcloudUUID(uuid).IsType(AppPortProfile)
+}
 
 // IsEdgeGateway returns true if the UUID is a EdgeGateway UUID.
 func IsEdgeGateway(uuid string) bool {
