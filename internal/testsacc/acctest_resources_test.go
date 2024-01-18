@@ -41,5 +41,8 @@ func GetResourceConfig() map[testsacc.ResourceName]func() resourceConfig {
 
 		// * VCDA
 		VCDAIPResourceName: NewResourceConfig(NewVCDAIPResourceTest()),
+
+		// * Public IP
+		PublicIPResourceName: NewResourceConfig(NewPublicIPResourceTest()),
 	}
 }

@@ -3,26 +3,52 @@ package publicip
 import (
 	"golang.org/x/net/context"
 
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+
+	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
 
-func publicIPsSchema(ctx context.Context) schema.Schema {
-	return schema.Schema{
-		Description: "The public IP data source displays the list of public IP addresses.",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
+func publicIPsSchema(_ context.Context) superschema.Schema {
+	return superschema.Schema{
+		DataSource: superschema.SchemaDetails{
+			MarkdownDescription: "The public IP data source displays the list of public IP addresses.",
+		},
+		Attributes: superschema.Attributes{
+			"id": superschema.SuperStringAttribute{
+				DataSource: &schemaD.StringAttribute{
+					MarkdownDescription: "The ID of the Public IP.",
+					Computed:            true,
+				},
 			},
-			"public_ips": schema.ListNestedAttribute{
-				MarkdownDescription: "A list of public IPs.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id":                publicIPSchema().GetDataSource(ctx).Attributes["id"],
-						"public_ip":         publicIPSchema().GetDataSource(ctx).Attributes["public_ip"],
-						"edge_gateway_name": publicIPSchema().GetDataSource(ctx).Attributes["edge_gateway_name"],
-						"edge_gateway_id":   publicIPSchema().GetDataSource(ctx).Attributes["edge_gateway_id"],
+			"public_ips": superschema.SuperListNestedAttributeOf[publicIPNetworkConfigModel]{
+				DataSource: &schemaD.ListNestedAttribute{
+					MarkdownDescription: "A list of public IPs.",
+					Computed:            true,
+				},
+				Attributes: superschema.Attributes{
+					"id": superschema.SuperStringAttribute{
+						DataSource: &schemaD.StringAttribute{
+							MarkdownDescription: "The ID of the Public IP.",
+							Computed:            true,
+						},
+					},
+					"public_ip": superschema.SuperStringAttribute{
+						DataSource: &schemaD.StringAttribute{
+							MarkdownDescription: "The Public IP Address.",
+							Computed:            true,
+						},
+					},
+					"edge_gateway_name": superschema.SuperStringAttribute{
+						DataSource: &schemaD.StringAttribute{
+							MarkdownDescription: "The name of the Edge Gateway.",
+							Computed:            true,
+						},
+					},
+					"edge_gateway_id": superschema.SuperStringAttribute{
+						DataSource: &schemaD.StringAttribute{
+							MarkdownDescription: "The ID of the Edge Gateway.",
+							Computed:            true,
+						},
 					},
 				},
 			},

@@ -28,14 +28,12 @@ func (r *EdgeGatewayFirewallResource) GetResourceName() string {
 }
 
 func (r *EdgeGatewayFirewallResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	// resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
 	resp.Append(GetResourceConfig()[EdgeGatewaySecurityGroupResourceName]().GetDefaultConfig)
 	return
 }
 
 func (r *EdgeGatewayFirewallResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		// * First Test For a VDC Backup named "example"
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{

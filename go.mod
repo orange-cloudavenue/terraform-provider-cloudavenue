@@ -8,7 +8,6 @@ require (
 	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.7.0
 	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.3.0
 	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1
-	github.com/antihax/optional v1.0.0
 	github.com/aws/aws-sdk-go v1.49.16
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/google/uuid v1.5.0
@@ -22,7 +21,7 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.31.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.7.0
+	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.7.1
 	github.com/orange-cloudavenue/infrapi-sdk-go v0.1.4-0.20231005074857-89878ea119fb
 	github.com/rs/zerolog v1.31.0
 	github.com/thanhpk/randstr v1.0.6
@@ -39,6 +38,7 @@ require (
 	github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/ajg/form v1.5.1 // indirect
+	github.com/antihax/optional v1.0.0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
