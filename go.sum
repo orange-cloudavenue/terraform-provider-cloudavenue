@@ -5,8 +5,8 @@ github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.4 h1:FGb
 github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.4/go.mod h1:ngKE3iJWLWPLZ64umTr5ndnqd9mvMxHUZPk9pCkGSJY=
 github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.6.1 h1:pg4u5vnX84idlUY390sp0Qy0WfRq5Es2ppxe9Bbit9c=
 github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.6.1/go.mod h1:Rro2AUhgh2SHp3P8cu+pQinotCbkohb7MM4nZ15nP8M=
-github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.2.0 h1:lcJY8AEbpbYp/M/jPUdYZArsZKAkM2LECSYDfKOiIiQ=
-github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.2.0/go.mod h1:Aux7edspqsudNKr9YFgCkAgUwFj44RyOV123XolOzjY=
+github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.3.0 h1:RB6EBJtEzKNncTPXoVyHbsjbSqu6Q7vL4CEF7WE3s2Y=
+github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.3.0/go.mod h1:T6xRJTsLe4QEwy6B+kix0QOsRwwc+uWorFGZxu70cyk=
 github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1 h1:C17IEM0/4sxsTN0IpwDdgncea/cxfZVlWESIWvlEuBo=
 github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1/go.mod h1:GkF0MeJVDma0RHglpXxSzZ3yv7ftneMgI1KwHrJBOWA=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
@@ -63,8 +63,8 @@ github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246/go.mod h1:NsKVpF4h
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
-github.com/fatih/color v1.15.0 h1:kOqh6YHBtK8aywxGerMG2Eq3H6Qgoqeo13Bk2Mv/nBs=
-github.com/fatih/color v1.15.0/go.mod h1:0h5ZqXfHYED7Bhv2ZJamyIOUej9KtShiJESRwBDUSsw=
+github.com/fatih/color v1.16.0 h1:zmkK9Ngbjj+K0yRhTVONQh1p/HknKYSlNT+vZCzyokM=
+github.com/fatih/color v1.16.0/go.mod h1:fL2Sau1YI5c0pdGEVCbKQbLXB6edEj1ZgiY4NijnWvE=
 github.com/fbiville/markdown-table-formatter v0.3.0 h1:PIm1UNgJrFs8q1htGTw+wnnNYvwXQMMMIKNZop2SSho=
 github.com/fbiville/markdown-table-formatter v0.3.0/go.mod h1:q89TDtSEVDdTaufgSbfHpNVdPU/bmfvqNkrC5HagmLY=
 github.com/frankban/quicktest v1.14.3 h1:FJKSZTDHjyhriyC81FLQ0LY93eSai0ZyR/ZIkd3ZUKE=
@@ -210,8 +210,9 @@ github.com/mattn/go-isatty v0.0.9/go.mod h1:YNRxwqDuOph6SZLI9vUUz6OYw3QyUt7WiY2y
 github.com/mattn/go-isatty v0.0.12/go.mod h1:cbi8OIDigv2wuxKPP5vlRcQ1OAZbq2CE4Kysco4FUpU=
 github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27kJ6hsGG94=
 github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
-github.com/mattn/go-isatty v0.0.19 h1:JITubQf0MOLdlGRuRq+jtsDlekdYPia9ZFsB8h/APPA=
 github.com/mattn/go-isatty v0.0.19/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
+github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
+github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-runewidth v0.0.10/go.mod h1:RAqKPSqVFrSLVXbA8x7dzmKdmGzieGRCM46jaSJTDAk=
 github.com/mitchellh/cli v1.1.5 h1:OxRIeJXpAMztws/XHlN2vu6imG5Dpq+j61AzAX5fLng=
 github.com/mitchellh/cli v1.1.5/go.mod h1:v8+iFts2sPIKUV1ltktPXMCC8fumSKFItNcD2cLtRR4=

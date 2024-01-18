@@ -6,7 +6,7 @@ require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
 	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.4
 	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.6.1
-	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.2.0
+	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.3.0
 	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1
 	github.com/antihax/optional v1.0.0
 	github.com/aws/aws-sdk-go v1.49.16
@@ -47,7 +47,7 @@ require (
 	github.com/cloudflare/circl v1.3.3 // indirect
 	github.com/deepmap/oapi-codegen v1.8.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/fatih/color v1.15.0 // indirect
+	github.com/fatih/color v1.16.0 // indirect
 	github.com/fbiville/markdown-table-formatter v0.3.0 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible // indirect
 	github.com/go-chi/render v1.0.3 // indirect
@@ -80,7 +80,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/cli v1.1.5 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
