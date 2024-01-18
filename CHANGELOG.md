@@ -1,8 +1,14 @@
 ## 0.17.0 (Unreleased)
 
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_edgegateway_firewall` - Fix bug (#678) where `source_ids`, `destination_ids` and `app_port_profiles` were returning `nil` if value was set. (GH-686)
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps actions/download-artifact from 4.1.0 to 4.1.1 (GH-683)
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from v1.6.1 to 1.7.0 (GH-686)
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from v0.2.0 to 0.3.0 (GH-686)
 * deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.4.2 to 1.5.0 (GH-684)
 
 ## 0.16.0 (January 10, 2024)
