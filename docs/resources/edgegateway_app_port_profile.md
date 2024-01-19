@@ -2,25 +2,20 @@
 page_title: "cloudavenue_edgegateway_app_port_profile Resource - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  Provides a NSX-T App Port Profile resource
+  Provides an App Port Profile resource
 ---
 
 # cloudavenue_edgegateway_app_port_profile (Resource)
 
-Provides a NSX-T App Port Profile resource
+Provides an App Port Profile resource
 
 ## Example Usage
 
 ```terraform
-data "cloudavenue_vdc" "example" {
-  name = "VDC_Test"
-}
-
 resource "cloudavenue_edgegateway_app_port_profile" "example" {
-  name        = "example-rule"
-  description = "Application port profile for example"
-  vdc         = data.cloudavenue_vdc.example.id
-
+  name            = "example-rule"
+  description     = "Application port profile for example"
+  edge_gateway_id = cloudavenue_edgegateway.example.id
   app_ports = [
     {
       protocol = "ICMPv4"
@@ -43,15 +38,19 @@ resource "cloudavenue_edgegateway_app_port_profile" "example" {
 
 - `app_ports` (Attributes List) List of application ports. (see [below for nested schema](#nestedatt--app_ports))
 - `name` (String) Application Port Profile name.
-- `vdc` (String) (ForceNew) ID of VDC or VDC Group.
 
 ### Optional
 
 - `description` (String) Application Port Profile description.
+- `edge_gateway_id` (String) (ForceNew) ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`, `vdc`.
+- `edge_gateway_name` (String) (ForceNew) Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`, `vdc`.
+- `vdc` (String, Deprecated) (ForceNew) ID of VDC or VDC Group. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`, `vdc`. 
+
+ ~> **Attribute deprecated** Rename the `vdc` attribute to `edge_gateway_id`, it will be removed in the version `v0.19.0` of the provider.
 
 ### Read-Only
 
-- `id` (String) The ID of the VM.
+- `id` (String) The ID of the App Port profile.
 
 <a id="nestedatt--app_ports"></a>
 ### Nested Schema for `app_ports`
@@ -64,9 +63,41 @@ Optional:
 
 - `ports` (Set of String) Set of ports or ranges.
 
+## Advanced Usage
+
+Reference the App Port Profile in the Firewall Rule.
+
+```terraform
+resource "cloudavenue_edgegateway_app_port_profile" "example" {
+  name            = "MyApplication"
+  description     = "Application port profile for my application"
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+  app_ports = [
+    {
+      protocol = "TCP"
+      ports = [
+        "8080",
+      ]
+    },
+  ]
+}
+
+resource "cloudavenue_edgegateway_firewall" "example" {
+	edge_gateway_id = cloudavenue_edgegateway.example.id
+	rules = [{
+		action      = "ALLOW"
+		name        = "From Internet to Application example"
+		direction   = "IN"
+		ip_protocol = "IPV4"
+		destination_ids = [cloudavenue_edgegateway_security_group.example.id]
+		app_port_profile_ids = [cloudavenue_edgegateway_app_port_profile.example.id]
+	}]
+}
+```
+
 ## Import
 
 Import is supported using the following syntax:
 ```shell
-terraform import cloudavenue.edgegateway_app_port_profile vdc-or-vdc-group-id.RuleName
+terraform import cloudavenue.edgegateway_app_port_profile edgegatewayIDOrName.appPortProfileIDOrName
 ```

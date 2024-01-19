@@ -8,136 +8,49 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-// Ensure the implementation satisfies the expected interfaces.
-var (
-	_ resource.Resource                = &portProfilesResource{}
-	_ resource.ResourceWithConfigure   = &portProfilesResource{}
-	_ resource.ResourceWithImportState = &portProfilesResource{}
-)
-
-const (
-	appPortProfileScope = "TENANT"
-)
-
-// NewPortProfilesResource is a helper function to simplify the provider implementation.
-func NewPortProfilesResource() resource.Resource {
-	return &portProfilesResource{}
+// NewAppPortProfileResource is a helper function to simplify the provider implementation.
+func NewAppPortProfileResource() resource.Resource {
+	return &appPortProfileResource{}
 }
 
-// portProfilesResource is the resource implementation.
-type portProfilesResource struct {
+// appPortProfileResource is the resource implementation.
+type appPortProfileResource struct {
 	client *client.CloudAvenue
 	org    org.Org
 }
 
-func (rm *portProfilesResourceModel) AppPortsFromPlan(ctx context.Context) (appPorts portProfilesResourceModelAppPorts, diags diag.Diagnostics) {
-	appPorts = make([]portProfilesResourceModelAppPort, 0)
-	diags.Append(rm.AppPorts.ElementsAs(ctx, &appPorts, false)...)
-	if diags.HasError() {
-		return
-	}
-
-	return appPorts, diags
-}
-
-// * AppPort
-
-func (rm *portProfilesResourceModelAppPort) PortsFromPlan(ctx context.Context) (ports []types.String, diags diag.Diagnostics) {
-	if rm.Ports.IsNull() || rm.Ports.IsUnknown() {
-		return
-	}
-
-	ports = make([]types.String, 0)
-	diags.Append(rm.Ports.ElementsAs(ctx, &ports, false)...)
-	if diags.HasError() {
-		return
-	}
-
-	return ports, diags
-}
-
-// * AppPorts
-
-// objectType.
-func (p *portProfilesResourceModelAppPorts) ObjectType(ctx context.Context) types.ObjectType {
-	return types.ObjectType{
-		AttrTypes: p.AttrTypes(ctx),
-	}
-}
-
-// attrTypes().
-func (p *portProfilesResourceModelAppPorts) AttrTypes(_ context.Context) map[string]attr.Type {
-	return map[string]attr.Type{
-		"protocol": types.StringType,
-		"ports":    types.SetType{ElemType: types.StringType},
-	}
-}
-
-func (p *portProfilesResourceModelAppPorts) ToPlan(ctx context.Context) (basetypes.ListValue, diag.Diagnostics) {
-	if p == nil {
-		return types.ListNull(p.ObjectType(ctx)), nil
-	}
-
-	return types.ListValueFrom(ctx, p.ObjectType(ctx), p)
-}
-
-func (r *portProfilesResource) AppPortRead(ctx context.Context, portProfile *govcd.NsxtAppPortProfile) (appPorts portProfilesResourceModelAppPorts, diags diag.Diagnostics) {
-	appPorts = make([]portProfilesResourceModelAppPort, 0)
-	for _, appPort := range portProfile.NsxtAppPortProfile.ApplicationPorts {
-		x := portProfilesResourceModelAppPort{
-			Protocol: types.StringValue(appPort.Protocol),
-			Ports:    types.SetNull(types.StringType),
-		}
-
-		p := make([]attr.Value, 0)
-		for _, port := range appPort.DestinationPorts {
-			p = append(p, types.StringValue(port))
-		}
-
-		ports, d := types.SetValue(types.StringType, p)
-		if !d.HasError() {
-			x.Ports = ports
-		}
-
-		appPorts = append(appPorts, x)
-	}
-
-	return
-}
-
 // Init Initializes the resource.
-func (r *portProfilesResource) Init(ctx context.Context, rm *portProfilesResourceModel) (diags diag.Diagnostics) {
+func (r *appPortProfileResource) Init(ctx context.Context, rm *AppPortProfileModel) (diags diag.Diagnostics) {
 	r.org, diags = org.Init(r.client)
-
 	return
 }
 
 // Metadata returns the resource type name.
-func (r *portProfilesResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *appPortProfileResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_app_port_profile"
 }
 
 // Schema defines the schema for the resource.
-func (r *portProfilesResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = portProfilesSchema(ctx).GetResource(ctx)
+func (r *appPortProfileResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = appPortProfilesSchema(ctx).GetResource(ctx)
 }
 
-func (r *portProfilesResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *appPortProfileResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -151,15 +64,14 @@ func (r *portProfilesResource) Configure(ctx context.Context, req resource.Confi
 		)
 		return
 	}
-
 	r.client = client
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *portProfilesResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *appPortProfileResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	defer metrics.New("cloudavenue_edgegateway_app_port_profile", r.client.GetOrgName(), metrics.Create)()
 
-	plan := &portProfilesResourceModel{}
+	plan := &AppPortProfileModel{}
 
 	// Retrieve values from plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -173,59 +85,70 @@ func (r *portProfilesResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	appPorts, d := plan.AppPortsFromPlan(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	/*
 		Implement the resource creation logic here.
 	*/
 
-	appPortProfileConfig := &govcdtypes.NsxtAppPortProfile{
-		Name:            plan.Name.ValueString(),
-		Description:     plan.Description.ValueString(),
-		Scope:           appPortProfileScope,
-		ContextEntityId: plan.VDC.ValueString(),
-		OrgRef:          &govcdtypes.OpenApiReference{ID: r.org.GetID()},
-	}
+	var vdcID string
 
-	applicationPorts := make([]govcdtypes.NsxtAppPortProfilePort, len(appPorts))
-	for index, singlePort := range appPorts {
-		ports, d := singlePort.PortsFromPlan(ctx)
+	// Retrieve VDC from edge gateway (VDC attribute is deprecated)
+	if !plan.EdgeGatewayID.IsKnown() && !plan.EdgeGatewayName.IsKnown() {
+		// TODO - Deprecated - Remove in version v0.19.0
+		// Get VDC by the deprecated attribute
+		vdcData, d := vdc.Init(r.client, plan.VDC.StringValue)
 		resp.Diagnostics.Append(d...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
 
-		applicationPorts[index] = govcdtypes.NsxtAppPortProfilePort{
-			Protocol:         singlePort.Protocol.ValueString(),
-			DestinationPorts: utils.SliceTypesStringToSliceString(ports),
+		vdcID = vdcData.GetID()
+	} else {
+		// Get VDC by the edge gateway attribute
+		edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+			ID:   types.StringValue(plan.EdgeGatewayID.Get()),
+			Name: types.StringValue(plan.EdgeGatewayName.Get()),
+		})
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
+			return
 		}
-	}
-	appPortProfileConfig.ApplicationPorts = applicationPorts
 
-	createdAppPortProfile, err := r.org.CreateNsxtAppPortProfile(appPortProfileConfig)
+		vdcData, err := edgegw.GetParent()
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+			return
+		}
+		vdcID = vdcData.GetID()
+	}
+
+	appPorts, d := plan.toNsxtAppPortProfilePorts(ctx)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	appPortProfile, err := r.org.CreateNsxtAppPortProfile(&govcdtypes.NsxtAppPortProfile{
+		Name:             plan.Name.Get(),
+		Description:      plan.Description.Get(),
+		ContextEntityId:  vdcID,
+		ApplicationPorts: appPorts,
+		OrgRef:           &govcdtypes.OpenApiReference{ID: r.org.GetID()},
+		Scope:            govcdtypes.ApplicationPortProfileScopeTenant,
+	})
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating NSX-T App Port Profile",
-			fmt.Sprintf("Error creating NSX-T App Port Profile: %s", err),
-		)
+		resp.Diagnostics.AddError("Error creating App Port Profile", err.Error())
 		return
 	}
 
-	appPortsState, d := r.AppPortRead(ctx, createdAppPortProfile)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
+	plan.ID.Set(appPortProfile.NsxtAppPortProfile.ID)
+	state, found, d := r.read(ctx, plan)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		resp.Diagnostics.AddError("App Port Profile not found", "App Port Profile not found after creation")
 		return
 	}
-
-	state := *plan
-	state.ID = types.StringValue(createdAppPortProfile.NsxtAppPortProfile.ID)
-	state.AppPorts, d = appPortsState.ToPlan(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
 
@@ -234,10 +157,10 @@ func (r *portProfilesResource) Create(ctx context.Context, req resource.CreateRe
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *portProfilesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *appPortProfileResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	defer metrics.New("cloudavenue_edgegateway_app_port_profile", r.client.GetOrgName(), metrics.Read)()
 
-	state := &portProfilesResourceModel{}
+	state := &AppPortProfileModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -255,51 +178,30 @@ func (r *portProfilesResource) Read(ctx context.Context, req resource.ReadReques
 		Implement the resource read here
 	*/
 
-	portProfiles, err := r.org.GetNsxtAppPortProfileByName(state.Name.ValueString(), appPortProfileScope)
-	if err != nil {
-		if govcd.IsNotFound(err) {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError(
-			"Error reading NSX-T App Port Profile",
-			fmt.Sprintf("Error reading NSX-T App Port Profile: %s", err),
-		)
+	stateRefreshed, found, d := r.read(ctx, state)
+	if !found {
+		resp.State.RemoveResource(ctx)
 		return
 	}
-
-	appPortsState, d := r.AppPortRead(ctx, portProfiles)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	plan := &portProfilesResourceModel{
-		ID:          types.StringValue(portProfiles.NsxtAppPortProfile.ID),
-		Name:        types.StringValue(portProfiles.NsxtAppPortProfile.Name),
-		Description: utils.StringValueOrNull(portProfiles.NsxtAppPortProfile.Description),
-		VDC:         state.VDC,
-	}
-	plan.AppPorts, d = appPortsState.ToPlan(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
 
 	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *portProfilesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *appPortProfileResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	defer metrics.New("cloudavenue_edgegateway_app_port_profile", r.client.GetOrgName(), metrics.Update)()
 
 	var (
-		plan  = &portProfilesResourceModel{}
-		state = &portProfilesResourceModel{}
+		plan  = &AppPortProfileModel{}
+		state = &AppPortProfileModel{}
 	)
 
-	// Get current state
+	// Get current plan and state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
@@ -312,82 +214,43 @@ func (r *portProfilesResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	appPorts, d := plan.AppPortsFromPlan(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	/*
 		Implement the resource update here
 	*/
 
-	portProfiles, err := r.org.GetNsxtAppPortProfileByName(state.Name.ValueString(), appPortProfileScope)
+	appPortProfile, err := r.org.GetNsxtAppPortProfileById(state.ID.Get())
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading NSX-T App Port Profile",
-			fmt.Sprintf("Error reading NSX-T App Port Profile: %s", err),
-		)
+		resp.Diagnostics.AddError("Error reading App Port Profile", err.Error())
 		return
 	}
 
-	newPortProfiles := portProfiles
+	appPorts, d := plan.toNsxtAppPortProfilePorts(ctx)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	newPortProfiles.NsxtAppPortProfile.Name = plan.Name.ValueString()
-	newPortProfiles.NsxtAppPortProfile.Description = plan.Description.ValueString()
-	newPortProfiles.NsxtAppPortProfile.ContextEntityId = plan.VDC.ValueString()
+	appPortProfile.NsxtAppPortProfile.ApplicationPorts = appPorts
+	if _, err := appPortProfile.Update(appPortProfile.NsxtAppPortProfile); err != nil {
+		resp.Diagnostics.AddError("Error updating App Port Profile", err.Error())
+		return
+	}
 
-	applicationPorts := make([]govcdtypes.NsxtAppPortProfilePort, len(appPorts))
-	for index, singlePort := range appPorts {
-		ports, d := singlePort.PortsFromPlan(ctx)
+	stateRefreshed, _, d := r.read(ctx, state)
+	if d.HasError() {
 		resp.Diagnostics.Append(d...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		applicationPorts[index] = govcdtypes.NsxtAppPortProfilePort{
-			Protocol:         singlePort.Protocol.ValueString(),
-			DestinationPorts: utils.SliceTypesStringToSliceString(ports),
-		}
-	}
-	newPortProfiles.NsxtAppPortProfile.ApplicationPorts = applicationPorts
-
-	newUpdated, err := portProfiles.Update(newPortProfiles.NsxtAppPortProfile)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error updating NSX-T App Port Profile",
-			fmt.Sprintf("Error updating NSX-T App Port Profile: %s", err),
-		)
-		return
-	}
-
-	appPortsStateUpdated, d := r.AppPortRead(ctx, newUpdated)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	plan = &portProfilesResourceModel{
-		ID:          types.StringValue(newUpdated.NsxtAppPortProfile.ID),
-		Name:        types.StringValue(newUpdated.NsxtAppPortProfile.Name),
-		Description: utils.StringValueOrNull(newUpdated.NsxtAppPortProfile.Description),
-		VDC:         state.VDC,
-	}
-	plan.AppPorts, d = appPortsStateUpdated.ToPlan(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *portProfilesResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *appPortProfileResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	defer metrics.New("cloudavenue_edgegateway_app_port_profile", r.client.GetOrgName(), metrics.Delete)()
 
-	state := &portProfilesResourceModel{}
+	state := &AppPortProfileModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -405,37 +268,119 @@ func (r *portProfilesResource) Delete(ctx context.Context, req resource.DeleteRe
 		Implement the resource deletion here
 	*/
 
-	portProfiles, err := r.org.GetNsxtAppPortProfileByName(state.Name.ValueString(), appPortProfileScope)
+	appPortProfile, err := r.org.GetNsxtAppPortProfileById(state.ID.Get())
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading NSX-T App Port Profile",
-			fmt.Sprintf("Error reading NSX-T App Port Profile: %s", err),
-		)
+		if govcd.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError("Error reading App Port Profile", err.Error())
 		return
 	}
 
-	if err = portProfiles.Delete(); err != nil {
-		resp.Diagnostics.AddError(
-			"Error deleting NSX-T App Port Profile",
-			fmt.Sprintf("Error deleting NSX-T App Port Profile: %s", err),
-		)
+	if err := appPortProfile.Delete(); err != nil {
+		resp.Diagnostics.AddError("Error deleting App Port Profile", err.Error())
 		return
 	}
 }
 
-func (r *portProfilesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	idParts := strings.Split(req.ID, ".")
+func (r *appPortProfileResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_app_port_profile", r.client.GetOrgName(), metrics.Import)()
 
-	if len(idParts) != 2 {
-		resp.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: VDCOrVDCGroupID.appPortProfileName. Got: %q", req.ID),
-		)
+	var d diag.Diagnostics
+
+	r.org, d = org.Init(r.client)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
 
-	vdcID := uuid.Normalize(uuid.VDC, idParts[0]).String()
+	// split req.ID into edge gateway ID and app port profile ID/name
+	split := strings.Split(req.ID, ".")
+	if len(split) != 2 {
+		resp.Diagnostics.AddError("Invalid import ID", "Import ID must be in the format <edge_gateway_id_or_name>.<app_port_profile_id_or_name>")
+		return
+	}
+	edgeIDOrName, appPortProfileIDOrName := split[0], split[1]
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vdc"), vdcID)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[1])...)
+	x := &AppPortProfileModel{
+		ID:              supertypes.NewStringNull(),
+		Name:            supertypes.NewStringNull(),
+		EdgeGatewayID:   supertypes.NewStringNull(),
+		EdgeGatewayName: supertypes.NewStringNull(),
+	}
+
+	if uuid.IsEdgeGateway(edgeIDOrName) {
+		x.EdgeGatewayID.Set(edgeIDOrName)
+	} else {
+		x.EdgeGatewayName.Set(edgeIDOrName)
+	}
+
+	if uuid.IsAppPortProfile(appPortProfileIDOrName) {
+		x.ID.Set(appPortProfileIDOrName)
+	} else {
+		x.Name.Set(appPortProfileIDOrName)
+	}
+
+	stateRefreshed, found, d := r.read(ctx, x)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	// Set refreshed state
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
+}
+
+// * CustomFuncs
+
+func (r *appPortProfileResource) read(ctx context.Context, planOrState *AppPortProfileModel) (stateRefreshed *AppPortProfileModel, found bool, diags diag.Diagnostics) {
+	stateRefreshed = planOrState.Copy()
+
+	var (
+		appPortProfile *govcd.NsxtAppPortProfile
+		err            error
+	)
+
+	if planOrState.ID.IsKnown() {
+		appPortProfile, err = r.org.GetNsxtAppPortProfileById(stateRefreshed.ID.Get())
+	} else {
+		appPortProfile, err = r.org.GetNsxtAppPortProfileByName(stateRefreshed.Name.Get(), govcdtypes.ApplicationPortProfileScopeTenant)
+	}
+	if err != nil {
+		if govcd.IsNotFound(err) {
+			return nil, false, nil
+		}
+		diags.AddError("Error reading App Port Profile", err.Error())
+		return
+	}
+
+	appPorts := make([]*AppPortProfileModelAppPort, len(appPortProfile.NsxtAppPortProfile.ApplicationPorts))
+	for index, singlePort := range appPortProfile.NsxtAppPortProfile.ApplicationPorts {
+		ap := &AppPortProfileModelAppPort{
+			Protocol: supertypes.NewStringNull(),
+			Ports:    supertypes.NewSetValueOfNull[string](ctx),
+		}
+
+		ap.Protocol.Set(singlePort.Protocol)
+		// DestinationPorts is optional
+		if len(singlePort.DestinationPorts) > 0 {
+			diags.Append(ap.Ports.Set(ctx, singlePort.DestinationPorts)...)
+			if diags.HasError() {
+				return
+			}
+		}
+		appPorts[index] = ap
+	}
+
+	stateRefreshed.ID.Set(appPortProfile.NsxtAppPortProfile.ID)
+	stateRefreshed.Name.Set(appPortProfile.NsxtAppPortProfile.Name)
+	stateRefreshed.Description.Set(appPortProfile.NsxtAppPortProfile.Description)
+	stateRefreshed.AppPorts.Set(ctx, appPorts)
+
+	return stateRefreshed, true, nil
 }

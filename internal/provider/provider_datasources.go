@@ -43,6 +43,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		edgegw.NewStaticRouteDataSource,
 		edgegw.NewNATRuleDataSource,
 		edgegw.NewVPNIPSecDataSource,
+		edgegw.NewAppPortProfileDataSource,
 
 		// * VDC
 		vdc.NewVDCsDataSource,

@@ -3,29 +3,33 @@ package edgegw
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 )
 
-func portProfilesSchema(_ context.Context) superschema.Schema {
+func appPortProfilesSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "Provides a NSX-T App Port Profile resource",
+			MarkdownDescription: "Provides an App Port Profile resource",
+		},
+		DataSource: superschema.SchemaDetails{
+			MarkdownDescription: "Provides an App Port Profile data source",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
+			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the VM.",
+					MarkdownDescription: "The ID of the App Port profile.",
 					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
@@ -33,16 +37,29 @@ func portProfilesSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
+				DataSource: &schemaD.StringAttribute{
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
+					},
+				},
 			},
-			"name": superschema.StringAttribute{
+			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Application Port Profile name.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,
 				},
+				DataSource: &schemaD.StringAttribute{
+					Optional: true,
+					Computed: true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
+					},
+				},
 			},
-			"description": superschema.StringAttribute{
+			"description": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Application Port Profile description.",
 				},
@@ -52,39 +69,79 @@ func portProfilesSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+				},
 			},
-			"vdc": superschema.StringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "ID of VDC or VDC Group",
+			"edge_gateway_id": superschema.SuperStringAttribute{
+				Resource: &schemaR.StringAttribute{
+					MarkdownDescription: "ID of the Edge Gateway.",
+					Optional:            true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name"), path.MatchRoot("vdc")),
+					},
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplaceIfConfigured(),
+					},
+				},
+			},
+			"edge_gateway_name": superschema.SuperStringAttribute{
+				Resource: &schemaR.StringAttribute{
+					MarkdownDescription: "Name of the Edge Gateway.",
+					Optional:            true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name"), path.MatchRoot("vdc")),
+					},
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplaceIfConfigured(),
+					},
+				},
+			},
+			"vdc": superschema.SuperStringAttribute{
+				Deprecated: &superschema.Deprecated{
+					DeprecationMessage:                "The `vdc` attribute is deprecated and will be removed. This is used by a system",
+					ComputeMarkdownDeprecationMessage: true,
+					Renamed:                           true,
+					FromAttributeName:                 "vdc",
+					TargetAttributeName:               "edge_gateway_id",
+					TargetRelease:                     "v0.19.0",
 				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
+					MarkdownDescription: "ID of VDC or VDC Group",
+					Optional:            true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 						stringplanmodifier.UseStateForUnknown(),
 					},
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name"), path.MatchRoot("vdc")),
+					},
 				},
 			},
-			"app_ports": superschema.ListNestedAttribute{
+			"app_ports": superschema.SuperListNestedAttributeOf[AppPortProfileModelAppPort]{
 				Common: &schemaR.ListNestedAttribute{
 					MarkdownDescription: "List of application ports.",
-					Required:            true,
 				},
-				Attributes: map[string]superschema.Attribute{
-					"ports": superschema.SetAttribute{
+				Resource: &schemaR.ListNestedAttribute{
+					Required: true,
+				},
+				DataSource: &schemaD.ListNestedAttribute{
+					Computed: true,
+				},
+				Attributes: superschema.Attributes{
+					"ports": superschema.SuperSetAttributeOf[string]{
 						Common: &schemaR.SetAttribute{
 							MarkdownDescription: "Set of ports or ranges.",
-							Computed:            true,
+							ElementType:         supertypes.StringType{},
+						},
+						DataSource: &schemaD.SetAttribute{
+							Computed: true,
 						},
 						Resource: &schemaR.SetAttribute{
-							Optional:    true,
-							ElementType: types.StringType,
-							PlanModifiers: []planmodifier.Set{
-								setplanmodifier.UseStateForUnknown(),
-							},
+							Optional: true,
 						},
 					},
-					"protocol": superschema.StringAttribute{
+					"protocol": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "Protocol.",
 						},
@@ -93,6 +150,9 @@ func portProfilesSchema(_ context.Context) superschema.Schema {
 							Validators: []validator.String{
 								stringvalidator.OneOf("ICMPv4", "ICMPv6", "TCP", "UDP"),
 							},
+						},
+						DataSource: &schemaD.StringAttribute{
+							Computed: true,
 						},
 					},
 				},

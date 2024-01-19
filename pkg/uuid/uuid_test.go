@@ -712,6 +712,70 @@ func TestVcloudUUID_IsToken(t *testing.T) {
 	}
 }
 
+// TestVcloudUUID_IsAppProfile tests the IsAppProfile function.
+func TestVcloudUUID_IsAppPortProfile(t *testing.T) {
+	tests := []struct {
+		name string
+		uuid VcloudUUID
+		want bool
+	}{
+		{ // IsAppProfile
+			name: "IsAppProfile",
+			uuid: VcloudUUID(AppPortProfile.String() + validUUIDv4),
+			want: true,
+		},
+		{ // IsNotAppProfile
+			name: "IsNotAppProfile",
+			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d4791"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.uuid.IsAppPortProfile(); got != tt.want {
+				t.Errorf("VcloudUUID.IsAppPortProfile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestVcloudUUID_IsVDCComputePolicy tests the IsVDCComputePolicy function.
+func TestVcloudUUID_IsVDCComputePolicy(t *testing.T) {
+	tests := []struct {
+		name string
+		uuid VcloudUUID
+		want bool
+	}{
+		{ // IsVDCComputePolicy
+			name: "IsVDCComputePolicy",
+			uuid: VcloudUUID(VDCComputePolicy.String() + validUUIDv4),
+			want: true,
+		},
+		{ // IsNotVDCComputePolicy
+			name: "IsNotVDCComputePolicy",
+			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d4791"),
+			want: false,
+		},
+		{ // Empty string
+			name: "EmptyString",
+			uuid: VcloudUUID(""),
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.uuid.IsVDCComputePolicy(); got != tt.want {
+				t.Errorf("VcloudUUID.IsVDCComputePolicy() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 // TestIsType tests the TestIsType function.
 func TestTestIsType(t *testing.T) {
 	testCases := []struct {
@@ -1216,6 +1280,74 @@ func TestIsToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := IsToken(tt.uuid); got != tt.want {
 				t.Errorf("IsToken() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestIsAppPortProfile.
+func TestIsAppPortProfile(t *testing.T) {
+	tests := []struct {
+		name     string
+		uuidType VcloudUUID
+		uuid     string
+		want     bool
+	}{
+		{ // IsAppPortProfile
+			name: "IsAppPortProfile",
+			uuid: VcloudUUID(AppPortProfile.String() + validUUIDv4).String(),
+			want: true,
+		},
+		{ // IsNotAppPortProfile
+			name: "IsNotAppPortProfile",
+			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479").String(),
+			want: false,
+		},
+		{ // EmptyString
+			name: "EmptyString",
+			uuid: VcloudUUID("").String(),
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsAppPortProfile(tt.uuid); got != tt.want {
+				t.Errorf("IsAppPortProfile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestIsVDCComputePolicy.
+func TestIsVDCComputePolicy(t *testing.T) {
+	tests := []struct {
+		name     string
+		uuidType VcloudUUID
+		uuid     string
+		want     bool
+	}{
+		{ // IsVDCComputePolicy
+			name: "IsVDCComputePolicy",
+			uuid: VcloudUUID(VDCComputePolicy.String() + validUUIDv4).String(),
+			want: true,
+		},
+		{ // IsNotVDCComputePolicy
+			name: "IsNotVDCComputePolicy",
+			uuid: VcloudUUID("urn:vcloud:vm:f47ac10b-58cc-4372-a567-0e02b2c3d479").String(),
+			want: false,
+		},
+		{ // EmptyString
+			name: "EmptyString",
+			uuid: VcloudUUID("").String(),
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsVDCComputePolicy(tt.uuid); got != tt.want {
+				t.Errorf("IsAppPortProfile() = %v, want %v", got, tt.want)
 			}
 		})
 	}
