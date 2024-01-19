@@ -1,8 +1,20 @@
 ## 0.17.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* `datasource/cloudavenue_edgegateway_app_port_profile` - New datasource to retrieve edgegateway app port profile information. (GH-691)
+
+### :tada: **Improvements**
+
+* `datasource/cloudavenue_edgegateway_app_port_profile` - Improve documentation and examples. (GH-691)
+* `resource/cloudavenue_edgegateway_app_port_profile` - Improve documentation and examples. (GH-691)
+
 ### :bug: **Bug Fixes**
 
 * `resource/cloudavenue_edgegateway_firewall` - Fix bug (#678) where `source_ids`, `destination_ids` and `app_port_profiles` were returning `nil` if value was set. (GH-686)
+### :information_source: **Notes**
+
+* `resource/cloudavenue_edgegateway_app_port_profile` - The `vdc` attribute is deprecated and will be removed in the release `v0.19.0`. Please use `edgegateway_id` and `edgegateway_name` attributes instead. (GH-691)
 
 ### :dependabot: **Dependencies**
 
