@@ -1,4 +1,7 @@
 ## 0.18.0 (Unreleased)
+### :information_source: **Notes**
+
+* `datasource/cloudavenue_vdcs` - The attribute `vdc_id` and `vdc_name` are now deprecated. Please use `name` and `id` instead. The old attributes will be removed in the release v0.19.0. (GH-702)
 
 ### :dependabot: **Dependencies**
 
