@@ -1,13 +1,17 @@
 package vdc
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import (
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+)
 
 type vdcsDataSourceModel struct {
-	ID   types.String `tfsdk:"id"`
-	VDCs []vdcRef     `tfsdk:"vdcs"`
+	ID   supertypes.StringValue                     `tfsdk:"id"`
+	VDCs supertypes.ListNestedObjectValueOf[vdcRef] `tfsdk:"vdcs"`
 }
 
 type vdcRef struct {
-	VDCName types.String `tfsdk:"vdc_name"`
-	VDCUuid types.String `tfsdk:"vdc_uuid"`
+	VDCName supertypes.StringValue `tfsdk:"vdc_name"` // Deprecated
+	VDCUUID supertypes.StringValue `tfsdk:"vdc_uuid"` // Deprecated
+	Name    supertypes.StringValue `tfsdk:"name"`
+	ID      supertypes.StringValue `tfsdk:"id"`
 }
