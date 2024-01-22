@@ -1,12 +1,11 @@
 package vrf
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 )
 
 func tier0VrfsSchema() superschema.Schema {
@@ -18,8 +17,8 @@ func tier0VrfsSchema() superschema.Schema {
 			MarkdownDescription: "data source allow access to a list of Tier-0 that can be accessed by the user.",
 		},
 
-		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
+		Attributes: superschema.Attributes{
+			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the Tier-0 VRFs.",
 				},
@@ -27,12 +26,12 @@ func tier0VrfsSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"names": superschema.ListAttribute{
+			"names": superschema.SuperListAttributeOf[string]{
 				Common: &schemaR.ListAttribute{
 					MarkdownDescription: "List of Tier-0 VRFs names.",
 				},
 				DataSource: &schemaD.ListAttribute{
-					ElementType: types.StringType,
+					ElementType: supertypes.StringType{},
 					Computed:    true,
 				},
 			},

@@ -1,16 +1,16 @@
 package vrf
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
 type tier0VrfDataSourceModel struct {
-	ID           types.String   `tfsdk:"id"`
-	Name         types.String   `tfsdk:"name"`
-	Provider     types.String   `tfsdk:"tier0_provider"`
-	ClassService types.String   `tfsdk:"class_service"`
-	Services     []segmentModel `tfsdk:"services"`
+	ID           supertypes.StringValue                           `tfsdk:"id"`
+	Name         supertypes.StringValue                           `tfsdk:"name"`
+	Provider     supertypes.StringValue                           `tfsdk:"tier0_provider"`
+	ClassService supertypes.StringValue                           `tfsdk:"class_service"`
+	Services     supertypes.ListNestedObjectValueOf[segmentModel] `tfsdk:"services"`
 }
 
 type segmentModel struct {
-	Service types.String `tfsdk:"service"`
-	VLANID  types.String `tfsdk:"vlan_id"`
+	Service supertypes.StringValue `tfsdk:"service"`
+	VLANID  supertypes.StringValue `tfsdk:"vlan_id"`
 }

@@ -1,8 +1,8 @@
 package vrf
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
 type tier0VrfsDataSourceModel struct {
-	ID    types.String   `tfsdk:"id"`
-	Names []types.String `tfsdk:"names"`
+	ID    supertypes.StringValue         `tfsdk:"id"`
+	Names supertypes.ListValueOf[string] `tfsdk:"names"`
 }

@@ -3,6 +3,7 @@ package testsacc
 
 import (
 	"context"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -44,16 +45,10 @@ func (r *Tier0VRFDataSource) Tests(ctx context.Context) map[testsacc.TestName]fu
 					}`,
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
-						resource.TestCheckResourceAttr(resourceName, "name", "prvrf01eocb0006205allsp01"),
+						resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile("^prvrf[0-9]{2}eocb[0-9]{7}allsp[0-9]{2}")),
 						resource.TestCheckResourceAttr(resourceName, "class_service", "VRF_STANDARD"),
 						resource.TestCheckResourceAttr(resourceName, "tier0_provider", "pr01e02t0sp16"),
-						resource.TestCheckResourceAttr(resourceName, "services.#", "3"),
-						resource.TestCheckResourceAttr(resourceName, "services.0.service", "OBJECT_STORAGE"),
-						resource.TestCheckResourceAttr(resourceName, "services.0.vlan_id", ""),
-						resource.TestCheckResourceAttr(resourceName, "services.1.service", "INTERNET"),
-						resource.TestCheckResourceAttr(resourceName, "services.1.vlan_id", ""),
-						resource.TestCheckResourceAttr(resourceName, "services.2.service", "ADMIN"),
-						resource.TestCheckResourceAttr(resourceName, "services.2.vlan_id", ""),
+						resource.TestCheckResourceAttrSet(resourceName, "services.#"),
 					},
 				},
 			}

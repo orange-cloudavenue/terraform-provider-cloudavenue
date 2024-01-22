@@ -16,7 +16,7 @@ func tier0VrfSchema() superschema.Schema {
 			MarkdownDescription: "data source retrieve informations about a Tier-0 VRF.",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
+			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the Tier-0 VRF.",
 				},
@@ -24,7 +24,7 @@ func tier0VrfSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"name": superschema.StringAttribute{
+			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the Tier-0 VRF.",
 				},
@@ -32,7 +32,7 @@ func tier0VrfSchema() superschema.Schema {
 					Required: true,
 				},
 			},
-			"tier0_provider": superschema.StringAttribute{
+			"tier0_provider": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Tier-0 provider info.",
 				},
@@ -40,7 +40,7 @@ func tier0VrfSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"class_service": superschema.StringAttribute{
+			"class_service": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "List of Tags for the Tier-0 VRF.",
 				},
@@ -48,7 +48,7 @@ func tier0VrfSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"services": superschema.ListNestedAttribute{
+			"services": superschema.SuperListNestedAttributeOf[segmentModel]{
 				Common: &schemaR.ListNestedAttribute{
 					MarkdownDescription: "Services list of the Tier-0 VRF.",
 				},
@@ -56,7 +56,7 @@ func tier0VrfSchema() superschema.Schema {
 					Computed: true,
 				},
 				Attributes: superschema.Attributes{
-					"service": superschema.StringAttribute{
+					"service": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "Service of the segment.",
 						},
@@ -64,7 +64,7 @@ func tier0VrfSchema() superschema.Schema {
 							Computed: true,
 						},
 					},
-					"vlan_id": superschema.StringAttribute{
+					"vlan_id": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "VLAN ID of the segment.",
 						},
