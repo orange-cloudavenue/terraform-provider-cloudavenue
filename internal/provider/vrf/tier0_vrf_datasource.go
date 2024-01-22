@@ -5,12 +5,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 var (
@@ -62,33 +63,44 @@ func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tier0Detail, _, err := d.client.APIClient.Tier0Api.GetTier0VrfByName(d.client.Auth, data.Name.ValueString())
+	t0, err := d.client.CAVSDK.V1.T0.GetT0(data.Name.Get())
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Tier-0 detail, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Tier-0, got error: %s", err))
 		return
 	}
 
-	data.Provider = types.StringValue(tier0Detail.Tier0Provider)
-	if tier0Detail.ClassService != nil {
-		data.ClassService = types.StringValue(string(*tier0Detail.ClassService))
-	}
+	data.ID.Set(utils.GenerateUUID(t0.GetName()).String())
+	data.Provider.Set(t0.Tier0Provider)
+	data.Name.Set(t0.GetName())
+	data.ClassService.Set(string(t0.ClassService))
 
-	if tier0Detail.Services != nil {
-		for _, segment := range *tier0Detail.Services {
-			data.Services = append(data.Services, segmentModel{
-				Service: types.StringValue(segment.Service),
-				VLANID:  types.StringValue(segment.VlanId),
-			})
+	var services []*segmentModel
+
+	for _, segment := range t0.Services {
+		s := &segmentModel{
+			Service: supertypes.NewStringNull(),
+			VLANID:  supertypes.NewStringNull(),
 		}
+
+		s.Service.Set(segment.Service)
+		switch segment.VLANID.(type) { //nolint:gocritic
+		case int:
+			s.VLANID.Set(fmt.Sprintf("%d", segment.VLANID))
+		case string:
+			s.VLANID.Set(segment.VLANID.(string))
+		}
+
+		services = append(services, s)
 	}
 
-	// Generate ID for the data source
-	data.ID = data.Name
+	resp.Diagnostics.Append(data.Services.Set(ctx, services)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

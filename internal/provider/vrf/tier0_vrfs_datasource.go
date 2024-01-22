@@ -5,8 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
@@ -63,23 +61,31 @@ func (d *tier0VrfsDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tier0vrfs, _, err := d.client.APIClient.Tier0Api.GetTier0Vrfs(d.client.Auth)
+	// Read the list of Tier-0 VRFs
+	t0s, err := d.client.CAVSDK.V1.T0.GetT0s()
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read list T0, got error: %s", err))
 		return
 	}
 
-	for _, name := range tier0vrfs {
-		data.Names = append(data.Names, types.StringValue(name))
+	var names []string
+
+	for _, t0 := range *t0s {
+		names = append(names, t0.GetName())
 	}
 
 	// Generate a UUID from the list of names
-	data.ID = utils.GenerateUUID(tier0vrfs)
+	data.ID.Set(utils.GenerateUUID(names...).String())
+
+	// Save data into Terraform state
+	resp.Diagnostics.Append(data.Names.Set(ctx, names)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
