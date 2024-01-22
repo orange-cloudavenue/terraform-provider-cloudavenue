@@ -1,0 +1,3 @@
+```release-note:note
+`datasource/cloudavenue_vdcs` - The attribute `vdc_id` and `vdc_name` are now deprecated. Please use `name` and `id` instead. The old attributes will be removed in the release v0.19.0.
+```

@@ -3,12 +3,15 @@ package vdc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	commonutils "github.com/orange-cloudavenue/common-go/utils"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
@@ -29,12 +32,17 @@ type vdcsDataSource struct {
 	client *client.CloudAvenue
 }
 
+// Init Initializes the resource.
+func (d *vdcsDataSource) Init(ctx context.Context, rm *vdcsDataSourceModel) (diags diag.Diagnostics) {
+	return
+}
+
 func (d *vdcsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "s"
 }
 
 func (d *vdcsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = vdcsSchema()
+	resp.Schema = vdcsSchema().GetDataSource(ctx)
 }
 
 func (d *vdcsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -44,7 +52,6 @@ func (d *vdcsDataSource) Configure(ctx context.Context, req datasource.Configure
 	}
 
 	client, ok := req.ProviderData.(*client.CloudAvenue)
-
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
@@ -61,40 +68,60 @@ func (d *vdcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	defer metrics.New("data.cloudavenue_vdcs", d.client.GetOrgName(), metrics.Read)()
 
 	var (
-		data  vdcsDataSourceModel
-		names []string
+		state    = new(vdcsDataSourceModel)
+		names    []string
+		dataVDCs = make([]*vdcRef, 0)
 	)
 
 	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
+	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	vdcs, httpR, err := d.client.APIClient.VDCApi.GetOrgVdcs(d.client.Auth)
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read vdcs detail, got error: %s", err))
+	// Init the resource
+	resp.Diagnostics.Append(d.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer func() {
-		err = errors.Join(err, httpR.Body.Close())
-	}()
 
-	data = vdcsDataSourceModel{}
-
-	for _, v := range vdcs {
-		data.VDCs = append(data.VDCs, vdcRef{
-			VDCName: types.StringValue(v.VdcName),
-			VDCUuid: types.StringValue(v.VdcUuid),
-		})
-		names = append(names, v.VdcName)
+	vdcs, err := d.client.CAVSDK.V1.Querier().List().VDC()
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to list VDCs", err.Error())
+		return
 	}
 
-	data.ID = utils.GenerateUUID(names)
+	for _, v := range vdcs {
+		x := &vdcRef{
+			VDCName: supertypes.NewStringNull(),
+			VDCUUID: supertypes.NewStringNull(),
+			ID:      supertypes.NewStringNull(),
+			Name:    supertypes.NewStringNull(),
+		}
+
+		// Extract ID from href
+		uuid, err := commonutils.GetUUIDFromHref(v.HREF, true)
+		if err != nil {
+			resp.Diagnostics.AddError("Unable to extract VDC UUID", err.Error())
+			return
+		}
+
+		// Deprecated
+		x.VDCName.Set(v.Name)
+		x.VDCUUID.Set(uuid)
+
+		x.Name.Set(v.Name)
+		x.ID.Set(uuid)
+
+		dataVDCs = append(dataVDCs, x)
+		names = append(names, v.Name)
+	}
+
+	state.ID.Set(utils.GenerateUUID(names).String())
+	state.VDCs.Set(ctx, dataVDCs)
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
