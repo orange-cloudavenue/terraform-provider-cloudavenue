@@ -1,4 +1,9 @@
 ## 0.18.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.7.0 to 0.7.1 (GH-692)
+
 ## 0.17.0 (January 19, 2024)
 
 ### :rocket: **New Features**
