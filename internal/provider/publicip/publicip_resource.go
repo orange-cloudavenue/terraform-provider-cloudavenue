@@ -5,27 +5,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
+	"strings"
 	"time"
-
-	"github.com/antihax/optional"
-	"golang.org/x/exp/slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-
-	apiclient "github.com/orange-cloudavenue/infrapi-sdk-go"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -42,8 +35,9 @@ func NewPublicIPResource() resource.Resource {
 
 // publicIPResource is the resource implementation.
 type publicIPResource struct {
-	client   *client.CloudAvenue
-	adminOrg adminorg.AdminOrg
+	client *client.CloudAvenue
+	org    org.Org
+	edgegw edgegw.EdgeGateway
 }
 
 // Metadata returns the resource type name.
@@ -53,7 +47,24 @@ func (r *publicIPResource) Metadata(_ context.Context, req resource.MetadataRequ
 
 // Init.
 func (r *publicIPResource) Init(_ context.Context, rm *publicIPResourceModel) (diags diag.Diagnostics) {
-	r.adminOrg, diags = adminorg.Init(r.client)
+	var err error
+
+	r.org, diags = org.Init(r.client)
+	if diags.HasError() {
+		return
+	}
+
+	// EdgeGatewayID and EdgeGatewayName are Null if ImportState
+	if rm.EdgeGatewayID.IsKnown() || rm.EdgeGatewayName.IsKnown() {
+		r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+			ID:   rm.EdgeGatewayID.StringValue,
+			Name: rm.EdgeGatewayName.StringValue,
+		})
+		if err != nil {
+			diags.AddError("Error retrieving Edge Gateway", err.Error())
+			return
+		}
+	}
 
 	return
 }
@@ -88,11 +99,6 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	// Retrieve values from plan
 	plan := &publicIPResourceModel{}
 
-	var (
-		edgeGateway            edgegw.EdgeGateway
-		findIPNotAlreadyExists func(IPs apiclient.PublicIps) (interface{}, error)
-	)
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -114,152 +120,52 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	ctxTO, cancel := context.WithTimeout(ctx, createTimeout)
-	defer cancel()
-
-	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
-	if errCtx != nil {
-		resp.Diagnostics.AddError(
-			"Error creating context",
-			"Could not create context, context value token is not a string ?",
-		)
-		return
-	}
-
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
 
-	edgeGateway, err := r.adminOrg.GetEdgeGateway(edgegw.BaseEdgeGW{
-		Name: plan.EdgeGatewayName,
-		ID:   plan.EdgeGatewayID,
-	})
+	// * Create the public IP
+	job, err := r.client.CAVSDK.V1.PublicIP.New(r.edgegw.GetName())
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting Edge Gateway", err.Error())
-		return
-	}
-
-	body := apiclient.PublicIPApiCreatePublicIPOpts{
-		XNattedIP:    optional.EmptyString(),
-		XVDCEdgeName: optional.NewString(edgeGateway.GetName()),
-		XVDCName:     optional.EmptyString(),
-	}
-
-	// Create new Public IP
-	// Set vars
-	var (
-		job     apiclient.Jobcreated
-		httpR   *http.Response
-		knowIPs []apiclient.PublicIpsNetworkConfig
-	)
-
-	// Store existing Public IP
-	// Get Public IP
-	publicIPs, httpR, err := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		return
-	}
-
-	knowIPs = append(knowIPs, publicIPs.NetworkConfig...)
-
-	// Find an ip that is not already existing in the vdc
-	// this function var is called later in the code...
-	findIPNotAlreadyExists = func(IPs apiclient.PublicIps) (interface{}, error) {
-		if len(IPs.NetworkConfig) == 0 {
-			return nil, fmt.Errorf("no public ip found")
-		}
-
-		// knowIPs is a list of ips that are already existing in the vdc
-		// we need to find an ip that is not in this list
-		// compare the list of public ip after the creation of public ip to the list of public ip before the creation of new public ip
-		for _, IP := range IPs.NetworkConfig {
-			for j, knownIP := range knowIPs {
-				if knownIP.UplinkIp == IP.UplinkIp {
-					// if ip is equal then go to next ip to compare
-					break
-				}
-				// if ip is not found on list of public ip before the creation then we found the new one
-				if j == (len(knowIPs) - 1) {
-					return IP, nil
-				}
-			}
-		}
-		return apiclient.PublicIpsNetworkConfig{}, fmt.Errorf("no public ip found")
-	}
-
-	job, httpR, err = r.client.APIClient.PublicIPApi.CreatePublicIP(auth, &body)
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		return
-	}
-
-	// Wait for job to complete
-	errRetry := retry.RetryContext(ctxTO, createTimeout, func() *retry.RetryError {
-		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
-		if errGetJob != nil {
-			retry.NonRetryableError(err)
-		}
-		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
-			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))
-		}
-
-		return nil
-	})
-
-	if errRetry != nil {
-		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
-		return
-	}
-
-	// get all Public IPs and find the new one
-	checkPublicIPs, httpRc, errGet := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
-	if httpRc != nil {
-		defer func() {
-			err = errors.Join(err, httpRc.Body.Close())
-		}()
-	}
-
-	if apiErr := helpers.CheckAPIError(errGet, httpRc); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		return
-	}
-
-	pubIP, errFind := findIPNotAlreadyExists(checkPublicIPs)
-	if errFind != nil {
-		resp.Diagnostics.AddError("Error finding Public IP", errFind.Error())
-		return
-	}
-
-	var publicIP apiclient.PublicIps
-
-	publicIP.NetworkConfig = append(publicIP.NetworkConfig, pubIP.(apiclient.PublicIpsNetworkConfig))
-	if len(publicIP.NetworkConfig) == 0 {
 		resp.Diagnostics.AddError(
 			"Error creating Public IP",
-			"Could not create Public IP, unexpected error: no public IP found after creation",
+			fmt.Sprintf("Could not create Public IP, unexpected error: %s", err),
 		)
 		return
 	}
 
-	plan.ID = types.StringValue(publicIP.NetworkConfig[0].UplinkIp)
-	plan.EdgeGatewayID = types.StringValue(edgeGateway.GetID())
-	plan.EdgeGatewayName = types.StringValue(edgeGateway.GetName())
-	plan.PublicIP = types.StringValue(publicIP.NetworkConfig[0].UplinkIp)
+	// * Wait for job to complete
+	if err := job.Wait(3, int(createTimeout.Seconds())); err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating Public IP",
+			fmt.Sprintf("Could not create Public IP, unexpected error: %s", err),
+		)
+		return
+	}
+
+	ipRefreshed, err := r.client.CAVSDK.V1.PublicIP.GetIPByJob(job)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error getting Public IP",
+			fmt.Sprintf("Could not get Public IP, unexpected error: %s", err),
+		)
+		return
+	}
+
+	plan.ID.Set(ipRefreshed.UplinkIP)
+	plan.PublicIP.Set(ipRefreshed.UplinkIP)
+	state, found, d := r.read(ctx, plan)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		resp.Diagnostics.AddError("Error reading Public IP", "Public IP not found after creation")
+		return
+	}
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -268,89 +174,39 @@ func (r *publicIPResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	state := &publicIPResourceModel{}
 
+	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Init the resource
 	resp.Diagnostics.Append(r.Init(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Read timeout
-	readTimeout, errTO := state.Timeouts.Read(ctx, 5*time.Minute)
-	if errTO != nil {
-		resp.Diagnostics.AddError(
-			"Error creating timeout",
-			"Could not create timeout, unexpected error",
-		)
-		return
-	}
+	/*
+		Implement the resource read here
+	*/
 
-	ctxTO, cancel := context.WithTimeout(ctx, readTimeout)
-	defer cancel()
-
-	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
-	if errCtx != nil {
-		resp.Diagnostics.AddError(
-			"Error creating context",
-			"Could not create context, context value token is not a string ?",
-		)
-		return
-	}
-
-	// Get Public IP
-	publicIPs, httpR, err := r.client.APIClient.PublicIPApi.GetPublicIPs(auth)
-
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
-		return
-	}
-
-	found := false
-	for _, ip := range publicIPs.NetworkConfig {
-		if state.ID.Equal(types.StringValue(ip.UplinkIp)) {
-			state.EdgeGatewayName = types.StringValue(ip.EdgeGatewayName)
-			state.PublicIP = types.StringValue(ip.UplinkIp)
-
-			found = true
-			break
-		}
-	}
-
+	stateRefreshed, found, d := r.read(ctx, state)
 	if !found {
-		resp.State.RemoveResource(ctxTO)
+		resp.State.RemoveResource(ctx)
 		return
 	}
-
-	edgeGateway, err := r.adminOrg.GetEdgeGateway(edgegw.BaseEdgeGW{
-		Name: state.EdgeGatewayName,
-	})
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error getting Edge Gateway",
-			fmt.Sprintf("Could not get Edge Gateway, unexpected error: %s", err),
-		)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
-
-	state.EdgeGatewayID = types.StringValue(edgeGateway.GetID())
 
 	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctxTO, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *publicIPResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	// ! This resource does not support update
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -380,14 +236,11 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	ctxTO, cancel := context.WithTimeout(ctx, deleteTimeout)
-	defer cancel()
-
-	auth, errCtx := helpers.GetAuthContextWithTO(r.client.Auth, ctxTO)
-	if errCtx != nil {
+	ip, err := r.client.CAVSDK.V1.PublicIP.GetIP(state.ID.Get())
+	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating context",
-			"Could not create context, context value token is not a string ?",
+			"Error getting Public IP",
+			fmt.Sprintf("Could not get Public IP, unexpected error: %s", err),
 		)
 		return
 	}
@@ -395,33 +248,22 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
 
-	// Delete the public IP
-	job, httpR, err := r.client.APIClient.PublicIPApi.DeletePublicIP(auth, state.PublicIP.ValueString())
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+	// * Delete the public IP
+	job, err := ip.Delete()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error deleting Public IP",
+			fmt.Sprintf("Could not delete Public IP, unexpected error: %s", err),
+		)
 		return
 	}
 
-	// Wait for job to complete
-	errRetry := retry.RetryContext(ctxTO, deleteTimeout, func() *retry.RetryError {
-		jobStatus, errGetJob := helpers.GetJobStatus(auth, r.client, job.JobId)
-		if errGetJob != nil {
-			retry.NonRetryableError(err)
-		}
-		if !slices.Contains(helpers.JobStateDone(), jobStatus.String()) {
-			return retry.RetryableError(fmt.Errorf("expected job done but was %s", jobStatus))
-		}
-
-		return nil
-	})
-
-	if errRetry != nil {
-		resp.Diagnostics.AddError("Error waiting job to complete", errRetry.Error())
+	// * Wait for job to complete
+	if err := job.Wait(3, int(deleteTimeout.Seconds())); err != nil {
+		resp.Diagnostics.AddError(
+			"Error deleting Public IP",
+			fmt.Sprintf("Could not delete Public IP, unexpected error: %s", err),
+		)
 		return
 	}
 }
@@ -429,6 +271,53 @@ func (r *publicIPResource) Delete(ctx context.Context, req resource.DeleteReques
 func (r *publicIPResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	defer metrics.New("cloudavenue_publicip", r.client.GetOrgName(), metrics.Import)()
 
-	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	// Slipt the ID into EdgeGatewayIDOrName and PublicIP
+	// ID format: EdgeGatewayIDOrName.PublicIP
+	idSplit := strings.Split(req.ID, ".")
+	if len(idSplit) != 5 {
+		resp.Diagnostics.AddError(
+			"Error importing Public IP",
+			fmt.Sprintf("Could not import Public IP, unexpected ID format: %s", req.ID),
+		)
+		return
+	}
+
+	edgeGwNameOrID, publicIP := idSplit[0], fmt.Sprintf("%s.%s.%s.%s", idSplit[1], idSplit[2], idSplit[3], idSplit[4])
+	if uuid.IsEdgeGateway(edgeGwNameOrID) {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_id"), edgeGwNameOrID)...)
+	} else {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), edgeGwNameOrID)...)
+	}
+
+	ip, err := r.client.CAVSDK.V1.PublicIP.GetIP(publicIP)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error getting Public IP",
+			fmt.Sprintf("Could not get Public IP, unexpected error: %s", err),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), ip.UplinkIP)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("public_ip"), ip.UplinkIP)...)
+}
+
+// * CustomFuncs
+
+func (r *publicIPResource) read(_ context.Context, planOrState *publicIPResourceModel) (stateRefreshed *publicIPResourceModel, found bool, diags diag.Diagnostics) {
+	stateRefreshed = planOrState.Copy()
+
+	pubIP, err := r.client.CAVSDK.V1.PublicIP.GetIP(planOrState.ID.Get())
+	if err != nil {
+		if errors.Is(err, fmt.Errorf("not found")) {
+			return stateRefreshed, false, nil
+		}
+		diags.AddError("Error getting Public IP", err.Error())
+		return stateRefreshed, true, diags
+	}
+
+	stateRefreshed.ID.Set(pubIP.UplinkIP)
+	stateRefreshed.PublicIP.Set(pubIP.UplinkIP)
+
+	return stateRefreshed, true, nil
 }

@@ -3,7 +3,6 @@ package publicip
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -11,8 +10,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
@@ -46,7 +46,7 @@ func (d *publicIPDataSource) Metadata(ctx context.Context, req datasource.Metada
 }
 
 func (d *publicIPDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = publicIPsSchema(ctx)
+	resp.Schema = publicIPsSchema(ctx).GetDataSource(ctx)
 }
 
 func (d *publicIPDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -85,21 +85,15 @@ func (d *publicIPDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	publicIPs, httpR, err := d.client.APIClient.PublicIPApi.GetPublicIPs(d.client.Auth)
-	if httpR != nil {
-		defer func() {
-			err = errors.Join(err, httpR.Body.Close())
-		}()
-	}
-
-	if apiErr := helpers.CheckAPIError(err, httpR); apiErr != nil {
-		resp.Diagnostics.Append(apiErr.GetTerraformDiagnostic())
+	ips, err := d.client.CAVSDK.V1.PublicIP.GetIPs()
+	if err != nil {
+		resp.Diagnostics.AddError("Error while getting public IPs", err.Error())
 		return
 	}
 
 	listOfIps := make([]string, 0)
-
-	for _, cfg := range publicIPs.NetworkConfig {
+	ipPubs := make([]*publicIPNetworkConfigModel, 0)
+	for _, cfg := range ips.NetworkConfig {
 		edgeGateway, err := d.adminOrg.GetEdgeGateway(edgegw.BaseEdgeGW{
 			Name: types.StringValue(cfg.EdgeGatewayName),
 		})
@@ -108,18 +102,27 @@ func (d *publicIPDataSource) Read(ctx context.Context, req datasource.ReadReques
 			return
 		}
 
-		x := publicIPNetworkConfigModel{
-			ID:              types.StringValue(cfg.UplinkIp),
-			EdgeGatewayName: types.StringValue(edgeGateway.GetName()),
-			EdgeGatewayID:   types.StringValue(edgeGateway.GetID()),
-			PublicIP:        types.StringValue(cfg.UplinkIp),
+		x := &publicIPNetworkConfigModel{
+			ID:              supertypes.NewStringNull(),
+			EdgeGatewayName: supertypes.NewStringNull(),
+			EdgeGatewayID:   supertypes.NewStringNull(),
+			PublicIP:        supertypes.NewStringNull(),
 		}
 
-		data.PublicIPs = append(data.PublicIPs, x)
-		listOfIps = append(listOfIps, cfg.UplinkIp)
+		x.ID.Set(cfg.GetIP())
+		x.EdgeGatewayName.Set(edgeGateway.GetName())
+		x.EdgeGatewayID.Set(edgeGateway.GetID())
+		x.PublicIP.Set(cfg.GetIP())
+
+		ipPubs = append(ipPubs, x)
+		listOfIps = append(listOfIps, cfg.GetIP())
 	}
 
-	data.ID = utils.GenerateUUID(listOfIps)
+	data.ID.Set(utils.GenerateUUID(listOfIps).String())
+	resp.Diagnostics.Append(data.PublicIPs.Set(ctx, ipPubs)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)

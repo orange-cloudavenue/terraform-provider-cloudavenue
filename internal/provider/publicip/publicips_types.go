@@ -1,15 +1,17 @@
 package publicip
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import (
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+)
 
 type publicIPDataSourceModel struct {
-	ID        types.String                 `tfsdk:"id"`
-	PublicIPs []publicIPNetworkConfigModel `tfsdk:"public_ips"`
+	ID        supertypes.StringValue                                         `tfsdk:"id"`
+	PublicIPs supertypes.ListNestedObjectValueOf[publicIPNetworkConfigModel] `tfsdk:"public_ips"`
 }
 
 type publicIPNetworkConfigModel struct {
-	ID              types.String `tfsdk:"id"`
-	PublicIP        types.String `tfsdk:"public_ip"`
-	EdgeGatewayName types.String `tfsdk:"edge_gateway_name"`
-	EdgeGatewayID   types.String `tfsdk:"edge_gateway_id"`
+	ID              supertypes.StringValue `tfsdk:"id"`
+	PublicIP        supertypes.StringValue `tfsdk:"public_ip"`
+	EdgeGatewayName supertypes.StringValue `tfsdk:"edge_gateway_name"`
+	EdgeGatewayID   supertypes.StringValue `tfsdk:"edge_gateway_id"`
 }

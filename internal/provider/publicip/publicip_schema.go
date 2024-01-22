@@ -35,27 +35,26 @@ func publicIPSchema() superschema.Schema {
 					Update: true,
 				},
 			},
-			"id": superschema.StringAttribute{
+			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the Public IP.",
 					Computed:            true,
 				},
 			},
-			"public_ip": superschema.StringAttribute{
+			"public_ip": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The Public IP Address.",
 					Computed:            true,
 				},
 			},
-			"edge_gateway_name": superschema.StringAttribute{
+			"edge_gateway_name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the Edge Gateway.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
-					Computed: true,
 					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.RequiresReplace(),
+						stringplanmodifier.RequiresReplaceIfConfigured(),
 					},
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
@@ -65,15 +64,14 @@ func publicIPSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"edge_gateway_id": superschema.StringAttribute{
+			"edge_gateway_id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the Edge Gateway.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
-					Computed: true,
 					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.RequiresReplace(),
+						stringplanmodifier.RequiresReplaceIfConfigured(),
 					},
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),

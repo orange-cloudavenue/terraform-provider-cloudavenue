@@ -1,0 +1,64 @@
+package testsacc
+
+import (
+	"context"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
+)
+
+var _ testsacc.TestACC = &PublicIPsDataSource{}
+
+const (
+	PublicIPsDataSourceName = testsacc.ResourceName("data.cloudavenue_publicips")
+)
+
+type PublicIPsDataSource struct{}
+
+func NewPublicIPsDataSourceTest() testsacc.TestACC {
+	return &PublicIPsDataSource{}
+}
+
+// GetResourceName returns the name of the resource.
+func (r *PublicIPsDataSource) GetResourceName() string {
+	return PublicIPsDataSourceName.String()
+}
+
+func (r *PublicIPsDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[PublicIPResourceName]().GetDefaultConfig)
+	return
+}
+
+func (r *PublicIPsDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
+		"example": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_publicips" "example" {
+					}`,
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrSet(resourceName, "id"),
+						// check if public_ips are not empty
+						resource.TestCheckResourceAttrSet(resourceName, "public_ips.0.id"),
+						resource.TestCheckResourceAttrSet(resourceName, "public_ips.0.public_ip"),
+						resource.TestCheckResourceAttrSet(resourceName, "public_ips.0.edge_gateway_id"),
+						resource.TestCheckResourceAttrSet(resourceName, "public_ips.0.edge_gateway_name"),
+					},
+				},
+			}
+		},
+	}
+}
+
+func TestAccPublicIPsDataSource(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
+		Steps:                    testsacc.GenerateTests(&PublicIPsDataSource{}),
+	})
+}

@@ -24,7 +24,7 @@ output "public_ips" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the Public IP.
 - `public_ips` (Attributes List) A list of public IPs. (see [below for nested schema](#nestedatt--public_ips))
 
 <a id="nestedatt--public_ips"></a>
