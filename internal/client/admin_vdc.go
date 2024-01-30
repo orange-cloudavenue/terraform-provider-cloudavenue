@@ -12,7 +12,7 @@ type AdminVDC struct {
 }
 
 func (c *CloudAvenue) DefaultAdminVDCExist() bool {
-	return c.VDC != ""
+	return c.DefaultVDCExist()
 }
 
 type GetAdminVDCOpts func(*AdminVDC)

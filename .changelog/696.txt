@@ -1,0 +1,11 @@
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.7.1 to 0.8.1
+```
+
+```release-note:breaking-change
+`provider` - The environment variable `CLOUDAVENUE_USER` has been renamed to `CLOUDAVENUE_USERNAME`
+```
+
+```release-note:breaking-change
+`provider` - The environment variable `CLOUDAVANUE_NETBACKUP_USER`, `CLOUDAVENUE_NETBACKUP_PASSWORD` and `CLOUDAVENUE_NETBACKUP_URL` are renamed to `NETBACKUP_USERNAME`, `NETBACKUP_PASSWORD` and `NETBACKUP_URL`
+```

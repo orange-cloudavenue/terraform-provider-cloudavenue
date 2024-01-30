@@ -33,8 +33,8 @@ var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 // about the appropriate environment variables being set are common to see in a pre-check
 // function.
 func TestAccPreCheck(t *testing.T) {
-	if v := os.Getenv("CLOUDAVENUE_USER"); v == "" {
-		t.Fatal("CLOUDAVENUE_USER must be set for acceptance tests")
+	if v := os.Getenv("CLOUDAVENUE_USERNAME"); v == "" {
+		t.Fatal("CLOUDAVENUE_USERNAME must be set for acceptance tests")
 	}
 
 	if v := os.Getenv("CLOUDAVENUE_PASSWORD"); v == "" {
@@ -43,10 +43,6 @@ func TestAccPreCheck(t *testing.T) {
 
 	if v := os.Getenv("CLOUDAVENUE_ORG"); v == "" {
 		t.Fatal("CLOUDAVENUE_ORG must be set for acceptance tests")
-	}
-
-	if v := os.Getenv("CLOUDAVENUE_VDC"); v == "" {
-		t.Fatal("CLOUDAVENUE_VDC must be set for acceptance tests")
 	}
 
 	// Generate a new execution ID for this run.

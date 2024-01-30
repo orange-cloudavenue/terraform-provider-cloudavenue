@@ -11,7 +11,7 @@ This provider offers utilities for working with the Cloud Avenue platform.
 
 Documentation regarding data sources and resources can be found in the left sidebar.
 
- -> Note : If you need more information about Cloud Avenue, please visit [Cloud Avenue documentation](https://wiki.cloudavenue.orange-business.com/w/index.php/Accueil).
+ -> Note : If you need more information about Cloud Avenue, please visit [Cloud Avenue documentation](https://wiki.cloudavenue.orange-business.com/wiki/Services_catalogue).
 
 ## Authentication and Configuration
 
@@ -19,6 +19,24 @@ Configuration for the CloudAvenue Provider can be derived from several sources, 
 
 * Parameters in the provider configuration
 * Environment variables
+
+ !> The environment variables override the provider configuration.
+
+## Schema
+
+### cloudavenue configuration
+
+* `org` (String) The organization used on Cloud Avenue.
+* `user` (String) The username to use to connect to the Cloud Avenue.
+* `password` (String, Sensitive) The password to use to connect to the Cloud Avenue.
+* `vdc` (String) The VDC used on Cloud Avenue. If this field is set, we will use by default this VDC for all resources. If your set a custom VDC for a resource, this field will be ignored.
+* `url` (String) The URL of the Cloud Avenue. This field is computed by default. If you want to use a custom URL, you can set this field.
+
+### Netbackup configuration
+
+* `netbackup_user` (String) The username to use to connect to the NetBackup.
+* `netbackup_password` (String, Sensitive) The password to use to connect to the NetBackup.
+* `netbackup_url` (String) The URL of the NetBackup API. This field is computed by default. If you want to use a custom URL, you can set this field.
 
 ## Provider Configuration
 
@@ -40,7 +58,8 @@ Other settings related to [Schema](#schema) can be configured.
 
 ## Environment Variables
 
-Credentials can be provided by using the `CLOUDAVENUE_ORG`, `CLOUDAVENUE_USER`, and `CLOUDAVENUE_PASSWORD` environment variables, respectively. Other environnement variables related to [List of Environment Variables](#list-of-environment-variables) can be configured.
+Credentials can be provided by using the environment variables related to [List of Environment Variables](#list-of-environment-variables).
+It's recommended to use environment variables to avoid hard-coding credentials in any Terraform configuration and risks secret leakage should this file ever be committed to a public version control system.
 
 For example:
   
@@ -54,33 +73,15 @@ export CLOUDAVENUE_USER="my-user"
 export CLOUDAVENUE_PASSWORD="my-password"
 ```
 
-## Schema
-
-### Vmware configuration
-
-* `org` (String) The organization used on Cloud Avenue.
-
-* `user` (String) The username to use to connect to the Cloud Avenue.
-* `password` (String, Sensitive) The password to use to connect to the Cloud Avenue.
-* `vdc` (String) The VDC used on Cloud Avenue. If this field is set, we will use by default this VDC for all resources. If your set a custom VDC for a resource, this field will be ignored.
-* `url` (String) The URL of the Cloud Avenue. This field is used for bypassing the default Cloud Avenue API URL.
-
-### Netbackup configuration
-
-* `netbackup_user` (String) The username to use to connect to the NetBackup.
-
-* `netbackup_password` (String, Sensitive) The password to use to connect to the NetBackup.
-* `netbackup_url` (String) The URL of the NetBackup API. This field is used for bypassing the default NetBackup API URL.
-
 ## List of Environment Variables
 
 | Provider | Environment Variables |
-| --- | --- |
+| -------- | --------------------- |
 | `org` | `CLOUDAVENUE_ORG` |
-| `user` | `CLOUDAVENUE_USER` |
+| `user` | `CLOUDAVENUE_USERNAME` |
 | `password` | `CLOUDAVENUE_PASSWORD` |
 | `vdc` | `CLOUDAVENUE_VDC` |
 | `url` | `CLOUDAVENUE_URL` |
-| `netbackup_user` | `CLOUDAVENUE_NETBACKUP_USER` |
-| `netbackup_password` | `CLOUDAVENUE_NETBACKUP_PASSWORD` |
-| `netbackup_url` | `CLOUDAVENUE_NETBACKUP_URL` |
+| `netbackup_user` | `NETBACKUP_USERNAME` |
+| `netbackup_password` | `NETBACKUP_PASSWORD` |
+| `netbackup_url` | `NETBACKUP_URL` |

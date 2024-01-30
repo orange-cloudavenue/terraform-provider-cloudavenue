@@ -13,7 +13,7 @@ type AdminOrg struct {
 
 // GetAdminOrg return the admin org using the name provided in the provider.
 func (c *CloudAvenue) GetAdminOrg() (*AdminOrg, error) {
-	x, err := c.Vmware.GetAdminOrgByNameOrId(c.Org)
+	x, err := c.Vmware.GetAdminOrgByNameOrId(c.GetOrgName())
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrRetrievingOrg, err)
 	}

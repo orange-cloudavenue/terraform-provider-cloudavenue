@@ -18,14 +18,11 @@ const (
 	  catalog_name  = "Orange-Linux"
 	  template_name = "debian_10_X64"
 	}
-	resource "cloudavenue_vapp" "example_for_vm" {
-		name        = "example"
-		description = "This is an example vApp"
-	}
-	resource "cloudavenue_vm" "example" {
+	resource "cloudavenue_vm" "example_backup" {
 	  name        = "example"
 	  description = "This is a example vm"
-	  vapp_name = cloudavenue_vapp.example_for_vm.name
+	  vapp_name = cloudavenue_vapp.example.name
+	  vdc = cloudavenue_vdc.example.name
 	  deploy_os = {
 	    vapp_template_id = data.cloudavenue_catalog_vapp_template.example.id
 	  }
@@ -111,7 +108,7 @@ func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(c
 				},
 			}
 		},
-		// // * Second Test For a VAPP Backup named "example"
+		// * Test For a VAPP Backup named "example"
 		"example_vapp": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
@@ -164,7 +161,7 @@ func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(c
 				},
 			}
 		},
-		// * Second Test For a VM Backup named "example"
+		// * Test For a VM Backup named "example"
 		"example_vm": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
@@ -176,7 +173,7 @@ func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(c
 					TFConfig: `
 					resource "cloudavenue_backup" "example_vm" {
 					  type = "vm"
-					  target_name = cloudavenue_vm.example.name
+					  target_name = cloudavenue_vm.example_backup.name
 					  policies = [{
 					    policy_name = "D6"
 					  }]
@@ -192,7 +189,7 @@ func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(c
 						TFConfig: `
 						resource "cloudavenue_backup" "example_vm" {
 						  type = "vm"
-						  target_name = cloudavenue_vm.example.name
+						  target_name = cloudavenue_vm.example_backup.name
 						  policies = [{
 						      policy_name = "D6"
 						    },{
