@@ -1,4 +1,8 @@
 ## 0.18.0 (Unreleased)
+### :rotating_light: **Breaking Changes**
+
+* `provider` - The environment variable `CLOUDAVANUE_NETBACKUP_USER`, `CLOUDAVENUE_NETBACKUP_PASSWORD` and `CLOUDAVENUE_NETBACKUP_URL` are renamed to `NETBACKUP_USERNAME`, `NETBACKUP_PASSWORD` and `NETBACKUP_URL` (GH-696)
+* `provider` - The environment variable `CLOUDAVENUE_USER` has been renamed to `CLOUDAVENUE_USERNAME` (GH-696)
 ### :information_source: **Notes**
 
 * `datasource/cloudavenue_vdcs` - The attribute `vdc_id` and `vdc_name` are now deprecated. Please use `name` and `id` instead. The old attributes will be removed in the release v0.19.0. (GH-702)
@@ -8,6 +12,7 @@
 * deps: bumps github.com/google/uuid from 1.5.0 to 1.6.0 (GH-705)
 * deps: bumps github.com/hashicorp/terraform-plugin-go from 0.20.0 to 0.21.0 (GH-706)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.7.0 to 0.7.1 (GH-692)
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.7.1 to 0.8.1 (GH-696)
 
 ## 0.17.0 (January 19, 2024)
 
