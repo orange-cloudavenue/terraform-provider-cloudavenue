@@ -1,0 +1,3 @@
+```release-note:feature
+`resource/cloudavenue_vdc` - Now support custom storage profile class.
+```

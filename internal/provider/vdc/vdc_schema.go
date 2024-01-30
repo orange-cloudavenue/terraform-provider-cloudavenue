@@ -1,6 +1,8 @@
 package vdc
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -225,17 +227,18 @@ func vdcSchema() superschema.Schema {
 							MarkdownDescription: "The storage class of the storage profile.",
 						},
 						Resource: &schemaR.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The storage class available are different depending on the service class. " + seeVDCRules,
-							Validators: []validator.String{
-								stringvalidator.OneOf(func() []string {
-									var storageProfileClasses []string
-									for _, sPC := range rules.ALLStorageProfilesClass {
-										storageProfileClasses = append(storageProfileClasses, string(sPC))
+							Required: true,
+							MarkdownDescription: "The storage class available are different depending on the service class. " + seeVDCRules + " Value must be one of " + func() string {
+								var storageClasses string
+								for i, sC := range rules.ALLStorageProfilesClass {
+									if i == len(rules.ALLStorageProfilesClass)-1 {
+										storageClasses += fmt.Sprintf("`%s`", string(sC))
+									} else {
+										storageClasses += fmt.Sprintf("`%s`, ", string(sC))
 									}
-									return storageProfileClasses
-								}()...),
-							},
+								}
+								return storageClasses
+							}() + " or custom storage profile class delivered by Cloud Avenue.",
 						},
 						DataSource: &schemaD.StringAttribute{
 							Computed: true,
