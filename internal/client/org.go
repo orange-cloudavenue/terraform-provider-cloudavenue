@@ -58,7 +58,7 @@ func (o *Org) DeleteNetworkDHCP(orgNetworkID string) error {
 
 // GetOrg return the org using the name provided in the provider.
 func (c *CloudAvenue) GetOrg() (*Org, error) {
-	x, err := c.Vmware.GetOrgByName(c.Org)
+	x, err := c.Vmware.GetOrgByName(c.GetOrgName())
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrRetrievingOrg, err)
 	}

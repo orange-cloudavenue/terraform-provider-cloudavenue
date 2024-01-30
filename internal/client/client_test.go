@@ -2,164 +2,189 @@
 package client
 
 import (
-	"reflect"
+	"errors"
+	"os"
 	"testing"
 
-	apiclient "github.com/orange-cloudavenue/infrapi-sdk-go"
+	"github.com/kr/pretty"
+
+	clientca "github.com/orange-cloudavenue/cloudavenue-sdk-go"
+	clientcloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/clients/cloudavenue"
+	caverror "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/errors"
 )
 
 func TestCloudAvenueClient(t *testing.T) {
-	t.Parallel()
-	t.Run("CreateBasicAuthContext", func(t *testing.T) {
-		t.Parallel()
+	listOfEnvSet := []string{
+		"TEST_CLOUDAVENUE_ORG",
+		"TEST_CLOUDAVENUE_USERNAME",
+		"TEST_CLOUDAVENUE_PASSWORD",
+		"TEST_CLOUDAVENUE_VDC",
+	}
 
-		ca := CloudAvenue{
-			User:     "dasilva",
-			Password: "dasilva",
-			Org:      "acme",
+	listOfEnvUnset := []string{
+		"CLOUDAVENUE_ORG",
+		"CLOUDAVENUE_USERNAME",
+		"CLOUDAVENUE_PASSWORD",
+		"CLOUDAVENUE_VDC",
+	}
+
+	for _, env := range listOfEnvSet {
+		if os.Getenv(env) == "" {
+			t.Fatalf("the environment variable %s is not set", env)
+		}
+	}
+
+	for _, env := range listOfEnvUnset {
+		if os.Getenv(env) != "" {
+			t.Fatalf("the environment variable %s is set", env)
+		}
+	}
+
+	t.Run("NewClient", func(t *testing.T) {
+		tests := []struct {
+			name        string
+			opts        *clientca.ClientOpts
+			wantErr     bool
+			expectedErr error
+		}{
+			{
+				name: "Bad Org",
+				opts: &clientca.ClientOpts{
+					CloudAvenue: &clientcloudavenue.Opts{
+						Org:      "bad",
+						Username: "user",
+						Password: "password",
+					},
+				},
+				wantErr:     true,
+				expectedErr: caverror.ErrInvalidFormat,
+			},
+			{
+				name: "Valid Org - Username not set",
+				opts: &clientca.ClientOpts{
+					CloudAvenue: &clientcloudavenue.Opts{
+						Org:      "bad",
+						Password: "password",
+					},
+				},
+				wantErr:     true,
+				expectedErr: caverror.ErrEmpty,
+			},
+			{
+				name: "Valid Org - Password not set",
+				opts: &clientca.ClientOpts{
+					CloudAvenue: &clientcloudavenue.Opts{
+						Org:      "bad",
+						Username: "user",
+					},
+				},
+				wantErr:     true,
+				expectedErr: caverror.ErrEmpty,
+			},
+			{
+				name: "Valid Org - Bad credential",
+				opts: &clientca.ClientOpts{
+					CloudAvenue: &clientcloudavenue.Opts{
+						Org:      "cav01ev01ocb0001234",
+						Username: "user",
+						Password: "password",
+					},
+				},
+				wantErr: true,
+				// expectedErr: errors.New("ErrorMessage:Unauthorized"), - TODO: Catch error in SDK
+			},
 		}
 
-		authCtx := ca.createBasicAuthContext()
-		auth, isBasicAuth := authCtx.Value(apiclient.ContextBasicAuth).(apiclient.BasicAuth)
-		if !isBasicAuth {
-			t.Fatalf("expected context with cloudavenue.BasicAuth value, got %v", reflect.TypeOf(authCtx.Value(apiclient.ContextBasicAuth)))
-		}
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
 
-		if auth.UserName != "dasilva@acme" {
-			t.Fatalf("expected username to be %q, got %q", "dasilva@acme", auth.UserName)
-		}
+				c := CloudAvenue{
+					CAVSDKOpts: tt.opts,
+				}
 
-		if auth.Password != "dasilva" {
-			t.Fatalf("expected password to be %q, got %q", "dasilva", auth.Password)
-		}
-	})
+				_, err := c.New()
+				if tt.wantErr {
+					if err == nil {
+						t.Log(pretty.Sprint(err))
+						t.Errorf("expected error: %v", tt.expectedErr)
+						return
+					}
 
-	t.Run("CreateConfiguration", func(t *testing.T) {
-		t.Parallel()
+					if tt.expectedErr != nil && !errors.Is(err, tt.expectedErr) {
+						t.Errorf("expected error: %v, got: %v", tt.expectedErr, err)
+					}
 
-		ca := CloudAvenue{
-			TerraformVersion:   "0.13.0",
-			CloudAvenueVersion: "0.1.0",
-			URL:                "https://console1.cloudavenue.orange-business.com",
-		}
-
-		cfg := ca.createConfiguration()
-		emptyMap := make(map[string]string)
-
-		if cfg.BasePath != "https://console1.cloudavenue.orange-business.com" {
-			t.Fatalf("expected base path to be %q, got %q", "https://console1.cloudavenue.orange-business.com", cfg.BasePath)
-		}
-
-		if cfg.UserAgent != "Terraform/0.13.0 CloudAvenue/0.1.0" {
-			t.Fatalf("expected user agent to be %q, got %q", "Terraform/0.13.0 CloudAvenue/0.1.0", cfg.UserAgent)
-		}
-
-		if !reflect.DeepEqual(cfg.DefaultHeader, emptyMap) {
-			t.Fatalf("expected default header to be %v, got %v", emptyMap, cfg.DefaultHeader)
-		}
-	})
-
-	t.Run("CreateTokenContext", func(t *testing.T) {
-		t.Parallel()
-		authCtx := createTokenInContext("t0k3n")
-		token, isString := authCtx.Value(apiclient.ContextAccessToken).(string)
-
-		if !isString {
-			t.Fatalf("expected token with string value, got %v", reflect.TypeOf(authCtx.Value(apiclient.ContextAccessToken)))
-		}
-
-		if token != "t0k3n" {
-			t.Fatalf("expected token to be %s, got %s", "t0k3n", token)
-		}
-	})
-
-	t.Run("CreateUserAgent", func(t *testing.T) {
-		t.Parallel()
-
-		ca := CloudAvenue{
-			TerraformVersion:   "0.13.0",
-			CloudAvenueVersion: "0.1.0",
-		}
-
-		ua := ca.createUserAgent()
-
-		if ua != "Terraform/0.13.0 CloudAvenue/0.1.0" {
-			t.Fatalf("expected user agent to be %q, got %q", "Terraform/0.13.0 CloudAvenue/0.1.0", ua)
-		}
-	})
-
-	t.Run("ConfigureVmware", func(t *testing.T) {
-		t.Parallel()
-
-		ca := CloudAvenue{
-			TerraformVersion:   "0.13.0",
-			CloudAvenueVersion: "0.1.0",
-			URL:                "https://console1.cloudavenue.orange-business.com",
-		}
-
-		err := ca.configureVmware()
-		if err != nil {
-			t.Fatalf("expected no error, got %v", err)
-		}
-
-		if ca.urlVmware.String() != "https://console1.cloudavenue.orange-business.com/api" {
-			t.Fatalf("expected urlVmware to be %q, got %q", "https://console1.cloudavenue.orange-business.com/vmware", ca.urlVmware)
-		}
-	})
-
-	t.Run("GetOrgName", func(t *testing.T) {
-		t.Parallel()
-
-		ca := CloudAvenue{
-			Org: "acme",
-		}
-
-		org := ca.GetOrgName()
-
-		if org != "acme" {
-			t.Fatalf("expected org to be %q, got %q", "acme", org)
-		}
-	})
-
-	t.Run("GetURL", func(t *testing.T) {
-		t.Parallel()
-
-		ca := CloudAvenue{
-			URL: "https://console1.cloudavenue.orange-business.com",
-		}
-
-		url := ca.GetURL()
-
-		if url != "https://console1.cloudavenue.orange-business.com" {
-			t.Fatalf("expected url to be %q, got %q", "https://console1.cloudavenue.orange-business.com", url)
+					return
+				}
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+			})
 		}
 	})
 
-	t.Run("GetDefaultVDC", func(t *testing.T) {
-		t.Parallel()
-
-		ca := CloudAvenue{
-			VDC: "acme-vdc",
+	t.Run("NewClientFromEnv", func(t *testing.T) {
+		tests := []struct {
+			name        string
+			opts        *clientca.ClientOpts
+			wantErr     bool
+			expectedErr error
+		}{
+			{
+				name:    "Valid Org - Credential provided by env",
+				opts:    nil,
+				wantErr: false,
+			},
 		}
 
-		vdc := ca.GetDefaultVDC()
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				c := CloudAvenue{}
+				// Set environment variables for the test
+				t.Setenv("CLOUDAVENUE_ORG", os.Getenv("TEST_CLOUDAVENUE_ORG"))
+				t.Setenv("CLOUDAVENUE_USERNAME", os.Getenv("TEST_CLOUDAVENUE_USERNAME"))
+				t.Setenv("CLOUDAVENUE_PASSWORD", os.Getenv("TEST_CLOUDAVENUE_PASSWORD"))
+				t.Setenv("CLOUDAVENUE_VDC", os.Getenv("TEST_CLOUDAVENUE_VDC"))
 
-		if vdc != "acme-vdc" {
-			t.Fatalf("expected default vdc to be %q, got %q", "acme-vdc", vdc)
-		}
-	})
+				client, err := c.New()
+				if tt.wantErr {
+					if err == nil {
+						t.Fatalf("expected error: %v", tt.expectedErr)
+					}
 
-	t.Run("DefaultVDCExist", func(t *testing.T) {
-		t.Parallel()
+					if tt.expectedErr != nil && !errors.Is(err, tt.expectedErr) {
+						t.Fatalf("expected error: %v, got: %v", tt.expectedErr, err)
+					}
 
-		ca := CloudAvenue{
-			VDC: "acme-vdc",
-		}
+					return
+				}
+				if err != nil {
+					t.Fatalf("unexpected error: %v", err)
+				}
 
-		exist := ca.DefaultVDCExist()
+				if !client.DefaultVDCExist() {
+					t.Fatalf("expected default VDC to exist")
+				}
 
-		if !exist {
-			t.Fatalf("expected default vdc to exist")
+				if client.GetDefaultVDC() != os.Getenv("TEST_CLOUDAVENUE_VDC") {
+					t.Fatalf("expected default VDC to be %s, got %s", os.Getenv("TEST_CLOUDAVENUE_VDC"), client.GetDefaultVDC())
+				}
+
+				if client.GetURL() == "" {
+					t.Fatalf("expected URL to be set")
+				}
+
+				if client.GetOrgName() != os.Getenv("TEST_CLOUDAVENUE_ORG") {
+					t.Fatalf("expected organization to be %s, got %s", os.Getenv("TEST_CLOUDAVENUE_ORG"), client.GetOrgName())
+				}
+
+				if client.GetUserName() != os.Getenv("TEST_CLOUDAVENUE_USERNAME") {
+					t.Fatalf("expected username to be %s, got %s", os.Getenv("TEST_CLOUDAVENUE_USERNAME"), client.GetUserName())
+				}
+			})
 		}
 	})
 }

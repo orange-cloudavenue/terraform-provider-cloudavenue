@@ -4,19 +4,16 @@ package provider
 import (
 	"context"
 	"errors"
-	"os"
 
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	casdk "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 	clientcloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/clients/cloudavenue"
 	clientnetbackup "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/clients/netbackup"
+	caverrors "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
-
-const VCDVersion = "37.2"
 
 // Ensure the implementation satisfies the expected interfaces.
 var _ provider.Provider = &cloudavenueProvider{}
@@ -58,99 +55,21 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 	}
 
 	cloudAvenue := client.CloudAvenue{
-		CloudAvenueVersion: p.version,
-		// Legacy SDK Cloudavenue
-		URL: func() string {
-			url := findValue(config.URL, "CLOUDAVENUE_URL")
-			if url == "" {
-				url = "https://console1.cloudavenue.orange-business.com"
-			}
-			return url
-		}(),
-		User:             findValue(config.User, "CLOUDAVENUE_USER"),
-		Password:         findValue(config.Password, "CLOUDAVENUE_PASSWORD"),
-		Org:              findValue(config.Org, "CLOUDAVENUE_ORG"),
-		VDC:              findValue(config.VDC, "CLOUDAVENUE_VDC"),
-		TerraformVersion: req.TerraformVersion,
-		VCDVersion:       VCDVersion,
-
 		// This is a new SDK Cloudavenue
 		CAVSDKOpts: &casdk.ClientOpts{
 			Netbackup: &clientnetbackup.Opts{
-				Endpoint: findValue(config.NetBackupURL, "NETBACKUP_URL"),
-				Username: findValue(config.NetBackupUser, "NETBACKUP_USER"),
-				Password: findValue(config.NetBackupPassword, "NETBACKUP_PASSWORD"),
+				Endpoint: emptyOrValue(config.NetBackupURL),
+				Username: emptyOrValue(config.NetBackupUser),
+				Password: emptyOrValue(config.NetBackupPassword),
 			},
 			CloudAvenue: &clientcloudavenue.Opts{
-				Endpoint: func() string {
-					url := findValue(config.URL, "CLOUDAVENUE_URL")
-					if url == "" {
-						url = "https://console1.cloudavenue.orange-business.com"
-					}
-					return url
-				}(),
-				Username:   findValue(config.User, "CLOUDAVENUE_USER"),
-				Password:   findValue(config.Password, "CLOUDAVENUE_PASSWORD"),
-				Org:        findValue(config.Org, "CLOUDAVENUE_ORG"),
-				VDC:        findValue(config.VDC, "CLOUDAVENUE_VDC"),
-				VCDVersion: VCDVersion,
+				Endpoint: emptyOrValue(config.URL),
+				Username: emptyOrValue(config.User),
+				Password: emptyOrValue(config.Password),
+				Org:      emptyOrValue(config.Org),
+				VDC:      emptyOrValue(config.VDC),
 			},
 		},
-	}
-
-	const valueNotEmpty = "If either is already set, ensure the value is not empty."
-
-	// If any of the expected configurations are missing, return
-	// errors with provider-specific guidance.
-	if cloudAvenue.User == "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("user"),
-			"Missing Cloud Avenue API User",
-			"The provider cannot create the Cloud Avenue API client as there is a missing or empty value for the Cloud Avenue API user. "+
-				"Set the host value in the configuration or use the CLOUDAVENUE_USER environment variable. "+
-				valueNotEmpty,
-		)
-	}
-	if cloudAvenue.Password == "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("password"),
-			"Missing Cloud Avenue API Password",
-			"The provider cannot create the Cloud Avenue API client as there is a missing or empty value for the Cloud Avenue API password. "+
-				"Set the host value in the configuration or use the CLOUDAVENUE_PASSWORD environment variable. "+
-				valueNotEmpty,
-		)
-	}
-	if cloudAvenue.Org == "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("org"),
-			"Missing Cloud Avenue API Org",
-			"The provider cannot create the Cloud Avenue API client as there is a missing or empty value for the Cloud Avenue API org. "+
-				"Set the host value in the configuration or use the CLOUDAVENUE_ORG environment variable. "+
-				valueNotEmpty,
-		)
-	}
-
-	if cloudAvenue.CAVSDKOpts.Netbackup.Username == "" && cloudAvenue.CAVSDKOpts.Netbackup.Password != "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("netbackup_user"),
-			"Missing NetBackup API User",
-			"The provider cannot create the NetBackup API client as there is a missing or empty value for the NetBackup API user. "+
-				"Set the host value in the configuration or use the NETBACKUP_USER environment variable. "+
-				valueNotEmpty,
-		)
-	}
-	if cloudAvenue.CAVSDKOpts.Netbackup.Password == "" && cloudAvenue.CAVSDKOpts.Netbackup.Username != "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("netbackup_password"),
-			"Missing NetBackup API Password",
-			"The provider cannot create the NetBackup API client as there is a missing or empty value for the NetBackup API password. "+
-				"Set the host value in the configuration or use the NETBACKUP_PASSWORD environment variable. "+
-				valueNotEmpty,
-		)
-	}
-
-	if resp.Diagnostics.HasError() {
-		return
 	}
 
 	const (
@@ -161,25 +80,20 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 	cA, err := cloudAvenue.New()
 	if err != nil {
 		switch {
-		case errors.Is(err, client.ErrAuthFailed):
-			resp.Diagnostics.AddError(summaryErrorAPICAV, err.Error())
+		case errors.Is(err, caverrors.ErrEmpty):
+			resp.Diagnostics.AddError("Attribute is empty", err.Error())
 			return
-		case errors.Is(err, client.ErrTokenEmpty):
-			resp.Diagnostics.AddError(summaryErrorAPICAV, "Cloud Avenue Client Error: empty token")
-			return
-		case errors.Is(err, client.ErrConfigureVmware):
-			resp.Diagnostics.AddError(summaryErrorVCD, "VMWare VCD Client Error: "+err.Error())
-			return
-		case errors.Is(err, client.ErrVCDVersionEmpty):
-			resp.Diagnostics.AddError(summaryErrorVCD, "VMWare VCD version is empty")
-			return
-		case errors.Is(err, client.ErrConfigureNetBackup):
-			resp.Diagnostics.AddError("Unable to Configure NetBackup Client", err.Error())
+		case errors.Is(err, caverrors.ErrInvalidFormat):
+			resp.Diagnostics.AddError("Attribute has invalid format", err.Error())
 			return
 		default:
 			resp.Diagnostics.AddError(summaryErrorAPICAV, "unknown error: "+err.Error())
 			return
 		}
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	// Make the CloudAvenue client available during DataSource and Resource
@@ -188,9 +102,9 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 	resp.ResourceData = cA
 }
 
-func findValue(tfValue basetypes.StringValue, envName string) string {
-	if tfValue.IsNull() {
-		return os.Getenv(envName)
+func emptyOrValue(value basetypes.StringValue) string {
+	if value.IsNull() {
+		return ""
 	}
-	return tfValue.ValueString()
+	return value.String()
 }
