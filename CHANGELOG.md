@@ -9,6 +9,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps github.com/aws/aws-sdk-go from 1.49.16 to 1.50.7 (GH-710)
 * deps: bumps github.com/google/uuid from 1.5.0 to 1.6.0 (GH-705)
 * deps: bumps github.com/hashicorp/terraform-plugin-go from 0.20.0 to 0.21.0 (GH-706)
 * deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.31.0 to 2.32.0 (GH-709)
