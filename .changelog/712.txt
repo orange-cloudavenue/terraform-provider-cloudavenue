@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_s3_bucket_policy` - Fix custom timeout is not applied.
+```

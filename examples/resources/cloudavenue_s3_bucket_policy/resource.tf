@@ -16,8 +16,8 @@ resource "cloudavenue_s3_bucket_policy" "example" {
           "s3:ListBucketVersions",
         ]
         Resource = [
-          data.cloudavenue_s3_bucket.example.arn,
-          "${data.cloudavenue_s3_bucket.example.arn}/*",
+          "arn:aws:s3:::${data.cloudavenue_s3_bucket.example.name}",
+          "arn:aws:s3:::${data.cloudavenue_s3_bucket.example.name}/*",
         ]
       }
     ]
