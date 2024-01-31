@@ -1,4 +1,12 @@
 ## 0.19.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_s3_bucket_policy` - Fix custom timeout is not applied. (GH-712)
+### :information_source: **Notes**
+
+* `resource/cloudavenue_s3_bucket_policy` - Fix wrong example in documentation. (GH-680)
+
 ## 0.18.0 (January 31, 2024)
 ### :rotating_light: **Breaking Changes**
 
