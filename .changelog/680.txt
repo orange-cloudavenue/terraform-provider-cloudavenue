@@ -1,0 +1,3 @@
+```release-note:note
+`resource/cloudavenue_s3_bucket_policy` - Fix wrong example in documentation.
+```
