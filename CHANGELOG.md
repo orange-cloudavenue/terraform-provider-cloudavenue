@@ -1,4 +1,5 @@
-## 0.18.0 (Unreleased)
+## 0.19.0 (Unreleased)
+## 0.18.0 (January 31, 2024)
 ### :rotating_light: **Breaking Changes**
 
 * `provider` - The environment variable `CLOUDAVANUE_NETBACKUP_USER`, `CLOUDAVENUE_NETBACKUP_PASSWORD` and `CLOUDAVENUE_NETBACKUP_URL` are renamed to `NETBACKUP_USERNAME`, `NETBACKUP_PASSWORD` and `NETBACKUP_URL` (GH-696)
