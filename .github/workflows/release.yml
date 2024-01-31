@@ -23,6 +23,11 @@ jobs:
         go-version-file: 'go.mod'
     - run: go mod download
     - name: Run Go unit tests
+      env:
+        TEST_CLOUDAVENUE_ORG: ${{ secrets.CLOUDAVENUE_ORG }}
+        TEST_CLOUDAVENUE_USERNAME: ${{ secrets.CLOUDAVENUE_USER }}
+        TEST_CLOUDAVENUE_PASSWORD: ${{ secrets.CLOUDAVENUE_PASSWORD }}
+        TEST_CLOUDAVENUE_VDC: ${{ secrets.CLOUDAVENUE_VDC }}
       run: |
         go test $(go list ./... | grep -v /internal/testsacc/)
   release-notes:
