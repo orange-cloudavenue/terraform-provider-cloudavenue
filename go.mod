@@ -2,8 +2,6 @@ module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 
 go 1.20
 
-replace github.com/orange-cloudavenue/cloudavenue-sdk-go => ../cloudavenue-sdk-go
-
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
 	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.4
