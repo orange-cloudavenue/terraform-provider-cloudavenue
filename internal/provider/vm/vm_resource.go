@@ -1018,6 +1018,12 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 		return vm.VM{}, diags
 	}
 
+	var hardwareVersion *govcdtypes.VirtualHardwareVersion
+	hardwareVersion, err = r.vdc.GetHighestHardwareVersion()
+	if err != nil {
+		hardwareVersion = &govcdtypes.VirtualHardwareVersion{Name: "vmx-19"}
+	}
+
 	// * Construct GoVDC VM Object
 	vmParams := &govcdtypes.RecomposeVAppParamsForEmptyVm{
 		XmlnsVcloud: govcdtypes.XMLNamespaceVCloud,
@@ -1048,7 +1054,7 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 				// can be created with resource internal_disk
 				DiskSection:     &govcdtypes.DiskSection{DiskSettings: []*govcdtypes.DiskSettings{}},
 				VirtualCpuType:  virtualCPUType,
-				HardwareVersion: &govcdtypes.HardwareVersion{Value: "vmx-19"},
+				HardwareVersion: &govcdtypes.HardwareVersion{Value: hardwareVersion.Name},
 			},
 			BootImage: bootImage,
 		},
