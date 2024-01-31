@@ -203,7 +203,8 @@ func (r *BucketPolicyResource) Delete(ctx context.Context, req resource.DeleteRe
 
 	// Delete Policy
 	_, err := retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket}, &RetryWhenConfig[*s3.DeleteBucketPolicyOutput]{
-		Timeout: deleteTimeout,
+		Timeout:  deleteTimeout,
+		Interval: 15 * time.Second,
 		Function: func() (*s3.DeleteBucketPolicyOutput, error) {
 			return r.s3Client.DeleteBucketPolicy(input)
 		},
@@ -237,7 +238,8 @@ func (r *BucketPolicyResource) genericCreateOrUpdate(ctx context.Context, timeou
 		Policy: aws.String(policy),
 	}
 	_, err = retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket, ErrCodeMalformedPolicy}, &RetryWhenConfig[*s3.PutBucketPolicyOutput]{
-		Timeout: timeout,
+		Timeout:  timeout,
+		Interval: 15 * time.Second,
 		Function: func() (*s3.PutBucketPolicyOutput, error) {
 			return r.s3Client.PutBucketPolicy(input)
 		},

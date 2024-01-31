@@ -126,8 +126,10 @@ func findBucketPolicy[T readPolicyResourceDatasource](ctx context.Context, confi
 		Bucket: config.BucketName(),
 	}
 
+	timeout, _ := config.Timeout()
+
 	if _, err := retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket, ErrCodeNoSuchBucketPolicy}, &RetryWhenConfig[*s3.GetBucketPolicyOutput]{
-		Timeout:  defaultCreateTimeout,
+		Timeout:  timeout,
 		Interval: 15 * time.Second,
 		Function: func() (*s3.GetBucketPolicyOutput, error) {
 			output, err = config.Client.GetBucketPolicy(input)
