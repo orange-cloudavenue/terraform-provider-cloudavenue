@@ -11,6 +11,7 @@
 
 * deps: bumps github.com/google/uuid from 1.5.0 to 1.6.0 (GH-705)
 * deps: bumps github.com/hashicorp/terraform-plugin-go from 0.20.0 to 0.21.0 (GH-706)
+* deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.31.0 to 2.32.0 (GH-709)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.7.0 to 0.7.1 (GH-692)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.7.1 to 0.8.1 (GH-696)
 
