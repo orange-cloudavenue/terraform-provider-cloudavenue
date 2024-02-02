@@ -3,7 +3,6 @@ package iam
 import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 )
 
 /*
@@ -35,7 +35,7 @@ func roleSchema() superschema.Schema {
 			MarkdownDescription: "data source allows you to read users in Cloud Avenue.",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
+			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the role.",
 				},
@@ -53,7 +53,7 @@ func roleSchema() superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.StringAttribute{
+			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the role.",
 				},
@@ -68,7 +68,7 @@ func roleSchema() superschema.Schema {
 					},
 				},
 			},
-			"description": superschema.StringAttribute{
+			"description": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "A description of the role.",
 				},
@@ -79,10 +79,10 @@ func roleSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"rights": superschema.SetAttribute{
+			"rights": superschema.SuperSetAttributeOf[string]{
 				Common: &schemaR.SetAttribute{
 					MarkdownDescription: "A list of rights for the role.",
-					ElementType:         types.StringType,
+					ElementType:         supertypes.StringType{},
 				},
 				Resource: &schemaR.SetAttribute{
 					Optional: true,
@@ -91,7 +91,7 @@ func roleSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"read_only": superschema.BoolAttribute{
+			"read_only": superschema.SuperBoolAttribute{
 				DataSource: &schemaD.BoolAttribute{
 					MarkdownDescription: "Indicates if the role is read only",
 					Computed:            true,

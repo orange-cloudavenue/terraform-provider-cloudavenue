@@ -7,9 +7,7 @@ import (
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
@@ -34,10 +32,10 @@ type roleDataSource struct {
 	role     commonRole
 }
 
-func (d *roleDataSource) Init(_ context.Context, rm *roleDataSourceModel) (diags diag.Diagnostics) {
+func (d *roleDataSource) Init(_ context.Context, rm *RoleDataSourceModel) (diags diag.Diagnostics) {
 	d.role = commonRole{
-		ID:   rm.ID,
-		Name: rm.Name,
+		ID:   rm.ID.StringValue,
+		Name: rm.Name.StringValue,
 	}
 
 	d.adminOrg, diags = adminorg.Init(d.client)
@@ -76,7 +74,7 @@ func (d *roleDataSource) Configure(ctx context.Context, req datasource.Configure
 func (d *roleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_iam_role", d.client.GetOrgName(), metrics.Read)()
 
-	var data *roleDataSourceModel
+	var data *RoleDataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -105,26 +103,20 @@ func (d *roleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	if err != nil {
 		return
 	}
-	assignedRights := []attr.Value{}
+	assignedRights := []string{}
 	for _, right := range rights {
-		assignedRights = append(assignedRights, types.StringValue(right.Name))
+		assignedRights = append(assignedRights, right.Name)
 	}
 
-	data = &roleDataSourceModel{
-		ID:          types.StringValue(role.Role.ID),
-		Name:        types.StringValue(role.Role.Name),
-		ReadOnly:    types.BoolValue(role.Role.ReadOnly),
-		Description: types.StringValue(role.Role.Description),
-		Rights:      types.SetNull(types.StringType),
+	resp.Diagnostics.Append(data.Rights.Set(ctx, assignedRights)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	var y diag.Diagnostics
-	if len(assignedRights) > 0 {
-		data.Rights, y = types.SetValue(types.StringType, assignedRights)
-		if y.HasError() {
-			return
-		}
-	}
+	data.ID.Set(role.Role.ID)
+	data.Name.Set(role.Role.Name)
+	data.ReadOnly.Set(role.Role.ReadOnly)
+	data.Description.Set(role.Role.Description)
 
 	// Save data into Terraform data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

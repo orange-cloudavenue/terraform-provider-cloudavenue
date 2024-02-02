@@ -8,10 +8,8 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
@@ -42,10 +40,10 @@ type roleResource struct {
 	role     commonRole
 }
 
-func (r *roleResource) Init(_ context.Context, rm *roleResourceModel) (diags diag.Diagnostics) {
+func (r *roleResource) Init(_ context.Context, rm *RoleResourceModel) (diags diag.Diagnostics) {
 	r.role = commonRole{
-		ID:   rm.ID,
-		Name: rm.Name,
+		ID:   rm.ID.StringValue,
+		Name: rm.Name.StringValue,
 	}
 	r.adminOrg, diags = adminorg.Init(r.client)
 
@@ -87,7 +85,7 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 	defer metrics.New("cloudavenue_iam_role", r.client.GetOrgName(), metrics.Create)()
 
 	// Retrieve values from plan
-	plan := &roleResourceModel{}
+	plan := &RoleResourceModel{}
 
 	// Read the plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -149,9 +147,9 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	// Set Plan state
-	plan.ID = types.StringValue(role.Role.ID)
-	plan.Name = types.StringValue(role.Role.Name)
-	plan.Description = types.StringValue(role.Role.Description)
+	plan.ID.Set(role.Role.ID)
+	plan.Name.Set(role.Role.Name)
+	plan.Description.Set(role.Role.Description)
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
@@ -164,7 +162,7 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 func (r *roleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	defer metrics.New("cloudavenue_iam_role", r.client.GetOrgName(), metrics.Read)()
 
-	var state *roleResourceModel
+	var state *RoleResourceModel
 
 	// Read state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -193,28 +191,23 @@ func (r *roleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	if err != nil {
 		return
 	}
-	assignedRights := []attr.Value{}
+
+	assignedRights := []string{}
 	for _, right := range rights {
-		assignedRights = append(assignedRights, types.StringValue(right.Name))
+		assignedRights = append(assignedRights, right.Name)
 	}
 
-	plan := &roleResourceModel{
-		ID:          types.StringValue(role.Role.ID),
-		Name:        types.StringValue(role.Role.Name),
-		Description: types.StringValue(role.Role.Description),
-		Rights:      types.SetNull(types.StringType),
+	resp.Diagnostics.Append(state.Rights.Set(ctx, assignedRights)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	var y diag.Diagnostics
-	if len(assignedRights) > 0 {
-		plan.Rights, y = types.SetValue(types.StringType, assignedRights)
-		if y.HasError() {
-			return
-		}
-	}
+	state.ID.Set(role.Role.ID)
+	state.Name.Set(role.Role.Name)
+	state.Description.Set(role.Role.Description)
 
 	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -224,7 +217,7 @@ func (r *roleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	defer metrics.New("cloudavenue_iam_role", r.client.GetOrgName(), metrics.Delete)()
 
 	var (
-		state *roleResourceModel
+		state *RoleResourceModel
 		err   error
 		role  *govcd.Role
 	)
@@ -262,7 +255,7 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	defer metrics.New("cloudavenue_iam_role", r.client.GetOrgName(), metrics.Update)()
 
 	var (
-		plan, state *roleResourceModel
+		plan, state *RoleResourceModel
 		err         error
 		role        *govcd.Role
 	)
@@ -288,32 +281,38 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// Update the role Name or Description
 	if (plan.Name.Equal(state.Name)) || (plan.Description.Equal(state.Description)) {
-		role.Role.Name = plan.Name.ValueString()
-		role.Role.Description = plan.Description.ValueString()
-		_, err = role.Update()
-		if err != nil {
+		role.Role.Name = plan.Name.Get()
+		role.Role.Description = plan.Description.Get()
+		if _, err := role.Update(); err != nil {
 			resp.Diagnostics.AddError("Error updating role", err.Error())
 			return
 		}
 	}
 
 	// Check rights are valid
+	planRights, d := plan.Rights.Get(ctx)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	rights := make([]govcdtypes.OpenApiReference, 0)
-	for _, right := range plan.Rights.Elements() {
-		rg := strings.Trim(right.String(), "\"")
-		x, err := r.adminOrg.GetRightByName(rg)
+	for _, right := range planRights {
+		x, err := r.adminOrg.GetRightByName(right)
 		if err != nil {
 			resp.Diagnostics.AddError("Error retrieving right", err.Error())
 			return
 		}
-		rights = append(rights, govcdtypes.OpenApiReference{Name: rg, ID: x.ID})
+		rights = append(rights, govcdtypes.OpenApiReference{Name: right, ID: x.ID})
 	}
+
 	// Add implied rights
 	missingImpliedRights, err := govcd.FindMissingImpliedRights(&r.client.Vmware.Client, rights)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving implied rights", err.Error())
 		return
 	}
+
 	// Print missing implied rights
 	if len(missingImpliedRights) > 0 {
 		message := "The rights set for this role require the following implied rights to be added:"
@@ -324,10 +323,10 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		resp.Diagnostics.AddError(message, rightsList)
 		return
 	}
+
 	// Update the role rights
 	if len(rights) > 0 {
-		err = role.UpdateRights(rights)
-		if err != nil {
+		if err := role.UpdateRights(rights); err != nil {
 			resp.Diagnostics.AddError("Error updating role rights", err.Error())
 			return
 		}
@@ -338,8 +337,7 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			return
 		}
 		if len(currentRights) > 0 {
-			err = role.RemoveAllRights()
-			if err != nil {
+			if err := role.RemoveAllRights(); err != nil {
 				resp.Diagnostics.AddError("Error removing role rights", err.Error())
 				return
 			}
@@ -347,12 +345,9 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	// Set Plan state
-	plan = &roleResourceModel{
-		ID:          types.StringValue(role.Role.ID),
-		Name:        types.StringValue(role.Role.Name),
-		Description: types.StringValue(role.Role.Description),
-		Rights:      plan.Rights,
-	}
+	plan.ID.Set(role.Role.ID)
+	plan.Name.Set(role.Role.Name)
+	plan.Description.Set(role.Role.Description)
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
