@@ -2,6 +2,7 @@
 
 ### :bug: **Bug Fixes**
 
+* `provider` - Fix `the organization has an invalid format` error when creating a new provider if the credentials are provided by the terraform configuration. (GH-715)
 * `resource/cloudavenue_s3_bucket_policy` - Fix custom timeout is not applied. (GH-712)
 ### :information_source: **Notes**
 
