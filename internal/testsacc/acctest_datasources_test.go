@@ -2,42 +2,46 @@ package testsacc
 
 import "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 
-func GetDataSourceConfig() map[testsacc.ResourceName]func() resourceConfig {
-	return map[testsacc.ResourceName]func() resourceConfig{
+func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConfig {
+	return map[testsacc.ResourceName]func() *testsacc.ResourceConfig{
 		// * Catalog
-		CatalogDataSourceName:             NewResourceConfig(NewCatalogDataSourceTest()),
-		CatalogACLDataSourceName:          NewResourceConfig(NewCatalogACLDataSourceTest()),
-		CatalogsDataSourceName:            NewResourceConfig(NewCatalogsDataSourceTest()),
-		CatalogVAppTemplateDataSourceName: NewResourceConfig(NewCatalogVAppTemplateDataSourceTest()),
+		CatalogDataSourceName:             testsacc.NewResourceConfig(NewCatalogDataSourceTest()),
+		CatalogACLDataSourceName:          testsacc.NewResourceConfig(NewCatalogACLDataSourceTest()),
+		CatalogsDataSourceName:            testsacc.NewResourceConfig(NewCatalogsDataSourceTest()),
+		CatalogVAppTemplateDataSourceName: testsacc.NewResourceConfig(NewCatalogVAppTemplateDataSourceTest()),
 
 		// * Tier0
-		Tier0VRFDataSourceName: NewResourceConfig(NewTier0VRFDataSourceTest()),
+		Tier0VRFDataSourceName: testsacc.NewResourceConfig(NewTier0VRFDataSourceTest()),
 
 		// * VDC
-		VDCDataSourceName:      NewResourceConfig(NewVDCDataSourceTest()),
-		VDCGroupDataSourceName: NewResourceConfig(NewVDCGroupDataSourceTest()),
+		VDCDataSourceName:      testsacc.NewResourceConfig(NewVDCDataSourceTest()),
+		VDCGroupDataSourceName: testsacc.NewResourceConfig(NewVDCGroupDataSourceTest()),
 
 		// * Backup
-		BackupDataSourceName: NewResourceConfig(NewBackupDataSourceTest()),
+		BackupDataSourceName: testsacc.NewResourceConfig(NewBackupDataSourceTest()),
 
 		// * EdgeGateway
-		EdgeGatewayDataSourceName:               NewResourceConfig(NewEdgeGatewayDataSourceTest()),
-		EdgeGatewaysDataSourceName:              NewResourceConfig(NewEdgeGatewaysDataSourceTest()),
-		EdgeGatewayFirewallDataSourceName:       NewResourceConfig(NewEdgeGatewayFirewallDataSourceTest()),
-		EdgeGatewayAppPortProfileDatasourceName: NewResourceConfig(NewEdgeGatewayAppPortProfileDatasourceTest()),
-		EdgeGatewaySecurityGroupDataSourceName:  NewResourceConfig(NewEdgeGatewaySecurityGroupDataSourceTest()),
+		EdgeGatewayDataSourceName:               testsacc.NewResourceConfig(NewEdgeGatewayDataSourceTest()),
+		EdgeGatewaysDataSourceName:              testsacc.NewResourceConfig(NewEdgeGatewaysDataSourceTest()),
+		EdgeGatewayFirewallDataSourceName:       testsacc.NewResourceConfig(NewEdgeGatewayFirewallDataSourceTest()),
+		EdgeGatewayAppPortProfileDatasourceName: testsacc.NewResourceConfig(NewEdgeGatewayAppPortProfileDatasourceTest()),
+		EdgeGatewaySecurityGroupDataSourceName:  testsacc.NewResourceConfig(NewEdgeGatewaySecurityGroupDataSourceTest()),
+		EdgeGatewayDhcpForwardingDataSourceName: testsacc.NewResourceConfig(NewEdgeGatewayDhcpForwardingDataSourceTest()),
 
 		// * S3
-		S3BucketVersioningConfigurationDatasourceName: NewResourceConfig(NewS3BucketVersioningConfigurationDatasourceTest()),
-		S3BucketDatasourceName:                        NewResourceConfig(NewS3BucketDatasourceTest()),
-		S3BucketCorsConfigurationDataSourceName:       NewResourceConfig(NewS3BucketCorsConfigurationDataSourceTest()),
-		S3BucketLifecycleConfigurationDataSourceName:  NewResourceConfig(NewS3BucketLifecycleConfigurationDataSourceTest()),
-		S3BucketWebsiteConfigurationDataSourceName:    NewResourceConfig(NewS3BucketWebsiteConfigurationDataSourceTest()),
-		S3BucketACLDataSourceName:                     NewResourceConfig(NewS3BucketACLDataSourceTest()),
-		S3BucketPolicyDataSourceName:                  NewResourceConfig(NewS3BucketPolicyDataSourceTest()),
-		S3UserDataSourceName:                          NewResourceConfig(NewS3UserDataSourceTest()),
+		S3BucketVersioningConfigurationDatasourceName: testsacc.NewResourceConfig(NewS3BucketVersioningConfigurationDatasourceTest()),
+		S3BucketDatasourceName:                        testsacc.NewResourceConfig(NewS3BucketDatasourceTest()),
+		S3BucketCorsConfigurationDataSourceName:       testsacc.NewResourceConfig(NewS3BucketCorsConfigurationDataSourceTest()),
+		S3BucketLifecycleConfigurationDataSourceName:  testsacc.NewResourceConfig(NewS3BucketLifecycleConfigurationDataSourceTest()),
+		S3BucketWebsiteConfigurationDataSourceName:    testsacc.NewResourceConfig(NewS3BucketWebsiteConfigurationDataSourceTest()),
+		S3BucketACLDataSourceName:                     testsacc.NewResourceConfig(NewS3BucketACLDataSourceTest()),
+		S3BucketPolicyDataSourceName:                  testsacc.NewResourceConfig(NewS3BucketPolicyDataSourceTest()),
+		S3UserDataSourceName:                          testsacc.NewResourceConfig(NewS3UserDataSourceTest()),
 
 		// * Public IP
-		PublicIPsDataSourceName: NewResourceConfig(NewPublicIPsDataSourceTest()),
+		PublicIPsDataSourceName: testsacc.NewResourceConfig(NewPublicIPsDataSourceTest()),
+
+		// * IAM
+		IAMUserDataSourceName: testsacc.NewResourceConfig(NewIAMUserDataSourceTest()),
 	}
 }

@@ -10,6 +10,11 @@ import (
 	"github.com/thanhpk/randstr"
 )
 
+const (
+	// prefix of generate.
+	generatePrefix = "tftest_"
+)
+
 var (
 	KeyValueStore = &map[string]any{}
 
@@ -19,7 +24,7 @@ var (
 				extraOpts = append(extraOpts, "")
 			}
 
-			randomString := generateRandomString(extraOpts[0])
+			randomString := generatePrefix + generateRandomString(extraOpts[0])
 			(*KeyValueStore)[buildKeyValueStore(resourceName, key)] = randomString
 			return returnWithQuotes(randomString)
 		},

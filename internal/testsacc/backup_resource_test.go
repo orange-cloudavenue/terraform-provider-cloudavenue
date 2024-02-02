@@ -12,28 +12,7 @@ import (
 var _ testsacc.TestACC = &BackupResource{}
 
 const (
-	BackupResourceName      = testsacc.ResourceName("cloudavenue_backup")
-	TestAccVMResourceConfig = `
-	data "cloudavenue_catalog_vapp_template" "example" {
-	  catalog_name  = "Orange-Linux"
-	  template_name = "debian_10_X64"
-	}
-	resource "cloudavenue_vm" "example_backup" {
-	  name        = "example"
-	  description = "This is a example vm"
-	  vapp_name = cloudavenue_vapp.example.name
-	  vdc = cloudavenue_vdc.example.name
-	  deploy_os = {
-	    vapp_template_id = data.cloudavenue_catalog_vapp_template.example.id
-	  }
-	  settings = {
-	  	customization = {
-	  	  auto_generate_password = true
-	  	}
-	  }
-	  resource = {}
-	  state = {}
-	}`
+	BackupResourceName = testsacc.ResourceName("cloudavenue_backup")
 )
 
 type BackupResource struct{}
@@ -48,8 +27,6 @@ func (r *BackupResource) GetResourceName() string {
 }
 
 func (r *BackupResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	resp.Append(GetResourceConfig()[VAppResourceName]().GetDefaultConfig)
-	resp.Append(AddConstantConfig(TestAccVMResourceConfig))
 	return
 }
 
@@ -61,6 +38,10 @@ func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(c
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "target_name"),
+				},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
+					return
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -115,6 +96,10 @@ func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(c
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "target_id"),
 				},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[VAppResourceName]().GetDefaultConfig)
+					return
+				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
@@ -167,6 +152,10 @@ func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(c
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "target_name"),
+				},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[VMResourceName]().GetDefaultConfig)
+					return
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

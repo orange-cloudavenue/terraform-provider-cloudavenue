@@ -52,8 +52,6 @@ func (r *EdgeGatewayResource) GetResourceName() string {
 }
 
 func (r *EdgeGatewayResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	resp.Append(GetResourceConfig()[VDCGroupResourceName]().GetDefaultConfig)
-	resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
 	resp.Append(GetDataSourceConfig()[Tier0VRFDataSourceName]().GetDefaultConfig)
 	return
 }
@@ -72,6 +70,10 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
+				},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
+					return
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -151,6 +153,10 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
 					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
+				},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[VDCGroupResourceName]().GetDefaultConfig)
+					return
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

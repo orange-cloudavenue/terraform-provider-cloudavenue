@@ -27,8 +27,8 @@ func (r *S3UserDataSource) GetResourceName() string {
 	return S3UserDataSourceName.String()
 }
 
-func (r *S3UserDataSource) DependenciesConfig() (deps testsacc.DependenciesConfigResponse) {
-	deps.Append(AddConstantConfig(testAccOrgUserResourceConfigFull))
+func (r *S3UserDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[IAMUserResourceName]().GetDefaultConfig)
 	return
 }
 

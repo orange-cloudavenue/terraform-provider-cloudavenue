@@ -310,7 +310,7 @@ func (r *dhcpForwardingResource) ModifyPlan(ctx context.Context, req resource.Mo
 	}
 
 	// ! If Enabled is set to false, then DHCP Servers cannot be edited \0_o/
-	if !dPlan.DhcpServers.Equal(dState.DhcpServers) && !dPlan.Enabled.Get() {
+	if !dPlan.DhcpServers.IsNull() && !dPlan.DhcpServers.Equal(dState.DhcpServers) && !dPlan.Enabled.Get() {
 		resp.Diagnostics.AddError("DHCP Servers cannot be edited", "DHCP servers can only be edited when DHCP forwarding is enabled")
 		return
 	}
