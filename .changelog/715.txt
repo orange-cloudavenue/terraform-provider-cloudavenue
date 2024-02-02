@@ -1,0 +1,3 @@
+```release-note:bug
+`provider` - Fix `the organization has an invalid format` error when creating a new provider if the credentials are provided by the terraform configuration.
+```

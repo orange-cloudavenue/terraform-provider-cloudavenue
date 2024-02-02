@@ -106,5 +106,5 @@ func emptyOrValue(value basetypes.StringValue) string {
 	if value.IsNull() {
 		return ""
 	}
-	return value.String()
+	return value.ValueString()
 }
