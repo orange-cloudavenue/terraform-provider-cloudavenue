@@ -29,9 +29,8 @@ func (r *CatalogACLResource) GetResourceName() string {
 
 func (r *CatalogACLResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[CatalogResourceName]().GetDefaultConfig)
-
-	// TODO After the implementation of the user resource we can use new resourceConfig
-	resp.Append(AddConstantConfig(testAccOrgUserResourceConfigForCatalogACL))
+	resp.Append(GetResourceConfig()[IAMUserResourceName]().GetDefaultConfig)
+	resp.Append(GetResourceConfig()[IAMUserResourceName]().GetSpecificConfig("example_2"))
 	return
 }
 
@@ -88,7 +87,7 @@ func (r *CatalogACLResource) Tests(ctx context.Context) map[testsacc.TestName]fu
 									access_level = "ReadOnly"
 								},
 								{
-									user_id = cloudavenue_iam_user.example2.id
+									user_id = cloudavenue_iam_user.example_2.id
 									access_level = "FullControl"
 								}
 							]

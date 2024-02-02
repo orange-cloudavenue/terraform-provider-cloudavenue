@@ -2,7 +2,6 @@
 package testsacc
 
 import (
-	"context"
 	"log"
 	"os"
 	"testing"
@@ -12,14 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider"
 )
-
-var localCacheResource = map[string]testsacc.Test{}
 
 // TestAccProtoV6ProviderFactories are used to instantiate a provider during
 // acceptance testing. The factory function will be invoked for every Terraform
@@ -64,60 +59,4 @@ func ContactConfigs(configs ...string) string {
 		result += config + "\n"
 	}
 	return result
-}
-
-type resourceConfig struct {
-	testsacc.TestACC
-}
-
-// GetDefaultConfig returns the create configuration for the test named "example".
-func (r resourceConfig) GetDefaultConfig() testsacc.TFData {
-	return r.GetSpecificConfig("example")()
-}
-
-// GetSpecificConfig returns the create configuration for the test named "example".
-func (r resourceConfig) GetSpecificConfig(testName string) func() testsacc.TFData {
-	return func() testsacc.TFData {
-		return r.fromCache(testName).CacheDependenciesConfig
-	}
-}
-
-func (r resourceConfig) fromCache(testName string) testsacc.Test {
-	t, ok := localCacheResource[r.GetResourceName()+"."+testName]
-	if !ok {
-		t = r.Tests(context.Background())[testsacc.TestName(testName)](
-			context.Background(),
-			r.GetResourceName()+"."+testName,
-		)
-		t.ComputeDependenciesConfig(r.TestACC)
-		t.CacheDependenciesConfig.Append(t.Create.TFConfig)
-		localCacheResource[r.GetResourceName()+"."+testName] = t
-	}
-
-	return t
-}
-
-// GetDefaultChecks returns the checks for the test named "example".
-func (r resourceConfig) GetDefaultChecks() []resource.TestCheckFunc {
-	return r.GetSpecificChecks("example")
-}
-
-// GetSpecificChecks returns the checks for the test named.
-func (r resourceConfig) GetSpecificChecks(testName string) []resource.TestCheckFunc {
-	return r.fromCache(testName).Create.Checks
-}
-
-// AddConstantConfig returns the create configuration from constant.
-func AddConstantConfig(config string) func() testsacc.TFData {
-	return func() testsacc.TFData {
-		return testsacc.TFData(config)
-	}
-}
-
-func NewResourceConfig(data testsacc.TestACC) func() resourceConfig {
-	return func() resourceConfig {
-		return resourceConfig{
-			TestACC: data,
-		}
-	}
 }

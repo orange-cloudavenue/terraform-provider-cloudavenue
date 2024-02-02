@@ -3,8 +3,8 @@ package testsacc
 import (
 	"context"
 	"fmt"
-	"regexp"
-	"strings"
+	"log"
+	"os"
 
 	"github.com/iancoleman/strcase"
 
@@ -12,160 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-type (
-	ResourceName               string
-	TFData                     string
-	TestName                   string
-	ListOfDependencies         []ResourceName
-	DependenciesConfigResponse []func() TFData
-
-	// TODO : Add TFACCLog management.
-	TFACCLog struct {
-		Level string `env:"LEVEL,default=info"`
-	}
-
-	TestACC interface {
-		// GetResourceName returns the name of the resource under test.
-		GetResourceName() string
-
-		// DependenciesConfig returns the Terraform configuration used to create any dependencies of the resource under test.
-		DependenciesConfig() DependenciesConfigResponse
-
-		// Tests returns the acceptance tests to run for the resource under test.
-		// resourceName is a concatenation of the resource name and the example name. For example, "cloudavenue_catalog.example".
-		Tests(context.Context) map[TestName]func(ctx context.Context, resourceName string) Test
-	}
-
-	Test struct {
-		// CommonChecks is a list of common Terraform checks applied to all tests.
-		CommonChecks []resource.TestCheckFunc
-
-		// Create returns the Terraform configuration to use for the test.
-		// This should be a valid Terraform configuration that can be used to create, update, and destroy resources.
-		Create TFConfig
-
-		// Update returns the Terraform configurations to use for the update test.
-		// This should be a valid Terraform configuration that can be used to update the resource under test.
-		Updates []TFConfig
-
-		// Import returns the Terraform configurations to use for the import test.
-		Imports []TFImport
-
-		// Destroy will create a destroy plan if set to true.
-		Destroy bool
-
-		// CacheDependenciesConfig is used to cache the dependencies config.
-		CacheDependenciesConfig TFData
-
-		// listOfDeps is a list of dependencies.
-		listOfDeps ListOfDependencies
-	}
-
-	TFConfig struct {
-		// Checks is a Terraform checks to run for checking the resource under test.
-		// If EnableAutoCheck is true, these checks will be automatically added to the test.
-		// If EnableAutoCheck is false, these checks will be the only checks run for the test.
-		Checks []resource.TestCheckFunc
-
-		// TFCongig is the Terraform configuration to use for the test.
-		TFConfig TFData
-
-		// TFAdvanced is the Terraform advanced configuration to use for the test.
-		TFAdvanced TFAdvanced
-	}
-
-	TFAdvanced struct {
-		// PreConfig is called before the Config is applied to perform any per-step
-		// setup that needs to happen. This is called regardless of "test mode"
-		// below.
-		PreConfig func()
-
-		// Taint is a list of resource addresses to taint prior to the execution of
-		// the step. Be sure to only include this at a step where the referenced
-		// address will be present in state, as it will fail the test if the resource
-		// is missing.
-		//
-		// This option is ignored on ImportState tests, and currently only works for
-		// resources in the root module path.
-		Taint []string
-
-		// Destroy will create a destroy plan if set to true.
-		Destroy bool
-
-		// ExpectNonEmptyPlan can be set to true for specific types of tests that are
-		// looking to verify that a diff occurs
-		ExpectNonEmptyPlan bool
-
-		// ExpectError allows the construction of test cases that we expect to fail
-		// with an error. The specified regexp must match against the error for the
-		// test to pass.
-		ExpectError *regexp.Regexp
-
-		// PlanOnly can be set to only run `plan` with this configuration, and not
-		// actually apply it. This is useful for ensuring config changes result in
-		// no-op plans
-		PlanOnly bool
-
-		// PreventDiskCleanup can be set to true for testing terraform modules which
-		// require access to disk at runtime. Note that this will leave files in the
-		// temp folder
-		PreventDiskCleanup bool
-
-		// PreventPostDestroyRefresh can be set to true for cases where data sources
-		// are tested alongside real resources
-		PreventPostDestroyRefresh bool
-	}
-
-	TFImport struct {
-		// ImportStateId is the ID to perform an ImportState operation with.
-		// This is optional. If it isn't set, then the resource ID is automatically
-		// determined by inspecting the state for ResourceName's ID.
-		ImportStateID string
-
-		// ImportStateIdFunc is a function that can be used to dynamically generate
-		// the ID for the ImportState tests. It is sent the state, which can be
-		// checked to derive the attributes necessary and generate the string in the
-		// desired format.
-		ImportStateIDFunc resource.ImportStateIdFunc
-
-		// ImportStateIDBuilder is a function that can be used to dynamically generate
-		// the ID for the ImportState tests. It is sent the state, which can be
-		// checked to derive the attributes necessary and generate the string in the
-		// desired format.
-		// Specifie the list of attribute names to use to build the ID.
-		// Example of use: []string{"vdc_name", "edgegateway_name"} => "vdcExample.edgegatewayExample"
-		ImportStateIDBuilder []string
-
-		// ImportStateVerifyIgnore is a list of prefixes of fields that should
-		// not be verified to be equal. These can be set to ephemeral fields or
-		// fields that can't be refreshed and don't matter.
-		ImportStateVerifyIgnore []string
-
-		// ImportStatePersist, if true, will update the persisted state with the
-		// state generated by the import operation (i.e., terraform import). When
-		// false (default) the state generated by the import operation is discarded
-		// at the end of the test step that is verifying import behavior.
-		ImportStatePersist bool
-
-		// ImportStateVerify, if true, will also check that the state values
-		// that are finally put into the state after import match for all the
-		// IDs returned by the Import.
-		ImportStateVerify bool
-
-		// ImportState, if true, will test the functionality of ImportState
-		// by importing the resource with ID of that resource.
-		ImportState bool
-	}
-)
-
 // * DependenciesConfigResponse
 // Append appends the given dependencies config to the current one.
-func (d *DependenciesConfigResponse) Append(tf func() TFData) {
+func (d *DependenciesConfigResponse) Append(tf func() map[string]TFData) {
 	*d = append(*d, tf)
 }
 
 // * TFAdvanced
-
 // IsEmpty returns true if the TFAdvanced is empty.
 func (t *TFAdvanced) IsEmpty() bool {
 	return t == nil
@@ -175,37 +28,6 @@ func (t *TFAdvanced) IsEmpty() bool {
 // String returns the string representation of the ResourceName.
 func (r ResourceName) String() string {
 	return string(r)
-}
-
-// * ListOfDependencies
-// Append appends the given dependency to the list of dependencies.
-// resourceName is a concatenation of the resource name and the name. For example, "cloudavenue_catalog.example".
-func (l *ListOfDependencies) Append(resourceName ResourceName) {
-	x := strings.Split(resourceName.String(), ".")
-
-	if (len(x) == 2 || len(x) == 3) && !l.Exists(resourceName) {
-		*l = append(*l, resourceName)
-	}
-}
-
-// Exists checks if the given dependency exists in the list of dependencies.
-// resourceName is a concatenation of the resource name and the name. For example, "cloudavenue_catalog.example".
-func (l *ListOfDependencies) Exists(resourceName ResourceName) bool {
-	for _, v := range *l {
-		if v == resourceName {
-			return true
-		}
-	}
-	return false
-}
-
-// Get returns the list of dependencies as a slice of string.
-func (l *ListOfDependencies) Get() []string {
-	x := make([]string, 0)
-	for _, v := range *l {
-		x = append(x, v.String())
-	}
-	return x
 }
 
 // * TestName
@@ -267,28 +89,30 @@ func (t *TFData) append(tf TFData) {
 	*t = TFData(fmt.Sprintf("%s\n%s", t, tf.String()))
 }
 
+// The code below is commented out because it is not used in the current implementation.
+// But it can be useful in the future.
 // extractResourceName extracts the resource name and config name from the Terraform configuration.
 // example: "resource "cloudavenue_catalog" "example" {}" => "cloudavenue_catalog.example"
 // example: "data "cloudavenue_catalog" "example" {}" => "data.cloudavenue_catalog.example"
-func (t *TFData) extractResourceName() string {
-	// find the first occurrence of "resource" or "data"
-	re := regexp.MustCompile(`(resource|data) \"(.*)\" \"(.*)\"`)
-	line := re.FindString(t.String())
+// func (t *TFData) extractResourceName() string {
+// 	// find the first occurrence of "resource" or "data"
+// 	re := regexp.MustCompile(`(resource|data) \"(.*)\" \"(.*)\"`)
+// 	line := re.FindString(t.String())
 
-	x := strings.Split(line, " ")
-	// for each word remove the double quotes
-	for i, v := range x {
-		x[i] = strings.ReplaceAll(v, "\"", "")
-	}
+// 	x := strings.Split(line, " ")
+// 	// for each word remove the double quotes
+// 	for i, v := range x {
+// 		x[i] = strings.ReplaceAll(v, "\"", "")
+// 	}
 
-	// Result is <resource_name>.<config_name>
-	if x[0] == "resource" {
-		return fmt.Sprintf("%s.%s", x[1], x[2])
-	}
+// 	// Result is <resource_name>.<config_name>
+// 	if x[0] == "resource" {
+// 		return fmt.Sprintf("%s.%s", x[1], x[2])
+// 	}
 
-	// Result is data.<resource_name>.<config_name>
-	return fmt.Sprintf("%s.%s.%s", x[0], x[1], x[2])
-}
+// 	// Result is data.<resource_name>.<config_name>
+// 	return fmt.Sprintf("%s.%s.%s", x[0], x[1], x[2])
+// }
 
 // *TFConfig
 
@@ -310,21 +134,36 @@ func (t *Test) initListOfDeps() {
 }
 
 // ExistInListOfDeps.
-func (t *Test) ExistInListOfDeps(resourceName string) bool {
-	return t.listOfDeps.Exists(ResourceName(resourceName))
+func (t *Test) ExistInListOfDeps(configName string) bool {
+	return t.listOfDeps.Exists(ConfigName(configName))
 }
 
 // Compute Dependencies config.
 func (t *Test) ComputeDependenciesConfig(testACC TestACC) {
 	t.initListOfDeps()
-	for _, v := range testACC.DependenciesConfig() {
-		// tf contains terraform configuration for a dependency
-		tf := v()
-		if !tf.IsEmpty() && !t.listOfDeps.Exists(ResourceName(tf.extractResourceName())) {
-			t.CacheDependenciesConfig.append(tf)
-			t.listOfDeps.Append(ResourceName(tf.extractResourceName()))
+	log.Default().Print("Starting building dependencies config")
+	for _, vs := range testACC.DependenciesConfig() {
+		for configName, tfData := range vs() {
+			t.listOfDeps.Append(ConfigName(configName), tfData)
 		}
 	}
+
+	if t.CommonDependencies != nil {
+		for _, vs := range t.CommonDependencies() {
+			for configName, tfData := range vs() {
+				t.listOfDeps.Append(ConfigName(configName), tfData)
+			}
+		}
+	}
+	log.Default().Printf("Finished building dependencies config. Found %d dependencies", len(t.listOfDeps))
+}
+
+// GetChecks returns the checks for the test.
+func (t Test) GetChecks() []resource.TestCheckFunc {
+	checks := make([]resource.TestCheckFunc, 0)
+	checks = append(checks, t.CommonChecks...)
+	checks = append(checks, t.Create.Checks...)
+	return checks
 }
 
 // GenerateSteps generates the structure of the acceptance tests.
@@ -332,14 +171,21 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 	// Init Slice
 	steps = make([]resource.TestStep, 0)
 
-	// listOfChecks is a concatenation of the common checks and the specific checks.
-	listOfChecks := t.GenerateCheckWithCommonChecks()
-
 	// * Compute dependencies config
 	t.ComputeDependenciesConfig(testACC)
 
 	// * Create step
-	lastConfigGenerated := t.Create.Generate(ctx, t.CacheDependenciesConfig)
+	lastConfigGenerated := t.Create.Generate(ctx, t.listOfDeps.ToTFData())
+
+	log.Default().Print(lastConfigGenerated)
+	// if env TF_ACC_ONLY_PRINT is set to true, print the config and exit.
+	if os.Getenv("TF_ACC_ONLY_PRINT") == "true" {
+		os.Exit(0)
+	}
+
+	// listOfChecks is a concatenation of the common checks and the specific checks.
+	listOfChecks := t.CommonChecks
+	listOfChecks = append(listOfChecks, t.Create.Checks...)
 	createTestStep := resource.TestStep{
 		Config: lastConfigGenerated,
 		Check: resource.ComposeAggregateTestCheckFunc(
@@ -366,7 +212,7 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 			listOfChecks := t.CommonChecks
 			listOfChecks = append(listOfChecks, update.Checks...)
 
-			lastConfigGenerated = update.Generate(ctx, t.CacheDependenciesConfig)
+			lastConfigGenerated = update.Generate(ctx, t.listOfDeps.ToTFData())
 			updateTestStep := resource.TestStep{
 				Config: lastConfigGenerated,
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -423,16 +269,7 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 	return
 }
 
-// GenerateCheckWithCommonChecks concatenates the common checks and the specific checks.
-func (t Test) GenerateCheckWithCommonChecks() []resource.TestCheckFunc {
-	listOfChecks := t.CommonChecks
-	listOfChecks = append(listOfChecks, t.Create.Checks...)
-
-	return listOfChecks
-}
-
 // *TestACC
-
 // GenerateTests generates the acceptance tests for the resource under test.
 func GenerateTests(tacc TestACC) []resource.TestStep {
 	var (
@@ -444,20 +281,18 @@ func GenerateTests(tacc TestACC) []resource.TestStep {
 	for testName, step := range tacc.Tests(ctx) {
 		// resourceName is a concatenation of the resource name and the example name. For example, "cloudavenue_catalog.example".
 		resourceName := testName.ComputeResourceName(tacc.GetResourceName())
-
+		if envvar, ok := os.LookupEnv("TF_ACC_RUN_TEST"); ok {
+			if envvar != testName.String() {
+				continue
+			}
+		}
 		steps = append(steps, step(ctx, resourceName).GenerateSteps(ctx, testName, tacc)...)
 	}
 
 	return steps
 }
 
-// GenerateTestChecks Generate the checks for a specific test.
-func GenerateTestChecks(ctx context.Context, tacc TestACC, resourceName string, testName TestName) []resource.TestCheckFunc {
-	return tacc.Tests(ctx)[testName](ctx, resourceName).GenerateCheckWithCommonChecks()
-}
-
 // * Other
-
 // ImportStateIDBuilder is a function that can be used to dynamically generate
 // the ID for the ImportState tests. It is sent the state, which can be
 // checked to derive the attributes necessary and generate the string in the

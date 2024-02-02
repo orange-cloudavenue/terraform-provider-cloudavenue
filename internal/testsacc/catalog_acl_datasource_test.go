@@ -34,7 +34,7 @@ func (r *CatalogACLDataSource) DependenciesConfig() (resp testsacc.DependenciesC
 func (r *CatalogACLDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		"example": func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -42,7 +42,7 @@ func (r *CatalogACLDataSource) Tests(ctx context.Context) map[testsacc.TestName]
 					data "cloudavenue_catalog_acl" "example" {
 						catalog_id = cloudavenue_catalog_acl.example.catalog_id
 					}`,
-					Checks: NewCatalogACLResourceTest().Tests(ctx)["example"](ctx, resourceName).GenerateCheckWithCommonChecks(),
+					Checks: GetResourceConfig()[CatalogACLResourceName]().GetDefaultChecks(),
 				},
 			}
 		},

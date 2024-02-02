@@ -34,10 +34,8 @@ func (r *EdgeGatewayDataSource) DependenciesConfig() (resp testsacc.Dependencies
 
 func (r *EdgeGatewayDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		// * Test One (backup vdc example)
 		"example": func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{
-				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_edgegateway" "example" {
