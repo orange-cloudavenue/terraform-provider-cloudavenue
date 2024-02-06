@@ -8,7 +8,7 @@ require (
 	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.7.0
 	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.3.0
 	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1
-	github.com/aws/aws-sdk-go v1.50.7
+	github.com/aws/aws-sdk-go v1.50.10
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/aws-sdk-go-base v1.1.0
@@ -22,7 +22,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.32.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/kr/pretty v0.3.1
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.9.0
+	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.9.1
 	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
 	github.com/orange-cloudavenue/infrapi-sdk-go v0.1.4-0.20231005074857-89878ea119fb
 	github.com/rs/zerolog v1.31.0

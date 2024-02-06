@@ -364,6 +364,101 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 				},
 			}
 		},
+		// Test storage profile
+		"example_storage_profiles": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VDC)),
+					resource.TestCheckResourceAttr(resourceName, "billing_model", "PAYG"),
+					resource.TestCheckResourceAttr(resourceName, "disponibility_class", "ONE-ROOM"),
+					resource.TestCheckResourceAttr(resourceName, "service_class", "STD"),
+					resource.TestCheckResourceAttr(resourceName, "storage_billing_model", "PAYG"),
+
+					resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22000"),
+					resource.TestCheckResourceAttr(resourceName, "memory_allocated", "30"),
+					resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
+				},
+				// ! Set 2 storages profiles
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_vdc" "example_storage_profiles" {
+						name                  = {{ generate . "name" }}
+						description           = {{ generate . "description" "longString"}}
+						cpu_allocated         = 22000
+						memory_allocated      = 30
+						cpu_speed_in_mhz      = 2200
+						billing_model         = "PAYG"
+						disponibility_class   = "ONE-ROOM"
+						service_class         = "STD"
+						storage_billing_model = "PAYG"
+					  
+						storage_profiles = [
+						{
+							class   = "gold"
+							default = true
+							limit   = 500
+						},
+						{
+							class   = "silver"
+							default = false
+							limit   = 500
+						}
+						]
+					  
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "storage_profiles.*", map[string]string{
+							"class":   "silver",
+							"default": "false",
+							"limit":   "500",
+						}),
+						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "storage_profiles.*", map[string]string{
+							"class":   "gold",
+							"limit":   "500",
+							"default": "true",
+						}),
+					},
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{
+					// Update storage profile class to custom class
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdc" "example_storage_profiles" {
+							name                  = {{ get . "name" }}
+							description           = {{ get . "description"}}
+							cpu_allocated         = 22000
+							memory_allocated      = 30
+							cpu_speed_in_mhz      = 2200
+							billing_model         = "PAYG"
+							disponibility_class   = "ONE-ROOM"
+							service_class         = "STD"
+							storage_billing_model = "PAYG"
+						  
+							storage_profiles = [{
+								class   = "gold"
+								default = true
+								limit   = 500
+							},
+							{
+								class   = "silver_ocb0001234"
+								default = false
+								limit   = 500
+							}]
+						  
+						}`),
+						Checks: []resource.TestCheckFunc{},
+						TFAdvanced: testsacc.TFAdvanced{
+							ExpectNonEmptyPlan: true,
+							// ! Generate a error because the class is not valid for this organization
+							ExpectError: regexp.MustCompile(`Error updating VDC`),
+						},
+					},
+				},
+			}
+		},
 	}
 }
 
