@@ -8,6 +8,7 @@
 
 * deps: bumps actions/download-artifact from 4.1.1 to 4.1.2 (GH-723)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.9.0 to 0.9.1 (GH-721)
+* deps: bumps github.com/rs/zerolog from 1.31.0 to 1.32.0 (GH-720)
 
 ## 0.18.1 (February  2, 2024)
 
