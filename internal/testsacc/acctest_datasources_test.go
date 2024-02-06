@@ -42,6 +42,7 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceCo
 		PublicIPsDataSourceName: testsacc.NewResourceConfig(NewPublicIPsDataSourceTest()),
 
 		// * IAM
-		IAMUserDataSourceName: testsacc.NewResourceConfig(NewIAMUserDataSourceTest()),
+		IAMRolesDataSourceName: testsacc.NewResourceConfig(NewIAMRolesDataSourceTest()),
+		IAMUserDataSourceName:  testsacc.NewResourceConfig(NewIAMUserDataSourceTest()),
 	}
 }

@@ -1,18 +1,20 @@
 package iam
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import (
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+)
 
-type roleResourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Description types.String `tfsdk:"description"`
-	Rights      types.Set    `tfsdk:"rights"`
+type RoleResourceModel struct {
+	ID          supertypes.StringValue        `tfsdk:"id"`
+	Name        supertypes.StringValue        `tfsdk:"name"`
+	Description supertypes.StringValue        `tfsdk:"description"`
+	Rights      supertypes.SetValueOf[string] `tfsdk:"rights"`
 }
 
-type roleDataSourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Description types.String `tfsdk:"description"`
-	ReadOnly    types.Bool   `tfsdk:"read_only"`
-	Rights      types.Set    `tfsdk:"rights"`
+type RoleDataSourceModel struct {
+	ID          supertypes.StringValue        `tfsdk:"id"`
+	Name        supertypes.StringValue        `tfsdk:"name"`
+	Description supertypes.StringValue        `tfsdk:"description"`
+	ReadOnly    supertypes.BoolValue          `tfsdk:"read_only"`
+	Rights      supertypes.SetValueOf[string] `tfsdk:"rights"`
 }

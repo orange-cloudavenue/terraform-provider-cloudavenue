@@ -6,7 +6,7 @@ require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
 	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.4
 	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.7.0
-	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.3.0
+	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.3.1
 	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1
 	github.com/aws/aws-sdk-go v1.50.10
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246

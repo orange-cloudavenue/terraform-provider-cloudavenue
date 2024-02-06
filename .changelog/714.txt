@@ -1,0 +1,7 @@
+```release-note:feature
+`datasource/cloudavenue_iam_roles` - New datasource to fetch IAM roles available in your organization.
+```
+
+```release-note:dependency
+deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.3.0 to 0.3.1
+```

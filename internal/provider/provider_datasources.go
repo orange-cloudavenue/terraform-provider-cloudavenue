@@ -66,6 +66,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		// * IAM
 		iam.NewUserDataSource,
 		iam.NewRoleDataSource,
+		iam.NewRolesDataSource,
 		iam.NewIAMRightDataSource,
 
 		// * VM
