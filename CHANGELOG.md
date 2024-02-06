@@ -1,4 +1,13 @@
 ## 0.19.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vdc` - Fix set custom storage profile for VDC (GH-721)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.9.0 to 0.9.1 (GH-721)
+
 ## 0.18.1 (February  2, 2024)
 
 ### :bug: **Bug Fixes**
