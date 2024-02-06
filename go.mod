@@ -25,7 +25,7 @@ require (
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.9.1
 	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
 	github.com/orange-cloudavenue/infrapi-sdk-go v0.1.4-0.20231005074857-89878ea119fb
-	github.com/rs/zerolog v1.31.0
+	github.com/rs/zerolog v1.32.0
 	github.com/thanhpk/randstr v1.0.6
 	github.com/vmware/go-vcloud-director/v2 v2.22.0
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
