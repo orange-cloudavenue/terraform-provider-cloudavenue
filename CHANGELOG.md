@@ -1,5 +1,9 @@
 ## 0.19.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* `datasource/cloudavenue_iam_roles` - New datasource to fetch IAM roles available in your organization. (GH-714)
+
 ### :bug: **Bug Fixes**
 
 * `resource/cloudavenue_vdc` - Fix set custom storage profile for VDC (GH-721)
@@ -7,6 +11,7 @@
 ### :dependabot: **Dependencies**
 
 * deps: bumps actions/download-artifact from 4.1.1 to 4.1.2 (GH-723)
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.3.0 to 0.3.1 (GH-714)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.9.0 to 0.9.1 (GH-721)
 * deps: bumps github.com/rs/zerolog from 1.31.0 to 1.32.0 (GH-720)
 
