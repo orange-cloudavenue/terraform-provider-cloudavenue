@@ -6,6 +6,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps actions/download-artifact from 4.1.1 to 4.1.2 (GH-723)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.9.0 to 0.9.1 (GH-721)
 
 ## 0.18.1 (February  2, 2024)
