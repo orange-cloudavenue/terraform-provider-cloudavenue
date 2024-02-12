@@ -1,4 +1,9 @@
 ## 0.19.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps golangci/golangci-lint-action from 3.7.0 to 4.0.0 (GH-726)
+
 ## 0.18.2 (February  6, 2024)
 
 ### :rocket: **New Features**
