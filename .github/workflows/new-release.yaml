@@ -46,7 +46,7 @@ jobs:
         run: |
           # Construct the tag name
           if [ "${{ github.event.inputs.tagType }}" == "pre-tag" ]; then
-            echo "TAG_NAME=$(echo ${{ github.event.inputs.tag }}-alpha$(date +%Y%m%d%H%M))" >> "$GITHUB_OUTPUT"
+            echo "TAG_NAME=$(echo ${{ github.event.inputs.tag }}-pre$(date +%Y%m%d%H%M))" >> "$GITHUB_OUTPUT"
             echo "PRERELEASE=true" >> "$GITHUB_OUTPUT"
           else
             echo "TAG_NAME=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
@@ -73,6 +73,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.CHANGELOG_PAT }}
+          ref: ${{ github.ref }}
       - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
@@ -86,6 +87,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.CHANGELOG_PAT }}
+        ref: ${{ github.ref }}
     - uses: actions/setup-go@v5
       with:
         go-version-file: 'go.mod'
