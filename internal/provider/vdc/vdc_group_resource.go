@@ -91,13 +91,13 @@ func (r *groupResource) Create(ctx context.Context, req resource.CreateRequest, 
 		Implement the resource creation logic here.
 	*/
 
-	vdcIds, d := plan.GetVDCIds(ctx)
+	vdcIDs, d := plan.GetVDCIds(ctx)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	vdcGroup, err := r.adminOrg.CreateNsxtVdcGroup(plan.Name.Get(), plan.Description.Get(), vdcIds.Get()[0], vdcIds.Get())
+	vdcGroup, err := r.adminOrg.CreateNsxtVdcGroup(plan.Name.Get(), plan.Description.Get(), vdcIDs.Get()[0], vdcIDs.Get())
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating VDC Group", err.Error())
 		return
@@ -176,7 +176,7 @@ func (r *groupResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		Implement the resource update here
 	*/
 
-	vdcIds, d := plan.GetVDCIds(ctx)
+	vdcIDs, d := plan.GetVDCIds(ctx)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -189,7 +189,7 @@ func (r *groupResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		return
 	}
 
-	if _, err := vdcGroup.Update(plan.Name.Get(), plan.Description.Get(), vdcIds.Get()); err != nil {
+	if _, err := vdcGroup.Update(plan.Name.Get(), plan.Description.Get(), vdcIDs.Get()); err != nil {
 		resp.Diagnostics.AddError("Error updating VDC Group", err.Error())
 		return
 	}
@@ -284,12 +284,12 @@ func (r *groupResource) read(ctx context.Context, planOrState *GroupModel) (stat
 	stateRefreshed.Status.Set(vdcGroup.VdcGroup.Status)
 	stateRefreshed.Type.Set(vdcGroup.VdcGroup.Type)
 
-	var vdcIds []string
+	var vdcIDs []string
 	for _, vdc := range vdcGroup.VdcGroup.ParticipatingOrgVdcs {
-		vdcIds = append(vdcIds, vdc.VdcRef.ID)
+		vdcIDs = append(vdcIDs, vdc.VdcRef.ID)
 	}
 
-	diags.Append(stateRefreshed.VDCIds.Set(ctx, vdcIds)...)
+	diags.Append(stateRefreshed.VDCIds.Set(ctx, vdcIDs)...)
 
 	return stateRefreshed, true, diags
 }
