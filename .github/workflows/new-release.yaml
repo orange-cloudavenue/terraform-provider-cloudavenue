@@ -174,7 +174,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release --clean -f .goreleaser.yaml --release-notes=${{ steps.release-notes-download.outputs.download-path }}/release-notes.txt
+          args: release --clean -f .goreleaser.yml --release-notes=${{ steps.release-notes-download.outputs.download-path }}/release-notes.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
