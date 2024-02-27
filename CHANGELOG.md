@@ -2,6 +2,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps golang.org/x/net from 0.20.0 to 0.21.0 (GH-725)
 * deps: bumps golangci/golangci-lint-action from 3.7.0 to 4.0.0 (GH-726)
 
 ## 0.18.2 (February  6, 2024)
