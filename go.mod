@@ -22,7 +22,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.32.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/kr/pretty v0.3.1
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.9.1
+	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.9.2-0.20240227085932-877c55216d81
 	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
 	github.com/orange-cloudavenue/infrapi-sdk-go v0.1.4-0.20231005074857-89878ea119fb
 	github.com/rs/zerolog v1.32.0

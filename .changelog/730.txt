@@ -1,0 +1,3 @@
+```release-note:feature
+`resource/cloudavenue_edgegateway` -  Add the support for calculating bandwith for there `edgegateway` with the service class `VRF_DEDICATED_MEDIUM` or `VRF_DEDICATED_LARGE`.
+```
