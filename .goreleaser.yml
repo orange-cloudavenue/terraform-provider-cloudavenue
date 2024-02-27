@@ -4,6 +4,10 @@ before:
   hooks:
     # this is just an example and not a requirement for provider building/publishing
     - go mod tidy
+
+snapshot:
+  name_template: "{{ .Tag }}"
+
 builds:
 - env:
     # goreleaser does not work with CGO, it could also complicate
@@ -50,7 +54,9 @@ signs:
       - "${signature}"
       - "--detach-sign"
       - "${artifact}"
+      
 release:
+  prerelease: auto
   extra_files:
     - glob: 'terraform-registry-manifest.json'
       name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
