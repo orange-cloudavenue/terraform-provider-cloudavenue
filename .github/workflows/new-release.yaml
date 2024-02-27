@@ -82,6 +82,7 @@ jobs:
         with:
           version: latest
   testsunit:
+    needs: [pre-check]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -100,7 +101,7 @@ jobs:
 
   # * Step 2: Create a new tag
   tag:
-    needs: [golangci-lint, pre-check, tag-already-exist]
+    needs: [golangci-lint, pre-check, tag-already-exist, testsunit]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
