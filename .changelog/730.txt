@@ -1,0 +1,7 @@
+```release-note:feature
+`resource/cloudavenue_edgegateway` -  Add the support for calculating bandwith for there `edgegateway` with the service class `VRF_DEDICATED_MEDIUM` or `VRF_DEDICATED_LARGE`.
+```
+
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.9.0 to v0.10.0
+```
