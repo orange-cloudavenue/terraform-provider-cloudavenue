@@ -2,6 +2,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps actions/download-artifact from 4.1.1 to 4.1.4 (GH-742)
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.3.0 to 0.3.1 (GH-719)
 * deps: bumps golang.org/x/net from 0.20.0 to 0.21.0 (GH-725)
 * deps: bumps golangci/golangci-lint-action from 3 to 4 (GH-733)
