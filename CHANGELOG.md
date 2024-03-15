@@ -4,6 +4,7 @@
 
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.3.0 to 0.3.1 (GH-719)
 * deps: bumps golang.org/x/net from 0.20.0 to 0.21.0 (GH-725)
+* deps: bumps golangci/golangci-lint-action from 3 to 4 (GH-733)
 * deps: bumps golangci/golangci-lint-action from 3.7.0 to 4.0.0 (GH-726)
 
 ## 0.18.2 (February  6, 2024)
