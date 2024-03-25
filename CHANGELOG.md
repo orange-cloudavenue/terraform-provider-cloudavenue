@@ -180,6 +180,7 @@ The attribute `vdc_ids` is added to the datasource and return the list of VDC ID
 * deps: bumps golang.org/x/net from 0.18.0 to 0.19.0 (GH-653)
 * deps: bumps golang.org/x/net from 0.19.0 to 0.20.0 (GH-681)
 * deps: bumps golang.org/x/net from 0.20.0 to 0.21.0 (GH-725)
+* deps: bumps golang.org/x/net from 0.21.0 to 0.22.0 (GH-745)
 * deps: bumps golangci/golangci-lint-action from 3 to 4 (GH-733)
 * deps: bumps golangci/golangci-lint-action from 3.6.0 to 3.7.0 (GH-494)
 * deps: bumps golangci/golangci-lint-action from 3.7.0 to 4.0.0 (GH-726)
