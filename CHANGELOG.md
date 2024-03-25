@@ -1,196 +1,383 @@
 ## 0.19.0 (Unreleased)
-### :rotating_light: **Breaking Changes**
 
-* `datasource/cloudavenue_edgegateway` - Announced in release [v0.14.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.14.0) the attribute `lb_enabled` is now removed. (GH-575)
-* `datasource/cloudavenue_vapp_org_network` - `is_fenced` and `retain_ip_mac_enabled` are now removed from the schema. (GH-538)
-* `datasource/cloudavenue_vdc_group` - Remove attributes `local_egress`, `error_message`, `dfw_enabled`, `network_pool_id`, `network_pool_universal_id`, `network_provider_type`, `universal_networking_enabled`, `vdcs`, `fault_domain_tag`, `is_remote_org`, `name`, `network_provider_scope`, `site_id`, `site_name` from the datasource. 
-The attribute `vdc_ids` is added to the datasource and return the list of VDC IDs of the VDC Group. (GH-442)
-* `datasource/cloudavenue_vdc` - The `vdc_group` attribute is now **removed**. (GH-447)
-* `provider` - The environment variable `CLOUDAVANUE_NETBACKUP_USER`, `CLOUDAVENUE_NETBACKUP_PASSWORD` and `CLOUDAVENUE_NETBACKUP_URL` are renamed to `NETBACKUP_USERNAME`, `NETBACKUP_PASSWORD` and `NETBACKUP_URL` (GH-696)
-* `provider` - The environment variable `CLOUDAVENUE_USER` has been renamed to `CLOUDAVENUE_USERNAME` (GH-696)
-* `resource/cloudavenue_edgegateway` - Announced in release [v0.14.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.14.0) the attribute `lb_enabled` is now removed. (GH-575)
-* `resource/cloudavenue_network_routed` - Change attribute field for import resource by EdgeGatewayName or EdgeGatewayID. (GH-526)
-* `resource/cloudavenue_vapp_org_network` - `is_fenced` and `retain_ip_mac_enabled` are now removed from the schema. (GH-538)
-* `resource/cloudavenue_vdc` - Announced in the release [v0.0.9](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.9.0) the attribute `vdc_group` is now **removed**. (GH-447)
+### :dependabot: **Dependencies**
+
+* deps: bumps actions/download-artifact from 4.1.1 to 4.1.4 (GH-742)
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.3.0 to 0.3.1 (GH-719)
+* deps: bumps github.com/hashicorp/terraform-plugin-go from 0.21.0 to 0.22.1 (GH-743)
+* deps: bumps golang.org/x/net from 0.20.0 to 0.21.0 (GH-725)
+* deps: bumps golangci/golangci-lint-action from 3 to 4 (GH-733)
+* deps: bumps golangci/golangci-lint-action from 3.7.0 to 4.0.0 (GH-726)
+
+## 0.18.2 (February  6, 2024)
 
 ### :rocket: **New Features**
 
-* `client/cloudavenue` - Add `NetBackup` credentials in provider configuration. (GH-546)
-* `datasource/cloudavenue_backup` - New datasource to manage NetBackup feature. The `cloudavenue_backup` data source allows you to retrieve information about a backup of NetBackup solution. (GH-558)
-* `datasource/cloudavenue_edgegateway_app_port_profile` - New datasource to retrieve edgegateway app port profile information. (GH-691)
 * `datasource/cloudavenue_iam_roles` - New datasource to fetch IAM roles available in your organization. (GH-714)
-* `resource/cloudavenue_backup` - New resource to manage NetBackup feature. The `cloudavenue_backup` resource allows you to manage backup strategy for `vdc`, `vapp` and `vm` from NetBackup solution. [Please refer to the documentation for more information.](https://wiki.cloudavenue.orange-business.com/wiki/Backup) (GH-558)
-* `resource/cloudavenue_edgegateway` -  Add the support for calculating bandwith for there `edgegateway` with the service class `VRF_DEDICATED_MEDIUM` or `VRF_DEDICATED_LARGE`. (GH-730)
-* `resource/cloudavenue_vdc` - Now support custom storage profile class. (GH-615)
-* **New Data Source:** `datasource/cloudavenue_edgegateway_vpn_ipsec` - New data source to read Cloud Avenue IPsec VPN Tunnel. (GH-353)
-* **New Data Source:** `datasource/cloudavenue_s3_bucket_acl` - Get information about S3 bucket ACL (Access Control List). (GH-577)
-* **New Data Source:** `datasource/cloudavenue_s3_bucket_cors_configuration` - Get information about S3 bucket CORS configuration. (GH-578)
-* **New Data Source:** `datasource/cloudavenue_s3_bucket_policy` - Get S3 bucket policy. (GH-582)
-* **New Data Source:** `datasource/cloudavenue_s3_bucket_versioning_configuration` - Get S3 bucket versioning configuration. (GH-584)
-* **New Data Source:** `datasource/cloudavenue_s3_bucket_website_configuration`- Allow to read website configuration on your S3 Bucket. (GH-587)
-* **New Data Source:** `datasource/cloudavenue_s3_bucket` - Retrieve information about S3 buckets. (GH-576)
-* **New Data Source:** `datasource/cloudavenue_s3_lifecycle_configuration` is a new data source type that allows to retrieve S3 lifecycle configuration. (GH-579)
-* **New Data Source:** `datasource/cloudavenue_s3_user` - Get informations about S3 user (username/canonicalID). (GH-633)
-* **New Data Source:** `datasource/cloudavenue_vm_disks` - New datasource to get the list of disks available on vApp and VM level. (GH-475)
-* **New Resource:** `resource/cloudavenue_edgegateway_vpn_ipsec` - New resource to manage Cloud Avenue IPSec VPN Tunnel. (GH-352)
-* **New Resource:** `resource/cloudavenue_iam_token` - New resource to create user token. (GH-423)
-* **New Resource:** `resource/cloudavenue_s3_bucket_acl` - Manage S3 bucket ACL (Access Control List). (GH-577)
-* **New Resource:** `resource/cloudavenue_s3_bucket_cors_configuration` - Manage S3 bucket CORS configuration. (GH-578)
-* **New Resource:** `resource/cloudavenue_s3_bucket_policy` - Manage S3 bucket policy. (GH-582)
-* **New Resource:** `resource/cloudavenue_s3_bucket_versioning_configuration` - Manage S3 bucket versioning configuration. (GH-584)
-* **New Resource:** `resource/cloudavenue_s3_bucket_website_configuration`- Allow to configure website on your S3 Bucket. (GH-587)
-* **New Resource:** `resource/cloudavenue_s3_bucket` - Create and manage S3 buckets. (GH-576)
-* **New Resource:** `resource/cloudavenue_s3_credential` - Allows to create S3 credentials for the current user. (GH-603)
-* **New Resource:** `resource/cloudavenue_s3_lifecycle_configuration` is a new resource type that allows to manage S3 lifecycle configuration. (GH-579)
 
-### :tada: **Improvements**
+### :bug: **Bug Fixes**
 
-* `datasource/cloudavenue_edgegateway_app_port_profile` - Improve documentation and examples. (GH-691)
-* `datasource/cloudavenue_edgegateway` - Add new `bandwidth` attribute to retrieve bandwidth of the edge gateway (in Mbps). (GH-568)
-* `resource/cloudavenue_alb_pool` - Improve documentation. (GH-476)
-* `resource/cloudavenue_catalog_acl` - Improve documentation. (GH-476)
-* `resource/cloudavenue_edgegateway_app_port_profile` - Improve documentation and examples. (GH-691)
-* `resource/cloudavenue_edgegateway_firewall` - Improve examples in documentation. (GH-639)
-* `resource/cloudavenue_edgegateway_nat_rule` - Improve documentation. (GH-476)
-* `resource/cloudavenue_edgegateway_vpn_ipsec` - Improve documentation. (GH-476)
-* `resource/cloudavenue_edgegateway` - Add new `bandwidth` attribute to manage bandwidth of the edge gateway (in Mbps). (GH-568)
-* `resource/cloudavenue_edgegateway` - Improve examples in documentation. (GH-639)
-* `resource/cloudavenue_network_dhcp` - Improve documentation. (GH-476)
-* `resource/cloudavenue_s3_bucket` - Now the bucket can be visualized in the Cloud Avenue console. (GH-608)
-* `resource/cloudavenue_vcda_ip` - Now check if the IP is already in use before registering it. (GH-631)
-* `resource/cloudavenue_vdc` - Big improvement in the documentation. Now find all the configuration combinations in a table. (GH-650)
-* `resource/cloudavenue_vdc` - Improve errors messages returned in case of invalid configuration (GH-650)
-* `resource/cloudavenue_vdc` - Improve example in documentation. (GH-481)
-* `resource/cloudavenue_vm_disk` - Add import feature and improve documentation. (GH-344)
-* `resource/cloudavenue_vm_disk` - Improve documentation. (GH-476)
-* `resource/cloudavenue_vm_disk` - Improved documentation example for the internal disk. (GH-667)
-* `resource/cloudavenue_vm_disk` - Now the attributes `vm_id` and `vm_name` causes replacement if `is_detachable` is set to `false`. (GH-480)
-* `resource/cloudavenue_vm` - Improve documentation. (GH-476)
+* `resource/cloudavenue_vdc` - Fix set custom storage profile for VDC (GH-721)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps actions/download-artifact from 4.1.1 to 4.1.2 (GH-723)
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.3.0 to 0.3.1 (GH-714)
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.9.0 to 0.9.1 (GH-721)
+* deps: bumps github.com/rs/zerolog from 1.31.0 to 1.32.0 (GH-720)
+
+## 0.18.1 (February  2, 2024)
 
 ### :bug: **Bug Fixes**
 
 * `provider` - Fix `the organization has an invalid format` error when creating a new provider if the credentials are provided by the terraform configuration. (GH-715)
-* `resource/cloudavenue_edgegateway_firewall` - Fix bug (#678) where `source_ids`, `destination_ids` and `app_port_profiles` were returning `nil` if value was set. (GH-686)
-* `resource/cloudavenue_s3_bucket_acl` - Fix catch error when bucket read return a error. (GH-641)
 * `resource/cloudavenue_s3_bucket_policy` - Fix custom timeout is not applied. (GH-712)
-* `resource/cloudavenue_vapp` - Fix `lease.runtime_lease_in_sec` and `lease.storage_lease_in_sec` values allowed to `0` (default) for never expiring or range from `3600` to `31536000` seconds (1 hour to 365 days). (GH-617)
-* `resource/cloudavenue_vcd` - Fix bug to impossible to update a vcd resource with a resource vcd_group define. (GH-511)
-* `resource/cloudavenue_vcd` - Fix bug to impossible to update a vcd resource without a resource vcd_group define. (GH-518)
-* `resource/cloudavenue_vdc` - Fix bug in vdc about vdcgroup field or vdc_group resource. (GH-521)
-* `resource/cloudavenue_vdc` - Fix set custom storage profile for VDC (GH-721)
-* `resource/cloudavenue_vm_disk` - Fix bug not possible to create detachable disk with no `vm_id` or `vm_name` specified. (GH-478)
-* `resource/cloudavenue_vm` - Fixed the issue with the resource not being able to set `storage_profile` with name. (GH-665)
-* `resource/s3_*` - fix error if your organization is not in `console1` (GH-637)
-* `resource/vm` - Fix ip not required when ip_allocation_mode is POOL. (GH-649)
+
 ### :information_source: **Notes**
 
-* `datasource/cloudavenue_edgegateway` - The `lb_enabled` attribute is now deprecated and will be removed in the version [`v0.16.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/8) of the provider. (GH-567)
-* `datasource/cloudavenue_vdcs` - The attribute `vdc_id` and `vdc_name` are now deprecated. Please use `name` and `id` instead. The old attributes will be removed in the release v0.19.0. (GH-702)
-* `provider` - Improve documentation for provider authentication and configuration. (GH-548)
-* `resource/cloudavenue_edgegateway_app_port_profile` - The `vdc` attribute is deprecated and will be removed in the release `v0.19.0`. Please use `edgegateway_id` and `edgegateway_name` attributes instead. (GH-691)
-* `resource/cloudavenue_edgegateway` - The `lb_enabled` attribute is now deprecated and will be removed in the version [`v0.16.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/8) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/567) for more information. (GH-567)
 * `resource/cloudavenue_s3_bucket_policy` - Fix wrong example in documentation. (GH-680)
-* `resource/cloudavenue_vdc_group` - Add import documentation. (GH-442)
-* `resource/cloudavenue_vdc` - Fix values in documentation for attributes `cpu_allocated`, `memory_allocated`, `cpu_speed_in_mhz`. (GH-530)
-* `resource/cloudavenue_vdc` - Improve documentation. (GH-533)
-* `resource/cloudavenue_vdc` - Only attributs `cpu_allocated`, `memory_allocated`, `storage_profile`, `cpu_speed_in_mhz` and description can be modified. ForceNew for other. (GH-524)
-* `resource/cloudavenue_vm_disk` - Improve documentation. (GH-533)
-* `resource/cloudavenue_vm` - Now if the attribute `ip_allocation_mode` is set to `pool`, the `ip` attribute will be set to the IP address of the VM. (GH-651)
-* bump VCD API Version from 37.1 to 37.2 (GH-562)
+
+## 0.18.0 (January 31, 2024)
+
+### :rotating_light: **Breaking Changes**
+
+* `provider` - The environment variable `CLOUDAVANUE_NETBACKUP_USER`, `CLOUDAVENUE_NETBACKUP_PASSWORD` and `CLOUDAVENUE_NETBACKUP_URL` are renamed to `NETBACKUP_USERNAME`, `NETBACKUP_PASSWORD` and `NETBACKUP_URL` (GH-696)
+* `provider` - The environment variable `CLOUDAVENUE_USER` has been renamed to `CLOUDAVENUE_USERNAME` (GH-696)
+
+### :rocket: **New Features**
+
+* `resource/cloudavenue_vdc` - Now support custom storage profile class. (GH-615)
+
+### :information_source: **Notes**
+
+* `datasource/cloudavenue_vdcs` - The attribute `vdc_id` and `vdc_name` are now deprecated. Please use `name` and `id` instead. The old attributes will be removed in the release v0.19.0. (GH-702)
 
 ### :dependabot: **Dependencies**
 
-* deps: bumps actions/checkout from 3 to 4 (GH-508)
+* deps: bumps github.com/aws/aws-sdk-go from 1.49.16 to 1.50.7 (GH-710)
+* deps: bumps github.com/google/uuid from 1.5.0 to 1.6.0 (GH-705)
+* deps: bumps github.com/hashicorp/terraform-plugin-go from 0.20.0 to 0.21.0 (GH-706)
+* deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.31.0 to 2.32.0 (GH-709)
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.7.0 to 0.7.1 (GH-692)
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.7.1 to 0.8.1 (GH-696)
+* deps: bumps github.com/vmware/go-vcloud-director/v2 from 2.21.0 to 2.22.0 (GH-658)
+
+## 0.17.0 (January 19, 2024)
+
+### :rocket: **New Features**
+
+* `datasource/cloudavenue_edgegateway_app_port_profile` - New datasource to retrieve edgegateway app port profile information. (GH-691)
+
+### :tada: **Improvements**
+
+* `datasource/cloudavenue_edgegateway_app_port_profile` - Improve documentation and examples. (GH-691)
+* `resource/cloudavenue_edgegateway_app_port_profile` - Improve documentation and examples. (GH-691)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_edgegateway_firewall` - Fix bug (#678) where `source_ids`, `destination_ids` and `app_port_profiles` were returning `nil` if value was set. (GH-686)
+
+### :information_source: **Notes**
+
+* `resource/cloudavenue_edgegateway_app_port_profile` - The `vdc` attribute is deprecated and will be removed in the release `v0.19.0`. Please use `edgegateway_id` and `edgegateway_name` attributes instead. (GH-691)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps actions/download-artifact from 4.1.0 to 4.1.1 (GH-683)
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from v1.6.1 to 1.7.0 (GH-686)
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from v0.2.0 to 0.3.0 (GH-686)
+* deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.4.2 to 1.5.0 (GH-684)
+
+## 0.16.0 (January 10, 2024)
+
+### :rotating_light: **Breaking Changes**
+
+* `datasource/cloudavenue_edgegateway` - Announced in release [v0.14.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.14.0) the attribute `lb_enabled` is now removed. (GH-575)
+* `resource/cloudavenue_edgegateway` - Announced in release [v0.14.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.14.0) the attribute `lb_enabled` is now removed. (GH-575)
+
+### :tada: **Improvements**
+
+* `resource/cloudavenue_vdc` - Big improvement in the documentation. Now find all the configuration combinations in a table. (GH-650)
+* `resource/cloudavenue_vdc` - Improve errors messages returned in case of invalid configuration (GH-650)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps crazy-max/ghaction-import-gpg from 6.0.0 to 6.1.0 (GH-679)
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.5 to 0.7.0 (GH-650)
+* deps: bumps golang.org/x/net from 0.19.0 to 0.20.0 (GH-681)
+
+## 0.15.5 (December 21, 2023)
+
+### :tada: **Improvements**
+
+* `resource/cloudavenue_vm_disk` - Improved documentation example for the internal disk. (GH-667)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vm` - Fixed the issue with the resource not being able to set `storage_profile` with name. (GH-665)
+
+### :dependabot: **Dependencies**
+
 * deps: bumps actions/download-artifact from 3.0.2 to 4.0.0 (GH-662)
 * deps: bumps actions/download-artifact from 4.0.0 to 4.1.0 (GH-669)
-* deps: bumps actions/download-artifact from 4.1.0 to 4.1.1 (GH-683)
-* deps: bumps actions/download-artifact from 4.1.1 to 4.1.2 (GH-723)
-* deps: bumps actions/download-artifact from 4.1.1 to 4.1.4 (GH-742)
-* deps: bumps actions/github-script from 6.4.1 to 7.0.0 (GH-625)
-* deps: bumps actions/github-script from 7.0.0 to 7.0.1 (GH-640)
 * deps: bumps actions/setup-go from 4 to 5 (GH-655)
 * deps: bumps actions/upload-artifact from 3 to 4 (GH-663)
-* deps: bumps crazy-max/ghaction-import-gpg from 5.3.0 to 5.4.0 (GH-507)
-* deps: bumps crazy-max/ghaction-import-gpg from 5.4.0 to 6.0.0 (GH-516)
-* deps: bumps crazy-max/ghaction-import-gpg from 6.0.0 to 6.1.0 (GH-679)
-* deps: bumps dependabot/fetch-metadata from 1.6.0 to 2.0.0 (GH-746)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers from 1.3.2 to 1.3.3 (GH-505)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers from 1.3.3 to 1.3.4 (GH-566)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superchema from v1.5.2 to v1.5.3 (GH-500)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.5.3 to 1.5.4 (GH-533)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.5.4 to 1.5.5 (GH-565)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.5.5 to 1.6.0 (GH-579)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.6.0 to 1.6.1 (GH-587)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from v1.5.1 to v1.5.2 (GH-476)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from v1.6.1 to 1.7.0 (GH-686)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.1.0 to 0.2.0 (GH-579)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.3.0 to 0.3.1 (GH-714)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.3.0 to 0.3.1 (GH-719)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from v0.0.5 to v0.1.0 (GH-500)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from v0.2.0 to 0.3.0 (GH-686)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-validators from 1.8.0 to 1.8.1 (GH-564)
-* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-validators from v1.7.0 to v1.8.0 (GH-476)
-* deps: bumps github.com/aws/aws-sdk-go from 1.45.26 to 1.45.28 (GH-592)
-* deps: bumps github.com/aws/aws-sdk-go from 1.45.28 to 1.47.5 (GH-612)
 * deps: bumps github.com/aws/aws-sdk-go from 1.47.10 to 1.49.5 (GH-668)
-* deps: bumps github.com/aws/aws-sdk-go from 1.47.9 to 1.47.10 (GH-627)
-* deps: bumps github.com/aws/aws-sdk-go from 1.49.16 to 1.50.7 (GH-710)
-* deps: bumps github.com/google/uuid from 1.3.0 to 1.3.1 (GH-499)
-* deps: bumps github.com/google/uuid from 1.3.1 to 1.4.0 (GH-600)
 * deps: bumps github.com/google/uuid from 1.4.0 to 1.5.0 (GH-659)
-* deps: bumps github.com/google/uuid from 1.5.0 to 1.6.0 (GH-705)
-* deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.3.4 to 1.3.5 (GH-497)
-* deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.3.5 to 1.4.0 (GH-512)
-* deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.4.0 to 1.4.1 (GH-560)
-* deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.4.2 to 1.5.0 (GH-684)
-* deps: bumps github.com/hashicorp/terraform-plugin-framework-validators from 0.10.0 to 0.11.0 (GH-476)
-* deps: bumps github.com/hashicorp/terraform-plugin-framework-validators from 0.11.0 to 0.12.0 (GH-506)
-* deps: bumps github.com/hashicorp/terraform-plugin-go from 0.19.0 to 0.19.1 (GH-636)
-* deps: bumps github.com/hashicorp/terraform-plugin-go from 0.20.0 to 0.21.0 (GH-706)
-* deps: bumps github.com/hashicorp/terraform-plugin-go from 0.21.0 to 0.22.1 (GH-743)
-* deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.27.0 to 2.28.0 (GH-502)
-* deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.28.0 to 2.29.0 (GH-513)
-* deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.29.0 to 2.30.0 (GH-616)
 * deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.30.0 to 2.31.0 (GH-661)
-* deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.31.0 to 2.32.0 (GH-709)
-* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.0.4 to 0.1.0 (GH-568)
-* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.1.2 to 0.1.3 (GH-518)
-* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.2.0 to 0.3.0 (GH-576)
-* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.3.0 to 0.3.1 (GH-579)
-* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.3.1 to 0.4.0 (GH-609)
-* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.4.0 to 0.4.1 (GH-603)
+* deps: bumps github/codeql-action from 2 to 3 (GH-660)
+* deps: bumps golang.org/x/net from 0.18.0 to 0.19.0 (GH-653)
+
+## 0.15.4 (November 24, 2023)
+
+### :information_source: **Notes**
+
+* `resource/cloudavenue_vm` - Now if the attribute `ip_allocation_mode` is set to `pool`, the `ip` attribute will be set to the IP address of the VM. (GH-651)
+
+## 0.15.3 (November 22, 2023)
+
+### :tada: **Improvements**
+
+* `resource/cloudavenue_edgegateway_firewall` - Improve examples in documentation. (GH-639)
+* `resource/cloudavenue_edgegateway` - Improve examples in documentation. (GH-639)
+
+### :bug: **Bug Fixes**
+
+* `resource/vm` - Fix ip not required when ip_allocation_mode is POOL. (GH-649)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.3 to 0.5.5 (GH-644)
+
+## 0.15.2 (November 20, 2023)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_s3_bucket_acl` - Fix catch error when bucket read return a error. (GH-641)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps actions/github-script from 7.0.0 to 7.0.1 (GH-640)
+
+## 0.15.1 (November 17, 2023)
+
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_s3_user` - Get informations about S3 user (username/canonicalID). (GH-633)
+
+### :tada: **Improvements**
+
+* `resource/cloudavenue_vcda_ip` - Now check if the IP is already in use before registering it. (GH-631)
+
+### :bug: **Bug Fixes**
+
+* `resource/s3_*` - fix error if your organization is not in `console1` (GH-637)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/hashicorp/terraform-plugin-go from 0.19.0 to 0.19.1 (GH-636)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.4.1 to 0.5.0 (GH-631)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.0 to 0.5.1 (GH-633)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.1 to 0.5.3 (GH-637)
-* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.3 to 0.5.5 (GH-644)
-* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.5.5 to 0.7.0 (GH-650)
-* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.7.0 to 0.7.1 (GH-692)
-* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.7.1 to 0.8.1 (GH-696)
-* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.9.0 to 0.9.1 (GH-721)
-* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.9.0 to v0.10.0 (GH-730)
-* deps: bumps github.com/rs/zerolog from 1.30.0 to 1.31.0 (GH-541)
-* deps: bumps github.com/rs/zerolog from 1.31.0 to 1.32.0 (GH-720)
-* deps: bumps github.com/vmware/go-vcloud-director/v2 from 2.21.0 to 2.22.0 (GH-658)
-* deps: bumps github/codeql-action from 2 to 3 (GH-660)
-* deps: bumps golang.org/x/net from 0.13.0 to 0.14.0 (GH-477)
-* deps: bumps golang.org/x/net from 0.14.0 to 0.15.0 (GH-510)
-* deps: bumps golang.org/x/net from 0.15.0 to 0.16.0 (GH-557)
-* deps: bumps golang.org/x/net from 0.16.0 to 0.17.0 (GH-561)
-* deps: bumps golang.org/x/net from 0.17.0 to 0.18.0 (GH-613)
-* deps: bumps golang.org/x/net from 0.18.0 to 0.19.0 (GH-653)
-* deps: bumps golang.org/x/net from 0.19.0 to 0.20.0 (GH-681)
-* deps: bumps golang.org/x/net from 0.20.0 to 0.21.0 (GH-725)
-* deps: bumps golang.org/x/net from 0.21.0 to 0.22.0 (GH-745)
-* deps: bumps golangci/golangci-lint-action from 3 to 4 (GH-733)
-* deps: bumps golangci/golangci-lint-action from 3.6.0 to 3.7.0 (GH-494)
-* deps: bumps golangci/golangci-lint-action from 3.7.0 to 4.0.0 (GH-726)
-* deps: bumps goreleaser/goreleaser-action from 4.3.0 to 4.4.0 (GH-487)
-* deps: bumps goreleaser/goreleaser-action from 4.4.0 to 4.6.0 (GH-509)
-* deps: bumps goreleaser/goreleaser-action from 4.6.0 to 5.0.0 (GH-517)
-* deps: bumps hashicorp/setup-terraform from 2 to 3 (GH-601)
-* deps: bumps stefanzweifel/git-auto-commit-action from 4 to 5 (GH-559)
+
+## 0.15.0 (November 14, 2023)
+
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_s3_bucket_acl` - Get information about S3 bucket ACL (Access Control List). ([GH-577](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/577))
+* **New Data Source:** `datasource/cloudavenue_s3_bucket_cors_configuration` - Get information about S3 bucket CORS configuration. ([GH-578](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/578))
+* **New Data Source:** `datasource/cloudavenue_s3_bucket_policy` - Get S3 bucket policy. ([GH-582](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/582))
+* **New Data Source:** `datasource/cloudavenue_s3_bucket_versioning_configuration` - Get S3 bucket versioning configuration. ([GH-584](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/584))
+* **New Data Source:** `datasource/cloudavenue_s3_bucket_website_configuration`- Allow to read website configuration on your S3 Bucket. ([GH-587](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/587))
+* **New Data Source:** `datasource/cloudavenue_s3_bucket` - Retrieve information about S3 buckets. ([GH-576](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/576))
+* **New Data Source:** `datasource/cloudavenue_s3_lifecycle_configuration` is a new data source type that allows to retrieve S3 lifecycle configuration. ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
+* **New Resource:** `resource/cloudavenue_s3_bucket_acl` - Manage S3 bucket ACL (Access Control List). ([GH-577](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/577))
+* **New Resource:** `resource/cloudavenue_s3_bucket_cors_configuration` - Manage S3 bucket CORS configuration. ([GH-578](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/578))
+* **New Resource:** `resource/cloudavenue_s3_bucket_policy` - Manage S3 bucket policy. ([GH-582](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/582))
+* **New Resource:** `resource/cloudavenue_s3_bucket_versioning_configuration` - Manage S3 bucket versioning configuration. ([GH-584](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/584))
+* **New Resource:** `resource/cloudavenue_s3_bucket_website_configuration`- Allow to configure website on your S3 Bucket. ([GH-587](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/587))
+* **New Resource:** `resource/cloudavenue_s3_bucket` - Create and manage S3 buckets. ([GH-576](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/576))
+* **New Resource:** `resource/cloudavenue_s3_credential` - Allows to create S3 credentials for the current user. ([GH-603](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/603))
+* **New Resource:** `resource/cloudavenue_s3_lifecycle_configuration` is a new resource type that allows to manage S3 lifecycle configuration. ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
+
+### :tada: **Improvements**
+
+* `resource/cloudavenue_s3_bucket` - Now the bucket can be visualized in the Cloud Avenue console. ([GH-608](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/608))
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vapp` - Fix `lease.runtime_lease_in_sec` and `lease.storage_lease_in_sec` values allowed to `0` (default) for never expiring or range from `3600` to `31536000` seconds (1 hour to 365 days). ([GH-617](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/617))
+
+### :dependabot: **Dependencies**
+
+* deps: bumps actions/github-script from 6.4.1 to 7.0.0 ([GH-625](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/625))
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.5.5 to 1.6.0 ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.6.0 to 1.6.1 ([GH-587](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/587))
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.1.0 to 0.2.0 ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
+* deps: bumps github.com/aws/aws-sdk-go from 1.45.26 to 1.45.28 ([GH-592](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/592))
+* deps: bumps github.com/aws/aws-sdk-go from 1.45.28 to 1.47.5 ([GH-612](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/612))
+* deps: bumps github.com/aws/aws-sdk-go from 1.47.9 to 1.47.10 ([GH-627](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/627))
+* deps: bumps github.com/google/uuid from 1.3.1 to 1.4.0 ([GH-600](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/600))
+* deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.29.0 to 2.30.0 ([GH-616](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/616))
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.2.0 to 0.3.0 ([GH-576](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/576))
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.3.0 to 0.3.1 ([GH-579](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/579))
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.3.1 to 0.4.0 ([GH-609](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/609))
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.4.0 to 0.4.1 ([GH-603](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/603))
+* deps: bumps golang.org/x/net from 0.17.0 to 0.18.0 ([GH-613](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/613))
+* deps: bumps hashicorp/setup-terraform from 2 to 3 ([GH-601](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/601))
+
+## 0.14.0 (October 16, 2023)
+
+### :tada: **Improvements**
+
+* `datasource/cloudavenue_edgegateway` - Add new `bandwidth` attribute to retrieve bandwidth of the edge gateway (in Mbps). ([GH-568](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/568))
+* `resource/cloudavenue_edgegateway` - Add new `bandwidth` attribute to manage bandwidth of the edge gateway (in Mbps). ([GH-568](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/568))
+
+### :information_source: **Notes**
+
+* `datasource/cloudavenue_edgegateway` - The `lb_enabled` attribute is now deprecated and will be removed in the version [`v0.16.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/8) of the provider. ([GH-567](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/567))
+* `resource/cloudavenue_edgegateway` - The `lb_enabled` attribute is now deprecated and will be removed in the version [`v0.16.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/8) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/567) for more information. ([GH-567](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/567))
+* bump VCD API Version from 37.1 to 37.2 ([GH-562](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/562))
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers from 1.3.3 to 1.3.4 ([GH-566](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/566))
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.5.4 to 1.5.5 ([GH-565](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/565))
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-validators from 1.8.0 to 1.8.1 ([GH-564](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/564))
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.0.4 to 0.1.0 ([GH-568](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/568))
+
+## 0.13.0 (October 11, 2023)
+
+### :rocket: **New Features**
+
+* `datasource/cloudavenue_backup` - New datasource to manage NetBackup feature. The `cloudavenue_backup` data source allows you to retrieve information about a backup of NetBackup solution. ([GH-558](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/558))
+* `resource/cloudavenue_backup` - New resource to manage NetBackup feature. The `cloudavenue_backup` resource allows you to manage backup strategy for `vdc`, `vapp` and `vm` from NetBackup solution. [Please refer to the documentation for more information.](https://wiki.cloudavenue.orange-business.com/wiki/Backup) ([GH-558](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/558))
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.4.0 to 1.4.1 ([GH-560](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/560))
+* deps: bumps golang.org/x/net from 0.15.0 to 0.16.0 ([GH-557](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/557))
+* deps: bumps golang.org/x/net from 0.16.0 to 0.17.0 ([GH-561](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/561))
+* deps: bumps stefanzweifel/git-auto-commit-action from 4 to 5 ([GH-559](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/559))
+
+## 0.12.0 (October  2, 2023)
+
+### :rotating_light: **Breaking Changes**
+
+* `datasource/cloudavenue_vdc_group` - Remove attributes `local_egress`, `error_message`, `dfw_enabled`, `network_pool_id`, `network_pool_universal_id`, `network_provider_type`, `universal_networking_enabled`, `vdcs`, `fault_domain_tag`, `is_remote_org`, `name`, `network_provider_scope`, `site_id`, `site_name` from the datasource.
+The attribute `vdc_ids` is added to the datasource and return the list of VDC IDs of the VDC Group. ([GH-442](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/442))
+* `datasource/cloudavenue_vdc` - The `vdc_group` attribute is now **removed**. ([GH-447](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/447))
+* `resource/cloudavenue_vdc` - Announced in the release [v0.0.9](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.9.0) the attribute `vdc_group` is now **removed**. ([GH-447](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/447))
+
+### :rocket: **New Features**
+
+* `client/cloudavenue` - Add `NetBackup` credentials in provider configuration. ([GH-546](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/546))
+
+### :information_source: **Notes**
+
+* `provider` - Improve documentation for provider authentication and configuration. ([GH-548](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/548))
+* `resource/cloudavenue_vdc_group` - Add import documentation. ([GH-442](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/442))
+* `resource/cloudavenue_vdc` - Fix values in documentation for attributes `cpu_allocated`, `memory_allocated`, `cpu_speed_in_mhz`. ([GH-530](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/530))
+* `resource/cloudavenue_vdc` - Improve documentation. ([GH-533](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/533))
+* `resource/cloudavenue_vm_disk` - Improve documentation. ([GH-533](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/533))
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.5.3 to 1.5.4 ([GH-533](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/533))
+* deps: bumps github.com/rs/zerolog from 1.30.0 to 1.31.0 ([GH-541](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/541))
+
+## 0.11.0 (September 22, 2023)
+
+### :rotating_light: **Breaking Changes**
+
+* `datasource/cloudavenue_vapp_org_network` - `is_fenced` and `retain_ip_mac_enabled` are now removed from the schema. ([GH-538](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/538))
+* `resource/cloudavenue_network_routed` - Change attribute field for import resource by EdgeGatewayName or EdgeGatewayID. ([GH-526](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/526))
+* `resource/cloudavenue_vapp_org_network` - `is_fenced` and `retain_ip_mac_enabled` are now removed from the schema. ([GH-538](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/538))
+
+### :information_source: **Notes**
+
+* `resource/cloudavenue_vdc` - Only attributs `cpu_allocated`, `memory_allocated`, `storage_profile`, `cpu_speed_in_mhz` and description can be modified. ForceNew for other. ([GH-524](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/524))
+
+## 0.10.4 (September 15, 2023)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vdc` - Fix bug in vdc about vdcgroup field or vdc_group resource. ([GH-521](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/521))
+
+## 0.10.3 (September 14, 2023)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vcd` - Fix bug to impossible to update a vcd resource without a resource vcd_group define. ([GH-518](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/518))
+
+### :dependabot: **Dependencies**
+
+* deps: bumps crazy-max/ghaction-import-gpg from 5.4.0 to 6.0.0 ([GH-516](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/516))
+* deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.3.5 to 1.4.0 ([GH-512](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/512))
+* deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.28.0 to 2.29.0 ([GH-513](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/513))
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.1.2 to 0.1.3 ([GH-518](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/518))
+* deps: bumps goreleaser/goreleaser-action from 4.6.0 to 5.0.0 ([GH-517](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/517))
+
+## 0.10.2 (September  8, 2023)
+
+### :tada: **Improvements**
+
+* `resource/cloudavenue_alb_pool` - Improve documentation. ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
+* `resource/cloudavenue_catalog_acl` - Improve documentation. ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
+* `resource/cloudavenue_edgegateway_nat_rule` - Improve documentation. ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
+* `resource/cloudavenue_edgegateway_vpn_ipsec` - Improve documentation. ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
+* `resource/cloudavenue_network_dhcp` - Improve documentation. ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
+* `resource/cloudavenue_vm_disk` - Improve documentation. ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
+* `resource/cloudavenue_vm` - Improve documentation. ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vcd` - Fix bug to impossible to update a vcd resource with a resource vcd_group define. ([GH-511](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/511))
+
+### :dependabot: **Dependencies**
+
+* deps: bumps actions/checkout from 3 to 4 ([GH-508](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/508))
+* deps: bumps crazy-max/ghaction-import-gpg from 5.3.0 to 5.4.0 ([GH-507](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/507))
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers from 1.3.2 to 1.3.3 ([GH-505](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/505))
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superchema from v1.5.2 to v1.5.3 ([GH-500](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/500))
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-superschema from v1.5.1 to v1.5.2 ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from v0.0.5 to v0.1.0 ([GH-500](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/500))
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-validators from v1.7.0 to v1.8.0 ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
+* deps: bumps github.com/google/uuid from 1.3.0 to 1.3.1 ([GH-499](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/499))
+* deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.3.4 to 1.3.5 ([GH-497](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/497))
+* deps: bumps github.com/hashicorp/terraform-plugin-framework-validators from 0.10.0 to 0.11.0 ([GH-476](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/476))
+* deps: bumps github.com/hashicorp/terraform-plugin-framework-validators from 0.11.0 to 0.12.0 ([GH-506](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/506))
+* deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.27.0 to 2.28.0 ([GH-502](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/502))
+* deps: bumps golang.org/x/net from 0.14.0 to 0.15.0 ([GH-510](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/510))
+* deps: bumps golangci/golangci-lint-action from 3.6.0 to 3.7.0 ([GH-494](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/494))
+* deps: bumps goreleaser/goreleaser-action from 4.4.0 to 4.6.0 ([GH-509](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/509))
+
+## 0.10.0 (August 11, 2023)
+
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_edgegateway_vpn_ipsec` - New data source to read Cloud Avenue IPsec VPN Tunnel. ([GH-353](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/353))
+* **New Data Source:** `datasource/cloudavenue_vm_disks` - New datasource to get the list of disks available on vApp and VM level. ([GH-475](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/475))
+* **New Resource:** `resource/cloudavenue_edgegateway_vpn_ipsec` - New resource to manage Cloud Avenue IPSec VPN Tunnel. ([GH-352](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/352))
+* **New Resource:** `resource/cloudavenue_iam_token` - New resource to create user token. ([GH-423](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/423))
+
+### :tada: **Improvements**
+
+* `resource/cloudavenue_vdc` - Improve example in documentation. ([GH-481](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/481))
+* `resource/cloudavenue_vm_disk` - Add import feature and improve documentation. ([GH-344](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/344))
+* `resource/cloudavenue_vm_disk` - Now the attributes `vm_id` and `vm_name` causes replacement if `is_detachable` is set to `false`. ([GH-480](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/480))
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vm_disk` - Fix bug not possible to create detachable disk with no `vm_id` or `vm_name` specified. ([GH-478](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/478))
+
+### :dependabot: **Dependencies**
+
+* deps: bumps golang.org/x/net from 0.13.0 to 0.14.0 ([GH-477](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/477))
+* deps: bumps goreleaser/goreleaser-action from 4.3.0 to 4.4.0 ([GH-487](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/487))
 
 ## 0.9.0 (August  7, 2023)
+
 ### :warning: **Deprecations**
 
 * `resource/cloudavenue_vdc` - The `vdc_group` attribute has been deprecated and will be removed in a `v0.12.0` release. Please use `cloudavenue_vdc_group` resource instead. ([GH-448](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/448))
@@ -209,6 +396,7 @@ The attribute `vdc_ids` is added to the datasource and return the list of VDC ID
 `datasource/edgegateway_nat_rule` - Improve example in documentation
 `datasource/vapp_isolated_network` - Improve example in documentation
 `datasource/vm` - Improve example in documentation ([GH-451](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/451))
+
 ### :information_source: **Notes**
 
 * `datasource/cloudavenue_catalog_vapp_template` - Now the `id` attribute return URN instead of UUID. ([GH-443](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/443))
