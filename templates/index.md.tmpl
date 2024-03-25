@@ -69,7 +69,7 @@ provider "cloudavenue" {}
 
 ```bash
 export CLOUDAVENUE_ORG="my-org"
-export CLOUDAVENUE_USER="my-user"
+export CLOUDAVENUE_USERNAME="my-user"
 export CLOUDAVENUE_PASSWORD="my-password"
 ```
 
