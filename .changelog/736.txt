@@ -1,0 +1,3 @@
+```release-note:note
+`provider` - Fix documentation for environment variables `CLOUDAVENUE_USERNAME` in the provider documentation.
+```
