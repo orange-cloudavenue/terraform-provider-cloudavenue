@@ -1,11 +1,22 @@
 ## 0.19.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* `resource/cloudavenue_edgegateway` -  Add the support for calculating bandwith for there `edgegateway` with the service class `VRF_DEDICATED_MEDIUM` or `VRF_DEDICATED_LARGE`. (GH-730)
+### :information_source: **Notes**
+
+* `provider` - Fix documentation for environment variables `CLOUDAVENUE_USERNAME` in the provider documentation. (GH-736)
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps actions/download-artifact from 4.1.1 to 4.1.4 (GH-742)
+* deps: bumps dependabot/fetch-metadata from 1.6.0 to 2.0.0 (GH-746)
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.3.0 to 0.3.1 (GH-719)
+* deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.5.0 to 1.7.0 (GH-747)
 * deps: bumps github.com/hashicorp/terraform-plugin-go from 0.21.0 to 0.22.1 (GH-743)
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.9.0 to v0.10.0 (GH-730)
 * deps: bumps golang.org/x/net from 0.20.0 to 0.21.0 (GH-725)
+* deps: bumps golang.org/x/net from 0.21.0 to 0.22.0 (GH-745)
 * deps: bumps golangci/golangci-lint-action from 3 to 4 (GH-733)
 * deps: bumps golangci/golangci-lint-action from 3.7.0 to 4.0.0 (GH-726)
 
