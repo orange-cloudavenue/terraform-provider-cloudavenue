@@ -1,8 +1,11 @@
 ## 0.19.0 (Unreleased)
 
+## 0.18.3 (March  25, 2024)
+
 ### :rocket: **New Features**
 
 * `resource/cloudavenue_edgegateway` -  Add the support for calculating bandwith for there `edgegateway` with the service class `VRF_DEDICATED_MEDIUM` or `VRF_DEDICATED_LARGE`. (GH-730)
+
 ### :information_source: **Notes**
 
 * `provider` - Fix documentation for environment variables `CLOUDAVENUE_USERNAME` in the provider documentation. (GH-736)
