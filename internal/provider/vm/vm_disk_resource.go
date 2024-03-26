@@ -295,8 +295,7 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 				resp.Diagnostics.AddError("error refreshing disk", fmt.Sprintf("error refreshing disk %s: %v", plan.Name.ValueString(), err))
 				return
 			}
-
-			newPlan.BusType = types.StringValue(vm.GetBusTypeByCode(disk.Disk.BusType).Name())
+			newPlan.BusType = types.StringValue(diskparams.GetBusTypeByCode(disk.Disk.BusType, disk.Disk.BusSubType).Name())
 		} // End if r.vm != (vm.VM{})
 	} else { // Disk not detachable it's an internal disk
 		// storage profile

@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_vm_disk` - Fix custom bustype if disk is detachable and attached to a VM.
+```
