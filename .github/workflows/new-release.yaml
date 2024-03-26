@@ -3,21 +3,10 @@ name: TagRelease
 on:
   workflow_dispatch:
     inputs:
-      tagType:
-        description: 'TagType'
-        required: true
-        default: 'pre-tag'
-        type: choice
-        options:
-        - normal
-        - pre-tag
       tag:
         description: 'Tag version number (Eg: v0.1.0)'
         required: true
         type: string
-      message:
-        description: 'Tag message'
-        required: true
 
 permissions:
   contents: write
@@ -28,7 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       TAG_NAME: ${{ steps.set-tag.outputs.TAG_NAME }}
-      PRERELEASE: ${{ steps.set-tag.outputs.PRERELEASE }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,12 +33,7 @@ jobs:
         id: set-tag
         run: |
           # Construct the tag name
-          if [ "${{ github.event.inputs.tagType }}" == "pre-tag" ]; then
-            echo "TAG_NAME=$(echo ${{ github.event.inputs.tag }}-pre$(date +%Y%m%d%H%M))" >> "$GITHUB_OUTPUT"
-            echo "PRERELEASE=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "TAG_NAME=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
-          fi
+          echo "TAG_NAME=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
   # * Step 1: Check if everything is ok
   tag-already-exist:
     needs: [pre-check]
@@ -116,7 +99,7 @@ jobs:
         with:
           tag: ${{ needs.pre-check.outputs.TAG_NAME }}
           tag_exists_error: true
-          message: ${{ github.event.inputs.message }}
+          message: "Release ${{ needs.pre-check.outputs.TAG_NAME }}"
   
   release-notes:
     runs-on: ubuntu-latest
@@ -129,16 +112,8 @@ jobs:
       - name: Generate Release Notes
         run: |
           echo "" > release-notes.txt
-          
-          if [ ${{ needs.pre-check.outputs.PRERELEASE }} == "true" ]; then
-            echo "## :construction: Prerelease" >> release-notes.txt
-            export PREV_TAG=$(git tag --list 'v*' --sort=-version:refname | grep -E "v[0-9]+\.[0-9]+\.[0-9]+$" | head -n 1)
-            export PREV_VERSION=${PREV_TAG//v}
-          else
-            export PREV_TAG=$(git tag --list 'v*' --sort=-version:refname | grep -E "v[0-9]+\.[0-9]+\.[0-9]+$" | head -n 2 | tail -n 1)
-            export PREV_VERSION=${PREV_TAG//v}
-          fi
-
+          export PREV_TAG=$(git tag --list 'v*' --sort=-version:refname | grep -E "v[0-9]+\.[0-9]+\.[0-9]+$" | head -n 2 | tail -n 1)
+          export PREV_VERSION=${PREV_TAG//v}
           sed -n -e "1{/# /d;}" -e "2{/^$/d;}" -e "/# $PREV_VERSION/q;p" CHANGELOG.md >> release-notes.txt
       - uses: actions/upload-artifact@v4
         with:
@@ -187,7 +162,6 @@ jobs:
   highest-version-tag:
     needs: [pre-check,release-app]
     runs-on: ubuntu-latest
-    if: ${{ needs.pre-check.outputs.PRERELEASE == 'false' }}
     outputs:
       tag: ${{ steps.highest-version-tag.outputs.tag }}
     steps:
