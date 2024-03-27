@@ -1,5 +1,9 @@
 ## 0.19.0 (Unreleased)
 
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vm_disk` - Fix custom bustype if disk is detachable and attached to a VM. (GH-741)
+
 ## 0.18.3 (March  25, 2024)
 
 ### :rocket: **New Features**
