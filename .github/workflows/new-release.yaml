@@ -159,24 +159,8 @@ jobs:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           METRICS_TARGET: ${{ secrets.METRICS_TARGET }}
           METRICS_TOKEN: ${{ secrets.METRICS_TOKEN }}
-  highest-version-tag:
-    needs: [pre-check,release-app]
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.highest-version-tag.outputs.tag }}
-    steps:
-      - uses: actions/checkout@v4 # v3.5.3 
-        with:
-          ref: ${{ needs.pre-check.outputs.TAG_NAME }}
-          fetch-depth: 0
-      - name: Output highest version tag
-        id: highest-version-tag
-        run: |
-          HIGHEST=$(git tag | sort -V | tail -1)
-          echo "tag=$HIGHEST" >> "$GITHUB_OUTPUT"
   changelog-newversion:
-    needs: [release-app, highest-version-tag, pre-check]
-    if: github.ref_name == needs.highest-version-tag.outputs.tag
+    needs: [release-app, pre-check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4 # v3.5.3 
