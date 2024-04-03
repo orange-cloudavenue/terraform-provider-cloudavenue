@@ -206,7 +206,45 @@ func (r *publicIPResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *publicIPResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// ! This resource does not support update
+	plan := &publicIPResourceModel{}
+	state := &publicIPResourceModel{}
+
+	// Get current plan
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Get current state
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Fix after refacto (#697) - https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/pull/697/files#diff-aaea8073b6a3d4e8396f36585bf313c70c96798378be2bfe673cf357554f2d0fL56
+	if plan.EdgeGatewayID.IsNull() && state.EdgeGatewayID.IsKnown() {
+		state.EdgeGatewayID.SetNull()
+	}
+
+	if plan.EdgeGatewayName.IsNull() && state.EdgeGatewayName.IsKnown() {
+		state.EdgeGatewayName.SetNull()
+	}
+
+	/*
+		Implement the resource read here
+	*/
+
+	stateRefreshed, found, d := r.read(ctx, state)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
