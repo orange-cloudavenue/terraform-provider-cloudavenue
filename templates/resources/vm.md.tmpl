@@ -103,6 +103,7 @@ resource "cloudavenue_vm" "example-iso" {
   }
   settings = {
     customization = {
+      enabled = true
       auto_generate_password = true
     }
     os_type = "debian10_64Guest"
@@ -207,6 +208,7 @@ resource "cloudavenue_vm" "example" {
       "guestinfo.hostname" = "example-vm"
     }
     customization = {
+      enabled = true
       auto_generate_password = true
     }
   }
