@@ -159,6 +159,7 @@ func (r *VMResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx c
 								  "guestinfo.hostname" = {{ get . "name" }}
 								}
 								customization = {
+								  enabled = true
 								  auto_generate_password = true
 								}
 							  }
@@ -209,7 +210,7 @@ func (r *VMResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx c
 							resource.TestCheckResourceAttrSet(resourceName, "settings.affinity_rule_id"),
 							resource.TestCheckResourceAttrSet(resourceName, "settings.os_type"),
 
-							resource.TestCheckResourceAttr(resourceName, "settings.customization.enabled", "false"),
+							resource.TestCheckResourceAttr(resourceName, "settings.customization.enabled", "true"),
 							resource.TestCheckResourceAttr(resourceName, "settings.customization.allow_local_admin_password", "false"),
 							resource.TestCheckResourceAttr(resourceName, "settings.customization.change_sid", "false"),
 							resource.TestCheckResourceAttr(resourceName, "settings.customization.force", "false"),
