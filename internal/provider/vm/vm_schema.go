@@ -572,7 +572,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 					},
 					"customization": superschema.SingleNestedAttribute{
 						Common: &schemaR.SingleNestedAttribute{
-							MarkdownDescription: "The customization settings for the VM.",
+							MarkdownDescription: "The customization settings for the VM. To enable the customization, set the `enabled` attribute to `true`.",
 							Computed:            true,
 						},
 						Resource: &schemaR.SingleNestedAttribute{
@@ -599,7 +599,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 							},
 							"enabled": superschema.BoolAttribute{
 								Common: &schemaR.BoolAttribute{
-									MarkdownDescription: "Whether guest customization is enabled or not.",
+									MarkdownDescription: "Whether guest customization is enabled or not. If enabled, the VM will be customized on first boot.",
 									Computed:            true,
 								},
 								Resource: &schemaR.BoolAttribute{
