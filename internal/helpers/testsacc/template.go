@@ -12,7 +12,7 @@ import (
 
 const (
 	// prefix of generate.
-	generatePrefix = "tftest_"
+	generatePrefix = "tftest-"
 )
 
 var (
