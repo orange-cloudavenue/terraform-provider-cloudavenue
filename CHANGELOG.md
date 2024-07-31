@@ -4,10 +4,17 @@
 
 * `resource/cloudavenue_edgegateway` - Fixed an issue with the Edge Gateway resource that could not be obtained with a URN instead of a UUID. (GH-765)
 * `resource/cloudavenue_publicip` - workaround for the issue with the public IP address read. If `edge_gateway_name` or `edge_gateway_id` is not provided in the configuration and the public IP has been created before the release v0.18.0 the public IP generate a change on the next apply due to the change introduced by the PR (#697). (GH-751)
+### :information_source: **Notes**
+
+* `resource/cloudavenue_xx` - Improve the documentation and fix the examples.
+`datasource/cloudavenue_xx` - Improve the documentation. (GH-737)
 
 ### :dependabot: **Dependencies**
 
 * deps: bumps actions/download-artifact from 4.1.4 to 4.1.8 (GH-768)
+* deps: bumps dependabot/fetch-metadata from 2.0.0 to 2.1.0 (GH-761)
+* deps: bumps golang.org/x/net from 0.22.0 to 0.23.0 (GH-753)
+* deps: bumps golangci/golangci-lint-action from 4 to 6 (GH-767)
 * deps: bumps goreleaser/goreleaser-action from 5.0.0 to 5.1.0 (GH-762)
 
 ## 0.18.4 (March  27, 2024)
