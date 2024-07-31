@@ -6,8 +6,8 @@
 * `resource/cloudavenue_publicip` - workaround for the issue with the public IP address read. If `edge_gateway_name` or `edge_gateway_id` is not provided in the configuration and the public IP has been created before the release v0.18.0 the public IP generate a change on the next apply due to the change introduced by the PR (#697). (GH-751)
 ### :information_source: **Notes**
 
-* `resource/cloudavenue_xx` - Improve the documentation and fix the examples.
-`datasource/cloudavenue_xx` - Improve the documentation. (GH-737)
+* `resource/cloudavenue_vm` - Improve the documentation and fix the examples. (GH-737)
+* `datasource/cloudavenue_vm` - Improve the documentation. (GH-737)
 
 ### :dependabot: **Dependencies**
 
