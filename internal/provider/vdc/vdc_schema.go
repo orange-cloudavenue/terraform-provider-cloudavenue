@@ -50,6 +50,9 @@ func vdcSchema() superschema.Schema {
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the vDC.",
 					Computed:            true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
 				},
 			},
 			"name": superschema.SuperStringAttribute{
