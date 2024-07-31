@@ -148,7 +148,7 @@ jobs:
           name: release-notes
           path: /tmp
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v5.1.0
         if: success()
         with:
           distribution: goreleaser
