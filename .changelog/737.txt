@@ -1,0 +1,4 @@
+```release-note:note
+`resource/cloudavenue_xx` - Improve the documentation and fix the examples.
+`datasource/cloudavenue_xx` - Improve the documentation.
+```
