@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_vdc` - Fix an issue with the VDC resource generate `Know after apply` on the attribute `id` if another attribute is changed.
+```
