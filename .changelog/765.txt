@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_edgegateway` - Fixed an issue with the Edge Gateway resource that could not be obtained with a URN instead of a UUID.
+```

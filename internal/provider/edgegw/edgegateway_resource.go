@@ -18,6 +18,7 @@ import (
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
@@ -391,7 +392,7 @@ func (r *edgeGatewayResource) Update(ctx context.Context, req resource.UpdateReq
 	ctx, cancel = context.WithTimeout(ctx, updateTimeout)
 	defer cancel()
 
-	edgegw, err := r.client.CAVSDK.V1.EdgeGateway.GetByID(plan.ID.Get())
+	edgegw, err := r.client.CAVSDK.V1.EdgeGateway.GetByID(common.ExtractUUID(plan.ID.Get()))
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving edge gateway", err.Error())
 		return
@@ -443,7 +444,7 @@ func (r *edgeGatewayResource) Delete(ctx context.Context, req resource.DeleteReq
 		return
 	}
 
-	edgegw, err := r.client.CAVSDK.V1.EdgeGateway.GetByID(state.ID.Get())
+	edgegw, err := r.client.CAVSDK.V1.EdgeGateway.GetByID(common.ExtractUUID(state.ID.Get()))
 	if err != nil {
 		if commoncloudavenue.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -483,7 +484,7 @@ func (r *edgeGatewayResource) read(_ context.Context, planOrState *edgeGatewayRe
 
 	switch {
 	case planOrState.ID.IsKnown():
-		edgegw, err = r.client.CAVSDK.V1.EdgeGateway.GetByID(planOrState.ID.Get())
+		edgegw, err = r.client.CAVSDK.V1.EdgeGateway.GetByID(common.ExtractUUID(planOrState.ID.Get()))
 		if err != nil {
 			if commoncloudavenue.IsNotFound(err) {
 				return nil, false, nil
