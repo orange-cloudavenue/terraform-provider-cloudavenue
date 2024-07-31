@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
@@ -72,6 +73,10 @@ func (r *vdcResource) Configure(ctx context.Context, req resource.ConfigureReque
 }
 
 func (r *vdcResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	if os.Getenv("CLOUDAVENUE_VDC_VALIDATION") == "false" {
+		return
+	}
+
 	config := new(vdcResourceModel)
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
