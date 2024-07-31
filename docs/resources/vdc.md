@@ -11,6 +11,9 @@ Provides a Cloud Avenue vDC (Virtual Data Center) resource. This can be used to 
  
  -> Note: For more information about Cloud Avenue vDC, please refer to the [Cloud Avenue documentation](https://wiki.cloudavenue.orange-business.com/wiki/Datacenter_virtuel).
 
+ ~> **Warning**
+ The VDC resource uses a complex validation system that is **incompatible** with the **Terraform module**. (See [Disable validation](#disable-validation))
+
 ## Example Usage
 
 ```terraform
@@ -187,6 +190,14 @@ More information about storage profiles can be found [here](https://wiki.cloudav
 
 
 
+
+## Disable validation
+
+To disable the validation system, you can use the following environment variable:
+```shell
+export CLOUDAVENUE_VDC_VALIDATION=false
+```
+The default value is `true`.
 
 ## Import
 

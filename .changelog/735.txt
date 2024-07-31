@@ -1,0 +1,3 @@
+```release-note:note
+`resource/cloudavenue_vdc` - Add workaround for complex validation system that is incompatible with the Terraform module. See [Disable validation](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#disable-validation) for more information.
+```
