@@ -1,0 +1,11 @@
+```release-note:breaking-change
+`resource/cloudavenue_edgegateway_app_port_profile` - Announced in release [v0.18.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.18.0) the attributes `vdc` is now removed.
+```
+
+```release-note:breaking-change
+`datasource/cloudavenue_edgegateway_app_port_profile` - Announced in release [v0.18.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.18.0) the attributes `vdc` is now removed.
+```
+
+```release-note:breaking-change
+`resource/cloudavenue_edgegateway_app_port_profile` - Now the attribute `app_ports.ports` require `null` value if protocol is `ICMPv4` or `ICMPv6` and require a value if protocol is `TCP` or `UDP`.
+```

@@ -61,7 +61,7 @@ func (d *appPortProfileDataSource) Configure(ctx context.Context, req datasource
 }
 
 func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	defer metrics.New("data.cloudavenue_edgegateway_app_", d.client.GetOrgName(), metrics.Read)()
+	defer metrics.New("data.cloudavenue_edgegateway_app_port_profile", d.client.GetOrgName(), metrics.Read)()
 
 	config := &AppPortProfileModelADatasource{}
 
@@ -94,7 +94,6 @@ func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.Read
 		Description:     config.Description,
 		EdgeGatewayID:   supertypes.NewStringNull(),
 		EdgeGatewayName: supertypes.NewStringNull(),
-		VDC:             supertypes.NewStringNull(),
 		AppPorts:        config.AppPorts,
 	})
 	resp.Diagnostics.Append(diags...)
