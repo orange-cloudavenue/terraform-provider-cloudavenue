@@ -1,5 +1,5 @@
-## v0.19.0 (Unreleased)
-## v0.18.5 (July 31, 2024)
+## 0.19.0 (Unreleased)
+## 0.18.5 (July 31, 2024)
 
 ### :bug: **Bug Fixes**
 
