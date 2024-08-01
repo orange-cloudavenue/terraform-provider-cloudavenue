@@ -1,4 +1,29 @@
 ## 0.19.0 (Unreleased)
+### :rotating_light: **Breaking Changes**
+
+* `datasource/cloudavenue_edgegateway_app_port_profile` - Announced in release [v0.18.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.18.0) the attributes `vdc` is now removed. (GH-698)
+* `datasource/cloudavenue_vdcs` - Announced in release [v0.18.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.18.0) the attributes `vdc_name` and `vdc_id` are now removed. (GH-703)
+* `resource/cloudavenue_edgegateway_app_port_profile` - Announced in release [v0.18.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.18.0) the attributes `vdc` is now removed. (GH-698)
+* `resource/cloudavenue_edgegateway_app_port_profile` - Now the attribute `app_ports.ports` require `null` value if protocol is `ICMPv4` or `ICMPv6` and require a value if protocol is `TCP` or `UDP`. (GH-698)
+* `resource/cloudavenue_vdc` - Remove **read timeout** configuration from the resource. (GH-772)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vdc` - Add default timeouts configuration for the resource. (GH-772)
+* `resource/cloudavenue_vdc` - Fix an issue with the VDC resource generate `Know after apply` on the attribute `id` if another attribute is changed. (GH-755)
+* `resource/cloudavenue_vdc` - Now timeouts are handled properly when creating/updating/deleting a VDC. (GH-772)
+### :information_source: **Notes**
+
+* `resource/cloudavenue_vdc` - Add workaround for complex validation system that is incompatible with the Terraform module. See [Disable validation](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#disable-validation) for more information. (GH-735)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/hashicorp/terraform-plugin-docs from 0.16.0 to 0.19.4 (GH-776)
+* deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.7.0 to 1.10.0 (GH-770)
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.10.0 to 0.11.0 (GH-777)
+* deps: bumps github.com/rs/zerolog from 1.32.0 to 1.33.0 (GH-773)
+* deps: bumps github.com/vmware/go-vcloud-director/v2 from 2.22.0 to 2.25.0 (GH-775)
+
 ## 0.18.5 (July 31, 2024)
 
 ### :bug: **Bug Fixes**
