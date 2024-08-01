@@ -84,7 +84,6 @@ Optional:
 
 - `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 
 <!-- TABLE VDC ATTRIBUTES PARAMETERS -->
@@ -198,6 +197,27 @@ To disable the validation system, you can use the following environment variable
 export CLOUDAVENUE_VDC_VALIDATION=false
 ```
 The default value is `true`.
+
+## Timeouts
+
+The timeouts configuration allows you to specify the maximum amount of time that the provider will wait for a certain operation to complete. The following timeouts can be configured:
+
+* `create` - 8 minutes.
+* `update` - 8 minutes.
+* `delete` - 5 minutes.
+
+To configure the timeouts, use the following syntax:
+
+```hcl
+resource "cloudavenue_vdc" "example" {
+  # ...
+  timeouts {
+    create = "10m"
+    update = "10m"
+    delete = "6m"
+  }
+}
+```
 
 ## Import
 

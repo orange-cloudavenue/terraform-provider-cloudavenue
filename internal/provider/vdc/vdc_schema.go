@@ -41,7 +41,7 @@ func vdcSchema() superschema.Schema {
 			"timeouts": &superschema.TimeoutAttribute{
 				Resource: &superschema.ResourceTimeoutAttribute{
 					Create: true,
-					Read:   true,
+					Read:   false,
 					Delete: true,
 					Update: true,
 				},

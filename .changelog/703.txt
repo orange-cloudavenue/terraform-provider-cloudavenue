@@ -1,0 +1,3 @@
+```release-note:breaking-change
+`datasource/cloudavenue_vdcs` - Announced in release [v0.18.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.18.0) the attributes `vdc_name` and `vdc_id` are now removed.
+```

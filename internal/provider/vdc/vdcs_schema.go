@@ -4,8 +4,6 @@ import (
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 func vdcsSchema() superschema.Schema {
@@ -26,36 +24,6 @@ func vdcsSchema() superschema.Schema {
 					Computed:            true,
 				},
 				Attributes: superschema.Attributes{
-					"vdc_name": superschema.SuperStringAttribute{
-						Deprecated: &superschema.Deprecated{
-							DeprecationMessage:                "Use `name` instead.",
-							ComputeMarkdownDeprecationMessage: true,
-							Renamed:                           true,
-							FromAttributeName:                 "vdc_name",
-							TargetAttributeName:               "name",
-							TargetRelease:                     "v0.19.0",
-							OnlyDataSource:                    utils.TakeBoolPointer(true),
-						},
-						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "VDC name.",
-							Computed:            true,
-						},
-					},
-					"vdc_uuid": superschema.SuperStringAttribute{
-						Deprecated: &superschema.Deprecated{
-							DeprecationMessage:                "Use `id` instead.",
-							ComputeMarkdownDeprecationMessage: true,
-							Renamed:                           true,
-							FromAttributeName:                 "id",
-							TargetAttributeName:               "name",
-							TargetRelease:                     "v0.19.0",
-							OnlyDataSource:                    utils.TakeBoolPointer(true),
-						},
-						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "VDC UUID.",
-							Computed:            true,
-						},
-					},
 					"name": superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
 							MarkdownDescription: "The name of the vDC.",

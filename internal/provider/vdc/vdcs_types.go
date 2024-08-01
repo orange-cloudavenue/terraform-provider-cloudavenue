@@ -10,8 +10,6 @@ type vdcsDataSourceModel struct {
 }
 
 type vdcRef struct {
-	VDCName supertypes.StringValue `tfsdk:"vdc_name"` // Deprecated
-	VDCUUID supertypes.StringValue `tfsdk:"vdc_uuid"` // Deprecated
-	Name    supertypes.StringValue `tfsdk:"name"`
-	ID      supertypes.StringValue `tfsdk:"id"`
+	ID   supertypes.StringValue `tfsdk:"id"`
+	Name supertypes.StringValue `tfsdk:"name"`
 }
