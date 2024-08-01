@@ -20,9 +20,11 @@
 
 * deps: bumps github.com/hashicorp/terraform-plugin-docs from 0.16.0 to 0.19.4 (GH-776)
 * deps: bumps github.com/hashicorp/terraform-plugin-framework from 1.7.0 to 1.10.0 (GH-770)
+* deps: bumps github.com/hashicorp/terraform-plugin-framework-validators from 0.12.0 to 0.13.0 (GH-779)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.10.0 to 0.11.0 (GH-777)
 * deps: bumps github.com/rs/zerolog from 1.32.0 to 1.33.0 (GH-773)
 * deps: bumps github.com/vmware/go-vcloud-director/v2 from 2.22.0 to 2.25.0 (GH-775)
+* deps: bumps golang.org/x/net from 0.25.0 to 0.27.0 (GH-780)
 
 ## 0.18.5 (July 31, 2024)
 
