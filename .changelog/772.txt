@@ -1,0 +1,11 @@
+```release-note:bug
+`resource/cloudavenue_vdc` - Now timeouts are handled properly when creating/updating/deleting a VDC.
+```
+
+```release-note:breaking-change
+`resource/cloudavenue_vdc` - Remove **read timeout** configuration from the resource.
+```
+
+```release-note:bug
+`resource/cloudavenue_vdc` - Add default timeouts configuration for the resource.
+```

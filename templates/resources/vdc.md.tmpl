@@ -34,6 +34,27 @@ export CLOUDAVENUE_VDC_VALIDATION=false
 ```
 The default value is `true`.
 
+## Timeouts
+
+The timeouts configuration allows you to specify the maximum amount of time that the provider will wait for a certain operation to complete. The following timeouts can be configured:
+
+* `create` - 8 minutes.
+* `update` - 8 minutes.
+* `delete` - 5 minutes.
+
+To configure the timeouts, use the following syntax:
+
+```hcl
+resource "cloudavenue_vdc" "example" {
+  # ...
+  timeouts {
+    create = "10m"
+    update = "10m"
+    delete = "6m"
+  }
+}
+```
+
 {{ if .HasImport -}}
 ## Import
 

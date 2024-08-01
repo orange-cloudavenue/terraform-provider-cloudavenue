@@ -34,10 +34,4 @@ Read-Only:
 
 - `id` (String) The ID of the vDC.
 - `name` (String) The name of the vDC.
-- `vdc_name` (String, Deprecated) VDC name. 
-
- ~> **Attribute deprecated** Rename the `vdc_name` attribute to `name`, it will be removed in the version `v0.19.0` of the provider.
-- `vdc_uuid` (String, Deprecated) VDC UUID. 
-
- ~> **Attribute deprecated** Rename the `id` attribute to `name`, it will be removed in the version `v0.19.0` of the provider.
 

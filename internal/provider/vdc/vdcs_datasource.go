@@ -93,10 +93,8 @@ func (d *vdcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 
 	for _, v := range vdcs {
 		x := &vdcRef{
-			VDCName: supertypes.NewStringNull(),
-			VDCUUID: supertypes.NewStringNull(),
-			ID:      supertypes.NewStringNull(),
-			Name:    supertypes.NewStringNull(),
+			ID:   supertypes.NewStringNull(),
+			Name: supertypes.NewStringNull(),
 		}
 
 		// Extract ID from href
@@ -105,10 +103,6 @@ func (d *vdcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			resp.Diagnostics.AddError("Unable to extract VDC UUID", err.Error())
 			return
 		}
-
-		// Deprecated
-		x.VDCName.Set(v.Name)
-		x.VDCUUID.Set(uuid)
 
 		x.Name.Set(v.Name)
 		x.ID.Set(uuid)

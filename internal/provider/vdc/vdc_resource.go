@@ -205,7 +205,7 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	_, err := r.client.CAVSDK.V1.VDC().New(body)
+	_, err := r.client.CAVSDK.V1.VDC().New(ctx, body)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating VDC", err.Error())
 		return
@@ -305,24 +305,31 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
+	requireUpdate := false
+
 	// Update the VDC
 	if !plan.Description.Equal(state.Description) {
+		requireUpdate = true
 		vdc.SetDescription(plan.Description.Get())
 	}
 
 	if !plan.VCPUInMhz.Equal(state.VCPUInMhz) {
+		requireUpdate = true
 		vdc.SetVCPUInMhz(plan.VCPUInMhz.GetInt())
 	}
 
 	if !plan.CPUAllocated.Equal(state.CPUAllocated) {
+		requireUpdate = true
 		vdc.SetCPUAllocated(plan.CPUAllocated.GetInt())
 	}
 
 	if !plan.MemoryAllocated.Equal(state.MemoryAllocated) {
+		requireUpdate = true
 		vdc.SetMemoryAllocated(plan.MemoryAllocated.GetInt())
 	}
 
 	if !plan.StorageProfiles.Equal(state.StorageProfiles) {
+		requireUpdate = true
 		vdcStorageProfiles := make([]infrapi.StorageProfile, 0)
 
 		storageProfiles, d := plan.StorageProfiles.Get(ctx)
@@ -342,9 +349,15 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		vdc.SetStorageProfiles(vdcStorageProfiles)
 	}
 
-	if err := vdc.Update(); err != nil {
-		resp.Diagnostics.AddError("Error updating VDC", err.Error())
-		return
+	if !plan.Timeouts.Equal(state.Timeouts) {
+		state.Timeouts = plan.Timeouts
+	}
+
+	if requireUpdate {
+		if err := vdc.Update(ctx); err != nil {
+			resp.Diagnostics.AddError("Error updating VDC", err.Error())
+			return
+		}
 	}
 
 	stateRefreshed, _, d := r.read(ctx, state)
@@ -371,19 +384,27 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
 
+	// Update() is passed a default timeout to use if no value
+	// has been supplied in the Terraform configuration.
+	deleteTimeout, errTO := state.Timeouts.Delete(ctx, 5*time.Minute)
+	if errTO != nil {
+		resp.Diagnostics.AddError(
+			"Error creating timeout",
+			"Could not create timeout, unexpected error",
+		)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
+	defer cancel()
+
 	vdc, err := r.client.CAVSDK.V1.VDC().GetVDC(state.Name.Get())
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading VDC", err.Error())
 		return
 	}
 
-	job, err := vdc.Delete()
-	if err != nil {
-		resp.Diagnostics.AddError("Error deleting VDC", err.Error())
-		return
-	}
-
-	if err := job.Wait(1, 600); err != nil {
+	if err := vdc.Delete(ctx); err != nil {
 		resp.Diagnostics.AddError("Error deleting VDC", err.Error())
 		return
 	}
