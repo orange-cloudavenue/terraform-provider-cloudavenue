@@ -3,8 +3,10 @@ package edgegw
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -16,6 +18,7 @@ import (
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+	"github.com/FrangipaneTeam/terraform-plugin-framework-validators/setvalidator"
 )
 
 func appPortProfilesSchema(_ context.Context) superschema.Schema {
@@ -78,7 +81,7 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "ID of the Edge Gateway.",
 					Optional:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name"), path.MatchRoot("vdc")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
 					},
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
@@ -90,31 +93,10 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "Name of the Edge Gateway.",
 					Optional:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name"), path.MatchRoot("vdc")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
 					},
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
-					},
-				},
-			},
-			"vdc": superschema.SuperStringAttribute{
-				Deprecated: &superschema.Deprecated{
-					DeprecationMessage:                "The `vdc` attribute is deprecated and will be removed. This is used by a system",
-					ComputeMarkdownDeprecationMessage: true,
-					Renamed:                           true,
-					FromAttributeName:                 "vdc",
-					TargetAttributeName:               "edge_gateway_id",
-					TargetRelease:                     "v0.19.0",
-				},
-				Resource: &schemaR.StringAttribute{
-					MarkdownDescription: "ID of VDC or VDC Group",
-					Optional:            true,
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.RequiresReplace(),
-						stringplanmodifier.UseStateForUnknown(),
-					},
-					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name"), path.MatchRoot("vdc")),
 					},
 				},
 			},
@@ -139,6 +121,10 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 						},
 						Resource: &schemaR.SetAttribute{
 							Optional: true,
+							Validators: []validator.Set{
+								setvalidator.NullIfAttributeIsOneOf(path.MatchRelative().AtParent().AtName("protocol"), []attr.Value{types.StringValue("ICMPv4"), types.StringValue("ICMPv6")}),
+								setvalidator.RequireIfAttributeIsOneOf(path.MatchRelative().AtParent().AtName("protocol"), []attr.Value{types.StringValue("TCP"), types.StringValue("UDP")}),
+							},
 						},
 					},
 					"protocol": superschema.SuperStringAttribute{

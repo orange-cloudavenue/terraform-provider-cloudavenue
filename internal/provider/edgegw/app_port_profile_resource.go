@@ -19,7 +19,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
@@ -91,35 +90,24 @@ func (r *appPortProfileResource) Create(ctx context.Context, req resource.Create
 
 	var vdcID string
 
-	// Retrieve VDC from edge gateway (VDC attribute is deprecated)
-	if !plan.EdgeGatewayID.IsKnown() && !plan.EdgeGatewayName.IsKnown() {
-		// TODO - Deprecated - Remove in version v0.19.0
-		// Get VDC by the deprecated attribute
-		vdcData, d := vdc.Init(r.client, plan.VDC.StringValue)
-		resp.Diagnostics.Append(d...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	// Retrieve VDC from edge gateway
 
-		vdcID = vdcData.GetID()
-	} else {
-		// Get VDC by the edge gateway attribute
-		edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-			ID:   types.StringValue(plan.EdgeGatewayID.Get()),
-			Name: types.StringValue(plan.EdgeGatewayName.Get()),
-		})
-		if err != nil {
-			resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
-			return
-		}
-
-		vdcData, err := edgegw.GetParent()
-		if err != nil {
-			resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
-			return
-		}
-		vdcID = vdcData.GetID()
+	// Get VDC by the edge gateway attribute
+	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+		ID:   types.StringValue(plan.EdgeGatewayID.Get()),
+		Name: types.StringValue(plan.EdgeGatewayName.Get()),
+	})
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
+		return
 	}
+
+	vdcData, err := edgegw.GetParent()
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+		return
+	}
+	vdcID = vdcData.GetID()
 
 	appPorts, d := plan.toNsxtAppPortProfilePorts(ctx)
 	resp.Diagnostics.Append(d...)
@@ -367,11 +355,13 @@ func (r *appPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 		}
 
 		ap.Protocol.Set(singlePort.Protocol)
-		// DestinationPorts is optional
-		if len(singlePort.DestinationPorts) > 0 {
-			diags.Append(ap.Ports.Set(ctx, singlePort.DestinationPorts)...)
-			if diags.HasError() {
-				return
+		if singlePort.Protocol == "TCP" || singlePort.Protocol == "UDP" {
+			// DestinationPorts is optional
+			if len(singlePort.DestinationPorts) > 0 {
+				diags.Append(ap.Ports.Set(ctx, singlePort.DestinationPorts)...)
+				if diags.HasError() {
+					return
+				}
 			}
 		}
 		appPorts[index] = ap

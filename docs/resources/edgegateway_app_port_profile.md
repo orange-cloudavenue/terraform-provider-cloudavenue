@@ -42,11 +42,8 @@ resource "cloudavenue_edgegateway_app_port_profile" "example" {
 ### Optional
 
 - `description` (String) Application Port Profile description.
-- `edge_gateway_id` (String) (ForceNew) ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`, `vdc`.
-- `edge_gateway_name` (String) (ForceNew) Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`, `vdc`.
-- `vdc` (String, Deprecated) (ForceNew) ID of VDC or VDC Group. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`, `vdc`. 
-
- ~> **Attribute deprecated** Rename the `vdc` attribute to `edge_gateway_id`, it will be removed in the version `v0.19.0` of the provider.
+- `edge_gateway_id` (String) (ForceNew) ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
+- `edge_gateway_name` (String) (ForceNew) Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
 
 ### Read-Only
 
@@ -61,7 +58,7 @@ Required:
 
 Optional:
 
-- `ports` (Set of String) Set of ports or ranges.
+- `ports` (Set of String) Set of ports or ranges. If the value of [`<.protocol`](#<.protocol) attribute is one of `ICMPv4` or `ICMPv6` this attribute is **NULL**. If the value of [`<.protocol`](#<.protocol) attribute is one of `TCP` or `UDP` this attribute is **REQUIRED**.
 
 ## Advanced Usage
 

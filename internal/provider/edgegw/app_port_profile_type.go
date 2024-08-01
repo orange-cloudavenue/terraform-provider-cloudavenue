@@ -15,7 +15,6 @@ import (
 type AppPortProfileModel struct {
 	ID              supertypes.StringValue                                         `tfsdk:"id"`
 	Name            supertypes.StringValue                                         `tfsdk:"name"`
-	VDC             supertypes.StringValue                                         `tfsdk:"vdc"` // Deprecated
 	EdgeGatewayID   supertypes.StringValue                                         `tfsdk:"edge_gateway_id"`
 	EdgeGatewayName supertypes.StringValue                                         `tfsdk:"edge_gateway_name"`
 	Description     supertypes.StringValue                                         `tfsdk:"description"`
