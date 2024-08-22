@@ -6,10 +6,10 @@ github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12 h1:rbh0EtyILnuyu07RuOh
 github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12/go.mod h1:j3TxedNm9WrKKseOSBKxnNtquuXa0FQChO/QdcvPKtg=
 github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.4 h1:FGb+DIj8AtUehYLt7b0t1rjqK/7sggkoZwR4tqdQjcc=
 github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.4/go.mod h1:ngKE3iJWLWPLZ64umTr5ndnqd9mvMxHUZPk9pCkGSJY=
-github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.7.0 h1:/x5w9csZfop+3bEYqsTeU7uogBSZl9hWIDAlNkP+6m8=
-github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.7.0/go.mod h1:QQynPzbiRsR+NI19AhVkc7DPcMs+psbTyMitrKLjZ6A=
-github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.3.1 h1:6uU57CoUnM/EX1fhmabQXncqU5v7aKTJmi4BqXuc1kA=
-github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.3.1/go.mod h1:ZJNukssBEHr0tKJmxpjejljw3ADi131O23j6KdL5I24=
+github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.8.0 h1:x9MfFpk8neqrcwEiSXKEsieI0Cr747yjhlRnPQIjUtA=
+github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.8.0/go.mod h1:AkcBw7L/PhgCm1A4P4adGrbEjE7i2maeCn/Jeh5t5Lo=
+github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.4.0 h1:5lFfjKOhBxBQNwQ63PZWBc5Unqgi5ppYq9RDoN05N+k=
+github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.4.0/go.mod h1:klzXBi/0nMGXBh4bzRjP2wef+HE6rfCMia81Glc2+eY=
 github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1 h1:C17IEM0/4sxsTN0IpwDdgncea/cxfZVlWESIWvlEuBo=
 github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1/go.mod h1:GkF0MeJVDma0RHglpXxSzZ3yv7ftneMgI1KwHrJBOWA=
 github.com/Kunde21/markdownfmt/v3 v3.1.0 h1:KiZu9LKs+wFFBQKhrZJrFZwtLnCCWJahL+S+E/3VnM0=
@@ -70,8 +70,8 @@ github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246/go.mod h1:NsKVpF4h
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
 github.com/emirpasic/gods v1.18.1/go.mod h1:8tpGGwCnJ5H4r6BWwaV6OrWmMoPhUl5jm/FMNAnJvWQ=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
-github.com/fatih/color v1.16.0 h1:zmkK9Ngbjj+K0yRhTVONQh1p/HknKYSlNT+vZCzyokM=
-github.com/fatih/color v1.16.0/go.mod h1:fL2Sau1YI5c0pdGEVCbKQbLXB6edEj1ZgiY4NijnWvE=
+github.com/fatih/color v1.17.0 h1:GlRw1BRJxkpqUCBKzKOw098ed57fEsKeNjpTe3cSjK4=
+github.com/fatih/color v1.17.0/go.mod h1:YZ7TlrGPkiz6ku9fK3TLD/pl3CpsiFyu8N92HLgmosI=
 github.com/fbiville/markdown-table-formatter v0.3.0 h1:PIm1UNgJrFs8q1htGTw+wnnNYvwXQMMMIKNZop2SSho=
 github.com/fbiville/markdown-table-formatter v0.3.0/go.mod h1:q89TDtSEVDdTaufgSbfHpNVdPU/bmfvqNkrC5HagmLY=
 github.com/frankban/quicktest v1.14.3 h1:FJKSZTDHjyhriyC81FLQ0LY93eSai0ZyR/ZIkd3ZUKE=
@@ -158,8 +158,8 @@ github.com/hashicorp/terraform-json v0.22.1 h1:xft84GZR0QzjPVWs4lRUwvTcPnegqlyS7
 github.com/hashicorp/terraform-json v0.22.1/go.mod h1:JbWSQCLFSXFFhg42T7l9iJwdGXBYV8fmmD6o/ML4p3A=
 github.com/hashicorp/terraform-plugin-docs v0.19.4 h1:G3Bgo7J22OMtegIgn8Cd/CaSeyEljqjH3G39w28JK4c=
 github.com/hashicorp/terraform-plugin-docs v0.19.4/go.mod h1:4pLASsatTmRynVzsjEhbXZ6s7xBlUw/2Kt0zfrq8HxA=
-github.com/hashicorp/terraform-plugin-framework v1.10.0 h1:xXhICE2Fns1RYZxEQebwkB2+kXouLC932Li9qelozrc=
-github.com/hashicorp/terraform-plugin-framework v1.10.0/go.mod h1:qBXLDn69kM97NNVi/MQ9qgd1uWWsVftGSnygYG1tImM=
+github.com/hashicorp/terraform-plugin-framework v1.11.0 h1:M7+9zBArexHFXDx/pKTxjE6n/2UCXY6b8FIq9ZYhwfE=
+github.com/hashicorp/terraform-plugin-framework v1.11.0/go.mod h1:qBXLDn69kM97NNVi/MQ9qgd1uWWsVftGSnygYG1tImM=
 github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.1 h1:gm5b1kHgFFhaKFhm4h2TgvMUlNzFAtUqlcOWnWPm+9E=
 github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.1/go.mod h1:MsjL1sQ9L7wGwzJ5RjcI6FzEMdyoBnw+XK8ZnOvQOLY=
 github.com/hashicorp/terraform-plugin-framework-validators v0.13.0 h1:bxZfGo9DIUoLLtHMElsu+zwqI4IsMZQBRRy4iLzZJ8E=
