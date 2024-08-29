@@ -96,7 +96,6 @@ func TestCloudAvenueClient(t *testing.T) {
 		}
 
 		for _, tt := range tests {
-			tt := tt
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
 
@@ -140,7 +139,6 @@ func TestCloudAvenueClient(t *testing.T) {
 		}
 
 		for _, tt := range tests {
-			tt := tt
 			t.Run(tt.name, func(t *testing.T) {
 				c := CloudAvenue{}
 				// Set environment variables for the test
