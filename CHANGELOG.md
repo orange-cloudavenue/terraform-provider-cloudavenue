@@ -1,5 +1,5 @@
-## ain.1.0 (Unreleased)
-## main (August  1, 2024)
+## 0.1.0 (Unreleased)
+## 0.19.0 (August  1, 2024)
 ### :rotating_light: **Breaking Changes**
 
 * `datasource/cloudavenue_edgegateway_app_port_profile` - Announced in release [v0.18.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.18.0) the attributes `vdc` is now removed. (GH-698)
