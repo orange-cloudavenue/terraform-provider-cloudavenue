@@ -137,7 +137,7 @@ func ToBucketLifecycleConfigurationModel(ctx context.Context, lifecycle *s3.GetB
 					}
 					and.Prefix.SetPtr(rule.Filter.And.Prefix)
 					tags := make([]*BucketLifecycleConfigurationModelTag, 0)
-					if rule.Filter.And.Tags != nil && len(rule.Filter.And.Tags) > 0 {
+					if len(rule.Filter.And.Tags) > 0 {
 						for _, tag := range rule.Filter.And.Tags {
 							tagRefreshed := &BucketLifecycleConfigurationModelTag{
 								Key:   supertypes.NewStringNull(),
