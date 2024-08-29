@@ -1,4 +1,15 @@
 ## 0.1.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from v0.11.0 to 0.11.1 (GH-787)
+* deps: bump github.com/FrangipaneTeam/terraform-plugin-framework-superschema from 1.7.0 to 1.8.0 (GH-786)
+* deps: bump github.com/FrangipaneTeam/terraform-plugin-framework-supertypes from 0.3.1 to 0.4.0 (GH-784)
+* deps: bump github.com/hashicorp/terraform-plugin-framework from 1.10.0 to 1.11.0 (GH-783)
+* deps: bump golang.org/x/net from 0.27.0 to 0.28.0 (GH-782)
+* deps: bump golang.org/x/net from 0.25.0 to 0.27.0 (GH-780)
+
+
 ## 0.19.0 (August  1, 2024)
 ### :rotating_light: **Breaking Changes**
 
