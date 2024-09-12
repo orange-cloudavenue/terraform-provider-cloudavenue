@@ -24,35 +24,10 @@ func NewBMSDataSource() datasource.DataSource {
 
 type bmsDataSource struct {
 	client *client.CloudAvenue
-
-	// Uncomment the following lines if you need to access the resource's.
-	// org    org.Org
-	// vdc    vdc.VDC
-	// vapp   vapp.VAPP
 }
-
-// If the data source don't have same schema/structure as the resource, you can use the following code:
-// type DatasourceDataSourceModel struct {
-// 	ID types.String `tfsdk:"id"`
-// }
 
 // Init Initializes the data source.
 func (d *bmsDataSource) Init(ctx context.Context, dm *bmsModelDatasource) (diags diag.Diagnostics) {
-	// Uncomment the following lines if you need to access to the Org
-	// d.org, diags = org.Init(d.client)
-	// if diags.HasError() {
-	// 	return
-	// }
-
-	// Uncomment the following lines if you need to access to the VDC
-	// d.vdc, diags = vdc.Init(d.client, dm.VDC)
-	// if diags.HasError() {
-	// 	return
-	// }
-
-	// Uncomment the following lines if you need to access to the VAPP
-	// d.vapp, diags = vapp.Init(d.client, d.vdc, dm.VAppID, dm.VAppName)
-
 	return
 }
 
@@ -86,9 +61,6 @@ func (d *bmsDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	config := &bmsModelDatasource{}
 
-	// If the data source don't have same schema/structure as the resource, you can use the following code:
-	// config := &DatasourceDataSourceModel{}
-
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
 	if resp.Diagnostics.HasError() {
@@ -104,6 +76,7 @@ func (d *bmsDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	/*
 		Implement the data source read logic here.
 	*/
+
 	// Set default timeouts
 	readTimeout, diags := config.Timeouts.Read(ctx, defaultReadTimeout)
 	resp.Diagnostics.Append(diags...)
@@ -113,26 +86,30 @@ func (d *bmsDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
-	// Read data from the API - need to be implemented
-	// ex: data, _, diags := d.bms.Get(ctx, config)
+	// Read data from the API
+	bms, err := d.client.CAVSDK.V1.BMS.List()
+	if err != nil {
+		resp.Diagnostics.AddError("error on list BMS(s)", err.Error())
+		return
+	}
+	// Set Network
+	err = config.SetNetwork(ctx, bms)
+	if err != nil {
+		resp.Diagnostics.AddError("error on set network", err.Error())
+		return
+	}
+	// Set BMS
+	err = config.SetBMS(ctx, bms)
+	if err != nil {
+		resp.Diagnostics.AddError("error on set BMS", err.Error())
+		return
+	}
+	// Set ID
+	config.ID.Set(d.client.GetOrgName())
 
-	// If read function is identical to the resource, you can use the following code:
-	/*
-		s := &DatasourceResource{
-			client: d.client,
-			// org:    d.org,
-			// vdc:    d.vdc,
-			// vapp:   d.vapp,
-		}
-
-		// Read data from the API
-		data, _, diags := s.read(ctx, config)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		// Save data into Terraform state
-		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-	*/
+	// Save data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }

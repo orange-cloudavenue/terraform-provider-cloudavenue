@@ -1,0 +1,3 @@
+```release-note:feature
+`datasource/cloudavenue_bms` -  Add new feature `bms` in order to list your bare metal server configuration.
+```
