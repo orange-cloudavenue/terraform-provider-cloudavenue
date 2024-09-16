@@ -12,11 +12,15 @@ import (
 )
 
 type (
-	bmsModelDatasource struct {
-		ID       supertypes.StringValue                                       `tfsdk:"id"`
-		Timeouts timeoutsD.Value                                              `tfsdk:"timeouts"`
-		Network  supertypes.SetNestedObjectValueOf[bmsModelDatasourceNetwork] `tfsdk:"network"`
-		BMS      supertypes.SetNestedObjectValueOf[bmsModelDatasourceBMS]     `tfsdk:"bms"`
+	BMSModelDatasource struct {
+		ID       supertypes.StringValue                                   `tfsdk:"id"`
+		Timeouts timeoutsD.Value                                          `tfsdk:"timeouts"`
+		Env      supertypes.SetNestedObjectValueOf[bmsModelDatasourceEnv] `tfsdk:"env"`
+	}
+
+	bmsModelDatasourceEnv struct {
+		Network supertypes.SetNestedObjectValueOf[bmsModelDatasourceNetwork] `tfsdk:"network"`
+		BMS     supertypes.SetNestedObjectValueOf[bmsModelDatasourceBMS]     `tfsdk:"bms"`
 	}
 
 	bmsModelDatasourceNetwork struct {
@@ -46,27 +50,22 @@ type (
 	}
 )
 
-// NewBMSModelDatasource returns a new BMSModelDatasource.
-func NewBMSModelDatasource() *bmsModelDatasource {
-	return &bmsModelDatasource{}
+// NewbmsModelDatasource returns a new bmsModelDatasource.
+func NewbmsModelDatasource() *BMSModelDatasource {
+	return &BMSModelDatasource{}
 }
 
 // SetID sets the ID.
-func (m *bmsModelDatasource) SetID(id *string) {
+func (m *BMSModelDatasource) SetID(id *string) {
 	m.ID.Set(*id)
 }
 
 // SetNetwork sets the Network of BMS listed.
-func (m *bmsModelDatasource) SetNetwork(ctx context.Context, bms *v1.BMS) error {
-	bmsService, err := bms.List()
-	if err != nil {
-		return err
-	}
-	networks := bmsService.GetNetworks()
+func (m *BMSModelDatasource) SetNetwork(ctx context.Context, bms *v1.BMS) (net []*bmsModelDatasourceNetwork, err error) {
+	networks := bms.GetNetworks()
 	if len(networks) == 0 {
-		return nil
+		return make([]*bmsModelDatasourceNetwork, 0), nil
 	}
-	var net []*bmsModelDatasourceNetwork
 	for _, network := range networks {
 		var x bmsModelDatasourceNetwork
 		x.VLANID.Set(network.VLANID)
@@ -74,18 +73,16 @@ func (m *bmsModelDatasource) SetNetwork(ctx context.Context, bms *v1.BMS) error 
 		x.Prefix.Set(network.Prefix)
 		net = append(net, &x)
 	}
-	m.Network.Set(ctx, net)
-	return nil
+
+	return net, nil
 }
 
 // SetBMS sets the BMS information.
-func (m *bmsModelDatasource) SetBMS(ctx context.Context, bms *v1.BMS) error {
-	bmsService, err := bms.List()
-	if err != nil {
-		return err
+func (m *BMSModelDatasource) SetBMS(ctx context.Context, bms *v1.BMS) (bmsList []*bmsModelDatasourceBMS, err error) {
+	bmsDetails := bms.GetBMSDetails()
+	if len(bmsDetails) == 0 {
+		return make([]*bmsModelDatasourceBMS, 0), nil
 	}
-	bmsDetails := bmsService.GetBMSDetails()
-	var bmsList []*bmsModelDatasourceBMS
 	for _, bms := range bmsDetails {
 		x := &bmsModelDatasourceBMS{}
 		x.Hostname.Set(bms.Hostname)
@@ -95,8 +92,7 @@ func (m *bmsModelDatasource) SetBMS(ctx context.Context, bms *v1.BMS) error {
 		x.Storage.Set(ctx, setStorage(ctx, bms.GetBMSStorage()))
 		bmsList = append(bmsList, x)
 	}
-	m.BMS.Set(ctx, bmsList)
-	return nil
+	return bmsList, nil
 }
 
 // SetStorage sets the Storage of BMS.
@@ -116,9 +112,47 @@ func setStorageDetail(storage v1.BMSStorageDetail) (storageDetail *bmsModelDatas
 	return
 }
 
-// Copy returns a new BMSModelDatasource.
-func (m *bmsModelDatasource) Copy() any {
-	x := &bmsModelDatasource{}
+// Copy returns a new bmsModelDatasource.
+func (m *BMSModelDatasource) Copy() any {
+	x := &BMSModelDatasource{}
 	utils.ModelCopy(m, x)
 	return x
+}
+
+// New bmsModelDatasourceEnv returns a new bmsModelDatasourceEnv.
+func newBMSModelDatasourceEnv(ctx context.Context) *bmsModelDatasourceEnv {
+	return &bmsModelDatasourceEnv{
+		Network: supertypes.NewSetNestedObjectValueOfNull[bmsModelDatasourceNetwork](ctx),
+		BMS:     supertypes.NewSetNestedObjectValueOfNull[bmsModelDatasourceBMS](ctx),
+	}
+}
+
+// New bmsModelDatasourceNetwork returns a new bmsModelDatasourceNetwork.
+func newBMSModelDatasourceNetwork() *bmsModelDatasourceNetwork {
+	return &bmsModelDatasourceNetwork{
+		VLANID: supertypes.NewStringNull(),
+		Subnet: supertypes.NewStringNull(),
+		Prefix: supertypes.NewStringNull(),
+	}
+}
+
+// New bmsModelDatasourceBMS returns a new bmsModelDatasourceBMS.
+func newBMSModelDatasourceBMS(ctx context.Context) *bmsModelDatasourceBMS {
+	return &bmsModelDatasourceBMS{
+		Hostname:          supertypes.NewStringNull(),
+		BMSType:           supertypes.NewStringNull(),
+		OS:                supertypes.NewStringNull(),
+		BiosConfiguration: supertypes.NewStringNull(),
+		Storage:           supertypes.NewSingleNestedObjectValueOfNull[bmsModelDatasourceBMSStorage](ctx),
+	}
+}
+
+// New bmsModelDatasourceBMSStorage returns a new bmsModelDatasourceBMSStorage.
+func newBMSModelDatasourceBMSStorage(ctx context.Context) *bmsModelDatasourceBMSStorage {
+	return &bmsModelDatasourceBMSStorage{
+		Local:  supertypes.NewSingleNestedObjectValueOfNull[bmsModelDatasourceBMSStorageGen](ctx),
+		System: supertypes.NewSingleNestedObjectValueOfNull[bmsModelDatasourceBMSStorageGen](ctx),
+		Data:   supertypes.NewSingleNestedObjectValueOfNull[bmsModelDatasourceBMSStorageGen](ctx),
+		Shared: supertypes.NewSingleNestedObjectValueOfNull[bmsModelDatasourceBMSStorageGen](ctx),
+	}
 }

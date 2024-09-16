@@ -31,145 +31,153 @@ func bmsSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The ID of the datasource.",
 				},
 			},
-			"network": superschema.SuperSetNestedAttributeOf[bmsModelDatasourceNetwork]{
+			"env": superschema.SuperSetNestedAttributeOf[bmsModelDatasourceEnv]{
 				DataSource: &schemaD.SetNestedAttribute{
 					Computed:            true,
-					MarkdownDescription: "The network array for all BMS listed.",
+					MarkdownDescription: "Return the list of BMS environement.",
 				},
-				Attributes: superschema.Attributes{
-					"vlan_id": superschema.SuperStringAttribute{
-						DataSource: &schemaD.StringAttribute{
+				Attributes: map[string]superschema.Attribute{
+					"network": superschema.SuperSetNestedAttributeOf[bmsModelDatasourceNetwork]{
+						DataSource: &schemaD.SetNestedAttribute{
 							Computed:            true,
-							MarkdownDescription: "The VLAN ID of the network.",
-						},
-					},
-					"subnet": superschema.SuperStringAttribute{
-						DataSource: &schemaD.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The subnet of the network.",
-						},
-					},
-					"prefix": superschema.SuperStringAttribute{
-						DataSource: &schemaD.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The prefix of the network.",
-						},
-					},
-				},
-			},
-
-			"bms": superschema.SuperSetNestedAttributeOf[bmsModelDatasourceBMS]{
-				DataSource: &schemaD.SetNestedAttribute{
-					Computed:            true,
-					MarkdownDescription: "The BMS list.",
-				},
-				Attributes: superschema.Attributes{
-					"hostname": superschema.SuperStringAttribute{
-						DataSource: &schemaD.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The hostname of the BMS.",
-						},
-					},
-					"bms_type": superschema.SuperStringAttribute{
-						DataSource: &schemaD.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The type of the BMS.",
-						},
-					},
-					"os": superschema.SuperStringAttribute{
-						DataSource: &schemaD.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The OS of the BMS.",
-						},
-					},
-					"bios_configuration": superschema.SuperStringAttribute{
-						DataSource: &schemaD.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The BIOS configuration of the BMS.",
-						},
-					},
-					"storage": superschema.SuperSingleNestedAttributeOf[bmsModelDatasourceBMSStorage]{
-						DataSource: &schemaD.SingleNestedAttribute{
-							Computed:            true,
-							MarkdownDescription: "The storage of the BMS.",
+							MarkdownDescription: "The network array for all BMS listed.",
 						},
 						Attributes: superschema.Attributes{
-							"local": superschema.SuperSingleNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
-								DataSource: &schemaD.SingleNestedAttribute{
+							"vlan_id": superschema.SuperStringAttribute{
+								DataSource: &schemaD.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "The local storage of the BMS.",
-								},
-								Attributes: superschema.Attributes{
-									"size": superschema.SuperStringAttribute{
-										DataSource: &schemaD.StringAttribute{
-											Computed:            true,
-											MarkdownDescription: "The size of the local storage.",
-										},
-									},
-									"storage_class": superschema.SuperStringAttribute{
-										DataSource: &schemaD.StringAttribute{
-											Computed:            true,
-											MarkdownDescription: "The storage class of the local storage.",
-										},
-									},
+									MarkdownDescription: "The VLAN ID of the network.",
 								},
 							},
-							"system": superschema.SuperSingleNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
-								DataSource: &schemaD.SingleNestedAttribute{
+							"subnet": superschema.SuperStringAttribute{
+								DataSource: &schemaD.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "The system storage of the BMS.",
-								},
-								Attributes: superschema.Attributes{
-									"size": superschema.SuperStringAttribute{
-										DataSource: &schemaD.StringAttribute{
-											Computed:            true,
-											MarkdownDescription: "The size of the system storage.",
-										},
-									},
-									"storage_class": superschema.SuperStringAttribute{
-										DataSource: &schemaD.StringAttribute{
-											Computed:            true,
-											MarkdownDescription: "The storage class of the system storage.",
-										},
-									},
+									MarkdownDescription: "The subnet of the network.",
 								},
 							},
-							"data": superschema.SuperSingleNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
-								DataSource: &schemaD.SingleNestedAttribute{
+							"prefix": superschema.SuperStringAttribute{
+								DataSource: &schemaD.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "The data storage of the BMS.",
-								},
-								Attributes: superschema.Attributes{
-									"size": superschema.SuperStringAttribute{
-										DataSource: &schemaD.StringAttribute{
-											Computed:            true,
-											MarkdownDescription: "The size of the data storage.",
-										},
-									},
-									"storage_class": superschema.SuperStringAttribute{
-										DataSource: &schemaD.StringAttribute{
-											Computed:            true,
-											MarkdownDescription: "The storage class of the data storage.",
-										},
-									},
+									MarkdownDescription: "The prefix of the network.",
 								},
 							},
-							"shared": superschema.SuperSingleNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
+						},
+					},
+
+					"bms": superschema.SuperSetNestedAttributeOf[bmsModelDatasourceBMS]{
+						DataSource: &schemaD.SetNestedAttribute{
+							Computed:            true,
+							MarkdownDescription: "The BMS list.",
+						},
+						Attributes: superschema.Attributes{
+							"hostname": superschema.SuperStringAttribute{
+								DataSource: &schemaD.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "The hostname of the BMS.",
+								},
+							},
+							"bms_type": superschema.SuperStringAttribute{
+								DataSource: &schemaD.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "The type of the BMS.",
+								},
+							},
+							"os": superschema.SuperStringAttribute{
+								DataSource: &schemaD.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "The OS of the BMS.",
+								},
+							},
+							"bios_configuration": superschema.SuperStringAttribute{
+								DataSource: &schemaD.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "The BIOS configuration of the BMS.",
+								},
+							},
+							"storage": superschema.SuperSingleNestedAttributeOf[bmsModelDatasourceBMSStorage]{
 								DataSource: &schemaD.SingleNestedAttribute{
 									Computed:            true,
-									MarkdownDescription: "The shared storage of the BMS.",
+									MarkdownDescription: "The storage of the BMS.",
 								},
 								Attributes: superschema.Attributes{
-									"size": superschema.SuperStringAttribute{
-										DataSource: &schemaD.StringAttribute{
+									"local": superschema.SuperSingleNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
+										DataSource: &schemaD.SingleNestedAttribute{
 											Computed:            true,
-											MarkdownDescription: "The size of the shared storage.",
+											MarkdownDescription: "The local storage of the BMS.",
+										},
+										Attributes: superschema.Attributes{
+											"size": superschema.SuperStringAttribute{
+												DataSource: &schemaD.StringAttribute{
+													Computed:            true,
+													MarkdownDescription: "The size of the local storage.",
+												},
+											},
+											"storage_class": superschema.SuperStringAttribute{
+												DataSource: &schemaD.StringAttribute{
+													Computed:            true,
+													MarkdownDescription: "The storage class of the local storage.",
+												},
+											},
 										},
 									},
-									"storage_class": superschema.SuperStringAttribute{
-										DataSource: &schemaD.StringAttribute{
+									"system": superschema.SuperSingleNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
+										DataSource: &schemaD.SingleNestedAttribute{
 											Computed:            true,
-											MarkdownDescription: "The storage class of the shared storage.",
+											MarkdownDescription: "The system storage of the BMS.",
+										},
+										Attributes: superschema.Attributes{
+											"size": superschema.SuperStringAttribute{
+												DataSource: &schemaD.StringAttribute{
+													Computed:            true,
+													MarkdownDescription: "The size of the system storage.",
+												},
+											},
+											"storage_class": superschema.SuperStringAttribute{
+												DataSource: &schemaD.StringAttribute{
+													Computed:            true,
+													MarkdownDescription: "The storage class of the system storage.",
+												},
+											},
+										},
+									},
+									"data": superschema.SuperSingleNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
+										DataSource: &schemaD.SingleNestedAttribute{
+											Computed:            true,
+											MarkdownDescription: "The data storage of the BMS.",
+										},
+										Attributes: superschema.Attributes{
+											"size": superschema.SuperStringAttribute{
+												DataSource: &schemaD.StringAttribute{
+													Computed:            true,
+													MarkdownDescription: "The size of the data storage.",
+												},
+											},
+											"storage_class": superschema.SuperStringAttribute{
+												DataSource: &schemaD.StringAttribute{
+													Computed:            true,
+													MarkdownDescription: "The storage class of the data storage.",
+												},
+											},
+										},
+									},
+									"shared": superschema.SuperSingleNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
+										DataSource: &schemaD.SingleNestedAttribute{
+											Computed:            true,
+											MarkdownDescription: "The shared storage of the BMS.",
+										},
+										Attributes: superschema.Attributes{
+											"size": superschema.SuperStringAttribute{
+												DataSource: &schemaD.StringAttribute{
+													Computed:            true,
+													MarkdownDescription: "The size of the shared storage.",
+												},
+											},
+											"storage_class": superschema.SuperStringAttribute{
+												DataSource: &schemaD.StringAttribute{
+													Computed:            true,
+													MarkdownDescription: "The storage class of the shared storage.",
+												},
+											},
 										},
 									},
 								},

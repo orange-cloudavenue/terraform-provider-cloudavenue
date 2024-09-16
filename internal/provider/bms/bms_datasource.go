@@ -14,32 +14,32 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &bmsDataSource{}
-	_ datasource.DataSourceWithConfigure = &bmsDataSource{}
+	_ datasource.DataSource              = &BMSDataSource{}
+	_ datasource.DataSourceWithConfigure = &BMSDataSource{}
 )
 
 func NewBMSDataSource() datasource.DataSource {
-	return &bmsDataSource{}
+	return &BMSDataSource{}
 }
 
-type bmsDataSource struct {
+type BMSDataSource struct {
 	client *client.CloudAvenue
 }
 
 // Init Initializes the data source.
-func (d *bmsDataSource) Init(ctx context.Context, dm *bmsModelDatasource) (diags diag.Diagnostics) {
+func (d *BMSDataSource) Init(ctx context.Context, dm *BMSModelDatasource) (diags diag.Diagnostics) {
 	return
 }
 
-func (d *bmsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *BMSDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
-func (d *bmsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *BMSDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = bmsSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *bmsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *BMSDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -56,10 +56,10 @@ func (d *bmsDataSource) Configure(ctx context.Context, req datasource.ConfigureR
 	d.client = client
 }
 
-func (d *bmsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *BMSDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_bms", d.client.GetOrgName(), metrics.Read)()
 
-	config := &bmsModelDatasource{}
+	config := &BMSModelDatasource{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
@@ -92,20 +92,40 @@ func (d *bmsDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		resp.Diagnostics.AddError("error on list BMS(s)", err.Error())
 		return
 	}
-	// Set Network
-	err = config.SetNetwork(ctx, bms)
-	if err != nil {
-		resp.Diagnostics.AddError("error on set network", err.Error())
-		return
+	if len(*bms) == 0 {
+		config.Env.Set(ctx, []*bmsModelDatasourceEnv{})
+	} else {
+		// for each BMS zone
+		data := []*bmsModelDatasourceEnv{}
+		for _, b := range *bms {
+			// Set Network
+			net, err := config.SetNetwork(ctx, &b)
+			if err != nil {
+				resp.Diagnostics.AddError("error on set network", err.Error())
+				return
+			}
+
+			// Set BMS
+			bms, err := config.SetBMS(ctx, &b)
+			if err != nil {
+				resp.Diagnostics.AddError("error on set BMS", err.Error())
+				return
+			}
+
+			// Set data
+			x := newBMSModelDatasourceEnv(ctx)
+			x.Network.Set(ctx, net)
+			x.BMS.Set(ctx, bms)
+			data = append(data, x)
+		}
+		// Set List
+		config.Env.Set(ctx, data)
 	}
-	// Set BMS
-	err = config.SetBMS(ctx, bms)
-	if err != nil {
-		resp.Diagnostics.AddError("error on set BMS", err.Error())
-		return
-	}
+
 	// Set ID
 	config.ID.Set(d.client.GetOrgName())
+	// // Append data
+	// data = append(data, config)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &config)...)
