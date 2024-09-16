@@ -31,7 +31,7 @@ Useful links:
 ## Requirements
 
 * [Terraform](https://www.terraform.io/downloads.html) 1.x.x
-* [Go](https://golang.org/doc/install) 1.20.x (to build the provider plugin)
+* [Go](https://golang.org/doc/install) 1.22.x (to build the provider plugin)
 * [Cloud Avenue Platform](https://cloud.orange-business.com/offres/infrastructure-iaas/cloud-avenue/)
 
 ## Using the Cloud Avenue Provider

@@ -1,0 +1,31 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.6.0
+  hooks:
+    - id: check-merge-conflict
+    - id: trailing-whitespace
+    - id: end-of-file-fixer
+    - id: forbid-submodules
+
+## GOLANG
+- repo: https://github.com/tekwizely/pre-commit-golang
+  rev: v1.0.0-rc.1
+  hooks:
+    - id: go-vet
+    - id: go-imports-repo
+    - id: golangci-lint-repo-pkg
+    - id: go-mod-tidy-repo
+
+## GIT
+- repo: https://github.com/compilerla/conventional-pre-commit
+  rev: v3.2.0
+  hooks:
+    - id: conventional-pre-commit
+      stages: [commit-msg]
+      args: []
+
+## SECURITY
+- repo: https://github.com/gitleaks/gitleaks
+  rev: v8.19.2
+  hooks:
+    - id: gitleaks
