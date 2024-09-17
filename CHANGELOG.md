@@ -1,5 +1,13 @@
 ## 0.20.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* `datasource/cloudavenue_bms` -  Add new feature `bms` in order to list your bare metal server configuration. (GH-794)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.11.1 to 0.12.0 (GH-794)
+
 ## 0.19.1 (August 29, 2024)
 
 ### :dependabot: **Dependencies**
