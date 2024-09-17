@@ -114,3 +114,4 @@ Read-Only:
 - `prefix` (String) The prefix of the network.
 - `subnet` (String) The subnet of the network.
 - `vlan_id` (String) The VLAN ID of the network.
+
