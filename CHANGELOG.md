@@ -1,5 +1,6 @@
-## ain.1.0 (Unreleased)
-## main (August 29, 2024)
+## 0.20.0 (Unreleased)
+
+## 0.19.1 (August 29, 2024)
 
 ### :dependabot: **Dependencies**
 
@@ -9,8 +10,8 @@
 * deps: bump github.com/hashicorp/terraform-plugin-framework from 1.10.0 to 1.11.0 (GH-783)
 * deps: bump golang.org/x/net from 0.27.0 to 0.28.0 (GH-782)
 
-
 ## 0.19.0 (August  1, 2024)
+
 ### :rotating_light: **Breaking Changes**
 
 * `datasource/cloudavenue_edgegateway_app_port_profile` - Announced in release [v0.18.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.18.0) the attributes `vdc` is now removed. (GH-698)
@@ -24,6 +25,7 @@
 * `resource/cloudavenue_vdc` - Add default timeouts configuration for the resource. (GH-772)
 * `resource/cloudavenue_vdc` - Fix an issue with the VDC resource generate `Know after apply` on the attribute `id` if another attribute is changed. (GH-755)
 * `resource/cloudavenue_vdc` - Now timeouts are handled properly when creating/updating/deleting a VDC. (GH-772)
+
 ### :information_source: **Notes**
 
 * `resource/cloudavenue_vdc` - Add workaround for complex validation system that is incompatible with the Terraform module. See [Disable validation](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#disable-validation) for more information. (GH-735)
@@ -44,6 +46,7 @@
 
 * `resource/cloudavenue_edgegateway` - Fixed an issue with the Edge Gateway resource that could not be obtained with a URN instead of a UUID. (GH-765)
 * `resource/cloudavenue_publicip` - workaround for the issue with the public IP address read. If `edge_gateway_name` or `edge_gateway_id` is not provided in the configuration and the public IP has been created before the release v0.18.0 the public IP generate a change on the next apply due to the change introduced by the PR (#697). (GH-751)
+
 ### :information_source: **Notes**
 
 * `resource/cloudavenue_vm` - Improve the documentation and fix the examples. (GH-737)
