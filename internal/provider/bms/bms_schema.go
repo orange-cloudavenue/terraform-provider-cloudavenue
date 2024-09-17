@@ -100,8 +100,8 @@ func bmsSchema(_ context.Context) superschema.Schema {
 									MarkdownDescription: "The storage of the BMS.",
 								},
 								Attributes: superschema.Attributes{
-									"local": superschema.SuperSingleNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
-										DataSource: &schemaD.SingleNestedAttribute{
+									"local": superschema.SuperListNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
+										DataSource: &schemaD.ListNestedAttribute{
 											Computed:            true,
 											MarkdownDescription: "The local storage of the BMS.",
 										},
@@ -120,8 +120,8 @@ func bmsSchema(_ context.Context) superschema.Schema {
 											},
 										},
 									},
-									"system": superschema.SuperSingleNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
-										DataSource: &schemaD.SingleNestedAttribute{
+									"system": superschema.SuperListNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
+										DataSource: &schemaD.ListNestedAttribute{
 											Computed:            true,
 											MarkdownDescription: "The system storage of the BMS.",
 										},
@@ -140,8 +140,8 @@ func bmsSchema(_ context.Context) superschema.Schema {
 											},
 										},
 									},
-									"data": superschema.SuperSingleNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
-										DataSource: &schemaD.SingleNestedAttribute{
+									"data": superschema.SuperListNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
+										DataSource: &schemaD.ListNestedAttribute{
 											Computed:            true,
 											MarkdownDescription: "The data storage of the BMS.",
 										},
@@ -160,8 +160,8 @@ func bmsSchema(_ context.Context) superschema.Schema {
 											},
 										},
 									},
-									"shared": superschema.SuperSingleNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
-										DataSource: &schemaD.SingleNestedAttribute{
+									"shared": superschema.SuperListNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
+										DataSource: &schemaD.ListNestedAttribute{
 											Computed:            true,
 											MarkdownDescription: "The shared storage of the BMS.",
 										},

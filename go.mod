@@ -1,8 +1,8 @@
 module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 
-go 1.22
+go 1.22.0
 
-toolchain go1.22.5
+toolchain go1.23.1
 
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
@@ -24,7 +24,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.34.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/kr/pretty v0.3.1
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.11.1
+	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.12.0
 	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
 	github.com/orange-cloudavenue/infrapi-sdk-go v0.1.4-0.20231005074857-89878ea119fb
 	github.com/rs/zerolog v1.33.0
@@ -59,7 +59,7 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible // indirect
 	github.com/go-chi/render v1.0.3 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/go-resty/resty/v2 v2.14.0 // indirect
+	github.com/go-resty/resty/v2 v2.15.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/hashicorp/cli v1.1.6 // indirect
@@ -85,7 +85,6 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/k0kubun/pp v3.0.1+incompatible // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -112,7 +111,7 @@ require (
 	github.com/zclconf/go-cty v1.14.4 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
-	golang.org/x/mod v0.20.0 // indirect
+	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/oauth2 v0.17.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.23.0 // indirect
@@ -126,5 +125,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
-
-replace github.com/orange-cloudavenue/cloudavenue-sdk-go => /Users/micheneaudavid/go/src/github.com/orange-cloudavenue/cloudavenue-sdk-go

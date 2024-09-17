@@ -22,12 +22,12 @@ func NewBMSDataSource() datasource.DataSource {
 	return &BMSDataSource{}
 }
 
-type BMSDataSource struct {
+type BMSDataSource struct { //nolint: revive
 	client *client.CloudAvenue
 }
 
 // Init Initializes the data source.
-func (d *BMSDataSource) Init(ctx context.Context, dm *BMSModelDatasource) (diags diag.Diagnostics) {
+func (d *BMSDataSource) Init(ctx context.Context, dm *bmsModelDatasource) (diags diag.Diagnostics) {
 	return
 }
 
@@ -59,7 +59,7 @@ func (d *BMSDataSource) Configure(ctx context.Context, req datasource.ConfigureR
 func (d *BMSDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_bms", d.client.GetOrgName(), metrics.Read)()
 
-	config := &BMSModelDatasource{}
+	config := &bmsModelDatasource{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
@@ -124,8 +124,6 @@ func (d *BMSDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 
 	// Set ID
 	config.ID.Set(d.client.GetOrgName())
-	// // Append data
-	// data = append(data, config)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &config)...)

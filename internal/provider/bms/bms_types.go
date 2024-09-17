@@ -12,7 +12,7 @@ import (
 )
 
 type (
-	BMSModelDatasource struct {
+	bmsModelDatasource struct {
 		ID       supertypes.StringValue                                   `tfsdk:"id"`
 		Timeouts timeoutsD.Value                                          `tfsdk:"timeouts"`
 		Env      supertypes.SetNestedObjectValueOf[bmsModelDatasourceEnv] `tfsdk:"env"`
@@ -38,10 +38,10 @@ type (
 	}
 
 	bmsModelDatasourceBMSStorage struct {
-		Local  supertypes.SingleNestedObjectValueOf[bmsModelDatasourceBMSStorageGen] `tfsdk:"local"`
-		System supertypes.SingleNestedObjectValueOf[bmsModelDatasourceBMSStorageGen] `tfsdk:"system"`
-		Data   supertypes.SingleNestedObjectValueOf[bmsModelDatasourceBMSStorageGen] `tfsdk:"data"`
-		Shared supertypes.SingleNestedObjectValueOf[bmsModelDatasourceBMSStorageGen] `tfsdk:"shared"`
+		Local  supertypes.ListNestedObjectValueOf[bmsModelDatasourceBMSStorageGen] `tfsdk:"local"`
+		System supertypes.ListNestedObjectValueOf[bmsModelDatasourceBMSStorageGen] `tfsdk:"system"`
+		Data   supertypes.ListNestedObjectValueOf[bmsModelDatasourceBMSStorageGen] `tfsdk:"data"`
+		Shared supertypes.ListNestedObjectValueOf[bmsModelDatasourceBMSStorageGen] `tfsdk:"shared"`
 	}
 
 	bmsModelDatasourceBMSStorageGen struct {
@@ -51,17 +51,21 @@ type (
 )
 
 // NewbmsModelDatasource returns a new bmsModelDatasource.
-func NewbmsModelDatasource() *BMSModelDatasource {
-	return &BMSModelDatasource{}
+func NewBMSModelDatasource(ctx context.Context) *bmsModelDatasource {
+	return &bmsModelDatasource{
+		ID:       supertypes.NewStringNull(),
+		Timeouts: timeoutsD.Value{},
+		Env:      supertypes.NewSetNestedObjectValueOfNull[bmsModelDatasourceEnv](ctx),
+	}
 }
 
 // SetID sets the ID.
-func (m *BMSModelDatasource) SetID(id *string) {
+func (m *bmsModelDatasource) SetID(id *string) {
 	m.ID.Set(*id)
 }
 
 // SetNetwork sets the Network of BMS listed.
-func (m *BMSModelDatasource) SetNetwork(ctx context.Context, bms *v1.BMS) (net []*bmsModelDatasourceNetwork, err error) {
+func (m *bmsModelDatasource) SetNetwork(ctx context.Context, bms *v1.BMS) (net []*bmsModelDatasourceNetwork, err error) {
 	networks := bms.GetNetworks()
 	if len(networks) == 0 {
 		return make([]*bmsModelDatasourceNetwork, 0), nil
@@ -78,8 +82,8 @@ func (m *BMSModelDatasource) SetNetwork(ctx context.Context, bms *v1.BMS) (net [
 }
 
 // SetBMS sets the BMS information.
-func (m *BMSModelDatasource) SetBMS(ctx context.Context, bms *v1.BMS) (bmsList []*bmsModelDatasourceBMS, err error) {
-	bmsDetails := bms.GetBMSDetails()
+func (m *bmsModelDatasource) SetBMS(ctx context.Context, bms *v1.BMS) (bmsList []*bmsModelDatasourceBMS, err error) {
+	bmsDetails := bms.GetBMS()
 	if len(bmsDetails) == 0 {
 		return make([]*bmsModelDatasourceBMS, 0), nil
 	}
@@ -89,7 +93,7 @@ func (m *BMSModelDatasource) SetBMS(ctx context.Context, bms *v1.BMS) (bmsList [
 		x.BMSType.Set(bms.BMSType)
 		x.OS.Set(bms.OS)
 		x.BiosConfiguration.Set(bms.BiosConfiguration)
-		x.Storage.Set(ctx, setStorage(ctx, bms.GetBMSStorage()))
+		x.Storage.Set(ctx, setStorage(ctx, bms.GetStorages()))
 		bmsList = append(bmsList, x)
 	}
 	return bmsList, nil
@@ -105,16 +109,23 @@ func setStorage(ctx context.Context, storages v1.BMSStorage) (storage *bmsModelD
 	return
 }
 
-func setStorageDetail(storage v1.BMSStorageDetail) (storageDetail *bmsModelDatasourceBMSStorageGen) {
-	storageDetail = &bmsModelDatasourceBMSStorageGen{}
-	storageDetail.Size.Set(storage.Size)
-	storageDetail.StorageClass.Set(storage.StorageClass)
+func setStorageDetail(storage []v1.BMSStorageDetail) (storageDetail []*bmsModelDatasourceBMSStorageGen) {
+	if len(storage) == 0 {
+		return
+	}
+	// for each storage detail, set the size and storage class
+	for _, stor := range storage {
+		x := &bmsModelDatasourceBMSStorageGen{}
+		x.Size.Set(stor.GetSize())
+		x.StorageClass.Set(stor.GetStorageClass())
+		storageDetail = append(storageDetail, x)
+	}
 	return
 }
 
 // Copy returns a new bmsModelDatasource.
-func (m *BMSModelDatasource) Copy() any {
-	x := &BMSModelDatasource{}
+func (m *bmsModelDatasource) Copy() any {
+	x := &bmsModelDatasource{}
 	utils.ModelCopy(m, x)
 	return x
 }
@@ -124,35 +135,5 @@ func newBMSModelDatasourceEnv(ctx context.Context) *bmsModelDatasourceEnv {
 	return &bmsModelDatasourceEnv{
 		Network: supertypes.NewSetNestedObjectValueOfNull[bmsModelDatasourceNetwork](ctx),
 		BMS:     supertypes.NewSetNestedObjectValueOfNull[bmsModelDatasourceBMS](ctx),
-	}
-}
-
-// New bmsModelDatasourceNetwork returns a new bmsModelDatasourceNetwork.
-func newBMSModelDatasourceNetwork() *bmsModelDatasourceNetwork {
-	return &bmsModelDatasourceNetwork{
-		VLANID: supertypes.NewStringNull(),
-		Subnet: supertypes.NewStringNull(),
-		Prefix: supertypes.NewStringNull(),
-	}
-}
-
-// New bmsModelDatasourceBMS returns a new bmsModelDatasourceBMS.
-func newBMSModelDatasourceBMS(ctx context.Context) *bmsModelDatasourceBMS {
-	return &bmsModelDatasourceBMS{
-		Hostname:          supertypes.NewStringNull(),
-		BMSType:           supertypes.NewStringNull(),
-		OS:                supertypes.NewStringNull(),
-		BiosConfiguration: supertypes.NewStringNull(),
-		Storage:           supertypes.NewSingleNestedObjectValueOfNull[bmsModelDatasourceBMSStorage](ctx),
-	}
-}
-
-// New bmsModelDatasourceBMSStorage returns a new bmsModelDatasourceBMSStorage.
-func newBMSModelDatasourceBMSStorage(ctx context.Context) *bmsModelDatasourceBMSStorage {
-	return &bmsModelDatasourceBMSStorage{
-		Local:  supertypes.NewSingleNestedObjectValueOfNull[bmsModelDatasourceBMSStorageGen](ctx),
-		System: supertypes.NewSingleNestedObjectValueOfNull[bmsModelDatasourceBMSStorageGen](ctx),
-		Data:   supertypes.NewSingleNestedObjectValueOfNull[bmsModelDatasourceBMSStorageGen](ctx),
-		Shared: supertypes.NewSingleNestedObjectValueOfNull[bmsModelDatasourceBMSStorageGen](ctx),
 	}
 }
