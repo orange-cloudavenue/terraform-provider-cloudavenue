@@ -31,20 +31,20 @@ type (
 
 	bmsModelDatasourceBMS struct {
 		Hostname          supertypes.StringValue                                             `tfsdk:"hostname"`
-		BMSType           supertypes.StringValue                                             `tfsdk:"bms_type"`
+		BMSType           supertypes.StringValue                                             `tfsdk:"type"`
 		OS                supertypes.StringValue                                             `tfsdk:"os"`
 		BiosConfiguration supertypes.StringValue                                             `tfsdk:"bios_configuration"`
 		Storage           supertypes.SingleNestedObjectValueOf[bmsModelDatasourceBMSStorage] `tfsdk:"storage"`
 	}
 
 	bmsModelDatasourceBMSStorage struct {
-		Local  supertypes.ListNestedObjectValueOf[bmsModelDatasourceBMSStorageGen] `tfsdk:"local"`
-		System supertypes.ListNestedObjectValueOf[bmsModelDatasourceBMSStorageGen] `tfsdk:"system"`
-		Data   supertypes.ListNestedObjectValueOf[bmsModelDatasourceBMSStorageGen] `tfsdk:"data"`
-		Shared supertypes.ListNestedObjectValueOf[bmsModelDatasourceBMSStorageGen] `tfsdk:"shared"`
+		Local  supertypes.SetNestedObjectValueOf[bmsModelDatasourceBMSStorageDetail] `tfsdk:"local"`
+		System supertypes.SetNestedObjectValueOf[bmsModelDatasourceBMSStorageDetail] `tfsdk:"system"`
+		Data   supertypes.SetNestedObjectValueOf[bmsModelDatasourceBMSStorageDetail] `tfsdk:"data"`
+		Shared supertypes.SetNestedObjectValueOf[bmsModelDatasourceBMSStorageDetail] `tfsdk:"shared"`
 	}
 
-	bmsModelDatasourceBMSStorageGen struct {
+	bmsModelDatasourceBMSStorageDetail struct {
 		Size         supertypes.StringValue `tfsdk:"size"`
 		StorageClass supertypes.StringValue `tfsdk:"storage_class"`
 	}
@@ -59,18 +59,9 @@ func NewBMSModelDatasource(ctx context.Context) *bmsModelDatasource {
 	}
 }
 
-// SetID sets the ID.
-func (m *bmsModelDatasource) SetID(id *string) {
-	m.ID.Set(*id)
-}
-
-// SetNetwork sets the Network of BMS listed.
-func (m *bmsModelDatasource) SetNetwork(ctx context.Context, bms *v1.BMS) (net []*bmsModelDatasourceNetwork, err error) {
-	networks := bms.GetNetworks()
-	if len(networks) == 0 {
-		return make([]*bmsModelDatasourceNetwork, 0), nil
-	}
-	for _, network := range networks {
+// Put API Network information to Terraform Object.
+func NetworkToTerraform(bms *v1.BMS) (net []*bmsModelDatasourceNetwork) {
+	for _, network := range bms.GetNetworks() {
 		var x bmsModelDatasourceNetwork
 		x.VLANID.Set(network.VLANID)
 		x.Subnet.Set(network.Subnet)
@@ -78,16 +69,12 @@ func (m *bmsModelDatasource) SetNetwork(ctx context.Context, bms *v1.BMS) (net [
 		net = append(net, &x)
 	}
 
-	return net, nil
+	return
 }
 
-// SetBMS sets the BMS information.
-func (m *bmsModelDatasource) SetBMS(ctx context.Context, bms *v1.BMS) (bmsList []*bmsModelDatasourceBMS, err error) {
-	bmsDetails := bms.GetBMS()
-	if len(bmsDetails) == 0 {
-		return make([]*bmsModelDatasourceBMS, 0), nil
-	}
-	for _, bms := range bmsDetails {
+// Put API BMS information to Terraform Object.
+func BMSToTerraform(ctx context.Context, bms *v1.BMS) (bmsList []*bmsModelDatasourceBMS) { //nolint: revive
+	for _, bms := range bms.GetBMS() {
 		x := &bmsModelDatasourceBMS{}
 		x.Hostname.Set(bms.Hostname)
 		x.BMSType.Set(bms.BMSType)
@@ -96,7 +83,7 @@ func (m *bmsModelDatasource) SetBMS(ctx context.Context, bms *v1.BMS) (bmsList [
 		x.Storage.Set(ctx, setStorage(ctx, bms.GetStorages()))
 		bmsList = append(bmsList, x)
 	}
-	return bmsList, nil
+	return bmsList
 }
 
 // SetStorage sets the Storage of BMS.
@@ -109,13 +96,13 @@ func setStorage(ctx context.Context, storages v1.BMSStorage) (storage *bmsModelD
 	return
 }
 
-func setStorageDetail(storage []v1.BMSStorageDetail) (storageDetail []*bmsModelDatasourceBMSStorageGen) {
+func setStorageDetail(storage []v1.BMSStorageDetail) (storageDetail []*bmsModelDatasourceBMSStorageDetail) {
 	if len(storage) == 0 {
 		return
 	}
 	// for each storage detail, set the size and storage class
 	for _, stor := range storage {
-		x := &bmsModelDatasourceBMSStorageGen{}
+		x := &bmsModelDatasourceBMSStorageDetail{}
 		x.Size.Set(stor.GetSize())
 		x.StorageClass.Set(stor.GetStorageClass())
 		storageDetail = append(storageDetail, x)

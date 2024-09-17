@@ -53,20 +53,20 @@ Read-Only:
 Read-Only:
 
 - `bios_configuration` (String) The BIOS configuration of the BMS.
-- `bms_type` (String) The type of the BMS.
 - `hostname` (String) The hostname of the BMS.
 - `os` (String) The OS of the BMS.
 - `storage` (Attributes) The storage of the BMS. (see [below for nested schema](#nestedatt--env--bms--storage))
+- `type` (String) The type of the BMS.
 
 <a id="nestedatt--env--bms--storage"></a>
 ### Nested Schema for `env.bms.storage`
 
 Read-Only:
 
-- `data` (Attributes List) The data storage of the BMS. (see [below for nested schema](#nestedatt--env--bms--storage--data))
-- `local` (Attributes List) The local storage of the BMS. (see [below for nested schema](#nestedatt--env--bms--storage--local))
-- `shared` (Attributes List) The shared storage of the BMS. (see [below for nested schema](#nestedatt--env--bms--storage--shared))
-- `system` (Attributes List) The system storage of the BMS. (see [below for nested schema](#nestedatt--env--bms--storage--system))
+- `data` (Attributes Set) The data storage of the BMS. (see [below for nested schema](#nestedatt--env--bms--storage--data))
+- `local` (Attributes Set) The local storage of the BMS. (see [below for nested schema](#nestedatt--env--bms--storage--local))
+- `shared` (Attributes Set) The shared storage of the BMS. (see [below for nested schema](#nestedatt--env--bms--storage--shared))
+- `system` (Attributes Set) The system storage of the BMS. (see [below for nested schema](#nestedatt--env--bms--storage--system))
 
 <a id="nestedatt--env--bms--storage--data"></a>
 ### Nested Schema for `env.bms.storage.data`

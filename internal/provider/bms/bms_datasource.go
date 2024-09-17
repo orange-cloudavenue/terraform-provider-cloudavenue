@@ -92,35 +92,22 @@ func (d *BMSDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 		resp.Diagnostics.AddError("error on list BMS(s)", err.Error())
 		return
 	}
-	if len(*bms) == 0 {
-		config.Env.Set(ctx, []*bmsModelDatasourceEnv{})
-	} else {
-		// for each BMS zone
-		data := []*bmsModelDatasourceEnv{}
-		for _, b := range *bms {
-			// Set Network
-			net, err := config.SetNetwork(ctx, &b)
-			if err != nil {
-				resp.Diagnostics.AddError("error on set network", err.Error())
-				return
-			}
+	data := []*bmsModelDatasourceEnv{}
+	for _, b := range *bms {
+		// Set Network
+		net := NetworkToTerraform(&b)
 
-			// Set BMS
-			bms, err := config.SetBMS(ctx, &b)
-			if err != nil {
-				resp.Diagnostics.AddError("error on set BMS", err.Error())
-				return
-			}
+		// Set BMS
+		bms := BMSToTerraform(ctx, &b)
 
-			// Set data
-			x := newBMSModelDatasourceEnv(ctx)
-			x.Network.Set(ctx, net)
-			x.BMS.Set(ctx, bms)
-			data = append(data, x)
-		}
-		// Set List
-		config.Env.Set(ctx, data)
+		// Set data
+		x := newBMSModelDatasourceEnv(ctx)
+		x.Network.Set(ctx, net)
+		x.BMS.Set(ctx, bms)
+		data = append(data, x)
 	}
+	// Set List
+	config.Env.Set(ctx, data)
 
 	// Set ID
 	config.ID.Set(d.client.GetOrgName())

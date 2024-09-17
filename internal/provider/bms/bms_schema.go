@@ -70,7 +70,7 @@ func bmsSchema(_ context.Context) superschema.Schema {
 									MarkdownDescription: "The hostname of the BMS.",
 								},
 							},
-							"bms_type": superschema.SuperStringAttribute{
+							"type": superschema.SuperStringAttribute{
 								DataSource: &schemaD.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "The type of the BMS.",
@@ -94,8 +94,8 @@ func bmsSchema(_ context.Context) superschema.Schema {
 									MarkdownDescription: "The storage of the BMS.",
 								},
 								Attributes: superschema.Attributes{
-									"local": superschema.SuperListNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
-										DataSource: &schemaD.ListNestedAttribute{
+									"local": superschema.SuperSetNestedAttributeOf[bmsModelDatasourceBMSStorageDetail]{
+										DataSource: &schemaD.SetNestedAttribute{
 											Computed:            true,
 											MarkdownDescription: "The local storage of the BMS.",
 										},
@@ -114,8 +114,8 @@ func bmsSchema(_ context.Context) superschema.Schema {
 											},
 										},
 									},
-									"system": superschema.SuperListNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
-										DataSource: &schemaD.ListNestedAttribute{
+									"system": superschema.SuperSetNestedAttributeOf[bmsModelDatasourceBMSStorageDetail]{
+										DataSource: &schemaD.SetNestedAttribute{
 											Computed:            true,
 											MarkdownDescription: "The system storage of the BMS.",
 										},
@@ -134,8 +134,8 @@ func bmsSchema(_ context.Context) superschema.Schema {
 											},
 										},
 									},
-									"data": superschema.SuperListNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
-										DataSource: &schemaD.ListNestedAttribute{
+									"data": superschema.SuperSetNestedAttributeOf[bmsModelDatasourceBMSStorageDetail]{
+										DataSource: &schemaD.SetNestedAttribute{
 											Computed:            true,
 											MarkdownDescription: "The data storage of the BMS.",
 										},
@@ -154,8 +154,8 @@ func bmsSchema(_ context.Context) superschema.Schema {
 											},
 										},
 									},
-									"shared": superschema.SuperListNestedAttributeOf[bmsModelDatasourceBMSStorageGen]{
-										DataSource: &schemaD.ListNestedAttribute{
+									"shared": superschema.SuperSetNestedAttributeOf[bmsModelDatasourceBMSStorageDetail]{
+										DataSource: &schemaD.SetNestedAttribute{
 											Computed:            true,
 											MarkdownDescription: "The shared storage of the BMS.",
 										},
