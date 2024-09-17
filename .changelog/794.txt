@@ -1,0 +1,6 @@
+```release-note:feature
+`datasource/cloudavenue_bms` -  Add new feature `bms` in order to list your bare metal server configuration.
+```
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.11.1 to 0.12.0
+```

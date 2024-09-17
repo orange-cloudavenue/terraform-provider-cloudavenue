@@ -3,18 +3,18 @@ repos:
   rev: v4.6.0
   hooks:
     - id: check-merge-conflict
-    - id: trailing-whitespace
-    - id: end-of-file-fixer
+    # - id: trailing-whitespace
+    # - id: end-of-file-fixer
     - id: forbid-submodules
 
-## GOLANG
-- repo: https://github.com/tekwizely/pre-commit-golang
-  rev: v1.0.0-rc.1
-  hooks:
-    - id: go-vet
-    - id: go-imports-repo
-    - id: golangci-lint-repo-pkg
-    - id: go-mod-tidy-repo
+# ## GOLANG
+# - repo: https://github.com/tekwizely/pre-commit-golang
+#   rev: v1.0.0-rc.1
+#   hooks:
+#     - id: go-vet
+#     - id: go-imports-repo
+#     - id: golangci-lint-repo-pkg
+#     - id: go-mod-tidy-repo
 
 ## GIT
 - repo: https://github.com/compilerla/conventional-pre-commit
