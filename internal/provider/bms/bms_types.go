@@ -97,9 +97,6 @@ func setStorage(ctx context.Context, storages v1.BMSStorage) (storage *bmsModelD
 }
 
 func setStorageDetail(storage []v1.BMSStorageDetail) (storageDetail []*bmsModelDatasourceBMSStorageDetail) {
-	if len(storage) == 0 {
-		return
-	}
 	// for each storage detail, set the size and storage class
 	for _, stor := range storage {
 		x := &bmsModelDatasourceBMSStorageDetail{}

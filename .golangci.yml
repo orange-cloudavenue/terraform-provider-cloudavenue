@@ -183,4 +183,5 @@ linters-settings:
               "VCDA",
               "NAT",
               "VPN",
+              "BMS",
             ] 
