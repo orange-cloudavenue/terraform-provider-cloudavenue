@@ -15,12 +15,6 @@ func bmsSchema(_ context.Context) superschema.Schema {
 		},
 		Attributes: map[string]superschema.Attribute{
 			"timeouts": superschema.TimeoutAttribute{
-				// Resource: &superschema.ResourceTimeoutAttribute{
-				// 	Create: true,
-				// 	Update: true,
-				// 	Delete: true,
-				// 	Read:   true,
-				// },
 				DataSource: &superschema.DatasourceTimeoutAttribute{
 					Read: true,
 				},
