@@ -6,8 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kr/pretty"
-
 	clientca "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 	clientcloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/clients/cloudavenue"
 	caverror "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/errors"
@@ -106,7 +104,6 @@ func TestCloudAvenueClient(t *testing.T) {
 				_, err := c.New()
 				if tt.wantErr {
 					if err == nil {
-						t.Log(pretty.Sprint(err))
 						t.Errorf("expected error: %v", tt.expectedErr)
 						return
 					}
