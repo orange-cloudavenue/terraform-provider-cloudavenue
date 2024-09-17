@@ -23,13 +23,10 @@ lintWithFix:
 	golangci-lint run --fix
 
 build: lint
-	install 
+	install
 
 install:
 	go install .
 
-submodules:
-	@git submodule sync
-	@git submodule update --init --recursive
-	@git config core.hooksPath githooks
-	@git config submodule.recurse true
+pre-commit:
+	@pre-commit install
