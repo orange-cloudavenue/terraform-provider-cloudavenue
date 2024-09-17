@@ -28,9 +28,8 @@ output "example" {
 
 ### Read-Only
 
-- `bms` (Attributes Set) The BMS list. (see [below for nested schema](#nestedatt--bms))
+- `env` (Attributes Set) Return the list of BMS environement. (see [below for nested schema](#nestedatt--env))
 - `id` (String) The ID of the datasource.
-- `network` (Attributes Set) The network array for all BMS listed. (see [below for nested schema](#nestedatt--network))
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
@@ -40,8 +39,16 @@ Optional:
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 
 
-<a id="nestedatt--bms"></a>
-### Nested Schema for `bms`
+<a id="nestedatt--env"></a>
+### Nested Schema for `env`
+
+Read-Only:
+
+- `bms` (Attributes Set) The BMS list. (see [below for nested schema](#nestedatt--env--bms))
+- `network` (Attributes Set) The network array for all BMS listed. (see [below for nested schema](#nestedatt--env--network))
+
+<a id="nestedatt--env--bms"></a>
+### Nested Schema for `env.bms`
 
 Read-Only:
 
@@ -49,20 +56,20 @@ Read-Only:
 - `bms_type` (String) The type of the BMS.
 - `hostname` (String) The hostname of the BMS.
 - `os` (String) The OS of the BMS.
-- `storage` (Attributes) The storage of the BMS. (see [below for nested schema](#nestedatt--bms--storage))
+- `storage` (Attributes) The storage of the BMS. (see [below for nested schema](#nestedatt--env--bms--storage))
 
-<a id="nestedatt--bms--storage"></a>
-### Nested Schema for `bms.storage`
+<a id="nestedatt--env--bms--storage"></a>
+### Nested Schema for `env.bms.storage`
 
 Read-Only:
 
-- `data` (Attributes) The data storage of the BMS. (see [below for nested schema](#nestedatt--bms--storage--data))
-- `local` (Attributes) The local storage of the BMS. (see [below for nested schema](#nestedatt--bms--storage--local))
-- `shared` (Attributes) The shared storage of the BMS. (see [below for nested schema](#nestedatt--bms--storage--shared))
-- `system` (Attributes) The system storage of the BMS. (see [below for nested schema](#nestedatt--bms--storage--system))
+- `data` (Attributes List) The data storage of the BMS. (see [below for nested schema](#nestedatt--env--bms--storage--data))
+- `local` (Attributes List) The local storage of the BMS. (see [below for nested schema](#nestedatt--env--bms--storage--local))
+- `shared` (Attributes List) The shared storage of the BMS. (see [below for nested schema](#nestedatt--env--bms--storage--shared))
+- `system` (Attributes List) The system storage of the BMS. (see [below for nested schema](#nestedatt--env--bms--storage--system))
 
-<a id="nestedatt--bms--storage--data"></a>
-### Nested Schema for `bms.storage.data`
+<a id="nestedatt--env--bms--storage--data"></a>
+### Nested Schema for `env.bms.storage.data`
 
 Read-Only:
 
@@ -70,8 +77,8 @@ Read-Only:
 - `storage_class` (String) The storage class of the data storage.
 
 
-<a id="nestedatt--bms--storage--local"></a>
-### Nested Schema for `bms.storage.local`
+<a id="nestedatt--env--bms--storage--local"></a>
+### Nested Schema for `env.bms.storage.local`
 
 Read-Only:
 
@@ -79,8 +86,8 @@ Read-Only:
 - `storage_class` (String) The storage class of the local storage.
 
 
-<a id="nestedatt--bms--storage--shared"></a>
-### Nested Schema for `bms.storage.shared`
+<a id="nestedatt--env--bms--storage--shared"></a>
+### Nested Schema for `env.bms.storage.shared`
 
 Read-Only:
 
@@ -88,8 +95,8 @@ Read-Only:
 - `storage_class` (String) The storage class of the shared storage.
 
 
-<a id="nestedatt--bms--storage--system"></a>
-### Nested Schema for `bms.storage.system`
+<a id="nestedatt--env--bms--storage--system"></a>
+### Nested Schema for `env.bms.storage.system`
 
 Read-Only:
 
@@ -99,12 +106,11 @@ Read-Only:
 
 
 
-<a id="nestedatt--network"></a>
-### Nested Schema for `network`
+<a id="nestedatt--env--network"></a>
+### Nested Schema for `env.network`
 
 Read-Only:
 
 - `prefix` (String) The prefix of the network.
 - `subnet` (String) The subnet of the network.
 - `vlan_id` (String) The VLAN ID of the network.
-
