@@ -6,7 +6,13 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps github.com/hashicorp/terraform-plugin-framework-validators from 0.13.0 to 0.15.0 (GH-806)
+* deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.34.0 to 2.35.0 (GH-805)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.11.1 to 0.12.0 (GH-794)
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.12.0 to 0.12.1 (GH-800)
+* deps: bumps github.com/vmware/go-vcloud-director/v2 from 2.25.0 to 2.26.0 (GH-797)
+* deps: bumps golang.org/x/net from 0.28.0 to 0.29.0 (GH-793)
+* deps: bumps golang.org/x/net from 0.29.0 to 0.30.0 (GH-803)
 
 ## 0.19.1 (August 29, 2024)
 
