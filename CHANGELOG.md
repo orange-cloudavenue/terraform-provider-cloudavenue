@@ -1,5 +1,9 @@
 ## 0.21.0 (Unreleased)
 
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vm` - Fixed an issue where the `cloudavenue_vm` resource return a `nil` value for the settings/customization fields. (GH-808)
+
 ## 0.20.0 (November  3, 2024)
 
 ### :rocket: **New Features**
