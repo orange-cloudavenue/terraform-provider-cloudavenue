@@ -63,12 +63,36 @@ func TakePointer[T any](value T) *T {
 	return &value
 }
 
+// BoolValueOrNull return a null BoolValue if value is false or return BoolValue(value) if not.
+func BoolValueOrNull(value bool) basetypes.BoolValue {
+	if !value {
+		return types.BoolNull()
+	}
+	return types.BoolValue(value)
+}
+
+// BoolPtrValueOrNull return a null BoolValue if value is nil or return BoolValue(*value) if not.
+func BoolPtrValueOrNull(value *bool) basetypes.BoolValue {
+	if value == nil {
+		return types.BoolNull()
+	}
+	return types.BoolValue(*value)
+}
+
 // StringValueOrNull return a null StringValue if value is "" or return StringValue(value) if not.
 func StringValueOrNull(value string) basetypes.StringValue {
 	if value == "" {
 		return types.StringNull()
 	}
 	return types.StringValue(value)
+}
+
+// StringPtrValueOrNull return a null StringValue if value is nil or return StringValue(*value) if not.
+func StringPtrValueOrNull(value *string) basetypes.StringValue {
+	if value == nil {
+		return types.StringNull()
+	}
+	return types.StringValue(*value)
 }
 
 // SuperStringValueOrNull return a null SuperStringValue if value is "" or return SuperStringValue(value) if not.
