@@ -41,7 +41,7 @@ resource "cloudavenue_vm" "example" {
 	}
 	resource = {
 	}
-  
+
 	state = {
 	}
 }
@@ -98,7 +98,7 @@ func (r *VMResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx c
 						}
 						resource = {
 						}
-					  
+
 						state = {
 						}
 					}`),
@@ -191,7 +191,7 @@ func (r *VMResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx c
 								  },
 								]
 							  }
-						  
+
 							state = {
 							}
 						}`),
@@ -267,6 +267,80 @@ func (r *VMResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx c
 						ImportStateIDBuilder: []string{"vdc", "vapp_name", "id"},
 						ImportState:          true,
 						ImportStateVerify:    false,
+					},
+				},
+			}
+		},
+		"example_with_password": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VM)),
+					resource.TestCheckResourceAttrSet(resourceName, "vdc"),
+					resource.TestCheckResourceAttrSet(resourceName, "vapp_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "vapp_id"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_vm" "example_with_password" {
+						name      = {{ generate . "name" }}
+						vdc 	  = cloudavenue_vdc.example.name
+						vapp_name = cloudavenue_vapp.example.name
+						deploy_os = {
+						  vapp_template_id = data.cloudavenue_catalog_vapp_template.example.id
+						}
+						settings = {
+						  customization = {
+						  	enabled = true
+							allow_local_admin_password = true
+							admin_password = "password"
+						  }
+						}
+						resource = {
+						}
+
+						state = {
+						}
+					}`),
+					Checks: []resource.TestCheckFunc{
+						// ! base
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckNoResourceAttr(resourceName, "description"),
+
+						resource.TestCheckNoResourceAttr(resourceName, "deploy_os.accept_all_eulas"),
+						resource.TestCheckNoResourceAttr(resourceName, "deploy_os.boot_image_id"),
+						// ? vapp_template_id (No check value becaus it's provided by the catalog)
+						resource.TestCheckResourceAttrSet(resourceName, "deploy_os.vapp_template_id"),
+						resource.TestCheckNoResourceAttr(resourceName, "deploy_os.vm_name_in_template"),
+
+						resource.TestCheckResourceAttr(resourceName, "settings.expose_hardware_virtualization", "false"),
+						resource.TestCheckResourceAttr(resourceName, "settings.storage_profile", "gold"),
+						resource.TestCheckResourceAttrSet(resourceName, "settings.affinity_rule_id"),
+						resource.TestCheckResourceAttrSet(resourceName, "settings.os_type"),
+
+						resource.TestCheckResourceAttr(resourceName, "settings.customization.enabled", "true"),
+						resource.TestCheckResourceAttr(resourceName, "settings.customization.allow_local_admin_password", "true"),
+						resource.TestCheckResourceAttrSet(resourceName, "settings.customization.admin_password"),
+						resource.TestCheckResourceAttr(resourceName, "settings.customization.change_sid", "false"),
+						resource.TestCheckResourceAttr(resourceName, "settings.customization.force", "false"),
+						resource.TestCheckResourceAttr(resourceName, "settings.customization.hostname", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "settings.customization.join_domain", "false"),
+						resource.TestCheckResourceAttr(resourceName, "settings.customization.join_org_domain", "false"),
+						resource.TestCheckResourceAttr(resourceName, "settings.customization.must_change_password_on_first_login", "false"),
+						resource.TestCheckResourceAttr(resourceName, "settings.customization.number_of_auto_logons", "0"),
+						resource.TestCheckNoResourceAttr(resourceName, "settings.customization.init_script"),
+						resource.TestCheckNoResourceAttr(resourceName, "settings.customization.join_domain_account_ou"),
+						resource.TestCheckNoResourceAttr(resourceName, "settings.customization.join_domain_name"),
+						resource.TestCheckNoResourceAttr(resourceName, "settings.customization.join_domain_password"),
+						resource.TestCheckNoResourceAttr(resourceName, "settings.customization.join_domain_user"),
+
+						resource.TestCheckResourceAttr(resourceName, "state.power_on", "true"),
+
+						resource.TestCheckResourceAttr(resourceName, "resource.cpus", "1"),
+						resource.TestCheckResourceAttr(resourceName, "resource.cpu_hot_add_enabled", "true"),
+						resource.TestCheckResourceAttr(resourceName, "resource.cpus_cores", "1"),
+						resource.TestCheckResourceAttr(resourceName, "resource.memory", "1024"),
+						resource.TestCheckResourceAttr(resourceName, "resource.memory_hot_add_enabled", "true"),
 					},
 				},
 			}
