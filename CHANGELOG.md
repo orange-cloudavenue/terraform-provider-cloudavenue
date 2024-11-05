@@ -1,5 +1,9 @@
 ## 0.21.0 (Unreleased)
 
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vapp_org_network` - Fix issue where only one org network was being added to the vApp. (GH-810)
+
 ## 0.20.1 (November  4, 2024)
 
 ### :bug: **Bug Fixes**
