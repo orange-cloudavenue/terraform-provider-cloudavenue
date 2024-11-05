@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_vapp_org_network` - Fix issue where only one org network was being added to the vApp.
+```
