@@ -30,7 +30,7 @@ func (s *orgNetworkModel) findOrgNetwork(vAppNetworkConfig *govcdtypes.NetworkCo
 			}
 			networkConfig.ID = id
 		} else if networkConfig.ID == "" && networkConfig.Link == nil {
-			break
+			continue
 		}
 
 		if (networkConfig.ID == s.ID.ValueString() && !s.ID.IsNull()) || (networkConfig.NetworkName == s.NetworkName.ValueString() && !s.NetworkName.IsNull()) {
@@ -38,6 +38,6 @@ func (s *orgNetworkModel) findOrgNetwork(vAppNetworkConfig *govcdtypes.NetworkCo
 		}
 	}
 
-	diags.AddError("Unable to find network ID or Name", "networkConfig.NetworkName or networkConfig.NetworkID is unknow")
+	diags.AddError("Unable to find network in the VApp", "The network was not found in the VApp")
 	return nil, nil, diags
 }
