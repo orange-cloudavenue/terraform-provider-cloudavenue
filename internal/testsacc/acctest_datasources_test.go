@@ -44,5 +44,9 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceCo
 		// * IAM
 		IAMRolesDataSourceName: testsacc.NewResourceConfig(NewIAMRolesDataSourceTest()),
 		IAMUserDataSourceName:  testsacc.NewResourceConfig(NewIAMUserDataSourceTest()),
+
+		// * VApp
+		VAppDatasourceName:                testsacc.NewResourceConfig(NewVAppDatasourceTest()),
+		VAppIsolatedNetworkDataSourceName: testsacc.NewResourceConfig(NewVAppIsolatedNetworkDataSourceTest()),
 	}
 }
