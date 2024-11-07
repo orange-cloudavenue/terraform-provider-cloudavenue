@@ -1,5 +1,14 @@
 ## 0.21.0 (Unreleased)
 
+### :tada: **Improvements**
+
+* `datasource/cloudavenue_vapp_org_network` - Minor improvements in documentation. (GH-812)
+* `resource/cloudavenue_vapp_org_network` - Minor improvements in documentation. (GH-812)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vapp_org_network` - Fixed issue if `vapp_id` is provided the API return not found error. (GH-812)
+
 ## 0.20.2 (November  5, 2024)
 
 ### :bug: **Bug Fixes**
