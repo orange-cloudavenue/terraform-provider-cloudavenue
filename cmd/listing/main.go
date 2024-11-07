@@ -87,7 +87,7 @@ var (
 		"vcd_nsxt_edgegateway_bgp_ip_prefix_list",
 		"vcd_nsxt_edgegateway_bgp_neighbor",
 		"vcd_nsxt_edgegateway_qos_profile",   // Edgegateway QoS Profile require NSX-T Manager
-		"vcd_nsxt_edgegateway_rate_limiting", // Edgegateway Rate Limiting require Edgegateway QoS Profile to be usefull
+		"vcd_nsxt_edgegateway_rate_limiting", // Edgegateway Rate Limiting require Edgegateway QoS Profile to be useful
 		"vcd_nsxt_network_imported",
 		"vcd_nsxt_route_advertisement",
 		"vcd_nsxt_tier0_router",         // Tier0 router require NSX-T Manager
@@ -145,7 +145,7 @@ func main() {
 	defer file.Close()
 
 	// Init provider Cloud Avenue
-	ppCA := caProvider.New(caProvider.VCDVersion)
+	ppCA := caProvider.New("test")
 	// Init provider VMware Cloud Director
 	ppVCD := vcdProvider.Provider()
 	ppVCDVersion := vcdProvider.BuildVersion
