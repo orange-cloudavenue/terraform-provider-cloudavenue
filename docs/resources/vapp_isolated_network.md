@@ -28,14 +28,16 @@ resource "cloudavenue_vapp_isolated_network" "example" {
   guest_vlan_allowed    = true
   retain_ip_mac_enabled = true
 
-  static_ip_pool = [{
-    start_address = "192.168.10.51"
-    end_address   = "192.168.10.101"
+  static_ip_pool = [
+    {
+      start_address = "192.168.10.51"
+      end_address   = "192.168.10.101"
     },
     {
       start_address = "192.168.10.10"
       end_address   = "192.168.10.30"
-  }]
+    }
+  ]
 }
 ```
 
@@ -53,9 +55,9 @@ resource "cloudavenue_vapp_isolated_network" "example" {
 - `dns1` (String) The primary DNS server IP address for the network. Must be a valid IP with net.ParseIP.
 - `dns2` (String) The secondary DNS server IP address for the network. Must be a valid IP with net.ParseIP.
 - `dns_suffix` (String) The DNS suffix for the network.
-- `guest_vlan_allowed` (Boolean) True if Network allows guest VLAN. Default to `false`.
+- `guest_vlan_allowed` (Boolean) True if Network allows guest VLAN. Value defaults to `false`.
 - `netmask` (String) (ForceNew) The netmask of the network. Must be a valid netmask. Value defaults to `255.255.255.0`.
-- `retain_ip_mac_enabled` (Boolean) Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Default to `false`.
+- `retain_ip_mac_enabled` (Boolean) Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Value defaults to `false`.
 - `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. Set must contain at least 1 elements. (see [below for nested schema](#nestedatt--static_ip_pool))
 - `vapp_id` (String) (ForceNew) ID of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
 - `vapp_name` (String) (ForceNew) Name of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_id`, `vapp_name`.
@@ -63,7 +65,7 @@ resource "cloudavenue_vapp_isolated_network" "example" {
 
 ### Read-Only
 
-- `id` (String) The ID of the network.
+- `id` (String) The ID of the isolated network.
 
 <a id="nestedatt--static_ip_pool"></a>
 ### Nested Schema for `static_ip_pool`

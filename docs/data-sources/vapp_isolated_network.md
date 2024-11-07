@@ -67,10 +67,10 @@ output "dns" {
 - `dns2` (String) The secondary DNS server IP address for the network.
 - `dns_suffix` (String) The DNS suffix for the network.
 - `gateway` (String) The gateway IP address for the network. This value define also the network IP range with the prefix length.
-- `guest_vlan_allowed` (Boolean) Return True if Network allows guest VLAN.
-- `id` (String) The ID of the network.
+- `guest_vlan_allowed` (Boolean) True if Network allows guest VLAN.
+- `id` (String) The ID of the isolated network.
 - `netmask` (String) The netmask of the network.
-- `retain_ip_mac_enabled` (Boolean) Return network resources such as IP/MAC of router will be retained across deployments.
+- `retain_ip_mac_enabled` (Boolean) Specifies whether the network resources such as IP/MAC of router will be retained across deployments.
 - `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. (see [below for nested schema](#nestedatt--static_ip_pool))
 
 <a id="nestedatt--static_ip_pool"></a>

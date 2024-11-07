@@ -3,13 +3,6 @@ repos:
   rev: v4.6.0
   hooks:
     - id: check-merge-conflict
-    - id: trailing-whitespace
-      exclude: >
-        (?x)^(
-        docs/|
-        templates/|
-        )$
-    - id: end-of-file-fixer
     - id: forbid-submodules
 
 ## GOLANG

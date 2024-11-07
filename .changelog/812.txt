@@ -1,0 +1,11 @@
+```release-note:bug
+`resource/cloudavenue_vapp_org_network` - Fixed issue if `vapp_id` is provided the API return not found error.
+```
+
+```release-note:enhancement
+`resource/cloudavenue_vapp_org_network` - Minor improvements in documentation.
+```
+
+```release-note:enhancement
+`datasource/cloudavenue_vapp_org_network` - Minor improvements in documentation.
+```

@@ -12,7 +12,7 @@ import (
 var _ testsacc.TestACC = &VAppDatasource{}
 
 const (
-	VAppDatasourceName = testsacc.ResourceName("data.cloudavenue_s3_bucket")
+	VAppDatasourceName = testsacc.ResourceName("data.cloudavenue_vapp")
 )
 
 type VAppDatasource struct{}

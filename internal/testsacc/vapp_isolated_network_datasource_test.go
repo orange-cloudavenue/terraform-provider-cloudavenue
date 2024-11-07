@@ -1,73 +1,74 @@
 package testsacc
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
-const testAccIsolatedNetworkDataSourceConfig = `
-resource "cloudavenue_vapp" "example" {
-	name        = "MyVapp"
-	description = "This is an example vApp"
-  }
-  
-  resource "cloudavenue_vapp_isolated_network" "example" {
-	name                  = "MyVappNet"
-	vapp_name             = cloudavenue_vapp.example.name
-	gateway               = "192.168.10.1"
-	netmask               = "255.255.255.0"
-	dns1                  = "192.168.10.1"
-	dns2                  = "192.168.10.3"
-	dns_suffix            = "myvapp.biz"
-	guest_vlan_allowed    = true
-	retain_ip_mac_enabled = true
-  
-	static_ip_pool = [{
-	  start_address = "192.168.10.51"
-	  end_address   = "192.168.10.101"
-	  },
-	  {
-		start_address = "192.168.10.10"
-		end_address   = "192.168.10.30"
-	}]
-  }
-  
-  data "cloudavenue_vapp_isolated_network" "example" {
-	  vapp_name = cloudavenue_vapp.example.name
-	  name      = cloudavenue_vapp_isolated_network.example.name
-  }
-`
+var _ testsacc.TestACC = &VAppIsolatedNetworkDataSource{}
 
-func TestAccIsolatedNetworkDataSource(t *testing.T) {
-	dataSourceName := "data.cloudavenue_vapp_isolated_network.example"
-	resourceName := "cloudavenue_vapp_isolated_network.example"
+const (
+	VAppIsolatedNetworkDataSourceName = testsacc.ResourceName("data.cloudavenue_vapp_isolated_network")
+)
 
+type VAppIsolatedNetworkDataSource struct{}
+
+func NewVAppIsolatedNetworkDataSourceTest() testsacc.TestACC {
+	return &VAppIsolatedNetworkDataSource{}
+}
+
+// GetResourceName returns the name of the resource.
+func (r *VAppIsolatedNetworkDataSource) GetResourceName() string {
+	return VAppIsolatedNetworkDataSourceName.String()
+}
+
+func (r *VAppIsolatedNetworkDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	// Add dependencies config to the resource
+	resp.Append(GetResourceConfig()[VAppIsolatedNetworkResourceName]().GetDefaultConfig)
+	return
+}
+
+func (r *VAppIsolatedNetworkDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
+		// * Test One (with vapp_name)
+		"example": func(_ context.Context, _ string) testsacc.Test {
+			return testsacc.Test{
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_vapp_isolated_network" "example" {
+						vdc = cloudavenue_vdc.example.name
+						vapp_name = cloudavenue_vapp.example.name
+						name = cloudavenue_vapp_isolated_network.example.name
+					}`,
+					Checks: GetResourceConfig()[VAppIsolatedNetworkResourceName]().GetDefaultChecks(),
+				},
+			}
+		},
+		// * Test Two (with vapp_id)
+		"example_2": func(_ context.Context, _ string) testsacc.Test {
+			return testsacc.Test{
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_vapp_isolated_network" "example" {
+						vdc = cloudavenue_vdc.example.name
+						vapp_id = cloudavenue_vapp.example.id
+						name = cloudavenue_vapp_isolated_network.example.name
+					}`,
+					Checks: GetResourceConfig()[VAppIsolatedNetworkResourceName]().GetDefaultChecks(),
+				},
+			}
+		},
+	}
+}
+
+func TestAccVAppIsolatedNetworkDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Read testing
-			{
-				// Apply test
-				Config: testAccIsolatedNetworkDataSourceConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
-					resource.TestCheckResourceAttrPair(dataSourceName, "vapp_name", resourceName, "vapp_name"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "guest_vlan_allowed", resourceName, "guest_vlan_allowed"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "retain_ip_mac_enabled", resourceName, "retain_ip_mac_enabled"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "name", resourceName, "name"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "gateway", resourceName, "gateway"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "netmask", resourceName, "netmask"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "dns1", resourceName, "dns1"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "dns2", resourceName, "dns2"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "dns_suffix", resourceName, "dns_suffix"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "static_ip_pool.0.start_address", resourceName, "static_ip_pool.0.start_address"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "static_ip_pool.0.end_address", resourceName, "static_ip_pool.0.end_address"),
-				),
-			},
-		},
+		Steps:                    testsacc.GenerateTests(&VAppIsolatedNetworkDataSource{}),
 	})
 }

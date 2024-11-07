@@ -3,6 +3,7 @@ package vapp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -11,17 +12,15 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
@@ -51,21 +50,16 @@ func (r *isolatedNetworkResource) Metadata(_ context.Context, req resource.Metad
 
 // Schema defines the schema for the resource.
 func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = isolatedNetworkSchema()
-	commonSchema := network.GetSchema(network.SetIsolatedVapp()).GetResource(ctx)
-	// Add common attributes network
-	for k, v := range commonSchema.Attributes {
-		resp.Schema.Attributes[k] = v
-	}
+	resp.Schema = isolatedNetworkSchema().GetResource(ctx)
 }
 
-func (r *isolatedNetworkResource) Init(ctx context.Context, rm *isolatedNetworkResourceModel) (diags diag.Diagnostics) {
-	r.vdc, diags = vdc.Init(r.client, rm.VDC)
+func (r *isolatedNetworkResource) Init(ctx context.Context, rm *isolatedNetworkModel) (diags diag.Diagnostics) {
+	r.vdc, diags = vdc.Init(r.client, rm.VDC.StringValue)
 	if diags.HasError() {
 		return
 	}
 
-	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
+	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID.StringValue, rm.VAppName.StringValue)
 
 	return
 }
@@ -94,12 +88,9 @@ func (r *isolatedNetworkResource) Configure(ctx context.Context, req resource.Co
 func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	defer metrics.New("cloudavenue_vapp_isolated_network", r.client.GetOrgName(), metrics.Create)()
 
-	// Retrieve values from plan
-	var (
-		plan *isolatedNetworkResourceModel
-	)
+	plan := &isolatedNetworkModel{}
 
-	// Read the plan
+	// Retrieve values from plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -118,69 +109,28 @@ func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.Creat
 	}
 	defer r.vapp.UnlockVAPP(ctx)
 
-	// Configure network
-	retainIPMac := plan.RetainIPMacEnabled.ValueBool()
-	guestVLAN := plan.GuestVLANAllowed.ValueBool()
-	vappNetworkName := plan.Name.ValueString()
-
-	var staticIPPools []*staticIPPoolModel
-	resp.Diagnostics.Append(plan.StaticIPPool.ElementsAs(ctx, &staticIPPools, true)...)
-	if resp.Diagnostics.HasError() {
+	vappNetworkSettings, d := r.buildVappNetworkObject(ctx, plan)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
-	}
-
-	staticIPRanges := make([]*govcdtypes.IPRange, 0)
-	for _, staticIPPool := range staticIPPools {
-		staticIPRanges = append(staticIPRanges, &govcdtypes.IPRange{
-			StartAddress: staticIPPool.StartAddress.ValueString(),
-			EndAddress:   staticIPPool.EndAddress.ValueString(),
-		})
-	}
-
-	vappNetworkSettings := &govcd.VappNetworkSettings{
-		Name:               vappNetworkName,
-		Description:        plan.Description.ValueString(),
-		Gateway:            plan.Gateway.ValueString(),
-		NetMask:            plan.Netmask.ValueString(),
-		DNS1:               plan.DNS1.ValueString(),
-		DNS2:               plan.DNS2.ValueString(),
-		DNSSuffix:          plan.DNSSuffix.ValueString(),
-		StaticIPRanges:     staticIPRanges,
-		RetainIpMacEnabled: &retainIPMac,
-		GuestVLANAllowed:   &guestVLAN,
 	}
 
 	// Create network
-	vAppNetworkConfig, err := r.vapp.CreateVappNetwork(vappNetworkSettings, nil)
+	_, err := r.vapp.CreateVappNetwork(vappNetworkSettings, nil)
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating vApp network", err.Error())
+		resp.Diagnostics.AddError("Error creating VApp isolated network", err.Error())
 		return
 	}
 
-	vAppNetwork := govcdtypes.VAppNetworkConfiguration{}
-	for _, networkConfig := range vAppNetworkConfig.NetworkConfig {
-		if networkConfig.NetworkName == vappNetworkName {
-			vAppNetwork = networkConfig
-		}
-	}
-
-	if vAppNetwork == (govcdtypes.VAppNetworkConfiguration{}) {
-		resp.Diagnostics.AddError("didn't find vApp network: %s", vappNetworkName)
+	// Use generic read function to refresh the state
+	stateRefreshed, _, d := r.read(ctx, plan)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
-
-	// Get UUID.
-	networkID, err := govcd.GetUuidFromHref(vAppNetwork.Link.HREF, false)
-	if err != nil {
-		resp.Diagnostics.AddError("Error creating vApp network uuid", err.Error())
-		return
-	}
-
-	plan.ID = utils.StringValueOrNull(uuid.Normalize(uuid.Network, networkID).String())
-	plan.VDC = utils.StringValueOrNull(r.vdc.GetName())
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -190,13 +140,10 @@ func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.Creat
 func (r *isolatedNetworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	defer metrics.New("cloudavenue_vapp_isolated_network", r.client.GetOrgName(), metrics.Read)()
 
-	var (
-		state *isolatedNetworkResourceModel
-		diag  diag.Diagnostics
-	)
+	state := &isolatedNetworkModel{}
 
 	// Get current state
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -207,88 +154,33 @@ func (r *isolatedNetworkResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	vAppNetworkConfig, err := r.vapp.GetNetworkConfig()
-	if err != nil {
-		resp.Diagnostics.AddError("Error getting vApp networks", err.Error())
-		return
-	}
-
-	vAppNetwork := govcdtypes.VAppNetworkConfiguration{}
-	for _, networkConfig := range vAppNetworkConfig.NetworkConfig {
-		if networkConfig.NetworkName == state.Name.ValueString() {
-			vAppNetwork = networkConfig
-		}
-	}
-
-	if vAppNetwork == (govcdtypes.VAppNetworkConfiguration{}) {
+	// Refresh the state
+	stateRefreshed, found, d := r.read(ctx, state)
+	if !found {
 		resp.State.RemoveResource(ctx)
 		return
 	}
-
-	// Get UUID.
-	networkID, err := govcd.GetUuidFromHref(vAppNetwork.Link.HREF, false)
-	if err != nil {
-		resp.Diagnostics.AddError("Error creating vApp network uuid", err.Error())
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
-	}
-
-	plan := &isolatedNetworkResourceModel{
-		ID:                 utils.StringValueOrNull(uuid.Normalize(uuid.Network, networkID).String()),
-		VDC:                utils.StringValueOrNull(r.vdc.GetName()),
-		Name:               utils.StringValueOrNull(vAppNetwork.NetworkName),
-		Description:        utils.StringValueOrNull(vAppNetwork.Description),
-		VAppName:           state.VAppName,
-		Netmask:            types.StringNull(),
-		Gateway:            types.StringNull(),
-		DNS1:               types.StringNull(),
-		DNS2:               types.StringNull(),
-		DNSSuffix:          types.StringNull(),
-		GuestVLANAllowed:   types.BoolValue(*vAppNetwork.Configuration.GuestVlanAllowed),
-		RetainIPMacEnabled: types.BoolValue(*vAppNetwork.Configuration.RetainNetInfoAcrossDeployments),
-	}
-
-	if len(vAppNetwork.Configuration.IPScopes.IPScope) > 0 {
-		plan.Netmask = utils.StringValueOrNull(vAppNetwork.Configuration.IPScopes.IPScope[0].Netmask)
-		plan.Gateway = utils.StringValueOrNull(vAppNetwork.Configuration.IPScopes.IPScope[0].Gateway)
-		plan.DNS1 = utils.StringValueOrNull(vAppNetwork.Configuration.IPScopes.IPScope[0].DNS1)
-		plan.DNS2 = utils.StringValueOrNull(vAppNetwork.Configuration.IPScopes.IPScope[0].DNS2)
-		plan.DNSSuffix = utils.StringValueOrNull(vAppNetwork.Configuration.IPScopes.IPScope[0].DNSSuffix)
-	}
-
-	// Loop on static_ip_pool if it is not nil
-	staticIPRanges := make([]staticIPPoolModel, 0)
-	if vAppNetwork.Configuration.IPScopes.IPScope[0].IPRanges != nil {
-		for _, staticIPRange := range vAppNetwork.Configuration.IPScopes.IPScope[0].IPRanges.IPRange {
-			staticIPRanges = append(staticIPRanges, staticIPPoolModel{
-				StartAddress: utils.StringValueOrNull(staticIPRange.StartAddress),
-				EndAddress:   utils.StringValueOrNull(staticIPRange.EndAddress),
-			})
-		}
-		plan.StaticIPPool, diag = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: staticIPPoolModelAttrTypes}, staticIPRanges)
-
-		resp.Diagnostics.Append(diag...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-	} else {
-		plan.StaticIPPool = types.SetNull(types.ObjectType{AttrTypes: staticIPPoolModelAttrTypes})
 	}
 
 	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *isolatedNetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	defer metrics.New("cloudavenue_vapp_isolated_network", r.client.GetOrgName(), metrics.Update)()
 
-	var plan *isolatedNetworkResourceModel
+	var (
+		plan  = &isolatedNetworkModel{}
+		state = &isolatedNetworkModel{}
+	)
 
-	// Get current state
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	// Get current plan and state
+	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -306,34 +198,10 @@ func (r *isolatedNetworkResource) Update(ctx context.Context, req resource.Updat
 	}
 	defer r.vapp.UnlockVAPP(ctx)
 
-	// Configure network
-	retainIPMac := plan.RetainIPMacEnabled.ValueBool()
-	guestVLAN := plan.GuestVLANAllowed.ValueBool()
-	vappNetworkName := plan.Name.ValueString()
-
-	var staticIPPools []*staticIPPoolModel
-	resp.Diagnostics.Append(plan.StaticIPPool.ElementsAs(ctx, &staticIPPools, true)...)
-
-	staticIPRanges := make([]*govcdtypes.IPRange, 0)
-	for _, staticIPPool := range staticIPPools {
-		staticIPRanges = append(staticIPRanges, &govcdtypes.IPRange{
-			StartAddress: staticIPPool.StartAddress.ValueString(),
-			EndAddress:   staticIPPool.EndAddress.ValueString(),
-		})
-	}
-
-	vappNetworkSettings := &govcd.VappNetworkSettings{
-		ID:                 common.ExtractUUID(plan.ID.ValueString()),
-		Name:               vappNetworkName,
-		Description:        plan.Description.ValueString(),
-		Gateway:            plan.Gateway.ValueString(),
-		NetMask:            plan.Netmask.ValueString(),
-		DNS1:               plan.DNS1.ValueString(),
-		DNS2:               plan.DNS2.ValueString(),
-		DNSSuffix:          plan.DNSSuffix.ValueString(),
-		StaticIPRanges:     staticIPRanges,
-		RetainIpMacEnabled: &retainIPMac,
-		GuestVLANAllowed:   &guestVLAN,
+	vappNetworkSettings, d := r.buildVappNetworkObject(ctx, plan)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
 	}
 
 	// Update network
@@ -343,18 +211,22 @@ func (r *isolatedNetworkResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
+	// Use generic read function to refresh the state
+	stateRefreshed, _, d := r.read(ctx, plan)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
+
+	// Set state to fully populated data
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *isolatedNetworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	defer metrics.New("cloudavenue_vapp_isolated_network", r.client.GetOrgName(), metrics.Delete)()
 
-	var state *isolatedNetworkResourceModel
+	state := &isolatedNetworkModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -403,4 +275,105 @@ func (r *isolatedNetworkResource) ImportState(ctx context.Context, req resource.
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vapp_name"), idParts[1])...)
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[2])...)
 	}
+}
+
+// * CustomFuncs
+
+// read is a generic read function that can be used by the resource Create, Read and Update functions.
+func (r *isolatedNetworkResource) read(ctx context.Context, planOrState *isolatedNetworkModel) (stateRefreshed *isolatedNetworkModel, found bool, diags diag.Diagnostics) {
+	stateRefreshed = planOrState.Copy()
+
+	net, err := r.findNetwork(planOrState.Name.Get())
+	if err != nil {
+		diags.AddError("Error finding network", err.Error())
+		return nil, false, diags
+	}
+
+	// Get UUID.
+	networkID, err := govcd.GetUuidFromHref(net.Link.HREF, false)
+	if err != nil {
+		diags.AddError("Error creating vApp network uuid", err.Error())
+		return
+	}
+
+	planOrState.ID.Set(uuid.Normalize(uuid.Network, networkID).String())
+	planOrState.Name.Set(net.NetworkName)
+	planOrState.VDC.Set(r.vdc.GetName())
+	planOrState.VAppName.Set(r.vapp.GetName())
+	planOrState.VAppID.Set(r.vapp.GetID())
+	planOrState.Description.Set(net.Description)
+	planOrState.GuestVLANAllowed.SetPtr(net.Configuration.GuestVlanAllowed)
+	planOrState.RetainIPMacEnabled.SetPtr(net.Configuration.RetainNetInfoAcrossDeployments)
+
+	if len(net.Configuration.IPScopes.IPScope) > 0 {
+		planOrState.Netmask.Set(net.Configuration.IPScopes.IPScope[0].Netmask)
+		planOrState.Gateway.Set(net.Configuration.IPScopes.IPScope[0].Gateway)
+		planOrState.DNS1.Set(net.Configuration.IPScopes.IPScope[0].DNS1)
+		planOrState.DNS2.Set(net.Configuration.IPScopes.IPScope[0].DNS2)
+		planOrState.DNSSuffix.Set(net.Configuration.IPScopes.IPScope[0].DNSSuffix)
+	}
+
+	if net.Configuration.IPScopes.IPScope[0].IPRanges != nil {
+		ipPool := make([]*isolatedNetworkModelStaticIPPool, 0)
+		for _, ipRange := range net.Configuration.IPScopes.IPScope[0].IPRanges.IPRange {
+			ipPool = append(ipPool, &isolatedNetworkModelStaticIPPool{
+				StartAddress: supertypes.NewStringValue(ipRange.StartAddress),
+				EndAddress:   supertypes.NewStringValue(ipRange.EndAddress),
+			})
+		}
+		diags.Append(planOrState.StaticIPPool.Set(ctx, ipPool)...)
+		if diags.HasError() {
+			return
+		}
+	} else {
+		planOrState.StaticIPPool.SetNull(ctx)
+	}
+
+	return planOrState, true, diags
+}
+
+// find network in network list.
+func (r *isolatedNetworkResource) findNetwork(networkName string) (network *govcdtypes.VAppNetworkConfiguration, err error) {
+	vAppNetworkConfig, err := r.vapp.GetNetworkConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, networkConfig := range vAppNetworkConfig.NetworkConfig {
+		if networkConfig.NetworkName == networkName {
+			return &networkConfig, nil
+		}
+	}
+
+	return nil, errors.New("network not found")
+}
+
+// build vapp isolated network object.
+func (r *isolatedNetworkResource) buildVappNetworkObject(ctx context.Context, plan *isolatedNetworkModel) (vappNetworkSettings *govcd.VappNetworkSettings, diags diag.Diagnostics) {
+	staticIPPools, d := plan.StaticIPPool.Get(ctx)
+	if d.HasError() {
+		diags.Append(d...)
+		return
+	}
+
+	staticIPRanges := make([]*govcdtypes.IPRange, 0)
+	for _, staticIPPool := range staticIPPools {
+		staticIPRanges = append(staticIPRanges, &govcdtypes.IPRange{
+			StartAddress: staticIPPool.StartAddress.Get(),
+			EndAddress:   staticIPPool.EndAddress.Get(),
+		})
+	}
+
+	return &govcd.VappNetworkSettings{
+		Name:               plan.Name.Get(),
+		Description:        plan.Description.Get(),
+		Gateway:            plan.Gateway.Get(),
+		NetMask:            plan.Netmask.Get(),
+		DNS1:               plan.DNS1.Get(),
+		DNS2:               plan.DNS2.Get(),
+		DNSSuffix:          plan.DNSSuffix.Get(),
+		StaticIPRanges:     staticIPRanges,
+		RetainIpMacEnabled: plan.RetainIPMacEnabled.GetPtr(),
+		GuestVLANAllowed:   plan.GuestVLANAllowed.GetPtr(),
+	}, diags
 }
