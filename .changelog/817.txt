@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_vm` - Now the VApp data has refreshed before the creation of the VM.
+```
