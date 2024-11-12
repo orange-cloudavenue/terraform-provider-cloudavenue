@@ -171,6 +171,15 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 
 	defer r.vapp.UnlockVAPP(ctx)
 
+	// * Refresh VApp
+	if err := r.vapp.Refresh(); err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to refresh VApp",
+			fmt.Sprintf("Error: %s", err),
+		)
+		return
+	}
+
 	// * Create VM with Template
 	if !deployOS.VappTemplateID.IsNull() {
 		vmCreated, d = r.createVMWithTemplate(ctx, *plan)
