@@ -149,7 +149,10 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The external address for the NAT Rule. This must be supplied as a single IP or Network CIDR. For a DNAT rule, this is the external facing IP Address for incoming traffic. For an SNAT rule, this is the external facing IP Address for outgoing traffic. These IPs are typically allocated/suballocated IP Addresses on the Edge Gateway. For a REFLEXIVE rule, these are the external facing IPs.",
 				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
+					Optional: true,
+					Validators: []validator.String{
+						fstringvalidator.NullIfAttributeIsOneOf(path.MatchRoot("rule_type"), []attr.Value{types.StringValue("NO_SNAT")}),
+					},
 					// TODO - Validator of IP or IP/CIDR
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -161,7 +164,10 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The internal address for the NAT Rule. This must be supplied as a single IP or Network CIDR. For a DNAT rule, this is the internal IP address for incoming traffic. For an SNAT rule, this is the internal IP Address for outgoing traffic. For a REFLEXIVE rule, these are the internal IPs. These IPs are typically the Private IPs that are allocated to workloads.",
 				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
+					Optional: true,
+					Validators: []validator.String{
+						fstringvalidator.NullIfAttributeIsOneOf(path.MatchRoot("rule_type"), []attr.Value{types.StringValue("NO_DNAT")}),
+					},
 					// TODO - Validator of IP or IP/CIDR
 				},
 				DataSource: &schemaD.StringAttribute{

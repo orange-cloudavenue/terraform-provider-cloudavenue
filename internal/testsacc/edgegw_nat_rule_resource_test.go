@@ -1,308 +1,309 @@
 package testsacc
 
 import (
-	"fmt"
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-const testAccNATRuleResourceConfigSnat = `
-resource "cloudavenue_edgegateway_nat_rule" "example" {
-	edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
-  
-	name        = "example-snat"
-	rule_type   = "SNAT"
-	description = "description SNAT example"
-  
-	# Using primary_ip from edge gateway
-	external_address         = "89.32.25.10"
-	internal_address         = "11.11.11.0/24"
-	snat_destination_address = "8.8.8.8"
-	
-	priority = 10
-}
-`
+var _ testsacc.TestACC = &NATRuleResource{}
 
-const testAccNATRuleResourceConfigDnat = `
-resource "cloudavenue_edgegateway_nat_rule" "example" {
-	edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
-  
-	name        = "example-dnat"
-	rule_type   = "DNAT"
-	description = "description DNAT example"
-  
-	# Using primary_ip from edge gateway
-	external_address         = "89.32.25.10"
-	internal_address         = "11.11.11.4"
-  
-	dnat_external_port = "8080"
-}
-`
+const (
+	EdgeGatewayNATRuleResourceName = testsacc.ResourceName("cloudavenue_edgegateway_nat_rule")
+)
 
-const testAccNATRuleResourceConfigReflexive = `
-resource "cloudavenue_edgegateway_nat_rule" "example" {
-	edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
-  
-	name        = "example-reflexive"
-	rule_type   = "REFLEXIVE"
-	description = "description REFLEXIVE example"
-  
-	# Using primary_ip from edge gateway
-	external_address         = "89.32.25.10"
-	internal_address         = "192.168.0.1"
-}
-`
+type NATRuleResource struct{}
 
-const testAccNATRuleResourceConfigUpdateSnat = `
-resource "cloudavenue_edgegateway_nat_rule" "example" {
-	edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
-  
-	name        = "example-snat"
-	rule_type   = "SNAT"
-	description = "description SNAT example Updated!!"
-  
-	# Using primary_ip from edge gateway
-	external_address         = "89.32.25.10"
-	internal_address         = "11.11.11.0/24"
-	snat_destination_address = "9.9.9.9"
-	
-	priority = 0
-}
-`
-
-const testAccNATRuleResourceConfigUpdateDnat = `
-resource "cloudavenue_edgegateway_nat_rule" "example" {
-	edge_gateway_id = cloudavenue_edgegateway.example_with_vdc.id
-  
-	name        = "example-dnat"
-	rule_type   = "DNAT"
-	description = "description DNAT example Updated!!"
-  
-	# Using primary_ip from edge gateway
-	external_address         = "89.32.25.10"
-	internal_address         = "4.11.11.11"
-
-	priority = 25
-}
-`
-
-const testAccNATRuleResourceConfigDnatWithVDCGroup = `
-resource "cloudavenue_edgegateway_nat_rule" "example" {
-	edge_gateway_id = cloudavenue_edgegateway.example_with_group.id
-  
-	name        = "example-dnat"
-	rule_type   = "DNAT"
-	description = "description DNAT example"
-  
-	# Using primary_ip from edge gateway
-	external_address         = "89.32.25.10"
-	internal_address         = "11.11.11.4"
-
-	dnat_external_port = "8080"
-}
-`
-
-const testAccNATRuleResourceConfigUpdateDnatWithVDCGroup = `
-resource "cloudavenue_edgegateway_nat_rule" "example" {
-	edge_gateway_id = cloudavenue_edgegateway.example_with_group.id
-  
-	name        = "example-dnat"
-	rule_type   = "DNAT"
-	description = "description DNAT example Updated!!"
-  
-	# Using primary_ip from edge gateway
-	external_address         = "89.32.25.10"
-	internal_address         = "4.11.11.11"
-
-	priority = 25
-}
-`
-
-func natRuleSnatTestCheck(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet(resourceName, "id"),
-		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
-		resource.TestCheckResourceAttrSet(resourceName, "external_address"),
-		resource.TestCheckResourceAttr(resourceName, "name", "example-snat"),
-		resource.TestCheckResourceAttr(resourceName, "description", "description SNAT example"),
-		resource.TestCheckResourceAttr(resourceName, "internal_address", "11.11.11.0/24"),
-		resource.TestCheckResourceAttr(resourceName, "rule_type", "SNAT"),
-		resource.TestCheckResourceAttr(resourceName, "snat_destination_address", "8.8.8.8"),
-		resource.TestCheckResourceAttr(resourceName, "priority", "10"),
-		resource.TestCheckNoResourceAttr(resourceName, "dnat_external_port"),
-	)
+func NewEdgeGatewayNATRuleResourceTest() testsacc.TestACC {
+	return &NATRuleResource{}
 }
 
-func natRuleSnatUpdateTestCheck(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet(resourceName, "id"),
-		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
-		resource.TestCheckResourceAttrSet(resourceName, "external_address"),
-		resource.TestCheckResourceAttr(resourceName, "name", "example-snat"),
-		resource.TestCheckResourceAttr(resourceName, "description", "description SNAT example Updated!!"),
-		resource.TestCheckResourceAttr(resourceName, "internal_address", "11.11.11.0/24"),
-		resource.TestCheckResourceAttr(resourceName, "rule_type", "SNAT"),
-		resource.TestCheckResourceAttr(resourceName, "snat_destination_address", "9.9.9.9"),
-		resource.TestCheckResourceAttr(resourceName, "priority", "0"),
-		resource.TestCheckNoResourceAttr(resourceName, "dnat_external_port"),
-	)
+func (r *NATRuleResource) GetResourceName() string {
+	return EdgeGatewayNATRuleResourceName.String()
 }
 
-func natRuleDnatTestCheck(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet(resourceName, "id"),
-		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
-		resource.TestCheckResourceAttrSet(resourceName, "external_address"),
-		resource.TestCheckResourceAttr(resourceName, "name", "example-dnat"),
-		resource.TestCheckResourceAttr(resourceName, "description", "description DNAT example"),
-		resource.TestCheckResourceAttr(resourceName, "internal_address", "11.11.11.4"),
-		resource.TestCheckResourceAttr(resourceName, "rule_type", "DNAT"),
-		resource.TestCheckResourceAttr(resourceName, "dnat_external_port", "8080"),
-		resource.TestCheckResourceAttr(resourceName, "priority", "0"),
-		resource.TestCheckNoResourceAttr(resourceName, "snat_destination_address"),
-	)
+func (r *NATRuleResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
+	return
 }
 
-func natRuleDnatUpdateTestCheck(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet(resourceName, "id"),
-		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
-		resource.TestCheckResourceAttrSet(resourceName, "external_address"),
-		resource.TestCheckResourceAttr(resourceName, "name", "example-dnat"),
-		resource.TestCheckResourceAttr(resourceName, "description", "description DNAT example Updated!!"),
-		resource.TestCheckResourceAttr(resourceName, "internal_address", "4.11.11.11"),
-		resource.TestCheckResourceAttr(resourceName, "rule_type", "DNAT"),
-		resource.TestCheckNoResourceAttr(resourceName, "dnat_external_port"),
-		resource.TestCheckResourceAttr(resourceName, "priority", "25"),
-		resource.TestCheckNoResourceAttr(resourceName, "snat_destination_address"),
-	)
+func (r *NATRuleResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
+		"example": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_edgegateway_nat_rule" "example" {
+						edge_gateway_id = cloudavenue_edgegateway.example.id
+						
+						name        = {{ generate . "name" }}
+						rule_type   = "SNAT"
+						description = {{ generate . "description" }}
+						
+						# Using primary_ip from edge gateway
+						external_address         = "89.32.25.10"
+						internal_address         = "11.11.11.0/24"
+						snat_destination_address = "8.8.8.8"
+						
+						priority = 10
+						}`),
+					Checks: []resource.TestCheckFunc{
+						// ! base checks
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "external_address", "89.32.25.10"),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "internal_address", "11.11.11.0/24"),
+						resource.TestCheckResourceAttr(resourceName, "rule_type", "SNAT"),
+						resource.TestCheckResourceAttr(resourceName, "snat_destination_address", "8.8.8.8"),
+						resource.TestCheckResourceAttr(resourceName, "priority", "10"),
+					},
+				},
+				// ! Update testing
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_edgegateway_nat_rule" "example" {
+							edge_gateway_id = cloudavenue_edgegateway.example.id
+
+							name        = {{ get . "name" }}
+							rule_type   = "SNAT"
+							description = {{ generate . "description" }}
+
+							# Using primary_ip from edge gateway
+							external_address         = "89.32.25.10"
+							internal_address         = "11.11.11.0/24"
+							snat_destination_address = "9.9.9.9"
+
+							priority = 0
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "external_address", "89.32.25.10"),
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "internal_address", "11.11.11.0/24"),
+							resource.TestCheckResourceAttr(resourceName, "rule_type", "SNAT"),
+							resource.TestCheckResourceAttr(resourceName, "snat_destination_address", "9.9.9.9"),
+							resource.TestCheckResourceAttr(resourceName, "priority", "0"),
+							resource.TestCheckNoResourceAttr(resourceName, "dnat_external_port"),
+						},
+					},
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportState:       true,
+						ImportStateVerify: true,
+					},
+				},
+			}
+		},
+		"example_no_snat": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+					resource.TestCheckResourceAttr(resourceName, "rule_type", "NO_SNAT"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_edgegateway_nat_rule" "example_no_snat" {
+						edge_gateway_id = cloudavenue_edgegateway.example.id
+
+						name        = {{ generate . "name" }}
+						rule_type   = "NO_SNAT"
+						description = {{ generate . "description" }}
+
+						# Using primary_ip from edge gateway
+						internal_address         = "11.11.11.0/24"
+
+						priority = 10
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "internal_address", "11.11.11.0/24"),
+						resource.TestCheckResourceAttr(resourceName, "priority", "10"),
+					},
+				},
+			}
+		},
+		"example_dnat": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+					resource.TestCheckResourceAttr(resourceName, "rule_type", "DNAT"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_edgegateway_nat_rule" "example_dnat" {
+						edge_gateway_id = cloudavenue_edgegateway.example.id
+
+						name        = {{ generate . "name" }}
+						rule_type   = "DNAT"
+						description = {{ generate . "description" }}
+
+						# Using primary_ip from edge gateway
+						external_address         = "89.32.25.10"
+						internal_address         = "11.11.11.4"
+
+						dnat_external_port = "8080"
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrSet(resourceName, "external_address"),
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "internal_address", "11.11.11.4"),
+						resource.TestCheckResourceAttr(resourceName, "dnat_external_port", "8080"),
+						resource.TestCheckResourceAttr(resourceName, "priority", "0"),
+						resource.TestCheckNoResourceAttr(resourceName, "snat_destination_address"),
+					},
+				},
+				// ! Update testing
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_edgegateway_nat_rule" "example_dnat" {
+							edge_gateway_id = cloudavenue_edgegateway.example.id
+
+							name        = {{ get . "name" }}
+							rule_type   = "DNAT"
+							description = {{ generate . "description" }}
+
+							# Using primary_ip from edge gateway
+							external_address         = "89.32.25.10"
+							internal_address         = "4.11.11.11"
+
+							priority = 25
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttrSet(resourceName, "external_address"),
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "internal_address", "4.11.11.11"),
+							resource.TestCheckNoResourceAttr(resourceName, "dnat_external_port"),
+							resource.TestCheckResourceAttr(resourceName, "priority", "25"),
+							resource.TestCheckNoResourceAttr(resourceName, "snat_destination_address"),
+						},
+					},
+				},
+			}
+		},
+		"example_reflexive": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "external_address"),
+					resource.TestCheckResourceAttr(resourceName, "priority", "0"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_edgegateway_nat_rule" "example_reflexive" {
+						edge_gateway_id = cloudavenue_edgegateway.example.id
+
+						name        = {{ generate . "name" }}
+						rule_type   = "REFLEXIVE"
+						description = {{ generate . "description" }}
+
+						# Using primary_ip from edge gateway
+						external_address         = "89.32.25.10"
+						internal_address         = "192.168.0.1"
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "internal_address", "192.168.0.1"),
+						resource.TestCheckResourceAttr(resourceName, "external_address", "89.32.25.10"),
+						resource.TestCheckResourceAttr(resourceName, "rule_type", "REFLEXIVE"),
+					},
+				},
+			}
+		},
+		"example_with_vdc_group": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+					resource.TestCheckResourceAttr(resourceName, "rule_type", "DNAT"),
+				},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetSpecificConfig("example_with_vdc_group"))
+					return
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_edgegateway_nat_rule" "example_with_vdc_group" {
+							edge_gateway_id = cloudavenue_edgegateway.example_with_vdc_group.id
+
+							name        = {{ generate . "name" }}
+							rule_type   = "DNAT"
+							description = {{ generate . "description" }}
+
+							# Using primary_ip from edge gateway
+							external_address         = "89.32.25.10"
+							internal_address         = "11.11.11.4"
+
+							dnat_external_port = "8080"
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttrSet(resourceName, "external_address"),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "internal_address", "11.11.11.4"),
+						resource.TestCheckResourceAttr(resourceName, "dnat_external_port", "8080"),
+						resource.TestCheckResourceAttr(resourceName, "priority", "0"),
+					},
+				},
+				// ! Update testing
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_edgegateway_nat_rule" "example_with_vdc_group" {
+							edge_gateway_id = cloudavenue_edgegateway.example_with_vdc_group.id
+
+							name        = {{ get . "name" }}
+							rule_type   = "DNAT"
+							description = {{ generate . "description" }}
+
+							# Using primary_ip from edge gateway
+							external_address         = "89.32.25.10"
+							internal_address         = "4.11.11.11"
+
+							priority = 25
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttrSet(resourceName, "external_address"),
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "internal_address", "4.11.11.11"),
+							resource.TestCheckNoResourceAttr(resourceName, "dnat_external_port"),
+							resource.TestCheckResourceAttr(resourceName, "priority", "25"),
+						},
+					},
+				},
+			}
+		},
+	}
 }
 
-func natRuleReflexiveTestCheck(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet(resourceName, "id"),
-		resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
-		resource.TestCheckResourceAttrSet(resourceName, "external_address"),
-		resource.TestCheckResourceAttr(resourceName, "name", "example-reflexive"),
-		resource.TestCheckResourceAttr(resourceName, "description", "description REFLEXIVE example"),
-		resource.TestCheckResourceAttr(resourceName, "internal_address", "192.168.0.1"),
-		resource.TestCheckResourceAttr(resourceName, "rule_type", "REFLEXIVE"),
-		resource.TestCheckResourceAttr(resourceName, "priority", "0"),
-		resource.TestCheckNoResourceAttr(resourceName, "snat_destination_address"),
-		resource.TestCheckNoResourceAttr(resourceName, "dnat_external_port"),
-	)
-}
-
-func TestAccNATRuleResource(t *testing.T) {
-	resourceName := "cloudavenue_edgegateway_nat_rule.example"
-
+func TestAccEdgeGatewayNATRuleResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// * Test with VDC
-			{
-				// Apply test Snat
-				Config: ConcatTests(testAccNATRuleResourceConfigSnat, testAccEdgeGatewayResourceConfig),
-				Check:  natRuleSnatTestCheck(resourceName),
-			},
-			{
-				// Update test Snat
-				Config: ConcatTests(testAccNATRuleResourceConfigUpdateSnat, testAccEdgeGatewayResourceConfig),
-				Check:  natRuleSnatUpdateTestCheck(resourceName),
-			},
-			{
-				// Delete test Snat
-				Destroy: true,
-				Config:  ConcatTests(testAccNATRuleResourceConfigUpdateSnat, testAccEdgeGatewayResourceConfig),
-			},
-			{
-				// Apply test Dnat
-				Config: ConcatTests(testAccNATRuleResourceConfigDnat, testAccEdgeGatewayResourceConfig),
-				Check:  natRuleDnatTestCheck(resourceName),
-			},
-			{
-				// Update test Dnat
-				Config: ConcatTests(testAccNATRuleResourceConfigUpdateDnat, testAccEdgeGatewayResourceConfig),
-				Check:  natRuleDnatUpdateTestCheck(resourceName),
-			},
-			{
-				// Delete test Dnat
-				Destroy: true,
-				Config:  ConcatTests(testAccNATRuleResourceConfigUpdateDnat, testAccEdgeGatewayResourceConfig),
-			},
-			{
-				// Apply test Reflexive
-				Config: ConcatTests(testAccNATRuleResourceConfigReflexive, testAccEdgeGatewayResourceConfig),
-				Check:  natRuleReflexiveTestCheck(resourceName),
-			},
-			{
-				// Import test ID and Name
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: testAccNATRuleResourceImportStateIDFuncWithIDAndName(resourceName),
-			},
-			{
-				// Import test Name and ID
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: testAccNATRuleResourceImportStateIDFuncWithNameAndID(resourceName),
-			},
-			// * Test with VDCGroup
-			{
-				// Apply test Dnat
-				Config: ConcatTests(testAccNATRuleResourceConfigDnatWithVDCGroup, testAccEdgeGatewayGroupResourceConfig),
-				Check:  natRuleDnatTestCheck(resourceName),
-			},
-			{
-				// Update test Dnat
-				Config: ConcatTests(testAccNATRuleResourceConfigUpdateDnatWithVDCGroup, testAccEdgeGatewayGroupResourceConfig),
-				Check:  natRuleDnatUpdateTestCheck(resourceName),
-			},
-			{
-				// Import test ID and Name
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: testAccNATRuleResourceImportStateIDFuncWithIDAndName(resourceName),
-			},
-			{
-				// Import test Name and ID
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: testAccNATRuleResourceImportStateIDFuncWithNameAndID(resourceName),
-			},
-		},
+		Steps:                    testsacc.GenerateTests(&NATRuleResource{}),
 	})
-}
-
-func testAccNATRuleResourceImportStateIDFuncWithIDAndName(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		// edgeGatewayIDOrName.ipSetName
-		return fmt.Sprintf("%s.%s", rs.Primary.Attributes["edge_gateway_id"], rs.Primary.Attributes["name"]), nil
-	}
-}
-
-func testAccNATRuleResourceImportStateIDFuncWithNameAndID(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		// edgeGatewayIDOrName.ipSetName
-		return fmt.Sprintf("%s.%s", rs.Primary.Attributes["edge_gateway_name"], rs.Primary.Attributes["id"]), nil
-	}
 }

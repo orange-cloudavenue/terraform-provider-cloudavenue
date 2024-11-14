@@ -1,7 +1,8 @@
 module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 
-go 1.22.0
-toolchain go1.23.1
+go 1.22.7
+
+toolchain go1.23.3
 
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12

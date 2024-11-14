@@ -73,7 +73,6 @@ linters:
     - gochecknoinits # Checks that no init functions are present in Go code [fast: true, auto-fix: false]
     - gocognit # Computes and checks the cognitive complexity of functions [fast: true, auto-fix: false]
     - godox # Tool for detection of FIXME, TODO and other comment keywords [fast: true, auto-fix: false]
-    - gomnd # An analyzer to detect magic numbers. [fast: true, auto-fix: false]
     - lll # Reports long lines [fast: true, auto-fix: false]
     - maintidx # maintidx measures the maintainability index of each function. [fast: true, auto-fix: false]
     - nestif # Reports deeply nested if statements [fast: true, auto-fix: false]

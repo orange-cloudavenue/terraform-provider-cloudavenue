@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_vm` - Now Nat rule support correctly `NO_SNAT` and `NO_DNAT` type.
+```
