@@ -28,6 +28,7 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceCo
 		EdgeGatewaySecurityGroupDataSourceName:  testsacc.NewResourceConfig(NewEdgeGatewaySecurityGroupDataSourceTest()),
 		EdgeGatewayDhcpForwardingDataSourceName: testsacc.NewResourceConfig(NewEdgeGatewayDhcpForwardingDataSourceTest()),
 		EdgeGatewayNATRuleDataSourceName:        testsacc.NewResourceConfig(NewEdgeGatewayNATRuleDataSourceTest()),
+		EdgeGatewayIPSetDataSourceName:          testsacc.NewResourceConfig(NewEdgeGatewayIPSetDataSourceTest()),
 
 		// * S3
 		S3BucketVersioningConfigurationDatasourceName: testsacc.NewResourceConfig(NewS3BucketVersioningConfigurationDatasourceTest()),

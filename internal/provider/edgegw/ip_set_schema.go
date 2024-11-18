@@ -26,7 +26,7 @@ func ipSetSchema(_ context.Context) superschema.Schema {
 		DataSource: superschema.SchemaDetails{
 			MarkdownDescription: "The `cloudavenue_edgegateway_ip_set` data source allows you to retrieve information about an IP Set rule on an Edge Gateway.",
 		},
-		Attributes: map[string]superschema.Attribute{
+		Attributes: superschema.Attributes{
 			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					Computed:            true,

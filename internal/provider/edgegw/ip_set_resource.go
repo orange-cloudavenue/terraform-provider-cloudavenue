@@ -196,12 +196,11 @@ func (r *ipSetResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *ipSetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_edgegateway_ip_set", r.client.GetOrgName(), metrics.Update)()
 	var (
 		plan  = &IPSetModel{}
 		state = &IPSetModel{}
 	)
-
-	defer metrics.New("cloudavenue_edgegateway_ip_set", r.client.GetOrgName(), metrics.Update)()
 
 	// Get current plan and state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -381,8 +380,8 @@ func (r *ipSetResource) ImportState(ctx context.Context, req resource.ImportStat
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), ipSet.NsxtFirewallGroup.ID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), ipSet.NsxtFirewallGroup.Name)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_id"), ipSet.NsxtFirewallGroup.EdgeGatewayRef.ID)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), ipSet.NsxtFirewallGroup.EdgeGatewayRef.Name)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_id"), r.edgegw.GetID())...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), r.edgegw.GetName())...)
 }
 
 func (r *ipSetResource) read(ctx context.Context, planOrState *IPSetModel) (stateRefreshed *IPSetModel, found bool, diags diag.Diagnostics) {
@@ -417,8 +416,8 @@ func (r *ipSetResource) read(ctx context.Context, planOrState *IPSetModel) (stat
 	stateRefreshed.ID.Set(ipSetConfig.NsxtFirewallGroup.ID)
 	stateRefreshed.Name.Set(ipSetConfig.NsxtFirewallGroup.Name)
 	stateRefreshed.Description.Set(ipSetConfig.NsxtFirewallGroup.Description)
-	stateRefreshed.EdgeGatewayID.Set(ipSetConfig.NsxtFirewallGroup.EdgeGatewayRef.ID)
-	stateRefreshed.EdgeGatewayName.Set(ipSetConfig.NsxtFirewallGroup.EdgeGatewayRef.Name)
+	stateRefreshed.EdgeGatewayID.Set(r.edgegw.GetID())
+	stateRefreshed.EdgeGatewayName.Set(r.edgegw.GetName())
 	diags.Append(stateRefreshed.IPAddresses.Set(ctx, ipSetConfig.NsxtFirewallGroup.IpAddresses)...)
 
 	return stateRefreshed, true, diags

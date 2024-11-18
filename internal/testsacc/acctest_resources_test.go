@@ -28,6 +28,7 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		EdgeGatewaySecurityGroupResourceName:  testsacc.NewResourceConfig(NewEdgeGatewaySecurityGroupResourceTest()),
 		EdgeGatewayDhcpForwardingResourceName: testsacc.NewResourceConfig(NewEdgeGatewayDhcpForwardingResourceTest()),
 		EdgeGatewayNATRuleResourceName:        testsacc.NewResourceConfig(NewEdgeGatewayNATRuleResourceTest()),
+		EdgeGatewayIPSetResourceName:          testsacc.NewResourceConfig(NewEdgeGatewayIPSetResourceTest()),
 
 		// * Backup
 		BackupResourceName: testsacc.NewResourceConfig(NewBackupResourceTest()),

@@ -2,12 +2,10 @@ package edgegw
 
 import (
 	"context"
-	"fmt"
 
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
@@ -23,53 +21,10 @@ type IPSetModel struct {
 	Name            supertypes.StringValue `tfsdk:"name"`
 }
 
-type IPSetModelIPAddresses []supertypes.StringValue
-
-func NewIPSet(t any) *IPSetModel {
-	switch x := t.(type) {
-	case tfsdk.State:
-		return &IPSetModel{
-			Description:     supertypes.NewStringNull(),
-			EdgeGatewayID:   supertypes.NewStringUnknown(),
-			EdgeGatewayName: supertypes.NewStringUnknown(),
-			ID:              supertypes.NewStringUnknown(),
-			IPAddresses:     supertypes.NewSetNull(x.Schema.GetAttributes()["ip_addresses"].GetType().(supertypes.SetType).ElementType()),
-			Name:            supertypes.NewStringNull(),
-		}
-	case tfsdk.Plan:
-		return &IPSetModel{
-			Description:     supertypes.NewStringNull(),
-			EdgeGatewayID:   supertypes.NewStringUnknown(),
-			EdgeGatewayName: supertypes.NewStringUnknown(),
-			ID:              supertypes.NewStringUnknown(),
-			IPAddresses:     supertypes.NewSetNull(x.Schema.GetAttributes()["ip_addresses"].GetType().(supertypes.SetType).ElementType()),
-			Name:            supertypes.NewStringNull(),
-		}
-	case tfsdk.Config:
-		return &IPSetModel{
-			Description:     supertypes.NewStringNull(),
-			EdgeGatewayID:   supertypes.NewStringUnknown(),
-			EdgeGatewayName: supertypes.NewStringUnknown(),
-			ID:              supertypes.NewStringUnknown(),
-			IPAddresses:     supertypes.NewSetNull(x.Schema.GetAttributes()["ip_addresses"].GetType().(supertypes.SetType).ElementType()),
-			Name:            supertypes.NewStringNull(),
-		}
-	default:
-		panic(fmt.Sprintf("unexpected type %T", t))
-	}
-}
-
 func (rm *IPSetModel) Copy() *IPSetModel {
 	x := &IPSetModel{}
 	utils.ModelCopy(rm, x)
 	return x
-}
-
-// GetIpAddresses returns the value of the IpAddresses field.
-func (rm *IPSetModel) GetIPAddresses(ctx context.Context) (values IPSetModelIPAddresses, diags diag.Diagnostics) {
-	values = make(IPSetModelIPAddresses, 0)
-	d := rm.IPAddresses.Get(ctx, &values, false)
-	return values, d
 }
 
 // ToNsxtFirewallGroup transform the IPSetModel to a govcdtypes.NsxtFirewallGroup.
@@ -86,13 +41,13 @@ func (rm *IPSetModel) ToNsxtFirewallGroup(ctx context.Context, ownerID string) (
 	}
 
 	if rm.IPAddresses.IsKnown() {
-		ipAddrs, d := rm.GetIPAddresses(ctx)
-		diags.Append(d...)
+		ipAddrs := make([]string, 0)
+		diags.Append(rm.IPAddresses.Get(ctx, &ipAddrs, false)...)
 		if diags.HasError() {
 			return nil, diags
 		}
 
-		values.IpAddresses = utils.SuperSliceTypesStringToSliceString(ipAddrs)
+		values.IpAddresses = ipAddrs
 	}
 
 	return values, diags

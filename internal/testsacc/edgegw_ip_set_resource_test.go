@@ -1,93 +1,160 @@
+// package testsacc provides the acceptance tests for the provider.
 package testsacc
 
 import (
-	"fmt"
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
-const testAccIPSetResourceConfig = `
-resource "cloudavenue_edgegateway_ip_set" "example" {
-	name = "example-ip-set"
-	description = "example of ip set"
-	ip_addresses = [
-		"192.168.1.1",
-		"192.168.1.2",
-	]
-	edge_gateway_name = cloudavenue_edgegateway.example_with_vdc.name
-}
-`
+var _ testsacc.TestACC = &EdgeGatewayIPSetResource{}
 
-const testAccIPSetResourceConfigUpdate = `
-resource "cloudavenue_edgegateway_ip_set" "example" {
-	name = "example-ip-set"
-	description = "example of ip set"
-	ip_addresses = [
-		"192.168.1.1",
-		"192.168.1.2",
-		"192.168.1.3"
-	]
-	edge_gateway_name = cloudavenue_edgegateway.example_with_vdc.name
-}
-`
+const (
+	EdgeGatewayIPSetResourceName = testsacc.ResourceName("cloudavenue_edgegateway_ip_set")
+)
 
-func ipSetTestCheck(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet(resourceName, "id"),
-		resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
-		resource.TestCheckResourceAttr(resourceName, "name", "example-ip-set"),
-		resource.TestCheckResourceAttr(resourceName, "description", "example of ip set"),
-		resource.TestCheckResourceAttr(resourceName, "ip_addresses.#", "2"),
-	)
+type EdgeGatewayIPSetResource struct{}
+
+func NewEdgeGatewayIPSetResourceTest() testsacc.TestACC {
+	return &EdgeGatewayIPSetResource{}
 }
 
-func TestAccIPSetResource(t *testing.T) {
-	resourceName := "cloudavenue_edgegateway_ip_set.example"
+// GetResourceName returns the name of the resource.
+func (r *EdgeGatewayIPSetResource) GetResourceName() string {
+	return EdgeGatewayIPSetResourceName.String()
+}
 
+func (r *EdgeGatewayIPSetResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	return
+}
+
+func (r *EdgeGatewayIPSetResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
+		// * Test One (example)
+		"example": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
+					return
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_edgegateway_ip_set" "example" {
+						name = {{ generate . "name" }}
+						description = {{ generate . "description" }}
+						ip_addresses = [
+							"192.168.1.1",
+							"192.168.1.2",
+						]
+						edge_gateway_name = cloudavenue_edgegateway.example.name
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrSet(resourceName, "id"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "ip_addresses.#", "2"),
+					},
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_edgegateway_ip_set" "example" {
+							name = {{ get . "name" }}
+							description = {{ generate . "description" }}
+							ip_addresses = [
+								"192.168.1.1",
+								"192.168.1.2",
+								"192.168.1.3",
+							]
+							edge_gateway_name = cloudavenue_edgegateway.example.name
+						}`),
+					},
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportState:          true,
+					},
+				},
+				Destroy: true,
+			}
+		},
+		"example_with_vdc_group": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetSpecificConfig("example_with_vdc_group"))
+					return
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_edgegateway_ip_set" "example_with_vdc_group" {
+						name = {{ generate . "name" }}
+						description = {{ generate . "description" }}
+						ip_addresses = [
+							"192.168.1.1",
+							"192.168.1.2",
+						]
+						edge_gateway_id = cloudavenue_edgegateway.example_with_vdc_group.id
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrSet(resourceName, "id"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "ip_addresses.#", "2"),
+					},
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_edgegateway_ip_set" "example_with_vdc_group" {
+							name = {{ get . "name" }}
+							description = {{ generate . "description" }}
+							ip_addresses = [
+								"192.168.1.1",
+								"192.168.1.2",
+								"192.168.1.3",
+							]
+							edge_gateway_name = cloudavenue_edgegateway.example_with_vdc_group.name
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttrSet(resourceName, "id"),
+							resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
+							resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "ip_addresses.#", "3"),
+						},
+					},
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportState:          true,
+					},
+				},
+			}
+		},
+	}
+}
+
+func TestAccEdgeGatewayIPSetResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Read testing
-			{
-				// Apply test
-				Config: ConcatTests(testAccEdgeGatewayResourceConfig, testAccIPSetResourceConfig),
-				Check:  ipSetTestCheck(resourceName),
-			},
-			// Update testing
-			{
-				// Update test
-				Config: ConcatTests(testAccEdgeGatewayResourceConfig, testAccIPSetResourceConfigUpdate),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", "example-ip-set"),
-					resource.TestCheckResourceAttr(resourceName, "description", "example of ip set"),
-					resource.TestCheckResourceAttr(resourceName, "ip_addresses.#", "3"),
-				),
-			},
-			// Import State testing
-			{
-				// Import test
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: testAccIPSetResourceImportStateIDFunc(resourceName),
-			},
-		},
+		Steps:                    testsacc.GenerateTests(&EdgeGatewayIPSetResource{}),
 	})
-}
-
-func testAccIPSetResourceImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		// edgeGatewayIDOrName.ipSetName
-		return fmt.Sprintf("%s.%s", rs.Primary.Attributes["edge_gateway_id"], rs.Primary.Attributes["name"]), nil
-	}
 }
