@@ -1,5 +1,20 @@
 ## 0.21.0 (Unreleased)
 
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_edgegateway_ip_set` - Fix a bug where the `static_ip_pool` attribute returned a error when the `static_ip_pool` was not set. (GH-666)
+* `resource/cloudavenue_edgegateway_ip_set` - Fix nil pointer exception with the edge gateway provided belongs to a VDC Group. (GH-818)
+* `resource/cloudavenue_vm` - Now Nat rule support correctly `NO_SNAT` and `NO_DNAT` type. (GH-820)
+* `resource/cloudavenue_vm` - Now the VApp data has refreshed before the creation of the VM. (GH-817)
+### :information_source: **Notes**
+
+* `resource/cloudavenue_edgegateway_ip_set` - Improve the documentation for the 'edgegateway_name' attribute. (GH-666)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/hashicorp/terraform-plugin-docs from 0.19.4 to 0.20.0 (GH-814)
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.12.2 to 0.12.3 (GH-666)
+
 ## 0.20.3 (November  7, 2024)
 
 ### :tada: **Improvements**
