@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_edgegateway_ip_set` - Fix nil pointer exception with the edge gateway provided belongs to a VDC Group.
+```
