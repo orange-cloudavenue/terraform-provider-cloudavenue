@@ -19,7 +19,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
@@ -386,14 +385,14 @@ func (r *natRuleResource) read(planOrState *NATRuleModel) (stateRefreshed *NATRu
 	}
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
-			return nil, false, diags
+			return stateRefreshed, false, nil
 		}
 		diags.AddError("Error retrieving NAT Rule ID", err.Error())
-		return nil, true, diags
+		return
 	}
 
-	stateRefreshed.Description = utils.SuperStringValueOrNull(rule.NsxtNatRule.Description)
-	stateRefreshed.DnatExternalPort = utils.SuperStringValueOrNull(rule.NsxtNatRule.DnatExternalPort)
+	stateRefreshed.Description.Set(rule.NsxtNatRule.Description)
+	stateRefreshed.DnatExternalPort.Set(rule.NsxtNatRule.DnatExternalPort)
 	stateRefreshed.EdgeGatewayID.Set(r.edgegw.GetID())
 	stateRefreshed.EdgeGatewayName.Set(r.edgegw.GetName())
 	stateRefreshed.Enabled.Set(rule.NsxtNatRule.Enabled)
@@ -402,9 +401,9 @@ func (r *natRuleResource) read(planOrState *NATRuleModel) (stateRefreshed *NATRu
 	stateRefreshed.ID.Set(rule.NsxtNatRule.ID)
 	stateRefreshed.InternalAddress.Set(rule.NsxtNatRule.InternalAddresses)
 	stateRefreshed.Name.Set(rule.NsxtNatRule.Name)
-	stateRefreshed.Priority.Set(int64(*rule.NsxtNatRule.Priority))
+	stateRefreshed.Priority.SetIntPtr(rule.NsxtNatRule.Priority)
 	stateRefreshed.RuleType.Set(rule.NsxtNatRule.Type)
-	stateRefreshed.SnatDestinationAddress = utils.SuperStringValueOrNull(rule.NsxtNatRule.SnatDestinationAddresses)
+	stateRefreshed.SnatDestinationAddress.Set(rule.NsxtNatRule.SnatDestinationAddresses)
 
 	return stateRefreshed, true, nil
 }

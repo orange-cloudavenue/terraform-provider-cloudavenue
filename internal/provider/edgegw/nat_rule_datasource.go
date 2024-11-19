@@ -106,7 +106,10 @@ func (d *natRuleDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	// Read data from the API
-	data, _, diags := s.read(config)
+	data, found, diags := s.read(config)
+	if !found {
+		diags.AddError("Error Not Found", "The NAT Rule was not found")
+	}
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

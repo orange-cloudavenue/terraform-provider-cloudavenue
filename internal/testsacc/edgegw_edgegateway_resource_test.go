@@ -82,6 +82,7 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						owner_name     = cloudavenue_vdc.example.name
 						tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
 						owner_type     = "vdc"
+						bandwidth      = 25
 					}`),
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "bandwidth"),
@@ -165,6 +166,7 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						owner_name     = cloudavenue_vdc_group.example.name
 						tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
 						owner_type     = "vdc-group"
+						bandwidth      = 25
 					  }`),
 					Checks: []resource.TestCheckFunc{},
 				},
