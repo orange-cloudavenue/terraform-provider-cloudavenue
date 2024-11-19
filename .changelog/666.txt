@@ -1,0 +1,11 @@
+```release-note:bug
+`resource/cloudavenue_edgegateway_ip_set` - Fix a bug where the `static_ip_pool` attribute returned a error when the `static_ip_pool` was not set.
+```
+
+```release-note:note
+`resource/cloudavenue_edgegateway_ip_set` - Improve the documentation for the 'edgegateway_name' attribute.
+```
+
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.12.2 to 0.12.3
+```
