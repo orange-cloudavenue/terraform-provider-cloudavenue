@@ -27,7 +27,6 @@ func (r *IAMUserDataSource) GetResourceName() string {
 }
 
 func (r *IAMUserDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	resp.Append(GetResourceConfig()[IAMUserResourceName]().GetDefaultConfig)
 	return
 }
 
@@ -36,10 +35,29 @@ func (r *IAMUserDataSource) Tests(ctx context.Context) map[testsacc.TestName]fun
 		// * Test One (example)
 		"example": func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[IAMUserResourceName]().GetDefaultConfig)
+					return
+				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_iam_user" "example" {
 							name = cloudavenue_iam_user.example.name
+					}`,
+					Checks: GetResourceConfig()[IAMUserResourceName]().GetDefaultChecks(),
+				},
+			}
+		},
+		"example_saml_user": func(_ context.Context, _ string) testsacc.Test {
+			return testsacc.Test{
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					// resp.Append(GetResourceConfig()[IAMUserSAMLResourceName]().GetDefaultConfig)
+					return
+				},
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_iam_user" "example_saml_user" {
+							name = cloudavenue_iam_user_saml.example.user_name
 					}`,
 					Checks: GetResourceConfig()[IAMUserResourceName]().GetDefaultChecks(),
 				},

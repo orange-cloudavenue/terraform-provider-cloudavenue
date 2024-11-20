@@ -28,26 +28,15 @@ func (r *iamUserSAMLResource) GetResourceName() string {
 }
 
 func (r *iamUserSAMLResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	// TODO : Add dependencies config
-	// resp.Append(GetResourceConfig()[CatalogResourceName]().GetDefaultConfig)
-
-	// This is method for add dependencies legacy config
-	// resp.Append(AddConstantConfig(constantName))
 	return
 }
 
-/*
-	Unit tests not working for now. Because the phone number imported from the SAML provider is valid and the update is not working
-*/
-
 func (r *iamUserSAMLResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		// TODO : Complete tests
-		// * First test named "example"
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.User)), // TODO : Change type
+					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.User)),
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -57,38 +46,97 @@ func (r *iamUserSAMLResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						role_name = "Organization Administrator"
 					}`),
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "foo", "bar"),
+						resource.TestCheckResourceAttr(resourceName, "user_name", "mickael.stanislas.ext"),
+						resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
+						resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+						resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "0"),
+						resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "0"),
+						resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"),
 					},
 				},
 				// ! Updates testing
 				Updates: []testsacc.TFConfig{
+					// * Disable the user
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_iam_user_saml" "example" {
-							foo = "barUpdated"
+							user_name = "mickael.stanislas.ext"
+							role_name = "Organization Administrator"
+							enabled = false
 						}`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "foo", "barUpdated"),
+							resource.TestCheckResourceAttr(resourceName, "user_name", "mickael.stanislas.ext"),
+							resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
+							resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+							resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "0"),
+							resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "0"),
+							resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"),
 						},
 					},
+					// * Re-enable the user
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_iam_user_saml" "example" {
-							foo = "barUpdated"
-							bar = "foo"
+							user_name = "mickael.stanislas.ext"
+							role_name = "Organization Administrator"
+							enabled = true
 						}`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "foo", "barUpdated"),
-							resource.TestCheckResourceAttr(resourceName, "bar", "foo"),
+							resource.TestCheckResourceAttr(resourceName, "user_name", "mickael.stanislas.ext"),
+							resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
+							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+							resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "0"),
+							resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "0"),
+							resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"),
+						},
+					},
+					// * Change Quotas
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_iam_user_saml" "example" {
+							user_name = "mickael.stanislas.ext"
+							role_name = "Organization Administrator"
+							enabled = true
+							deployed_vm_quota = 10
+							stored_vm_quota = 5
+					}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "user_name", "mickael.stanislas.ext"),
+							resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
+							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+							resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "10"),
+							resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "5"),
+							resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"),
+						},
+					},
+					// * Change Take Ownership
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_iam_user_saml" "example" {
+							user_name = "mickael.stanislas.ext"
+							role_name = "Organization Administrator"
+							enabled = true
+							deployed_vm_quota = 10
+							stored_vm_quota = 5
+							take_ownership = false
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "user_name", "mickael.stanislas.ext"),
+							resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
+							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+							resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "10"),
+							resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "5"),
+							resource.TestCheckResourceAttr(resourceName, "take_ownership", "false"),
 						},
 					},
 				},
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"id"},
-						ImportState:          true,
-						ImportStateVerify:    true,
+						ImportStateIDBuilder:    []string{"user_name"},
+						ImportState:             true,
+						ImportStateVerify:       true,
+						ImportStateVerifyIgnore: []string{"take_ownership"},
 					},
 				},
 			}
