@@ -2,7 +2,11 @@
 
 ### :rocket: **New Features**
 
-* `resource/cloudavenue_iam_user_saml` - New resource for importing IAM users with SAML provider. (GH-821)
+* `resource/cloudavenue_iam_user_saml` - New beta resource for importing IAM users with SAML provider. (GH-821)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps golang.org/x/net from 0.30.0 to 0.31.0 (GH-816)
 
 ## 0.20.4 (November 19, 2024)
 
