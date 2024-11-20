@@ -36,7 +36,7 @@ func userSAMLSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"role_name": superschema.StringAttribute{
+			"role_name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The role assigned to the user.",
 				},
@@ -44,7 +44,7 @@ func userSAMLSchema(_ context.Context) superschema.Schema {
 					Required: true,
 				},
 			},
-			"enabled": superschema.BoolAttribute{
+			"enabled": superschema.SuperBoolAttribute{
 				Common: &schemaR.BoolAttribute{
 					MarkdownDescription: "`true` if the user is enabled and can log in.",
 				},
@@ -54,7 +54,7 @@ func userSAMLSchema(_ context.Context) superschema.Schema {
 					Default:  booldefault.StaticBool(true),
 				},
 			},
-			"deployed_vm_quota": superschema.Int64Attribute{
+			"deployed_vm_quota": superschema.SuperInt64Attribute{
 				Common: &schemaR.Int64Attribute{
 					MarkdownDescription: "Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota.",
 				},
@@ -64,7 +64,7 @@ func userSAMLSchema(_ context.Context) superschema.Schema {
 					Default:  int64default.StaticInt64(0),
 				},
 			},
-			"stored_vm_quota": superschema.Int64Attribute{
+			"stored_vm_quota": superschema.SuperInt64Attribute{
 				Common: &schemaR.Int64Attribute{
 					MarkdownDescription: "Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.",
 				},
@@ -74,7 +74,7 @@ func userSAMLSchema(_ context.Context) superschema.Schema {
 					Default:  int64default.StaticInt64(0),
 				},
 			},
-			"take_ownership": superschema.BoolAttribute{
+			"take_ownership": superschema.SuperBoolAttribute{
 				Resource: &schemaR.BoolAttribute{
 					MarkdownDescription: "`true` if the user should take ownership of all vApps and media that are currently owned by the user that is being deleted.",
 					Optional:            true,

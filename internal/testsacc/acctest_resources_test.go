@@ -53,6 +53,7 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		PublicIPResourceName: testsacc.NewResourceConfig(NewPublicIPResourceTest()),
 
 		// * IAM
-		IAMUserResourceName: testsacc.NewResourceConfig(NewIAMUserResourceTest()),
+		IAMUserResourceName:     testsacc.NewResourceConfig(NewIAMUserResourceTest()),
+		IAMUserSAMLResourceName: testsacc.NewResourceConfig(NewIAMUserSAMLResourceTest()),
 	}
 }

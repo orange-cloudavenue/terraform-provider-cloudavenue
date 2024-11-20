@@ -91,6 +91,7 @@ func (r *UserSAMLResource) Create(ctx context.Context, req resource.CreateReques
 		IsEnabled:       plan.Enabled.Get(),
 		DeployedVmQuota: plan.DeployedVMQuota.GetInt(),
 		StoredVmQuota:   plan.StoredVMQuota.GetInt(),
+		IsExternal:      true,
 	}
 
 	user, err := r.adminOrg.CreateUserSimple(userData)
@@ -102,7 +103,11 @@ func (r *UserSAMLResource) Create(ctx context.Context, req resource.CreateReques
 	plan.ID.Set(user.User.ID)
 
 	// Use generic read function to refresh the state
-	state, _, d := r.read(ctx, plan)
+	state, found, d := r.read(ctx, plan)
+	if !found {
+		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s not found after import", plan.UserName.Get()))
+		return
+	}
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -167,7 +172,7 @@ func (r *UserSAMLResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	user, err := r.adminOrg.GetUserById(plan.ID.Get(), true)
+	user, err := r.adminOrg.GetUserById(state.ID.Get(), true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving user", err.Error())
 		return
@@ -180,6 +185,7 @@ func (r *UserSAMLResource) Update(ctx context.Context, req resource.UpdateReques
 		IsEnabled:       plan.Enabled.Get(),
 		DeployedVmQuota: plan.DeployedVMQuota.GetInt(),
 		StoredVmQuota:   plan.StoredVMQuota.GetInt(),
+		IsExternal:      true,
 	}
 
 	if err := user.UpdateSimple(userData); err != nil {
@@ -187,8 +193,11 @@ func (r *UserSAMLResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
+	// Special case to inject TakeOwnership value
+	state.TakeOwnership.Set(plan.TakeOwnership.Get())
+
 	// Use generic read function to refresh the state
-	stateRefreshed, _, d := r.read(ctx, plan)
+	stateRefreshed, _, d := r.read(ctx, state)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -234,6 +243,14 @@ func (r *UserSAMLResource) Delete(ctx context.Context, req resource.DeleteReques
 func (r *UserSAMLResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	defer metrics.New("cloudavenue_iam_user_saml", r.client.GetOrgName(), metrics.Import)()
 
+	userData := &UserSAMLModel{}
+
+	// Init the resource
+	resp.Diagnostics.Append(r.Init(ctx, userData)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	user, err := r.adminOrg.GetUserByName(req.ID, true)
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
@@ -249,7 +266,6 @@ func (r *UserSAMLResource) ImportState(ctx context.Context, req resource.ImportS
 		return
 	}
 
-	userData := &UserSAMLModel{}
 	userData.ID.Set(user.User.ID)
 	userData.UserName.Set(user.User.Name)
 

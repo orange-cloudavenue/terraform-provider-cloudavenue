@@ -7,8 +7,6 @@ description: |-
 
 # cloudavenue_iam_user_saml (Resource)
 
-~> **Beta resource** Resources marked as beta are not yet ready for production use. They are provided for early access to new features and are subject to change.
-
 The `cloudavenue_iam_user_saml` resource allows you to import SAML users in Cloud Avenue.
 
 ## Example Usage
