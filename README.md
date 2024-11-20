@@ -1,5 +1,10 @@
-<div align="center">
-    <a href="https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs">
+<p align="center">
+  <a href="https://github.com/orange-cloudavenue/terraform-provider-cloudavenue">
+    <img src="https://avatars.githubusercontent.com/u/1506386?s=150&v=4" alt="terraform-provider-cloudavenue" width="150">
+  </a>
+  <h3 align="center" style="font-weight: bold">Terraform Provider for CloudAvenue Iaas public offer</h3>
+  <p align="center">
+      <a href="https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs">
       <img alt="Terraform" src="https://img.shields.io/badge/terraform-%235835CC.svg?style=for-the-badge&logo=terraform&logoColor=white" />
     </a>
     <a href="https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/latest">
@@ -8,31 +13,40 @@
     <a href="https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/pulse">
       <img alt="Last commit" src="https://img.shields.io/github/last-commit/orange-cloudavenue/terraform-provider-cloudavenue?style=for-the-badge&logo=starship&color=8bd5ca&logoColor=D9E0EE&labelColor=302D41"/>
     </a>
-    <a href="https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/blob/main/LICENSE">
-      <img alt="License" src="https://img.shields.io/github/license/orange-cloudavenue/terraform-provider-cloudavenue?style=for-the-badge&logo=starship&color=ee999f&logoColor=D9E0EE&labelColor=302D41" />
-    </a>
     <a href="https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/stargazers">
       <img alt="Stars" src="https://img.shields.io/github/stars/orange-cloudavenue/terraform-provider-cloudavenue?style=for-the-badge&logo=starship&color=c69ff5&logoColor=D9E0EE&labelColor=302D41" />
     </a>
     <a href="https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues">
       <img alt="Issues" src="https://img.shields.io/github/issues/orange-cloudavenue/terraform-provider-cloudavenue?style=for-the-badge&logo=bilibili&color=F5E0DC&logoColor=D9E0EE&labelColor=302D41" />
     </a>
-</div>
+  </p>
+  <p align="center">
+    <a href="https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/tree/main/docs"><strong>Explore the docs »</strong></a>
+  </p>
+</p>
 
-# Cloud Avenue Provider for Terraform
+## Table of Contents
 
-This is the Cloud Avenue provider for Terraform. It allows you to manage Cloud Avenue resources.
+- [Table of Contents](#table-of-contents)
+- [About this project](#about-this-project)
+- [Supported Versions](#supported-versions)
+- [Using the Cloud Avenue Provider](#using-the-cloud-avenue-provider)
+- [Contributing](#contributing)
+  - [Top contributors](#top-contributors)
 
-Useful links:
+## About this project
 
-* [Cloud Avenue Provider documentation](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs)
-* [Terraform Documentation](https://www.terraform.io/docs/language/index.html)
+A [Terraform](https://www.terraform.io) provider to manage [CloudAvenue Iaas offer](https://min.io).
 
-## Requirements
+Made with <span style="color: #e25555;">&#9829;</span> using [Go](https://golang.org/).
 
-* [Terraform](https://www.terraform.io/downloads.html) 1.x.x
-* [Go](https://golang.org/doc/install) 1.22.x (to build the provider plugin)
-* [Cloud Avenue Platform](https://cloud.orange-business.com/offres/infrastructure-iaas/cloud-avenue/)
+## Supported Versions
+
+- Terraform v1.5
+- Go v1.22
+
+It doesn't mean that this provider won't run on previous versions of Terraform or Go, though.
+It just means that we can't guarantee backward compatibility.
 
 ## Using the Cloud Avenue Provider
 
@@ -43,7 +57,7 @@ terraform {
   required_providers {
     cloudavenue = {
       source = "orange-cloudavenue/cloudavenue"
-      version = "0.1.0"
+      version = ">= 0.20.0"
     }
   }
 }
@@ -55,12 +69,26 @@ provider "cloudavenue" {
 }
 ```
 
+For more information, please refer to the [Cloud Avenue Provider documentation](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs).
+
+<!-- CONTRIBUTING -->
 ## Contributing
 
-This provider is open source and contributions are welcome.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-If you want to contribute to this provider, please read the [contributing guidelines](CONTRIBUTING.md).
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+Don't forget to give the project a star! Thanks again!
 
-You may also report issues or feature requests on the [GitHub issue tracker](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/new/choose).
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-You can consult a [listing of resources and datasources](cmd/listing/resource-ca.md).
+Please read the [CONTRIBUTING.md](CONTRIBUTING.md) for more details on our code of conduct, and the process for submitting pull requests to us.
+
+### Top contributors
+
+<a href="https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=orange-cloudavenue/terraform-provider-cloudavenue" alt="contrib.rocks image" />
+</a>
