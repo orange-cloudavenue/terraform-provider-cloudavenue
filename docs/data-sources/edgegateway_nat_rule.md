@@ -32,6 +32,7 @@ data "cloudavenue_edgegateway_nat_rule" "example" {
 
 ### Read-Only
 
+- `app_port_profile_id` (String) Application Port Profile ID to which the rule applies.
 - `description` (String) A description of the NAT rule.
 - `dnat_external_port` (String) This represents the external port number or port range when doing DNAT port forwarding from external to internal. If not specify, all ports are translated.
 - `enabled` (Boolean) Enable or Disable the Nat Rule.

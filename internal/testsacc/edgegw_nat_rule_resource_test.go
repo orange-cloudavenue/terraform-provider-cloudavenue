@@ -100,8 +100,24 @@ func (r *NATRuleResource) Tests(ctx context.Context) map[testsacc.TestName]func(
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportState:       true,
-						ImportStateVerify: true,
+						ImportStateIDBuilder: []string{"edge_gateway_id", "id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_name", "id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
 					},
 				},
 			}
@@ -195,6 +211,69 @@ func (r *NATRuleResource) Tests(ctx context.Context) map[testsacc.TestName]func(
 							resource.TestCheckNoResourceAttr(resourceName, "dnat_external_port"),
 							resource.TestCheckResourceAttr(resourceName, "priority", "25"),
 							resource.TestCheckNoResourceAttr(resourceName, "snat_destination_address"),
+						},
+					},
+				},
+			}
+		},
+		"example_dnat_with_app_port_profile": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+					resource.TestCheckResourceAttr(resourceName, "rule_type", "DNAT"),
+				},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[EdgeGatewayAppPortProfileResourceName]().GetDefaultConfig)
+					return
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_edgegateway_nat_rule" "example_dnat_with_app_port_profile" {
+						edge_gateway_id = cloudavenue_edgegateway.example.id
+
+						name        = {{ generate . "name" }}
+						rule_type   = "DNAT"
+						description = {{ generate . "description" }}
+
+						# Using primary_ip from edge gateway
+						external_address         = "89.32.25.10"
+						internal_address         = "11.11.11.4"
+
+						app_port_profile_id = cloudavenue_edgegateway_app_port_profile.example.id
+				}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttrSet(resourceName, "external_address"),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "internal_address", "11.11.11.4"),
+						resource.TestCheckResourceAttr(resourceName, "rule_type", "DNAT"),
+					},
+				},
+				// ! Update testing
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_edgegateway_nat_rule" "example_dnat_with_app_port_profile" {
+							edge_gateway_id = cloudavenue_edgegateway.example.id
+					
+							name        = {{ get . "name" }}
+							rule_type   = "DNAT"
+							description = {{ generate . "description" }}
+
+							# Using primary_ip from edge gateway
+							external_address         = "89.32.25.10"
+							internal_address         = "11.11.11.2"
+
+							app_port_profile_id = cloudavenue_edgegateway_app_port_profile.example.id
+				}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttrSet(resourceName, "external_address"),
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "internal_address", "11.11.11.2"),
+							resource.TestCheckResourceAttr(resourceName, "rule_type", "DNAT"),
 						},
 					},
 				},
