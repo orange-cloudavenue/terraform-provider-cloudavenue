@@ -31,6 +31,7 @@ jobs:
       - run: bash .github/changelog/generate-changelog.sh
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
+          branch: main
           commit_message: "chore: Update CHANGELOG.md"
           commit_options: '--no-verify --signoff'
           push_options: '--force'
