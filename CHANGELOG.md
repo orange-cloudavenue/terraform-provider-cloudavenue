@@ -4,6 +4,10 @@
 
 * `resource/cloudavenue_iam_user_saml` - New beta resource for importing IAM users with SAML provider. (GH-821)
 
+### :tada: **Improvements**
+
+* `resource/cloudavenue_edgegateway_nat_rule` - Now Nat rule support `cloudavenue_edgegateway_app_port_profile`. (GH-822)
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps golang.org/x/net from 0.30.0 to 0.31.0 (GH-816)
