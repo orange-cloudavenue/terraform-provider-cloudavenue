@@ -26,12 +26,6 @@ To add examples or import command in documentation, please add them in the `exam
 
 ##  Development environment
 
-Get git submodules:
-
-```console
-make submodules
-```
-
 Run doc generation:
 
 ```console
