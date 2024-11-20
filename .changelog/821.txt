@@ -1,0 +1,3 @@
+```release-note:feature
+`resource/cloudavenue_iam_user_saml` - New beta resource for importing IAM users with SAML provider.
+```
