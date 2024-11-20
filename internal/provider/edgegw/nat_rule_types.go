@@ -2,11 +2,8 @@ package edgegw
 
 import (
 	"context"
-	"fmt"
 
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
-
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
@@ -14,8 +11,7 @@ import (
 )
 
 type NATRuleModel struct {
-	// Option not implemented - see schema comment
-	// AppPortProfileID supertypes.StringValue `tfsdk:"app_port_profile_id"`
+	AppPortProfileID supertypes.StringValue `tfsdk:"app_port_profile_id"`
 	Description      supertypes.StringValue `tfsdk:"description"`
 	DnatExternalPort supertypes.StringValue `tfsdk:"dnat_external_port"`
 	EdgeGatewayID    supertypes.StringValue `tfsdk:"edge_gateway_id"`
@@ -33,64 +29,6 @@ type NATRuleModel struct {
 	SnatDestinationAddress supertypes.StringValue `tfsdk:"snat_destination_address"`
 }
 
-func NewNATRule(t any) *NATRuleModel {
-	switch x := t.(type) {
-	case tfsdk.State:
-		return &NATRuleModel{
-			Description:            supertypes.NewStringNull(),
-			DnatExternalPort:       supertypes.NewStringNull(),
-			EdgeGatewayID:          supertypes.NewStringUnknown(),
-			EdgeGatewayName:        supertypes.NewStringUnknown(),
-			Enabled:                supertypes.NewBoolNull(),
-			ExternalAddress:        supertypes.NewStringNull(),
-			FirewallMatch:          supertypes.NewStringNull(),
-			ID:                     supertypes.NewStringUnknown(),
-			InternalAddress:        supertypes.NewStringNull(),
-			Name:                   supertypes.NewStringUnknown(),
-			Priority:               supertypes.NewInt64Unknown(),
-			RuleType:               supertypes.NewStringNull(),
-			SnatDestinationAddress: supertypes.NewStringNull(),
-		}
-
-	case tfsdk.Plan:
-		return &NATRuleModel{
-			Description:            supertypes.NewStringNull(),
-			DnatExternalPort:       supertypes.NewStringNull(),
-			EdgeGatewayID:          supertypes.NewStringUnknown(),
-			EdgeGatewayName:        supertypes.NewStringUnknown(),
-			Enabled:                supertypes.NewBoolNull(),
-			ExternalAddress:        supertypes.NewStringNull(),
-			FirewallMatch:          supertypes.NewStringNull(),
-			ID:                     supertypes.NewStringUnknown(),
-			InternalAddress:        supertypes.NewStringNull(),
-			Name:                   supertypes.NewStringUnknown(),
-			Priority:               supertypes.NewInt64Unknown(),
-			RuleType:               supertypes.NewStringNull(),
-			SnatDestinationAddress: supertypes.NewStringNull(),
-		}
-
-	case tfsdk.Config:
-		return &NATRuleModel{
-			Description:            supertypes.NewStringNull(),
-			DnatExternalPort:       supertypes.NewStringNull(),
-			EdgeGatewayID:          supertypes.NewStringUnknown(),
-			EdgeGatewayName:        supertypes.NewStringUnknown(),
-			Enabled:                supertypes.NewBoolNull(),
-			ExternalAddress:        supertypes.NewStringNull(),
-			FirewallMatch:          supertypes.NewStringNull(),
-			ID:                     supertypes.NewStringUnknown(),
-			InternalAddress:        supertypes.NewStringNull(),
-			Name:                   supertypes.NewStringUnknown(),
-			Priority:               supertypes.NewInt64Unknown(),
-			RuleType:               supertypes.NewStringNull(),
-			SnatDestinationAddress: supertypes.NewStringNull(),
-		}
-
-	default:
-		panic(fmt.Sprintf("unexpected type %T %v", t, x))
-	}
-}
-
 func (rm *NATRuleModel) Copy() *NATRuleModel {
 	x := &NATRuleModel{}
 	utils.ModelCopy(rm, x)
@@ -99,6 +37,12 @@ func (rm *NATRuleModel) Copy() *NATRuleModel {
 
 func (rm *NATRuleModel) ToNsxtNATRule(ctx context.Context) (values *govcdtypes.NsxtNatRule, err error) {
 	values = &govcdtypes.NsxtNatRule{
+		ApplicationPortProfile: func() *govcdtypes.OpenApiReference {
+			if rm.AppPortProfileID.Get() != "" {
+				return &govcdtypes.OpenApiReference{ID: rm.AppPortProfileID.Get()}
+			}
+			return nil
+		}(),
 		Name:                     rm.Name.Get(),
 		Description:              rm.Description.Get(),
 		Enabled:                  rm.Enabled.Get(),

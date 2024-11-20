@@ -135,7 +135,7 @@ func (r *natRuleResource) Create(ctx context.Context, req resource.CreateRequest
 	// Create NAT Rule
 	rule, err := r.edgegw.CreateNatRule(nsxtNATRule)
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating NSX-T NAT rule: %s", err.Error())
+		resp.Diagnostics.AddError("Error creating NSX-T NAT rule: ", err.Error())
 		return
 	}
 
@@ -247,7 +247,7 @@ func (r *natRuleResource) Update(ctx context.Context, req resource.UpdateRequest
 	// Inject ID for update
 	nsxtNATRule.ID = existingRule.NsxtNatRule.ID
 	if _, err = existingRule.Update(nsxtNATRule); err != nil {
-		resp.Diagnostics.AddError("Error updating NSX-T NAT rule: %s", err.Error())
+		resp.Diagnostics.AddError("Error updating NSX-T NAT rule: ", err.Error())
 		return
 	}
 
@@ -321,7 +321,7 @@ func (r *natRuleResource) ImportState(ctx context.Context, req resource.ImportSt
 
 	defer metrics.New("cloudavenue_edgegateway_nat_rule", r.client.GetOrgName(), metrics.Import)()
 
-	// Split req.ID with dot. ID format is EdgeGatewayIDOrName.NATRuleNameOrID
+	// Split req.ID with dot. ID format is EdgeGatewayIDOrName.NATRuleIDOrName
 	idParts := strings.Split(req.ID, ".")
 
 	if len(idParts) != 2 {
@@ -352,15 +352,37 @@ func (r *natRuleResource) ImportState(ctx context.Context, req resource.ImportSt
 		return
 	}
 
-	// NATRule ID is not a URN
+	// Check if NATRule is ID or a Name
 	if uuid.IsUUIDV4(idParts[1]) {
 		natRule, err = r.edgegw.GetNatRuleById(idParts[1])
+		if err != nil {
+			resp.Diagnostics.AddError("Failed to Get NAT Rule.", err.Error())
+			return
+		}
 	} else {
-		natRule, err = r.edgegw.GetNatRuleByName(idParts[1])
-	}
-	if err != nil {
-		resp.Diagnostics.AddError("Failed to Get NAT Rule.", err.Error())
-		return
+		// Get all NAT Rules
+		allRules, err := r.edgegw.GetAllNatRules(nil)
+		if err != nil {
+			resp.Diagnostics.AddError("Failed to Get NAT Rule.", err.Error())
+			return
+		}
+		// Filter NAT Rule by Name
+		allResults := make([]*govcd.NsxtNatRule, 0)
+		for _, rule := range allRules {
+			if rule.NsxtNatRule.Name == idParts[1] {
+				allResults = append(allResults, rule)
+			}
+		}
+		// Check if multiple NAT Rules found with the same name
+		if len(allResults) > 1 {
+			resp.Diagnostics.AddError("Failed to Get NAT Rule.", fmt.Sprintf("Multiple NAT Rules found with the same name: %s", idParts[1]))
+			return
+		}
+		if len(allResults) == 0 {
+			resp.Diagnostics.AddError("Failed to Get NAT Rule.", fmt.Sprintf("No NAT Rule found with the name: %s", idParts[1]))
+			return
+		}
+		natRule = allResults[0]
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), natRule.NsxtNatRule.ID)...)
@@ -389,6 +411,17 @@ func (r *natRuleResource) read(planOrState *NATRuleModel) (stateRefreshed *NATRu
 		}
 		diags.AddError("Error retrieving NAT Rule ID", err.Error())
 		return
+	}
+
+	// Check if ApplicationPortProfileID is known
+	var appPortProfile *govcd.NsxtAppPortProfile
+	if stateRefreshed.AppPortProfileID.IsKnown() {
+		appPortProfile, err = r.org.GetNsxtAppPortProfileById(stateRefreshed.AppPortProfileID.Get())
+		if err != nil {
+			diags.AddError("Error retrieving NSX-T Application Port Profile", err.Error())
+			return
+		}
+		stateRefreshed.AppPortProfileID.Set(appPortProfile.NsxtAppPortProfile.ID)
 	}
 
 	stateRefreshed.Description.Set(rule.NsxtNatRule.Description)
