@@ -28,7 +28,7 @@ var (
 	yellow = color.New(color.FgYellow)
 
 	vcdEquivalentCA = map[string]string{
-		"vcd_catalog_access_control ":          "cloudavenue_catalog_acl",
+		"vcd_catalog_access_control":           "cloudavenue_catalog_acl",
 		"vcd_independent_disk":                 "cloudavenue_vm_disk",
 		"vcd_inserted_media":                   "cloudavenue_vm_inserted_media",
 		"vcd_network_isolated_v2":              "cloudavenue_network_isolated",
@@ -38,15 +38,15 @@ var (
 		"vcd_nsxt_edgegateway":                 "cloudavenue_edgegateway",
 		"vcd_nsxt_firewall":                    "cloudavenue_edgegateway_firewall",
 		"vcd_nsxt_ip_set":                      "cloudavenue_edgegateway_ip_set",
-		"vcd_nsxt_ipsec_vpn_tunnel":            "cloudavenue_edgegateway_ipsec_vpn_tunnel",
+		"vcd_nsxt_ipsec_vpn_tunnel":            "cloudavenue_edgegateway_vpn_ipsec",
 		"vcd_nsxt_nat_rule":                    "cloudavenue_edgegateway_nat_rule",
-		"vcd_nsxt_network_dhcp_binding ":       "cloudavenue_network_dhcp_binding",
+		"vcd_nsxt_network_dhcp_binding":        "cloudavenue_network_dhcp_binding",
 		"vcd_nsxt_security_group":              "cloudavenue_edgegateway_security_group",
 		"vcd_vapp_network":                     "cloudavenue_vapp_isolated_network",
 		"vcd_vapp_vm":                          "cloudavenue_vm",
 		"vcd_vapp_access_control":              "cloudavenue_vapp_acl",
 		"vcd_vm_internal_disk":                 "cloudavenue_vm_disk",
-		"vcd_org_group ":                       "cloudavenue_iam_group",
+		"vcd_org_group":                        "cloudavenue_iam_group",
 		"vcd_org_user":                         "cloudavenue_iam_user",
 		"vcd_org_vdc":                          "cloudavenue_vdc",
 		"vcd_org_vdc_access_control":           "cloudavenue_vdc_acl",
@@ -54,10 +54,11 @@ var (
 		"vcd_security_tag":                     "cloudavenue_vm_security_tag",
 		"vcd_right":                            "cloudavenue_iam_right",
 		"vcd_nsxt_network_dhcp":                "cloudavenue_network_dhcp",
-		"vcd_nsxt_network_dhcp_binding":        "cloudavenue_network_dhcp_binding",
 		"vcd_vm":                               "cloudavenue_vm",
 		"vcd_nsxt_edgegateway_dhcp_forwarding": "cloudavenue_edgegateway_dhcp_forwarding",
 		"vcd_nsxt_edgegateway_static_route":    "cloudavenue_edgegateway_static_route",
+		// "vcd_nsxt_distributed_firewall":        "cloudavenue_edgegateway_firewall",
+		// "vcd_nsxt_distributed_firewall_rule":   "cloudavenue_edgegateway_firewall",
 	}
 
 	vcdNotApplicableCA = []string{
@@ -77,6 +78,7 @@ var (
 		"vcd_network_direct",     // NSX-V not supported on cloudavenue
 		"vcd_network_isolated",   // NSX-V not supported on cloudavenue
 		"vcd_network_routed",     // NSX-V not supported on cloudavenue
+		"vcd_network_pool",       // Require system Admin
 		"vcd_nsxt_alb_cloud",
 		"vcd_nsxt_alb_controller",
 		"vcd_nsxt_alb_edgegateway_service_engine_group",
@@ -87,7 +89,7 @@ var (
 		"vcd_nsxt_edgegateway_bgp_ip_prefix_list",
 		"vcd_nsxt_edgegateway_bgp_neighbor",
 		"vcd_nsxt_edgegateway_qos_profile",   // Edgegateway QoS Profile require NSX-T Manager
-		"vcd_nsxt_edgegateway_rate_limiting", // Edgegateway Rate Limiting require Edgegateway QoS Profile to be usefull
+		"vcd_nsxt_edgegateway_rate_limiting", // Edgegateway Rate Limiting require Edgegateway QoS Profile to be useful
 		"vcd_nsxt_network_imported",
 		"vcd_nsxt_route_advertisement",
 		"vcd_nsxt_tier0_router",         // Tier0 router require NSX-T Manager
@@ -128,9 +130,48 @@ var (
 		"vcd_rde_type",
 		"vcd_rde_type_behavior",
 		"vcd_rde_type_behavior_acl",
+		"vcd_rde_behavior_invocation",
 		"vcd_ui_plugin",
-		"vcd_vm_placement_policy", // Require Admin Org
-		"vcd_vm_sizing_policy",    // Require Admin Org
+		"vcd_vm_placement_policy",        // Require System Org
+		"vcd_vm_sizing_policy",           // Require System Org
+		"vcd_external_endpoint",          // Require System Org
+		"vcd_cse_kubernetes_cluster",     // because
+		"vcd_dse_registry_configuration", // Require System Org
+		"vcd_dse_solution_publish",       // Require System Org
+		"vcd_api_token",                  // Cloudavenue does not support API token
+		"vcd_api_filter",                 // Require System Org
+		"vcd_library_certificate",        // Require System Org
+		"vcd_multisite_site_association",
+		"vcd_nsxt_network_segment_profile",                 // Require System Org
+		"vcd_nsxt_segment_profile_template",                // Require System Org
+		"vcd_nsxt_global_default_segment_profile_template", // Require System Org
+		"vcd_nsxt_network_context_profile",                 // Require System Org
+		"vcd_nsxt_segment_mac_discovery_profile",           // Require System Org
+		"vcd_nsxt_segment_ip_discovery_profile",            // Require System Org
+		"vcd_nsxt_segment_qos_profile",                     // Require System Org
+		"vcd_nsxt_segment_security_profile",                // Require System Org
+		"vcd_nsxt_segment_spoof_guard_profile",             // Require System Org
+		"vcd_nsxt_tier0_router_interface",                  // Require System Org
+		"vcd_org_vdc_nsxt_network_profile",
+		"vcd_org_vdc_template",
+		"vcd_org_vdc_template_instance",
+		"vcd_solution_add_on",                  // Require System Org
+		"vcd_solution_add_on_instance",         // Require System Org
+		"vcd_solution_add_on_instance_publish", // Require System Org
+		"vcd_solution_landing_zone",            // Require System Org
+		"vcd_service_account",                  // Cloudavenue does not support service account
+		"vcd_vapp_firewall_rules",              // Cloudavenue does not support vapp firewall rules
+		"vcd_vapp_nat_rules",                   // Cloudavenue does not support vapp nat rules
+		"vcd_vapp_static_routing",              // Cloudavenue does not support vapp static routing
+		"vcd_vm_vgpu_policy",                   // Cloudavenue does not support vgpu policy
+		"vcd_multisite_site",                   // Cloudavenue does not support multisite site
+		"vcd_multisite_site_data",              // Cloudavenue does not support multisite site data
+		"vcd_portgroup",                        // Cloudavenue does not support portgroup
+		"vcd_task",
+		"vcd_vcenter",
+		"vcd_version",
+		"vcd_vgpu_profile",
+		"vcd_vm_group",
 	}
 )
 
@@ -145,7 +186,7 @@ func main() {
 	defer file.Close()
 
 	// Init provider Cloud Avenue
-	ppCA := caProvider.New(caProvider.VCDVersion)
+	ppCA := caProvider.New("test")
 	// Init provider VMware Cloud Director
 	ppVCD := vcdProvider.Provider()
 	ppVCDVersion := vcdProvider.BuildVersion
