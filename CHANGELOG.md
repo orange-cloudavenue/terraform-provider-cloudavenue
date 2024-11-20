@@ -1,5 +1,9 @@
 ## 0.21.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* `resource/cloudavenue_iam_user_saml` - New beta resource for importing IAM users with SAML provider. (GH-821)
+
 ## 0.20.4 (November 19, 2024)
 
 ### :bug: **Bug Fixes**
