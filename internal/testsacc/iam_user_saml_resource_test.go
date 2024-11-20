@@ -10,28 +10,28 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
-var _ testsacc.TestACC = &iamUserSAMLResource{}
+var _ testsacc.TestACC = &IAMUserSAMLResource{}
 
 const (
-	iamUserSAMLResourceName = testsacc.ResourceName("cloudavenue_iam_user_saml")
+	IAMUserSAMLResourceName = testsacc.ResourceName("cloudavenue_iam_user_saml")
 )
 
-type iamUserSAMLResource struct{}
+type IAMUserSAMLResource struct{}
 
-func NewiamUserSAMLResourceTest() testsacc.TestACC {
-	return &iamUserSAMLResource{}
+func NewIAMUserSAMLResourceTest() testsacc.TestACC {
+	return &IAMUserSAMLResource{}
 }
 
 // GetResourceName returns the name of the resource.
-func (r *iamUserSAMLResource) GetResourceName() string {
-	return iamUserSAMLResourceName.String()
+func (r *IAMUserSAMLResource) GetResourceName() string {
+	return IAMUserSAMLResourceName.String()
 }
 
-func (r *iamUserSAMLResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+func (r *IAMUserSAMLResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	return
 }
 
-func (r *iamUserSAMLResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *IAMUserSAMLResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
@@ -144,10 +144,10 @@ func (r *iamUserSAMLResource) Tests(ctx context.Context) map[testsacc.TestName]f
 	}
 }
 
-func TestAcciamUserSAMLResource(t *testing.T) {
+func TestAccIAMUserSAMLResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps:                    testsacc.GenerateTests(&iamUserSAMLResource{}),
+		Steps:                    testsacc.GenerateTests(&IAMUserSAMLResource{}),
 	})
 }
