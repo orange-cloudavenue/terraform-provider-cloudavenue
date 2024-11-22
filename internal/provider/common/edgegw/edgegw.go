@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
@@ -30,6 +31,7 @@ type BaseEdgeGW struct {
 
 type EdgeGateway struct {
 	Client *client.CloudAvenue
+	// *sdkv1.EdgeGw
 	*govcd.NsxtEdgeGateway
 }
 
@@ -53,8 +55,8 @@ func (e BaseEdgeGW) GetIDOrName() string {
 
 // GetParent returns the parent of the Edge Gateway.
 // The parent is VDC Or VDC Group object.
-func (e EdgeGateway) GetParent() (client.VDCOrVDCGroupHandler, error) {
-	return e.Client.GetVDCOrVDCGroup(e.EdgeGateway.OwnerRef.Name)
+func (e EdgeGateway) GetParent() (sdkv1.VDCOrVDCGroupInterface, error) {
+	return e.Client.CAVSDK.V1.VDC().GetVDCOrVDCGroup(e.EdgeGateway.OwnerRef.Name)
 }
 
 // GetName returns the name of the Edge Gateway.
