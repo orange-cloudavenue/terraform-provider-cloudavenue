@@ -135,34 +135,6 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 							resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
 						},
 					},
-					// Update memory_allocated
-					{
-						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-						resource "cloudavenue_vdc" "example" {
-							name                  = {{ get . "name" }}
-							description           = {{ get . "description" }}
-							cpu_allocated         = 22500
-							memory_allocated      = 40
-							cpu_speed_in_mhz      = 2200
-							billing_model         = "PAYG"
-							disponibility_class   = "ONE-ROOM"
-							service_class         = "STD"
-							storage_billing_model = "PAYG"
-
-							storage_profiles = [{
-								class   = "gold"
-								default = true
-								limit   = 500
-							  }]
-						}`),
-						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
-							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
-							resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22500"),
-							resource.TestCheckResourceAttr(resourceName, "memory_allocated", "40"),
-							resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
-						},
-					},
 					// Update cpu_speed_in_mhz
 					// NOTE : This generate resource replacement
 					{
@@ -189,6 +161,34 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 							PlanOnly:           true,
 							ExpectNonEmptyPlan: true,
 							ExpectError:        regexp.MustCompile(`CPU speed in MHz attribute is not valid`),
+						},
+					},
+					// Update memory_allocated
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdc" "example" {
+							name                  = {{ get . "name" }}
+							description           = {{ get . "description" }}
+							cpu_allocated         = 22500
+							memory_allocated      = 40
+							cpu_speed_in_mhz      = 2200
+							billing_model         = "PAYG"
+							disponibility_class   = "ONE-ROOM"
+							service_class         = "STD"
+							storage_billing_model = "PAYG"
+
+							storage_profiles = [{
+								class   = "gold"
+								default = true
+								limit   = 500
+							  }]
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22500"),
+							resource.TestCheckResourceAttr(resourceName, "memory_allocated", "40"),
+							resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
 						},
 					},
 				},
