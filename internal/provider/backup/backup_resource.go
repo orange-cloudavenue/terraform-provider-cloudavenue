@@ -22,9 +22,10 @@ var (
 )
 
 const (
-	vdc  string = "vdc"
-	vapp string = "vapp"
-	vm   string = "vm"
+	vdc         string = "vdc"
+	vapp        string = "vapp"
+	vm          string = "vm"
+	timeoutWait        = 60
 )
 
 // NewbackupResource is a helper function to simplify the provider implementation.
@@ -89,7 +90,7 @@ func (r *backupResource) Create(ctx context.Context, req resource.CreateRequest,
 		resp.Diagnostics.AddError("Error refreshing NetBackup inventory", err.Error())
 		return
 	}
-	if err := job.Wait(1, 45); err != nil {
+	if err := job.Wait(1, timeoutWait); err != nil {
 		resp.Diagnostics.AddError("Error waiting for NetBackup inventory refresh", err.Error())
 		return
 	}
@@ -100,11 +101,6 @@ func (r *backupResource) Create(ctx context.Context, req resource.CreateRequest,
 		resp.Diagnostics.Append(d...)
 		return
 	}
-
-	// // Set target name
-	// if plan.TargetName.IsNull() {
-	// 	plan.TargetName.Set(typeTarget.GetName())
-	// }
 
 	// Apply the protection levels policies for each policy
 	if err := applyPolicies(typeTarget, policies); err != nil {
@@ -302,7 +298,7 @@ func (r *backupResource) ImportState(ctx context.Context, req resource.ImportSta
 		resp.Diagnostics.AddError("Error refreshing NetBackup inventory", err.Error())
 		return
 	}
-	if err := job.Wait(1, 45); err != nil {
+	if err := job.Wait(1, timeoutWait); err != nil {
 		resp.Diagnostics.AddError("Error waiting for NetBackup inventory refresh", err.Error())
 		return
 	}
@@ -346,7 +342,7 @@ func applyPolicy[T target](t T, policy backupModelPolicy) (backupModelPolicy, er
 	if err != nil {
 		return backupModelPolicy{}, err
 	}
-	if err := job.Wait(1, 30); err != nil {
+	if err := job.Wait(1, timeoutWait); err != nil {
 		return backupModelPolicy{}, err
 	}
 
@@ -399,7 +395,7 @@ func unApplyPolicy[T target](t T, policy backupModelPolicy) error {
 	if err != nil {
 		return err
 	}
-	if err := job.Wait(1, 15); err != nil {
+	if err := job.Wait(1, timeoutWait); err != nil {
 		return err
 	}
 

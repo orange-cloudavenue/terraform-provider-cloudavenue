@@ -71,7 +71,7 @@ resource "cloudavenue_backup" "example-vm" {
 
 Required:
 
-- `policy_name` (String) The name of the backup policy. Each letter represent a strategy predefined: D = Daily, W = Weekly, M = Monthly, X = Replication, The number is the retention period. [Please refer to the documentation for more information.](https://wiki.cloudavenue.orange-business.com/wiki/Backup). Value must be one of : `D6`, `D30`, `D30NQ`, `D60`, `W4`, `M3`, `M12`, `XD6`, `XD30`, `XD60`, `XW4`, `XM3`, `XM12`.
+- `policy_name` (String) The name of the backup policy. Each letter represent a strategy predefined: D = Daily, W = Weekly, M = Monthly, X = Replication, The number is the retention period. [Please refer to the documentation for more information.](https://wiki.cloudavenue.orange-business.com/wiki/Backup).
 
 Read-Only:
 
