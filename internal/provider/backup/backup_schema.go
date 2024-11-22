@@ -119,9 +119,6 @@ func backupSchema(_ context.Context) superschema.Schema {
 						},
 						Resource: &schemaR.StringAttribute{
 							Required: true,
-							Validators: []validator.String{
-								stringvalidator.OneOf("D6", "D30", "D30NQ", "D60", "W4", "M3", "M12", "XD6", "XD30", "XD60", "XW4", "XM3", "XM12"),
-							},
 						},
 						DataSource: &schemaD.StringAttribute{
 							Computed: true,

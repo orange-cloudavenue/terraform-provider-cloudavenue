@@ -1,0 +1,11 @@
+```release-note:bug
+`resource/cloudavenue_backup` - Due to the evolution of the backup policy names, this is no longer a restricted list: the field is free.
+```
+
+```release-note:bug
+`resource/cloudavenue_backup` - Increase timeout with backup resource comunication.
+```
+
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.12.3 to 0.12.4
+```

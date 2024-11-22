@@ -123,15 +123,15 @@ func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(c
 							type = "vapp"
 							target_id = cloudavenue_vapp.example.id
 							policies = [{
-									policy_name = "D6"
+									policy_name = "D30"
 								},
 								{
-									policy_name = "D30"
+									policy_name = "M3"
 								}]
 						}`,
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "policies.0.policy_name", "D6"),
-							resource.TestCheckResourceAttr(resourceName, "policies.1.policy_name", "D30"),
+							resource.TestCheckResourceAttr(resourceName, "policies.0.policy_name", "D30"),
+							resource.TestCheckResourceAttr(resourceName, "policies.1.policy_name", "M3"),
 						},
 					},
 				},
@@ -162,7 +162,7 @@ func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(c
 					TFConfig: `
 					resource "cloudavenue_backup" "example_vm" {
 					  type = "vm"
-					  target_name = cloudavenue_vm.example_backup.name
+					  target_name = cloudavenue_vm.example.name
 					  policies = [{
 					    policy_name = "D6"
 					  }]
@@ -178,7 +178,7 @@ func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(c
 						TFConfig: `
 						resource "cloudavenue_backup" "example_vm" {
 						  type = "vm"
-						  target_name = cloudavenue_vm.example_backup.name
+						  target_name = cloudavenue_vm.example.name
 						  policies = [{
 						      policy_name = "D6"
 						    },{
