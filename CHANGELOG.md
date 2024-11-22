@@ -1,4 +1,14 @@
 ## 0.22.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_backup` - Due to the evolution of the backup policy names, this is no longer a restricted list: the field is free. (GH-833)
+* `resource/cloudavenue_backup` - Increase timeout with backup resource comunication. (GH-833)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.12.3 to 0.12.4 (GH-833)
+
 ## 0.21.0 (November 20, 2024)
 
 ### :rocket: **New Features**
