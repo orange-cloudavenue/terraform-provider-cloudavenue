@@ -144,7 +144,7 @@ InternalDiskCreate
 Creates a new internal disk associated with a VM.
 */
 func InternalDiskCreate(ctx context.Context, c *client.CloudAvenue, disk InternalDisk, vAppName, vmName, vdcName types.String) (newDisk *InternalDisk, d diag.Diagnostics) {
-	vdc, err := c.GetVDC(client.WithVDCName(vdcName.ValueString()))
+	vdc, err := c.GetVDC(vdcName.ValueString())
 	if err != nil {
 		d.AddError("Error retrieving VDC", err.Error())
 		return nil, d
@@ -246,7 +246,7 @@ InternalDiskUpdate
 Updates an internal disk associated with a VM.
 */
 func InternalDiskUpdate(ctx context.Context, c *client.CloudAvenue, disk InternalDisk, vAppName, vmName, vdcName types.String) (updatedDisk *InternalDisk, d diag.Diagnostics) {
-	vdc, err := c.GetVDC(client.WithVDCName(vdcName.ValueString()))
+	vdc, err := c.GetVDC(vdcName.ValueString())
 	if err != nil {
 		d.AddError("Error retrieving VDC", err.Error())
 		return

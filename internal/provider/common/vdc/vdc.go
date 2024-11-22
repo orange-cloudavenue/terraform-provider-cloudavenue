@@ -11,12 +11,12 @@ import (
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
 
 type VDC struct {
-	*client.VDC
-	org *client.Org
+	*v1.VDC
 }
 
 /*
@@ -91,24 +91,13 @@ If vDC is not defined at data source level, use the one defined at provider leve
 */
 func Init(c *client.CloudAvenue, vdc types.String) (VDC, diag.Diagnostics) {
 	var (
-		d    = diag.Diagnostics{}
-		opts = make([]client.GetVDCOpts, 0)
-		v    = VDC{}
+		d = diag.Diagnostics{}
+		v = VDC{}
 
 		err error
 	)
 
-	v.org, err = c.GetOrg()
-	if err != nil {
-		d.AddError("Unable to get ORG", err.Error())
-		return VDC{}, d
-	}
-
-	if !vdc.IsNull() && !vdc.IsUnknown() {
-		opts = append(opts, client.WithVDCName(vdc.ValueString()))
-	}
-
-	v.VDC, err = c.GetVDC(opts...)
+	v.VDC, err = c.GetVDC(vdc.ValueString())
 	if err != nil {
 		d.AddError("Unable to get VDC", err.Error())
 		return VDC{}, d
