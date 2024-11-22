@@ -14,6 +14,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
@@ -390,7 +391,7 @@ func (r *networkRoutedResource) read(ctx context.Context, planOrState *networkRo
 	return stateRefreshed, true, diags
 }
 
-func (r *networkRoutedResource) setNetworkAPIObject(ctx context.Context, plan *networkRoutedModel, vdcOrVDCGroup client.VDCOrVDCGroupHandler) (orgVDCNetwork *govcdtypes.OpenApiOrgVdcNetwork, diags diag.Diagnostics) {
+func (r *networkRoutedResource) setNetworkAPIObject(ctx context.Context, plan *networkRoutedModel, vdcOrVDCGroup sdkv1.VDCOrVDCGroupInterface) (orgVDCNetwork *govcdtypes.OpenApiOrgVdcNetwork, diags diag.Diagnostics) {
 	ipPools, d := plan.StaticIPPool.Get(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
