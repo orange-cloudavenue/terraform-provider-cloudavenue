@@ -9,18 +9,18 @@ import (
 // GetVDC
 // return the vdc using the name provided in the argument.
 // If the name is empty, it will try to use the default vdc provided in the provider.
-func (c *CloudAvenue) GetVDC(vdcNamestring string) (vdc *v1.VDC, err error) {
-	if vdcNamestring == "" {
+func (c *CloudAvenue) GetVDC(vdcName string) (vdc *v1.VDC, err error) {
+	if vdcName == "" {
 		if c.DefaultVDCExist() {
-			vdcNamestring = c.GetDefaultVDC()
+			vdcName = c.GetDefaultVDC()
 		} else {
 			return nil, fmt.Errorf("%w", ErrEmptyVDCNameProvided)
 		}
 	}
 
-	vdc, err = c.CAVSDK.V1.VDC().GetVDC(vdcNamestring)
+	vdc, err = c.CAVSDK.V1.VDC().GetVDC(vdcName)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s %w", ErrRetrievingVDC, vdcNamestring, err)
+		return nil, fmt.Errorf("%w: %s %w", ErrRetrievingVDC, vdcName, err)
 	}
 
 	return vdc, nil

@@ -4,38 +4,39 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
 
 type AdminVDC struct {
-	*client.AdminVDC
-	adminOrg *client.AdminOrg
+	*v1.AdminVDC
+	adminOrg *v1.AdminOrg
 }
 
-func Init(c *client.CloudAvenue, adminvdc types.String) (AdminVDC, diag.Diagnostics) {
-	var (
-		d    = diag.Diagnostics{}
-		opts = make([]client.GetAdminVDCOpts, 0)
-		v    = AdminVDC{}
+func Init(c *client.CloudAvenue, adminvdc types.String) (avdc AdminVDC, diags diag.Diagnostics) {
+	var err error
 
-		err error
-	)
-
-	v.adminOrg, err = c.GetAdminOrg()
+	avdc.adminOrg, err = c.CAVSDK.V1.AdminOrg()
 	if err != nil {
-		d.AddError("Unable to get AdminORG", err.Error())
-		return AdminVDC{}, d
+		diags.AddError("Unable to get AdminOrg", err.Error())
+		return AdminVDC{}, diags
 	}
 
-	if !adminvdc.IsNull() && !adminvdc.IsUnknown() {
-		opts = append(opts, client.WithAdminVDCName(adminvdc.ValueString()))
+	vdcName := adminvdc.ValueString()
+	if vdcName == "" {
+		if c.DefaultVDCExist() {
+			vdcName = c.GetDefaultVDC()
+		} else {
+			diags.AddError("Empty VDC name provided", client.ErrEmptyVDCNameProvided.Error())
+			return
+		}
 	}
 
-	v.AdminVDC, err = c.GetAdminVDC(opts...)
+	avdc.AdminVDC, err = c.CAVSDK.V1.AdminVDC().Get(vdcName)
 	if err != nil {
-		d.AddError("Unable to get AdminVDC", err.Error())
-		return AdminVDC{}, d
+		diags.AddError("Unable to get AdminVDC", err.Error())
+		return AdminVDC{}, diags
 	}
 
-	return v, nil
+	return avdc, nil
 }
