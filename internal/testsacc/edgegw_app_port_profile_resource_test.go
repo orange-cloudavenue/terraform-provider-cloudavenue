@@ -53,6 +53,7 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(ctx context.Context) map[tests
 					  ]
 					}`),
 					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.AppPortProfile)),
 						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
@@ -89,6 +90,7 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(ctx context.Context) map[tests
 							]
 						  }`),
 						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.AppPortProfile)),
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
@@ -114,6 +116,16 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(ctx context.Context) map[tests
 					},
 					{
 						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_name", "id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

@@ -52,7 +52,8 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "Application Port Profile name.",
 				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
+					Required:            true,
+					MarkdownDescription: "The name is unique within your organization.",
 				},
 				DataSource: &schemaD.StringAttribute{
 					Optional: true,
@@ -80,6 +81,7 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 				Resource: &schemaR.StringAttribute{
 					MarkdownDescription: "ID of the Edge Gateway.",
 					Optional:            true,
+					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
 					},
@@ -92,6 +94,7 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 				Resource: &schemaR.StringAttribute{
 					MarkdownDescription: "Name of the Edge Gateway.",
 					Optional:            true,
+					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
 					},

@@ -1,0 +1,15 @@
+```release-note:bug
+`datasource/cloudavenue_edgegateway_app_port_profile` - Now the datasource retrieves the app port profile with scope `provider` or `system`.
+```
+
+```release-note:enhancement
+`resource/cloudavenue_edgegateway_app_port_profile` - Now the attributs `edge_gateway_id` and `edge_gateway_name` are optional and computed.
+```
+
+```release-note:note
+`datasource/cloudavenue_edgegateway_app_port_profile` - Add note about the scope of app port profile.
+```
+
+```release-note:note
+`resource/cloudavenue_edgegateway_app_port_profile` - Improve the documentation.
+```

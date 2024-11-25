@@ -88,11 +88,7 @@ func (r *appPortProfileResource) Create(ctx context.Context, req resource.Create
 		Implement the resource creation logic here.
 	*/
 
-	var vdcID string
-
 	// Retrieve VDC from edge gateway
-
-	// Get VDC by the edge gateway attribute
 	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
 		ID:   types.StringValue(plan.EdgeGatewayID.Get()),
 		Name: types.StringValue(plan.EdgeGatewayName.Get()),
@@ -102,12 +98,11 @@ func (r *appPortProfileResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	vdcData, err := edgegw.GetParent()
+	vdcOrVDCGroup, err := edgegw.GetParent()
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
 		return
 	}
-	vdcID = vdcData.GetID()
 
 	appPorts, d := plan.toNsxtAppPortProfilePorts(ctx)
 	resp.Diagnostics.Append(d...)
@@ -118,7 +113,7 @@ func (r *appPortProfileResource) Create(ctx context.Context, req resource.Create
 	appPortProfile, err := r.org.CreateNsxtAppPortProfile(&govcdtypes.NsxtAppPortProfile{
 		Name:             plan.Name.Get(),
 		Description:      plan.Description.Get(),
-		ContextEntityId:  vdcID,
+		ContextEntityId:  vdcOrVDCGroup.GetID(),
 		ApplicationPorts: appPorts,
 		OrgRef:           &govcdtypes.OpenApiReference{ID: r.org.GetID()},
 		Scope:            govcdtypes.ApplicationPortProfileScopeTenant,
@@ -129,6 +124,8 @@ func (r *appPortProfileResource) Create(ctx context.Context, req resource.Create
 	}
 
 	plan.ID.Set(appPortProfile.NsxtAppPortProfile.ID)
+	plan.EdgeGatewayID.Set(edgegw.GetID())
+	plan.EdgeGatewayName.Set(edgegw.GetName())
 	state, found, d := r.read(ctx, plan)
 	if !found {
 		resp.State.RemoveResource(ctx)
@@ -310,6 +307,19 @@ func (r *appPortProfileResource) ImportState(ctx context.Context, req resource.I
 		x.Name.Set(appPortProfileIDOrName)
 	}
 
+	// Retrieve VDC from edge gateway
+	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+		ID:   types.StringValue(x.EdgeGatewayID.Get()),
+		Name: types.StringValue(x.EdgeGatewayName.Get()),
+	})
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
+		return
+	}
+
+	x.EdgeGatewayID.Set(edgegw.GetID())
+	x.EdgeGatewayName.Set(edgegw.GetName())
+
 	stateRefreshed, found, d := r.read(ctx, x)
 	if !found {
 		resp.State.RemoveResource(ctx)
@@ -337,8 +347,54 @@ func (r *appPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 	if planOrState.ID.IsKnown() {
 		appPortProfile, err = r.org.GetNsxtAppPortProfileById(stateRefreshed.ID.Get())
 	} else {
-		appPortProfile, err = r.org.GetNsxtAppPortProfileByName(stateRefreshed.Name.Get(), govcdtypes.ApplicationPortProfileScopeTenant)
+		appPortProfilesTenant, erR := r.org.GetAllNsxtAppPortProfiles(nil, govcdtypes.ApplicationPortProfileScopeTenant)
+		if erR != nil {
+			diags.AddError("Error reading App Port Profiles", erR.Error())
+			return
+		}
+
+		for _, singleAppPortProfile := range appPortProfilesTenant {
+			if singleAppPortProfile.NsxtAppPortProfile.Name == stateRefreshed.Name.Get() {
+				appPortProfile = singleAppPortProfile
+				break
+			}
+		}
+
+		if appPortProfile == nil {
+			appPortProfilesProvider, erR := r.org.GetAllNsxtAppPortProfiles(nil, govcdtypes.ApplicationPortProfileScopeProvider)
+			if erR != nil {
+				diags.AddError("Error reading App Port Profiles", erR.Error())
+				return
+			}
+
+			for _, singleAppPortProfile := range appPortProfilesProvider {
+				if singleAppPortProfile.NsxtAppPortProfile.Name == stateRefreshed.Name.Get() {
+					appPortProfile = singleAppPortProfile
+					break
+				}
+			}
+		}
+
+		if appPortProfile == nil {
+			appPortProfilesSystem, erR := r.org.GetAllNsxtAppPortProfiles(nil, govcdtypes.ApplicationPortProfileScopeSystem)
+			if erR != nil {
+				diags.AddError("Error reading App Port Profiles", erR.Error())
+				return
+			}
+
+			for _, singleAppPortProfile := range appPortProfilesSystem {
+				if singleAppPortProfile.NsxtAppPortProfile.Name == stateRefreshed.Name.Get() {
+					appPortProfile = singleAppPortProfile
+					break
+				}
+			}
+		}
+
+		if appPortProfile == nil {
+			err = govcd.ErrorEntityNotFound
+		}
 	}
+
 	if err != nil {
 		if govcd.IsNotFound(err) {
 			return nil, false, nil
