@@ -3,29 +3,25 @@ package org
 import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
 
 type Org struct {
-	*client.Org
+	*v1.Org
 	c *client.CloudAvenue
 }
 
 // Init.
-func Init(c *client.CloudAvenue) (Org, diag.Diagnostics) {
-	var (
-		d = diag.Diagnostics{}
-		o = Org{
-			c: c,
-		}
-		err error
-	)
-
-	o.Org, err = c.GetOrg()
+func Init(c *client.CloudAvenue) (org Org, diags diag.Diagnostics) {
+	o, err := c.CAVSDK.V1.Org()
 	if err != nil {
-		d.AddError("Unable to get ORG", err.Error())
-		return Org{}, d
+		diags.AddError("Unable to get ORG", err.Error())
+		return org, diags
 	}
 
-	return o, nil
+	return Org{
+		Org: o,
+		c:   c,
+	}, nil
 }

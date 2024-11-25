@@ -20,26 +20,6 @@ type VDC struct {
 }
 
 /*
-Schema
-
-	Optional: true
-	Computed: true
-	RequiresReplace
-	UseStateForUnknown
-*/
-func Schema() schemaR.StringAttribute {
-	return schemaR.StringAttribute{
-		Optional: true,
-		Computed: true,
-		PlanModifiers: []planmodifier.String{
-			stringplanmodifier.UseStateForUnknown(),
-			stringplanmodifier.RequiresReplace(),
-		},
-		MarkdownDescription: "(ForceNew) The name of vDC to use, optional if defined at provider level.",
-	}
-}
-
-/*
 SuperSchema
 
 	For the resource :
