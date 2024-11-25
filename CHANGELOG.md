@@ -1,4 +1,9 @@
 ## 0.22.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_edgegateway_firewall` - Fix `BUSY_ENTITY` error when creating or updating the resource in same time as another operation in the edge gateway. (GH-841)
+
 ## 0.21.1 (November 25, 2024)
 
 ### :tada: **Improvements**
