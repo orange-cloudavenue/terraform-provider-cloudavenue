@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &EdgeGatewayAppPortProfileDatasource{}
@@ -27,7 +28,6 @@ func (r *EdgeGatewayAppPortProfileDatasource) GetResourceName() string {
 }
 
 func (r *EdgeGatewayAppPortProfileDatasource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	resp.Append(GetResourceConfig()[EdgeGatewayAppPortProfileResourceName]().GetDefaultConfig)
 	return
 }
 
@@ -37,6 +37,10 @@ func (r *EdgeGatewayAppPortProfileDatasource) Tests(ctx context.Context) map[tes
 		"example": func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{
 				// ! Create testing
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[EdgeGatewayAppPortProfileResourceName]().GetDefaultConfig)
+					return
+				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_edgegateway_app_port_profile" "example" {
@@ -50,6 +54,10 @@ func (r *EdgeGatewayAppPortProfileDatasource) Tests(ctx context.Context) map[tes
 		"example_by_id": func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{
 				// ! Create testing
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[EdgeGatewayAppPortProfileResourceName]().GetDefaultConfig)
+					return
+				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_edgegateway_app_port_profile" "example_by_id" {
@@ -57,6 +65,41 @@ func (r *EdgeGatewayAppPortProfileDatasource) Tests(ctx context.Context) map[tes
 					}`,
 					// Here use resource config test to test the data source
 					Checks: GetResourceConfig()[EdgeGatewayAppPortProfileResourceName]().GetDefaultChecks(),
+				},
+			}
+		},
+		"example_provider_scope": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_edgegateway_app_port_profile" "example_provider_scope" {
+						name = "BKP_TCP_bpcd"
+					}`,
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.AppPortProfile)),
+						resource.TestCheckResourceAttr(resourceName, "name", "BKP_TCP_bpcd"),
+						resource.TestCheckResourceAttr(resourceName, "app_ports.0.protocol", "TCP"),
+						resource.TestCheckResourceAttr(resourceName, "app_ports.0.ports.0", "13782"),
+					},
+				},
+			}
+		},
+		"example_system_scope": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_edgegateway_app_port_profile" "example_system_scope" {
+						name = "HTTP"
+					}`,
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.AppPortProfile)),
+						resource.TestCheckResourceAttr(resourceName, "name", "HTTP"),
+						resource.TestCheckResourceAttr(resourceName, "description", "HTTP"),
+						resource.TestCheckResourceAttr(resourceName, "app_ports.0.protocol", "TCP"),
+						resource.TestCheckResourceAttr(resourceName, "app_ports.0.ports.0", "80"),
+					},
 				},
 			}
 		},

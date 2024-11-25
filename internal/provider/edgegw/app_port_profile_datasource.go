@@ -88,7 +88,7 @@ func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.Read
 	}
 
 	// Read data from the API
-	data, _, diags := s.read(ctx, &AppPortProfileModel{
+	data, found, diags := s.read(ctx, &AppPortProfileModel{
 		ID:              config.ID,
 		Name:            config.Name,
 		Description:     config.Description,
@@ -96,6 +96,14 @@ func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.Read
 		EdgeGatewayName: supertypes.NewStringNull(),
 		AppPorts:        config.AppPorts,
 	})
+	if !found {
+		if config.ID.IsKnown() {
+			resp.Diagnostics.AddError("Not found", fmt.Sprintf("App Port Profile ID %q not found", config.ID))
+		} else {
+			resp.Diagnostics.AddError("Not found", fmt.Sprintf("App Port Profile name %q not found", config.Name))
+		}
+		return
+	}
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return

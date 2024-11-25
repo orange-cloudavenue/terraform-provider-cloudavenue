@@ -9,6 +9,8 @@ description: |-
 
 Provides an App Port Profile resource
 
+~> **Notes** The app port profile created is available for the all edge gateways in the your organization. <br>The app port profile `name` is unique in the organization.
+
 ## Example Usage
 
 ```terraform
@@ -37,7 +39,7 @@ resource "cloudavenue_edgegateway_app_port_profile" "example" {
 ### Required
 
 - `app_ports` (Attributes List) List of application ports. (see [below for nested schema](#nestedatt--app_ports))
-- `name` (String) Application Port Profile name.
+- `name` (String) Application Port Profile name. The name is unique within your organization.
 
 ### Optional
 
