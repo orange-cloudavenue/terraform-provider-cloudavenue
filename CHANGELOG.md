@@ -1,4 +1,5 @@
 ## 0.22.0 (Unreleased)
+## 0.21.1 (November 25, 2024)
 
 ### :tada: **Improvements**
 
