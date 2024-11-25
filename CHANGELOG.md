@@ -1,9 +1,18 @@
 ## 0.22.0 (Unreleased)
 
+### :tada: **Improvements**
+
+* `resource/cloudavenue_edgegateway_app_port_profile` - Now the attributs `edge_gateway_id` and `edge_gateway_name` are optional and computed. (GH-838)
+
 ### :bug: **Bug Fixes**
 
+* `datasource/cloudavenue_edgegateway_app_port_profile` - Now the datasource retrieves the app port profile with scope `provider` or `system`. (GH-838)
 * `resource/cloudavenue_backup` - Due to the evolution of the backup policy names, this is no longer a restricted list: the field is free. (GH-833)
 * `resource/cloudavenue_backup` - Increase timeout with backup resource comunication. (GH-833)
+### :information_source: **Notes**
+
+* `datasource/cloudavenue_edgegateway_app_port_profile` - Add note about the scope of app port profile. (GH-838)
+* `resource/cloudavenue_edgegateway_app_port_profile` - Improve the documentation. (GH-838)
 
 ### :dependabot: **Dependencies**
 
