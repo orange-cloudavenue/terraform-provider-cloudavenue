@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_edgegateway_firewall` - Fix `BUSY_ENTITY` error when creating or updating the resource in same time as another operation in the edge gateway.
+```
