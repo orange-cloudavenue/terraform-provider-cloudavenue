@@ -1,8 +1,6 @@
 package org
 
 import (
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 )
 
@@ -14,22 +12,26 @@ func (o *Org) GetEdgeGateway(egw edgegw.BaseEdgeGW) (edgegw.EdgeGateway, error) 
 		return edgegw.EdgeGateway{}, edgegw.ErrEdgeGatewayIDOrNameIsEmpty
 	}
 
-	var (
-		govcdValues *govcd.NsxtEdgeGateway
-		err         error
-	)
-
-	if egw.GetID() != "" {
-		govcdValues, err = o.GetNsxtEdgeGatewayById(egw.GetID())
-	} else {
-		govcdValues, err = o.GetNsxtEdgeGatewayByName(egw.GetName())
+	edge, err := o.c.CAVSDK.V1.EdgeGateway.Get(egw.GetIDOrName())
+	if err != nil {
+		return edgegw.EdgeGateway{}, err
 	}
+
+	vmwareEdgeGateway, err := edge.GetVmwareEdgeGateway()
 	if err != nil {
 		return edgegw.EdgeGateway{}, err
 	}
 
 	return edgegw.EdgeGateway{
-		Client:          o.c,
-		NsxtEdgeGateway: govcdValues,
+		// Client is the CloudAvenue client.
+		Client: o.c,
+
+		// EdgeClient is the EdgeGateway client.
+		EdgeClient: edge,
+
+		// NsxtEdgeGateway is the NSX-T edge gateway.
+		//
+		// Deprecated: Use EdgeClient instead.
+		NsxtEdgeGateway: vmwareEdgeGateway,
 	}, err
 }

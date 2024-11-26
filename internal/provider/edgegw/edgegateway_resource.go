@@ -9,6 +9,8 @@ import (
 
 	"golang.org/x/exp/slices"
 
+	"github.com/vmware/go-vcloud-director/v2/govcd"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
@@ -274,7 +276,7 @@ func (r *edgeGatewayResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	var edgegwNew v1.EdgeGw
+	var edgegwNew v1.EdgeGatewayType
 
 	// Find the new edge gateway in the list of all edge gateways and set the ID. New edge gateway is in the list refreshed but not in the old list.
 	for _, edgegw := range *edgegwsRefreshed {
@@ -292,7 +294,7 @@ func (r *edgeGatewayResource) Create(ctx context.Context, req resource.CreateReq
 		}
 	}
 
-	if edgegwNew == (v1.EdgeGw{}) {
+	if edgegwNew == (v1.EdgeGatewayType{}) {
 		resp.Diagnostics.AddError("Error retrieving new edge gateway", "New edge gateway not found")
 		return
 	}
@@ -392,7 +394,7 @@ func (r *edgeGatewayResource) Update(ctx context.Context, req resource.UpdateReq
 	ctx, cancel = context.WithTimeout(ctx, updateTimeout)
 	defer cancel()
 
-	edgegw, err := r.client.CAVSDK.V1.EdgeGateway.GetByID(common.ExtractUUID(plan.ID.Get()))
+	edgegw, err := r.client.CAVSDK.V1.EdgeGateway.Get(common.ExtractUUID(plan.ID.Get()))
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving edge gateway", err.Error())
 		return
@@ -435,7 +437,7 @@ func (r *edgeGatewayResource) Delete(ctx context.Context, req resource.DeleteReq
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
 
-	deleteTimeout, errTO := state.Timeouts.Update(ctx, 8*time.Minute)
+	deleteTimeout, errTO := state.Timeouts.Delete(ctx, 8*time.Minute)
 	if errTO != nil {
 		resp.Diagnostics.AddError(
 			"Error creating timeout",
@@ -444,7 +446,7 @@ func (r *edgeGatewayResource) Delete(ctx context.Context, req resource.DeleteReq
 		return
 	}
 
-	edgegw, err := r.client.CAVSDK.V1.EdgeGateway.GetByID(common.ExtractUUID(state.ID.Get()))
+	edgegw, err := r.client.CAVSDK.V1.EdgeGateway.Get(common.ExtractUUID(state.ID.Get()))
 	if err != nil {
 		if commoncloudavenue.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -477,32 +479,17 @@ func (r *edgeGatewayResource) ImportState(ctx context.Context, req resource.Impo
 func (r *edgeGatewayResource) read(_ context.Context, planOrState *edgeGatewayResourceModel) (stateRefreshed *edgeGatewayResourceModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
-	var (
-		edgegw *v1.EdgeGw
-		err    error
-	)
+	nameOrID := planOrState.ID.Get()
+	if nameOrID == "" {
+		nameOrID = planOrState.Name.Get()
+	}
 
-	switch {
-	case planOrState.ID.IsKnown():
-		edgegw, err = r.client.CAVSDK.V1.EdgeGateway.GetByID(common.ExtractUUID(planOrState.ID.Get()))
-		if err != nil {
-			if commoncloudavenue.IsNotFound(err) {
-				return nil, false, nil
-			}
-			diags.AddError("Error retrieving edge gateway", err.Error())
-			return nil, true, diags
+	edgegw, err := r.client.CAVSDK.V1.EdgeGateway.Get(nameOrID)
+	if err != nil {
+		if commoncloudavenue.IsNotFound(err) || govcd.IsNotFound(err) {
+			return nil, false, nil
 		}
-	case planOrState.Name.IsKnown():
-		edgegw, err = r.client.CAVSDK.V1.EdgeGateway.GetByName(planOrState.Name.Get())
-		if err != nil {
-			if commoncloudavenue.IsNotFound(err) {
-				return nil, false, nil
-			}
-			diags.AddError("Error retrieving edge gateway", err.Error())
-			return nil, true, diags
-		}
-	default:
-		diags.AddError("Error retrieving edge gateway", "Either name or ID must be set")
+		diags.AddError("Error retrieving edge gateway", err.Error())
 		return nil, true, diags
 	}
 
