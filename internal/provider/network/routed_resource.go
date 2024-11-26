@@ -118,8 +118,13 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	if vdcOrVDCGroup.IsVDCGroup() {
+		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	} else {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	}
 
 	// Set Network
 	orgVDCNetworkConfig, diag := r.setNetworkAPIObject(ctx, plan, vdcOrVDCGroup)
@@ -209,8 +214,13 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	if vdcOrVDCGroup.IsVDCGroup() {
+		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	} else {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	}
 
 	// Get current network
 	orgNetwork, err := r.org.GetOpenApiOrgVdcNetworkById(plan.ID.Get())
@@ -275,8 +285,13 @@ func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	if vdcOrVDCGroup.IsVDCGroup() {
+		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	} else {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	}
 
 	// Get current network
 	orgNetwork, err := r.org.GetOpenApiOrgVdcNetworkById(state.ID.Get())

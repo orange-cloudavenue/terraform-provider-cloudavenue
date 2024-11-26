@@ -68,7 +68,7 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 	data := config.Copy()
 
 	// Read data from the API
-	edgegw, err := d.client.CAVSDK.V1.EdgeGateway.GetByName(config.Name.Get())
+	edgegw, err := d.client.CAVSDK.V1.EdgeGateway.Get(config.Name.Get())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving edge gateway", err.Error())
 		return

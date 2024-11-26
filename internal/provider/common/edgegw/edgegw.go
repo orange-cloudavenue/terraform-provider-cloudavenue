@@ -30,8 +30,16 @@ type BaseEdgeGW struct {
 }
 
 type EdgeGateway struct {
+	// Client is the CloudAvenue client.
+
 	Client *client.CloudAvenue
-	// *sdkv1.EdgeGw
+
+	// EdgeClient is the EdgeGateway client.
+	*sdkv1.EdgeClient
+
+	// NsxtEdgeGateway is the NSX-T edge gateway.
+	//
+	// Deprecated: Use EdgeClient instead.
 	*govcd.NsxtEdgeGateway
 }
 

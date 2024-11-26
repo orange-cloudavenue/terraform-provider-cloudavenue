@@ -205,9 +205,13 @@ func (r *firewallResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
-
+	if vdcOrVDCGroup.IsVDCGroup() {
+		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	} else {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	}
 	fwRules, err := r.edgegw.GetNsxtFirewall()
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Edge Gateway Firewall", err.Error())
