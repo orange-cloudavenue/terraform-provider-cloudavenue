@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_vdcg_firewall` - New resource for managing vDC Group firewall. This resource allows you to create, update and delete a firewall in a vDC Group. The resource supports the firewall groups : `Security Group`, `Application Port Profile`, `IP Set` and `Dynamic Security Group`.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_vdcg_firewall` - New data source for fetching the details of a firewall in a vDC Group.
+```

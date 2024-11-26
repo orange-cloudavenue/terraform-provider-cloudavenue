@@ -1,0 +1,47 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "vDC Group (Virtual Datacenter Group)"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+ 
+{{ if .HasExample -}}
+## Example Usage
+
+{{ tffile .ExampleFile }}
+{{- end }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Advanced usages 
+
+### With Application Port Profile 
+
+This example shows how to create a firewall with an application port profile.
+{{ tffile (printf "examples/resources/%s/resource-with-app-port-profile.tf" .Name)}}
+
+### With Source IDS
+
+This example shows how to create a firewall with a source IDS. The default value of the destination IDS is `any`.
+{{ tffile (printf "examples/resources/%s/resource-with-source-ids.tf" .Name)}}
+
+### With Destination IDS
+
+This example shows how to create a firewall with a destination IDS. The default value of the source IDS is `any`.
+{{ tffile (printf "examples/resources/%s/resource-with-destination-ids.tf" .Name)}}
+
+### Full 
+
+This example shows how to create a firewall with all the possible attributes.
+{{ tffile (printf "examples/resources/%s/resource-full.tf" .Name)}}
+
+{{ if .HasImport -}}
+## Import
+
+Import is supported using the following syntax:
+{{ codefile "shell" .ImportFile }}
+{{- end }}
