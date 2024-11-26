@@ -4,6 +4,8 @@ go 1.22.7
 
 toolchain go1.23.3
 
+replace github.com/orange-cloudavenue/cloudavenue-sdk-go => ../cloudavenue-sdk-go
+
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
 	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.4
@@ -23,6 +25,7 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.35.0
 	github.com/iancoleman/strcase v0.3.0
+	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.13.0
 	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
 	github.com/rs/zerolog v1.33.0
@@ -83,6 +86,7 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect

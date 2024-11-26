@@ -9,6 +9,7 @@ import (
 
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -38,43 +39,6 @@ func (rm *firewallModel) Copy() *firewallModel {
 	return x
 }
 
-func fromOpenAPIReference(_ context.Context, apiRefs []govcdtypes.OpenApiReference) (values []string) {
-	if len(apiRefs) == 0 {
-		return nil
-	}
-
-	values = make([]string, 0)
-	for _, apiRef := range apiRefs {
-		values = append(values, apiRef.ID)
-	}
-
-	return
-}
-
-func toOpenAPIReference(ctx context.Context, attribute supertypes.SetValueOf[string]) (apiRefs []govcdtypes.OpenApiReference, diags diag.Diagnostics) {
-	if attribute.IsKnown() {
-		values, d := attribute.Get(ctx)
-		if d.HasError() {
-			diags.Append(d...)
-			return
-		}
-
-		if len(values) == 0 {
-			return nil, nil
-		}
-
-		openAPIReferences := make([]govcdtypes.OpenApiReference, 0)
-		for _, id := range values {
-			openAPIReferences = append(openAPIReferences, govcdtypes.OpenApiReference{
-				ID: id,
-			})
-		}
-		return openAPIReferences, nil
-	}
-
-	return nil, nil
-}
-
 func (rm *firewallModel) rulesToNsxtFirewallRule(ctx context.Context) (nsxtFirewallRules []*govcdtypes.NsxtFirewallRule, diags diag.Diagnostics) {
 	rules, d := rm.Rules.Get(ctx)
 	if d.HasError() {
@@ -99,19 +63,19 @@ func (rm *firewallModel) rulesToNsxtFirewallRule(ctx context.Context) (nsxtFirew
 
 		// ! If sourceIDs/destinationIDs is Null, it's an equivalent of any (source/destination)
 
-		nsxtFirewallRules[i].SourceFirewallGroups, d = toOpenAPIReference(ctx, rule.SourceIDs)
+		nsxtFirewallRules[i].SourceFirewallGroups, d = common.ToOpenAPIReferenceID(ctx, rule.SourceIDs)
 		if d.HasError() {
 			diags.Append(d...)
 			return
 		}
 
-		nsxtFirewallRules[i].DestinationFirewallGroups, d = toOpenAPIReference(ctx, rule.DestinationIDs)
+		nsxtFirewallRules[i].DestinationFirewallGroups, d = common.ToOpenAPIReferenceID(ctx, rule.DestinationIDs)
 		if d.HasError() {
 			diags.Append(d...)
 			return
 		}
 
-		nsxtFirewallRules[i].ApplicationPortProfiles, d = toOpenAPIReference(ctx, rule.AppPortProfileIDs)
+		nsxtFirewallRules[i].ApplicationPortProfiles, d = common.ToOpenAPIReferenceID(ctx, rule.AppPortProfileIDs)
 		if d.HasError() {
 			diags.Append(d...)
 			return
