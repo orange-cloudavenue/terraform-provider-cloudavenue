@@ -19,31 +19,31 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &albPoolDataSource{}
-	_ datasource.DataSourceWithConfigure = &albPoolDataSource{}
-	_ albPool                            = &albPoolDataSource{}
+	_ datasource.DataSource              = &poolDataSource{}
+	_ datasource.DataSourceWithConfigure = &poolDataSource{}
+	_ albPool                            = &poolDataSource{}
 )
 
-func NewAlbPoolDataSource() datasource.DataSource {
-	return &albPoolDataSource{}
+func NewPoolDataSource() datasource.DataSource {
+	return &poolDataSource{}
 }
 
-type albPoolDataSource struct {
+type poolDataSource struct {
 	client  *client.CloudAvenue
 	org     org.Org
 	edgegw  edgegw.BaseEdgeGW
 	albPool base
 }
 
-func (d *albPoolDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *poolDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_pool"
 }
 
-func (d *albPoolDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *poolDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = albPoolSchema().GetDataSource(ctx)
 }
 
-func (d *albPoolDataSource) Init(ctx context.Context, dm *albPoolModel) (diags diag.Diagnostics) {
+func (d *poolDataSource) Init(ctx context.Context, dm *albPoolModel) (diags diag.Diagnostics) {
 	d.albPool = base{
 		name: dm.Name.ValueString(),
 		id:   dm.ID.ValueString(),
@@ -58,7 +58,7 @@ func (d *albPoolDataSource) Init(ctx context.Context, dm *albPoolModel) (diags d
 	return
 }
 
-func (d *albPoolDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *poolDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -78,7 +78,7 @@ func (d *albPoolDataSource) Configure(ctx context.Context, req datasource.Config
 	d.client = client
 }
 
-func (d *albPoolDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *poolDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_alb_pool", d.client.GetOrgName(), metrics.Read)()
 
 	var (
@@ -98,7 +98,7 @@ func (d *albPoolDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	// Get albPool.
-	albPool, err := d.GetAlbPool()
+	albPool, err := d.GetALBPool()
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to find ALB Pool", err.Error())
 		return
@@ -145,17 +145,17 @@ func (d *albPoolDataSource) Read(ctx context.Context, req datasource.ReadRequest
 }
 
 // GetID returns the ID of the albPool.
-func (d *albPoolDataSource) GetID() string {
+func (d *poolDataSource) GetID() string {
 	return d.albPool.id
 }
 
 // GetName returns the name of the albPool.
-func (d *albPoolDataSource) GetName() string {
+func (d *poolDataSource) GetName() string {
 	return d.albPool.name
 }
 
 // GetAlbPool returns the govcd.NsxtAlbPool.
-func (d *albPoolDataSource) GetAlbPool() (*govcd.NsxtAlbPool, error) {
+func (d *poolDataSource) GetALBPool() (*govcd.NsxtAlbPool, error) {
 	if d.GetID() != "" {
 		return d.client.Vmware.GetAlbPoolById(d.GetID())
 	}
