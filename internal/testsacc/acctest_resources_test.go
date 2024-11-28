@@ -58,5 +58,9 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		// * IAM
 		IAMUserResourceName:     testsacc.NewResourceConfig(NewIAMUserResourceTest()),
 		IAMUserSAMLResourceName: testsacc.NewResourceConfig(NewIAMUserSAMLResourceTest()),
+
+		// * ALB
+		ALBPoolResourceName:           testsacc.NewResourceConfig(NewALBPoolResourceTest()),
+		ALBVirtualServiceResourceName: testsacc.NewResourceConfig(NewALBVirtualServiceResourceTest()),
 	}
 }

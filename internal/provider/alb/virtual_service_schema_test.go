@@ -4,15 +4,13 @@ import (
 	"context"
 	"testing"
 
-	// fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource".
+	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/alb"
 )
 
-// TODO : Comment or uncomment the following imports if you are using resources or/and datasources
-
-// Unit test for the schema of the resource cloudavenue_alb_VirtualService.
+// Unit test for the schema of the resource cloudavenue_alb_virtual_service.
 func TestVirtualServiceResourceSchema(t *testing.T) {
 	t.Parallel()
 
@@ -34,8 +32,7 @@ func TestVirtualServiceResourceSchema(t *testing.T) {
 	}
 }
 
-// Unit test for the schema of the datasource cloudavenue_alb_VirtualService
-/*
+// Unit test for the schema of the datasource cloudavenue_alb_virtual_service.
 func TestVirtualServiceDataSourceSchema(t *testing.T) {
 	t.Parallel()
 
@@ -56,4 +53,3 @@ func TestVirtualServiceDataSourceSchema(t *testing.T) {
 		t.Fatalf("Schema validation diagnostics: %+v", diagnostics)
 	}
 }
-*/

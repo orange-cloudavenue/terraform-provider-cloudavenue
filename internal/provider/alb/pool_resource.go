@@ -26,19 +26,18 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &albPoolResource{}
-	_ resource.ResourceWithConfigure   = &albPoolResource{}
-	_ resource.ResourceWithImportState = &albPoolResource{}
-	_ albPool                          = &albPoolResource{}
+	_ resource.Resource                = &poolResource{}
+	_ resource.ResourceWithConfigure   = &poolResource{}
+	_ resource.ResourceWithImportState = &poolResource{}
 )
 
-// NewAlbPoolResource is a helper function to simplify the provider implementation.
-func NewAlbPoolResource() resource.Resource {
-	return &albPoolResource{}
+// NewALBPoolResource is a helper function to simplify the provider implementation.
+func NewPoolResource() resource.Resource {
+	return &poolResource{}
 }
 
 // albPoolResource is the resource implementation.
-type albPoolResource struct {
+type poolResource struct {
 	client  *client.CloudAvenue
 	org     org.Org
 	edgegw  edgegw.BaseEdgeGW
@@ -46,16 +45,16 @@ type albPoolResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *albPoolResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *poolResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_pool"
 }
 
 // Schema defines the schema for the resource.
-func (r *albPoolResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *poolResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = albPoolSchema().GetResource(ctx)
 }
 
-func (r *albPoolResource) Init(ctx context.Context, rm *albPoolModel) (diags diag.Diagnostics) {
+func (r *poolResource) Init(ctx context.Context, rm *albPoolModel) (diags diag.Diagnostics) {
 	r.albPool = base{
 		name: rm.Name.ValueString(),
 		id:   rm.ID.ValueString(),
@@ -70,7 +69,7 @@ func (r *albPoolResource) Init(ctx context.Context, rm *albPoolModel) (diags dia
 	return
 }
 
-func (r *albPoolResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *poolResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -91,7 +90,7 @@ func (r *albPoolResource) Configure(ctx context.Context, req resource.ConfigureR
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *albPoolResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *poolResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	defer metrics.New("cloudavenue_alb_pool", r.client.GetOrgName(), metrics.Create)()
 
 	// Retrieve values from plan
@@ -111,7 +110,7 @@ func (r *albPoolResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Prepare config.
-	albPoolConfig, err := r.getAlbPoolConfig(ctx, plan)
+	albPoolConfig, err := r.getALBPoolConfig(ctx, plan)
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to prepare ALB Pool Config", err.Error())
 		return
@@ -127,21 +126,21 @@ func (r *albPoolResource) Create(ctx context.Context, req resource.CreateRequest
 	defer edgeGW.Unlock(ctx)
 
 	// Create ALB Pool
-	createdAlbPool, err := r.client.Vmware.CreateNsxtAlbPool(albPoolConfig)
+	createdALBPool, err := r.client.Vmware.CreateNsxtAlbPool(albPoolConfig)
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to create ALB Pool", err.Error())
 		return
 	}
 
 	// Store ID
-	plan.ID = utils.StringValueOrNull(createdAlbPool.NsxtAlbPool.ID)
+	plan.ID = utils.StringValueOrNull(createdALBPool.NsxtAlbPool.ID)
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *albPoolResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *poolResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	defer metrics.New("cloudavenue_alb_pool", r.client.GetOrgName(), metrics.Read)()
 
 	var (
@@ -161,7 +160,7 @@ func (r *albPoolResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Get albPool.
-	albPool, err := r.GetAlbPool()
+	albPool, err := r.GetALBPool()
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -225,7 +224,7 @@ func (r *albPoolResource) Read(ctx context.Context, req resource.ReadRequest, re
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *albPoolResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *poolResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	defer metrics.New("cloudavenue_alb_pool", r.client.GetOrgName(), metrics.Update)()
 
 	var plan *albPoolModel
@@ -243,14 +242,14 @@ func (r *albPoolResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Get albPool
-	albPool, err := r.GetAlbPool()
+	albPool, err := r.GetALBPool()
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to find ALB Pool", err.Error())
 		return
 	}
 
 	// Prepare config.
-	albPoolConfig, err := r.getAlbPoolConfig(ctx, plan)
+	albPoolConfig, err := r.getALBPoolConfig(ctx, plan)
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to prepare ALB Pool Config", err.Error())
 		return
@@ -277,7 +276,7 @@ func (r *albPoolResource) Update(ctx context.Context, req resource.UpdateRequest
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *albPoolResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *poolResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	defer metrics.New("cloudavenue_alb_pool", r.client.GetOrgName(), metrics.Delete)()
 
 	var state *albPoolModel
@@ -304,7 +303,7 @@ func (r *albPoolResource) Delete(ctx context.Context, req resource.DeleteRequest
 	defer edgeGW.Unlock(ctx)
 
 	// Get albPool
-	albPool, err := r.GetAlbPool()
+	albPool, err := r.GetALBPool()
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to find ALB Pool", err.Error())
 		return
@@ -317,7 +316,7 @@ func (r *albPoolResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 }
 
-func (r *albPoolResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *poolResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	defer metrics.New("cloudavenue_alb_pool", r.client.GetOrgName(), metrics.Import)()
 
 	idParts := strings.Split(req.ID, ".")
@@ -335,17 +334,17 @@ func (r *albPoolResource) ImportState(ctx context.Context, req resource.ImportSt
 }
 
 // GetID returns the ID of the albPool.
-func (r *albPoolResource) GetID() string {
+func (r *poolResource) GetID() string {
 	return r.albPool.id
 }
 
 // GetName returns the name of the albPool.
-func (r *albPoolResource) GetName() string {
+func (r *poolResource) GetName() string {
 	return r.albPool.name
 }
 
-// GetAlbPool returns the govcd.NsxtAlbPool.
-func (r *albPoolResource) GetAlbPool() (*govcd.NsxtAlbPool, error) {
+// GetALBPool returns the govcd.NsxtALBPool.
+func (r *poolResource) GetALBPool() (*govcd.NsxtAlbPool, error) {
 	if r.GetID() != "" {
 		return r.client.Vmware.GetAlbPoolById(r.GetID())
 	}
@@ -357,9 +356,9 @@ func (r *albPoolResource) GetAlbPool() (*govcd.NsxtAlbPool, error) {
 	return r.client.Vmware.GetAlbPoolByName(nsxtEdge.EdgeGateway.ID, r.GetName())
 }
 
-// getAlbPoolConfig is the main function for getting *govcdtypes.NsxtAlbPool for API request. It nests multiple smaller
+// getALBPoolConfig is the main function for getting *govcdtypes.NsxtAlbPool for API request. It nests multiple smaller
 // functions for smaller types.
-func (r *albPoolResource) getAlbPoolConfig(ctx context.Context, d *albPoolModel) (*govcdtypes.NsxtAlbPool, error) {
+func (r *poolResource) getALBPoolConfig(ctx context.Context, d *albPoolModel) (*govcdtypes.NsxtAlbPool, error) {
 	edge, err := r.org.GetEdgeGateway(r.edgegw)
 	if err != nil {
 		return nil, err
@@ -379,19 +378,19 @@ func (r *albPoolResource) getAlbPoolConfig(ctx context.Context, d *albPoolModel)
 		PassiveMonitoringEnabled: d.PassiveMonitoringEnabled.ValueBoolPointer(),
 	}
 
-	poolMembers, err := r.getAlbPoolMembersType(ctx, d)
+	poolMembers, err := r.getALBPoolMembersType(ctx, d)
 	if err != nil {
 		return nil, fmt.Errorf("error defining pool members: %w", err)
 	}
 	albPoolConfig.Members = poolMembers
 
-	persistenceProfile, err := r.getAlbPoolPersistenceProfileType(ctx, d)
+	persistenceProfile, err := r.getALBPoolPersistenceProfileType(ctx, d)
 	if err != nil && !errors.Is(err, ErrPersistenceProfileIsEmpty) {
 		return nil, fmt.Errorf("error defining persistence profile: %w", err)
 	}
 	albPoolConfig.PersistenceProfile = persistenceProfile
 
-	healthMonitors, err := r.getAlbPoolHealthMonitorType(ctx, d)
+	healthMonitors, err := r.getALBPoolHealthMonitorType(ctx, d)
 	if err != nil {
 		return nil, fmt.Errorf("error defining health monitors: %w", err)
 	}
@@ -400,8 +399,8 @@ func (r *albPoolResource) getAlbPoolConfig(ctx context.Context, d *albPoolModel)
 	return albPoolConfig, nil
 }
 
-// getAlbPoolMembersType.
-func (r *albPoolResource) getAlbPoolMembersType(ctx context.Context, d *albPoolModel) ([]govcdtypes.NsxtAlbPoolMember, error) {
+// getALBPoolMembersType.
+func (r *poolResource) getALBPoolMembersType(ctx context.Context, d *albPoolModel) ([]govcdtypes.NsxtAlbPoolMember, error) {
 	var members []member
 	diags := d.Members.ElementsAs(ctx, &members, true)
 	if diags.HasError() {
@@ -419,8 +418,8 @@ func (r *albPoolResource) getAlbPoolMembersType(ctx context.Context, d *albPoolM
 	return memberSlice, nil
 }
 
-// getAlbPoolPersistenceProfileType.
-func (r *albPoolResource) getAlbPoolPersistenceProfileType(ctx context.Context, d *albPoolModel) (*govcdtypes.NsxtAlbPoolPersistenceProfile, error) {
+// getALBPoolPersistenceProfileType.
+func (r *poolResource) getALBPoolPersistenceProfileType(ctx context.Context, d *albPoolModel) (*govcdtypes.NsxtAlbPoolPersistenceProfile, error) {
 	if d.PersistenceProfile.IsNull() {
 		return nil, ErrPersistenceProfileIsEmpty
 	}
@@ -439,8 +438,8 @@ func (r *albPoolResource) getAlbPoolPersistenceProfileType(ctx context.Context, 
 	}, nil
 }
 
-// getAlbPoolHealthMonitorType.
-func (r *albPoolResource) getAlbPoolHealthMonitorType(ctx context.Context, d *albPoolModel) (healthMonitors []govcdtypes.NsxtAlbPoolHealthMonitor, err error) {
+// getALBPoolHealthMonitorType.
+func (r *poolResource) getALBPoolHealthMonitorType(ctx context.Context, d *albPoolModel) (healthMonitors []govcdtypes.NsxtAlbPoolHealthMonitor, err error) {
 	var healthMonitorsSlice []string
 
 	if diags := d.HealthMonitors.ElementsAs(ctx, &healthMonitorsSlice, true); diags.HasError() {

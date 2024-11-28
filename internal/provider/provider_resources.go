@@ -24,7 +24,8 @@ import (
 func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		// * ALB
-		alb.NewAlbPoolResource,
+		alb.NewPoolResource,
+		alb.NewVirtualServiceResource,
 
 		// * EDGE GATEWAY
 		edgegw.NewEdgeGatewayResource,

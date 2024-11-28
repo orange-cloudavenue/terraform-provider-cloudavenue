@@ -47,13 +47,13 @@ func TestAccPreCheck(t *testing.T) {
 	log.Default().Printf("TestACC: execution ID is %s", metrics.GlobalExecutionID)
 }
 
-// Deprecated: Use ContactConfigs instead.
+// Deprecated: Use ConcatConfigs instead.
 func ConcatTests(tests ...string) string {
-	return ContactConfigs(tests...)
+	return ConcatConfigs(tests...)
 }
 
-// ContactConfigs concatenates the given configs into a single string.
-func ContactConfigs(configs ...string) string {
+// ConcatConfigs concatenates the given configs into a single string.
+func ConcatConfigs(configs ...string) string {
 	var result string
 	for _, config := range configs {
 		result += config + "\n"

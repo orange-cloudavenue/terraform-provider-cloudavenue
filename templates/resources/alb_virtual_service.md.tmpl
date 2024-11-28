@@ -1,0 +1,98 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "ALB (Advanced Load Balancer)"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+~> **NOTE** To activate the ALB Virtual Service, you must make an order. For more information, see the [ALB Virtual Service documentation](https://wiki.cloudavenue.orange-business.com/wiki/LBaaS).
+
+{{ if .HasExample -}}
+## Example Usage
+
+{{ tffile .ExampleFile }}
+{{- end }}
+
+## Example Usage - (Adding L4 ALB Virtual Service)
+```hcl
+data "cloudavenue_edgegateway" "example" {
+  name = "My-EdgeGateway-Name"
+}
+
+data "cloudavenue_alb_pool" "example" {
+  name = "My-ALBPool-Name"
+}
+
+resource "cloudavenue_alb_virtual_service" "example" {
+  name            = "My-ALBVS-Name"
+  description     = "description"
+  edge_gateway_id = data.cloudavenue_edgegateway.example.id
+  enabled         = true
+  pool_id         = cloudavenue_alb_pool.example.id
+  virtual_ip      = "192.168.10.10"
+  service_type    = "L4"
+    service_ports = [
+        {
+        port_start = 8080
+        port_end   = 8088
+        port_type  = "TCP_PROXY"
+        },
+        {
+        port_start = 9090
+        port_type  = "TCP_FAST_PATH"
+        }
+    ]
+}
+```
+
+## Example Usage - (Adding HTTPS ALB Virtual Service with certificate and multiple ports)
+
+```hcl
+data "cloudavenue_edgegateway" "example" {
+  name = "My-EdgeGateway-Name"
+}
+
+data "cloudavenue_alb_pool" "example" {
+  name = "My-ALBPool-Name"
+}
+resource "cloudavenue_alb_virtual_service" "example" {
+  name            = "My-ALBVS-Name"
+  description     = "description"
+  edge_gateway_id = data.cloudavenue_edgegateway.example.id
+  enabled         = true
+  pool_id         = cloudavenue_alb_pool.example.id
+  virtual_ip      = "192.168.10.10"
+  certificate_id  = "urn:vcloud:certificateLibraryItem:f9caac3a-2555-477e-ae58-0740687d4daf"
+  service_type    = "HTTPS"
+  service_ports = [
+    {
+      port_start = 443
+      port_type  = "TCP_PROXY"
+      port_ssl   = true
+    },
+    {
+      port_start = 8080
+      port_type  = "TCP_PROXY"
+      port_ssl   = true
+    },
+    {
+      port_start = 9090
+      port_type  = "TCP_PROXY"
+      port_ssl   = false
+    }
+  ]
+}
+```
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+Import is supported using the following syntax:
+{{ codefile "shell" .ImportFile }}
+{{- end }}

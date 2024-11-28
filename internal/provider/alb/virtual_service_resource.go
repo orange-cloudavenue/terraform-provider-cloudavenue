@@ -3,13 +3,23 @@ package alb
 import (
 	"context"
 	"fmt"
+	"strings"
+
+	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -17,9 +27,6 @@ var (
 	_ resource.Resource                = &VirtualServiceResource{}
 	_ resource.ResourceWithConfigure   = &VirtualServiceResource{}
 	_ resource.ResourceWithImportState = &VirtualServiceResource{}
-	// _ resource.ResourceWithModifyPlan     = &VirtualServiceResource{}
-	// _ resource.ResourceWithUpgradeState   = &VirtualServiceResource{}
-	// _ resource.ResourceWithValidateConfig = &VirtualServiceResource{}.
 )
 
 // NewVirtualServiceResource is a helper function to simplify the provider implementation.
@@ -30,34 +37,26 @@ func NewVirtualServiceResource() resource.Resource {
 // VirtualServiceResource is the resource implementation.
 type VirtualServiceResource struct {
 	client *client.CloudAvenue
-
-	// Uncomment the following lines if you need to access the resource's.
-	// org    org.Org
-	// vdc    vdc.VDC
-	// vapp   vapp.VAPP
+	edgegw edgegw.EdgeGateway
+	org    org.Org
 }
-
-// If the resource don't have same schema/structure as the data source, you can use the following code:
-// type VirtualServiceResourceModel struct {
-// 	ID types.String `tfsdk:"id"`
-// }
 
 // Init Initializes the resource.
 func (r *VirtualServiceResource) Init(ctx context.Context, rm *VirtualServiceModel) (diags diag.Diagnostics) {
-	// Uncomment the following lines if you need to access to the Org
-	// r.org, diags = org.Init(r.client)
-	// if diags.HasError() {
-	// 	return
-	// }
+	var err error
+	r.org, diags = org.Init(r.client)
+	if diags.HasError() {
+		return
+	}
 
-	// Uncomment the following lines if you need to access to the VDC
-	// r.vdc, diags = vdc.Init(r.client, rm.VDC)
-	// if diags.HasError() {
-	// 	return
-	// }
-
-	// Uncomment the following lines if you need to access to the VAPP
-	// r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
+	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+		ID:   rm.EdgeGatewayID.StringValue,
+		Name: rm.EdgeGatewayName.StringValue,
+	})
+	if err != nil {
+		diags.AddError("Error retrieving Edge Gateway", err.Error())
+		return
+	}
 
 	return
 }
@@ -110,9 +109,45 @@ func (r *VirtualServiceResource) Create(ctx context.Context, req resource.Create
 	/*
 		Implement the resource creation logic here.
 	*/
+	// Convert the plan to NSXT ALB Virtual Service
+	albConfig, diags := plan.toALBVirtualService(ctx, r)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	// Lock object EGW or VDC Group
+	vdcOrVDCGroup, err := r.edgegw.GetParent()
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+		return
+	}
+	if vdcOrVDCGroup.IsVDCGroup() {
+		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	} else {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	}
+
+	// Create the ALB Virtual Service
+	albVS, err := r.edgegw.CreateALBVirtualService(albConfig.VirtualService)
+	if err != nil {
+		resp.Diagnostics.AddError("Error creating ALB Virtual Service", err.Error())
+		return
+	}
+
+	// Set the ID of the created resource
+	plan.ID.Set(albVS.VirtualService.ID)
 
 	// Use generic read function to refresh the state
-	state, _, d := r.read(ctx, plan)
+	state, found, d := r.read(ctx, plan)
+
+	if !found {
+		resp.State.RemoveResource(ctx)
+		resp.Diagnostics.AddError("ALB Virtual Service not found", "ALB Virtual Service not found after creation")
+		return
+	}
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -127,7 +162,6 @@ func (r *VirtualServiceResource) Read(ctx context.Context, req resource.ReadRequ
 	defer metrics.New("cloudavenue_alb_virtual_service", r.client.GetOrgName(), metrics.Read)()
 
 	state := &VirtualServiceModel{}
-
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
@@ -140,10 +174,25 @@ func (r *VirtualServiceResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
+	// Lock object EGW or VDC Group
+	vdcOrVDCGroup, err := r.edgegw.GetParent()
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+		return
+	}
+	if vdcOrVDCGroup.IsVDCGroup() {
+		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	} else {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	}
+
 	// Refresh the state
 	stateRefreshed, found, d := r.read(ctx, state)
 	if !found {
 		resp.State.RemoveResource(ctx)
+		resp.Diagnostics.AddError("ALB Virtual Service not found", "ALB Virtual Service not found after refresh")
 		return
 	}
 	if d.HasError() {
@@ -181,8 +230,59 @@ func (r *VirtualServiceResource) Update(ctx context.Context, req resource.Update
 		Implement the resource update here
 	*/
 
+	var (
+		albVS *v1.EdgeGatewayALBVirtualService
+		err   error
+	)
+
+	// Lock object EGW or VDC Group
+	vdcOrVDCGroup, err := r.edgegw.GetParent()
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+		return
+	}
+	if vdcOrVDCGroup.IsVDCGroup() {
+		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	} else {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	}
+
+	// Get the current ALB Virtual Service from API
+	if state.ID.IsKnown() {
+		albVS, err = r.edgegw.GetALBVirtualService(state.ID.Get())
+	} else {
+		albVS, err = r.edgegw.GetALBVirtualService(state.Name.Get())
+	}
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving ALB Virtual Service", err.Error())
+		return
+	}
+
+	// Get the ALB Virtual Service from plan
+	newALBConfig, diags := plan.toALBVirtualService(ctx, r)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	newALBConfig.VirtualService.ID = albVS.VirtualService.ID
+
+	// Update the ALB Virtual Service
+	_, err = albVS.Update(newALBConfig.VirtualService)
+	if err != nil {
+		resp.Diagnostics.AddError("Error updating ALB Virtual Service", err.Error())
+		return
+	}
+
 	// Use generic read function to refresh the state
-	stateRefreshed, _, d := r.read(ctx, plan)
+	stateRefreshed, found, d := r.read(ctx, plan)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		resp.Diagnostics.AddError("ALB Virtual Service not found", "ALB Virtual Service not found after creation")
+		return
+	}
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -197,6 +297,7 @@ func (r *VirtualServiceResource) Delete(ctx context.Context, req resource.Delete
 	defer metrics.New("cloudavenue_alb_virtual_service", r.client.GetOrgName(), metrics.Delete)()
 
 	state := &VirtualServiceModel{}
+	diags := diag.Diagnostics{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -210,59 +311,151 @@ func (r *VirtualServiceResource) Delete(ctx context.Context, req resource.Delete
 		return
 	}
 
-	/*
-		Implement the resource deletion here
-	*/
+	// Lock object EGW or VDC Group
+	vdcOrVDCGroup, err := r.edgegw.GetParent()
+	if err != nil {
+		diags.AddError("Error retrieving Edge Gateway parent", err.Error())
+		return
+	}
+	if vdcOrVDCGroup.IsVDCGroup() {
+		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	} else {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	}
+
+	// Get the current ALB Virtual Service from API
+	var albVS *v1.EdgeGatewayALBVirtualService
+	if state.ID.IsKnown() {
+		albVS, err = r.edgegw.GetALBVirtualService(state.ID.Get())
+	} else {
+		albVS, err = r.edgegw.GetALBVirtualService(state.Name.Get())
+	}
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving ALB Virtual Service", err.Error())
+		return
+	}
+
+	// Delete the ALB Virtual Service
+	err = albVS.Delete()
+	if err != nil {
+		diags.AddError("Error deleting ALB Virtual Service", err.Error())
+		return
+	}
 }
 
 func (r *VirtualServiceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	defer metrics.New("cloudavenue_alb_virtual_service", r.client.GetOrgName(), metrics.Import)()
 
-	// * Import basic
-	// resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
 	// * Import with custom logic
-	// idParts := strings.Split(req.ID, ".")
+	idParts := strings.Split(req.ID, ".")
 
-	// if len(idParts) != 2 {
-	// 	resp.Diagnostics.AddError(
-	// 		"Unexpected Import Identifier",
-	// 		fmt.Sprintf("Expected import identifier with format: xx.xx. Got: %q", req.ID),
-	// 	)
-	// 	return
-	// }
+	if len(idParts) != 2 {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: edge_gateway_NameOrID.alb_virtual_service_Name Got: %q", req.ID),
+		)
+		return
+	}
 
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("xx"), var1)...)
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("xx"), var2)...)
+	// Get EdgeGW is ID or Name
+	var edgegwID, edgegwName string
+	if uuid.IsEdgeGateway(idParts[0]) {
+		edgegwID = idParts[0]
+	} else {
+		edgegwName = idParts[0]
+	}
+
+	x := &VirtualServiceModel{
+		Name:            supertypes.NewStringNull(),
+		EdgeGatewayID:   supertypes.NewStringNull(),
+		EdgeGatewayName: supertypes.NewStringNull(),
+	}
+
+	x.Name.Set(idParts[1])
+	x.EdgeGatewayID.Set(edgegwID)
+	x.EdgeGatewayName.Set(edgegwName)
+
+	// Init the resource
+	resp.Diagnostics.Append(r.Init(ctx, x)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Get the ALB Virtual Service from API
+	stateRefreshed, found, d := r.read(ctx, x)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // * CustomFuncs
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
 func (r *VirtualServiceResource) read(ctx context.Context, planOrState *VirtualServiceModel) (stateRefreshed *VirtualServiceModel, found bool, diags diag.Diagnostics) {
-	// TODO : Remove the comment line after you have run the types generator
-	// stateRefreshed is commented because the Copy function is not before run the types generator
-	// stateRefreshed = planOrState.Copy()
+	stateRefreshed = planOrState.Copy()
+	var albVS *v1.EdgeGatewayALBVirtualService
+	var err error
 
-	/*
-		Implement the resource read here
-	*/
-
-	/* Example
-
-	data, err := r.foo.GetData()
+	// Get the current ALB Virtual Service from API
+	if stateRefreshed.ID.IsKnown() {
+		albVS, err = r.edgegw.GetALBVirtualService(stateRefreshed.ID.Get())
+	} else {
+		albVS, err = r.edgegw.GetALBVirtualService(stateRefreshed.Name.Get())
+	}
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
-			return nil, false, nil
+		if govcd.IsNotFound(err) {
+			return stateRefreshed, false, nil
 		}
-		diags.AddError("Error retrieving foo", err.Error())
-		return nil, true, diags
+		diags.AddError("Error retrieving ALB Virtual Service", err.Error())
+		return stateRefreshed, true, diags
 	}
 
-	if !stateRefreshed.ID.IsKnown() {
-		stateRefreshed.ID.Set(r.foo.GetID())
+	// Populate the state with the data from the API
+	stateRefreshed.ID.Set(albVS.VirtualService.ID)
+	stateRefreshed.Name.Set(albVS.VirtualService.Name)
+	stateRefreshed.Description.Set(albVS.VirtualService.Description)
+	stateRefreshed.Enabled.SetPtr(albVS.VirtualService.Enabled)
+	stateRefreshed.VirtualIP.Set(albVS.VirtualService.VirtualIPAddress)
+	stateRefreshed.EdgeGatewayID.Set(r.edgegw.GetID())
+	stateRefreshed.EdgeGatewayName.Set(r.edgegw.GetName())
+	stateRefreshed.PoolID.Set(albVS.VirtualService.LoadBalancerPoolRef.ID)
+	stateRefreshed.PoolName.Set(albVS.VirtualService.LoadBalancerPoolRef.Name)
+	stateRefreshed.ServiceEngineGroupName.Set(albVS.VirtualService.ServiceEngineGroupRef.Name)
+	stateRefreshed.ServiceType.Set(albVS.VirtualService.ApplicationProfile.Type)
+	if albVS.VirtualService.CertificateRef != nil {
+		stateRefreshed.CertificateID.Set(albVS.VirtualService.CertificateRef.ID)
 	}
-	*/
+
+	// Populate Service Ports
+	x := make([]*VirtualServiceModelServicePort, 0)
+	for _, svcPort := range albVS.VirtualService.ServicePorts {
+		y := &VirtualServiceModelServicePort{
+			PortStart: supertypes.NewInt64Null(),
+			PortEnd:   supertypes.NewInt64Null(),
+			PortSSL:   supertypes.NewBoolNull(),
+			PortType:  supertypes.NewStringNull(),
+		}
+		y.PortStart.SetIntPtr(svcPort.PortStart)
+		y.PortEnd.SetIntPtr(svcPort.PortEnd)
+		y.PortSSL.SetPtr(svcPort.SslEnabled)
+		y.PortType.Set(svcPort.TcpUdpProfile.Type)
+
+		x = append(x, y)
+	}
+	d := stateRefreshed.ServicePorts.Set(ctx, x)
+	if d.HasError() {
+		diags.Append(d...)
+		return stateRefreshed, true, diags
+	}
 
 	return stateRefreshed, true, nil
 }
