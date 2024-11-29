@@ -3,6 +3,7 @@ package edgegw
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
@@ -31,11 +32,28 @@ func NewAppPortProfileResource() resource.Resource {
 type appPortProfileResource struct {
 	client *client.CloudAvenue
 	org    org.Org
+	edgegw edgegw.EdgeGateway
 }
 
 // Init Initializes the resource.
 func (r *appPortProfileResource) Init(ctx context.Context, rm *AppPortProfileModel) (diags diag.Diagnostics) {
+	var err error
+
 	r.org, diags = org.Init(r.client)
+	if diags.HasError() {
+		return
+	}
+
+	// Retrieve VDC from edge gateway
+	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+		ID:   types.StringValue(rm.EdgeGatewayID.Get()),
+		Name: types.StringValue(rm.EdgeGatewayName.Get()),
+	})
+	if err != nil {
+		diags.AddError("Error retrieving Edge Gateway", err.Error())
+		return
+	}
+
 	return
 }
 
@@ -88,17 +106,7 @@ func (r *appPortProfileResource) Create(ctx context.Context, req resource.Create
 		Implement the resource creation logic here.
 	*/
 
-	// Retrieve VDC from edge gateway
-	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   types.StringValue(plan.EdgeGatewayID.Get()),
-		Name: types.StringValue(plan.EdgeGatewayName.Get()),
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
-		return
-	}
-
-	vdcOrVDCGroup, err := edgegw.GetParent()
+	vdcOrVDCGroup, err := r.edgegw.GetParent()
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
 		return
@@ -124,8 +132,8 @@ func (r *appPortProfileResource) Create(ctx context.Context, req resource.Create
 	}
 
 	plan.ID.Set(appPortProfile.NsxtAppPortProfile.ID)
-	plan.EdgeGatewayID.Set(edgegw.GetID())
-	plan.EdgeGatewayName.Set(edgegw.GetName())
+	plan.EdgeGatewayID.Set(r.edgegw.GetID())
+	plan.EdgeGatewayName.Set(r.edgegw.GetName())
 	state, found, d := r.read(ctx, plan)
 	if !found {
 		resp.State.RemoveResource(ctx)
@@ -274,12 +282,6 @@ func (r *appPortProfileResource) ImportState(ctx context.Context, req resource.I
 
 	var d diag.Diagnostics
 
-	r.org, d = org.Init(r.client)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
-
 	// split req.ID into edge gateway ID and app port profile ID/name
 	split := strings.Split(req.ID, ".")
 	if len(split) != 2 {
@@ -307,18 +309,10 @@ func (r *appPortProfileResource) ImportState(ctx context.Context, req resource.I
 		x.Name.Set(appPortProfileIDOrName)
 	}
 
-	// Retrieve VDC from edge gateway
-	edgegw, err := r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   types.StringValue(x.EdgeGatewayID.Get()),
-		Name: types.StringValue(x.EdgeGatewayName.Get()),
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
+	resp.Diagnostics.Append(r.Init(ctx, x)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	x.EdgeGatewayID.Set(edgegw.GetID())
-	x.EdgeGatewayName.Set(edgegw.GetName())
 
 	stateRefreshed, found, d := r.read(ctx, x)
 	if !found {
@@ -347,51 +341,31 @@ func (r *appPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 	if planOrState.ID.IsKnown() {
 		appPortProfile, err = r.org.GetNsxtAppPortProfileById(stateRefreshed.ID.Get())
 	} else {
-		appPortProfilesTenant, erR := r.org.GetAllNsxtAppPortProfiles(nil, govcdtypes.ApplicationPortProfileScopeTenant)
-		if erR != nil {
-			diags.AddError("Error reading App Port Profiles", erR.Error())
+		scopes := []string{govcdtypes.ApplicationPortProfileScopeTenant, govcdtypes.ApplicationPortProfileScopeProvider, govcdtypes.ApplicationPortProfileScopeSystem}
+
+		vdcOrVDCGroup, err := r.edgegw.GetParent()
+		if err != nil {
+			diags.AddError("Error retrieving Edge Gateway parent", err.Error())
 			return
 		}
 
-		for _, singleAppPortProfile := range appPortProfilesTenant {
-			if singleAppPortProfile.NsxtAppPortProfile.Name == stateRefreshed.Name.Get() {
-				appPortProfile = singleAppPortProfile
+		for _, scope := range scopes {
+			queryParams := url.Values{}
+			queryParams.Add("filter", fmt.Sprintf("name==%s;scope==%s;_context==%s", stateRefreshed.Name.Get(), scope, vdcOrVDCGroup.GetID()))
+			appPortProfiles, _ := r.org.GetAllNsxtAppPortProfiles(queryParams, "")
+			// Error is ignored because we want to continue searching in other scopes if not found
+			if len(appPortProfiles) > 0 {
+				if len(appPortProfiles) > 1 {
+					diags.AddError("Error reading App Port Profiles", fmt.Sprintf("expected exactly one Application Port Profile with name '%s'. Got %d", stateRefreshed.Name.Get(), len(appPortProfiles)))
+					return
+				}
+				appPortProfile = appPortProfiles[0]
 				break
 			}
 		}
 
 		if appPortProfile == nil {
-			appPortProfilesProvider, erR := r.org.GetAllNsxtAppPortProfiles(nil, govcdtypes.ApplicationPortProfileScopeProvider)
-			if erR != nil {
-				diags.AddError("Error reading App Port Profiles", erR.Error())
-				return
-			}
-
-			for _, singleAppPortProfile := range appPortProfilesProvider {
-				if singleAppPortProfile.NsxtAppPortProfile.Name == stateRefreshed.Name.Get() {
-					appPortProfile = singleAppPortProfile
-					break
-				}
-			}
-		}
-
-		if appPortProfile == nil {
-			appPortProfilesSystem, erR := r.org.GetAllNsxtAppPortProfiles(nil, govcdtypes.ApplicationPortProfileScopeSystem)
-			if erR != nil {
-				diags.AddError("Error reading App Port Profiles", erR.Error())
-				return
-			}
-
-			for _, singleAppPortProfile := range appPortProfilesSystem {
-				if singleAppPortProfile.NsxtAppPortProfile.Name == stateRefreshed.Name.Get() {
-					appPortProfile = singleAppPortProfile
-					break
-				}
-			}
-		}
-
-		if appPortProfile == nil {
-			err = govcd.ErrorEntityNotFound
+			return nil, false, nil
 		}
 	}
 
@@ -427,6 +401,8 @@ func (r *appPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 	stateRefreshed.Name.Set(appPortProfile.NsxtAppPortProfile.Name)
 	stateRefreshed.Description.Set(appPortProfile.NsxtAppPortProfile.Description)
 	stateRefreshed.AppPorts.Set(ctx, appPorts)
+	stateRefreshed.EdgeGatewayID.Set(r.edgegw.GetID())
+	stateRefreshed.EdgeGatewayName.Set(r.edgegw.GetName())
 
 	return stateRefreshed, true, nil
 }

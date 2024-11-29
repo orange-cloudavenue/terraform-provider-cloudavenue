@@ -21,13 +21,6 @@ type AppPortProfileModel struct {
 	AppPorts        supertypes.ListNestedObjectValueOf[AppPortProfileModelAppPort] `tfsdk:"app_ports"`
 }
 
-type AppPortProfileModelADatasource struct {
-	ID          supertypes.StringValue                                         `tfsdk:"id"`
-	Name        supertypes.StringValue                                         `tfsdk:"name"`
-	Description supertypes.StringValue                                         `tfsdk:"description"`
-	AppPorts    supertypes.ListNestedObjectValueOf[AppPortProfileModelAppPort] `tfsdk:"app_ports"`
-}
-
 type AppPortProfileModelAppPort struct {
 	Protocol supertypes.StringValue        `tfsdk:"protocol"`
 	Ports    supertypes.SetValueOf[string] `tfsdk:"ports"`

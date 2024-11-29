@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
@@ -27,11 +27,28 @@ func NewAppPortProfileDataSource() datasource.DataSource {
 type appPortProfileDataSource struct {
 	client *client.CloudAvenue
 	org    org.Org
+	edgegw edgegw.EdgeGateway
 }
 
 // Init Initializes the data source.
-func (d *appPortProfileDataSource) Init(ctx context.Context, dm *AppPortProfileModelADatasource) (diags diag.Diagnostics) {
+func (d *appPortProfileDataSource) Init(ctx context.Context, dm *AppPortProfileModel) (diags diag.Diagnostics) {
+	var err error
+
 	d.org, diags = org.Init(d.client)
+	if diags.HasError() {
+		return
+	}
+
+	// Retrieve VDC from edge gateway
+	d.edgegw, err = d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
+		ID:   types.StringValue(dm.EdgeGatewayID.Get()),
+		Name: types.StringValue(dm.EdgeGatewayName.Get()),
+	})
+	if err != nil {
+		diags.AddError("Error retrieving Edge Gateway", err.Error())
+		return
+	}
+
 	return
 }
 
@@ -63,8 +80,7 @@ func (d *appPortProfileDataSource) Configure(ctx context.Context, req datasource
 func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_edgegateway_app_port_profile", d.client.GetOrgName(), metrics.Read)()
 
-	config := &AppPortProfileModelADatasource{}
-
+	config := &AppPortProfileModel{}
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
 	if resp.Diagnostics.HasError() {
@@ -85,17 +101,11 @@ func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.Read
 	s := &appPortProfileResource{
 		client: d.client,
 		org:    d.org,
+		edgegw: d.edgegw,
 	}
 
 	// Read data from the API
-	data, found, diags := s.read(ctx, &AppPortProfileModel{
-		ID:              config.ID,
-		Name:            config.Name,
-		Description:     config.Description,
-		EdgeGatewayID:   supertypes.NewStringNull(),
-		EdgeGatewayName: supertypes.NewStringNull(),
-		AppPorts:        config.AppPorts,
-	})
+	configRefreshed, found, diags := s.read(ctx, config)
 	if !found {
 		if config.ID.IsKnown() {
 			resp.Diagnostics.AddError("Not found", fmt.Sprintf("App Port Profile ID %q not found", config.ID))
@@ -109,12 +119,6 @@ func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
-	// Write data into the model
-	config.ID = data.ID
-	config.Name = data.Name
-	config.Description = data.Description
-	config.AppPorts = data.AppPorts
-
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &config)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &configRefreshed)...)
 }

@@ -25,6 +25,8 @@ data "cloudavenue_edgegateway_app_port_profile" "example" {
 
 ### Optional
 
+- `edge_gateway_id` (String) ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
+- `edge_gateway_name` (String) Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
 - `id` (String) The ID of the App Port profile. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 - `name` (String) Application Port Profile name. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 
