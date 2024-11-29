@@ -47,7 +47,5 @@ Optional:
 
 Import is supported using the following syntax:
 ```shell
-# use the `id` to import an existing public IP
-# `id` is the public IP
-terraform import cloudavenue_publicip.example <id>
+terraform import cloudavenue_publicip.example edgeGatewayIDOrName.PublicIP
 ```
