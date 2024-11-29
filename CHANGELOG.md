@@ -1,7 +1,11 @@
 ## 0.22.0 (Unreleased)
+### :rotating_light: **Breaking Changes**
+
+* `datasource/cloudavenue_edgegateway_app_port_profile` - Now the datasource require one of the following attributes to be set: `edge_gateway_id` or `edge_gateway_name`. (GH-849)
 
 ### :bug: **Bug Fixes**
 
+* `datasource/cloudavenue_edgegateway_app_port_profile` - Fixed the issue where the `cloudavenue_edgegateway_app_port_profile` datasource was not returning the correct value App Port Profile ID. (GH-849)
 * `resource/cloudavenue_edgegateway_firewall` - Fix `BUSY_ENTITY` error when creating or updating the resource in same time as another operation in the edge gateway. (GH-841)
 
 ## 0.21.1 (November 25, 2024)
