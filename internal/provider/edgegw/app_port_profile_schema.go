@@ -78,26 +78,30 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 				},
 			},
 			"edge_gateway_id": superschema.SuperStringAttribute{
-				Resource: &schemaR.StringAttribute{
+				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "ID of the Edge Gateway.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
 					},
+				},
+				Resource: &schemaR.StringAttribute{
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
 					},
 				},
 			},
 			"edge_gateway_name": superschema.SuperStringAttribute{
-				Resource: &schemaR.StringAttribute{
+				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Name of the Edge Gateway.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
 					},
+				},
+				Resource: &schemaR.StringAttribute{
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
 					},

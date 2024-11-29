@@ -1,0 +1,7 @@
+```release-note:bug
+`datasource/cloudavenue_edgegateway_app_port_profile` - Fixed the issue where the `cloudavenue_edgegateway_app_port_profile` datasource was not returning the correct value App Port Profile ID.
+```
+
+```release-note:breaking-change
+`datasource/cloudavenue_edgegateway_app_port_profile` - Now the datasource require one of the following attributes to be set: `edge_gateway_id` or `edge_gateway_name`.
+```
