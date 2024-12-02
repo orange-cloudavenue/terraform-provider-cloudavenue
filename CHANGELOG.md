@@ -1,4 +1,5 @@
-## 0.22.0 (Unreleased)
+## 0.23.0 (Unreleased)
+## 0.22.0 (December  2, 2024)
 ### :rotating_light: **Breaking Changes**
 
 * `datasource/cloudavenue_edgegateway_app_port_profile` - Now the datasource require one of the following attributes to be set: `edge_gateway_id` or `edge_gateway_name`. (GH-849)
