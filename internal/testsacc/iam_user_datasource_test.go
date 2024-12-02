@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &IAMUserDataSource{}
@@ -61,7 +61,7 @@ func (r *IAMUserDataSource) Tests(ctx context.Context) map[testsacc.TestName]fun
 						name = cloudavenue_iam_user_saml.example.user_name
 					}`,
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.User)),
+						resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.User)),
 						resource.TestCheckResourceAttr(resourceName, "name", "mickael.stanislas.ext"),
 						resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 						resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "0"),

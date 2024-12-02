@@ -9,10 +9,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var (
@@ -97,8 +97,8 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	config.ID.Set(uuid.Normalize(
-		uuid.User,
+	config.ID.Set(urn.Normalize(
+		urn.User,
 		user.GetID()).String(),
 	)
 	config.CanonicalID.Set(canonicalID)

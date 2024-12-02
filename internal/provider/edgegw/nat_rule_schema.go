@@ -21,7 +21,7 @@ import (
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 func natRuleSchema(_ context.Context) superschema.Schema {
@@ -185,7 +185,7 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
-						fstringvalidator.PrefixContains(uuid.AppPortProfile.String()),
+						fstringvalidator.PrefixContains(urn.AppPortProfile.String()),
 						fstringvalidator.NullIfAttributeIsOneOf(path.MatchRoot("rule_type"), []attr.Value{types.StringValue("SNAT"), types.StringValue("NO_SNAT"), types.StringValue("NO_DNAT"), types.StringValue("REFLEXIVE")}),
 					},
 				},

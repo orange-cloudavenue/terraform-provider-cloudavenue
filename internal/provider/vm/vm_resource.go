@@ -15,6 +15,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminvdc"
@@ -22,7 +23,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -830,7 +830,7 @@ func (r *vmResource) ImportState(ctx context.Context, req resource.ImportStateRe
 		id = idParts[1]
 	}
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), uuid.Normalize(uuid.VM, id).String())...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), urn.Normalize(urn.VM, id).String())...)
 }
 
 func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceModel) (vmCreated vm.VM, diags diag.Diagnostics) {

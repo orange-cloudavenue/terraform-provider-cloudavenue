@@ -16,6 +16,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
@@ -24,7 +25,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm/diskparams"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -768,21 +768,21 @@ func (r *diskResource) ImportState(ctx context.Context, req resource.ImportState
 	switch len(idParts) {
 	// Case 2 : vAppIDOrName.DiskID
 	case 2:
-		if uuid.IsVAPP(idParts[0]) {
+		if urn.IsVAPP(idParts[0]) {
 			vAppID = idParts[0]
 		} else {
 			vAppName = idParts[0]
 		}
 
 		diskID = idParts[1]
-		if uuid.IsDisk(idParts[1]) {
+		if urn.IsDisk(idParts[1]) {
 			isDetachable = true
 		}
 
 	// Case 3 : vAppIDOrName.VmIDOrName.DiskID or vdcName.vAppIDOrName.DiskID
 	case 3:
 		diskID = idParts[2]
-		if uuid.IsDisk(diskID) {
+		if urn.IsDisk(diskID) {
 			isDetachable = true
 		}
 
@@ -791,7 +791,7 @@ func (r *diskResource) ImportState(ctx context.Context, req resource.ImportState
 			if !diags.HasError() {
 				// FORMAT : vdcName.vAppIDOrName.DiskID
 				vdcName = idParts[0]
-				if uuid.IsVAPP(idParts[1]) {
+				if urn.IsVAPP(idParts[1]) {
 					vAppID = idParts[1]
 				} else {
 					vAppName = idParts[1]
@@ -801,13 +801,13 @@ func (r *diskResource) ImportState(ctx context.Context, req resource.ImportState
 		}
 
 		// FORMAT : vAppIDOrName.VmIDOrName.DiskID
-		if uuid.IsVAPP(idParts[0]) {
+		if urn.IsVAPP(idParts[0]) {
 			vAppID = idParts[0]
 		} else {
 			vAppName = idParts[0]
 		}
 
-		if uuid.IsVM(idParts[1]) {
+		if urn.IsVM(idParts[1]) {
 			vmID = idParts[1]
 		} else {
 			vmName = idParts[1]
@@ -816,20 +816,20 @@ func (r *diskResource) ImportState(ctx context.Context, req resource.ImportState
 	// Case 4 : vdcName.vAppIDOrName.VmIDOrName.DiskID
 	case 4:
 		vdcName = idParts[0]
-		if uuid.IsVAPP(idParts[1]) {
+		if urn.IsVAPP(idParts[1]) {
 			vAppID = idParts[1]
 		} else {
 			vAppName = idParts[1]
 		}
 
-		if uuid.IsVM(idParts[2]) {
+		if urn.IsVM(idParts[2]) {
 			vmID = idParts[2]
 		} else {
 			vmName = idParts[2]
 		}
 
 		diskID = idParts[3]
-		if uuid.IsDisk(diskID) {
+		if urn.IsDisk(diskID) {
 			isDetachable = true
 		}
 	default:

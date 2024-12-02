@@ -9,10 +9,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var (
@@ -107,7 +107,7 @@ func (d *vAppTemplateDataSource) Read(ctx context.Context, req datasource.ReadRe
 			// field ID in vAppTemplate attribute is always empty. ID exist in HREF attribute.
 			// get last 36 characters of href
 			// href ex : http://url.com/xx/xx/xx/vappTemplate-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-			vappTemplateID := uuid.Normalize(uuid.VAPPTemplate, vAppTemplate.HREF[len(vAppTemplate.HREF)-36:])
+			vappTemplateID := urn.Normalize(urn.VAPPTemplate, vAppTemplate.HREF[len(vAppTemplate.HREF)-36:])
 			stateUpdated.TemplateID.Set(vappTemplateID.String())
 			stateUpdated.ID.Set(vappTemplateID.String())
 

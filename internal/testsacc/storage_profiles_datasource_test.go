@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &StorageProfilesDataSource{}
@@ -44,7 +44,7 @@ func (r *StorageProfilesDataSource) Tests(ctx context.Context) map[testsacc.Test
 						vdc = cloudavenue_vdc.example.name
 					}`,
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VDCStorageProfile)),
+						resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDCStorageProfile)),
 						resource.TestCheckResourceAttrSet(resourceName, "vdc"),
 						resource.TestCheckResourceAttrSet(resourceName, "storage_profiles.0.id"),
 						resource.TestCheckResourceAttrSet(resourceName, "storage_profiles.0.vdc"),

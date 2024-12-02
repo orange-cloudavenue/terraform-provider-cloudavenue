@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &VAppOrgNetworkResource{}
@@ -39,7 +39,7 @@ func (r *VAppOrgNetworkResource) Tests(ctx context.Context) map[testsacc.TestNam
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
 					resource.TestCheckResourceAttrSet(resourceName, "vdc"),
 					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "vapp_name"),

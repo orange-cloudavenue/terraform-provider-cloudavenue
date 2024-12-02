@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
@@ -18,7 +19,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var (
@@ -119,7 +119,7 @@ func (d *disksDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 			resp.Diagnostics.AddError("Unable to get disk ID", err.Error())
 			return
 		}
-		dDisk.ID.Set(uuid.Normalize(uuid.Disk, id).String())
+		dDisk.ID.Set(urn.Normalize(urn.Disk, id).String())
 		dDisk.Name.Set(disk.Name)
 		dDisk.SizeInMb.Set(disk.SizeMb)
 		dDisk.StorageProfile.Set(disk.StorageProfileName)

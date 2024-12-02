@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 const testAccAlbPoolDataSourceConfig = `
@@ -53,7 +53,7 @@ func TestAccAlbPoolDataSource(t *testing.T) {
 				// Apply test
 				Config: testAccAlbPoolDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.LoadBalancerPool)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.LoadBalancerPool)),
 					resource.TestCheckResourceAttrPair(dataSourceName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "persistence_profile.#", resourceName, "persistence_profile.#"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "members.#", resourceName, "members.#"),

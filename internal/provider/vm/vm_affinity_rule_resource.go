@@ -18,11 +18,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -368,9 +367,9 @@ func resourceToAffinityRule(r *vmAffinityRuleResource, m *vmAffinityRuleResource
 
 	for _, vmID := range rawVms.Elements() {
 		for _, vm := range fullVMList {
-			uuid := common.ExtractUUID(vmID.String())
+			uuid := urn.ExtractUUID(vmID.String())
 			if uuid != "" {
-				if uuid == common.ExtractUUID(vm.HREF) {
+				if uuid == urn.ExtractUUID(vm.HREF) {
 					vmReferences = append(vmReferences, &govcdtypes.Reference{HREF: vm.HREF})
 					foundEntries[vmID.String()] = true
 				}
@@ -434,7 +433,7 @@ func vmReferencesToListValue(refs []*govcdtypes.VMs) []attr.Value {
 	var endpointVMs []attr.Value
 	for _, vmr := range refs {
 		for _, ref := range vmr.VMReference {
-			endpointVMs = append(endpointVMs, types.StringValue(uuid.Normalize(uuid.VM, ref.ID).String()))
+			endpointVMs = append(endpointVMs, types.StringValue(urn.Normalize(urn.VM, ref.ID).String()))
 		}
 	}
 	return endpointVMs

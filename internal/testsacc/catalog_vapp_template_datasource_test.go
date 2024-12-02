@@ -7,8 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &CatalogVAppTemplateDataSource{}
@@ -45,13 +45,13 @@ func (r *CatalogVAppTemplateDataSource) Tests(ctx context.Context) map[testsacc.
 						template_name 	= "UBUNTU_20.04"
 					}`,
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VAPPTemplate)),
+						resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VAPPTemplate)),
 						// Catalog
 						resource.TestCheckResourceAttr(resourceName, "catalog_name", "Orange-Linux"),
-						resource.TestCheckResourceAttrWith(resourceName, "catalog_id", uuid.TestIsType(uuid.Catalog)),
+						resource.TestCheckResourceAttrWith(resourceName, "catalog_id", urn.TestIsType(urn.Catalog)),
 
 						resource.TestCheckResourceAttr(resourceName, "template_name", "UBUNTU_20.04"),
-						resource.TestCheckResourceAttrWith(resourceName, "template_id", uuid.TestIsType(uuid.VAPPTemplate)),
+						resource.TestCheckResourceAttrWith(resourceName, "template_id", urn.TestIsType(urn.VAPPTemplate)),
 						// Other
 						resource.TestCheckResourceAttrSet(resourceName, "created_at"),
 						resource.TestCheckResourceAttrSet(resourceName, "vm_names.#"),

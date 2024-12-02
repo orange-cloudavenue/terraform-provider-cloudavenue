@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 const testAccProfileDataSourceConfig = `
@@ -26,7 +26,7 @@ func TestAccProfileDataSource(t *testing.T) {
 				// Apply test
 				Config: testAccProfileDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(dataSourceName, "id", uuid.TestIsType(uuid.VDCStorageProfile)),
+					resource.TestCheckResourceAttrWith(dataSourceName, "id", urn.TestIsType(urn.VDCStorageProfile)),
 					resource.TestCheckResourceAttrSet(dataSourceName, "vdc"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", "gold"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "limit"),

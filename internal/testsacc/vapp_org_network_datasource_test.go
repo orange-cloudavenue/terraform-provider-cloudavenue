@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 const testAccOrgNetworkDataSourceConfig = `
@@ -70,7 +70,7 @@ func TestAccOrgNetworkDataSource(t *testing.T) {
 				// Apply test
 				Config: testAccOrgNetworkDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
 					resource.TestCheckResourceAttrPair(dataSourceName, "network_name", resourceName, "network_name"),
 				),
 			},

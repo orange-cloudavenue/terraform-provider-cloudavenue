@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &NetworkRoutedResource{}
@@ -40,7 +40,7 @@ func (r *NetworkRoutedResource) Tests(ctx context.Context) map[testsacc.TestName
 					return
 				},
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
 					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
 				},
@@ -134,7 +134,7 @@ func (r *NetworkRoutedResource) Tests(ctx context.Context) map[testsacc.TestName
 					return
 				},
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
 					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
 				},
@@ -187,7 +187,7 @@ func (r *NetworkRoutedResource) Tests(ctx context.Context) map[testsacc.TestName
 					return
 				},
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
 					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
 				},

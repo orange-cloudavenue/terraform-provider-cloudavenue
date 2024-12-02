@@ -11,12 +11,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -172,8 +172,8 @@ func (r *vcdaIPResource) Delete(ctx context.Context, req resource.DeleteRequest,
 
 func (r *vcdaIPResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("ip_address"), req.ID)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(uuid.Normalize(
-		uuid.VCDA,
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), types.StringValue(urn.Normalize(
+		urn.VCDA,
 		utils.GenerateUUID(
 			req.ID,
 		).ValueString(),
@@ -194,8 +194,8 @@ func (r *vcdaIPResource) read(_ context.Context, planOrState *vcdaIPResourceMode
 		return nil, false, diags
 	}
 
-	stateRefreshed.ID.Set(uuid.Normalize(
-		uuid.VCDA,
+	stateRefreshed.ID.Set(urn.Normalize(
+		urn.VCDA,
 		utils.GenerateUUID(planOrState.IPAddress.Get()).ValueString(),
 	).String())
 

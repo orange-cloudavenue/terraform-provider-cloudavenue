@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 const testAccVMDataSourceConfig = `
@@ -57,10 +57,10 @@ func TestAccVMDataSource(t *testing.T) {
 				Config: testAccVMDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// ! basic
-					resource.TestCheckResourceAttrWith(dataSourceName, "id", uuid.TestIsType(uuid.VM)),
+					resource.TestCheckResourceAttrWith(dataSourceName, "id", urn.TestIsType(urn.VM)),
 					resource.TestCheckResourceAttr(dataSourceName, "name", "example-vm"),
 					resource.TestCheckResourceAttr(dataSourceName, "vapp_name", "example-vapp"),
-					resource.TestCheckResourceAttrWith(dataSourceName, "vapp_id", uuid.TestIsType(uuid.VAPP)),
+					resource.TestCheckResourceAttrWith(dataSourceName, "vapp_id", urn.TestIsType(urn.VAPP)),
 					resource.TestCheckResourceAttr(dataSourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
 					// ! resource
 					resource.TestCheckResourceAttr(dataSourceName, "resource.cpus", "1"),
@@ -70,7 +70,7 @@ func TestAccVMDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "resource.memory_hot_add_enabled", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "resource.networks.#", "0"),
 					// ! settings
-					resource.TestCheckResourceAttrWith(dataSourceName, "settings.affinity_rule_id", uuid.TestIsType(uuid.VDCComputePolicy)),
+					resource.TestCheckResourceAttrWith(dataSourceName, "settings.affinity_rule_id", urn.TestIsType(urn.VDCComputePolicy)),
 					resource.TestCheckResourceAttrSet(dataSourceName, "settings.customization.allow_local_admin_password"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "settings.customization.auto_generate_password"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "settings.customization.change_sid"),

@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 const testAccTokenResourceConfig = `
@@ -42,7 +42,7 @@ func TestAccTokenResource(t *testing.T) {
 				// Apply test
 				Config: testAccTokenResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Token)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Token)),
 					resource.TestCheckResourceAttr(resourceName, "name", "example"),
 					resource.TestCheckResourceAttr(resourceName, "save_in_tfstate", "true"),
 					resource.TestCheckResourceAttr(resourceName, "save_in_file", "true"),

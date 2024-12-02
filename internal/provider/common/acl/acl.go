@@ -18,8 +18,7 @@ import (
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 type SharedWithModel struct {
@@ -139,7 +138,7 @@ func SharedSetToAccessControl(_ *govcd.VCDClient, org *govcd.AdminOrg, input []S
 			subjectName = user.User.Name
 
 			oModel = &SharedWithModel{
-				UserID:      types.StringValue(uuid.Normalize(uuid.User, common.ExtractUUID(subjectHref)).String()),
+				UserID:      types.StringValue(urn.Normalize(urn.User, urn.ExtractUUID(subjectHref)).String()),
 				SubjectName: types.StringValue(subjectName),
 			}
 		} else if !item.GroupID.IsNull() && !item.GroupID.IsUnknown() {
@@ -152,7 +151,7 @@ func SharedSetToAccessControl(_ *govcd.VCDClient, org *govcd.AdminOrg, input []S
 			subjectType = group.Group.Type
 			subjectName = group.Group.Name
 			oModel = &SharedWithModel{
-				GroupID:     types.StringValue(uuid.Normalize(uuid.Group, common.ExtractUUID(subjectHref)).String()),
+				GroupID:     types.StringValue(urn.Normalize(urn.Group, urn.ExtractUUID(subjectHref)).String()),
 				SubjectName: types.StringValue(subjectName),
 			}
 		}
@@ -183,9 +182,9 @@ func AccessControlListToSharedSet(input []*govcdtypes.AccessSetting) ([]SharedWi
 		switch item.Subject.Type {
 		case govcdtypes.MimeAdminUser:
 
-			o.UserID = types.StringValue(uuid.Normalize(uuid.User, common.ExtractUUID(item.Subject.HREF)).String())
+			o.UserID = types.StringValue(urn.Normalize(urn.User, urn.ExtractUUID(item.Subject.HREF)).String())
 		case govcdtypes.MimeAdminGroup:
-			o.GroupID = types.StringValue(uuid.Normalize(uuid.Group, common.ExtractUUID(item.Subject.HREF)).String())
+			o.GroupID = types.StringValue(urn.Normalize(urn.Group, urn.ExtractUUID(item.Subject.HREF)).String())
 		default:
 			return nil, fmt.Errorf("unhandled type '%s' for item %s", item.Subject.Type, item.Subject.Name)
 		}
