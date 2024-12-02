@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &EdgeGatewayAppPortProfileDatasource{}
@@ -86,7 +86,7 @@ func (r *EdgeGatewayAppPortProfileDatasource) Tests(ctx context.Context) map[tes
 						name = "BKP_TCP_bpcd"
 					}`,
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.AppPortProfile)),
+						resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.AppPortProfile)),
 						resource.TestCheckResourceAttr(resourceName, "name", "BKP_TCP_bpcd"),
 						resource.TestCheckResourceAttr(resourceName, "app_ports.0.protocol", "TCP"),
 						resource.TestCheckResourceAttr(resourceName, "app_ports.0.ports.0", "13782"),
@@ -109,7 +109,7 @@ func (r *EdgeGatewayAppPortProfileDatasource) Tests(ctx context.Context) map[tes
 						name = "HTTP"
 					}`,
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.AppPortProfile)),
+						resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.AppPortProfile)),
 						resource.TestCheckResourceAttr(resourceName, "name", "HTTP"),
 						resource.TestCheckResourceAttr(resourceName, "description", "HTTP"),
 						resource.TestCheckResourceAttr(resourceName, "app_ports.0.protocol", "TCP"),
@@ -132,7 +132,7 @@ func (r *EdgeGatewayAppPortProfileDatasource) Tests(ctx context.Context) map[tes
 						name = "Heartbeat"
 					}`,
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.AppPortProfile)),
+						resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.AppPortProfile)),
 						resource.TestCheckResourceAttr(resourceName, "name", "Heartbeat"),
 						resource.TestCheckResourceAttr(resourceName, "description", "Heartbeat"),
 						resource.TestCheckResourceAttr(resourceName, "app_ports.#", "2"),

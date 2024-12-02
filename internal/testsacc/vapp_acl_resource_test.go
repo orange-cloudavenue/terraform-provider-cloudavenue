@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 const testAccVAPPACLResourceConfig = `
@@ -61,7 +61,7 @@ func TestAccVAPPACLResource(t *testing.T) {
 				// Apply test
 				Config: testAccVAPPACLResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VAPP)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VAPP)),
 					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
 					resource.TestCheckResourceAttr(resourceName, "vapp_name", "MyVapp"),
 					resource.TestCheckResourceAttrSet(resourceName, "shared_with.0.subject_name"),
@@ -72,7 +72,7 @@ func TestAccVAPPACLResource(t *testing.T) {
 				// Update test
 				Config: testAccVAPPACLResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VAPP)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VAPP)),
 					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
 					resource.TestCheckResourceAttr(resourceName, "vapp_name", "MyVapp"),
 					resource.TestCheckResourceAttr(resourceName, "everyone_access_level", "Change"),

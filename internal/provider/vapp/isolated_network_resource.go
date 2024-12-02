@@ -17,11 +17,11 @@ import (
 
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -296,7 +296,7 @@ func (r *isolatedNetworkResource) read(ctx context.Context, planOrState *isolate
 		return
 	}
 
-	planOrState.ID.Set(uuid.Normalize(uuid.Network, networkID).String())
+	planOrState.ID.Set(urn.Normalize(urn.Network, networkID).String())
 	planOrState.Name.Set(net.NetworkName)
 	planOrState.VDC.Set(r.vdc.GetName())
 	planOrState.VAppName.Set(r.vapp.GetName())

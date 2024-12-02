@@ -22,7 +22,7 @@ import (
 	fsetvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/setvalidator"
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 func aclSchema(_ context.Context) superschema.Schema {
@@ -51,7 +51,7 @@ func aclSchema(_ context.Context) superschema.Schema {
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("catalog_name"), path.MatchRoot("catalog_id")),
 						fstringvalidator.IsURN(),
-						fstringvalidator.PrefixContains(uuid.Catalog.String()),
+						fstringvalidator.PrefixContains(urn.Catalog.String()),
 					},
 				},
 			},
@@ -111,7 +111,7 @@ func aclSchema(_ context.Context) superschema.Schema {
 							Required: true,
 							Validators: []validator.String{
 								fstringvalidator.IsURN(),
-								fstringvalidator.PrefixContains(uuid.User.String()),
+								fstringvalidator.PrefixContains(urn.User.String()),
 							},
 						},
 						DataSource: &schemaD.StringAttribute{

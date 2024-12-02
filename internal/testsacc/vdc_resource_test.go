@@ -7,8 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &VDCResource{}
@@ -38,7 +38,7 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VDC)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDC)),
 					resource.TestCheckResourceAttr(resourceName, "billing_model", "PAYG"),
 					resource.TestCheckResourceAttr(resourceName, "disponibility_class", "ONE-ROOM"),
 					resource.TestCheckResourceAttr(resourceName, "service_class", "STD"),
@@ -205,7 +205,7 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 		"example_reserved": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VDC)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDC)),
 					resource.TestCheckResourceAttr(resourceName, "billing_model", "RESERVED"),
 					resource.TestCheckResourceAttr(resourceName, "disponibility_class", "ONE-ROOM"),
 					resource.TestCheckResourceAttr(resourceName, "service_class", "STD"),
@@ -281,7 +281,7 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 		"example_vdc_group_1": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VDC)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDC)),
 					resource.TestCheckResourceAttr(resourceName, "billing_model", "PAYG"),
 					resource.TestCheckResourceAttr(resourceName, "disponibility_class", "ONE-ROOM"),
 					resource.TestCheckResourceAttr(resourceName, "service_class", "STD"),
@@ -324,7 +324,7 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 		"example_vdc_group_2": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VDC)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDC)),
 					resource.TestCheckResourceAttr(resourceName, "billing_model", "PAYG"),
 					resource.TestCheckResourceAttr(resourceName, "disponibility_class", "ONE-ROOM"),
 					resource.TestCheckResourceAttr(resourceName, "service_class", "STD"),
@@ -368,7 +368,7 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 		"example_storage_profiles": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VDC)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDC)),
 					resource.TestCheckResourceAttr(resourceName, "billing_model", "PAYG"),
 					resource.TestCheckResourceAttr(resourceName, "disponibility_class", "ONE-ROOM"),
 					resource.TestCheckResourceAttr(resourceName, "service_class", "STD"),

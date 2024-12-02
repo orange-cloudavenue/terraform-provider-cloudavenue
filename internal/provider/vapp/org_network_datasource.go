@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
@@ -19,7 +20,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var (
@@ -123,7 +123,7 @@ func (d *orgNetworkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 	// Set data
 	plan := &orgNetworkModel{
-		ID:          types.StringValue(uuid.Normalize(uuid.Network, *networkID).String()),
+		ID:          types.StringValue(urn.Normalize(urn.Network, *networkID).String()),
 		VAppName:    utils.StringValueOrNull(d.vapp.GetName()),
 		VAppID:      utils.StringValueOrNull(d.vapp.GetID()),
 		VDC:         types.StringValue(d.vdc.GetName()),

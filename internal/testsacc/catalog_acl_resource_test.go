@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &CatalogACLResource{}
@@ -42,8 +42,8 @@ func (r *CatalogACLResource) Tests(ctx context.Context) map[testsacc.TestName]fu
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "catalog_name"),
 
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Catalog)),
-					resource.TestCheckResourceAttrWith(resourceName, "catalog_id", uuid.TestIsType(uuid.Catalog)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Catalog)),
+					resource.TestCheckResourceAttrWith(resourceName, "catalog_id", urn.TestIsType(urn.Catalog)),
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -98,8 +98,8 @@ func (r *CatalogACLResource) Tests(ctx context.Context) map[testsacc.TestName]fu
 							resource.TestCheckResourceAttr(resourceName, "shared_with_everyone", "false"),
 							resource.TestCheckResourceAttr(resourceName, "shared_with_users.#", "2"),
 
-							resource.TestCheckResourceAttrWith(resourceName, "shared_with_users.0.user_id", uuid.TestIsType(uuid.User)),
-							resource.TestCheckResourceAttrWith(resourceName, "shared_with_users.1.user_id", uuid.TestIsType(uuid.User)),
+							resource.TestCheckResourceAttrWith(resourceName, "shared_with_users.0.user_id", urn.TestIsType(urn.User)),
+							resource.TestCheckResourceAttrWith(resourceName, "shared_with_users.1.user_id", urn.TestIsType(urn.User)),
 							// shared_with_users it's a SetNestedAttribute, so we can't be sure of the order of the elements in the list is not possible to test each attribute
 						},
 					},

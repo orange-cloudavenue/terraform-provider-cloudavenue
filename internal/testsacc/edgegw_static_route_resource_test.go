@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 const testAccStaticRouteResourceConfig = `
@@ -75,7 +75,7 @@ resource "cloudavenue_edgegateway_static_route" "example" {
 func staticRouteTestCheck(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttrSet(resourceName, "id"),
-		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 		resource.TestCheckResourceAttr(resourceName, "name", "example"),
 		resource.TestCheckNoResourceAttr(resourceName, "description"),
 		resource.TestCheckResourceAttr(resourceName, "network_cidr", "192.168.1.0/24"),
@@ -88,7 +88,7 @@ func staticRouteTestCheck(resourceName string) resource.TestCheckFunc {
 func staticRouteTestCheckUpdated(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttrSet(resourceName, "id"),
-		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 		resource.TestCheckResourceAttr(resourceName, "name", "example"),
 		resource.TestCheckResourceAttr(resourceName, "description", "example description"),
 		resource.TestCheckResourceAttr(resourceName, "network_cidr", "192.168.2.0/24"),

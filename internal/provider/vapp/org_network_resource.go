@@ -16,13 +16,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -147,7 +147,7 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	state := &orgNetworkModel{
-		ID:          types.StringValue(uuid.Normalize(uuid.Network, networkID).String()),
+		ID:          types.StringValue(urn.Normalize(urn.Network, networkID).String()),
 		VAppName:    plan.VAppName,
 		VAppID:      plan.VAppID,
 		VDC:         types.StringValue(r.vdc.GetName()),
@@ -202,7 +202,7 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 
 	plan := &orgNetworkModel{
-		ID:          types.StringValue(uuid.Normalize(uuid.Network, *networkID).String()),
+		ID:          types.StringValue(urn.Normalize(urn.Network, *networkID).String()),
 		VAppName:    state.VAppName,
 		VAppID:      state.VAppID,
 		VDC:         types.StringValue(r.vdc.GetName()),

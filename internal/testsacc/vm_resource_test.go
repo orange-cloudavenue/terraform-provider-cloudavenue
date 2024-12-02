@@ -7,8 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Used into old tests.
@@ -76,7 +76,7 @@ func (r *VMResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx c
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VM)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VM)),
 					resource.TestCheckResourceAttrSet(resourceName, "vdc"),
 					resource.TestCheckResourceAttrSet(resourceName, "vapp_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "vapp_id"),
@@ -274,7 +274,7 @@ func (r *VMResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx c
 		"example_with_password": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VM)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VM)),
 					resource.TestCheckResourceAttrSet(resourceName, "vdc"),
 					resource.TestCheckResourceAttrSet(resourceName, "vapp_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "vapp_id"),

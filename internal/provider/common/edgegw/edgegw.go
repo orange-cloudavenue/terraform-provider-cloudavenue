@@ -9,10 +9,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var ErrEdgeGatewayIDOrNameIsEmpty = fmt.Errorf("edge gateway ID or name is empty")
@@ -93,7 +93,7 @@ func (e EdgeGateway) GetSecurityGroupByNameOrID(nsxtFirewallGroupNameOrID string
 		return nil, err
 	}
 
-	if uuid.IsValid(nsxtFirewallGroupNameOrID) {
+	if urn.IsValid(nsxtFirewallGroupNameOrID) {
 		return e.GetNsxtFirewallGroupById(nsxtFirewallGroupNameOrID)
 	}
 
@@ -124,7 +124,7 @@ func (e EdgeGateway) GetIPSetByNameOrID(nsxtFirewallGroupNameOrID string) (*govc
 		return nil, err
 	}
 
-	if uuid.IsValid(nsxtFirewallGroupNameOrID) {
+	if urn.IsValid(nsxtFirewallGroupNameOrID) {
 		return e.GetIPSetByID(nsxtFirewallGroupNameOrID)
 	}
 

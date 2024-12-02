@@ -14,13 +14,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -326,7 +326,7 @@ func (r *networkRoutedResource) ImportState(ctx context.Context, req resource.Im
 		edgeGWName string
 		edgeGWID   string
 	)
-	if uuid.IsEdgeGateway(edgeGatewayNameOrEdgeGatewayID) {
+	if urn.IsEdgeGateway(edgeGatewayNameOrEdgeGatewayID) {
 		edgeGWID = edgeGatewayNameOrEdgeGatewayID
 	} else {
 		edgeGWName = edgeGatewayNameOrEdgeGatewayID

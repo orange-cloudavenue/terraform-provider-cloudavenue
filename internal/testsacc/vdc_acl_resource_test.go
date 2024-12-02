@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 const testAccVDCACLResourceConfig = `
@@ -38,7 +38,7 @@ func TestAccVDCACLResource(t *testing.T) {
 				// Apply test
 				Config: testAccVDCACLResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VDC)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDC)),
 					resource.TestCheckResourceAttr(resourceName, "vdc", "VDC_Test"),
 					resource.TestCheckResourceAttr(resourceName, "everyone_access_level", "ReadOnly"),
 				),
@@ -47,7 +47,7 @@ func TestAccVDCACLResource(t *testing.T) {
 				// Apply test
 				Config: testAccVDCACLResourceSharedWithConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.VDC)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDC)),
 					resource.TestCheckResourceAttr(resourceName, "vdc", "VDC_Test"),
 					resource.TestCheckResourceAttrSet(resourceName, "shared_with.0.subject_name"),
 				),

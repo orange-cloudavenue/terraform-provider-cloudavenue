@@ -13,12 +13,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -321,7 +321,7 @@ func (r *publicIPResource) ImportState(ctx context.Context, req resource.ImportS
 	}
 
 	edgeGwNameOrID, publicIP := idSplit[0], fmt.Sprintf("%s.%s.%s.%s", idSplit[1], idSplit[2], idSplit[3], idSplit[4])
-	if uuid.IsEdgeGateway(edgeGwNameOrID) {
+	if urn.IsEdgeGateway(edgeGwNameOrID) {
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_id"), edgeGwNameOrID)...)
 	} else {
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), edgeGwNameOrID)...)

@@ -23,10 +23,10 @@ import (
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm/diskparams"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // DiskSuperSchema returns the super schema.
@@ -72,7 +72,7 @@ func DiskSuperSchema() superschema.Schema {
 					},
 					Validators: []validator.String{
 						fstringvalidator.IsURN(),
-						fstringvalidator.PrefixContains(uuid.VM.String()),
+						fstringvalidator.PrefixContains(urn.VM.String()),
 					},
 				},
 			},

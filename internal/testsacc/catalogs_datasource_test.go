@@ -7,8 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &CatalogsDataSource{}
@@ -45,7 +45,7 @@ func (r *CatalogsDataSource) Tests(ctx context.Context) map[testsacc.TestName]fu
 						resource.TestCheckResourceAttrSet(resourceName, "catalogs_name.#"),
 						resource.TestCheckResourceAttrSet(resourceName, "catalogs.%"),
 
-						resource.TestCheckResourceAttrWith(resourceName, "catalogs.Orange-Linux.id", uuid.TestIsType(uuid.Catalog)),
+						resource.TestCheckResourceAttrWith(resourceName, "catalogs.Orange-Linux.id", urn.TestIsType(urn.Catalog)),
 						resource.TestCheckResourceAttrSet(resourceName, "catalogs.Orange-Linux.name"),
 						resource.TestCheckResourceAttrSet(resourceName, "catalogs.Orange-Linux.created_at"),
 						resource.TestCheckResourceAttrSet(resourceName, "catalogs.Orange-Linux.preserve_identity_information"),

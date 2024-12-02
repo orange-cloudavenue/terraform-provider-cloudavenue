@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 const testAccNetworkIsolatedResourceConfig = `
@@ -71,7 +71,7 @@ func TestAccNetworkIsolatedResource(t *testing.T) {
 				// Apply test
 				Config: testAccNetworkIsolatedResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
 					resource.TestCheckResourceAttr(resourceName, "vdc", "VDC_Test"),
 					resource.TestCheckResourceAttr(resourceName, "name", "rsx-example-isolated-network"),
 					resource.TestCheckResourceAttr(resourceName, "description", "My isolated Org VDC network"),
@@ -88,7 +88,7 @@ func TestAccNetworkIsolatedResource(t *testing.T) {
 				// Apply test
 				Config: updateAccNetworkIsolatedResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
 					resource.TestCheckResourceAttr(resourceName, "vdc", "VDC_Test"),
 					resource.TestCheckResourceAttr(resourceName, "description", "Example"),
 					resource.TestCheckResourceAttr(resourceName, "dns1", "1.1.1.2"),

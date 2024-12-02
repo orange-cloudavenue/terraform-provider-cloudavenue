@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 const MytestAccVDCResourceConfig = `
@@ -166,7 +166,7 @@ resource "cloudavenue_edgegateway_vpn_ipsec" "example" {
 
 func vpnIPSecTestCheckDefault(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 		resource.TestCheckResourceAttrSet(resourceName, "id"),
 		resource.TestCheckResourceAttr(resourceName, "name", "example-default"),
 		resource.TestCheckResourceAttr(resourceName, "description", "example VPN IPSec"),
@@ -194,7 +194,7 @@ func vpnIPSecTestCheckDefault(resourceName string) resource.TestCheckFunc {
 
 func vpnIPSecTestCheckDefaultUpdate(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 		resource.TestCheckResourceAttrSet(resourceName, "id"),
 		resource.TestCheckResourceAttr(resourceName, "name", "example-default"),
 		resource.TestCheckResourceAttr(resourceName, "description", "example VPN IPSec Updated"),
@@ -222,7 +222,7 @@ func vpnIPSecTestCheckDefaultUpdate(resourceName string) resource.TestCheckFunc 
 
 func vpnIPSecTestCheckCustomize(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 		resource.TestCheckResourceAttrSet(resourceName, "id"),
 		resource.TestCheckResourceAttr(resourceName, "name", "example-customize"),
 		resource.TestCheckResourceAttr(resourceName, "description", "example VPN IPSec"),
@@ -250,7 +250,7 @@ func vpnIPSecTestCheckCustomize(resourceName string) resource.TestCheckFunc {
 
 func vpnIPSecTestCheckCustomizeUpdate(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+		resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 		resource.TestCheckResourceAttrSet(resourceName, "id"),
 		resource.TestCheckResourceAttr(resourceName, "name", "example-customize"),
 		resource.TestCheckResourceAttr(resourceName, "description", "example VPN IPSec Updated"),

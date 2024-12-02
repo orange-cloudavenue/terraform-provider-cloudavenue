@@ -12,10 +12,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -289,7 +289,7 @@ func (r *aclResource) read(ctx context.Context, planOrState *ACLModel) (stateRef
 				return stateRefreshed, true, diags
 			}
 			x := ACLModelSharedWithUser{}
-			x.UserID.Set(uuid.Normalize(uuid.User, id).String())
+			x.UserID.Set(urn.Normalize(urn.User, id).String())
 			x.AccessLevel.Set(user.AccessLevel)
 
 			sharedWithUsers = append(sharedWithUsers, x)

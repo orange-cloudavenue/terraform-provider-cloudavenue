@@ -7,8 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &CatalogResource{}
@@ -38,7 +38,7 @@ func (r *CatalogResource) Tests(ctx context.Context) map[testsacc.TestName]func(
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Catalog)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Catalog)),
 					resource.TestCheckResourceAttr(resourceName, "delete_recursive", "true"),
 					resource.TestCheckResourceAttr(resourceName, "delete_force", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),

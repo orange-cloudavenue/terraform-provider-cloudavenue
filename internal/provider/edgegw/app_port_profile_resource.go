@@ -16,11 +16,11 @@ import (
 
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // NewAppPortProfileResource is a helper function to simplify the provider implementation.
@@ -297,13 +297,13 @@ func (r *appPortProfileResource) ImportState(ctx context.Context, req resource.I
 		EdgeGatewayName: supertypes.NewStringNull(),
 	}
 
-	if uuid.IsEdgeGateway(edgeIDOrName) {
+	if urn.IsEdgeGateway(edgeIDOrName) {
 		x.EdgeGatewayID.Set(edgeIDOrName)
 	} else {
 		x.EdgeGatewayName.Set(edgeIDOrName)
 	}
 
-	if uuid.IsAppPortProfile(appPortProfileIDOrName) {
+	if urn.IsAppPortProfile(appPortProfileIDOrName) {
 		x.ID.Set(appPortProfileIDOrName)
 	} else {
 		x.Name.Set(appPortProfileIDOrName)

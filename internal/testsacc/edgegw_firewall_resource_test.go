@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &EdgeGatewayFirewallResource{}
@@ -37,7 +37,7 @@ func (r *EdgeGatewayFirewallResource) Tests(ctx context.Context) map[testsacc.Te
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -108,7 +108,7 @@ func (r *EdgeGatewayFirewallResource) Tests(ctx context.Context) map[testsacc.Te
 		"example_with_ids": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -141,7 +141,7 @@ func (r *EdgeGatewayFirewallResource) Tests(ctx context.Context) map[testsacc.Te
 							}]
 						}`,
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+						resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 
 						resource.TestCheckResourceAttr(resourceName, "rules.#", "3"),
 						resource.TestCheckResourceAttr(resourceName, "rules.0.action", "ALLOW"),
@@ -154,7 +154,7 @@ func (r *EdgeGatewayFirewallResource) Tests(ctx context.Context) map[testsacc.Te
 						resource.TestCheckResourceAttr(resourceName, "rules.1.direction", "IN"),
 						resource.TestCheckResourceAttr(resourceName, "rules.1.ip_protocol", "IPV4"),
 						resource.TestCheckResourceAttr(resourceName, "rules.1.destination_ids.#", "1"),
-						resource.TestCheckResourceAttrWith(resourceName, "rules.1.destination_ids.0", uuid.TestIsType(uuid.SecurityGroup)),
+						resource.TestCheckResourceAttrWith(resourceName, "rules.1.destination_ids.0", urn.TestIsType(urn.SecurityGroup)),
 						resource.TestCheckResourceAttr(resourceName, "rules.1.app_port_profile_ids.#", "1"),
 						resource.TestCheckResourceAttr(resourceName, "rules.1.app_port_profile_ids.0", "urn:vcloud:applicationPortProfile:4d8cc407-fe83-3a9f-af20-95dfe3a1e9a2"),
 
@@ -163,7 +163,7 @@ func (r *EdgeGatewayFirewallResource) Tests(ctx context.Context) map[testsacc.Te
 						resource.TestCheckResourceAttr(resourceName, "rules.2.direction", "IN"),
 						resource.TestCheckResourceAttr(resourceName, "rules.2.ip_protocol", "IPV4"),
 						resource.TestCheckResourceAttr(resourceName, "rules.2.destination_ids.#", "1"),
-						resource.TestCheckResourceAttrWith(resourceName, "rules.2.destination_ids.0", uuid.TestIsType(uuid.SecurityGroup)),
+						resource.TestCheckResourceAttrWith(resourceName, "rules.2.destination_ids.0", urn.TestIsType(urn.SecurityGroup)),
 						resource.TestCheckResourceAttr(resourceName, "rules.2.app_port_profile_ids.#", "1"),
 						resource.TestCheckResourceAttr(resourceName, "rules.2.app_port_profile_ids.0", "urn:vcloud:applicationPortProfile:9c8049b5-9820-36f9-b90c-ab8f462df3c6"),
 					},
@@ -209,7 +209,7 @@ func (r *EdgeGatewayFirewallResource) Tests(ctx context.Context) map[testsacc.Te
 							}]
 						}`,
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+							resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 
 							resource.TestCheckResourceAttr(resourceName, "rules.#", "4"),
 							resource.TestCheckResourceAttr(resourceName, "rules.0.action", "ALLOW"),
@@ -222,7 +222,7 @@ func (r *EdgeGatewayFirewallResource) Tests(ctx context.Context) map[testsacc.Te
 							resource.TestCheckResourceAttr(resourceName, "rules.1.direction", "IN"),
 							resource.TestCheckResourceAttr(resourceName, "rules.1.ip_protocol", "IPV4"),
 							resource.TestCheckResourceAttr(resourceName, "rules.1.destination_ids.#", "1"),
-							resource.TestCheckResourceAttrWith(resourceName, "rules.1.destination_ids.0", uuid.TestIsType(uuid.SecurityGroup)),
+							resource.TestCheckResourceAttrWith(resourceName, "rules.1.destination_ids.0", urn.TestIsType(urn.SecurityGroup)),
 							resource.TestCheckResourceAttr(resourceName, "rules.1.app_port_profile_ids.#", "1"),
 							resource.TestCheckResourceAttr(resourceName, "rules.1.app_port_profile_ids.0", "urn:vcloud:applicationPortProfile:4d8cc407-fe83-3a9f-af20-95dfe3a1e9a2"),
 
@@ -231,7 +231,7 @@ func (r *EdgeGatewayFirewallResource) Tests(ctx context.Context) map[testsacc.Te
 							resource.TestCheckResourceAttr(resourceName, "rules.2.direction", "IN"),
 							resource.TestCheckResourceAttr(resourceName, "rules.2.ip_protocol", "IPV4"),
 							resource.TestCheckResourceAttr(resourceName, "rules.2.destination_ids.#", "1"),
-							resource.TestCheckResourceAttrWith(resourceName, "rules.2.destination_ids.0", uuid.TestIsType(uuid.SecurityGroup)),
+							resource.TestCheckResourceAttrWith(resourceName, "rules.2.destination_ids.0", urn.TestIsType(urn.SecurityGroup)),
 							resource.TestCheckResourceAttr(resourceName, "rules.2.app_port_profile_ids.#", "1"),
 							resource.TestCheckResourceAttr(resourceName, "rules.2.app_port_profile_ids.0", "urn:vcloud:applicationPortProfile:9c8049b5-9820-36f9-b90c-ab8f462df3c6"),
 
@@ -240,9 +240,9 @@ func (r *EdgeGatewayFirewallResource) Tests(ctx context.Context) map[testsacc.Te
 							resource.TestCheckResourceAttr(resourceName, "rules.3.direction", "IN_OUT"),
 							resource.TestCheckResourceAttr(resourceName, "rules.3.ip_protocol", "IPV4"),
 							resource.TestCheckResourceAttr(resourceName, "rules.3.source_ids.#", "1"),
-							resource.TestCheckResourceAttrWith(resourceName, "rules.3.source_ids.0", uuid.TestIsType(uuid.SecurityGroup)),
+							resource.TestCheckResourceAttrWith(resourceName, "rules.3.source_ids.0", urn.TestIsType(urn.SecurityGroup)),
 							resource.TestCheckResourceAttr(resourceName, "rules.3.destination_ids.#", "1"),
-							resource.TestCheckResourceAttrWith(resourceName, "rules.3.destination_ids.0", uuid.TestIsType(uuid.SecurityGroup)),
+							resource.TestCheckResourceAttrWith(resourceName, "rules.3.destination_ids.0", urn.TestIsType(urn.SecurityGroup)),
 						},
 					},
 				},

@@ -15,13 +15,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -325,13 +325,13 @@ func (r *securityGroupResource) ImportState(ctx context.Context, req resource.Im
 		return
 	}
 
-	if uuid.IsEdgeGateway(idParts[0]) {
+	if urn.IsEdgeGateway(idParts[0]) {
 		edgegwID = idParts[0]
 	} else {
 		edgegwName = idParts[0]
 	}
 
-	if uuid.IsSecurityGroup(idParts[1]) {
+	if urn.IsSecurityGroup(idParts[1]) {
 		id = idParts[1]
 	} else {
 		name = idParts[1]

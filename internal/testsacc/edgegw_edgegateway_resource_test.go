@@ -9,9 +9,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 const testAccEdgeGatewayResourceConfig = `
@@ -66,7 +66,7 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 					resource.TestCheckResourceAttr(resourceName, "owner_type", "vdc"),
 
 					// Read-Only attributes
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
 					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
@@ -151,7 +151,7 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 					resource.TestCheckResourceAttr(resourceName, "owner_type", "vdc-group"),
 
 					// Read-Only attributes
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
 					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				},

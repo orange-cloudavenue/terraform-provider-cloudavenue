@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 const testAccVMDiskResourceConfig = `
@@ -110,7 +110,7 @@ func TestAccVMDiskResource(t *testing.T) {
 			{
 				Config: testAccVMDiskResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceNameDetachable, "id", uuid.TestIsType(uuid.Disk)),
+					resource.TestCheckResourceAttrWith(resourceNameDetachable, "id", urn.TestIsType(urn.Disk)),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "name", "disk-example-detachable"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "storage_profile", "gold"),
@@ -125,7 +125,7 @@ func TestAccVMDiskResource(t *testing.T) {
 			{
 				Config: strings.Replace(testAccVMDiskResourceConfig, "2048", "4096", 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceNameDetachable, "id", uuid.TestIsType(uuid.Disk)),
+					resource.TestCheckResourceAttrWith(resourceNameDetachable, "id", urn.TestIsType(urn.Disk)),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "name", "disk-example-detachable"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameDetachable, "storage_profile", "gold"),
@@ -164,7 +164,7 @@ func TestAccVMDiskResource(t *testing.T) {
 			{
 				Config: testAccVMDiskWithVMResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceNameDetachableWithVM, "id", uuid.TestIsType(uuid.Disk)),
+					resource.TestCheckResourceAttrWith(resourceNameDetachableWithVM, "id", urn.TestIsType(urn.Disk)),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "name", "disk-example-detachable-with-vm"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "storage_profile", "gold"),
@@ -179,7 +179,7 @@ func TestAccVMDiskResource(t *testing.T) {
 			{
 				Config: strings.Replace(testAccVMDiskWithVMResourceConfig, "2048", "4096", 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceNameDetachableWithVM, "id", uuid.TestIsType(uuid.Disk)),
+					resource.TestCheckResourceAttrWith(resourceNameDetachableWithVM, "id", urn.TestIsType(urn.Disk)),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "name", "disk-example-detachable-with-vm"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "bus_type", "SATA"),
 					resource.TestCheckResourceAttr(resourceNameDetachableWithVM, "storage_profile", "gold"),

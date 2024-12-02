@@ -7,8 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var _ testsacc.TestACC = &EdgeGatewayDhcpForwardingResource{}
@@ -38,8 +38,8 @@ func (r *EdgeGatewayDhcpForwardingResource) Tests(ctx context.Context) map[tests
 			return testsacc.Test{
 				// ! Create testing
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
-					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
+					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
@@ -118,8 +118,8 @@ func (r *EdgeGatewayDhcpForwardingResource) Tests(ctx context.Context) map[tests
 		// 	return testsacc.Test{
 		// 		// ! Create testing
 		// 		CommonChecks: []resource.TestCheckFunc{
-		// 			resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Gateway)),
-		// 			resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", uuid.TestIsType(uuid.Gateway)),
+		// 			resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
+		// 			resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 		// 			resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
 		// 		},
 		// 		CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {

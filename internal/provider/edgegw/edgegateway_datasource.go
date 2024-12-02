@@ -7,9 +7,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 var (
@@ -74,7 +74,7 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	data.ID.Set(uuid.Normalize(uuid.Gateway, edgegw.GetID()).String())
+	data.ID.Set(urn.Normalize(urn.Gateway, edgegw.GetID()).String())
 	data.Tier0VrfID.Set(edgegw.GetTier0VrfID())
 	data.OwnerName.Set(edgegw.GetOwnerName())
 	data.OwnerType.Set(string(edgegw.GetOwnerType()))

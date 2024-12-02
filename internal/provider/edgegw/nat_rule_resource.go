@@ -14,12 +14,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -337,7 +337,7 @@ func (r *natRuleResource) ImportState(ctx context.Context, req resource.ImportSt
 	}
 
 	// Get EdgeGW is ID or Name
-	if uuid.IsEdgeGateway(idParts[0]) {
+	if urn.IsEdgeGateway(idParts[0]) {
 		edgegwID = idParts[0]
 	} else {
 		edgegwName = idParts[0]
@@ -353,7 +353,7 @@ func (r *natRuleResource) ImportState(ctx context.Context, req resource.ImportSt
 	}
 
 	// Check if NATRule is ID or a Name
-	if uuid.IsUUIDV4(idParts[1]) {
+	if urn.IsUUIDV4(idParts[1]) {
 		natRule, err = r.edgegw.GetNatRuleById(idParts[1])
 		if err != nil {
 			resp.Diagnostics.AddError("Failed to Get NAT Rule.", err.Error())

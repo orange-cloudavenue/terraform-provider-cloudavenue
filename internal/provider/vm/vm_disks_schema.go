@@ -13,7 +13,7 @@ import (
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 func disksSchema(_ context.Context) superschema.Schema {
@@ -41,7 +41,7 @@ func disksSchema(_ context.Context) superschema.Schema {
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
 						fstringvalidator.IsURN(),
-						fstringvalidator.PrefixContains(uuid.VAPP.String()),
+						fstringvalidator.PrefixContains(urn.VAPP.String()),
 					},
 				},
 			},
@@ -59,7 +59,7 @@ func disksSchema(_ context.Context) superschema.Schema {
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("vm_name"), path.MatchRoot("vm_id")),
 						fstringvalidator.IsURN(),
-						fstringvalidator.PrefixContains(uuid.VM.String()),
+						fstringvalidator.PrefixContains(urn.VM.String()),
 					},
 				},
 			},

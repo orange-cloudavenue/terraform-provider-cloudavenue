@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 const testAccNetworkRoutedDataSourceConfig = `
@@ -49,7 +49,7 @@ func TestAccNetworkRoutedDataSource(t *testing.T) {
 				// Apply test
 				Config: testAccNetworkRoutedDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", uuid.TestIsType(uuid.Network)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
 					resource.TestCheckResourceAttrPair(dataSourceName, "name", resourceName, "name"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "static_ip_pool.#", resourceName, "static_ip_pool.#"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "gateway", resourceName, "gateway"),

@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/uuid"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 const testAccSecurityTagResourceConfig = `
@@ -113,7 +113,7 @@ func TestAccSecurityTagResource(t *testing.T) {
 				Config: testAccSecurityTagResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "id", "tag-example"),
-					resource.TestCheckResourceAttrWith(resourceName, "vm_ids.0", uuid.TestIsType(uuid.VM)),
+					resource.TestCheckResourceAttrWith(resourceName, "vm_ids.0", urn.TestIsType(urn.VM)),
 				),
 			},
 			{
@@ -121,8 +121,8 @@ func TestAccSecurityTagResource(t *testing.T) {
 				Config: testAccSecurityTagResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "id", "tag-example"),
-					resource.TestCheckResourceAttrWith(resourceName, "vm_ids.0", uuid.TestIsType(uuid.VM)),
-					resource.TestCheckResourceAttrWith(resourceName, "vm_ids.1", uuid.TestIsType(uuid.VM)),
+					resource.TestCheckResourceAttrWith(resourceName, "vm_ids.0", urn.TestIsType(urn.VM)),
+					resource.TestCheckResourceAttrWith(resourceName, "vm_ids.1", urn.TestIsType(urn.VM)),
 				),
 			},
 			// Import testing
