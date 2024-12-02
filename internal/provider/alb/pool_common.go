@@ -16,7 +16,7 @@ var ErrPersistenceProfileIsEmpty = errors.New("persistence profile is empty")
 type albPool interface {
 	GetID() string
 	GetName() string
-	GetAlbPool() (*govcd.NsxtAlbPool, error)
+	GetALBPool() (*govcd.NsxtAlbPool, error)
 }
 
 func processMembers(poolMembers []govcdtypes.NsxtAlbPoolMember) (members []member) {
