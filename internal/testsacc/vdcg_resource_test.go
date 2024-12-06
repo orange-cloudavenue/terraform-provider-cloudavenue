@@ -110,6 +110,54 @@ func (r *VDCGResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx
 				},
 			}
 		},
+		// This test not working on testsacc
+		// "example_move_state": func(_ context.Context, resourceName string) testsacc.Test {
+		// 	return testsacc.Test{
+		// 		CommonChecks: []resource.TestCheckFunc{},
+		// 		// ! Create testing
+		// 		Create: testsacc.TFConfig{
+		// 			TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+		// 			resource "cloudavenue_vdc_group" "example_move_state" {
+		// 				name = "move-state"
+		// 				vdc_ids = [
+		// 					cloudavenue_vdc.example_vdc_group_1.id,
+		// 				]
+		// 			}`),
+		// 			Checks: []resource.TestCheckFunc{
+		// 				resource.TestCheckResourceAttrWith("cloudavenue_vdc_group.example_move_state", "id", urn.TestIsType(urn.VDCGroup)),
+		// 				resource.TestCheckResourceAttrSet("cloudavenue_vdc_group.example_move_state", "status"),
+		// 				resource.TestCheckResourceAttrSet("cloudavenue_vdc_group.example_move_state", "type"),
+		// 				resource.TestCheckResourceAttr("cloudavenue_vdc_group.example_move_state", "name", "move-state"),
+		// 				resource.TestCheckResourceAttr("cloudavenue_vdc_group.example_move_state", "vdc_ids.#", "1"),
+		// 			},
+		// 		},
+		// 		// ! Updates testing
+		// 		Updates: []testsacc.TFConfig{
+		// 			// Update description and add a new vdc_id
+		// 			{
+		// 				TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+		// 				resource "cloudavenue_vdcg" "example_move_state" {
+		// 					name = "move-state"
+		// 					vdc_ids = [
+		// 						cloudavenue_vdc.example_vdc_group_1.id,
+		// 					]
+		// 				}
+
+		// 				moved {
+		// 					from = cloudavenue_vdc_group.example
+		// 					to   = cloudavenue_vdcg.example
+		// 				}`),
+		// 				Checks: []resource.TestCheckFunc{
+		// 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDCGroup)),
+		// 					resource.TestCheckResourceAttrSet(resourceName, "status"),
+		// 					resource.TestCheckResourceAttrSet(resourceName, "type"),
+		// 					resource.TestCheckResourceAttr(resourceName, "name", "move-state"),
+		// 					resource.TestCheckResourceAttr(resourceName, "vdc_ids.#", "1"),
+		// 				},
+		// 			},
+		// 		},
+		// 	}
+		// },
 	}
 }
 

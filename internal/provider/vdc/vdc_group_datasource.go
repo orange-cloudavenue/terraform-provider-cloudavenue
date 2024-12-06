@@ -1,4 +1,3 @@
-// Package vdc provides a Terraform datasource.
 package vdc
 
 import (

@@ -32,7 +32,7 @@ func TestGroupResourceSchema(t *testing.T) {
 	}
 }
 
-func TestVPNIPSecDataSourceSchema(t *testing.T) {
+func TestGroupDataSourceSchema(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()

@@ -3,6 +3,7 @@ package vdcg
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
@@ -10,11 +11,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdc"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -22,6 +27,7 @@ var (
 	_ resource.Resource                = &vdcgResource{}
 	_ resource.ResourceWithConfigure   = &vdcgResource{}
 	_ resource.ResourceWithImportState = &vdcgResource{}
+	_ resource.ResourceWithMoveState   = &vdcgResource{}
 )
 
 // NewvdcgResource is a helper function to simplify the provider implementation.
@@ -66,6 +72,74 @@ func (r *vdcgResource) Configure(ctx context.Context, req resource.ConfigureRequ
 		return
 	}
 	r.client = client
+}
+
+// ResourceWithMoveState interface implementation.
+func (r *vdcgResource) MoveState(ctx context.Context) []resource.StateMover {
+	return []resource.StateMover{
+		{
+			SourceSchema: func() *schema.Schema {
+				ctx := context.Background()
+				schemaRequest := resource.SchemaRequest{}
+				schemaResponse := &resource.SchemaResponse{}
+
+				vdc.NewGroupResource().Schema(ctx, schemaRequest, schemaResponse)
+				if schemaResponse.Diagnostics.HasError() {
+					return nil
+				}
+
+				return &schemaResponse.Schema
+			}(),
+			StateMover: func(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+				if req.SourceTypeName != "cloudavenue_vdc_group" {
+					return
+				}
+
+				if req.SourceSchemaVersion != 0 {
+					return
+				}
+
+				if !strings.HasSuffix(req.SourceProviderAddress, "orange-cloudavenue/cloudavenue") {
+					return
+				}
+
+				source := vdc.GroupModel{}
+				dest := vdcgModel{
+					ID:          supertypes.NewStringNull(),
+					Name:        supertypes.NewStringNull(),
+					Description: supertypes.NewStringNull(),
+					VDCIDs:      supertypes.NewSetValueOfNull[string](ctx),
+					Status:      supertypes.NewStringNull(),
+					Type:        supertypes.NewStringNull(),
+				}
+
+				resp.Diagnostics.Append(req.SourceState.Get(ctx, &source)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
+				dest.ID.Set(source.ID.Get())
+				dest.Name.Set(source.Name.Get())
+				dest.Description.Set(source.Description.Get())
+				dest.Status.Set(source.Status.Get())
+				dest.Type.Set(source.Type.Get())
+
+				vdcids, d := source.GetVDCIds(ctx)
+				if d.HasError() {
+					resp.Diagnostics.Append(d...)
+					return
+				}
+
+				resp.Diagnostics.Append(dest.VDCIDs.Set(ctx, vdcids.Get())...)
+				if resp.Diagnostics.HasError() {
+					resp.Diagnostics.AddError("Error setting VDC IDs", "Error setting VDC IDs")
+					return
+				}
+
+				resp.Diagnostics.Append(resp.TargetState.Set(ctx, &dest)...)
+			},
+		},
+	}
 }
 
 // Create creates the resource and sets the initial Terraform state.

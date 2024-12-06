@@ -21,9 +21,26 @@ func groupSchema() superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
 			MarkdownDescription: "The `cloudavenue_vdc_group` resource allows you to manage VDC Group.",
+			Deprecated: superschema.DeprecatedResource{
+				DeprecationMessage:                "The `cloudavenue_vdc_group` resource is deprecated. Please use the `cloudavenue_vdcg` resource instead.",
+				ComputeMarkdownDeprecationMessage: true,
+				Renamed:                           true,
+				TargetResourceName:                "cloudavenue_vdcg",
+				TargetRelease:                     "v0.30.0",
+				LinkToMigrationGuide:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc_group#how-to-migrate-existing-resources",
+				LinkToNewResourceDoc:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg",
+			},
 		},
 		DataSource: superschema.SchemaDetails{
 			MarkdownDescription: "The `cloudavenue_vdc_group` data source allows you to retrieve informations about an existing VDC Group.",
+			Deprecated: superschema.DeprecatedResource{
+				DeprecationMessage:                "The `cloudavenue_vdc_group` data source is deprecated. Please use the `cloudavenue_vdcg` data source instead.",
+				ComputeMarkdownDeprecationMessage: true,
+				Renamed:                           true,
+				TargetResourceName:                "cloudavenue_vdcg",
+				TargetRelease:                     "v0.30.0",
+				LinkToNewResourceDoc:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdcg",
+			},
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
