@@ -10,32 +10,30 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
-var _ testsacc.TestACC = &VDCGroupResource{}
+var _ testsacc.TestACC = &VDCGResource{}
 
 const (
-	// Deprecated: Use VDCGResourceName instead.
-	VDCGroupResourceName = testsacc.ResourceName("cloudavenue_vdc_group")
+	VDCGResourceName = testsacc.ResourceName("cloudavenue_vdcg")
 )
 
-type VDCGroupResource struct{}
+type VDCGResource struct{}
 
-func NewVDCGroupResourceTest() testsacc.TestACC {
-	return &VDCGroupResource{}
+func NewVDCGResourceTest() testsacc.TestACC {
+	return &VDCGResource{}
 }
 
 // GetResourceName returns the name of the resource.
-func (r *VDCGroupResource) GetResourceName() string {
-	return VDCGroupResourceName.String()
+func (r *VDCGResource) GetResourceName() string {
+	return VDCGResourceName.String()
 }
 
-func (r *VDCGroupResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+func (r *VDCGResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example_vdc_group_1"))
 	resp.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example_vdc_group_2"))
-
 	return
 }
 
-func (r *VDCGroupResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *VDCGResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
@@ -48,7 +46,7 @@ func (r *VDCGroupResource) Tests(ctx context.Context) map[testsacc.TestName]func
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-					resource "cloudavenue_vdc_group" "example" {
+					resource "cloudavenue_vdcg" "example" {
 						name = {{ generate . "name" }}
 						description = {{ generate . "description" }}
 						vdc_ids = [
@@ -63,12 +61,28 @@ func (r *VDCGroupResource) Tests(ctx context.Context) map[testsacc.TestName]func
 				},
 				// ! Updates testing
 				Updates: []testsacc.TFConfig{
-					// Update description
+					// Update description and add a new vdc_id
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-						resource "cloudavenue_vdc_group" "example" {
+						resource "cloudavenue_vdcg" "example" {
 							name = {{ get . "name" }}
 							description = {{ generate . "description" }}
+							vdc_ids = [
+								cloudavenue_vdc.example_vdc_group_1.id,
+								cloudavenue_vdc.example_vdc_group_2.id,
+							]
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "vdc_ids.#", "2"),
+						},
+					},
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdcg" "example" {
+							name = {{ generate . "name" }}
+							description = {{ get . "description" }}
 							vdc_ids = [
 								cloudavenue_vdc.example_vdc_group_1.id,
 								cloudavenue_vdc.example_vdc_group_2.id,
@@ -99,10 +113,10 @@ func (r *VDCGroupResource) Tests(ctx context.Context) map[testsacc.TestName]func
 	}
 }
 
-func TestAccVDCGroupResource(t *testing.T) {
+func TestAccVDCGResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps:                    testsacc.GenerateTests(&VDCGroupResource{}),
+		Steps:                    testsacc.GenerateTests(&VDCGResource{}),
 	})
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vcda"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdcg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vm"
 )
 
@@ -40,6 +41,9 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		vdc.NewVDCResource,
 		vdc.NewACLResource,
 		vdc.NewGroupResource,
+
+		// * VDC Group
+		vdcg.NewVDCGResource,
 
 		// * VCDA
 		vcda.NewVCDAIPResource,
