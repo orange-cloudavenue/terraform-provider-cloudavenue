@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_vdcg` - New resource to manage the virtual datacenter group. (This resource replace `cloudavenue_vdc_group`)
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_vdcg` - New data source to get information about the virtual datacenter group. (This data source replace `cloudavenue_vdc_group`)
+```

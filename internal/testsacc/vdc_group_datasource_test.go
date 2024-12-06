@@ -42,7 +42,7 @@ func (r *VDCGroupDataSource) Tests(ctx context.Context) map[testsacc.TestName]fu
 					data "cloudavenue_vdc_group" "example" {
 						name = cloudavenue_vdc_group.example.name
 					}`,
-					Checks: GetResourceConfig()[VDCResourceName]().GetDefaultChecks(),
+					Checks: GetResourceConfig()[VDCGroupResourceName]().GetDefaultChecks(),
 				},
 			}
 		},
