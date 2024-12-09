@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_vdcg_security_group` - Added a new resource to manage security groups in a VDC Group.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_vdcg_security_group` - Added a new data source to fetch information about an security group in a VDC Group.
+```
