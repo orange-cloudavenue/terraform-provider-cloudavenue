@@ -156,14 +156,14 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					resp.Append(GetResourceConfig()[VDCGroupResourceName]().GetDefaultConfig)
+					resp.Append(GetResourceConfig()[VDCGResourceName]().GetDefaultConfig)
 					return
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 					resource "cloudavenue_edgegateway" "example_with_vdc_group" {
-						owner_name     = cloudavenue_vdc_group.example.name
+						owner_name     = cloudavenue_vdcg.example.name
 						tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
 						owner_type     = "vdc-group"
 						bandwidth      = 25
@@ -175,7 +175,7 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_edgegateway" "example_with_vdc_group" {
-							owner_name     = cloudavenue_vdc_group.example.name
+							owner_name     = cloudavenue_vdcg.example.name
 							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
 							owner_type     = "vdc-group"
 							bandwidth      = 5
