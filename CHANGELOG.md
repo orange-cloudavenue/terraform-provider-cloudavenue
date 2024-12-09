@@ -1,4 +1,17 @@
 ## 0.23.0 (Unreleased)
+### :warning: **Deprecations**
+
+* `datasource/cloudavenue_vdc_group` - The `cloudavenue_vdc_group` datasource is deprecated and will be removed in the release v0.30.0. Please use the `cloudavenue_vdcg` datasource instead. (GH-861)
+* `resource/cloudavenue_vdc_group` - The `cloudavenue_vdc_group` resource is deprecated and will be removed in the release v0.30.0. Please use the `cloudavenue_vdcg` resource instead. (GH-861)
+
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_vdcg` - New data source to get information about the virtual datacenter group. (This data source replace `cloudavenue_vdc_group`) (GH-867)
+* **New Resource:** `resource/cloudavenue_vdcg` - New resource to manage the virtual datacenter group. (This resource replace `cloudavenue_vdc_group`) (GH-867)
+### :information_source: **Notes**
+
+* `resource/cloudavenue_vdc_group` - Add a migration guide to migrate from `cloudavenue_vdc_group` to `cloudavenue_vdcg`. (GH-861)
+
 ## 0.22.0 (December  2, 2024)
 ### :rotating_light: **Breaking Changes**
 
