@@ -17,6 +17,9 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceCo
 		VDCDataSourceName:      testsacc.NewResourceConfig(NewVDCDataSourceTest()),
 		VDCGroupDataSourceName: testsacc.NewResourceConfig(NewVDCGroupDataSourceTest()),
 
+		// * VDC Group
+		VDCGDataSourceName: testsacc.NewResourceConfig(NewVDCGDataSourceTest()),
+
 		// * Backup
 		BackupDataSourceName: testsacc.NewResourceConfig(NewBackupDataSourceTest()),
 

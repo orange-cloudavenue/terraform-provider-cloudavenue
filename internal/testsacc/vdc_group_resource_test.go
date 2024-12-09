@@ -13,6 +13,7 @@ import (
 var _ testsacc.TestACC = &VDCGroupResource{}
 
 const (
+	// Deprecated: Use VDCGResourceName instead.
 	VDCGroupResourceName = testsacc.ResourceName("cloudavenue_vdc_group")
 )
 

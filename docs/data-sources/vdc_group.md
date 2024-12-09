@@ -3,11 +3,14 @@ page_title: "cloudavenue_vdc_group Data Source - cloudavenue"
 subcategory: "vDC (Virtual Datacenter)"
 description: |-
   The cloudavenue_vdc_group data source allows you to retrieve informations about an existing VDC Group.
+  !> Resource deprecated The resource has renamed to cloudavenue_vdcg https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdcg, it will be removed in the version v0.30.0 of the provider.
 ---
 
 # cloudavenue_vdc_group (Data Source)
 
-The `cloudavenue_vdc_group` data source allows you to retrieve informations about an existing VDC Group.
+The `cloudavenue_vdc_group` data source allows you to retrieve informations about an existing VDC Group. 
+
+ !> **Resource deprecated** The resource has renamed to [`cloudavenue_vdcg`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdcg), it will be removed in the version `v0.30.0` of the provider.
 
 ## Example Usage
 

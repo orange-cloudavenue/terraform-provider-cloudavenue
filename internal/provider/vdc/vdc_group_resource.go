@@ -1,4 +1,3 @@
-// Package vdc provides a Terraform resource.
 package vdc
 
 import (

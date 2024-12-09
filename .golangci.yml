@@ -181,5 +181,6 @@ linters-settings:
               "NAT",
               "VPN",
               "BMS",
-              "SAML"
+              "SAML",
+              "VDCG"
             ] 

@@ -1,14 +1,13 @@
-package vdc
+package vdcg
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -17,41 +16,19 @@ import (
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 )
 
-func groupSchema() superschema.Schema {
+func vdcgSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_vdc_group` resource allows you to manage VDC Group.",
-			Deprecated: superschema.DeprecatedResource{
-				DeprecationMessage:                "The `cloudavenue_vdc_group` resource is deprecated. Please use the `cloudavenue_vdcg` resource instead.",
-				ComputeMarkdownDeprecationMessage: true,
-				Renamed:                           true,
-				TargetResourceName:                "cloudavenue_vdcg",
-				TargetRelease:                     "v0.30.0",
-				LinkToMigrationGuide:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc_group#how-to-migrate-existing-resources",
-				LinkToNewResourceDoc:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg",
-			},
+			MarkdownDescription: "The `cloudavenue_vdcg` resource allows you to manage a virtual datacenter group.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_vdc_group` data source allows you to retrieve informations about an existing VDC Group.",
-			Deprecated: superschema.DeprecatedResource{
-				DeprecationMessage:                "The `cloudavenue_vdc_group` data source is deprecated. Please use the `cloudavenue_vdcg` data source instead.",
-				ComputeMarkdownDeprecationMessage: true,
-				Renamed:                           true,
-				TargetResourceName:                "cloudavenue_vdcg",
-				TargetRelease:                     "v0.30.0",
-				LinkToNewResourceDoc:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdcg",
-			},
+			MarkdownDescription: "The `cloudavenue_vdcg` data source allows you to retrieve informations about an existing virtual datacenter group.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					Computed:            true,
 					MarkdownDescription: "The ID of the VDC Group.",
-				},
-				Resource: &schemaR.StringAttribute{
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.UseStateForUnknown(),
-					},
 				},
 				DataSource: &schemaD.StringAttribute{
 					Optional: true,
@@ -85,9 +62,9 @@ func groupSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"vdc_ids": superschema.SuperSetAttribute{
+			"vdc_ids": superschema.SuperSetAttributeOf[string]{
 				Common: &schemaR.SetAttribute{
-					MarkdownDescription: "The list of VDC IDs of the VDC Group.",
+					MarkdownDescription: "List of VDC IDs attached to the VDC Group",
 					ElementType:         supertypes.StringType{},
 				},
 				Resource: &schemaR.SetAttribute{

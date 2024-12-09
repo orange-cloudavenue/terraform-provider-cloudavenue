@@ -1,4 +1,4 @@
-package vdc_test
+package vdcg_test
 
 import (
 	"context"
@@ -7,18 +7,18 @@ import (
 	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdcg"
 )
 
-func TestGroupResourceSchema(t *testing.T) {
+// Unit test for the schema of the resource cloudavenue_vdcg.
+func TestVDCGResourceSchema(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
 
 	// Instantiate the resource.Resource and call its Schema method
-	vdc.NewGroupResource().Schema(ctx, schemaRequest, schemaResponse)
+	vdcg.NewVDCGResource().Schema(ctx, fwresource.SchemaRequest{}, schemaResponse)
 
 	if schemaResponse.Diagnostics.HasError() {
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
@@ -32,15 +32,15 @@ func TestGroupResourceSchema(t *testing.T) {
 	}
 }
 
-func TestGroupDataSourceSchema(t *testing.T) {
+// Unit test for the schema of the datasource cloudavenue_vdcg.
+func TestVDCGDataSourceSchema(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	schemaRequest := fwdatasource.SchemaRequest{}
 	schemaResponse := &fwdatasource.SchemaResponse{}
 
-	// Instantiate the resource.Resource and call its Schema method
-	vdc.NewGroupDataSource().Schema(ctx, schemaRequest, schemaResponse)
+	// Instantiate the datasource.Datasource and call its Schema method
+	vdcg.NewVDCGDataSource().Schema(ctx, fwdatasource.SchemaRequest{}, schemaResponse)
 
 	if schemaResponse.Diagnostics.HasError() {
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)

@@ -1,4 +1,4 @@
-package vdc
+package vdcg
 
 import (
 	"context"
@@ -14,34 +14,34 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &vdcGroupDataSource{}
-	_ datasource.DataSourceWithConfigure = &vdcGroupDataSource{}
+	_ datasource.DataSource              = &vdcgDataSource{}
+	_ datasource.DataSourceWithConfigure = &vdcgDataSource{}
 )
 
-func NewGroupDataSource() datasource.DataSource {
-	return &vdcGroupDataSource{}
+func NewVDCGDataSource() datasource.DataSource {
+	return &vdcgDataSource{}
 }
 
-type vdcGroupDataSource struct {
+type vdcgDataSource struct {
 	client   *client.CloudAvenue
 	adminOrg adminorg.AdminOrg
 }
 
-func (d *vdcGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_group"
+func (d *vdcgDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
 // Init Initializes the resource.
-func (d *vdcGroupDataSource) Init(ctx context.Context, rm *GroupModel) (diags diag.Diagnostics) {
+func (d *vdcgDataSource) Init(ctx context.Context, rm *vdcgModel) (diags diag.Diagnostics) {
 	d.adminOrg, diags = adminorg.Init(d.client)
 	return
 }
 
-func (d *vdcGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = groupSchema().GetDataSource(ctx)
+func (d *vdcgDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = vdcgSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *vdcGroupDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *vdcgDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -61,10 +61,10 @@ func (d *vdcGroupDataSource) Configure(ctx context.Context, req datasource.Confi
 	d.client = client
 }
 
-func (d *vdcGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	defer metrics.New("data.cloudavenue_vdc_group", d.client.GetOrgName(), metrics.Read)()
+func (d *vdcgDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_vdcg", d.client.GetOrgName(), metrics.Read)()
 
-	config := &GroupModel{}
+	config := &vdcgModel{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
@@ -81,13 +81,17 @@ func (d *vdcGroupDataSource) Read(ctx context.Context, req datasource.ReadReques
 		Implement the data source read logic here.
 	*/
 
-	s := &groupResource{
+	s := &vdcgResource{
 		client:   d.client,
 		adminOrg: d.adminOrg,
 	}
 
 	// Read data from the API
-	data, _, diags := s.read(ctx, config)
+	data, found, diags := s.read(ctx, config)
+	if !found {
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The VDC Group %s(%s) was not found", config.Name.Get(), config.ID.Get()))
+		return
+	}
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
