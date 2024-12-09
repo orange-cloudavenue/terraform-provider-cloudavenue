@@ -1,0 +1,11 @@
+```release-note:deprecation
+`resource/cloudavenue_vdc_group` - The `cloudavenue_vdc_group` resource is deprecated and will be removed in the release v0.30.0. Please use the `cloudavenue_vdcg` resource instead.
+```
+
+```release-note:deprecation
+`datasource/cloudavenue_vdc_group` - The `cloudavenue_vdc_group` datasource is deprecated and will be removed in the release v0.30.0. Please use the `cloudavenue_vdcg` datasource instead.
+```
+
+```release-note:note
+`resource/cloudavenue_vdc_group` - Add a migration guide to migrate from `cloudavenue_vdc_group` to `cloudavenue_vdcg`.
+```
