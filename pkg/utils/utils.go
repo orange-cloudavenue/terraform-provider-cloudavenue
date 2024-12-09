@@ -175,6 +175,24 @@ func OpenAPIReferenceToSliceName(slice []govcdtypes.OpenApiReference) OpenAPIVal
 	return result
 }
 
+// SliceIDToOpenAPIReference converts a slice of ID to a slice of OpenApiReference.
+func SliceIDToOpenAPIReference(slice []string) []govcdtypes.OpenApiReference {
+	var result []govcdtypes.OpenApiReference
+	for _, s := range slice {
+		result = append(result, govcdtypes.OpenApiReference{ID: s})
+	}
+	return result
+}
+
+// SliceNameToOpenAPIReference converts a slice of Name to a slice of OpenApiReference.
+func SliceNameToOpenAPIReference(slice []string) []govcdtypes.OpenApiReference {
+	var result []govcdtypes.OpenApiReference
+	for _, s := range slice {
+		result = append(result, govcdtypes.OpenApiReference{Name: s})
+	}
+	return result
+}
+
 // ToTerraformTypes converts a slice of string to a slice of types.String.
 func (o *OpenAPIValues) ToTerraformTypesString() []types.String {
 	var result []types.String
