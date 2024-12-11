@@ -1,0 +1,7 @@
+```release-note:feature
+`resource/cloudavenue_alb_virtual_service` - New resource for managing ALB virtual service.
+```
+
+```release-note:feature
+`datasource/cloudavenue_alb_virtual_service` - New datasource to read ALB virtual service.
+```

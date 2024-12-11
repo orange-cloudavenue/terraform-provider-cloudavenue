@@ -26,7 +26,8 @@ import (
 func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		// * ALB
-		alb.NewAlbPoolDataSource,
+		alb.NewPoolDataSource,
+		alb.NewVirtualServiceDataSource,
 
 		// * TIER0
 		vrf.NewTier0VrfsDataSource,
