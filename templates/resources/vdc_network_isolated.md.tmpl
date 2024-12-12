@@ -1,0 +1,55 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "vDC (Virtual Datacenter)"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+{{ if .HasExample -}}
+## Example Usage
+
+{{ tffile .ExampleFile }}
+{{- end }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Advanced Usage
+
+Define `static_ip_pool` as a list of objects to create multiple IP pools.
+
+```hcl
+resource "cloudavenue_vdc_network_isolated" "example" {
+  name = "my-isolated-network"
+  vdc  = cloudavenue_vdc.example.name
+
+  gateway       = "192.168.0.1"
+  prefix_length = 24
+
+  dns1       = "192.168.0.2"
+  dns2       = "192.168.0.3"
+  dns_suffix = "example.local"
+
+  static_ip_pool = [
+    {
+      start_address = "192.168.0.10"
+      end_address   = "192.168.0.20"
+    },
+    {
+      start_address = "192.168.0.100"
+      end_address   = "192.168.0.130"
+    }
+  ]
+}
+
+```
+
+{{ if .HasImport -}}
+## Import
+
+Import is supported using the following syntax:
+{{ codefile "shell" .ImportFile }}
+{{- end }}

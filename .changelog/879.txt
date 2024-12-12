@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_vdc_network_isolated` - Added a new resource to manage isolated networks in a VDC. This resource replace the deprecated `cloudavenue_network_isolated` resource.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_vdc_network_isolated` - Added a new data source to fetch information about an isolated network in a VDC. This data source replace the deprecated `cloudavenue_network_isolated` data source.
+```

@@ -10,8 +10,9 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		CatalogVAppTemplateDataSourceName: testsacc.NewResourceConfig(NewCatalogVAppTemplateDataSourceTest()),
 
 		// * VDC
-		VDCResourceName:      testsacc.NewResourceConfig(NewVDCResourceTest()),
-		VDCGroupResourceName: testsacc.NewResourceConfig(NewVDCGroupResourceTest()),
+		VDCResourceName:                testsacc.NewResourceConfig(NewVDCResourceTest()),
+		VDCGroupResourceName:           testsacc.NewResourceConfig(NewVDCGroupResourceTest()),
+		VDCNetworkIsolatedResourceName: testsacc.NewResourceConfig(NewVDCNetworkIsolatedResourceTest()),
 
 		// * VDC Group
 		VDCGResourceName: testsacc.NewResourceConfig(NewVDCGResourceTest()),
