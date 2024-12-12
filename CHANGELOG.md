@@ -12,6 +12,10 @@
 
 * `resource/cloudavenue_vdc_group` - Add a migration guide to migrate from `cloudavenue_vdc_group` to `cloudavenue_vdcg`. (GH-861)
 
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.14.0 to 0.15.0 (GH-881)
+
 ## 0.22.0 (December  2, 2024)
 ### :rotating_light: **Breaking Changes**
 
