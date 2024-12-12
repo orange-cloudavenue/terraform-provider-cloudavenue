@@ -1,4 +1,5 @@
-## 0.23.0 (Unreleased)
+## 0.24.0 (Unreleased)
+## 0.23.0 (December 12, 2024)
 ### :warning: **Deprecations**
 
 * `datasource/cloudavenue_vdc_group` - The `cloudavenue_vdc_group` datasource is deprecated and will be removed in the release v0.30.0. Please use the `cloudavenue_vdcg` datasource instead. (GH-861)
