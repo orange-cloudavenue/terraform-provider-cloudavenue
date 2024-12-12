@@ -1,4 +1,13 @@
 ## 0.24.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `provider` - Fix minor issue in client setup. (GH-883)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.15.0 to 0.15.1 (GH-883)
+
 ## 0.23.0 (December 12, 2024)
 ### :warning: **Deprecations**
 
