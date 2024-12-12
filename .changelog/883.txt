@@ -1,0 +1,7 @@
+```release-note:bug
+`provider` - Fix minor issue in client setup.
+```
+
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.15.0 to 0.15.1
+```
