@@ -29,6 +29,8 @@ func groupSchema() superschema.Schema {
 				TargetRelease:                     "v0.30.0",
 				LinkToMigrationGuide:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc_group#how-to-migrate-existing-resources",
 				LinkToNewResourceDoc:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg",
+				LinkToMilestone:                   "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/18",
+				LinkToIssue:                       "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/869",
 			},
 		},
 		DataSource: superschema.SchemaDetails{
@@ -40,6 +42,8 @@ func groupSchema() superschema.Schema {
 				TargetResourceName:                "cloudavenue_vdcg",
 				TargetRelease:                     "v0.30.0",
 				LinkToNewResourceDoc:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdcg",
+				LinkToMilestone:                   "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/18",
+				LinkToIssue:                       "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/869",
 			},
 		},
 		Attributes: map[string]superschema.Attribute{

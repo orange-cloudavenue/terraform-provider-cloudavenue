@@ -3,11 +3,14 @@ page_title: "cloudavenue_network_isolated Resource - cloudavenue"
 subcategory: "Network"
 description: |-
   Provides a Cloud Avenue VDC isolated Network. This can be used to create, modify, and delete VDC isolated networks.
+  !> Resource deprecated The resource has renamed to cloudavenue_vdc_network_isolated https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc_network_isolated, it will be removed in the version v0.32.0 https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/20 of the provider. See the GitHub issue https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/880 for more information.
 ---
 
 # cloudavenue_network_isolated (Resource)
 
-Provides a Cloud Avenue VDC isolated Network. This can be used to create, modify, and delete VDC isolated networks.
+Provides a Cloud Avenue VDC isolated Network. This can be used to create, modify, and delete VDC isolated networks. 
+
+ !> **Resource deprecated** The resource has renamed to [`cloudavenue_vdc_network_isolated`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc_network_isolated), it will be removed in the version [`v0.32.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/20) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/880) for more information.
 
 ## Example Usage
 
