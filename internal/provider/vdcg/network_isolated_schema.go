@@ -1,8 +1,9 @@
-package vdc
+package vdcg
 
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
@@ -22,10 +24,10 @@ import (
 func networkIsolatedSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_vdc_network_isolated` resource allows you to manage an isolated network in a `VDC`.",
+			MarkdownDescription: "The `cloudavenue_vdcg_network_isolated` resource allows you to manage an isolated network in a `VDC Group`.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_vdc_network_isolated` data source allows you to retrieve information about an isolated network in a `VDC`.",
+			MarkdownDescription: "The `cloudavenue_vdcg_network_isolated` data source allows you to retrieve information about an isolated network in a `VDC Group`.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
@@ -51,10 +53,29 @@ func networkIsolatedSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"vdc": superschema.SuperStringAttribute{
+			"vdc_group_name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of vDC to use",
-					Required:            true,
+					MarkdownDescription: "The name of vDC group that owns the network.",
+					Optional:            true,
+					Computed:            true,
+					Validators: []validator.String{
+						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
+					},
+				},
+				Resource: &schemaR.StringAttribute{
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplace(),
+					},
+				},
+			},
+			"vdc_group_id": superschema.SuperStringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The ID of vDC group that owns the network.",
+					Optional:            true,
+					Computed:            true,
+					Validators: []validator.String{
+						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
+					},
 				},
 				Resource: &schemaR.StringAttribute{
 					PlanModifiers: []planmodifier.String{
