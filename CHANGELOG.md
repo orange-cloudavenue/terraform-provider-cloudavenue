@@ -14,6 +14,10 @@
 
 * `resource/cloudavenue_network_isolated` - Add a migration guide to migrate from `cloudavenue_network_isolated` to `cloudavenue_vdc_network_isolated`. (GH-888)
 
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.16.0 to 0.17.0 (GH-890)
+
 ## 0.23.1 (December 12, 2024)
 
 ### :bug: **Bug Fixes**
