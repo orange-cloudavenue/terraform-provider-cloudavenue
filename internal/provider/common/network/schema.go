@@ -299,7 +299,7 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 			Renamed:                           true,
 			TargetResourceName:                "cloudavenue_vdc_network_isolated",
 			TargetRelease:                     "v0.32.0",
-			LinkToMigrationGuide:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc_group#how-to-migrate-existing-resources",
+			LinkToMigrationGuide:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/network_isolated#how-to-migrate-existing-resources",
 			LinkToNewResourceDoc:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc_network_isolated",
 			LinkToMilestone:                   "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/20",
 			LinkToIssue:                       "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/880",

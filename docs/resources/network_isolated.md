@@ -12,31 +12,78 @@ Provides a Cloud Avenue VDC isolated Network. This can be used to create, modify
 
  !> **Resource deprecated** The resource has renamed to [`cloudavenue_vdc_network_isolated`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc_network_isolated), it will be removed in the version [`v0.32.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/20) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/880) for more information.
 
+
+## How to migrate existing resources
+
+Original configuration:
+
+```terraform
+resource "cloudavenue_network_isolated" "example" {
+  name = "my-isolated-network"
+  vdc  = cloudavenue_vdc.example.name
+
+  gateway       = "192.168.0.1"
+  prefix_length = 24
+
+  dns1       = "192.168.0.2"
+  dns2       = "192.168.0.3"
+  dns_suffix = "example.local"
+}
+```
+
+Migrated configuration:
+
+Rename the resource to `cloudavenue_vdc_network_isolated` and add the `moved` block to the configuration:
+
+```hcl
+resource "cloudavenue_vdc_network_isolated" "example" {
+  name = "my-isolated-network"
+  vdc  = cloudavenue_vdc.example.name
+
+  gateway       = "192.168.0.1"
+  prefix_length = 24
+
+  dns1       = "192.168.0.2"
+  dns2       = "192.168.0.3"
+  dns_suffix = "example.local"
+}
+
+moved {
+  from = cloudavenue_network_isolated.example
+  to   = cloudavenue_vdc_network_isolated.example
+}
+```
+
+Run `terraform plan` and `terraform apply` to migrate the resource.
+
+Example of terraform plan output:
+
+```shell
+Terraform will perform the following actions:
+
+  # cloudavenue_network_isolated.example has moved to cloudavenue_vdc_network_isolated.example
+    resource "cloudavenue_vdc_network_isolated" "example" {
+        id                 = "urn:vcloud:network:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        name               = "rsx-example-isolated-network"
+        # (9 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 0 to change, 0 to destroy.
+```
+
 ## Example Usage
 
 ```terraform
 resource "cloudavenue_network_isolated" "example" {
-  vdc         = "VDC_Test"
-  name        = "rsx-example-isolated-network"
-  description = "My isolated Org VDC network"
+  name = "my-isolated-network"
+  vdc  = cloudavenue_vdc.example.name
 
-  gateway       = "1.1.1.1"
+  gateway       = "192.168.0.1"
   prefix_length = 24
 
-  dns1       = "8.8.8.8"
-  dns2       = "8.8.4.4"
-  dns_suffix = "example.com"
-
-  static_ip_pool = [
-    {
-      start_address = "1.1.1.10"
-      end_address   = "1.1.1.20"
-    },
-    {
-      start_address = "1.1.1.100"
-      end_address   = "1.1.1.103"
-    }
-  ]
+  dns1       = "192.168.0.2"
+  dns2       = "192.168.0.3"
+  dns_suffix = "example.local"
 }
 ```
 

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
@@ -17,7 +18,9 @@ import (
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	cnetwork "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/network"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -25,6 +28,7 @@ var (
 	_ resource.Resource                = &NetworkIsolatedResource{}
 	_ resource.ResourceWithConfigure   = &NetworkIsolatedResource{}
 	_ resource.ResourceWithImportState = &NetworkIsolatedResource{}
+	_ resource.ResourceWithMoveState   = &NetworkIsolatedResource{}
 )
 
 // NewNetworkIsolatedResource is a helper function to simplify the provider implementation.
@@ -69,6 +73,85 @@ func (r *NetworkIsolatedResource) Configure(ctx context.Context, req resource.Co
 		return
 	}
 	r.client = client
+}
+
+// ResourceWithMoveState interface implementation.
+func (r *NetworkIsolatedResource) MoveState(ctx context.Context) []resource.StateMover {
+	return []resource.StateMover{
+		{
+			SourceSchema: func() *schema.Schema {
+				ctx := context.Background()
+				schemaRequest := resource.SchemaRequest{}
+				schemaResponse := &resource.SchemaResponse{}
+
+				network.NewNetworkIsolatedResource().Schema(ctx, schemaRequest, schemaResponse)
+				if schemaResponse.Diagnostics.HasError() {
+					return nil
+				}
+
+				return &schemaResponse.Schema
+			}(),
+			StateMover: func(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+				if req.SourceTypeName != "cloudavenue_network_isolated" {
+					return
+				}
+
+				if req.SourceSchemaVersion != 0 {
+					return
+				}
+
+				if !strings.HasSuffix(req.SourceProviderAddress, "orange-cloudavenue/cloudavenue") {
+					return
+				}
+
+				source := network.IsolatedModel{}
+				dest := &networkIsolatedModel{
+					ID:               supertypes.NewStringNull(),
+					Name:             supertypes.NewStringNull(),
+					VDC:              supertypes.NewStringNull(),
+					Description:      supertypes.NewStringNull(),
+					Gateway:          supertypes.NewStringNull(),
+					PrefixLength:     supertypes.NewInt64Null(),
+					DNS1:             supertypes.NewStringNull(),
+					DNS2:             supertypes.NewStringNull(),
+					DNSSuffix:        supertypes.NewStringNull(),
+					StaticIPPool:     supertypes.NewSetNestedObjectValueOfNull[networkIsolatedModelStaticIPPool](ctx),
+					GuestVLANAllowed: supertypes.NewBoolValue(false),
+				}
+
+				resp.Diagnostics.Append(req.SourceState.Get(ctx, &source)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
+				dest.ID.Set(source.ID.ValueString())
+				dest.VDC.Set(source.VDC.ValueString())
+				dest.Description.Set(source.Description.ValueString())
+				dest.Gateway.Set(source.Gateway.ValueString())
+				dest.PrefixLength.SetInt64(source.PrefixLength.ValueInt64())
+				dest.DNS1.Set(source.DNS1.ValueString())
+				dest.DNS2.Set(source.DNS2.ValueString())
+				dest.DNSSuffix.Set(source.DNSSuffix.ValueString())
+				dIPPools := []*networkIsolatedModelStaticIPPool{}
+				sIPPools := []cnetwork.StaticIPPool{}
+
+				resp.Diagnostics.Append(source.StaticIPPool.ElementsAs(ctx, &sIPPools, true)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
+				for _, ipPool := range sIPPools {
+					dIPPools = append(dIPPools, &networkIsolatedModelStaticIPPool{
+						StartAddress: supertypes.NewStringValue(ipPool.StartAddress.ValueString()),
+						EndAddress:   supertypes.NewStringValue(ipPool.EndAddress.ValueString()),
+					})
+				}
+
+				resp.Diagnostics.Append(dest.StaticIPPool.Set(ctx, dIPPools)...)
+				resp.Diagnostics.Append(resp.TargetState.Set(ctx, &dest)...)
+			},
+		},
+	}
 }
 
 // Create creates the resource and sets the initial Terraform state.
