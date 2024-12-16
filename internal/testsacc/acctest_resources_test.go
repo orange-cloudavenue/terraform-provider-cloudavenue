@@ -15,7 +15,8 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		VDCNetworkIsolatedResourceName: testsacc.NewResourceConfig(NewVDCNetworkIsolatedResourceTest()),
 
 		// * VDC Group
-		VDCGResourceName: testsacc.NewResourceConfig(NewVDCGResourceTest()),
+		VDCGResourceName:                testsacc.NewResourceConfig(NewVDCGResourceTest()),
+		VDCGNetworkIsolatedResourceName: testsacc.NewResourceConfig(NewVDCGNetworkIsolatedResourceTest()),
 
 		// * VAPP
 		VAppResourceName:                testsacc.NewResourceConfig(NewVAppResourceTest()),
