@@ -1,23 +1,11 @@
 resource "cloudavenue_network_isolated" "example" {
-  vdc         = "VDC_Test"
-  name        = "rsx-example-isolated-network"
-  description = "My isolated Org VDC network"
+  name = "my-isolated-network"
+  vdc  = cloudavenue_vdc.example.name
 
-  gateway       = "1.1.1.1"
+  gateway       = "192.168.0.1"
   prefix_length = 24
 
-  dns1       = "8.8.8.8"
-  dns2       = "8.8.4.4"
-  dns_suffix = "example.com"
-
-  static_ip_pool = [
-    {
-      start_address = "1.1.1.10"
-      end_address   = "1.1.1.20"
-    },
-    {
-      start_address = "1.1.1.100"
-      end_address   = "1.1.1.103"
-    }
-  ]
+  dns1       = "192.168.0.2"
+  dns2       = "192.168.0.3"
+  dns_suffix = "example.local"
 }
