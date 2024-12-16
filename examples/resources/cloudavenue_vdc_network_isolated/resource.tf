@@ -1,4 +1,4 @@
-resource "cloudavenue_network_isolated" "example" {
+resource "cloudavenue_vdc_network_isolated" "example" {
   name = "my-isolated-network"
   vdc  = cloudavenue_vdc.example.name
 

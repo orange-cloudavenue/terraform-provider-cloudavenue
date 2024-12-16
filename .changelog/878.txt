@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_vdcg_network_isolated` - Added a new resource to manage isolated networks in a VDC Group.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_vdcg_network_isolated` - Added a new data source to fetch information about an isolated network in a VDC Group.
+```

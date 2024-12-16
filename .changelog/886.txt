@@ -1,0 +1,7 @@
+```release-note:deprecation
+`resource/cloudavenue_network_isolated` - The `cloudavenue_network_isolated` resource is deprecated and will be removed in the release v0.32.0. Please use the `cloudavenue_vdc_network_isolated` resource instead.
+```
+
+```release-note:deprecation
+`datasource/cloudavenue_network_isolated` - The `cloudavenue_network_isolated` datasource is deprecated and will be removed in the release v0.32.0. Please use the `cloudavenue_vdc_network_isolated` datasource instead.
+```

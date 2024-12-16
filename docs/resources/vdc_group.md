@@ -3,14 +3,14 @@ page_title: "cloudavenue_vdc_group Resource - cloudavenue"
 subcategory: "vDC (Virtual Datacenter)"
 description: |-
   The cloudavenue_vdc_group resource allows you to manage VDC Group.
-  !> Resource deprecated The resource has renamed to cloudavenue_vdcg https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg, it will be removed in the version v0.30.0 of the provider.
+  !> Resource deprecated The resource has renamed to cloudavenue_vdcg https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg, it will be removed in the version v0.30.0 https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/18 of the provider. See the GitHub issue https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/869 for more information.
 ---
 
 # cloudavenue_vdc_group (Resource)
 
 The `cloudavenue_vdc_group` resource allows you to manage VDC Group. 
 
- !> **Resource deprecated** The resource has renamed to [`cloudavenue_vdcg`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg), it will be removed in the version `v0.30.0` of the provider.
+ !> **Resource deprecated** The resource has renamed to [`cloudavenue_vdcg`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg), it will be removed in the version [`v0.30.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/18) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/869) for more information.
 
 ## How to migrate existing resources
 

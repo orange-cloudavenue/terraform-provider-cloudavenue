@@ -14,11 +14,13 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceCo
 		Tier0VRFDataSourceName: testsacc.NewResourceConfig(NewTier0VRFDataSourceTest()),
 
 		// * VDC
-		VDCDataSourceName:      testsacc.NewResourceConfig(NewVDCDataSourceTest()),
-		VDCGroupDataSourceName: testsacc.NewResourceConfig(NewVDCGroupDataSourceTest()),
+		VDCDataSourceName:                testsacc.NewResourceConfig(NewVDCDataSourceTest()),
+		VDCGroupDataSourceName:           testsacc.NewResourceConfig(NewVDCGroupDataSourceTest()),
+		VDCNetworkIsolatedDataSourceName: testsacc.NewResourceConfig(NewVDCNetworkIsolatedDataSourceTest()),
 
 		// * VDC Group
-		VDCGDataSourceName: testsacc.NewResourceConfig(NewVDCGDataSourceTest()),
+		VDCGDataSourceName:                testsacc.NewResourceConfig(NewVDCGDataSourceTest()),
+		VDCGNetworkIsolatedDataSourceName: testsacc.NewResourceConfig(NewVDCGNetworkIsolatedDataSourceTest()),
 
 		// * Backup
 		BackupDataSourceName: testsacc.NewResourceConfig(NewBackupDataSourceTest()),

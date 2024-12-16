@@ -41,9 +41,11 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		vdc.NewVDCResource,
 		vdc.NewACLResource,
 		vdc.NewGroupResource,
+		vdc.NewNetworkIsolatedResource,
 
 		// * VDC Group
 		vdcg.NewVDCGResource,
+		vdcg.NewNetworkIsolatedResource,
 
 		// * VCDA
 		vcda.NewVCDAIPResource,

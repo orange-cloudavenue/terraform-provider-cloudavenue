@@ -292,6 +292,30 @@ func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
 		_schema.DataSource.MarkdownDescription = "Provides a Cloud Avenue VDC isolated Network data source to read data or reference existing network."
 		_schema.Attributes["vdc"] = vdc.SuperSchema()
 
+		// * Add deprecated resource and data source
+		_schema.Resource.Deprecated = superschema.DeprecatedResource{
+			DeprecationMessage:                "The `cloudavenue_network_isolated` resource is deprecated. Please use the `cloudavenue_vdc_network_isolated` resource instead.",
+			ComputeMarkdownDeprecationMessage: true,
+			Renamed:                           true,
+			TargetResourceName:                "cloudavenue_vdc_network_isolated",
+			TargetRelease:                     "v0.32.0",
+			LinkToMigrationGuide:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/network_isolated#how-to-migrate-existing-resources",
+			LinkToNewResourceDoc:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc_network_isolated",
+			LinkToMilestone:                   "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/20",
+			LinkToIssue:                       "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/880",
+		}
+
+		_schema.DataSource.Deprecated = superschema.DeprecatedResource{
+			DeprecationMessage:                "The `cloudavenue_network_isolated` data source is deprecated. Please use the `cloudavenue_vdc_network_isolated` data source instead.",
+			ComputeMarkdownDeprecationMessage: true,
+			Renamed:                           true,
+			TargetResourceName:                "cloudavenue_vdc_network_isolated",
+			TargetRelease:                     "v0.32.0",
+			LinkToNewResourceDoc:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdc_network_isolated",
+			LinkToMilestone:                   "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/20",
+			LinkToIssue:                       "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/880",
+		}
+
 	case ISOLATEDVAPP:
 		// Add isolated vApp network specific attributes to the schema
 		delete(_schema.Attributes, "prefix_length")
