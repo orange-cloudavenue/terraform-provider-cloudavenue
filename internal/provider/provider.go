@@ -63,7 +63,7 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 				Password: emptyOrValue(config.NetBackupPassword),
 			},
 			CloudAvenue: &clientcloudavenue.Opts{
-				Endpoint: emptyOrValue(config.URL),
+				URL:      emptyOrValue(config.URL),
 				Username: emptyOrValue(config.User),
 				Password: emptyOrValue(config.Password),
 				Org:      emptyOrValue(config.Org),
