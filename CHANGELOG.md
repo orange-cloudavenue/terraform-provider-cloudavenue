@@ -1,4 +1,19 @@
 ## 0.24.0 (Unreleased)
+### :warning: **Deprecations**
+
+* `datasource/cloudavenue_network_isolated` - The `cloudavenue_network_isolated` datasource is deprecated and will be removed in the release v0.32.0. Please use the `cloudavenue_vdc_network_isolated` datasource instead. (GH-886)
+* `resource/cloudavenue_network_isolated` - The `cloudavenue_network_isolated` resource is deprecated and will be removed in the release v0.32.0. Please use the `cloudavenue_vdc_network_isolated` resource instead. (GH-886)
+
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_vdc_network_isolated` - Added a new data source to fetch information about an isolated network in a VDC. This data source replace the deprecated `cloudavenue_network_isolated` data source. (GH-879)
+* **New Data Source:** `datasource/cloudavenue_vdcg_network_isolated` - Added a new data source to fetch information about an isolated network in a VDC Group. (GH-878)
+* **New Resource:** `resource/cloudavenue_vdc_network_isolated` - Added a new resource to manage isolated networks in a VDC. This resource replace the deprecated `cloudavenue_network_isolated` resource. (GH-879)
+* **New Resource:** `resource/cloudavenue_vdcg_network_isolated` - Added a new resource to manage isolated networks in a VDC Group. (GH-878)
+### :information_source: **Notes**
+
+* `resource/cloudavenue_network_isolated` - Add a migration guide to migrate from `cloudavenue_network_isolated` to `cloudavenue_vdc_network_isolated`. (GH-888)
+
 ## 0.23.1 (December 12, 2024)
 
 ### :bug: **Bug Fixes**
