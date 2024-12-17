@@ -1,7 +1,0 @@
-```release-note:new-resource
-`resource/cloudavenue_vdcg_ip_set` - Add new resource `cloudavenue_vdcg_ip_set` to manage IP sets rule in a VDC Group.
-```
-
-```release-note:new-data-source
-`datasource/cloudavenue_vdcg_ip_set` - Add new data source `cloudavenue_vdcg_ip_set` to get IP sets rule in a VDC Group.
-```

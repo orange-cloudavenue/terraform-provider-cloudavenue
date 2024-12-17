@@ -1,5 +1,6 @@
 ## 0.25.0 (Unreleased)
 ## 0.24.0 (December 18, 2024)
+
 ### :warning: **Deprecations**
 
 * `datasource/cloudavenue_network_isolated` - The `cloudavenue_network_isolated` datasource is deprecated and will be removed in the release v0.32.0. Please use the `cloudavenue_vdc_network_isolated` datasource instead. (GH-886)
@@ -14,7 +15,8 @@
 * **New Resource:** `resource/cloudavenue_vdc_network_isolated` - Added a new resource to manage isolated networks in a VDC. This resource replace the deprecated `cloudavenue_network_isolated` resource. (GH-879)
 * **New Resource:** `resource/cloudavenue_vdcg_ip_set` - Add new resource `cloudavenue_vdcg_ip_set` to manage IP sets rule in a VDC Group. (GH-858)
 * **New Resource:** `resource/cloudavenue_vdcg_network_isolated` - Added a new resource to manage isolated networks in a VDC Group. (GH-878)
-* **New Resource:** `resource/cloudavenue_vdcg_security_group` - Added a new resource to manage security groups in a VDC Group. (GH-856)
+* **New Resource:** `resource/cloudavenue_vdcg_security_group` - Added a new resource to manage security groups in a VDC Group. (GH-858)
+
 ### :information_source: **Notes**
 
 * `resource/cloudavenue_network_isolated` - Add a migration guide to migrate from `cloudavenue_network_isolated` to `cloudavenue_vdc_network_isolated`. (GH-888)
