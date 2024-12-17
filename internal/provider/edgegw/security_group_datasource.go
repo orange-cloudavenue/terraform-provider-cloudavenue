@@ -31,7 +31,7 @@ type securityGroupDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *securityGroupDataSource) Init(ctx context.Context, dm *securityGroupModel) (diags diag.Diagnostics) {
+func (d *securityGroupDataSource) Init(ctx context.Context, dm *SecurityGroupModel) (diags diag.Diagnostics) {
 	var err error
 
 	d.org, diags = org.Init(d.client)
@@ -40,8 +40,8 @@ func (d *securityGroupDataSource) Init(ctx context.Context, dm *securityGroupMod
 	}
 
 	d.edgegw, err = d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   dm.EdgeGatewayID,
-		Name: dm.EdgeGatewayName,
+		ID:   dm.EdgeGatewayID.StringValue,
+		Name: dm.EdgeGatewayName.StringValue,
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
@@ -79,7 +79,7 @@ func (d *securityGroupDataSource) Configure(ctx context.Context, req datasource.
 func (d *securityGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_edgegateway_security_group", d.client.GetOrgName(), metrics.Read)()
 
-	config := &securityGroupModel{}
+	config := &SecurityGroupModel{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
@@ -105,19 +105,17 @@ func (d *securityGroupDataSource) Read(ctx context.Context, req datasource.ReadR
 		edgegw: d.edgegw,
 	}
 
-	// Read the data source
-	secGroup, err := s.getSecurityGroup(ctx, config)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Security Group", err.Error())
+	// Read data from the API
+	data, found, diags := s.read(ctx, config)
+	if !found {
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The security group '%s' was not found.", config.Name.Get()))
 		return
 	}
-
-	data, di := s.read(ctx, secGroup)
-	resp.Diagnostics.Append(di...)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }

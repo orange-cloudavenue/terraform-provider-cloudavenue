@@ -5,7 +5,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -23,13 +22,13 @@ import (
 func securityGroupSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The Security Group resource allows you to manage an security group in an Edge Gateway.",
+			MarkdownDescription: "The Security Group resource allows you to manage an security group in an Edge Gateway. Security Groups are groups of data center group networks to which distributed firewall rules apply. Grouping networks helps you to reduce the total number of distributed firewall rules to be created.",
 		},
 		DataSource: superschema.SchemaDetails{
 			MarkdownDescription: "The Security Group data source allows you to retrieve information about an security group in an Edge Gateway.",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
+			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					Computed:            true,
 					MarkdownDescription: "The ID of the Security Group.",
@@ -46,7 +45,7 @@ func securityGroupSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.StringAttribute{
+			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the security group.",
 				},
@@ -61,7 +60,7 @@ func securityGroupSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"edge_gateway_name": superschema.StringAttribute{
+			"edge_gateway_name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the Edge Gateway.",
 					Optional:            true,
@@ -75,7 +74,7 @@ func securityGroupSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"edge_gateway_id": superschema.StringAttribute{
+			"edge_gateway_id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the Edge Gateway.",
 					Optional:            true,
@@ -89,7 +88,7 @@ func securityGroupSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"description": superschema.StringAttribute{
+			"description": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The description of the security group.",
 				},
@@ -100,16 +99,14 @@ func securityGroupSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"member_org_network_ids": superschema.SetAttribute{
+			"member_org_network_ids": superschema.SuperSetAttributeOf[string]{
 				Common: &schemaR.SetAttribute{
 					MarkdownDescription: "The list of organization network IDs to which the security group is applied.",
-					ElementType:         types.StringType,
 				},
 				Resource: &schemaR.SetAttribute{
 					Optional: true,
 					Validators: []validator.Set{
 						setvalidator.ValueStringsAre(fstringvalidator.IsURN()),
-						// TODO Add validator to check if URN is network https://github.com/FrangipaneTeam/terraform-plugin-framework-validators/issues/76
 					},
 				},
 				DataSource: &schemaD.SetAttribute{

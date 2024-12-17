@@ -7,13 +7,12 @@ import (
 	"strings"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
@@ -44,7 +43,7 @@ type securityGroupResource struct {
 }
 
 // Init Initializes the resource.
-func (r *securityGroupResource) Init(ctx context.Context, rm *securityGroupModel) (diags diag.Diagnostics) {
+func (r *securityGroupResource) Init(ctx context.Context, rm *SecurityGroupModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.org, diags = org.Init(r.client)
@@ -53,8 +52,8 @@ func (r *securityGroupResource) Init(ctx context.Context, rm *securityGroupModel
 	}
 
 	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   rm.EdgeGatewayID,
-		Name: rm.EdgeGatewayName,
+		ID:   rm.EdgeGatewayID.StringValue,
+		Name: rm.EdgeGatewayName.StringValue,
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
@@ -95,7 +94,7 @@ func (r *securityGroupResource) Configure(ctx context.Context, req resource.Conf
 func (r *securityGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	defer metrics.New("cloudavenue_edgegateway_security_group", r.client.GetOrgName(), metrics.Create)()
 
-	plan := &securityGroupModel{}
+	plan := &SecurityGroupModel{}
 
 	// Retrieve values from plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -113,30 +112,32 @@ func (r *securityGroupResource) Create(ctx context.Context, req resource.CreateR
 		Implement the resource creation logic here.
 	*/
 
-	vdcOrVDCGroup, err := r.edgegw.GetParent()
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+
+	values, d := plan.ToSDKSecurityGroupModel(ctx)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	fwsg, err := r.edgegw.CreateFirewallSecurityGroup(values)
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+		resp.Diagnostics.AddError("Error creating security group", err.Error())
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
+	// Set the ID
+	plan.ID.Set(fwsg.ID)
 
-	securityGroup, d := r.securityGroupToNsxtFirewallGroup(ctx, plan)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
+	// Use generic read function to refresh the state
+	state, found, d := r.read(ctx, plan)
+	if !found {
+		resp.Diagnostics.AddError("Security group not found", "The security group was not found after creation")
 		return
 	}
-
-	newSecGroup, err := r.edgegw.CreateNsxtFirewallGroup(securityGroup)
-	if err != nil {
-		resp.Diagnostics.AddError("Error creating Security Group", err.Error())
-		return
-	}
-
-	state, d := r.read(ctx, newSecGroup)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
 
@@ -148,7 +149,7 @@ func (r *securityGroupResource) Create(ctx context.Context, req resource.CreateR
 func (r *securityGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	defer metrics.New("cloudavenue_edgegateway_security_group", r.client.GetOrgName(), metrics.Read)()
 
-	state := &securityGroupModel{}
+	state := &SecurityGroupModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -162,28 +163,19 @@ func (r *securityGroupResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	/*
-		Implement the resource read here
-	*/
-
-	secGroup, err := r.getSecurityGroup(ctx, state)
-	if err != nil {
-		if govcd.ContainsNotFound(err) {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("Error retrieving Security Group", err.Error())
+	// Refresh the state
+	stateRefreshed, found, d := r.read(ctx, state)
+	if !found {
+		resp.State.RemoveResource(ctx)
 		return
 	}
-
-	plan, d := r.read(ctx, secGroup)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
 
 	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -191,8 +183,8 @@ func (r *securityGroupResource) Update(ctx context.Context, req resource.UpdateR
 	defer metrics.New("cloudavenue_edgegateway_security_group", r.client.GetOrgName(), metrics.Update)()
 
 	var (
-		plan  = &securityGroupModel{}
-		state = &securityGroupModel{}
+		plan  = &SecurityGroupModel{}
+		state = &SecurityGroupModel{}
 	)
 
 	// Get current plan and state
@@ -212,54 +204,46 @@ func (r *securityGroupResource) Update(ctx context.Context, req resource.UpdateR
 		Implement the resource update here
 	*/
 
-	vdcOrVDCGroup, err := r.edgegw.GetParent()
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+
+	fwsg, err := r.edgegw.GetFirewallSecurityGroup(state.ID.Get())
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+		resp.Diagnostics.AddError("Error retrieving security group", err.Error())
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
-
-	securityGroup, d := r.securityGroupToNsxtFirewallGroup(ctx, plan)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
+	values, d := plan.ToSDKSecurityGroupModel(ctx)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
 
-	// Get current Security Group
-	secGroup, err := r.getSecurityGroup(ctx, state)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Security Group", err.Error())
+	if err := fwsg.Update(values); err != nil {
+		resp.Diagnostics.AddError("Error updating security group", err.Error())
 		return
 	}
 
-	// Set actually Security Group ID in new object
-	securityGroup.ID = secGroup.NsxtFirewallGroup.ID
-
-	// Update Security Group
-	secGroupUpdated, err := secGroup.Update(securityGroup)
-	if err != nil {
-		resp.Diagnostics.AddError("Error updating Security Group", err.Error())
+	// Use generic read function to refresh the state
+	stateRefreshed, found, d := r.read(ctx, plan)
+	if !found {
+		resp.Diagnostics.AddError("Security group not found", "The security group was not found after update")
 		return
 	}
-
-	// Read updated Security Group
-	plan, d = r.read(ctx, secGroupUpdated)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *securityGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	defer metrics.New("cloudavenue_edgegateway_security_group", r.client.GetOrgName(), metrics.Delete)()
 
-	state := &securityGroupModel{}
+	state := &SecurityGroupModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -277,24 +261,17 @@ func (r *securityGroupResource) Delete(ctx context.Context, req resource.DeleteR
 		Implement the resource deletion here
 	*/
 
-	vdcOrVDCGroup, err := r.edgegw.GetParent()
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+
+	fwsg, err := r.edgegw.GetFirewallSecurityGroup(state.ID.Get())
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+		resp.Diagnostics.AddError("Error retrieving security group", err.Error())
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
-
-	// Get current Security Group
-	secGroup, err := r.getSecurityGroup(ctx, state)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Security Group", err.Error())
-		return
-	}
-
-	if err := secGroup.Delete(); err != nil {
-		resp.Diagnostics.AddError("Error deleting Security Group", err.Error())
+	if err := fwsg.Delete(); err != nil {
+		resp.Diagnostics.AddError("Error deleting security group", err.Error())
 		return
 	}
 }
@@ -302,132 +279,91 @@ func (r *securityGroupResource) Delete(ctx context.Context, req resource.DeleteR
 func (r *securityGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	defer metrics.New("cloudavenue_edgegateway_security_group", r.client.GetOrgName(), metrics.Import)()
 
-	// id format is edgeGatewayIDOrName.securityGroupIDOrName
+	// id format is EdgeGatewayNameOrID.SecurityGroupNameOrID
+	// * Import with custom logic
 	idParts := strings.Split(req.ID, ".")
 
 	if len(idParts) != 2 {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: edgeGatewayIDOrName.securityGroupIDOrName. Got: %q", req.ID),
+			fmt.Sprintf("Expected import identifier with format: EdgeGatewayNameOrID.SecurityGroupNameOrID Got: %q", req.ID),
 		)
 		return
 	}
+	edgeGatewayNameOrID, securityGroupNameOrID := idParts[0], idParts[1]
 
-	var (
-		id, name, edgegwID, edgegwName string
-		d                              diag.Diagnostics
-		err                            error
-	)
+	x := &SecurityGroupModel{
+		ID:              supertypes.NewStringNull(),
+		Name:            supertypes.NewStringNull(),
+		EdgeGatewayName: supertypes.NewStringNull(),
+		EdgeGatewayID:   supertypes.NewStringNull(),
+		Description:     supertypes.NewStringNull(),
+		Members:         supertypes.NewSetValueOfNull[string](ctx),
+	}
 
-	r.org, d = org.Init(r.client)
+	if urn.IsEdgeGateway(edgeGatewayNameOrID) {
+		x.EdgeGatewayID.Set(edgeGatewayNameOrID)
+	} else {
+		x.EdgeGatewayName.Set(edgeGatewayNameOrID)
+	}
+
+	if urn.IsSecurityGroup(securityGroupNameOrID) {
+		x.ID.Set(securityGroupNameOrID)
+	} else {
+		x.Name.Set(securityGroupNameOrID)
+	}
+
+	resp.Diagnostics.Append(r.Init(ctx, x)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	stateRefreshed, found, d := r.read(ctx, x)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		return
+	}
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
 	}
 
-	if urn.IsEdgeGateway(idParts[0]) {
-		edgegwID = idParts[0]
+	// Set refreshed state
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
+}
+
+func (r *securityGroupResource) read(ctx context.Context, planOrState *SecurityGroupModel) (stateRefreshed *SecurityGroupModel, found bool, diags diag.Diagnostics) {
+	stateRefreshed = planOrState.Copy()
+
+	/*
+		Implement the resource read here
+	*/
+
+	idOrName := planOrState.Name.Get()
+	if planOrState.ID.IsKnown() {
+		idOrName = planOrState.ID.Get()
+	}
+
+	fwsg, err := r.edgegw.GetFirewallSecurityGroup(idOrName)
+	if govcd.ContainsNotFound(err) {
+		return nil, false, nil
+	}
+	if err != nil {
+		diags.AddError("Error retrieving security group", err.Error())
+		return nil, true, diags
+	}
+
+	stateRefreshed.ID.Set(fwsg.ID)
+	stateRefreshed.Name.Set(fwsg.Name)
+	stateRefreshed.Description.Set(fwsg.Description)
+	stateRefreshed.EdgeGatewayID.Set(r.edgegw.GetID())
+	stateRefreshed.EdgeGatewayName.Set(r.edgegw.GetName())
+
+	if fwsg.Members != nil || len(fwsg.Members) > 0 {
+		diags.Append(stateRefreshed.Members.Set(ctx, utils.OpenAPIReferenceToSliceID(fwsg.Members))...)
 	} else {
-		edgegwName = idParts[0]
+		stateRefreshed.Members.SetNull(ctx)
 	}
 
-	if urn.IsSecurityGroup(idParts[1]) {
-		id = idParts[1]
-	} else {
-		name = idParts[1]
-	}
-
-	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   types.StringValue(edgegwID),
-		Name: types.StringValue(edgegwName),
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("Failed to import Security Group.", err.Error())
-		return
-	}
-
-	securityGroup, err := r.getSecurityGroup(ctx, &securityGroupModel{
-		ID:   utils.StringValueOrNull(id),
-		Name: utils.StringValueOrNull(name),
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("Failed to import Security Group.", err.Error())
-		return
-	}
-
-	// ID
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), securityGroup.NsxtFirewallGroup.ID)...)
-	// Name
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), securityGroup.NsxtFirewallGroup.Name)...)
-	// edge_gateway_id
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_id"), r.edgegw.GetID())...)
-	// edge_gateway_name
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), r.edgegw.GetName())...)
-}
-
-func (r *securityGroupResource) read(ctx context.Context, securityGroup *govcd.NsxtFirewallGroup) (plan *securityGroupModel, diags diag.Diagnostics) {
-	if securityGroup == nil || securityGroup.NsxtFirewallGroup == nil {
-		diags.AddError("Error retrieving Security Group", "Security Group not found")
-		return nil, diags
-	}
-
-	return &securityGroupModel{
-		ID:                  types.StringValue(securityGroup.NsxtFirewallGroup.ID),
-		Name:                types.StringValue(securityGroup.NsxtFirewallGroup.Name),
-		EdgeGatewayID:       types.StringValue(r.edgegw.GetID()),
-		EdgeGatewayName:     types.StringValue(r.edgegw.GetName()),
-		Description:         utils.StringValueOrNull(securityGroup.NsxtFirewallGroup.Description),
-		MemberOrgNetworkIDs: utils.OpenAPIReferenceToSliceID(securityGroup.NsxtFirewallGroup.Members).ToTerraformTypesStringSet(ctx),
-	}, nil
-}
-
-// GetSecurityGroup retrieves the Security Group from the API.
-func (r *securityGroupResource) getSecurityGroup(_ context.Context, rm *securityGroupModel) (*govcd.NsxtFirewallGroup, error) {
-	parentEdgeGW, err := r.edgegw.GetParent()
-	if err != nil {
-		return nil, err
-	}
-
-	if parentEdgeGW.IsVDCGroup() {
-		return parentEdgeGW.GetSecurityGroupByNameOrID(rm.GetIDOrName().ValueString())
-	}
-
-	if err := r.edgegw.Refresh(); err != nil {
-		return nil, err
-	}
-	return r.edgegw.GetSecurityGroupByNameOrID(rm.GetIDOrName().ValueString())
-}
-
-// func securityGroupToNsxtFirewallGroup.
-func (r *securityGroupResource) securityGroupToNsxtFirewallGroup(ctx context.Context, rm *securityGroupModel) (securityGroup *govcdtypes.NsxtFirewallGroup, diags diag.Diagnostics) {
-	parentEdgeGW, err := r.edgegw.GetParent()
-	if err != nil {
-		diags.AddError("Unable to get parent edge gateway", fmt.Sprintf("Unable to get parent edge gateway: %s", err.Error()))
-		return
-	}
-
-	ownerID := r.edgegw.GetID()
-
-	if parentEdgeGW.IsVDCGroup() {
-		ownerID = parentEdgeGW.GetID()
-	}
-
-	members, d := rm.MemberOrgNetworkIDsFromPlan(ctx)
-	diags.Append(d...)
-	if diags.HasError() {
-		return
-	}
-
-	memberReferences := make([]govcdtypes.OpenApiReference, len(members))
-	for index, member := range members {
-		memberReferences[index].ID = member
-	}
-
-	return &govcdtypes.NsxtFirewallGroup{
-		Name:        rm.Name.ValueString(),
-		Description: rm.Description.ValueString(),
-		OwnerRef:    &govcdtypes.OpenApiReference{ID: ownerID},
-		Type:        govcdtypes.FirewallGroupTypeSecurityGroup,
-		Members:     memberReferences,
-	}, diags
+	return stateRefreshed, true, diags
 }
