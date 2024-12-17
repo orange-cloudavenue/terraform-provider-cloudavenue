@@ -4,32 +4,40 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
-// * Security Group (singular) model.
-type securityGroupModelMemberOrgNetworkIDs []string
-
-type securityGroupModel struct {
-	ID                  types.String `tfsdk:"id"`
-	EdgeGatewayID       types.String `tfsdk:"edge_gateway_id"`
-	EdgeGatewayName     types.String `tfsdk:"edge_gateway_name"`
-	Name                types.String `tfsdk:"name"`
-	Description         types.String `tfsdk:"description"`
-	MemberOrgNetworkIDs types.Set    `tfsdk:"member_org_network_ids"`
+type SecurityGroupModel struct {
+	ID              supertypes.StringValue        `tfsdk:"id"`
+	Name            supertypes.StringValue        `tfsdk:"name"`
+	Description     supertypes.StringValue        `tfsdk:"description"`
+	EdgeGatewayName supertypes.StringValue        `tfsdk:"edge_gateway_name"`
+	EdgeGatewayID   supertypes.StringValue        `tfsdk:"edge_gateway_id"`
+	Members         supertypes.SetValueOf[string] `tfsdk:"member_org_network_ids"`
 }
 
-// GetIDOrName returns the ID or the name of the security group.
-func (rm *securityGroupModel) GetIDOrName() types.String {
-	if rm.ID.IsNull() || rm.ID.IsUnknown() {
-		return rm.Name
+func (rm *SecurityGroupModel) ToSDKSecurityGroupModel(ctx context.Context) (*v1.FirewallGroupSecurityGroupModel, diag.Diagnostics) {
+	members, d := rm.Members.Get(ctx)
+	if d.HasError() {
+		return nil, d
 	}
 
-	return rm.ID
+	return &v1.FirewallGroupSecurityGroupModel{
+		FirewallGroupModel: v1.FirewallGroupModel{
+			ID:          rm.ID.Get(),
+			Name:        rm.Name.Get(),
+			Description: rm.Description.Get(),
+		},
+		Members: utils.SliceIDToOpenAPIReference(members),
+	}, nil
 }
 
-// MemberOrgNetworkIDsFromPlan returns the member_org_network_ids from the plan.
-func (rm *securityGroupModel) MemberOrgNetworkIDsFromPlan(ctx context.Context) (securityGroupModelMemberOrgNetworkIDs, diag.Diagnostics) {
-	ids := securityGroupModelMemberOrgNetworkIDs{}
-	return ids, rm.MemberOrgNetworkIDs.ElementsAs(ctx, &ids, false)
+func (rm *SecurityGroupModel) Copy() *SecurityGroupModel {
+	x := &SecurityGroupModel{}
+	utils.ModelCopy(rm, x)
+	return x
 }

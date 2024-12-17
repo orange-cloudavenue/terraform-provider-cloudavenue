@@ -2,12 +2,12 @@
 page_title: "cloudavenue_edgegateway_security_group Resource - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  The Security Group resource allows you to manage an security group in an Edge Gateway.
+  The Security Group resource allows you to manage an security group in an Edge Gateway. Security Groups are groups of data center group networks to which distributed firewall rules apply. Grouping networks helps you to reduce the total number of distributed firewall rules to be created.
 ---
 
 # cloudavenue_edgegateway_security_group (Resource)
 
-The Security Group resource allows you to manage an security group in an Edge Gateway.
+The Security Group resource allows you to manage an security group in an Edge Gateway. Security Groups are groups of data center group networks to which distributed firewall rules apply. Grouping networks helps you to reduce the total number of distributed firewall rules to be created.
 
 ## Example Usage
 

@@ -194,9 +194,9 @@ func SliceNameToOpenAPIReference(slice []string) []govcdtypes.OpenApiReference {
 }
 
 // ToTerraformTypes converts a slice of string to a slice of types.String.
-func (o *OpenAPIValues) ToTerraformTypesString() []types.String {
+func (o OpenAPIValues) ToTerraformTypesString() []types.String {
 	var result []types.String
-	for _, s := range *o {
+	for _, s := range o {
 		result = append(result, types.StringValue(s))
 	}
 	return result

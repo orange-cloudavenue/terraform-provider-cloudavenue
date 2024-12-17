@@ -38,15 +38,15 @@ func (r *EdgeGatewaySecurityGroupResource) Tests(ctx context.Context) map[testsa
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.SecurityGroup)),
-					resource.TestCheckResourceAttr(resourceName, "member_org_network_ids.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 					resource "cloudavenue_edgegateway_security_group" "example" {
 						name            = {{ generate . "name" }}
-						description     = "This is an example security group"
+						description     = {{ generate . "description" }}
 						
 						edge_gateway_id = cloudavenue_edgegateway.example.id
 						member_org_network_ids = [
@@ -55,8 +55,9 @@ func (r *EdgeGatewaySecurityGroupResource) Tests(ctx context.Context) map[testsa
 					  }`),
 					Checks: []resource.TestCheckFunc{
 						// id
-						resource.TestCheckResourceAttr(resourceName, "description", "This is an example security group"),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "member_org_network_ids.#", "1"),
 					},
 				},
 				// ! Updates testing
@@ -64,8 +65,8 @@ func (r *EdgeGatewaySecurityGroupResource) Tests(ctx context.Context) map[testsa
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_edgegateway_security_group" "example" {
-							name            = {{ generate . "newname" }}
-							description     = "updated"
+							name            = {{ generate . "name" }}
+							description     = {{ generate . "description" }}
 							
 							edge_gateway_id = cloudavenue_edgegateway.example.id
 							member_org_network_ids = [
@@ -73,8 +74,9 @@ func (r *EdgeGatewaySecurityGroupResource) Tests(ctx context.Context) map[testsa
 							]
 						  }`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "description", "updated"),
-							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "newname")),
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "member_org_network_ids.#", "1"),
 						},
 					},
 				},
@@ -87,6 +89,16 @@ func (r *EdgeGatewaySecurityGroupResource) Tests(ctx context.Context) map[testsa
 					},
 					{
 						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_name", "id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
