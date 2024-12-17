@@ -8,8 +8,10 @@
 
 * **New Data Source:** `datasource/cloudavenue_vdc_network_isolated` - Added a new data source to fetch information about an isolated network in a VDC. This data source replace the deprecated `cloudavenue_network_isolated` data source. (GH-879)
 * **New Data Source:** `datasource/cloudavenue_vdcg_network_isolated` - Added a new data source to fetch information about an isolated network in a VDC Group. (GH-878)
+* **New Data Source:** `datasource/cloudavenue_vdcg_security_group` - Added a new data source to fetch information about an security group in a VDC Group. (GH-858)
 * **New Resource:** `resource/cloudavenue_vdc_network_isolated` - Added a new resource to manage isolated networks in a VDC. This resource replace the deprecated `cloudavenue_network_isolated` resource. (GH-879)
 * **New Resource:** `resource/cloudavenue_vdcg_network_isolated` - Added a new resource to manage isolated networks in a VDC Group. (GH-878)
+* **New Resource:** `resource/cloudavenue_vdcg_security_group` - Added a new resource to manage security groups in a VDC Group. (GH-858)
 ### :information_source: **Notes**
 
 * `resource/cloudavenue_network_isolated` - Add a migration guide to migrate from `cloudavenue_network_isolated` to `cloudavenue_vdc_network_isolated`. (GH-888)
