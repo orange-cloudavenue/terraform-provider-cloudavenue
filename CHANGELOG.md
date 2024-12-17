@@ -1,4 +1,5 @@
 ## 0.24.0 (Unreleased)
+
 ### :warning: **Deprecations**
 
 * `datasource/cloudavenue_network_isolated` - The `cloudavenue_network_isolated` datasource is deprecated and will be removed in the release v0.32.0. Please use the `cloudavenue_vdc_network_isolated` datasource instead. (GH-886)
@@ -8,10 +9,11 @@
 
 * **New Data Source:** `datasource/cloudavenue_vdc_network_isolated` - Added a new data source to fetch information about an isolated network in a VDC. This data source replace the deprecated `cloudavenue_network_isolated` data source. (GH-879)
 * **New Data Source:** `datasource/cloudavenue_vdcg_network_isolated` - Added a new data source to fetch information about an isolated network in a VDC Group. (GH-878)
-* **New Data Source:** `datasource/cloudavenue_vdcg_security_group` - Added a new data source to fetch information about an security group in a VDC Group. (GH-858)
+* **New Data Source:** `datasource/cloudavenue_vdcg_security_group` - Added a new data source to fetch information about an security group in a VDC Group. (GH-856)
 * **New Resource:** `resource/cloudavenue_vdc_network_isolated` - Added a new resource to manage isolated networks in a VDC. This resource replace the deprecated `cloudavenue_network_isolated` resource. (GH-879)
 * **New Resource:** `resource/cloudavenue_vdcg_network_isolated` - Added a new resource to manage isolated networks in a VDC Group. (GH-878)
-* **New Resource:** `resource/cloudavenue_vdcg_security_group` - Added a new resource to manage security groups in a VDC Group. (GH-858)
+* **New Resource:** `resource/cloudavenue_vdcg_security_group` - Added a new resource to manage security groups in a VDC Group. (GH-856)
+
 ### :information_source: **Notes**
 
 * `resource/cloudavenue_network_isolated` - Add a migration guide to migrate from `cloudavenue_network_isolated` to `cloudavenue_vdc_network_isolated`. (GH-888)
@@ -32,6 +34,7 @@
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.15.0 to 0.15.1 (GH-883)
 
 ## 0.23.0 (December 12, 2024)
+
 ### :warning: **Deprecations**
 
 * `datasource/cloudavenue_vdc_group` - The `cloudavenue_vdc_group` datasource is deprecated and will be removed in the release v0.30.0. Please use the `cloudavenue_vdcg` datasource instead. (GH-861)
@@ -41,6 +44,7 @@
 
 * **New Data Source:** `datasource/cloudavenue_vdcg` - New data source to get information about the virtual datacenter group. (This data source replace `cloudavenue_vdc_group`) (GH-867)
 * **New Resource:** `resource/cloudavenue_vdcg` - New resource to manage the virtual datacenter group. (This resource replace `cloudavenue_vdc_group`) (GH-867)
+
 ### :information_source: **Notes**
 
 * `resource/cloudavenue_vdc_group` - Add a migration guide to migrate from `cloudavenue_vdc_group` to `cloudavenue_vdcg`. (GH-861)
@@ -53,6 +57,7 @@
 * deps: bumps golang.org/x/net from 0.31.0 to 0.32.0 (GH-863)
 
 ## 0.22.0 (December  2, 2024)
+
 ### :rotating_light: **Breaking Changes**
 
 * `datasource/cloudavenue_edgegateway_app_port_profile` - Now the datasource require one of the following attributes to be set: `edge_gateway_id` or `edge_gateway_name`. (GH-849)
@@ -61,6 +66,7 @@
 
 * `datasource/cloudavenue_edgegateway_app_port_profile` - Fixed the issue where the `cloudavenue_edgegateway_app_port_profile` datasource was not returning the correct value App Port Profile ID. (GH-849)
 * `resource/cloudavenue_edgegateway_firewall` - Fix `BUSY_ENTITY` error when creating or updating the resource in same time as another operation in the edge gateway. (GH-841)
+
 ### :information_source: **Notes**
 
 * `resource/cloudavenue_publicip` - Fixed the import example in the documentation. (GH-851)
@@ -76,6 +82,7 @@
 * `datasource/cloudavenue_edgegateway_app_port_profile` - Now the datasource retrieves the app port profile with scope `provider` or `system`. (GH-838)
 * `resource/cloudavenue_backup` - Due to the evolution of the backup policy names, this is no longer a restricted list: the field is free. (GH-833)
 * `resource/cloudavenue_backup` - Increase timeout with backup resource comunication. (GH-833)
+
 ### :information_source: **Notes**
 
 * `datasource/cloudavenue_edgegateway_app_port_profile` - Add note about the scope of app port profile. (GH-838)
