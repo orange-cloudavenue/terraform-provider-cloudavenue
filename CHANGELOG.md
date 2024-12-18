@@ -1,4 +1,5 @@
-## 0.24.0 (Unreleased)
+## 0.25.0 (Unreleased)
+## 0.24.0 (December 18, 2024)
 ### :warning: **Deprecations**
 
 * `datasource/cloudavenue_network_isolated` - The `cloudavenue_network_isolated` datasource is deprecated and will be removed in the release v0.32.0. Please use the `cloudavenue_vdc_network_isolated` datasource instead. (GH-886)
