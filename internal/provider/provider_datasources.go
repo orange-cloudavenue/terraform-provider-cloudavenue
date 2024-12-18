@@ -36,6 +36,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 	return []func() datasource.DataSource{
 		// * ALB
 		alb.NewAlbPoolDataSource,
+		alb.NewALBServiceEngineGroupDataSource,
 
 		// * TIER0
 		vrf.NewTier0VrfsDataSource,
