@@ -49,6 +49,10 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		EdgeGatewayNATRuleResourceName:        testsacc.NewResourceConfig(NewEdgeGatewayNATRuleResourceTest()),
 		EdgeGatewayIPSetResourceName:          testsacc.NewResourceConfig(NewEdgeGatewayIPSetResourceTest()),
 
+		// * EdgeGateway LoadBalancer (elb)
+		ELBPoolResourceName:           testsacc.NewResourceConfig(NewELBPoolResourceTest()),
+		ELBVirtualServiceResourceName: testsacc.NewResourceConfig(NewELBVirtualServiceResourceTest()),
+
 		// * Backup
 		BackupResourceName: testsacc.NewResourceConfig(NewBackupResourceTest()),
 
@@ -76,6 +80,7 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		IAMUserSAMLResourceName: testsacc.NewResourceConfig(NewIAMUserSAMLResourceTest()),
 
 		// * ORG
-		OrgResourceName: testsacc.NewResourceConfig(NewOrgResourceTest()),
+		OrgResourceName:                   testsacc.NewResourceConfig(NewOrgResourceTest()),
+		ORGCertificateLibraryResourceName: testsacc.NewResourceConfig(NewORGCertificateLibraryResourceTest()),
 	}
 }

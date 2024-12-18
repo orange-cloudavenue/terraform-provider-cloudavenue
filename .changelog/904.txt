@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_org_certificate_library` - Added new resource to manage certificate in the Cloud Avenue Organization.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_org_certificate_library` - Added new datasource to get certificate information in the Cloud Avenue Organization.
+```
