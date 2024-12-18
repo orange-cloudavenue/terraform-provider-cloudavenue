@@ -2,12 +2,12 @@
 page_title: "cloudavenue_edgegateway_ip_set Resource - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  The cloudavenue_edgegateway_ip_set resource allows you to manage an IP Set rule on an Edge Gateway.
+  The cloudavenue_edgegateway_ip_set resource allows you to manage an IP Set rule on an Edge Gateway. IP Sets are groups of objects to which the firewall rules apply. Combining multiple objects into IP Sets helps reduce the total number of firewall rules to be created.
 ---
 
 # cloudavenue_edgegateway_ip_set (Resource)
 
-The `cloudavenue_edgegateway_ip_set` resource allows you to manage an IP Set rule on an Edge Gateway.
+The `cloudavenue_edgegateway_ip_set` resource allows you to manage an IP Set rule on an Edge Gateway. IP Sets are groups of objects to which the firewall rules apply. Combining multiple objects into IP Sets helps reduce the total number of firewall rules to be created.
 
 ## Example Usage
 

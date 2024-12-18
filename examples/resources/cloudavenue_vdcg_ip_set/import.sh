@@ -1,0 +1,1 @@
+terraform import cloudavenue_vdcg_ip_set.example vdcGroupIDOrName.ipSetIDOrName

@@ -1,4 +1,4 @@
-package edgegw
+package vdcg
 
 import (
 	"context"
@@ -15,16 +15,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 )
 
 func ipSetSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_edgegateway_ip_set` resource allows you to manage an IP Set rule on an Edge Gateway. IP Sets are groups of objects to which the firewall rules apply. Combining multiple objects into IP Sets helps reduce the total number of firewall rules to be created.",
+			MarkdownDescription: "The `cloudavenue_vdcg_ip_set` resource allows you to manage an IP Set rule on an VDC Group. IP Sets are groups of objects to which the firewall rules apply. Combining multiple objects into IP Sets helps reduce the total number of firewall rules to be created.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_edgegateway_ip_set` data source allows you to retrieve information about an IP Set rule on an Edge Gateway.",
+			MarkdownDescription: "The `cloudavenue_vdcg_ip_set` data source allows you to retrieve information about an IP Set rule on an VDC Group.",
 		},
 		Attributes: superschema.Attributes{
 			"id": superschema.SuperStringAttribute{
@@ -44,31 +43,23 @@ func ipSetSchema(_ context.Context) superschema.Schema {
 					Required:            true,
 				},
 			},
-			"edge_gateway_name": superschema.SuperStringAttribute{
+			"vdc_group_name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the Edge Gateway.",
+					MarkdownDescription: "The name VDC Group to which the ip set belongs.",
 					Optional:            true,
 					Computed:            true,
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.RequiresReplaceIfConfigured(),
-						stringplanmodifier.UseStateForUnknown(),
-					},
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
 					},
 				},
 			},
-			"edge_gateway_id": superschema.SuperStringAttribute{
+			"vdc_group_id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the Edge Gateway.",
+					MarkdownDescription: "The ID of the VDC Group to which the ip set belongs.",
 					Optional:            true,
 					Computed:            true,
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.RequiresReplaceIfConfigured(),
-						stringplanmodifier.UseStateForUnknown(),
-					},
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
 					},
 				},
 			},
@@ -83,10 +74,9 @@ func ipSetSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"ip_addresses": superschema.SuperSetAttribute{
+			"ip_addresses": superschema.SuperSetAttributeOf[string]{
 				Common: &schemaR.SetAttribute{
-					MarkdownDescription: "A set of IP address, CIDR or IP range.",
-					ElementType:         supertypes.StringType{},
+					MarkdownDescription: "A set of IP address, CIDR or IP range. IP address format is `192.168.0.1`. CIDR format is `192.168.0.0/24`. IP range format is `192.168.0.1-192.168.0.99`.",
 				},
 				Resource: &schemaR.SetAttribute{
 					Optional: true,
