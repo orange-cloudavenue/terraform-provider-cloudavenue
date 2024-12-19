@@ -28,6 +28,8 @@ func (r *ALBServiceEngineGroupDataSource) GetResourceName() string {
 }
 
 func (r *ALBServiceEngineGroupDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetDataSourceConfig()[EdgeGatewayDataSourceName]().GetSpecificConfig("example_with_id"))
+	resp.Append(GetDataSourceConfig()[ALBServiceEngineGroupsDataSourceName]().GetDefaultConfig)
 	return
 }
 
@@ -40,8 +42,8 @@ func (r *ALBServiceEngineGroupDataSource) Tests(ctx context.Context) map[testsac
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_alb_service_engine_group" "example" {
-						name = "v010w02eprnxcdshrdsegp04"
-						edge_gateway_name = "tn01e02ocb0006205spt101"
+						name = data.cloudavenue_alb_service_engine_groups.example.service_engine_groups.0.name
+						edge_gateway_name = data.cloudavenue_edgegateway.example_with_id.name
 					}`,
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.ServiceEngineGroup)),
@@ -61,8 +63,8 @@ func (r *ALBServiceEngineGroupDataSource) Tests(ctx context.Context) map[testsac
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_alb_service_engine_group" "example_with_id" {
-						id = "urn:vcloud:serviceEngineGroup:737b9768-95a0-4955-bbbe-d5eab846e8dc"
-						edge_gateway_name = "tn01e02ocb0006205spt101"
+						id = data.cloudavenue_alb_service_engine_groups.example.service_engine_groups.0.id
+						edge_gateway_name = data.cloudavenue_edgegateway.example_with_id.name
 					}`,
 					// Here use resource config test to test the data source
 					// the field example is the name of the test
@@ -84,8 +86,8 @@ func (r *ALBServiceEngineGroupDataSource) Tests(ctx context.Context) map[testsac
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_alb_service_engine_group" "example_with_edge_id" {
-						id = "urn:vcloud:serviceEngineGroup:737b9768-95a0-4955-bbbe-d5eab846e8dc"
-						edge_gateway_id = "urn:vcloud:gateway:d3c42a20-96b9-4452-91dd-f71b71dfe314"
+						id = data.cloudavenue_alb_service_engine_groups.example.service_engine_groups.0.id
+						edge_gateway_id = data.cloudavenue_edgegateway.example_with_id.id
 					}`,
 					// Here use resource config test to test the data source
 					// the field example is the name of the test
@@ -107,8 +109,8 @@ func (r *ALBServiceEngineGroupDataSource) Tests(ctx context.Context) map[testsac
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_alb_service_engine_group" "example_with_name_and_edge_id" {
-						name = "v010w02eprnxcdshrdsegp04"
-						edge_gateway_id = "urn:vcloud:gateway:d3c42a20-96b9-4452-91dd-f71b71dfe314"
+						name = data.cloudavenue_alb_service_engine_groups.example.service_engine_groups.0.name
+						edge_gateway_id = data.cloudavenue_edgegateway.example_with_id.id
 					}`,
 					// Here use resource config test to test the data source
 					// the field example is the name of the test

@@ -5,10 +5,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/vmware/go-vcloud-director/v2/govcd"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	commoncloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/common/cloudavenue"
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
@@ -17,22 +20,22 @@ import (
 )
 
 var (
-	_ datasource.DataSource              = &albServiceEngineGroupDataSource{}
-	_ datasource.DataSourceWithConfigure = &albServiceEngineGroupDataSource{}
+	_ datasource.DataSource              = &serviceEngineGroupDataSource{}
+	_ datasource.DataSourceWithConfigure = &serviceEngineGroupDataSource{}
 )
 
-func NewALBServiceEngineGroupDataSource() datasource.DataSource {
-	return &albServiceEngineGroupDataSource{}
+func NewServiceEngineGroupDataSource() datasource.DataSource {
+	return &serviceEngineGroupDataSource{}
 }
 
-type albServiceEngineGroupDataSource struct {
+type serviceEngineGroupDataSource struct {
 	client *client.CloudAvenue
 	edgegw edgegw.EdgeGateway
 	org    org.Org
 }
 
 // Init Initializes the data source.
-func (d *albServiceEngineGroupDataSource) Init(ctx context.Context, dm *albServiceEngineGroupModel) (diags diag.Diagnostics) {
+func (d *serviceEngineGroupDataSource) Init(ctx context.Context, dm *serviceEngineGroupModel) (diags diag.Diagnostics) {
 	var err error
 
 	d.org, diags = org.Init(d.client)
@@ -53,15 +56,15 @@ func (d *albServiceEngineGroupDataSource) Init(ctx context.Context, dm *albServi
 	return
 }
 
-func (d *albServiceEngineGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *serviceEngineGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_service_engine_group"
 }
 
-func (d *albServiceEngineGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = albServiceEngineGroupSchema(ctx).GetDataSource(ctx)
+func (d *serviceEngineGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = serviceEngineGroupSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *albServiceEngineGroupDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *serviceEngineGroupDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -78,10 +81,10 @@ func (d *albServiceEngineGroupDataSource) Configure(ctx context.Context, req dat
 	d.client = client
 }
 
-func (d *albServiceEngineGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *serviceEngineGroupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_alb_service_engine_group", d.client.GetOrgName(), metrics.Read)()
 
-	config := &albServiceEngineGroupModel{}
+	config := &serviceEngineGroupModel{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
@@ -99,29 +102,48 @@ func (d *albServiceEngineGroupDataSource) Read(ctx context.Context, req datasour
 		Implement the data source read logic here.
 	*/
 
+	// Read data from the API
+	data, found, diags := d.read(config)
+	if !found {
+		diags.AddError("Error Not Found", "The Service Engine Group was not found")
+	}
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Set state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (d *serviceEngineGroupDataSource) read(dm *serviceEngineGroupModel) (data *serviceEngineGroupModel, found bool, diags diag.Diagnostics) {
+	data = &serviceEngineGroupModel{}
+
 	// Get ServiceEngineGroup
 	var (
 		err    error
 		albSEG *v1.EdgeGatewayALBServiceEngineGroupModel
 	)
-	if config.ID.IsKnown() {
-		albSEG, err = d.edgegw.GetALBServiceEngineGroup(config.ID.Get())
+	if dm.ID.IsKnown() {
+		albSEG, err = d.edgegw.GetALBServiceEngineGroup(dm.ID.Get())
 	} else {
-		albSEG, err = d.edgegw.GetALBServiceEngineGroup(config.Name.Get())
+		albSEG, err = d.edgegw.GetALBServiceEngineGroup(dm.Name.Get())
 	}
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Service Engine Group", err.Error())
-		return
+		if commoncloudavenue.IsNotFound(err) || govcd.IsNotFound(err) {
+			return nil, false, diags
+		}
+		diags.AddError("Error retrieving Service Engine Group", err.Error())
+		return nil, true, diags
 	}
 
-	config.ID.Set(albSEG.ID)
-	config.Name.Set(albSEG.Name)
-	config.EdgeGatewayID.Set(albSEG.GatewayRef.ID)
-	config.EdgeGatewayName.Set(albSEG.GatewayRef.Name)
-	config.MaxVirtualServices.SetIntPtr(albSEG.MaxVirtualServices)
-	config.ReservedVirtualServices.SetIntPtr(albSEG.MinVirtualServices)
-	config.DeployedVirtualServices.SetInt(albSEG.NumDeployedVirtualServices)
+	data.ID.Set(albSEG.ID)
+	data.Name.Set(albSEG.Name)
+	data.EdgeGatewayID.Set(albSEG.GatewayRef.ID)
+	data.EdgeGatewayName.Set(albSEG.GatewayRef.Name)
+	data.MaxVirtualServices.SetIntPtr(albSEG.MaxVirtualServices)
+	data.ReservedVirtualServices.SetIntPtr(albSEG.MinVirtualServices)
+	data.DeployedVirtualServices.SetInt(albSEG.NumDeployedVirtualServices)
 
-	// Set state
-	resp.Diagnostics.Append(resp.State.Set(ctx, config)...)
+	return data, true, diags
 }

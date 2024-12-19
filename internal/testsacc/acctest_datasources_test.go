@@ -4,6 +4,10 @@ import "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/he
 
 func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConfig {
 	return map[testsacc.ResourceName]func() *testsacc.ResourceConfig{
+		// * ALB
+		ALBServiceEngineGroupDataSourceName:  testsacc.NewResourceConfig(NewALBServiceEngineGroupDataSourceTest()),
+		ALBServiceEngineGroupsDataSourceName: testsacc.NewResourceConfig(NewALBServiceEngineGroupsDataSourceTest()),
+
 		// * Catalog
 		CatalogDataSourceName:             testsacc.NewResourceConfig(NewCatalogDataSourceTest()),
 		CatalogACLDataSourceName:          testsacc.NewResourceConfig(NewCatalogACLDataSourceTest()),
