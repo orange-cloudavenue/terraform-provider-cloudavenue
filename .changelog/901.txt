@@ -1,0 +1,3 @@
+```release-note:new-data-source
+`datasource/cloudavenue_alb_service_engine_groups` - Added a new data source to list all Service Engine Group attached to an Edge Gateway.
+```
