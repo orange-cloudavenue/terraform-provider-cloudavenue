@@ -15,6 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
+	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
+
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 func ipSetSchema(_ context.Context) superschema.Schema {
@@ -51,6 +54,9 @@ func ipSetSchema(_ context.Context) superschema.Schema {
 					Validators: []validator.String{
 						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
 					},
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplaceIfConfigured(),
+					},
 				},
 			},
 			"vdc_group_id": superschema.SuperStringAttribute{
@@ -60,6 +66,10 @@ func ipSetSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
+						fstringvalidator.PrefixContains(urn.VDCGroup.String()),
+					},
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplaceIfConfigured(),
 					},
 				},
 			},

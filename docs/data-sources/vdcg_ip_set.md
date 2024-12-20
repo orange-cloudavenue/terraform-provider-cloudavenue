@@ -27,7 +27,7 @@ data "cloudavenue_vdcg_ip_set" "example" {
 
 ### Optional
 
-- `vdc_group_id` (String) The ID of the VDC Group to which the ip set belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
+- `vdc_group_id` (String) The ID of the VDC Group to which the ip set belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id]. This value must start with `urn:vcloud:vdcGroup:`.
 - `vdc_group_name` (String) The name VDC Group to which the ip set belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
 
 ### Read-Only

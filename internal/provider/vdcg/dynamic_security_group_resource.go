@@ -18,33 +18,32 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &SecurityGroupResource{}
-	_ resource.ResourceWithConfigure   = &SecurityGroupResource{}
-	_ resource.ResourceWithImportState = &SecurityGroupResource{}
+	_ resource.Resource                = &DynamicSecurityGroupResource{}
+	_ resource.ResourceWithConfigure   = &DynamicSecurityGroupResource{}
+	_ resource.ResourceWithImportState = &DynamicSecurityGroupResource{}
 )
 
-// NewSecurityGroupResource is a helper function to simplify the provider implementation.
-func NewSecurityGroupResource() resource.Resource {
-	return &SecurityGroupResource{}
+// NewDynamicSecurityGroupResource is a helper function to simplify the provider implementation.
+func NewDynamicSecurityGroupResource() resource.Resource {
+	return &DynamicSecurityGroupResource{}
 }
 
-// SecurityGroupResource is the resource implementation.
-type SecurityGroupResource struct {
+// DynamicSecurityGroupResource is the resource implementation.
+type DynamicSecurityGroupResource struct {
 	client   *client.CloudAvenue
 	vdcGroup *v1.VDCGroup
 }
 
 // Init Initializes the resource.
-func (r *SecurityGroupResource) Init(ctx context.Context, rm *SecurityGroupModel) (diags diag.Diagnostics) {
+func (r *DynamicSecurityGroupResource) Init(ctx context.Context, rm *DynamicSecurityGroupModel) (diags diag.Diagnostics) {
 	var err error
 
 	idOrName := rm.VDCGroupName.Get()
-	if rm.VDCGroupID.IsKnown() {
+	if rm.VDCGroupID.IsKnown() && urn.IsVDCGroup(rm.VDCGroupID.Get()) {
 		// Use the ID
 		idOrName = rm.VDCGroupID.Get()
 	}
@@ -58,16 +57,16 @@ func (r *SecurityGroupResource) Init(ctx context.Context, rm *SecurityGroupModel
 }
 
 // Metadata returns the resource type name.
-func (r *SecurityGroupResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_security_group"
+func (r *DynamicSecurityGroupResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_dynamic_security_group"
 }
 
 // Schema defines the schema for the resource.
-func (r *SecurityGroupResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = securityGroupSchema(ctx).GetResource(ctx)
+func (r *DynamicSecurityGroupResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = dynamicSecurityGroupSchema(ctx).GetResource(ctx)
 }
 
-func (r *SecurityGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *DynamicSecurityGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -85,10 +84,10 @@ func (r *SecurityGroupResource) Configure(ctx context.Context, req resource.Conf
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *SecurityGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	defer metrics.New("cloudavenue_vdcg_security_group", r.client.GetOrgName(), metrics.Create)()
+func (r *DynamicSecurityGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_vdcg_dynamic_security_group", r.client.GetOrgName(), metrics.Create)()
 
-	plan := &SecurityGroupModel{}
+	plan := &DynamicSecurityGroupModel{}
 
 	// Retrieve values from plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -109,15 +108,15 @@ func (r *SecurityGroupResource) Create(ctx context.Context, req resource.CreateR
 	mutex.GlobalMutex.KvLock(ctx, r.vdcGroup.GetID())
 	defer mutex.GlobalMutex.KvUnlock(ctx, r.vdcGroup.GetID())
 
-	values, d := plan.ToSDKSecurityGroupModel(ctx)
+	values, d := plan.ToSDKDynamicSecurityGroupModel(ctx)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
 	}
 
-	fwsg, err := r.vdcGroup.CreateFirewallSecurityGroup(values)
+	fwsg, err := r.vdcGroup.CreateFirewallDynamicSecurityGroup(values)
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating security group", err.Error())
+		resp.Diagnostics.AddError("Error creating dynamic security group", err.Error())
 		return
 	}
 
@@ -127,7 +126,7 @@ func (r *SecurityGroupResource) Create(ctx context.Context, req resource.CreateR
 	// Use generic read function to refresh the state
 	state, found, d := r.read(ctx, plan)
 	if !found {
-		resp.Diagnostics.AddError("Security group not found", "The security group was not found after creation")
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The dynamic security group '%s' was not found after creation.", plan.Name.Get()))
 		return
 	}
 	if d.HasError() {
@@ -140,10 +139,10 @@ func (r *SecurityGroupResource) Create(ctx context.Context, req resource.CreateR
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *SecurityGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	defer metrics.New("cloudavenue_vdcg_security_group", r.client.GetOrgName(), metrics.Read)()
+func (r *DynamicSecurityGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_vdcg_dynamic_security_group", r.client.GetOrgName(), metrics.Read)()
 
-	state := &SecurityGroupModel{}
+	state := &DynamicSecurityGroupModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -173,12 +172,12 @@ func (r *SecurityGroupResource) Read(ctx context.Context, req resource.ReadReque
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *SecurityGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	defer metrics.New("cloudavenue_vdcg_security_group", r.client.GetOrgName(), metrics.Update)()
+func (r *DynamicSecurityGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_vdcg_dynamic_security_group", r.client.GetOrgName(), metrics.Update)()
 
 	var (
-		plan  = &SecurityGroupModel{}
-		state = &SecurityGroupModel{}
+		plan  = &DynamicSecurityGroupModel{}
+		state = &DynamicSecurityGroupModel{}
 	)
 
 	// Get current plan and state
@@ -201,27 +200,27 @@ func (r *SecurityGroupResource) Update(ctx context.Context, req resource.UpdateR
 	mutex.GlobalMutex.KvLock(ctx, r.vdcGroup.GetID())
 	defer mutex.GlobalMutex.KvUnlock(ctx, r.vdcGroup.GetID())
 
-	fwsg, err := r.vdcGroup.GetFirewallSecurityGroup(state.ID.Get())
+	fwsg, err := r.vdcGroup.GetFirewallDynamicSecurityGroup(state.ID.Get())
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving security group", err.Error())
+		resp.Diagnostics.AddError("Error retrieving dynamic security group", err.Error())
 		return
 	}
 
-	values, d := plan.ToSDKSecurityGroupModel(ctx)
+	values, d := plan.ToSDKDynamicSecurityGroupModel(ctx)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
 	}
 
 	if err := fwsg.Update(values); err != nil {
-		resp.Diagnostics.AddError("Error updating security group", err.Error())
+		resp.Diagnostics.AddError("Error updating dynamic security group", err.Error())
 		return
 	}
 
 	// Use generic read function to refresh the state
 	stateRefreshed, found, d := r.read(ctx, plan)
 	if !found {
-		resp.Diagnostics.AddError("Security group not found", "The security group was not found after update")
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The dynamic security group '%s' was not found after update.", plan.Name.Get()))
 		return
 	}
 	if d.HasError() {
@@ -234,10 +233,10 @@ func (r *SecurityGroupResource) Update(ctx context.Context, req resource.UpdateR
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *SecurityGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	defer metrics.New("cloudavenue_vdcg_security_group", r.client.GetOrgName(), metrics.Delete)()
+func (r *DynamicSecurityGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_vdcg_dynamic_security_group", r.client.GetOrgName(), metrics.Delete)()
 
-	state := &SecurityGroupModel{}
+	state := &DynamicSecurityGroupModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -258,7 +257,7 @@ func (r *SecurityGroupResource) Delete(ctx context.Context, req resource.DeleteR
 	mutex.GlobalMutex.KvLock(ctx, r.vdcGroup.GetID())
 	defer mutex.GlobalMutex.KvUnlock(ctx, r.vdcGroup.GetID())
 
-	fwsg, err := r.vdcGroup.GetFirewallSecurityGroup(state.ID.Get())
+	fwsg, err := r.vdcGroup.GetFirewallDynamicSecurityGroup(state.ID.Get())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving security group", err.Error())
 		return
@@ -270,8 +269,8 @@ func (r *SecurityGroupResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 }
 
-func (r *SecurityGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	defer metrics.New("cloudavenue_vdcg_security_group", r.client.GetOrgName(), metrics.Import)()
+func (r *DynamicSecurityGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_vdcg_dynamic_security_group", r.client.GetOrgName(), metrics.Import)()
 
 	// * Import with custom logic
 	idParts := strings.Split(req.ID, ".")
@@ -279,19 +278,19 @@ func (r *SecurityGroupResource) ImportState(ctx context.Context, req resource.Im
 	if len(idParts) != 2 {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: VDCGroupNameOrID.SecurityGroupNameOrID Got: %q", req.ID),
+			fmt.Sprintf("Expected import identifier with format: VDCGroupNameOrID.DynamicSecurityGroupNameOrID Got: %q", req.ID),
 		)
 		return
 	}
-	vdcGroupNameOrID, securityGroupNameOrID := idParts[0], idParts[1]
+	vdcGroupNameOrID, dynamicSecurityGroupNameOrID := idParts[0], idParts[1]
 
-	x := &SecurityGroupModel{
+	x := &DynamicSecurityGroupModel{
 		ID:           supertypes.NewStringNull(),
 		Name:         supertypes.NewStringNull(),
 		VDCGroupName: supertypes.NewStringNull(),
 		VDCGroupID:   supertypes.NewStringNull(),
 		Description:  supertypes.NewStringNull(),
-		Members:      supertypes.NewSetValueOfNull[string](ctx),
+		Criteria:     supertypes.NewListNestedObjectValueOfNull[DynamicSecurityGroupModelCriteria](ctx),
 	}
 
 	if urn.IsVDCGroup(vdcGroupNameOrID) {
@@ -300,10 +299,10 @@ func (r *SecurityGroupResource) ImportState(ctx context.Context, req resource.Im
 		x.VDCGroupName.Set(vdcGroupNameOrID)
 	}
 
-	if urn.IsSecurityGroup(securityGroupNameOrID) {
-		x.ID.Set(securityGroupNameOrID)
+	if urn.IsSecurityGroup(dynamicSecurityGroupNameOrID) {
+		x.ID.Set(dynamicSecurityGroupNameOrID)
 	} else {
-		x.Name.Set(securityGroupNameOrID)
+		x.Name.Set(dynamicSecurityGroupNameOrID)
 	}
 
 	resp.Diagnostics.Append(r.Init(ctx, x)...)
@@ -325,8 +324,10 @@ func (r *SecurityGroupResource) ImportState(ctx context.Context, req resource.Im
 	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
+// * CustomFuncs
+
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
-func (r *SecurityGroupResource) read(ctx context.Context, planOrState *SecurityGroupModel) (stateRefreshed *SecurityGroupModel, found bool, diags diag.Diagnostics) {
+func (r *DynamicSecurityGroupResource) read(ctx context.Context, planOrState *DynamicSecurityGroupModel) (stateRefreshed *DynamicSecurityGroupModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
 	/*
@@ -338,7 +339,7 @@ func (r *SecurityGroupResource) read(ctx context.Context, planOrState *SecurityG
 		idOrName = planOrState.ID.Get()
 	}
 
-	fwsg, err := r.vdcGroup.GetFirewallSecurityGroup(idOrName)
+	fwsg, err := r.vdcGroup.GetFirewallDynamicSecurityGroup(idOrName)
 	if govcd.ContainsNotFound(err) {
 		return nil, false, nil
 	}
@@ -353,10 +354,37 @@ func (r *SecurityGroupResource) read(ctx context.Context, planOrState *SecurityG
 	stateRefreshed.VDCGroupName.Set(r.vdcGroup.GetName())
 	stateRefreshed.VDCGroupID.Set(r.vdcGroup.GetID())
 
-	if fwsg.Members != nil || len(fwsg.Members) > 0 {
-		diags.Append(stateRefreshed.Members.Set(ctx, utils.OpenAPIReferenceToSliceID(fwsg.Members))...)
-	} else {
-		stateRefreshed.Members.SetNull(ctx)
+	if fwsg.Criteria != nil {
+		criteria := make([]*DynamicSecurityGroupModelCriteria, 0)
+		for _, c := range fwsg.Criteria {
+			rules := make([]*DynamicSecurityGroupModelRule, 0)
+
+			for _, r := range c.Rules {
+				rule := &DynamicSecurityGroupModelRule{
+					Type:     supertypes.NewStringNull(),
+					Value:    supertypes.NewStringNull(),
+					Operator: supertypes.NewStringNull(),
+				}
+
+				rule.Type.Set(string(r.RuleType))
+				rule.Value.Set(r.Value)
+				rule.Operator.Set(string(r.Operator))
+
+				rules = append(rules, rule)
+			}
+
+			c := &DynamicSecurityGroupModelCriteria{
+				Rules: supertypes.NewListNestedObjectValueOfNull[DynamicSecurityGroupModelRule](ctx),
+			}
+			diags.Append(c.Rules.Set(ctx, rules)...)
+
+			criteria = append(criteria, c)
+		}
+		if len(criteria) == 0 {
+			stateRefreshed.Criteria.SetNull(ctx)
+		} else {
+			diags.Append(stateRefreshed.Criteria.Set(ctx, criteria)...)
+		}
 	}
 
 	return stateRefreshed, true, diags

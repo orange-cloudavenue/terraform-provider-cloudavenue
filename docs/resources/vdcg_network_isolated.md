@@ -42,7 +42,7 @@ resource "cloudavenue_vdcg_network_isolated" "example" {
 - `dns_suffix` (String) The DNS suffix for the network.
 - `guest_vlan_allowed` (Boolean) Indicates if the network allows guest VLANs. Value defaults to `false`.
 - `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. (see [below for nested schema](#nestedatt--static_ip_pool))
-- `vdc_group_id` (String) (ForceNew) The ID of vDC group that owns the network. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
+- `vdc_group_id` (String) (ForceNew) The ID of vDC group that owns the network. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id]. This value must start with `urn:vcloud:vdcGroup:`.
 - `vdc_group_name` (String) (ForceNew) The name of vDC group that owns the network. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
 
 ### Read-Only

@@ -75,21 +75,28 @@ func securityGroupSchema(_ context.Context) superschema.Schema {
 			},
 			"vdc_group_name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name VDC Group to which the security group belongs.",
+					MarkdownDescription: "The name of the VDC Group to which the security group belongs.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
 					},
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplaceIfConfigured(),
+					},
 				},
 			},
 			"vdc_group_id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the VDC Group to which the security_group belongs.",
+					MarkdownDescription: "The ID of the VDC Group to which the security group belongs.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
+						fstringvalidator.PrefixContains(urn.VDCGroup.String()),
+					},
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.RequiresReplaceIfConfigured(),
 					},
 				},
 			},

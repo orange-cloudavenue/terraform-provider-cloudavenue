@@ -35,8 +35,8 @@ resource "cloudavenue_vdcg_ip_set" "example" {
 
 - `description` (String) The description of the IP Set.
 - `ip_addresses` (Set of String) A set of IP address, CIDR or IP range. IP address format is `192.168.0.1`. CIDR format is `192.168.0.0/24`. IP range format is `192.168.0.1-192.168.0.99`.
-- `vdc_group_id` (String) The ID of the VDC Group to which the ip set belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
-- `vdc_group_name` (String) The name VDC Group to which the ip set belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
+- `vdc_group_id` (String) (ForceNew) The ID of the VDC Group to which the ip set belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id]. This value must start with `urn:vcloud:vdcGroup:`.
+- `vdc_group_name` (String) (ForceNew) The name VDC Group to which the ip set belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
 
 ### Read-Only
 
