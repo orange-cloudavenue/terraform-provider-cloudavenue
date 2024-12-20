@@ -58,6 +58,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		vdcg.NewIPSetDataSource,
 		vdcg.NewNetworkIsolatedDataSource,
 		vdcg.NewSecurityGroupDataSource,
+		vdcg.NewDynamicSecurityGroupDataSource,
 
 		// * VAPP
 		vapp.NewVappDataSource,
