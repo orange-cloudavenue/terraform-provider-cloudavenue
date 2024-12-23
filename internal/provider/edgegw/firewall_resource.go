@@ -18,6 +18,7 @@ import (
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
@@ -386,9 +387,9 @@ func (r *firewallResource) read(ctx context.Context, planOrState *firewallModel)
 		fwRule.IPProtocol.Set(rule.IpProtocol)
 		fwRule.Action.Set(rule.Action)
 		fwRule.Logging.Set(rule.Logging)
-		fwRule.SourceIDs.Set(ctx, fromOpenAPIReference(ctx, rule.SourceFirewallGroups))
-		fwRule.DestinationIDs.Set(ctx, fromOpenAPIReference(ctx, rule.DestinationFirewallGroups))
-		fwRule.AppPortProfileIDs.Set(ctx, fromOpenAPIReference(ctx, rule.ApplicationPortProfiles))
+		fwRule.SourceIDs.Set(ctx, common.FromOpenAPIReferenceID(ctx, rule.SourceFirewallGroups))
+		fwRule.DestinationIDs.Set(ctx, common.FromOpenAPIReferenceID(ctx, rule.DestinationFirewallGroups))
+		fwRule.AppPortProfileIDs.Set(ctx, common.FromOpenAPIReferenceID(ctx, rule.ApplicationPortProfiles))
 		rules = append(rules, fwRule)
 	}
 

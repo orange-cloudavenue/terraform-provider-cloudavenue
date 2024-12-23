@@ -24,6 +24,7 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceCo
 		VDCGIPSetDataSourceName:           testsacc.NewResourceConfig(NewVDCGIPSetDataSourceTest()),
 		VDCGNetworkIsolatedDataSourceName: testsacc.NewResourceConfig(NewVDCGNetworkIsolatedDataSourceTest()),
 		VDCGSecurityGroupDataSourceName:   testsacc.NewResourceConfig(NewVDCGSecurityGroupDataSourceTest()),
+		VDCGFirewallDataSourceName:        testsacc.NewResourceConfig(NewVDCGFirewallDataSourceTest()),
 
 		// * Backup
 		BackupDataSourceName: testsacc.NewResourceConfig(NewBackupDataSourceTest()),
