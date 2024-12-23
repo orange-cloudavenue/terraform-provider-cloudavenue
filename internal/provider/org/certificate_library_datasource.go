@@ -11,6 +11,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 var (
@@ -24,34 +25,16 @@ func NewCertificateLibraryDatasource() datasource.DataSource {
 
 type CertificateLibraryDatasource struct {
 	client *client.CloudAvenue
-
-	// Uncomment the following lines if you need to access the resource's.
-	// org    org.Org
-	// vdc    vdc.VDC
-	// vapp   vapp.VAPP
+	org    org.Org
 }
-
-// If the data source don't have same schema/structure as the resource, you can use the following code:
-// type CertificateLibraryDatasourceModel struct {
-// 	ID types.String `tfsdk:"id"`
-// }
 
 // Init Initializes the data source.
 func (d *CertificateLibraryDatasource) Init(ctx context.Context, dm *CertificateLibraryDatasourcesGoModel) (diags diag.Diagnostics) {
 	// Uncomment the following lines if you need to access to the Org
-	// d.org, diags = org.Init(d.client)
-	// if diags.HasError() {
-	// 	return
-	// }
-
-	// Uncomment the following lines if you need to access to the VDC
-	// d.vdc, diags = vdc.Init(d.client, dm.VDC)
-	// if diags.HasError() {
-	// 	return
-	// }
-
-	// Uncomment the following lines if you need to access to the VAPP
-	// d.vapp, diags = vapp.Init(d.client, d.vdc, dm.VAppID, dm.VAppName)
+	d.org, diags = org.Init(d.client)
+	if diags.HasError() {
+		return
+	}
 
 	return
 }
