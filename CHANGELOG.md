@@ -1,4 +1,14 @@
 ## 0.25.0 (Unreleased)
+
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_vdcg_dynamic_security_group` - New data source allows you to fetch information about a dynamic security group in a VDC Group. (GH-860)
+* **New Resource:** `resource/cloudavenue_vdcg_dynamic_security_group` - New resource allows you to manage dynamic security groups in the VDC Group. A dynamic security group is a group of VMs that share the same security rules. The VMs are dynamically added or removed from the group based on the criteria defined in the security group. The dynamic security group will be attached to the VDC Group firewall (GH-860)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-validators from 1.8.1 to 1.9.0 (GH-860)
+
 ## 0.24.0 (December 18, 2024)
 
 ### :warning: **Deprecations**
