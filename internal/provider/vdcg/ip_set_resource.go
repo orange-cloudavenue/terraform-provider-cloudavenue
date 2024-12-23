@@ -43,7 +43,7 @@ func (r *IPSetResource) Init(ctx context.Context, rm *IPSetModel) (diags diag.Di
 	var err error
 
 	idOrName := rm.VDCGroupName.Get()
-	if rm.VDCGroupID.IsKnown() && urn.IsVDCGroup(rm.VDCGroupID.Get()) {
+	if rm.VDCGroupID.IsKnown() {
 		// Use the ID
 		idOrName = rm.VDCGroupID.Get()
 	}

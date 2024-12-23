@@ -20,7 +20,7 @@ The `cloudavenue_vdcg_network_isolated` data source allows you to retrieve infor
 
 ### Optional
 
-- `vdc_group_id` (String) The ID of vDC group that owns the network. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
+- `vdc_group_id` (String) The ID of vDC group that owns the network. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id]. This value must start with `urn:vcloud:vdcGroup:`.
 - `vdc_group_name` (String) The name of vDC group that owns the network. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
 
 ### Read-Only

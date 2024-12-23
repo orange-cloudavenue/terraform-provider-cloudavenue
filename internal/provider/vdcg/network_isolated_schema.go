@@ -19,6 +19,8 @@ import (
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
+
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 func networkIsolatedSchema(_ context.Context) superschema.Schema {
@@ -75,6 +77,7 @@ func networkIsolatedSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
+						fstringvalidator.PrefixContains(urn.VDCGroup.String()),
 					},
 				},
 				Resource: &schemaR.StringAttribute{

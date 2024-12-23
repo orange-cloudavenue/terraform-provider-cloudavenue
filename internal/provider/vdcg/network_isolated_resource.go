@@ -42,12 +42,13 @@ type NetworkIsolatedResource struct {
 func (r *NetworkIsolatedResource) Init(ctx context.Context, rm *networkIsolatedModel) (diags diag.Diagnostics) {
 	var err error
 
-	// Get the VDC Group
+	idOrName := rm.VDCGroupName.Get()
 	if rm.VDCGroupID.IsKnown() {
-		r.vdcg, err = r.client.CAVSDK.V1.VDC().GetVDCGroup(rm.VDCGroupID.Get())
-	} else {
-		r.vdcg, err = r.client.CAVSDK.V1.VDC().GetVDCGroup(rm.VDCGroupName.Get())
+		// Use the ID
+		idOrName = rm.VDCGroupID.Get()
 	}
+
+	r.vdcg, err = r.client.CAVSDK.V1.VDC().GetVDCGroup(idOrName)
 	if err != nil {
 		diags.AddError("Error retrieving VDC Group", err.Error())
 		return
