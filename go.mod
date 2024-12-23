@@ -6,6 +6,8 @@ toolchain go1.23.3
 
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
+	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.8.1
+	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.4.0
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/google/uuid v1.6.0

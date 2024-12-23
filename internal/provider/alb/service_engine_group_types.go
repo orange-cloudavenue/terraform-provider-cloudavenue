@@ -4,7 +4,7 @@ import (
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 )
 
-type albServiceEngineGroupModel struct {
+type serviceEngineGroupModel struct {
 	ID                      supertypes.StringValue `tfsdk:"id"`
 	Name                    supertypes.StringValue `tfsdk:"name"`
 	EdgeGatewayID           supertypes.StringValue `tfsdk:"edge_gateway_id"`
