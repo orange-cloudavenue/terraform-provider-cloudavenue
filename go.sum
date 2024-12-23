@@ -10,8 +10,8 @@ github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.8.1 h1:ov6LO
 github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.8.1/go.mod h1:AkcBw7L/PhgCm1A4P4adGrbEjE7i2maeCn/Jeh5t5Lo=
 github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.4.0 h1:5lFfjKOhBxBQNwQ63PZWBc5Unqgi5ppYq9RDoN05N+k=
 github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.4.0/go.mod h1:klzXBi/0nMGXBh4bzRjP2wef+HE6rfCMia81Glc2+eY=
-github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1 h1:C17IEM0/4sxsTN0IpwDdgncea/cxfZVlWESIWvlEuBo=
-github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1/go.mod h1:GkF0MeJVDma0RHglpXxSzZ3yv7ftneMgI1KwHrJBOWA=
+github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.9.0 h1:p6ZVfg1JSPlV3gWn68CLKprP6zFgF37xQmL5lpElP7s=
+github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.9.0/go.mod h1:w0a2/pACt8OZubXxPDMHj2LEKYnKCHs1DTug7dagP5A=
 github.com/Kunde21/markdownfmt/v3 v3.1.0 h1:KiZu9LKs+wFFBQKhrZJrFZwtLnCCWJahL+S+E/3VnM0=
 github.com/Kunde21/markdownfmt/v3 v3.1.0/go.mod h1:tPXN1RTyOzJwhfHoon9wUr4HGYmWgVxSQN6VBJDkrVc=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=

@@ -9,7 +9,7 @@ require (
 	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.4
 	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.8.1
 	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.4.0
-	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.8.1
+	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.9.0
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/google/uuid v1.6.0
