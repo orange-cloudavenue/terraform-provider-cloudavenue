@@ -3,7 +3,9 @@
 ### :rocket: **New Features**
 
 * **New Data Source:** `datasource/cloudavenue_vdcg_dynamic_security_group` - New data source allows you to fetch information about a dynamic security group in a VDC Group. (GH-860)
+* **New Data Source:** `datasource/cloudavenue_vdcg_firewall` - New data source for fetching the details of a firewall in a vDC Group. (GH-844)
 * **New Resource:** `resource/cloudavenue_vdcg_dynamic_security_group` - New resource allows you to manage dynamic security groups in the VDC Group. A dynamic security group is a group of VMs that share the same security rules. The VMs are dynamically added or removed from the group based on the criteria defined in the security group. The dynamic security group will be attached to the VDC Group firewall (GH-860)
+* **New Resource:** `resource/cloudavenue_vdcg_firewall` - New resource for managing vDC Group firewall. This resource allows you to create, update and delete a firewall in a vDC Group. The resource supports the firewall groups : `Security Group`, `Application Port Profile`, `IP Set` and `Dynamic Security Group`. (GH-844)
 
 ### :dependabot: **Dependencies**
 
