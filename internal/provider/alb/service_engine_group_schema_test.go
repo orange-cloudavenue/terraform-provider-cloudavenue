@@ -42,7 +42,7 @@ func TestALBServiceEngineGroupDataSourceSchema(t *testing.T) {
 	schemaResponse := &fwdatasource.SchemaResponse{}
 
 	// Instantiate the datasource.Datasource and call its Schema method
-	alb.NewALBServiceEngineGroupDataSource().Schema(ctx, fwdatasource.SchemaRequest{}, schemaResponse)
+	alb.NewServiceEngineGroupDataSource().Schema(ctx, fwdatasource.SchemaRequest{}, schemaResponse)
 
 	if schemaResponse.Diagnostics.HasError() {
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)
