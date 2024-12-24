@@ -3,13 +3,11 @@ package edgegw
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"strings"
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,9 +15,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
@@ -106,38 +106,29 @@ func (r *appPortProfileResource) Create(ctx context.Context, req resource.Create
 		Implement the resource creation logic here.
 	*/
 
-	vdcOrVDCGroup, err := r.edgegw.GetParent()
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+
+	appPortProfileModel, d := plan.toSDKAppPortProfile(ctx)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	// Create the application port profile
+	appPortProfile, err := r.edgegw.CreateFirewallAppPortProfile(appPortProfileModel)
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+		resp.Diagnostics.AddError("Error creating application port profile", err.Error())
 		return
 	}
 
-	appPorts, d := plan.toNsxtAppPortProfilePorts(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	// Set the ID
+	plan.ID.Set(appPortProfile.ID)
 
-	appPortProfile, err := r.org.CreateNsxtAppPortProfile(&govcdtypes.NsxtAppPortProfile{
-		Name:             plan.Name.Get(),
-		Description:      plan.Description.Get(),
-		ContextEntityId:  vdcOrVDCGroup.GetID(),
-		ApplicationPorts: appPorts,
-		OrgRef:           &govcdtypes.OpenApiReference{ID: r.org.GetID()},
-		Scope:            govcdtypes.ApplicationPortProfileScopeTenant,
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("Error creating App Port Profile", err.Error())
-		return
-	}
-
-	plan.ID.Set(appPortProfile.NsxtAppPortProfile.ID)
-	plan.EdgeGatewayID.Set(r.edgegw.GetID())
-	plan.EdgeGatewayName.Set(r.edgegw.GetName())
+	// Use generic read function to refresh the state
 	state, found, d := r.read(ctx, plan)
 	if !found {
-		resp.State.RemoveResource(ctx)
-		resp.Diagnostics.AddError("App Port Profile not found", "App Port Profile not found after creation")
+		resp.Diagnostics.AddError("Error refreshing state", "Could not find the created application port profile")
 		return
 	}
 	if d.HasError() {
@@ -211,25 +202,33 @@ func (r *appPortProfileResource) Update(ctx context.Context, req resource.Update
 		Implement the resource update here
 	*/
 
-	appPortProfile, err := r.org.GetNsxtAppPortProfileById(state.ID.Get())
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+
+	appPortProfile, err := r.edgegw.GetFirewallAppPortProfile(state.ID.Get())
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading App Port Profile", err.Error())
+		resp.Diagnostics.AddError("Error retrieving application port profile", err.Error())
 		return
 	}
 
-	appPorts, d := plan.toNsxtAppPortProfilePorts(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
+	appPortProfileModel, d := plan.toSDKAppPortProfile(ctx)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
 
-	appPortProfile.NsxtAppPortProfile.ApplicationPorts = appPorts
-	if _, err := appPortProfile.Update(appPortProfile.NsxtAppPortProfile); err != nil {
-		resp.Diagnostics.AddError("Error updating App Port Profile", err.Error())
+	// Update the application port profile
+	if err := appPortProfile.Update(appPortProfileModel); err != nil {
+		resp.Diagnostics.AddError("Error updating application port profile", err.Error())
 		return
 	}
 
-	stateRefreshed, _, d := r.read(ctx, state)
+	// Use generic read function to refresh the state
+	stateRefreshed, found, d := r.read(ctx, plan)
+	if !found {
+		resp.Diagnostics.AddError("Error refreshing state", "Could not find the updated application port profile")
+		return
+	}
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -261,18 +260,18 @@ func (r *appPortProfileResource) Delete(ctx context.Context, req resource.Delete
 		Implement the resource deletion here
 	*/
 
-	appPortProfile, err := r.org.GetNsxtAppPortProfileById(state.ID.Get())
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+
+	appPortProfile, err := r.edgegw.GetFirewallAppPortProfile(state.ID.Get())
 	if err != nil {
-		if govcd.IsNotFound(err) {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("Error reading App Port Profile", err.Error())
+		resp.Diagnostics.AddError("Error retrieving application port profile", err.Error())
 		return
 	}
 
+	// Delete the application port profile
 	if err := appPortProfile.Delete(); err != nil {
-		resp.Diagnostics.AddError("Error deleting App Port Profile", err.Error())
+		resp.Diagnostics.AddError("Error deleting application port profile", err.Error())
 		return
 	}
 }
@@ -334,41 +333,17 @@ func (r *appPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 	stateRefreshed = planOrState.Copy()
 
 	var (
-		appPortProfile *govcd.NsxtAppPortProfile
+		appPortProfile *v1.FirewallGroupAppPortProfile
 		err            error
+		nameOrID       = planOrState.Name.Get()
 	)
 
 	if planOrState.ID.IsKnown() {
-		appPortProfile, err = r.org.GetNsxtAppPortProfileById(stateRefreshed.ID.Get())
-	} else {
-		scopes := []string{govcdtypes.ApplicationPortProfileScopeTenant, govcdtypes.ApplicationPortProfileScopeProvider, govcdtypes.ApplicationPortProfileScopeSystem}
-
-		vdcOrVDCGroup, err := r.edgegw.GetParent()
-		if err != nil {
-			diags.AddError("Error retrieving Edge Gateway parent", err.Error())
-			return
-		}
-
-		for _, scope := range scopes {
-			queryParams := url.Values{}
-			queryParams.Add("filter", fmt.Sprintf("name==%s;scope==%s;_context==%s", stateRefreshed.Name.Get(), scope, vdcOrVDCGroup.GetID()))
-			appPortProfiles, _ := r.org.GetAllNsxtAppPortProfiles(queryParams, "")
-			// Error is ignored because we want to continue searching in other scopes if not found
-			if len(appPortProfiles) > 0 {
-				if len(appPortProfiles) > 1 {
-					diags.AddError("Error reading App Port Profiles", fmt.Sprintf("expected exactly one Application Port Profile with name '%s'. Got %d", stateRefreshed.Name.Get(), len(appPortProfiles)))
-					return
-				}
-				appPortProfile = appPortProfiles[0]
-				break
-			}
-		}
-
-		if appPortProfile == nil {
-			return nil, false, nil
-		}
+		// Use the ID
+		nameOrID = planOrState.ID.Get()
 	}
 
+	appPortProfile, err = r.edgegw.GetFirewallAppPortProfile(nameOrID)
 	if err != nil {
 		if govcd.IsNotFound(err) {
 			return nil, false, nil
@@ -377,15 +352,15 @@ func (r *appPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 		return
 	}
 
-	appPorts := make([]*AppPortProfileModelAppPort, len(appPortProfile.NsxtAppPortProfile.ApplicationPorts))
-	for index, singlePort := range appPortProfile.NsxtAppPortProfile.ApplicationPorts {
+	appPorts := make([]*AppPortProfileModelAppPort, len(appPortProfile.ApplicationPorts))
+	for index, singlePort := range appPortProfile.ApplicationPorts {
 		ap := &AppPortProfileModelAppPort{
 			Protocol: supertypes.NewStringNull(),
 			Ports:    supertypes.NewSetValueOfNull[string](ctx),
 		}
 
-		ap.Protocol.Set(singlePort.Protocol)
-		if singlePort.Protocol == "TCP" || singlePort.Protocol == "UDP" {
+		ap.Protocol.Set(string(singlePort.Protocol))
+		if singlePort.Protocol == v1.FirewallGroupAppPortProfileModelPortProtocolTCP || singlePort.Protocol == v1.FirewallGroupAppPortProfileModelPortProtocolUDP {
 			// DestinationPorts is optional
 			if len(singlePort.DestinationPorts) > 0 {
 				diags.Append(ap.Ports.Set(ctx, singlePort.DestinationPorts)...)
@@ -397,12 +372,12 @@ func (r *appPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 		appPorts[index] = ap
 	}
 
-	stateRefreshed.ID.Set(appPortProfile.NsxtAppPortProfile.ID)
-	stateRefreshed.Name.Set(appPortProfile.NsxtAppPortProfile.Name)
-	stateRefreshed.Description.Set(appPortProfile.NsxtAppPortProfile.Description)
+	stateRefreshed.ID.Set(appPortProfile.ID)
+	stateRefreshed.Name.Set(appPortProfile.Name)
+	stateRefreshed.Description.Set(appPortProfile.Description)
 	stateRefreshed.AppPorts.Set(ctx, appPorts)
-	stateRefreshed.EdgeGatewayID.Set(r.edgegw.GetID())
-	stateRefreshed.EdgeGatewayName.Set(r.edgegw.GetName())
+	stateRefreshed.EdgeGatewayID.Set(r.edgegw.EdgeGateway.ID)
+	stateRefreshed.EdgeGatewayName.Set(r.edgegw.EdgeGateway.Name)
 
 	return stateRefreshed, true, nil
 }

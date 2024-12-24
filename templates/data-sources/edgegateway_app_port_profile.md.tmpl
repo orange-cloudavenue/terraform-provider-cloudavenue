@@ -5,9 +5,13 @@ description: |-
 {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
 ---
 
+
 # {{.Name}} ({{.Type}})
 
 {{ .Description | trimspace }}
+
+The datasource allows you to get the details of a specific app port profile in all scope. The app port profile have 3 types of scope: `TENANT`, `PROVIDER` and `SYSTEM`. The app port profile `name` is unique in the organization by scope.
+In the IHM the `Provider` scope is named `Custom Applications` with the **no editable** fields and the `System` scope is named `Default Applications`.
 
 {{ if .HasExample -}}
 ## Example Usage
@@ -15,14 +19,46 @@ description: |-
 {{ tffile .ExampleFile }}
 {{- end }}
 
-## Warning
-~> **Scope of app port profile** The app port profile `name` is retrieved with 3 scopes: `tenant`, `provider`, and `system`. If you set the `name` attribute the application port profile is searched with the `tenant` scope if it is not found then it is searched the `Provider`, then `System`. In the IHM the `Provider` scope is named `Custom Applications` with the **no editable** fields and the `System` scope is named `Default Applications`.
-
 {{ .SchemaMarkdown | trimspace }}
 
-{{ if .HasImport -}}
-## Import
 
-Import is supported using the following syntax:
-{{ codefile "shell" .ImportFile }}
-{{- end }}
+## Advanced example
+
+For example if your create an app port profile with name `HTTP`, this application port profile is created in scope `TENANT` but there exists another app port profile with name `HTTP` in scope `SYSTEM`.
+
+```hcl 
+data "cloudavenue_edgegateway_app_port_profile" "example" {
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+  name = "HTTP"
+}
+```
+
+This configuration will return a error because the app port profile `HTTP` is not unique in the organization.
+
+```
+  | Multiple App Port Profiles found with the same name.
+  | 
+  | Error: Details of the App Port Profiles
+  | 
+  | [...]
+  | 
+  | ID: urn:vcloud:applicationPortProfile:13005b14-8398-48e8-b652-21da63d3c6c6
+  | Name: HTTP
+  | Scope: TENANT
+  | 
+  | ID: urn:vcloud:applicationPortProfile:4d8cc407-fe83-3a9f-af20-95dfe3a1e9a2
+  | Name: HTTP
+  | Scope: SYSTEM
+  | 
+  | Please provide the ID of the App Port Profile to uniquely identify it or add
+  | the scope.
+```
+
+For retrieving the app port profile in the specific scope, you can use the `scope` attribute.
+```hcl
+data "cloudavenue_edgegateway_app_port_profile" "example" {
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+  name = "HTTP"
+  scope = "TENANT"
+}
+```

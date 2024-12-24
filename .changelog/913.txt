@@ -1,0 +1,7 @@
+```release-note:note
+`resource/cloudavenue_edgegateway_app_port_profile` - Improve the documentation.
+```
+
+```release-note:enhancement
+`datasource/cloudavenue_edgegateway_app_port_profile` - Add new attribute `scope` to retrieve the app port profile in the specific scope and improve the documentation.
+```
