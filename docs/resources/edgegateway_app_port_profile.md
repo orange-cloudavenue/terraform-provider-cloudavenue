@@ -2,12 +2,12 @@
 page_title: "cloudavenue_edgegateway_app_port_profile Resource - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  Provides an App Port Profile resource
+  The cloudavenue_edgegateway_app_port_profile resource allows you to manage an application port profile.
 ---
 
 # cloudavenue_edgegateway_app_port_profile (Resource)
 
-Provides an App Port Profile resource
+The `cloudavenue_edgegateway_app_port_profile` resource allows you to manage an application port profile.
 
 ~> **Notes** The app port profile created is available for the all edge gateways in the your organization. <br>The app port profile `name` is unique in the organization.
 
@@ -44,7 +44,7 @@ resource "cloudavenue_edgegateway_app_port_profile" "example" {
 ### Optional
 
 - `description` (String) Application Port Profile description.
-- `edge_gateway_id` (String) (ForceNew) ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
+- `edge_gateway_id` (String) (ForceNew) ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`. This value must start with `urn:vcloud:gateway:`.
 - `edge_gateway_name` (String) (ForceNew) Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
 
 ### Read-Only
@@ -56,11 +56,11 @@ resource "cloudavenue_edgegateway_app_port_profile" "example" {
 
 Required:
 
-- `protocol` (String) Protocol. Value must be one of : `ICMPv4`, `ICMPv6`, `TCP`, `UDP`.
+- `protocol` (String) Protocol of the application port. Value must be one of : `ICMPv4`, `ICMPv6`, `TCP`, `UDP`.
 
 Optional:
 
-- `ports` (Set of String) Set of ports or ranges. If the value of [`<.protocol`](#<.protocol) attribute is one of `ICMPv4` or `ICMPv6` this attribute is **NULL**. If the value of [`<.protocol`](#<.protocol) attribute is one of `TCP` or `UDP` this attribute is **REQUIRED**.
+- `ports` (Set of String) Set of destination ports or destination ports ranges. If the value of [`<.protocol`](#<.protocol) attribute is one of `ICMPv4` or `ICMPv6` this attribute is **NULL**. If the value of [`<.protocol`](#<.protocol) attribute is one of `TCP` or `UDP` this attribute is **REQUIRED**.
 
 ## Advanced Usage
 
