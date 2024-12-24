@@ -60,6 +60,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		vdcg.NewSecurityGroupDataSource,
 		vdcg.NewFirewallDataSource,
 		vdcg.NewDynamicSecurityGroupDataSource,
+		vdcg.NewAppPortProfileDataSource,
 
 		// * VAPP
 		vapp.NewVappDataSource,
