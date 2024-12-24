@@ -9,7 +9,7 @@ description: |-
 
 Provides an App Port Profile resource
 
-~> **Notes** The app port profile created is available for the all edge gateways in the your organization. <br>The app port profile `name` is unique in the organization.
+~> **Notes** The app port profile created is available for the all edge gateways and VDC group in the organization. <br>The app port profile `name` is unique in the organization.
 
 ## Example Usage
 

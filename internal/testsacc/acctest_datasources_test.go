@@ -14,17 +14,18 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceCo
 		Tier0VRFDataSourceName: testsacc.NewResourceConfig(NewTier0VRFDataSourceTest()),
 
 		// * VDC
-		VDCDataSourceName:                      testsacc.NewResourceConfig(NewVDCDataSourceTest()),
-		VDCGroupDataSourceName:                 testsacc.NewResourceConfig(NewVDCGroupDataSourceTest()),
-		VDCNetworkIsolatedDataSourceName:       testsacc.NewResourceConfig(NewVDCNetworkIsolatedDataSourceTest()),
-		VDCGDynamicSecurityGroupDataSourceName: testsacc.NewResourceConfig(NewVDCGDynamicSecurityGroupDataSourceTest()),
+		VDCDataSourceName:                testsacc.NewResourceConfig(NewVDCDataSourceTest()),
+		VDCGroupDataSourceName:           testsacc.NewResourceConfig(NewVDCGroupDataSourceTest()),
+		VDCNetworkIsolatedDataSourceName: testsacc.NewResourceConfig(NewVDCNetworkIsolatedDataSourceTest()),
 
 		// * VDC Group
-		VDCGDataSourceName:                testsacc.NewResourceConfig(NewVDCGDataSourceTest()),
-		VDCGIPSetDataSourceName:           testsacc.NewResourceConfig(NewVDCGIPSetDataSourceTest()),
-		VDCGNetworkIsolatedDataSourceName: testsacc.NewResourceConfig(NewVDCGNetworkIsolatedDataSourceTest()),
-		VDCGSecurityGroupDataSourceName:   testsacc.NewResourceConfig(NewVDCGSecurityGroupDataSourceTest()),
-		VDCGFirewallDataSourceName:        testsacc.NewResourceConfig(NewVDCGFirewallDataSourceTest()),
+		VDCGDataSourceName:                     testsacc.NewResourceConfig(NewVDCGDataSourceTest()),
+		VDCGIPSetDataSourceName:                testsacc.NewResourceConfig(NewVDCGIPSetDataSourceTest()),
+		VDCGNetworkIsolatedDataSourceName:      testsacc.NewResourceConfig(NewVDCGNetworkIsolatedDataSourceTest()),
+		VDCGSecurityGroupDataSourceName:        testsacc.NewResourceConfig(NewVDCGSecurityGroupDataSourceTest()),
+		VDCGDynamicSecurityGroupDataSourceName: testsacc.NewResourceConfig(NewVDCGDynamicSecurityGroupDataSourceTest()),
+		VDCGAppPortProfileDatasourceName:       testsacc.NewResourceConfig(NewVDCGAppPortProfileDatasourceTest()),
+		VDCGFirewallDataSourceName:             testsacc.NewResourceConfig(NewVDCGFirewallDataSourceTest()),
 
 		// * Backup
 		BackupDataSourceName: testsacc.NewResourceConfig(NewBackupDataSourceTest()),
