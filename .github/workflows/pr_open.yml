@@ -14,13 +14,14 @@ concurrency:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   changelog-dependabot:
     name: "Changelog Dependabot"
     uses: orange-cloudavenue/workflows/.github/workflows/changelog_dependabot.yml@main
     secrets:
-      TOKEN: ${{ secrets.CHANGELOG_PAT }}
+      TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   golang-ci-lint:
     name: "Lint"
