@@ -2,6 +2,7 @@ package testsacc
 
 import (
 	"context"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -33,7 +34,6 @@ func (r *EdgeGatewayAppPortProfileDatasource) DependenciesConfig() (resp testsac
 
 func (r *EdgeGatewayAppPortProfileDatasource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		// * Test One (example)
 		"example": func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{
 				// ! Create testing
@@ -44,7 +44,7 @@ func (r *EdgeGatewayAppPortProfileDatasource) Tests(ctx context.Context) map[tes
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_edgegateway_app_port_profile" "example" {
-						edge_gateway_name = cloudavenue_edgegateway_app_port_profile.example.edge_gateway_id
+						edge_gateway_name = cloudavenue_edgegateway.example.name
 						name = cloudavenue_edgegateway_app_port_profile.example.name
 					}`,
 					// Here use resource config test to test the data source
@@ -63,7 +63,7 @@ func (r *EdgeGatewayAppPortProfileDatasource) Tests(ctx context.Context) map[tes
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_edgegateway_app_port_profile" "example_by_id" {
-						edge_gateway_id = cloudavenue_edgegateway_app_port_profile.example.edge_gateway_id
+						edge_gateway_id = cloudavenue_edgegateway.example.id
 						id = cloudavenue_edgegateway_app_port_profile.example.id
 					}`,
 					// Here use resource config test to test the data source
@@ -90,6 +90,7 @@ func (r *EdgeGatewayAppPortProfileDatasource) Tests(ctx context.Context) map[tes
 						resource.TestCheckResourceAttr(resourceName, "name", "BKP_TCP_bpcd"),
 						resource.TestCheckResourceAttr(resourceName, "app_ports.0.protocol", "TCP"),
 						resource.TestCheckResourceAttr(resourceName, "app_ports.0.ports.0", "13782"),
+						resource.TestCheckResourceAttr(resourceName, "scope", "PROVIDER"),
 					},
 				},
 				Destroy: true,
@@ -114,36 +115,54 @@ func (r *EdgeGatewayAppPortProfileDatasource) Tests(ctx context.Context) map[tes
 						resource.TestCheckResourceAttr(resourceName, "description", "HTTP"),
 						resource.TestCheckResourceAttr(resourceName, "app_ports.0.protocol", "TCP"),
 						resource.TestCheckResourceAttr(resourceName, "app_ports.0.ports.0", "80"),
+						resource.TestCheckResourceAttr(resourceName, "scope", "SYSTEM"),
 					},
 				},
 				Destroy: true,
 			}
 		},
-		"example_with_vdc_group": func(_ context.Context, resourceName string) testsacc.Test {
+		"example_two_app_ports_with_same_name": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
+				// ! Create testing
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetSpecificConfig("example_with_vdc_group"))
+					resp.Append(GetResourceConfig()[EdgeGatewayAppPortProfileResourceName]().GetSpecificConfig("example_http_scope_tenant"))
 					return
 				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
-					data "cloudavenue_edgegateway_app_port_profile" "example_with_vdc_group" {
-						edge_gateway_id = cloudavenue_edgegateway.example_with_vdc_group.id
-						name = "Heartbeat"
+					data "cloudavenue_edgegateway_app_port_profile" "example_two_app_ports_with_same_name" {
+						edge_gateway_id = cloudavenue_edgegateway.example.id
+						name = cloudavenue_edgegateway_app_port_profile.example_http_scope_tenant.name
 					}`,
-					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.AppPortProfile)),
-						resource.TestCheckResourceAttr(resourceName, "name", "Heartbeat"),
-						resource.TestCheckResourceAttr(resourceName, "description", "Heartbeat"),
-						resource.TestCheckResourceAttr(resourceName, "app_ports.#", "2"),
-						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-							"protocol": "TCP",
-							"ports.0":  "57348",
-						}),
-						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-							"protocol": "TCP",
-							"ports.0":  "52267",
-						}),
+					TFAdvanced: testsacc.TFAdvanced{
+						ExpectError: regexp.MustCompile(`Multiple App Port Profiles found`),
+					},
+				},
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: `
+						data "cloudavenue_edgegateway_app_port_profile" "example_two_app_ports_with_same_name" {
+							edge_gateway_id = cloudavenue_edgegateway.example.id
+							name = cloudavenue_edgegateway_app_port_profile.example_http_scope_tenant.name
+							scope = "TENANT"
+						}`,
+						Checks: GetResourceConfig()[EdgeGatewayAppPortProfileResourceName]().GetSpecificChecks("example_http_scope_tenant"),
+					},
+					{
+						TFConfig: `
+							data "cloudavenue_edgegateway_app_port_profile" "example_two_app_ports_with_same_name" {
+								edge_gateway_id = cloudavenue_edgegateway.example.id
+								name = cloudavenue_edgegateway_app_port_profile.example_http_scope_tenant.name
+								scope = "SYSTEM"
+							}`,
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.AppPortProfile)),
+							resource.TestCheckResourceAttr(resourceName, "name", "HTTP"),
+							resource.TestCheckResourceAttr(resourceName, "description", "HTTP"),
+							resource.TestCheckResourceAttr(resourceName, "app_ports.0.protocol", "TCP"),
+							resource.TestCheckResourceAttr(resourceName, "app_ports.0.ports.0", "80"),
+							resource.TestCheckResourceAttr(resourceName, "scope", "SYSTEM"),
+						},
 					},
 				},
 				Destroy: true,
