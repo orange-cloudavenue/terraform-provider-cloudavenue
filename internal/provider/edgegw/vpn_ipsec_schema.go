@@ -3,6 +3,8 @@ package edgegw
 import (
 	"context"
 
+	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -22,7 +24,6 @@ import (
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
-	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 )
 
 func vpnIPSecSchema(_ context.Context) superschema.Schema {
@@ -276,7 +277,7 @@ func vpnIPSecSchema(_ context.Context) superschema.Schema {
 							Optional:   true,
 							Default:    booldefault.StaticBool(true),
 							Validators: []validator.Bool{
-								// TODO - Issue open https://github.com/FrangipaneTeam/terraform-plugin-framework-validators/issues/88
+								// TODO - Issue open https://github.com/orange-cloudavenue/terraform-plugin-framework-validators/issues/88
 							},
 						},
 					},

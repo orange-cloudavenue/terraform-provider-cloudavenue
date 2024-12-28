@@ -3,6 +3,8 @@ package edgegw
 import (
 	"context"
 
+	"github.com/orange-cloudavenue/terraform-plugin-framework-validators/setvalidator"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -18,7 +20,6 @@ import (
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
-	"github.com/FrangipaneTeam/terraform-plugin-framework-validators/setvalidator"
 )
 
 func appPortProfilesSchema(_ context.Context) superschema.Schema {

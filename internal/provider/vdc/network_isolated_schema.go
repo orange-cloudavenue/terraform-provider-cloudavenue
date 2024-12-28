@@ -3,6 +3,8 @@ package vdc
 import (
 	"context"
 
+	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
+
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -16,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
-	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 )
 
 func networkIsolatedSchema(_ context.Context) superschema.Schema {

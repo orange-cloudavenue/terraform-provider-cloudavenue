@@ -6,10 +6,8 @@ toolchain go1.23.3
 
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
-	github.com/FrangipaneTeam/terraform-plugin-framework-planmodifiers v1.3.4
 	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.8.1
 	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.4.0
-	github.com/FrangipaneTeam/terraform-plugin-framework-validators v1.9.0
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/google/uuid v1.6.0
@@ -25,6 +23,8 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.18.1
 	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
+	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.0
+	github.com/orange-cloudavenue/terraform-plugin-framework-validators v1.10.0
 	github.com/rs/zerolog v1.33.0
 	github.com/thanhpk/randstr v1.0.6
 	github.com/vmware/go-vcloud-director/v2 v2.26.1
@@ -52,7 +52,7 @@ require (
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/deepmap/oapi-codegen v1.8.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/fatih/color v1.17.0 // indirect
+	github.com/fatih/color v1.18.0 // indirect
 	github.com/fbiville/markdown-table-formatter v0.3.0 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible // indirect
 	github.com/go-chi/render v1.0.3 // indirect
