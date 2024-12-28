@@ -3,6 +3,9 @@ package network
 import (
 	"context"
 
+	fsetvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/setvalidator"
+	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -20,8 +23,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 
 	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
-	fsetvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/setvalidator"
-	fstringvalidator "github.com/FrangipaneTeam/terraform-plugin-framework-validators/stringvalidator"
 )
 
 func dhcpSchema(_ context.Context) superschema.Schema {
