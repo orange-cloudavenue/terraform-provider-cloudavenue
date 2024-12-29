@@ -13,6 +13,7 @@
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-validators from 1.8.1 to 1.9.0 (GH-860)
 * deps: bumps golang.org/x/crypto from 0.28.0 to 0.31.0 (GH-899)
 * deps: bumps golang.org/x/crypto from 0.30.0 to 0.31.0 (GH-898)
+* deps: bumps golang.org/x/net from 0.32.0 to 0.33.0 (GH-902)
 * deps: bumps goreleaser/goreleaser-action from 5.1.0 to 6.1.0 (GH-916)
 
 ## 0.24.0 (December 18, 2024)
