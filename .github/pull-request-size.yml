@@ -1,0 +1,40 @@
+# Configuration for PR Size Labeler
+
+# List of files to exclude from size calculation
+# Files matching these patterns will not be considered when calculating PR size
+exclude_files:
+  - "*.txt"
+  - "*.md"
+
+# Configuration for labeling based on the size of the Pull Request
+# Each entry defines a size label, along with thresholds for diff and file count
+label_configs:
+  # Configuration for 'extra small' PRs
+  - size: xs
+    diff: 25    # Threshold for the total lines of code changed (additions + deletions)
+    files: 1    # Threshold for the total number of files changed
+    labels: ["size/XS"] 
+
+  # Configuration for 'small' PRs
+  - size: s
+    diff: 150
+    files: 10
+    labels: ["size/S"]
+
+  # Configuration for 'medium' PRs
+  - size: m
+    diff: 500
+    files: 25
+    labels: ["size/M"]
+
+  # Configuration for 'large' PRs
+  - size: l
+    diff: 1000
+    files: 50
+    labels: ["size/L"]
+
+  # Configuration for 'extra large' PRs
+  - size: xl
+    diff: 1500
+    files: 100
+    labels: ["size/XL"]
