@@ -11,6 +11,7 @@
 
 * deps: bumps crazy-max/ghaction-import-gpg from 6.1.0 to 6.2.0 (GH-917)
 * deps: bumps github.com/FrangipaneTeam/terraform-plugin-framework-validators from 1.8.1 to 1.9.0 (GH-860)
+* deps: bumps golang.org/x/crypto from 0.30.0 to 0.31.0 (GH-898)
 * deps: bumps goreleaser/goreleaser-action from 5.1.0 to 6.1.0 (GH-916)
 
 ## 0.24.0 (December 18, 2024)
