@@ -23,6 +23,17 @@ jobs:
     secrets:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  
+      
+
+  pr-size:
+    name: "PR Size"
+    uses: orange-cloudavenue/workflows/.github/workflows/pr_label_size.yml@main
+
+  pr-conventional-commits:
+    name: "Conventional Commits"
+    uses: orange-cloudavenue/workflows/.github/workflows/pr_conventional_commits.yml@main
+
   golang-ci-lint:
     name: "Lint"
     uses: orange-cloudavenue/workflows/.github/workflows/go_golangci-lint.yml@main
