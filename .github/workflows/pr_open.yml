@@ -29,10 +29,14 @@ jobs:
   pr-size:
     name: "PR Size"
     uses: orange-cloudavenue/workflows/.github/workflows/pr_label_size.yml@main
+    secrets:
+      TOKEN: ${{ secrets.CHANGELOG_PAT }}
 
   pr-conventional-commits:
     name: "Conventional Commits"
     uses: orange-cloudavenue/workflows/.github/workflows/pr_conventional_commits.yml@main
+    secrets:
+      TOKEN: ${{ secrets.CHANGELOG_PAT }}
 
   golang-ci-lint:
     name: "Lint"
