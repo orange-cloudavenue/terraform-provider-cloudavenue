@@ -13,6 +13,11 @@
   color: "5319E7"
   description: "Deprecated feature"
 
+# Sync 
+- name: "sync"
+  color: "0052CC"
+  description: "Sync"
+
 # Language
 - name: "go"
   color: "00ADD8"
