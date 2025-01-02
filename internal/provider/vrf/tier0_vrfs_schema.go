@@ -1,11 +1,11 @@
 package vrf
 
 import (
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 )
 
 func tier0VrfsSchema() superschema.Schema {

@@ -3,9 +3,9 @@ package edgegw
 import (
 	"context"
 
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )

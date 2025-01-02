@@ -3,9 +3,9 @@ package vdcg
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/helpers"
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"

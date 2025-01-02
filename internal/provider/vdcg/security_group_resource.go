@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"

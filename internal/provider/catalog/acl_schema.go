@@ -3,6 +3,7 @@ package catalog
 import (
 	"context"
 
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 	fsetvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/setvalidator"
 	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
 
@@ -20,8 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )

@@ -3,15 +3,15 @@ package catalog
 import (
 	"context"
 
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 )
 
 func vappTemplateSuperSchema(_ context.Context) superschema.Schema {

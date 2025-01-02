@@ -3,9 +3,9 @@ package bms
 import (
 	"context"
 
-	timeoutsD "github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+	timeoutsD "github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
 
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"

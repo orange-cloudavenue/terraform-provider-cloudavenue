@@ -3,6 +3,8 @@ package network
 import (
 	"context"
 
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -16,9 +18,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 )
 
 func dhcpBindingSchema(_ context.Context) superschema.Schema {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"regexp"
 
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 	fint64validator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/int64validator"
 	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
 
@@ -28,8 +29,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/storageprofile"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"

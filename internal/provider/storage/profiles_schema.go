@@ -3,9 +3,9 @@ package storage
 import (
 	"context"
 
-	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
+	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
