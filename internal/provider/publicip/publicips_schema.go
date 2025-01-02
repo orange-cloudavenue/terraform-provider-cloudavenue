@@ -1,11 +1,10 @@
 package publicip
 
 import (
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 	"golang.org/x/net/context"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
 
 func publicIPsSchema(_ context.Context) superschema.Schema {

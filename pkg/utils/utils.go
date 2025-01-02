@@ -9,13 +9,12 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 )
 
 type tfValuesForUUID interface {

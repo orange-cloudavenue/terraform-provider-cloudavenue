@@ -3,6 +3,8 @@ package acl
 import (
 	"fmt"
 
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
+
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
@@ -15,8 +17,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )

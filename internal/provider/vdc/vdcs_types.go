@@ -1,7 +1,7 @@
 package vdc
 
 import (
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 )
 
 type vdcsDataSourceModel struct {

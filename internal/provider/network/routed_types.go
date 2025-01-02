@@ -1,7 +1,7 @@
 package network
 
 import (
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )

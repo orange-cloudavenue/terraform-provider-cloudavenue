@@ -4,10 +4,6 @@ github.com/BurntSushi/toml v1.2.1 h1:9F2/+DoOYIOksmaJFPw1tGFy1eDnIJXg+UHjuD8lTak
 github.com/BurntSushi/toml v1.2.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12 h1:rbh0EtyILnuyu07RuOhrEVXXXRcrxSvKSVtOO14h5ok=
 github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12/go.mod h1:j3TxedNm9WrKKseOSBKxnNtquuXa0FQChO/QdcvPKtg=
-github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.8.1 h1:ov6LOLLANE9nZVQ1DrpMLuITkejMzTbZLE54xtxZ14A=
-github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.8.1/go.mod h1:AkcBw7L/PhgCm1A4P4adGrbEjE7i2maeCn/Jeh5t5Lo=
-github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.4.0 h1:5lFfjKOhBxBQNwQ63PZWBc5Unqgi5ppYq9RDoN05N+k=
-github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.4.0/go.mod h1:klzXBi/0nMGXBh4bzRjP2wef+HE6rfCMia81Glc2+eY=
 github.com/Kunde21/markdownfmt/v3 v3.1.0 h1:KiZu9LKs+wFFBQKhrZJrFZwtLnCCWJahL+S+E/3VnM0=
 github.com/Kunde21/markdownfmt/v3 v3.1.0/go.mod h1:tPXN1RTyOzJwhfHoon9wUr4HGYmWgVxSQN6VBJDkrVc=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
@@ -254,6 +250,10 @@ github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
 github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339/go.mod h1:11JAFfGWVmhoT4AAORKsIC5M6nI+uDGSEOScMzavgPA=
 github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.0 h1:IoLYM5vR+G5w07TT/VTsKiQjP/vL77A28UJ9a+wXWqk=
 github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.0/go.mod h1:yjM18ndTmW1V3AW46Yb0/g93HF1kPYnpXxUODBysYAo=
+github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.9.1 h1:PxS9LFaTLhMvjV9FQRvpLsFQZ9KrIAMIMbFvUs4o1Ds=
+github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.9.1/go.mod h1:uizCb9NCH5lJ8nmnnTykkRxsA2GaiN5S7TpZHjiSlfQ=
+github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v0.5.0 h1:0rogLDkZ5gbdEs0zNQ3orqLaLk5gwwF+8LxsnqWCcN8=
+github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v0.5.0/go.mod h1:16/Jv7sxRN3PhKkb7I2LAi7gtpQju65Kd+jmlE2st04=
 github.com/orange-cloudavenue/terraform-plugin-framework-validators v1.10.0 h1:/kwFQdw7AKOsRuAUT2SzZRZj5CzCrGWXQXytW75PQGs=
 github.com/orange-cloudavenue/terraform-plugin-framework-validators v1.10.0/go.mod h1:8gsNgS+E1hKCG71IxyTKafVvOaVZgB9WfSCRAfqJPMo=
 github.com/peterhellberg/link v1.2.0 h1:UA5pg3Gp/E0F2WdX7GERiNrPQrM1K6CVJUUWfHa4t6c=

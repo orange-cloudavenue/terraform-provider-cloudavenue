@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
+
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -20,8 +22,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"

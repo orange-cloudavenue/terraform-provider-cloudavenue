@@ -3,9 +3,9 @@ package vm
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )

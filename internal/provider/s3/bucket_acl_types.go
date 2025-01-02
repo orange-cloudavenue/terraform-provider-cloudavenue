@@ -5,13 +5,12 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/s3"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	timeoutsD "github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
 	timeoutsR "github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )

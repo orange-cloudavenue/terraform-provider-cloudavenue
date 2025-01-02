@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
@@ -14,8 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"

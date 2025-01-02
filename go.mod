@@ -6,8 +6,6 @@ toolchain go1.23.3
 
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
-	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.8.1
-	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.4.0
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/google/uuid v1.6.0
@@ -24,6 +22,8 @@ require (
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.18.1
 	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
 	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.0
+	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.9.1
+	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v0.5.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-validators v1.10.0
 	github.com/rs/zerolog v1.33.0
 	github.com/thanhpk/randstr v1.0.6

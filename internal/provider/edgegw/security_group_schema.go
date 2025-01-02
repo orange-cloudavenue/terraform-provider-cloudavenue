@@ -3,6 +3,7 @@ package edgegw
 import (
 	"context"
 
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -16,8 +17,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
 
 func securityGroupSchema(_ context.Context) superschema.Schema {

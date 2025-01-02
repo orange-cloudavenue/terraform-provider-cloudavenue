@@ -3,6 +3,8 @@ package s3
 import (
 	"context"
 
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
+
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
@@ -15,8 +17,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
 
 func bucketACLSchema(_ context.Context) superschema.Schema {

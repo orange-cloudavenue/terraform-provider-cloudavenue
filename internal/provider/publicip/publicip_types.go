@@ -1,9 +1,9 @@
 package publicip
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )

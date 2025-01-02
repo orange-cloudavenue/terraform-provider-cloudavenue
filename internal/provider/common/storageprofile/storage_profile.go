@@ -3,6 +3,8 @@ package storageprofile
 import (
 	"errors"
 
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
+
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -13,8 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
 
 var (

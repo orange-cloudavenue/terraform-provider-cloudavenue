@@ -3,11 +3,11 @@ package vdc
 import (
 	"context"
 
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/infrapi"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/infrapi/rules"

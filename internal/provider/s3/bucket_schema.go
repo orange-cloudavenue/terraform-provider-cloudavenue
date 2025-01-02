@@ -3,14 +3,14 @@ package s3
 import (
 	"context"
 
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
+
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 )
 
 func s3BucketSchema(_ context.Context) superschema.Schema {

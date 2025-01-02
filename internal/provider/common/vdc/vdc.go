@@ -1,6 +1,8 @@
 package vdc
 
 import (
+	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -8,8 +10,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-
-	superschema "github.com/FrangipaneTeam/terraform-plugin-framework-superschema"
 
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
