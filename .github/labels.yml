@@ -12,6 +12,9 @@
 - name: "deprecated"
   color: "5319E7"
   description: "Deprecated feature"
+- name: "bug"
+  color: "B60205"
+  description: "Bug"
 
 # Sync 
 - name: "sync"
