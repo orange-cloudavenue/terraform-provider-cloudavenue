@@ -1,0 +1,1 @@
+terraform import cloudavenue.vdcg_app_port_profile vdcGroupIDOrName.appPortProfileIDOrName

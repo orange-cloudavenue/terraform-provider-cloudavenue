@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_vdcg_app_port_profile` - Add a new resource for the vDC Group (Virtual Datacenter Group) to manage the Firewall Application Port Profile. 
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_vdcg_app_port_profile` - Add a new datasource for the vDC Group (Virtual Datacenter Group) to get the details of the Firewall Application Port Profile. The datasource permits to get the details of a specific app port profile in all scope (`TENANT`, `PROVIDER` and `SYSTEM`). 
+```
