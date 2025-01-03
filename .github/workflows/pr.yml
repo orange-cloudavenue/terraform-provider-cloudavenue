@@ -38,6 +38,10 @@ jobs:
     secrets:
       TOKEN: ${{ secrets.CHANGELOG_PAT }}
 
+  pr-license:
+    name: "License Check"
+    uses: orange-cloudavenue/workflows/.github/workflows/pr_license.yml@main
+
   golang-ci-lint:
     name: "Lint"
     uses: orange-cloudavenue/workflows/.github/workflows/go_golangci-lint.yml@main
