@@ -1,0 +1,33 @@
+headerPath = ".github/LICENSE_HEADER"
+strictCheck = true
+
+# Whether you use the default excludes. Check Default.EXCLUDES for the completed list.
+# To suppress part of excludes in the list, declare exact the same pattern in `includes` list.
+# default: true
+useDefaultExcludes = true
+
+# The supported patterns of includes and excludes follow gitignore pattern format, plus that:
+# 1. `includes` does not support `!`
+# 2. backslash does not escape letter
+# 3. whitespaces and `#` are normal since we configure line by line
+# See also https://git-scm.com/docs/gitignore#_pattern_format
+
+# Patterns of path to be included on execution.
+# default: all the files under `baseDir`.
+includes = [
+    "*.go",
+]
+
+# Patterns of path to be excluded on execution. A leading bang (!) indicates an invert exclude rule.
+# default: empty; if useDefaultExcludes is true, append default excludes.
+excludes = [
+    "zz_generated*.go",
+]
+
+[properties]
+copyrightOwner = "Orange Business Services SA"
+
+# Options to configure Git features.
+[git]
+ignore = 'auto'
+attrs = 'auto'
