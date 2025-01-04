@@ -6,7 +6,9 @@
 name: PR All events
 
 on:
-  pull_request:
+  pull_request_target:
+    types: [ synchronize ]
+
 
 concurrency:
   group: ${{ github.ref }}-${{ github.head_ref }}-changelog
@@ -37,6 +39,8 @@ jobs:
     uses: orange-cloudavenue/workflows/.github/workflows/pr_conventional_commits.yml@main
     secrets:
       TOKEN: ${{ secrets.CHANGELOG_PAT }}
+
+  
 
   golang-ci-lint:
     name: "Lint"
