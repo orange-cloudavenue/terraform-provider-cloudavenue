@@ -6,6 +6,7 @@ import (
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 	"github.com/orange-cloudavenue/terraform-plugin-framework-validators/setvalidator"
+	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -19,15 +20,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 )
 
 func appPortProfilesSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "Provides an App Port Profile resource",
+			MarkdownDescription: "The `cloudavenue_edgegateway_app_port_profile` resource allows you to manage an application port profile.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "Provides an App Port Profile data source",
+			MarkdownDescription: "The `cloudavenue_edgegateway_app_port_profile` data source allows you to retrieve information about an application port profile.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
@@ -84,6 +88,7 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
+						fstringvalidator.PrefixContains(string(urn.Gateway)),
 					},
 				},
 				Resource: &schemaR.StringAttribute{
@@ -107,6 +112,21 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
+			"scope": superschema.SuperStringAttribute{
+				DataSource: &schemaD.StringAttribute{
+					MarkdownDescription: "The scope of the application port profile. This attribute is required only if the terraform apply return an error with the message `Multiple App Port Profiles found with the same name`. In this case, you must specify the scope of the application port profile.",
+					Optional:            true,
+					Computed:            true,
+					Validators: []validator.String{
+						stringvalidator.OneOf(func() (resp []string) {
+							for _, scope := range v1.FirewallGroupAppPortProfileModelScopes {
+								resp = append(resp, string(scope))
+							}
+							return
+						}()...),
+					},
+				},
+			},
 			"app_ports": superschema.SuperListNestedAttributeOf[AppPortProfileModelAppPort]{
 				Common: &schemaR.ListNestedAttribute{
 					MarkdownDescription: "List of application ports.",
@@ -120,7 +140,7 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 				Attributes: superschema.Attributes{
 					"ports": superschema.SuperSetAttributeOf[string]{
 						Common: &schemaR.SetAttribute{
-							MarkdownDescription: "Set of ports or ranges.",
+							MarkdownDescription: "Set of destination ports or destination ports ranges.",
 							ElementType:         supertypes.StringType{},
 						},
 						DataSource: &schemaD.SetAttribute{
@@ -136,12 +156,17 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 					},
 					"protocol": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "Protocol.",
+							MarkdownDescription: "Protocol of the application port.",
 						},
 						Resource: &schemaR.StringAttribute{
 							Required: true,
 							Validators: []validator.String{
-								stringvalidator.OneOf("ICMPv4", "ICMPv6", "TCP", "UDP"),
+								stringvalidator.OneOf(func() (resp []string) {
+									for _, protocol := range v1.FirewallGroupAppPortProfileModelPortProtocols {
+										resp = append(resp, string(protocol))
+									}
+									return
+								}()...),
 							},
 						},
 						DataSource: &schemaD.StringAttribute{

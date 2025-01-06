@@ -4,11 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/errors"
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
@@ -31,7 +35,7 @@ type appPortProfileDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *appPortProfileDataSource) Init(ctx context.Context, dm *AppPortProfileModel) (diags diag.Diagnostics) {
+func (d *appPortProfileDataSource) Init(ctx context.Context, dm *AppPortProfileModelDatasource) (diags diag.Diagnostics) {
 	var err error
 
 	d.org, diags = org.Init(d.client)
@@ -80,13 +84,13 @@ func (d *appPortProfileDataSource) Configure(ctx context.Context, req datasource
 func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_edgegateway_app_port_profile", d.client.GetOrgName(), metrics.Read)()
 
-	config := &AppPortProfileModel{}
+	config := &AppPortProfileModelDatasource{}
+
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	// Init the resource
 	resp.Diagnostics.Append(d.Init(ctx, config)...)
 	if resp.Diagnostics.HasError() {
@@ -97,28 +101,84 @@ func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.Read
 		Implement the data source read logic here.
 	*/
 
-	// If read function is identical to the resource, you can use the following code:
-	s := &appPortProfileResource{
-		client: d.client,
-		org:    d.org,
-		edgegw: d.edgegw,
+	nameOrID := config.Name.Get()
+	if config.ID.IsKnown() {
+		nameOrID = config.ID.Get()
 	}
 
-	// Read data from the API
-	configRefreshed, found, diags := s.read(ctx, config)
-	if !found {
-		if config.ID.IsKnown() {
-			resp.Diagnostics.AddError("Not found", fmt.Sprintf("App Port Profile ID %q not found", config.ID))
-		} else {
-			resp.Diagnostics.AddError("Not found", fmt.Sprintf("App Port Profile name %q not found", config.Name))
+	var appP *v1.FirewallGroupAppPortProfileModelResponse
+
+	appPortProfiles, err := d.edgegw.FindFirewallAppPortProfile(nameOrID)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			resp.Diagnostics.AddError("App Port Profile not found", err.Error())
+			return
 		}
+		resp.Diagnostics.AddError("Error reading App Port Profile", err.Error())
 		return
 	}
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+
+	if len(appPortProfiles.AppPortProfiles) > 1 && !config.Scope.IsKnown() {
+		resp.Diagnostics.AddError("Multiple App Port Profiles found", "Multiple App Port Profiles found with the same name.")
+		resp.Diagnostics.AddError("Details of the App Port Profiles", func() (msg string) {
+			for _, appPortProfile := range appPortProfiles.AppPortProfiles {
+				msg += fmt.Sprintf("ID: %s\nName: %s\nScope: %s\n\n", appPortProfile.ID, appPortProfile.Name, appPortProfile.Scope)
+			}
+
+			msg += "Please provide the ID of the App Port Profile to uniquely identify it or add the scope."
+			return
+		}())
 		return
 	}
+
+	if len(appPortProfiles.AppPortProfiles) >= 1 && config.Scope.IsKnown() {
+		// Find the App Port Profile with the correct scope
+		for _, appPortProfile := range appPortProfiles.AppPortProfiles {
+			if appPortProfile.Scope == v1.FirewallGroupAppPortProfileModelScope(config.Scope.Get()) {
+				appP = appPortProfile
+				break
+			}
+		}
+		if appP == nil {
+			resp.Diagnostics.AddError("App Port Profile not found", "App Port Profile not found with the specified scope.")
+			return
+		}
+	}
+
+	if len(appPortProfiles.AppPortProfiles) == 1 && !config.Scope.IsKnown() {
+		appP = appPortProfiles.AppPortProfiles[0]
+	}
+
+	appPorts := make([]*AppPortProfileModelAppPort, len(appP.ApplicationPorts))
+	for index, singlePort := range appP.ApplicationPorts {
+		ap := &AppPortProfileModelAppPort{
+			Protocol: supertypes.NewStringNull(),
+			Ports:    supertypes.NewSetValueOfNull[string](ctx),
+		}
+
+		ap.Protocol.Set(string(singlePort.Protocol))
+		if singlePort.Protocol == v1.FirewallGroupAppPortProfileModelPortProtocolTCP || singlePort.Protocol == v1.FirewallGroupAppPortProfileModelPortProtocolUDP {
+			// DestinationPorts is optional
+			if len(singlePort.DestinationPorts) > 0 {
+				resp.Diagnostics.Append(ap.Ports.Set(ctx, singlePort.DestinationPorts)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+			}
+		}
+		appPorts[index] = ap
+	}
+
+	stateRefreshed := config.Copy()
+
+	stateRefreshed.ID.Set(appP.ID)
+	stateRefreshed.Name.Set(appP.Name)
+	stateRefreshed.Description.Set(appP.Description)
+	stateRefreshed.AppPorts.Set(ctx, appPorts)
+	stateRefreshed.EdgeGatewayID.Set(d.edgegw.EdgeGateway.ID)
+	stateRefreshed.EdgeGatewayName.Set(d.edgegw.EdgeGateway.Name)
+	stateRefreshed.Scope.Set(string(appP.Scope))
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &configRefreshed)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
