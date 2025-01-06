@@ -5,6 +5,17 @@
 * **New Data Source:** `datasource/cloudavenue_vdcg_app_port_profile` - Add a new datasource for the vDC Group (Virtual Datacenter Group) to get the details of the Firewall Application Port Profile. The datasource permits to get the details of a specific app port profile in all scope (`TENANT`, `PROVIDER` and `SYSTEM`). (GH-907)
 * **New Resource:** `resource/cloudavenue_vdcg_app_port_profile` - Add a new resource for the vDC Group (Virtual Datacenter Group) to manage the Firewall Application Port Profile. (GH-907)
 
+### :tada: **Improvements**
+
+* `datasource/cloudavenue_edgegateway_app_port_profile` - Add new attribute `scope` to retrieve the app port profile in the specific scope and improve the documentation. (GH-913)
+### :information_source: **Notes**
+
+* `resource/cloudavenue_edgegateway_app_port_profile` - Improve the documentation. (GH-913)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/hashicorp/awspolicyequivalence from 1.6.0 to 1.7.0 (GH-924)
+
 ## 0.25.0 (January  3, 2025)
 
 ### :rocket: **New Features**
