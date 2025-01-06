@@ -1,4 +1,10 @@
 ## 0.26.0 (Unreleased)
+
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_vdcg_app_port_profile` - Add a new datasource for the vDC Group (Virtual Datacenter Group) to get the details of the Firewall Application Port Profile. The datasource permits to get the details of a specific app port profile in all scope (`TENANT`, `PROVIDER` and `SYSTEM`). (GH-907)
+* **New Resource:** `resource/cloudavenue_vdcg_app_port_profile` - Add a new resource for the vDC Group (Virtual Datacenter Group) to manage the Firewall Application Port Profile. (GH-907)
+
 ## 0.25.0 (January  3, 2025)
 
 ### :rocket: **New Features**
