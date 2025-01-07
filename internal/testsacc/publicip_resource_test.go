@@ -45,24 +45,38 @@ func (r *PublicIPResource) Tests(ctx context.Context) map[testsacc.TestName]func
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
-				CommonChecks: []resource.TestCheckFunc{},
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_ip"),
+					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
+					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
+				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					resource "cloudavenue_publicip" "example" {
 					  edge_gateway_id = cloudavenue_edgegateway.example.id
 					}`,
-					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttrSet(resourceName, "id"),
-						resource.TestCheckResourceAttrSet(resourceName, "public_ip"),
-						resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
-						resource.TestCheckNoResourceAttr(resourceName, "edge_gateway_name"),
+					Checks: []resource.TestCheckFunc{},
+				},
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: `
+						resource "cloudavenue_publicip" "example" {
+						  edge_gateway_name = cloudavenue_edgegateway.example.name
+					}`,
+						Checks: []resource.TestCheckFunc{},
 					},
 				},
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
 						ImportStateIDBuilder: []string{"edge_gateway_id", "id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_name", "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -81,7 +95,7 @@ func (r *PublicIPResource) Tests(ctx context.Context) map[testsacc.TestName]func
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
 						resource.TestCheckResourceAttrSet(resourceName, "public_ip"),
-						resource.TestCheckNoResourceAttr(resourceName, "edge_gateway_id"),
+						resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 						resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
 					},
 				},
@@ -89,6 +103,11 @@ func (r *PublicIPResource) Tests(ctx context.Context) map[testsacc.TestName]func
 				Imports: []testsacc.TFImport{
 					{
 						ImportStateIDBuilder: []string{"edge_gateway_name", "id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_id", "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
