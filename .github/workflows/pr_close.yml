@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.ref }}-${{ github.head_ref }}-changelog
+  group: ${{ github.ref }}-${{ github.head_ref }}-pr-close
   cancel-in-progress: true
 
 permissions:
