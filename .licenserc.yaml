@@ -1,0 +1,73 @@
+header: # `header` section is configurations for source codes license header.
+  license:
+    copyright-owner: Orange # the copyright owner to replace the [owner] in the `spdx-id` template.
+    spdx-id: MPL-2.0
+    content: |
+      SPDX-FileCopyrightText: Copyright (c) [year] [owner]
+      SPDX-License-Identifier: Mozilla Public License 2.0
+
+      This software is distributed under the MPL-2.0 license.
+      the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
+      or see the "LICENSE" file for more details.
+
+    pattern: |
+      SPDX-FileCopyrightText: Copyright (c) [year] [owner]
+      SPDX-License-Identifier: Mozilla Public License 2.0
+
+      This software is distributed under the MPL-2.0 license.
+      the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
+      or see the "LICENSE" file for more details.
+
+  paths: # `paths` are the path list that will be checked (and fixed) by license-eye, default is ['**'].
+    - '**'
+
+  paths-ignore: # `paths-ignore` are the path list that will be ignored by license-eye.
+    - 'dist'
+    - 'licenses'
+    - '**/*.md'
+    - '**/testdata/**'
+    - '**/go.mod'
+    - '**/go.sum'
+    - 'LICENSE'
+    - 'LICENCE'
+    - 'NOTICE'
+    - '**/**.svg'
+    - "**/zz_generated.*.go"
+    - "GNUmakefile"
+    - "Makefile"
+    - "**/*.json"
+    - ".gitignore"
+    - "**/*.tmpl"
+    - "**/*.tf"
+    - ".changelog/"
+    - ".archive/"
+    - ".github/"
+    - ".vscode/"
+    - "**/*.code-snippets"
+    - ".github"
+    - ".pre-commit"
+    - ".licenserc.yaml"
+    - ".golangci.yml"
+    - ".pre-commit-config.yaml"
+    - "mkdocs.yml"
+    - ".devcontainer/"
+    - ".goreleaser.yml"
+    - "examples/"
+
+  comment: on-failure # on what condition license-eye will comment on the pull request, `on-failure`, `always`, `never`.
+
+  # license-location-threshold specifies the index threshold where the license header can be located,
+  # after all, a "header" cannot be TOO far from the file start.
+  license-location-threshold: 80
+
+  language:
+    Go:
+      extensions:
+        - ".go"
+      comment_style_id: SlashAsterisk
+    YAML:
+      extensions:
+        - ".yml"
+        - ".yaml"
+      comment_style_id: Hashtag
+
