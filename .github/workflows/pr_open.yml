@@ -10,7 +10,7 @@ on:
     types: [ opened, reopened ]
 
 concurrency:
-  group: ${{ github.ref }}-${{ github.head_ref }}-changelog
+  group: ${{ github.ref }}-${{ github.head_ref }}-pr-open
   cancel-in-progress: true
 
 permissions:
