@@ -7,11 +7,11 @@ name: PR All events
 
 on:
   pull_request_target:
-    types: [ synchronize ]
+    types: [ opened, reopened, synchronize ]
 
 
 concurrency:
-  group: ${{ github.ref }}-${{ github.head_ref }}-changelog
+  group: ${{ github.ref }}-${{ github.head_ref }}-pr-all
   cancel-in-progress: true
 
 permissions:
@@ -40,7 +40,9 @@ jobs:
     secrets:
       TOKEN: ${{ secrets.CHANGELOG_PAT }}
 
-  
+  pr-license:
+    name: "License Check"
+    uses: orange-cloudavenue/workflows/.github/workflows/pr_license.yml@main
 
   golang-ci-lint:
     name: "Lint"
