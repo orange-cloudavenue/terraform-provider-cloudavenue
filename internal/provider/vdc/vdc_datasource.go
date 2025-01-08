@@ -81,7 +81,11 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	dataResource.Name = data.Name
 
 	// Read data from the API
-	dataRefreshed, _, diags := s.read(ctx, dataResource)
+	dataRefreshed, found, diags := s.read(ctx, dataResource)
+	if !found {
+		resp.Diagnostics.AddError("VDC not found", fmt.Sprintf("The VDC with the name %q was not found", data.Name.ValueString()))
+		return
+	}
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -97,6 +101,7 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	data.ServiceClass = dataRefreshed.ServiceClass
 	data.StorageBillingModel = dataRefreshed.StorageBillingModel
 	data.VCPUInMhz = dataRefreshed.VCPUInMhz
+	data.StorageProfiles = dataRefreshed.StorageProfiles
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
