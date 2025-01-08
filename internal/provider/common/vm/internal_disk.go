@@ -69,11 +69,11 @@ func GetBusTypeByCode(code string) busType {
 
 func GetBusTypeByKey(key string) busType {
 	switch strings.ToLower(key) {
-	case busTypeSATA.key:
+	case busTypeSATA.name:
 		return busTypeSATA
-	case busTypeSCSI.key:
+	case busTypeSCSI.name:
 		return busTypeSCSI
-	case busTypeNVME.key:
+	case busTypeNVME.name:
 		return busTypeNVME
 	default:
 		return busTypeSATA

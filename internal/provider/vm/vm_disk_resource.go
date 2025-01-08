@@ -342,8 +342,8 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 		diskSetting := &govcdtypes.DiskSettings{
 			SizeMb:              plan.SizeInMb.ValueInt64(),
-			UnitNumber:          int(busNumber.ValueInt64()),
-			BusNumber:           int(unitNumber.ValueInt64()),
+			UnitNumber:          int(unitNumber.ValueInt64()),
+			BusNumber:           int(busNumber.ValueInt64()),
 			AdapterType:         vm.GetBusTypeByKey(plan.BusType.ValueString()).Code(),
 			ThinProvisioned:     &isThinProvisioned,
 			StorageProfile:      storageProfilePrt,
@@ -365,7 +365,7 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 		}
 
 		newPlan.ID = types.StringValue(diskID)
-		newPlan.BusType = types.StringValue(vm.GetBusTypeByCode(diskSetting.AdapterType).Name())
+		newPlan.BusType = types.StringValue(strings.ToUpper(vm.GetBusTypeByCode(diskSetting.AdapterType).Name()))
 		newPlan.SizeInMb = types.Int64Value(diskSetting.SizeMb)
 		newPlan.StorageProfile = types.StringValue(storageProfilePrt.Name)
 	}
@@ -430,7 +430,7 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		updatedState.ID = types.StringValue(x.Disk.Id)
 		updatedState.Name = types.StringValue(x.Disk.Name)
 		updatedState.SizeInMb = types.Int64Value(x.Disk.SizeMb)
-		updatedState.BusType = types.StringValue(diskparams.GetBusTypeByCode(x.Disk.BusType, x.Disk.BusSubType).Name())
+		updatedState.BusType = types.StringValue(strings.ToUpper(diskparams.GetBusTypeByCode(x.Disk.BusType, x.Disk.BusSubType).Name()))
 		updatedState.StorageProfile = types.StringValue(x.Disk.StorageProfile.Name)
 	} else {
 		// * Internal disk
@@ -449,7 +449,7 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		updatedState.Name = types.StringNull()
 		updatedState.SizeInMb = types.Int64Value(internalDisk.SizeMb)
 		updatedState.StorageProfile = types.StringValue(internalDisk.StorageProfile.Name)
-		updatedState.BusType = types.StringValue(vm.GetBusTypeByCode(internalDisk.AdapterType).Name())
+		updatedState.BusType = types.StringValue(strings.ToUpper(vm.GetBusTypeByCode(internalDisk.AdapterType).Name()))
 	}
 
 	// Set state to fully populated data
