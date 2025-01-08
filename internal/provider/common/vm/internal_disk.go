@@ -42,6 +42,12 @@ func (b busType) Code() string {
 	return b.code
 }
 
+// INTERNAL DISK BUS TYPES
+// <option _ngcontent-ldg-c121="" value="4" class="ng-star-inserted"> LSI Logic SAS (SCSI) </option>
+// <option _ngcontent-ldg-c121="" value="1" class="ng-star-inserted"> IDE </option>
+// <option _ngcontent-ldg-c121="" value="6" class="ng-star-inserted"> SATA </option>
+// <option _ngcontent-ldg-c121="" value="7" class="ng-star-inserted"> NVME </option>
+
 var (
 	busTypeSATA = busType{key: "sata", name: "sata", code: "6"} // Bus type SATA
 	busTypeSCSI = busType{key: "sas", name: "scsi", code: "4"}  // Bus type SCSI
@@ -62,7 +68,7 @@ func GetBusTypeByCode(code string) busType {
 }
 
 func GetBusTypeByKey(key string) busType {
-	switch key {
+	switch strings.ToLower(key) {
 	case busTypeSATA.key:
 		return busTypeSATA
 	case busTypeSCSI.key:
