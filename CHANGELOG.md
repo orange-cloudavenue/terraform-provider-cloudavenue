@@ -8,6 +8,10 @@
 ### :tada: **Improvements**
 
 * `datasource/cloudavenue_edgegateway_app_port_profile` - Add new attribute `scope` to retrieve the app port profile in the specific scope and improve the documentation. (GH-913)
+
+### :bug: **Bug Fixes**
+
+* `datasource/cloudavenue_vdc` - Fixed a bug where the datasource was not returning the `storage_profiles` attribute. (GH-934)
 ### :information_source: **Notes**
 
 * `resource/cloudavenue_edgegateway_app_port_profile` - Improve the documentation. (GH-913)
