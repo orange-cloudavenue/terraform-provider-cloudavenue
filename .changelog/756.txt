@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_vm_disk` - Fix issue where disk creation with a bus type other than "SATA" failed. Many thanks to @xriot2 @MAE-orange @vivekanandita for their help in identifying this problem.
+```
