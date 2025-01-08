@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
-	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -59,6 +58,7 @@ func publicIPSchema() superschema.Schema {
 			"edge_gateway_name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the Edge Gateway.",
+					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
@@ -68,14 +68,12 @@ func publicIPSchema() superschema.Schema {
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
 					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
 				},
 			},
 			"edge_gateway_id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the Edge Gateway.",
+					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
@@ -85,9 +83,6 @@ func publicIPSchema() superschema.Schema {
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
 					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
 				},
 			},
 		},

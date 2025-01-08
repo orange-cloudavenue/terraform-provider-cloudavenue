@@ -230,15 +230,6 @@ func (r *publicIPResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	// Fix after refacto (#697) - https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/pull/697/files#diff-aaea8073b6a3d4e8396f36585bf313c70c96798378be2bfe673cf357554f2d0fL56
-	if plan.EdgeGatewayID.IsNull() && state.EdgeGatewayID.IsKnown() {
-		state.EdgeGatewayID.SetNull()
-	}
-
-	if plan.EdgeGatewayName.IsNull() && state.EdgeGatewayName.IsKnown() {
-		state.EdgeGatewayName.SetNull()
-	}
-
 	/*
 		Implement the resource read here
 	*/
@@ -365,6 +356,8 @@ func (r *publicIPResource) read(_ context.Context, planOrState *publicIPResource
 
 	stateRefreshed.ID.Set(pubIP.UplinkIP)
 	stateRefreshed.PublicIP.Set(pubIP.UplinkIP)
+	stateRefreshed.EdgeGatewayID.Set(r.edgegw.EdgeGateway.ID)
+	stateRefreshed.EdgeGatewayName.Set(r.edgegw.EdgeGateway.Name)
 
 	return stateRefreshed, true, nil
 }
