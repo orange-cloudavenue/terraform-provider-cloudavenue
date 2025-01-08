@@ -8,6 +8,7 @@
 ### :tada: **Improvements**
 
 * `datasource/cloudavenue_edgegateway_app_port_profile` - Add new attribute `scope` to retrieve the app port profile in the specific scope and improve the documentation. (GH-913)
+* `resource/cloudavenue_publicip` - Now the `edge_gateway_name` and `edge_gateway_id` are stored in the state file. (GH-940)
 
 ### :bug: **Bug Fixes**
 
