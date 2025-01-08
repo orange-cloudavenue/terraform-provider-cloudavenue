@@ -13,6 +13,7 @@
 ### :bug: **Bug Fixes**
 
 * `datasource/cloudavenue_vdc` - Fixed a bug where the datasource was not returning the `storage_profiles` attribute. (GH-934)
+* `resource/cloudavenue_vm_disk` - Fix issue where disk creation with a bus type other than "SATA" failed. Many thanks to @xriot2 @MAE-orange @vivekanandita for their help in identifying this problem. (GH-756)
 ### :information_source: **Notes**
 
 * `resource/cloudavenue_edgegateway_app_port_profile` - Improve the documentation. (GH-913)
