@@ -1,0 +1,7 @@
+```release-note:bug
+`resource/cloudavenue_vm_disk` - Fix issue where disk creation with a bus type SCSI returned SATA.
+```
+
+```release-note:bug
+`resource/cloudavenue_vm_disk` - Fix issue where disk creation invert the `bus_number` and `unit_number`.
+```
