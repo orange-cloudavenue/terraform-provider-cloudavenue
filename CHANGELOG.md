@@ -1,4 +1,10 @@
 ## 0.27.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vm_disk` - Fix issue where disk creation invert the `bus_number` and `unit_number`. (GH-945)
+* `resource/cloudavenue_vm_disk` - Fix issue where disk creation with a bus type SCSI returned SATA. (GH-945)
+
 ## 0.26.0 (January  8, 2025)
 
 ### :rocket: **New Features**
