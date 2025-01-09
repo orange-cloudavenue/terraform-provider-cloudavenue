@@ -21,7 +21,7 @@
     </a>
   </p>
   <p align="center">
-    <a href="https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/tree/main/docs"><strong>Explore the docs »</strong></a>
+    <a href="https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs"><strong>:green_book: Explore the docs</strong></a>
   </p>
 </p>
 
@@ -36,7 +36,7 @@
 
 ## About this project
 
-A [Terraform](https://www.terraform.io) provider to manage [CloudAvenue Iaas offer](https://min.io).
+A [Terraform](https://www.terraform.io) provider to manage [CloudAvenue Iaas offer](https://cloud.orange-business.com/offres/infrastructure-iaas/cloud-avenue/).
 
 Made with <span style="color: #e25555;">&#9829;</span> using [Go](https://golang.org/).
 
@@ -57,7 +57,7 @@ terraform {
   required_providers {
     cloudavenue = {
       source = "orange-cloudavenue/cloudavenue"
-      version = ">= 0.20.0"
+      version = ">= 0.26.0"
     }
   }
 }
@@ -81,7 +81,7 @@ Don't forget to give the project a star! Thanks again!
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+3. Commit your Changes (`git commit -m 'feat: Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
