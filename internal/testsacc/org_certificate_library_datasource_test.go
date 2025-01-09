@@ -6,13 +6,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
 var _ testsacc.TestACC = &OrgCertificateLibraryDatasource{}
 
 const (
-	OrgCertificateLibraryDatasourceName = testsacc.ResourceName("data.cloudavenue_org_certificate_library_datasources_go")
+	OrgCertificateLibraryDatasourceName = testsacc.ResourceName("data.cloudavenue_org_certificate_library")
 )
 
 type OrgCertificateLibraryDatasource struct{}
@@ -35,17 +36,19 @@ func (r *OrgCertificateLibraryDatasource) DependenciesConfig() (resp testsacc.De
 func (r *OrgCertificateLibraryDatasource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
-		"example": func(_ context.Context, _ string) testsacc.Test {
+		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
-					data "cloudavenue_org_certificate_library_datasources_go" "example" {
-						foo_id = cloudavenue_foo_bar.example.id
+					data "cloudavenue_org_certificate_library" "example" {
+						name = "cert-auto-self-sign"
 					}`,
-					// Here use resource config test to test the data source
-					// the field example is the name of the test
-					// Checks: GetResourceConfig()[org_CertificateLibraryDatasourcesGoResourceName]().GetDefaultChecks()
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.CertificateLibraryItem)),
+						resource.TestCheckResourceAttrSet(resourceName, "name"),
+						resource.TestCheckResourceAttrSet(resourceName, "certificate"),
+					},
 				},
 			}
 		},

@@ -5,10 +5,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/vmware/go-vcloud-director/v2/govcd"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+
+	commoncloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/common/cloudavenue"
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
@@ -29,7 +35,7 @@ type CertificateLibraryDatasource struct {
 }
 
 // Init Initializes the data source.
-func (d *CertificateLibraryDatasource) Init(ctx context.Context, dm *CertificateLibraryDatasourcesGoModel) (diags diag.Diagnostics) {
+func (d *CertificateLibraryDatasource) Init(ctx context.Context, dm *CertificateLibraryDatasourceModel) (diags diag.Diagnostics) {
 	// Uncomment the following lines if you need to access to the Org
 	d.org, diags = org.Init(d.client)
 	if diags.HasError() {
@@ -44,7 +50,7 @@ func (d *CertificateLibraryDatasource) Metadata(ctx context.Context, req datasou
 }
 
 func (d *CertificateLibraryDatasource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = certificateLibraryDatasourceSchema(ctx).GetDataSource(ctx)
+	resp.Schema = certificateLibrarySchema(ctx).GetDataSource(ctx)
 }
 
 func (d *CertificateLibraryDatasource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -67,10 +73,7 @@ func (d *CertificateLibraryDatasource) Configure(ctx context.Context, req dataso
 func (d *CertificateLibraryDatasource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_org_certificate_library", d.client.GetOrgName(), metrics.Read)()
 
-	config := &CertificateLibraryDatasourcesGoModel{}
-
-	// If the data source don't have same schema/structure as the resource, you can use the following code:
-	// config := &CertificateLibraryDatasourceModel{}
+	config := &CertificateLibraryDatasourceModel{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
@@ -84,27 +87,49 @@ func (d *CertificateLibraryDatasource) Read(ctx context.Context, req datasource.
 		return
 	}
 
-	/*
-		Implement the data source read logic here.
-	*/
+	// Read data from the API
+	data, _, diags := d.read(config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// If read function is identical to the resource, you can use the following code:
-	/*
-		s := &CertificateLibraryDatasourcesGoResource{
-			client: d.client,
-			// org:    d.org,
-			// vdc:    d.vdc,
-			// vapp:   d.vapp,
+	// Save data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+// read reads the data from the API and returns the data to be saved in the Terraform state.
+func (d *CertificateLibraryDatasource) read(config *CertificateLibraryDatasourceModel) (data *CertificateLibraryDatasourceModel, found bool, diags diag.Diagnostics) {
+	var (
+		certificate *v1.CertificateLibraryModel
+		err         error
+	)
+
+	// Get CertificateLibrary
+	if config.ID.IsKnown() {
+		certificate, err = d.org.GetOrgCertificateLibrary(config.ID.Get())
+	} else {
+		certificate, err = d.org.GetOrgCertificateLibrary(config.Name.Get())
+	}
+	if err != nil {
+		if commoncloudavenue.IsNotFound(err) || govcd.IsNotFound(err) {
+			return nil, false, diags
 		}
+		diags.AddError("error while fetching certificate library: %s", err.Error())
+		return nil, true, diags
+	}
 
-		// Read data from the API
-		data, _, diags := s.read(ctx, config)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	data = &CertificateLibraryDatasourceModel{
+		ID:          supertypes.NewStringNull(),
+		Name:        supertypes.NewStringNull(),
+		Description: supertypes.NewStringNull(),
+		Certificate: supertypes.NewStringNull(),
+	}
 
-		// Save data into Terraform state
-		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-	*/
+	data.ID.Set(certificate.ID)
+	data.Name.Set(certificate.Name)
+	data.Description.Set(certificate.Description)
+	data.Certificate.Set(certificate.Certificate)
+
+	return data, true, nil
 }
