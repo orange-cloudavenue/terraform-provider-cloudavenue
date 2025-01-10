@@ -9,6 +9,23 @@ description: |-
 
 {{ .Description | trimspace }}
 
+ -> **NAT rules with same name**
+ If the NAT rules have the same name, you must use the ID instead of the name to import the rule.
+ 
+```shell
+cloudavenue_edgegateway_nat_rule.example: Importing from ID "edgeGatewayIDOrName.dnat1"...
+# The following NAT rules with Name 'dnat1' are available
+# Please use ID instead of Name in your terraform configuration to pick exact rule
+  | Error: Multiple NAT Rules found with the same name
+  | 
+  | [...]
+  |
+  | ID                                       NAME         TYPE      
+  | c3dcf9f8-77c4-462e-9ca5-2d35a3b04170     SAMENAME     DNAT      
+  | 420554b0-50bd-4859-96a7-9a16bdc2fe9a     SAMENAME     DNAT 
+
+```
+
 {{ if .HasExample -}}
 ## Example Usage
 
