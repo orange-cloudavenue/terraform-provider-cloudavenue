@@ -45,22 +45,32 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					Computed:            true,
-					MarkdownDescription: "The ID of the Nat Rule.",
+					MarkdownDescription: "The ID of the NAT rule.",
 				},
 				Resource: &schemaR.StringAttribute{
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
+				DataSource: &schemaD.StringAttribute{
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.AtLeastOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
+					},
+				},
 			},
 			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The Name of the Nat Rule.",
-					Required:            true,
+					MarkdownDescription: "The Name of the NAT rule.",
 				},
 				Resource: &schemaR.StringAttribute{
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.RequiresReplace(),
+					Required: true,
+				},
+				DataSource: &schemaD.StringAttribute{
+					Computed: true,
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.AtLeastOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},
 				},
 			},
@@ -109,7 +119,7 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 			},
 			"enabled": superschema.SuperBoolAttribute{
 				Common: &schemaR.BoolAttribute{
-					MarkdownDescription: "Enable or Disable the Nat Rule.",
+					MarkdownDescription: "Enable or Disable the NAT rule.",
 					Computed:            true,
 				},
 				Resource: &schemaR.BoolAttribute{
@@ -119,7 +129,7 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 			},
 			"rule_type": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "Nat Rule type.",
+					MarkdownDescription: "NAT rule type.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,

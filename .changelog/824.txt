@@ -1,0 +1,15 @@
+```release-note:enhancement
+`datasource/cloudavenue_edgegateway_nat_rule` - Now supports retrieving the NAT rule by name or ID.
+```
+
+```release-note:enhancement
+`resource/cloudavenue_edgegateway_nat_rule` - Now supports updating the NAT rule name.
+```
+
+```release-note:note
+`datasource/cloudavenue_edgegateway_nat_rule` - Improve the documentation for retrieving the NAT rule by name if the name is not unique.
+```
+
+```release-note:note
+`resource/cloudavenue_edgegateway_nat_rule` - Improve the documentation for importing the NAT rule by name if the name is not unique.
+```

@@ -11,6 +11,7 @@ package testsacc
 
 import (
 	"context"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -67,6 +68,31 @@ func (r *EdgeGatewayNATRuleDataSource) Tests(ctx context.Context) map[testsacc.T
 						name = cloudavenue_edgegateway_nat_rule.example.name
 					}`,
 					Checks: GetResourceConfig()[EdgeGatewayNATRuleResourceName]().GetDefaultChecks(),
+				},
+			}
+		},
+		// * Test nat rule with same name
+		"example_with_same_name": func(_ context.Context, _ string) testsacc.Test {
+			return testsacc.Test{
+				// ! Create testing
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[EdgeGatewayNATRuleResourceName]().GetSpecificConfig("example_two_rules_with_same_name"))
+					return
+				},
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_edgegateway_nat_rule" "example_with_same_name" {
+						depends_on = [
+							cloudavenue_edgegateway_nat_rule.example_two_rules_with_same_name,
+							cloudavenue_edgegateway_nat_rule.example_two_rules_with_same_name_2	
+						]
+						edge_gateway_name = cloudavenue_edgegateway.example.name
+						name = cloudavenue_edgegateway_nat_rule.example_two_rules_with_same_name.name
+					}`,
+					Checks: []resource.TestCheckFunc{},
+					TFAdvanced: testsacc.TFAdvanced{
+						ExpectError: regexp.MustCompile(`Multiple NAT Rules found with the same name`),
+					},
 				},
 			}
 		},

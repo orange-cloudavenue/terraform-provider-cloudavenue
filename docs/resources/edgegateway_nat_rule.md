@@ -61,8 +61,8 @@ resource "cloudavenue_edgegateway_nat_rule" "example-reflexive" {
 
 ### Required
 
-- `name` (String) (ForceNew) The Name of the Nat Rule.
-- `rule_type` (String) (ForceNew) Nat Rule type. Value must be one of: `DNAT` (Rule translates the external IP to an internal IP and is used for inbound traffic.), `NO_DNAT` (Prevents external IP translation.), `SNAT` (Translates an internal IP to an external IP and is used for outbound traffic.), `NO_SNAT` (Prevents internal IP translation.), `REFLEXIVE` (This translates an internal IP to an external IP and vice versa.).
+- `name` (String) The Name of the NAT rule.
+- `rule_type` (String) (ForceNew) NAT rule type. Value must be one of: `DNAT` (Rule translates the external IP to an internal IP and is used for inbound traffic.), `NO_DNAT` (Prevents external IP translation.), `SNAT` (Translates an internal IP to an external IP and is used for outbound traffic.), `NO_SNAT` (Prevents internal IP translation.), `REFLEXIVE` (This translates an internal IP to an external IP and vice versa.).
 
 ### Optional
 
@@ -71,7 +71,7 @@ resource "cloudavenue_edgegateway_nat_rule" "example-reflexive" {
 - `dnat_external_port` (String) This represents the external port number or port range when doing DNAT port forwarding from external to internal. If not specify, all ports are translated. If the value of [`rule_type`](#rule_type) attribute is one of `SNAT`, `NO_SNAT` or `REFLEXIVE` this attribute is **NULL**.
 - `edge_gateway_id` (String) (ForceNew) The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 - `edge_gateway_name` (String) (ForceNew) The Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
-- `enabled` (Boolean) Enable or Disable the Nat Rule. Value defaults to `true`.
+- `enabled` (Boolean) Enable or Disable the NAT rule. Value defaults to `true`.
 - `external_address` (String) The external address for the NAT Rule. This must be supplied as a single IP or Network CIDR. For a DNAT rule, this is the external facing IP Address for incoming traffic. For an SNAT rule, this is the external facing IP Address for outgoing traffic. These IPs are typically allocated/suballocated IP Addresses on the Edge Gateway. For a REFLEXIVE rule, these are the external facing IPs. If the value of [`rule_type`](#rule_type) attribute is `NO_SNAT` this attribute is **NULL**. If the value of [`rule_type`](#rule_type) attribute is one of `DNAT`, `SNAT`, `NO_DNAT` or `REFLEXIVE` this attribute is **REQUIRED**.
 - `firewall_match` (String) You can set a firewall match rule to determine how firewall is applied during NAT. Value must be one of: `MATCH_INTERNAL_ADDRESS` (Applies firewall rule to the internal address of a NAT rule.), `MATCH_EXTERNAL_ADDRESS` (Applies firewall rule to the external address of a NAT rule.), `BYPASS` (Skip applying firewall rule to NAT rule.).
 - `internal_address` (String) The internal address for the NAT Rule. This must be supplied as a single IP or Network CIDR. For a DNAT rule, this is the internal IP address for incoming traffic. For an SNAT rule, this is the internal IP Address for outgoing traffic. For a REFLEXIVE rule, these are the internal IPs. These IPs are typically the Private IPs that are allocated to workloads. If the value of [`rule_type`](#rule_type) attribute is `NO_DNAT` this attribute is **NULL**. If the value of [`rule_type`](#rule_type) attribute is one of `DNAT`, `NO_SNAT` or `REFLEXIVE` this attribute is **REQUIRED**.
@@ -80,10 +80,26 @@ resource "cloudavenue_edgegateway_nat_rule" "example-reflexive" {
 
 ### Read-Only
 
-- `id` (String) The ID of the Nat Rule.
+- `id` (String) The ID of the NAT rule.
 
 ## Import
 
+ -> **NAT rules with same name**
+ If the NAT rules have the same name, you must use the ID instead of the name to retrieve the rule.
+ 
+```shell
+# The following NAT rules with Name 'dnat1' are available
+# Please use ID instead of Name in import path to pick exact rule
+  | Error: Multiple NAT Rules found with the same name
+  | 
+  | [...]
+  |
+  | ID                                       NAME         TYPE      
+  | c3dcf9f8-77c4-462e-9ca5-2d35a3b04170     SAMENAME     DNAT      
+  | 420554b0-50bd-4859-96a7-9a16bdc2fe9a     SAMENAME     DNAT 
+
+$ terraform import cloudavenue_edgegateway_nat_rule.example edgeGatewayIDOrName.f40e3d68-cfa6-42ea-83ed-5571659b3e7b
+```
 Import is supported using the following syntax:
 ```shell
 terraform import cloudavenue_edgegateway_nat_rule.example edgeGatewayIDOrName.natRuleNameOrID

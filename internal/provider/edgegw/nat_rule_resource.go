@@ -11,9 +11,13 @@
 package edgegw
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"strings"
+
+	"github.com/orange-cloudavenue/common-go/print"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
@@ -152,7 +156,11 @@ func (r *natRuleResource) Create(ctx context.Context, req resource.CreateRequest
 	plan.ID.Set(rule.NsxtNatRule.ID)
 
 	// read NAT Rule and update state
-	stateRefreshed, _, d := r.read(plan)
+	stateRefreshed, found, d := r.read(ctx, plan)
+	if !found {
+		resp.Diagnostics.AddError("Fail to retrieve NAT Rule after create", "NAT Rule not found")
+		return
+	}
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -185,7 +193,7 @@ func (r *natRuleResource) Read(ctx context.Context, req resource.ReadRequest, re
 	*/
 
 	// read NAT Rule and update state
-	stateRefreshed, found, d := r.read(state)
+	stateRefreshed, found, d := r.read(ctx, state)
 	if !found {
 		resp.State.RemoveResource(ctx)
 		return
@@ -261,7 +269,11 @@ func (r *natRuleResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// read NAT Rule and refresh state
-	stateRefreshed, _, d := r.read(plan)
+	stateRefreshed, found, d := r.read(ctx, plan)
+	if !found {
+		resp.Diagnostics.AddError("Fail to retrieve NAT Rule after update", "NAT Rule not found")
+		return
+	}
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -321,14 +333,14 @@ func (r *natRuleResource) Delete(ctx context.Context, req resource.DeleteRequest
 }
 
 func (r *natRuleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	var (
-		edgegwID, edgegwName string
-		d                    diag.Diagnostics
-		err                  error
-		natRule              *govcd.NsxtNatRule
-	)
-
 	defer metrics.New("cloudavenue_edgegateway_nat_rule", r.client.GetOrgName(), metrics.Import)()
+
+	state := &NATRuleModel{
+		ID:              supertypes.NewStringNull(),
+		Name:            supertypes.NewStringNull(),
+		EdgeGatewayID:   supertypes.NewStringNull(),
+		EdgeGatewayName: supertypes.NewStringNull(),
+	}
 
 	// Split req.ID with dot. ID format is EdgeGatewayIDOrName.NATRuleIDOrName
 	idParts := strings.Split(req.ID, ".")
@@ -338,69 +350,42 @@ func (r *natRuleResource) ImportState(ctx context.Context, req resource.ImportSt
 		return
 	}
 
-	// Get ORG
-	r.org, d = org.Init(r.client)
+	// Get EdgeGW is ID or Name
+	if urn.IsEdgeGateway(idParts[0]) {
+		state.EdgeGatewayID.Set(idParts[0])
+	} else {
+		state.EdgeGatewayName.Set(idParts[0])
+	}
+
+	if urn.IsUUIDV4(idParts[1]) {
+		state.ID.Set(idParts[1])
+	} else {
+		state.Name.Set(idParts[1])
+	}
+
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Use generic read function to refresh the state
+	stateRefreshed, found, d := r.read(ctx, state)
+	if !found {
+		resp.Diagnostics.AddError("Fail to retrieve NAT Rule after import", "NAT Rule not found")
+		return
+	}
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
 	}
 
-	// Get EdgeGW is ID or Name
-	if urn.IsEdgeGateway(idParts[0]) {
-		edgegwID = idParts[0]
-	} else {
-		edgegwName = idParts[0]
-	}
-
-	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   types.StringValue(edgegwID),
-		Name: types.StringValue(edgegwName),
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("Failed to import NAT Rule.", err.Error())
-		return
-	}
-
-	// Check if NATRule is ID or a Name
-	if urn.IsUUIDV4(idParts[1]) {
-		natRule, err = r.edgegw.GetNatRuleById(idParts[1])
-		if err != nil {
-			resp.Diagnostics.AddError("Failed to Get NAT Rule.", err.Error())
-			return
-		}
-	} else {
-		// Get all NAT Rules
-		allRules, err := r.edgegw.GetAllNatRules(nil)
-		if err != nil {
-			resp.Diagnostics.AddError("Failed to Get NAT Rule.", err.Error())
-			return
-		}
-		// Filter NAT Rule by Name
-		allResults := make([]*govcd.NsxtNatRule, 0)
-		for _, rule := range allRules {
-			if rule.NsxtNatRule.Name == idParts[1] {
-				allResults = append(allResults, rule)
-			}
-		}
-		// Check if multiple NAT Rules found with the same name
-		if len(allResults) > 1 {
-			resp.Diagnostics.AddError("Failed to Get NAT Rule.", fmt.Sprintf("Multiple NAT Rules found with the same name: %s", idParts[1]))
-			return
-		}
-		if len(allResults) == 0 {
-			resp.Diagnostics.AddError("Failed to Get NAT Rule.", fmt.Sprintf("No NAT Rule found with the name: %s", idParts[1]))
-			return
-		}
-		natRule = allResults[0]
-	}
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), natRule.NsxtNatRule.ID)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), natRule.NsxtNatRule.Name)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_id"), r.edgegw.GetID())...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), r.edgegw.GetName())...)
+	// Set state to fully populated data
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
-func (r *natRuleResource) read(planOrState *NATRuleModel) (stateRefreshed *NATRuleModel, found bool, diags diag.Diagnostics) {
+// * CustomFuncs
+
+func (r *natRuleResource) read(_ context.Context, planOrState *NATRuleModel) (stateRefreshed *NATRuleModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
 	var (
@@ -408,18 +393,52 @@ func (r *natRuleResource) read(planOrState *NATRuleModel) (stateRefreshed *NATRu
 		err  error
 	)
 
-	// Get Nat Rule by Name or ID
 	if stateRefreshed.ID.IsKnown() {
 		rule, err = r.edgegw.GetNatRuleById(stateRefreshed.ID.Get())
+		if err != nil {
+			if govcd.ContainsNotFound(err) {
+				return stateRefreshed, false, nil
+			}
+			diags.AddError("Error retrieving NAT Rule ID", err.Error())
+			return
+		}
 	} else {
-		rule, err = r.edgegw.GetNatRuleByName(stateRefreshed.Name.Get())
-	}
-	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		rules, err := r.edgegw.GetAllNatRules(nil)
+		if err != nil {
+			diags.AddError("Error retrieving NAT Rules", err.Error())
+			return
+		}
+
+		foundRules := make([]*govcd.NsxtNatRule, 0)
+		for _, r := range rules {
+			if r.NsxtNatRule.Name == stateRefreshed.Name.Get() {
+				foundRules = append(foundRules, r)
+			}
+		}
+
+		if len(foundRules) == 0 {
 			return stateRefreshed, false, nil
 		}
-		diags.AddError("Error retrieving NAT Rule ID", err.Error())
-		return
+
+		if len(foundRules) > 1 {
+			diags.AddAttributeError(
+				path.Root("name"),
+				"Multiple NAT Rules found with the same name",
+				func() string {
+					w := new(bytes.Buffer)
+					p := print.New(print.WithOutput(w))
+					p.SetHeader("ID", "Name", "Type")
+					for _, r := range foundRules {
+						p.AddFields(r.NsxtNatRule.ID, r.NsxtNatRule.Name, r.NsxtNatRule.RuleType)
+					}
+					p.PrintTable()
+					return w.String()
+				}(),
+			)
+			return stateRefreshed, true, diags
+		}
+
+		rule = foundRules[0]
 	}
 
 	// Check if ApplicationPortProfileID is known
@@ -427,7 +446,7 @@ func (r *natRuleResource) read(planOrState *NATRuleModel) (stateRefreshed *NATRu
 	if stateRefreshed.AppPortProfileID.IsKnown() {
 		appPortProfile, err = r.org.GetNsxtAppPortProfileById(stateRefreshed.AppPortProfileID.Get())
 		if err != nil {
-			diags.AddError("Error retrieving NSX-T Application Port Profile", err.Error())
+			diags.AddError("Error retrieving Application Port Profile", err.Error())
 			return
 		}
 		stateRefreshed.AppPortProfileID.Set(appPortProfile.NsxtAppPortProfile.ID)
