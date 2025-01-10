@@ -1,4 +1,14 @@
 ## 0.27.0 (Unreleased)
+
+### :tada: **Improvements**
+
+* `datasource/cloudavenue_edgegateway_nat_rule` - Now supports retrieving the NAT rule by name or ID. (GH-824)
+* `resource/cloudavenue_edgegateway_nat_rule` - Now supports updating the NAT rule name. (GH-824)
+### :information_source: **Notes**
+
+* `datasource/cloudavenue_edgegateway_nat_rule` - Improve the documentation for retrieving the NAT rule by name if the name is not unique. (GH-824)
+* `resource/cloudavenue_edgegateway_nat_rule` - Improve the documentation for importing the NAT rule by name if the name is not unique. (GH-824)
+
 ## 0.26.1 (January  8, 2025)
 
 ### :bug: **Bug Fixes**
