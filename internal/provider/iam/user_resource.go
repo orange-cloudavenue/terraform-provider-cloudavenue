@@ -20,9 +20,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/iam"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -39,8 +39,8 @@ func NewIAMUserResource() resource.Resource {
 
 // userResource is the resource implementation.
 type userResource struct {
-	client   *client.CloudAvenue
-	adminOrg adminorg.AdminOrg
+	client    *client.CloudAvenue
+	iamClient *iam.Client
 }
 
 // Metadata returns the resource type name.
@@ -74,7 +74,13 @@ func (r *userResource) Configure(ctx context.Context, req resource.ConfigureRequ
 }
 
 func (r *userResource) Init(_ context.Context, rm *userResourceModel) (diags diag.Diagnostics) {
-	r.adminOrg, diags = adminorg.Init(r.client)
+	var err error
+
+	r.iamClient, err = r.client.CAVSDK.V1.IAM()
+	if err != nil {
+		diags.AddError("Error initializing IAM client", err.Error())
+	}
+
 	return
 }
 
@@ -94,33 +100,29 @@ func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	userData := govcd.OrgUserConfiguration{
-		ProviderType:    govcd.OrgUserProviderIntegrated,
-		Name:            plan.Name.Get(),
-		RoleName:        plan.RoleName.Get(),
-		FullName:        plan.FullName.Get(),
-		EmailAddress:    plan.Email.Get(),
-		Telephone:       plan.Telephone.Get(),
-		IsEnabled:       plan.Enabled.Get(),
-		Password:        plan.Password.Get(),
-		DeployedVmQuota: plan.DeployedVMQuota.GetInt(),
-		StoredVmQuota:   plan.StoredVMQuota.GetInt(),
-	}
-
-	user, err := r.adminOrg.CreateUserSimple(userData)
+	userCreated, err := r.iamClient.CreateLocalUser(iam.LocalUser{
+		User: iam.User{
+			Name:            plan.Name.Get(),
+			RoleName:        plan.RoleName.Get(),
+			FullName:        plan.FullName.Get(),
+			Email:           plan.Email.Get(),
+			Telephone:       plan.Telephone.Get(),
+			Enabled:         plan.Enabled.Get(),
+			DeployedVMQuota: plan.DeployedVMQuota.GetInt(),
+			StoredVMQuota:   plan.StoredVMQuota.GetInt(),
+		},
+		Password: plan.Password.Get(),
+	})
 	if err != nil {
-		// Here bypass the error where the API return user not found after creation
-		// This is a known issue in the API
-		if !govcd.ContainsNotFound(err) {
-			resp.Diagnostics.AddError("Error creating user", err.Error())
+		if govcd.ContainsNotFound(err) {
+			resp.Diagnostics.AddError("User not found after create", fmt.Sprintf("User with name %s not found after create", plan.Name.Get()))
 			return
 		}
+		resp.Diagnostics.AddError("Error creating user", err.Error())
+		return
 	}
 
-	// Catch if user is not nil (nil means user not found after creation)
-	if user != nil {
-		plan.ID.Set(user.User.ID)
-	}
+	plan.ID.Set(userCreated.User.ID)
 
 	// Use generic read function to refresh the state
 	stateRefreshed, found, d := r.read(ctx, plan)
@@ -158,7 +160,7 @@ func (r *userResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	stateRefreshed, found, d := r.read(ctx, state)
 	if !found {
 		resp.State.RemoveResource(ctx)
-		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s(%s) not found after update.", state.Name.Get(), state.ID.Get()))
+		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s(%s) not found.", state.Name.Get(), state.ID.Get()))
 		return
 	}
 	if d.HasError() {
@@ -192,32 +194,40 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	user, err := r.adminOrg.GetUserById(state.ID.Get(), true)
+	user, err := r.iamClient.GetUser(state.ID.Get())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving user", err.Error())
 		return
 	}
 
-	userData := govcd.OrgUserConfiguration{
-		ProviderType:    govcd.OrgUserProviderIntegrated,
-		Name:            plan.Name.Get(),
-		RoleName:        plan.RoleName.Get(),
-		FullName:        plan.FullName.Get(),
-		EmailAddress:    plan.Email.Get(),
-		Telephone:       plan.Telephone.Get(),
-		IsEnabled:       plan.Enabled.Get(),
-		Password:        plan.Password.Get(),
-		DeployedVmQuota: plan.DeployedVMQuota.GetInt(),
-		StoredVmQuota:   plan.StoredVMQuota.GetInt(),
-	}
+	user.User.ID = plan.ID.Get()
+	user.User.Name = plan.Name.Get()
+	user.User.RoleName = plan.RoleName.Get()
+	user.User.FullName = plan.FullName.Get()
+	user.User.Email = plan.Email.Get()
+	user.User.Telephone = plan.Telephone.Get()
+	user.User.Enabled = plan.Enabled.Get()
+	user.User.DeployedVMQuota = plan.DeployedVMQuota.GetInt()
+	user.User.StoredVMQuota = plan.StoredVMQuota.GetInt()
 
-	if err = user.UpdateSimple(userData); err != nil {
+	if err := user.Update(); err != nil {
 		resp.Diagnostics.AddError("Error updating user", err.Error())
 		return
 	}
 
+	if !state.Password.Equal(plan.Password) {
+		if err := user.ChangePassword(plan.Password.Get()); err != nil {
+			resp.Diagnostics.AddError("Error changing password", err.Error())
+			return
+		}
+	}
+
 	// Use generic read function to refresh the state
-	stateRefreshed, _, d := r.read(ctx, plan)
+	stateRefreshed, found, d := r.read(ctx, plan)
+	if !found {
+		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s not found", plan.Name.Get()))
+		return
+	}
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -244,7 +254,7 @@ func (r *userResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	user, err := r.adminOrg.GetUserById(state.ID.Get(), true)
+	user, err := r.iamClient.GetUser(state.ID.Get())
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -270,7 +280,8 @@ func (r *userResource) ImportState(ctx context.Context, req resource.ImportState
 		return
 	}
 
-	user, err := r.adminOrg.GetUserByName(req.ID, true)
+	// req.ID is the user name
+	user, err := r.iamClient.GetUser(req.ID)
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s not found", req.ID))
@@ -280,8 +291,8 @@ func (r *userResource) ImportState(ctx context.Context, req resource.ImportState
 		return
 	}
 
-	if user.User.ProviderType != govcd.OrgUserProviderIntegrated {
-		resp.Diagnostics.AddError("User is not an local user", fmt.Sprintf("User with name %s is %s type and not local user", req.ID, user.User.ProviderType))
+	if user.User.Type != iam.UserTypeLocal {
+		resp.Diagnostics.AddError("User is not an local user", fmt.Sprintf("User with name %s is %s type and not local user", req.ID, user.User.Type))
 		return
 	}
 
@@ -313,37 +324,33 @@ func (r *userResource) read(_ context.Context, planOrState *userResourceModel) (
 	*/
 
 	var (
-		user *govcd.OrgUser
+		user *iam.UserClient
 		err  error
 	)
 
-	if err := r.adminOrg.Refresh(); err != nil {
-		diags.AddError("Error refreshing admin org", err.Error())
-		return
-	}
-
+	// Get user by ID is more efficient
 	if stateRefreshed.ID.IsKnown() {
-		user, err = r.adminOrg.GetUserById(stateRefreshed.ID.Get(), false)
+		user, err = r.iamClient.GetUser(stateRefreshed.ID.Get())
 	} else {
-		user, err = r.adminOrg.GetUserByName(stateRefreshed.Name.Get(), false)
+		user, err = r.iamClient.GetUser(stateRefreshed.Name.Get())
 	}
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			return nil, false, nil
 		}
 		diags.AddError("Error retrieving user", err.Error())
-		return
+		return nil, true, diags
 	}
 
 	stateRefreshed.ID.Set(user.User.ID)
 	stateRefreshed.Name.Set(user.User.Name)
-	stateRefreshed.RoleName.Set(user.User.Role.Name)
+	stateRefreshed.RoleName.Set(user.User.RoleName)
 	stateRefreshed.FullName.Set(user.User.FullName)
-	stateRefreshed.Email.Set(user.User.EmailAddress)
+	stateRefreshed.Email.Set(user.User.Email)
 	stateRefreshed.Telephone.Set(user.User.Telephone)
-	stateRefreshed.Enabled.Set(user.User.IsEnabled)
-	stateRefreshed.DeployedVMQuota.SetInt(user.User.DeployedVmQuota)
-	stateRefreshed.StoredVMQuota.SetInt(user.User.StoredVmQuota)
+	stateRefreshed.Enabled.Set(user.User.Enabled)
+	stateRefreshed.DeployedVMQuota.SetInt(user.User.DeployedVMQuota)
+	stateRefreshed.StoredVMQuota.SetInt(user.User.StoredVMQuota)
 
 	return stateRefreshed, true, diags
 }

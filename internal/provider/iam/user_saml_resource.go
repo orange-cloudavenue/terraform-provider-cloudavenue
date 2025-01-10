@@ -19,9 +19,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/iam"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -38,13 +38,19 @@ func NewUserSAMLResource() resource.Resource {
 
 // UserSAMLResource is the resource implementation.
 type UserSAMLResource struct {
-	client   *client.CloudAvenue
-	adminOrg adminorg.AdminOrg
+	client    *client.CloudAvenue
+	iamClient *iam.Client
 }
 
 // Init Initializes the resource.
 func (r *UserSAMLResource) Init(ctx context.Context, rm *UserSAMLModel) (diags diag.Diagnostics) {
-	r.adminOrg, diags = adminorg.Init(r.client)
+	var err error
+
+	r.iamClient, err = r.client.CAVSDK.V1.IAM()
+	if err != nil {
+		diags.AddError("Error initializing IAM client", err.Error())
+	}
+
 	return
 }
 
@@ -93,28 +99,30 @@ func (r *UserSAMLResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	userData := govcd.OrgUserConfiguration{
-		ProviderType:    govcd.OrgUserProviderSAML,
-		Name:            plan.UserName.Get(),
-		RoleName:        plan.RoleName.Get(),
-		IsEnabled:       plan.Enabled.Get(),
-		DeployedVmQuota: plan.DeployedVMQuota.GetInt(),
-		StoredVmQuota:   plan.StoredVMQuota.GetInt(),
-		IsExternal:      true,
-	}
-
-	user, err := r.adminOrg.CreateUserSimple(userData)
+	userCreated, err := r.iamClient.CreateSAMLUser(iam.SAMLUser{
+		User: iam.User{
+			Name:            plan.UserName.Get(),
+			RoleName:        plan.RoleName.Get(),
+			Enabled:         plan.Enabled.Get(),
+			DeployedVMQuota: plan.DeployedVMQuota.GetInt(),
+			StoredVMQuota:   plan.StoredVMQuota.GetInt(),
+		},
+	})
 	if err != nil {
+		if govcd.ContainsNotFound(err) {
+			resp.Diagnostics.AddError("User not found after create", fmt.Sprintf("User with name %s not found after create", plan.UserName.Get()))
+			return
+		}
 		resp.Diagnostics.AddError("Error creating user", err.Error())
 		return
 	}
 
-	plan.ID.Set(user.User.ID)
+	plan.ID.Set(userCreated.User.ID)
 
 	// Use generic read function to refresh the state
-	state, found, d := r.read(ctx, plan)
+	stateRefreshed, found, d := r.read(ctx, plan)
 	if !found {
-		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s not found after import", plan.UserName.Get()))
+		resp.Diagnostics.AddError("User not found after create", fmt.Sprintf("User with name %s not found after create", plan.UserName.Get()))
 		return
 	}
 	if d.HasError() {
@@ -123,7 +131,7 @@ func (r *UserSAMLResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -181,23 +189,20 @@ func (r *UserSAMLResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	user, err := r.adminOrg.GetUserById(state.ID.Get(), true)
+	user, err := r.iamClient.GetUser(state.ID.Get())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving user", err.Error())
 		return
 	}
 
-	userData := govcd.OrgUserConfiguration{
-		ProviderType:    govcd.OrgUserProviderSAML,
-		Name:            plan.UserName.Get(),
-		RoleName:        plan.RoleName.Get(),
-		IsEnabled:       plan.Enabled.Get(),
-		DeployedVmQuota: plan.DeployedVMQuota.GetInt(),
-		StoredVmQuota:   plan.StoredVMQuota.GetInt(),
-		IsExternal:      true,
-	}
+	user.User.ID = plan.ID.Get()
+	user.User.Name = plan.UserName.Get()
+	user.User.RoleName = plan.RoleName.Get()
+	user.User.Enabled = plan.Enabled.Get()
+	user.User.DeployedVMQuota = plan.DeployedVMQuota.GetInt()
+	user.User.StoredVMQuota = plan.StoredVMQuota.GetInt()
 
-	if err := user.UpdateSimple(userData); err != nil {
+	if err := user.Update(); err != nil {
 		resp.Diagnostics.AddError("Error updating user", err.Error())
 		return
 	}
@@ -206,7 +211,11 @@ func (r *UserSAMLResource) Update(ctx context.Context, req resource.UpdateReques
 	state.TakeOwnership.Set(plan.TakeOwnership.Get())
 
 	// Use generic read function to refresh the state
-	stateRefreshed, _, d := r.read(ctx, state)
+	stateRefreshed, found, d := r.read(ctx, plan)
+	if !found {
+		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s not found", plan.UserName.Get()))
+		return
+	}
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -234,7 +243,7 @@ func (r *UserSAMLResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	user, err := r.adminOrg.GetUserById(state.ID.Get(), true)
+	user, err := r.iamClient.GetUser(state.ID.Get())
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -244,7 +253,7 @@ func (r *UserSAMLResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	if err = user.Delete(state.TakeOwnership.ValueBool()); err != nil {
+	if err = user.Delete(state.TakeOwnership.Get()); err != nil {
 		resp.Diagnostics.AddError("Error deleting user", err.Error())
 	}
 }
@@ -260,7 +269,8 @@ func (r *UserSAMLResource) ImportState(ctx context.Context, req resource.ImportS
 		return
 	}
 
-	user, err := r.adminOrg.GetUserByName(req.ID, true)
+	// req.ID is the user name
+	user, err := r.iamClient.GetUser(req.ID)
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s not found", req.ID))
@@ -270,7 +280,7 @@ func (r *UserSAMLResource) ImportState(ctx context.Context, req resource.ImportS
 		return
 	}
 
-	if user.User.ProviderType != govcd.OrgUserProviderSAML {
+	if user.User.Type != iam.UserTypeSAML {
 		resp.Diagnostics.AddError("User is not SAML user", fmt.Sprintf("User with name %s is not a SAML user.", req.ID))
 		return
 	}
@@ -298,21 +308,31 @@ func (r *UserSAMLResource) ImportState(ctx context.Context, req resource.ImportS
 func (r *UserSAMLResource) read(_ context.Context, planOrState *UserSAMLModel) (stateRefreshed *UserSAMLModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
-	user, err := r.adminOrg.GetUserById(planOrState.ID.Get(), true)
+	var (
+		user *iam.UserClient
+		err  error
+	)
+
+	// Get user by ID is more efficient
+	if stateRefreshed.ID.IsKnown() {
+		user, err = r.iamClient.GetUser(stateRefreshed.ID.Get())
+	} else {
+		user, err = r.iamClient.GetUser(stateRefreshed.UserName.Get())
+	}
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			return nil, false, nil
 		}
 		diags.AddError("Error retrieving user", err.Error())
-		return
+		return nil, true, diags
 	}
 
 	stateRefreshed.ID.Set(user.User.ID)
 	stateRefreshed.UserName.Set(user.User.Name)
-	stateRefreshed.RoleName.Set(user.User.Role.Name)
-	stateRefreshed.Enabled.Set(user.User.IsEnabled)
-	stateRefreshed.DeployedVMQuota.SetInt(user.User.DeployedVmQuota)
-	stateRefreshed.StoredVMQuota.SetInt(user.User.StoredVmQuota)
+	stateRefreshed.RoleName.Set(user.User.RoleName)
+	stateRefreshed.Enabled.Set(user.User.Enabled)
+	stateRefreshed.DeployedVMQuota.SetInt(user.User.DeployedVMQuota)
+	stateRefreshed.StoredVMQuota.SetInt(user.User.StoredVMQuota)
 
 	return stateRefreshed, true, nil
 }

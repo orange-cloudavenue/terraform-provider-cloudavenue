@@ -11,6 +11,7 @@ package iam
 
 import (
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
+	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -47,16 +48,15 @@ func userSchema() superschema.Schema {
 			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the user.",
+					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
-					Computed: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
 					Optional: true,
-					Computed: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},
@@ -70,6 +70,12 @@ func userSchema() superschema.Schema {
 					Required: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
+					},
+					Validators: []validator.String{
+						fstringvalidator.Cases([]fstringvalidator.CasesValidatorType{
+							fstringvalidator.CasesDisallowSpace,
+							fstringvalidator.CasesDisallowUpper,
+						}),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -127,40 +133,31 @@ func userSchema() superschema.Schema {
 			"enabled": superschema.SuperBoolAttribute{
 				Common: &schemaR.BoolAttribute{
 					MarkdownDescription: "`true` if the user is enabled and can log in.",
+					Computed:            true,
 				},
 				Resource: &schemaR.BoolAttribute{
 					Optional: true,
-					Computed: true,
 					Default:  booldefault.StaticBool(true),
-				},
-				DataSource: &schemaD.BoolAttribute{
-					Computed: true,
 				},
 			},
 			"deployed_vm_quota": superschema.SuperInt64Attribute{
 				Common: &schemaR.Int64Attribute{
 					MarkdownDescription: "Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota.",
+					Computed:            true,
 				},
 				Resource: &schemaR.Int64Attribute{
 					Optional: true,
-					Computed: true,
 					Default:  int64default.StaticInt64(0),
-				},
-				DataSource: &schemaD.Int64Attribute{
-					Computed: true,
 				},
 			},
 			"stored_vm_quota": superschema.SuperInt64Attribute{
 				Common: &schemaR.Int64Attribute{
 					MarkdownDescription: "Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.",
+					Computed:            true,
 				},
 				Resource: &schemaR.Int64Attribute{
 					Optional: true,
-					Computed: true,
 					Default:  int64default.StaticInt64(0),
-				},
-				DataSource: &schemaD.Int64Attribute{
-					Computed: true,
 				},
 			},
 			"password": superschema.SuperStringAttribute{
@@ -168,6 +165,9 @@ func userSchema() superschema.Schema {
 					MarkdownDescription: "The user's password. This value is never returned on read.",
 					Required:            true,
 					Sensitive:           true,
+					Validators: []validator.String{
+						stringvalidator.LengthAtLeast(6),
+					},
 				},
 			},
 			"take_ownership": superschema.SuperBoolAttribute{
