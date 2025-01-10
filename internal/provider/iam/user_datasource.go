@@ -16,7 +16,6 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
@@ -29,7 +28,6 @@ import (
 var (
 	_ datasource.DataSource              = &userDataSource{}
 	_ datasource.DataSourceWithConfigure = &userDataSource{}
-	_ user                               = &userDataSource{}
 )
 
 // NewuserDataSource returns a new Org User data source.
@@ -41,17 +39,10 @@ func NewUserDataSource() datasource.DataSource {
 type userDataSource struct {
 	client   *client.CloudAvenue
 	adminOrg adminorg.AdminOrg
-	user     commonUser
 }
 
 func (d *userDataSource) Init(_ context.Context, rm *userDataSourceModel) (diags diag.Diagnostics) {
-	d.user = commonUser{
-		ID:   rm.ID,
-		Name: rm.Name,
-	}
-
 	d.adminOrg, diags = adminorg.Init(d.client)
-
 	return
 }
 
@@ -102,38 +93,40 @@ func (d *userDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
+	var (
+		user *govcd.OrgUser
+		err  error
+	)
+
 	// Get the user by name or ID and return an error if it doesn't exist or there is another error
-	user, err := d.GetUser(false)
+	if config.ID.IsKnown() {
+		user, err = d.adminOrg.GetUserByNameOrId(config.ID.Get(), true)
+	} else {
+		user, err = d.adminOrg.GetUserByNameOrId(config.Name.Get(), true)
+	}
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
-			resp.State.RemoveResource(ctx)
+			resp.Diagnostics.AddError("User not found", err.Error())
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving user", err.Error())
+		resp.Diagnostics.AddError("Error reading user", err.Error())
 		return
 	}
 
-	// Populate the data source model with the user data
-	state := &userDataSourceModel{
-		ID:              types.StringValue(user.User.ID),
-		Name:            types.StringValue(user.User.Name),
-		FullName:        types.StringValue(user.User.FullName),
-		RoleName:        types.StringValue(user.User.Role.Name),
-		Email:           types.StringValue(user.User.EmailAddress),
-		Telephone:       types.StringValue(user.User.Telephone),
-		Enabled:         types.BoolValue(user.User.IsEnabled),
-		ProviderType:    types.StringValue(user.User.ProviderType),
-		DeployedVMQuota: types.Int64Value(int64(user.User.DeployedVmQuota)),
-		StoredVMQuota:   types.Int64Value(int64(user.User.StoredVmQuota)),
-	}
+	config.ID.Set(user.User.ID)
+	config.Name.Set(user.User.Name)
+	config.RoleName.Set(user.User.Role.Name)
+	config.FullName.Set(user.User.FullName)
+	config.Email.Set(user.User.EmailAddress)
+	config.Telephone.Set(user.User.Telephone)
+	config.Enabled.Set(user.User.IsEnabled)
+	config.ProviderType.Set(user.User.ProviderType)
+	config.DeployedVMQuota.Set(int64(user.User.DeployedVmQuota))
+	config.StoredVMQuota.Set(int64(user.User.StoredVmQuota))
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-}
-
-func (d *userDataSource) GetUser(refresh bool) (*govcd.OrgUser, error) {
-	return d.user.GetUser(d.adminOrg, refresh)
 }

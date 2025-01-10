@@ -9,37 +9,53 @@
 
 package iam
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import (
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+)
 
 type userResourceModel struct {
 	// Base
-	ID              types.String `tfsdk:"id"`
-	Name            types.String `tfsdk:"name"`
-	RoleName        types.String `tfsdk:"role_name"`
-	FullName        types.String `tfsdk:"full_name"`
-	Email           types.String `tfsdk:"email"`
-	Telephone       types.String `tfsdk:"telephone"`
-	Enabled         types.Bool   `tfsdk:"enabled"`
-	DeployedVMQuota types.Int64  `tfsdk:"deployed_vm_quota"`
-	StoredVMQuota   types.Int64  `tfsdk:"stored_vm_quota"`
+	ID              supertypes.StringValue `tfsdk:"id"`
+	Name            supertypes.StringValue `tfsdk:"name"`
+	RoleName        supertypes.StringValue `tfsdk:"role_name"`
+	FullName        supertypes.StringValue `tfsdk:"full_name"`
+	Email           supertypes.StringValue `tfsdk:"email"`
+	Telephone       supertypes.StringValue `tfsdk:"telephone"`
+	Enabled         supertypes.BoolValue   `tfsdk:"enabled"`
+	DeployedVMQuota supertypes.Int64Value  `tfsdk:"deployed_vm_quota"`
+	StoredVMQuota   supertypes.Int64Value  `tfsdk:"stored_vm_quota"`
 
 	// Specific
-	Password      types.String `tfsdk:"password"`
-	TakeOwnership types.Bool   `tfsdk:"take_ownership"`
+	Password      supertypes.StringValue `tfsdk:"password"`
+	TakeOwnership supertypes.BoolValue   `tfsdk:"take_ownership"`
 }
 
 type userDataSourceModel struct {
 	// Base
-	ID              types.String `tfsdk:"id"`
-	Name            types.String `tfsdk:"name"`
-	RoleName        types.String `tfsdk:"role_name"`
-	FullName        types.String `tfsdk:"full_name"`
-	Email           types.String `tfsdk:"email"`
-	Telephone       types.String `tfsdk:"telephone"`
-	Enabled         types.Bool   `tfsdk:"enabled"`
-	DeployedVMQuota types.Int64  `tfsdk:"deployed_vm_quota"`
-	StoredVMQuota   types.Int64  `tfsdk:"stored_vm_quota"`
+	ID              supertypes.StringValue `tfsdk:"id"`
+	Name            supertypes.StringValue `tfsdk:"name"`
+	RoleName        supertypes.StringValue `tfsdk:"role_name"`
+	FullName        supertypes.StringValue `tfsdk:"full_name"`
+	Email           supertypes.StringValue `tfsdk:"email"`
+	Telephone       supertypes.StringValue `tfsdk:"telephone"`
+	Enabled         supertypes.BoolValue   `tfsdk:"enabled"`
+	DeployedVMQuota supertypes.Int64Value  `tfsdk:"deployed_vm_quota"`
+	StoredVMQuota   supertypes.Int64Value  `tfsdk:"stored_vm_quota"`
 
 	// Specific
-	ProviderType types.String `tfsdk:"provider_type"`
+	ProviderType supertypes.StringValue `tfsdk:"provider_type"`
+}
+
+func (rm *userResourceModel) Copy() *userResourceModel {
+	x := &userResourceModel{}
+	utils.ModelCopy(rm, x)
+	return x
+}
+
+func (dm *userDataSourceModel) Copy() *userDataSourceModel {
+	x := &userDataSourceModel{}
+	utils.ModelCopy(dm, x)
+	return x
 }

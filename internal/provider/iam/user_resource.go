@@ -17,15 +17,12 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -33,7 +30,6 @@ var (
 	_ resource.Resource                = &userResource{}
 	_ resource.ResourceWithConfigure   = &userResource{}
 	_ resource.ResourceWithImportState = &userResource{}
-	_ user                             = &userResource{}
 )
 
 // NewuserResource is a helper function to simplify the provider implementation.
@@ -45,7 +41,6 @@ func NewIAMUserResource() resource.Resource {
 type userResource struct {
 	client   *client.CloudAvenue
 	adminOrg adminorg.AdminOrg
-	user     commonUser
 }
 
 // Metadata returns the resource type name.
@@ -79,13 +74,7 @@ func (r *userResource) Configure(ctx context.Context, req resource.ConfigureRequ
 }
 
 func (r *userResource) Init(_ context.Context, rm *userResourceModel) (diags diag.Diagnostics) {
-	r.user = commonUser{
-		ID:   rm.ID,
-		Name: rm.Name,
-	}
-
 	r.adminOrg, diags = adminorg.Init(r.client)
-
 	return
 }
 
@@ -106,31 +95,43 @@ func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	userData := govcd.OrgUserConfiguration{
-		Name:            plan.Name.ValueString(),
-		RoleName:        plan.RoleName.ValueString(),
-		FullName:        plan.FullName.ValueString(),
-		EmailAddress:    plan.Email.ValueString(),
-		Telephone:       plan.Telephone.ValueString(),
-		IsEnabled:       plan.Enabled.ValueBool(),
-		Password:        plan.Password.ValueString(),
-		DeployedVmQuota: int(plan.DeployedVMQuota.ValueInt64()),
-		StoredVmQuota:   int(plan.StoredVMQuota.ValueInt64()),
+		ProviderType:    govcd.OrgUserProviderIntegrated,
+		Name:            plan.Name.Get(),
+		RoleName:        plan.RoleName.Get(),
+		FullName:        plan.FullName.Get(),
+		EmailAddress:    plan.Email.Get(),
+		Telephone:       plan.Telephone.Get(),
+		IsEnabled:       plan.Enabled.Get(),
+		Password:        plan.Password.Get(),
+		DeployedVmQuota: plan.DeployedVMQuota.GetInt(),
+		StoredVmQuota:   plan.StoredVMQuota.GetInt(),
 	}
 
 	user, err := r.adminOrg.CreateUserSimple(userData)
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating user", err.Error())
-		return
+		// Here bypass the error where the API return user not found after creation
+		// This is a known issue in the API
+		if !govcd.ContainsNotFound(err) {
+			resp.Diagnostics.AddError("Error creating user", err.Error())
+			return
+		}
 	}
 
-	state := *plan
-	state.ID = types.StringValue(user.User.ID)
+	plan.ID.Set(user.User.ID)
+
+	// Use generic read function to refresh the state
+	stateRefreshed, found, d := r.read(ctx, plan)
+	if !found {
+		resp.Diagnostics.AddError("User not found after create", fmt.Sprintf("User with name %s not found after create", plan.Name.Get()))
+		return
+	}
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -150,81 +151,77 @@ func (r *userResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	user, err := r.GetUser(true)
-	if err != nil {
-		if govcd.ContainsNotFound(err) {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("Error retrieving user", err.Error())
+	// Use generic read function to refresh the state
+	stateRefreshed, found, d := r.read(ctx, state)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s(%s) not found after update.", state.Name.Get(), state.ID.Get()))
+		return
+	}
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
 
-	plan := &userResourceModel{
-		ID:              types.StringValue(user.User.ID),
-		Name:            types.StringValue(user.User.Name),
-		RoleName:        types.StringValue(user.User.Role.Name),
-		FullName:        utils.StringValueOrNull(user.User.FullName),
-		Email:           utils.StringValueOrNull(user.User.EmailAddress),
-		Telephone:       utils.StringValueOrNull(user.User.Telephone),
-		Enabled:         types.BoolValue(user.User.IsEnabled),
-		DeployedVMQuota: types.Int64Value(int64(user.User.DeployedVmQuota)),
-		StoredVMQuota:   types.Int64Value(int64(user.User.StoredVmQuota)),
-		TakeOwnership:   state.TakeOwnership,
-		Password:        state.Password,
-	}
-
-	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	// Set state to fully populated data
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	defer metrics.New("cloudavenue_iam_user", r.client.GetOrgName(), metrics.Update)()
 
-	plan := &userResourceModel{}
+	var (
+		plan  = &userResourceModel{}
+		state = &userResourceModel{}
+	)
 
-	// Get current state
+	// Get current plan and state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(r.Init(ctx, plan)...)
+	// Init the resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	user, err := r.GetUser(false)
+	user, err := r.adminOrg.GetUserById(state.ID.Get(), true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving user", err.Error())
 		return
 	}
 
 	userData := govcd.OrgUserConfiguration{
-		Name:            plan.Name.ValueString(),
-		RoleName:        plan.RoleName.ValueString(),
-		FullName:        plan.FullName.ValueString(),
-		EmailAddress:    plan.Email.ValueString(),
-		Telephone:       plan.Telephone.ValueString(),
-		IsEnabled:       plan.Enabled.ValueBool(),
-		Password:        plan.Password.ValueString(),
-		DeployedVmQuota: int(plan.DeployedVMQuota.ValueInt64()),
-		StoredVmQuota:   int(plan.StoredVMQuota.ValueInt64()),
+		ProviderType:    govcd.OrgUserProviderIntegrated,
+		Name:            plan.Name.Get(),
+		RoleName:        plan.RoleName.Get(),
+		FullName:        plan.FullName.Get(),
+		EmailAddress:    plan.Email.Get(),
+		Telephone:       plan.Telephone.Get(),
+		IsEnabled:       plan.Enabled.Get(),
+		Password:        plan.Password.Get(),
+		DeployedVmQuota: plan.DeployedVMQuota.GetInt(),
+		StoredVmQuota:   plan.StoredVMQuota.GetInt(),
 	}
 
 	if err = user.UpdateSimple(userData); err != nil {
 		resp.Diagnostics.AddError("Error updating user", err.Error())
+		return
+	}
+
+	// Use generic read function to refresh the state
+	stateRefreshed, _, d := r.read(ctx, plan)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
 	}
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -244,7 +241,7 @@ func (r *userResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	user, err := r.GetUser(false)
+	user, err := r.adminOrg.GetUserById(state.ID.Get(), true)
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -254,16 +251,91 @@ func (r *userResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	if err = user.Delete(state.TakeOwnership.ValueBool()); err != nil {
+	if err = user.Delete(state.TakeOwnership.Get()); err != nil {
 		resp.Diagnostics.AddError("Error deleting user", err.Error())
 	}
 }
 
 func (r *userResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	defer metrics.New("cloudavenue_iam_user", r.client.GetOrgName(), metrics.Import)()
-	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
+
+	userData := &userResourceModel{}
+
+	// Init the resource
+	resp.Diagnostics.Append(r.Init(ctx, userData)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	user, err := r.adminOrg.GetUserByName(req.ID, true)
+	if err != nil {
+		if govcd.ContainsNotFound(err) {
+			resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s not found", req.ID))
+			return
+		}
+		resp.Diagnostics.AddError("Error retrieving user", err.Error())
+		return
+	}
+
+	if user.User.ProviderType != govcd.OrgUserProviderIntegrated {
+		resp.Diagnostics.AddError("User is not an local user", fmt.Sprintf("User with name %s is %s type and not local user", req.ID, user.User.ProviderType))
+		return
+	}
+
+	userData.ID.Set(user.User.ID)
+	userData.Name.Set(user.User.Name)
+
+	// Use generic read function to refresh the state
+	stateRefreshed, found, d := r.read(ctx, userData)
+	if !found {
+		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s not found", req.ID))
+		return
+	}
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
-func (r *userResource) GetUser(refresh bool) (*govcd.OrgUser, error) {
-	return r.user.GetUser(r.adminOrg, refresh)
+// * CustomFuncs
+
+// read is a generic read function that can be used by the resource Create, Read and Update functions.
+func (r *userResource) read(_ context.Context, planOrState *userResourceModel) (stateRefreshed *userResourceModel, found bool, diags diag.Diagnostics) {
+	stateRefreshed = planOrState.Copy()
+
+	/*
+		Implement the resource read here
+	*/
+
+	var (
+		user *govcd.OrgUser
+		err  error
+	)
+
+	if stateRefreshed.ID.IsKnown() {
+		user, err = r.adminOrg.GetUserByNameOrId(stateRefreshed.ID.Get(), true)
+	} else {
+		user, err = r.adminOrg.GetUserByNameOrId(stateRefreshed.Name.Get(), true)
+	}
+	if err != nil {
+		if govcd.ContainsNotFound(err) {
+			return nil, false, nil
+		}
+		diags.AddError("Error retrieving user", err.Error())
+		return
+	}
+
+	stateRefreshed.ID.Set(user.User.ID)
+	stateRefreshed.Name.Set(user.User.Name)
+	stateRefreshed.RoleName.Set(user.User.Role.Name)
+	stateRefreshed.FullName.Set(user.User.FullName)
+	stateRefreshed.Email.Set(user.User.EmailAddress)
+	stateRefreshed.Telephone.Set(user.User.Telephone)
+	stateRefreshed.Enabled.Set(user.User.IsEnabled)
+	stateRefreshed.DeployedVMQuota.SetInt(user.User.DeployedVmQuota)
+	stateRefreshed.StoredVMQuota.SetInt(user.User.StoredVmQuota)
+
+	return stateRefreshed, true, diags
 }

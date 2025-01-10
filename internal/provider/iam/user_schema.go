@@ -19,6 +19,7 @@ import (
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -43,7 +44,7 @@ func userSchema() superschema.Schema {
 			MarkdownDescription: "data source allows you to read users in Cloud Avenue.",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
+			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the user.",
 				},
@@ -61,7 +62,7 @@ func userSchema() superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.StringAttribute{
+			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the user.",
 				},
@@ -79,7 +80,7 @@ func userSchema() superschema.Schema {
 					},
 				},
 			},
-			"role_name": superschema.StringAttribute{
+			"role_name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The role assigned to the user.",
 				},
@@ -90,7 +91,7 @@ func userSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"full_name": superschema.StringAttribute{
+			"full_name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The user's full name.",
 				},
@@ -101,7 +102,7 @@ func userSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"email": superschema.StringAttribute{
+			"email": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The user's email address.",
 				},
@@ -112,7 +113,7 @@ func userSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"telephone": superschema.StringAttribute{
+			"telephone": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The user's telephone number.",
 				},
@@ -123,7 +124,7 @@ func userSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"enabled": superschema.BoolAttribute{
+			"enabled": superschema.SuperBoolAttribute{
 				Common: &schemaR.BoolAttribute{
 					MarkdownDescription: "`true` if the user is enabled and can log in.",
 				},
@@ -136,7 +137,7 @@ func userSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"deployed_vm_quota": superschema.Int64Attribute{
+			"deployed_vm_quota": superschema.SuperInt64Attribute{
 				Common: &schemaR.Int64Attribute{
 					MarkdownDescription: "Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota.",
 				},
@@ -149,7 +150,7 @@ func userSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"stored_vm_quota": superschema.Int64Attribute{
+			"stored_vm_quota": superschema.SuperInt64Attribute{
 				Common: &schemaR.Int64Attribute{
 					MarkdownDescription: "Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.",
 				},
@@ -162,22 +163,25 @@ func userSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"password": superschema.StringAttribute{
+			"password": superschema.SuperStringAttribute{
 				Resource: &schemaR.StringAttribute{
 					MarkdownDescription: "The user's password. This value is never returned on read.",
 					Required:            true,
 					Sensitive:           true,
 				},
 			},
-			"take_ownership": superschema.BoolAttribute{
+			"take_ownership": superschema.SuperBoolAttribute{
 				Resource: &schemaR.BoolAttribute{
 					MarkdownDescription: "`true` if the user should take ownership of all vApps and media that are currently owned by the user that is being deleted.",
 					Optional:            true,
 					Computed:            true,
 					Default:             booldefault.StaticBool(true),
+					PlanModifiers: []planmodifier.Bool{
+						boolplanmodifier.UseStateForUnknown(),
+					},
 				},
 			},
-			"provider_type": superschema.StringAttribute{
+			"provider_type": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					MarkdownDescription: "Identity provider type for this this user.",
 					Computed:            true,
