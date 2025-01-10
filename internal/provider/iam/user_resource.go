@@ -117,7 +117,10 @@ func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, r
 		}
 	}
 
-	plan.ID.Set(user.User.ID)
+	// Catch if user is not nil (nil means user not found after creation)
+	if user != nil {
+		plan.ID.Set(user.User.ID)
+	}
 
 	// Use generic read function to refresh the state
 	stateRefreshed, found, d := r.read(ctx, plan)
