@@ -317,10 +317,15 @@ func (r *userResource) read(_ context.Context, planOrState *userResourceModel) (
 		err  error
 	)
 
+	if err := r.adminOrg.Refresh(); err != nil {
+		diags.AddError("Error refreshing admin org", err.Error())
+		return
+	}
+
 	if stateRefreshed.ID.IsKnown() {
-		user, err = r.adminOrg.GetUserByNameOrId(stateRefreshed.ID.Get(), true)
+		user, err = r.adminOrg.GetUserById(stateRefreshed.ID.Get(), false)
 	} else {
-		user, err = r.adminOrg.GetUserByNameOrId(stateRefreshed.Name.Get(), true)
+		user, err = r.adminOrg.GetUserByName(stateRefreshed.Name.Get(), false)
 	}
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
