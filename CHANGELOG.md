@@ -1,4 +1,5 @@
-## 0.27.0 (Unreleased)
+## 0.28.0 (Unreleased)
+## 0.27.0 (January 15, 2025)
 ### :warning: **Deprecations**
 
 * `datasource/cloudavenue_edgegateway` - The `ower_type` attribute is deprecated and will be removed in the release v0.32.0. Please ensure you are not using it in your configuration. (GH-847)
