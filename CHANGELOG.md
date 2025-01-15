@@ -12,6 +12,7 @@
 
 * `datasource/cloudavenue_edgegateway_nat_rule` - Improve the documentation for retrieving the NAT rule by name if the name is not unique. (GH-824)
 * `resource/cloudavenue_edgegateway_nat_rule` - Improve the documentation for importing the NAT rule by name if the name is not unique. (GH-824)
+* `resource/cloudavenue_iam_user` - Improve the documentation for the `name` attribute. The `name` attribute disallow the use of `uppercase` and `space` characters. (GH-948)
 
 ## 0.26.1 (January  8, 2025)
 
