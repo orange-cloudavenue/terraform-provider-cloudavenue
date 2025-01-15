@@ -17,7 +17,6 @@ description: |-
 resource "cloudavenue_edgegateway" "example" {
   owner_name     = cloudavenue_vdc.example.name
   tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-  owner_type     = "vdc"
 }
 ```
 
@@ -27,7 +26,6 @@ resource "cloudavenue_edgegateway" "example" {
 resource "cloudavenue_edgegateway" "example" {
   owner_name     = cloudavenue_vdc_group.example.name
   tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-  owner_type     = "vdc-group"
 }
 ```
 

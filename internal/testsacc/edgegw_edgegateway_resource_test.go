@@ -29,7 +29,6 @@ data "cloudavenue_tier0_vrfs" "example_with_vdc" {}
 resource "cloudavenue_edgegateway" "example_with_vdc" {
   owner_name     = "MyEdgeGateway"
   tier0_vrf_name = data.cloudavenue_tier0_vrfs.example_with_vdc.names.0
-  owner_type     = "vdc"
 }
 `
 
@@ -39,7 +38,6 @@ data "cloudavenue_tier0_vrfs" "example_with_group" {}
 resource "cloudavenue_edgegateway" "example_with_group" {
   owner_name     = "MyEdgeGatewayGroup"
   tier0_vrf_name = data.cloudavenue_tier0_vrfs.example_with_group.names.0
-  owner_type     = "vdc-group"
 }
 `
 
@@ -72,7 +70,6 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
-					resource.TestCheckResourceAttr(resourceName, "owner_type", "vdc"),
 
 					// Read-Only attributes
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
@@ -90,7 +87,6 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 					resource "cloudavenue_edgegateway" "example" {
 						owner_name     = cloudavenue_vdc.example.name
 						tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-						owner_type     = "vdc"
 						bandwidth      = 25
 					}`),
 					Checks: []resource.TestCheckFunc{
@@ -105,7 +101,6 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						resource "cloudavenue_edgegateway" "example" {
 							owner_name     = cloudavenue_vdc.example.name
 							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-							owner_type     = "vdc"
 							bandwidth      = 20
 						  }`),
 						TFAdvanced: testsacc.TFAdvanced{
@@ -120,7 +115,6 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						resource "cloudavenue_edgegateway" "example" {
 							owner_name     = cloudavenue_vdc.example.name
 							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-							owner_type     = "vdc"
 							bandwidth      = 300
 						  }`),
 						TFAdvanced: testsacc.TFAdvanced{
@@ -135,7 +129,6 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						resource "cloudavenue_edgegateway" "example" {
 							owner_name     = cloudavenue_vdc.example.name
 							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-							owner_type     = "vdc"
 							bandwidth      = 5
 						  }`),
 						Checks: []resource.TestCheckFunc{
@@ -157,7 +150,6 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
-					resource.TestCheckResourceAttr(resourceName, "owner_type", "vdc-group"),
 
 					// Read-Only attributes
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
@@ -174,7 +166,6 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 					resource "cloudavenue_edgegateway" "example_with_vdc_group" {
 						owner_name     = cloudavenue_vdcg.example.name
 						tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-						owner_type     = "vdc-group"
 						bandwidth      = 25
 					  }`),
 					Checks: []resource.TestCheckFunc{},
@@ -186,11 +177,61 @@ func (r *EdgeGatewayResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						resource "cloudavenue_edgegateway" "example_with_vdc_group" {
 							owner_name     = cloudavenue_vdcg.example.name
 							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-							owner_type     = "vdc-group"
 							bandwidth      = 5
 						  }`),
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "bandwidth", "5"),
+						},
+					},
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
+			}
+		},
+		"example_test_deprecated": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
+
+					// Read-Only attributes
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
+					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
+				},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[VDCGResourceName]().GetDefaultConfig)
+					return
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_edgegateway" "example_test_deprecated" {
+						owner_name     = cloudavenue_vdcg.example.name
+						tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+						bandwidth      = 25
+						owner_type     = "vdc-group"
+					  }`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "owner_type", "vdc-group"),
+					},
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_edgegateway" "example_test_deprecated" {
+							owner_name     = cloudavenue_vdcg.example.name
+							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+							bandwidth      = 25
+						  }`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckNoResourceAttr(resourceName, "owner_type"),
 						},
 					},
 				},

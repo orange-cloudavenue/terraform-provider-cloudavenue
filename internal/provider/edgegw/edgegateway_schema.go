@@ -88,6 +88,15 @@ func edgegwSchema() superschema.Schema {
 				},
 			},
 			"owner_type": &superschema.SuperStringAttribute{
+				Deprecated: &superschema.Deprecated{
+					DeprecationMessage:                "This attribute is deprecated and not longer used.",
+					ComputeMarkdownDeprecationMessage: true,
+					Removed:                           true,
+					FromAttributeName:                 "owner_type",
+					TargetRelease:                     "v0.32.0",
+					LinkToIssue:                       "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/952",
+					LinkToMilestone:                   "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/20",
+				},
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The type of the Edge Gateway owner.",
 					Validators: []validator.String{
@@ -95,9 +104,9 @@ func edgegwSchema() superschema.Schema {
 					},
 				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
+					Optional: true,
 					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.RequiresReplace(),
+						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -106,7 +115,7 @@ func edgegwSchema() superschema.Schema {
 			},
 			"owner_name": &superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the Edge Gateway owner.",
+					MarkdownDescription: "The name of the Edge Gateway owner. It can be a VDC or a VDC Group name.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,

@@ -262,12 +262,18 @@ func (r *edgeGatewayResource) Create(ctx context.Context, req resource.CreateReq
 
 	var job *commoncloudavenue.JobStatus
 
-	switch plan.OwnerType.ValueString() {
-	case "vdc":
-		job, err = r.client.CAVSDK.V1.EdgeGateway.New(plan.OwnerName.Get(), plan.Tier0VrfID.Get())
-	case "vdc-group":
-		job, err = r.client.CAVSDK.V1.EdgeGateway.NewFromVDCGroup(plan.OwnerName.Get(), plan.Tier0VrfID.Get())
+	vdcOrVDCGroup, err := r.client.CAVSDK.V1.VDC().GetVDCOrVDCGroup(plan.OwnerName.Get())
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving VDC or VDC Group", err.Error())
+		return
 	}
+
+	if vdcOrVDCGroup.IsVDCGroup() {
+		job, err = r.client.CAVSDK.V1.EdgeGateway.NewFromVDCGroup(plan.OwnerName.Get(), plan.Tier0VrfID.Get())
+	} else {
+		job, err = r.client.CAVSDK.V1.EdgeGateway.New(plan.OwnerName.Get(), plan.Tier0VrfID.Get())
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating edge gateway", err.Error())
 		return
@@ -342,8 +348,8 @@ func (r *edgeGatewayResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	// Read timeout
-	readTimeout, errTO := state.Timeouts.Read(ctx, 8*time.Minute)
-	if errTO != nil {
+	readTimeout, err := state.Timeouts.Read(ctx, 8*time.Minute)
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating timeout",
 			"Could not create timeout, unexpected error",
@@ -376,9 +382,11 @@ func (r *edgeGatewayResource) Update(ctx context.Context, req resource.UpdateReq
 	defer metrics.New("cloudavenue_edgegateway", r.client.GetOrgName(), metrics.Update)()
 
 	plan := &edgeGatewayResourceModel{}
+	state := &edgeGatewayResourceModel{}
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -402,21 +410,23 @@ func (r *edgeGatewayResource) Update(ctx context.Context, req resource.UpdateReq
 	ctx, cancel = context.WithTimeout(ctx, updateTimeout)
 	defer cancel()
 
-	edgegw, err := r.client.CAVSDK.V1.EdgeGateway.Get(urn.ExtractUUID(plan.ID.Get()))
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving edge gateway", err.Error())
-		return
-	}
+	if !plan.Bandwidth.Equal(state.Bandwidth) {
+		edgegw, err := r.client.CAVSDK.V1.EdgeGateway.Get(urn.ExtractUUID(plan.ID.Get()))
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving edge gateway", err.Error())
+			return
+		}
 
-	job, err := edgegw.UpdateBandwidth(plan.Bandwidth.GetInt())
-	if err != nil {
-		resp.Diagnostics.AddError("Error setting Bandwidth", err.Error())
-		return
-	}
+		job, err := edgegw.UpdateBandwidth(plan.Bandwidth.GetInt())
+		if err != nil {
+			resp.Diagnostics.AddError("Error setting Bandwidth", err.Error())
+			return
+		}
 
-	if err := job.Wait(1, int(updateTimeout.Seconds())); err != nil {
-		resp.Diagnostics.AddError("Error waiting for Bandwidth update", err.Error())
-		return
+		if err := job.Wait(1, int(updateTimeout.Seconds())); err != nil {
+			resp.Diagnostics.AddError("Error waiting for Bandwidth update", err.Error())
+			return
+		}
 	}
 
 	// Use generic read function to refresh the state
@@ -507,7 +517,6 @@ func (r *edgeGatewayResource) read(_ context.Context, planOrState *edgeGatewayRe
 
 	stateRefreshed.Tier0VrfID.Set(edgegw.GetTier0VrfID())
 	stateRefreshed.OwnerName.Set(edgegw.GetOwnerName())
-	stateRefreshed.OwnerType.Set(string(edgegw.GetOwnerType()))
 	stateRefreshed.Description.Set(edgegw.GetDescription())
 	stateRefreshed.Bandwidth.SetInt(int(edgegw.GetBandwidth()))
 

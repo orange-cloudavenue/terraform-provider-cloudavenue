@@ -33,7 +33,9 @@ output "gateway" {
 - `bandwidth` (Number) The bandwidth in Mbps of the Edge Gateway.
 - `description` (String) The description of the Edge Gateway.
 - `id` (String) The ID of the Edge Gateway.
-- `owner_name` (String) The name of the Edge Gateway owner.
-- `owner_type` (String) The type of the Edge Gateway owner. Value must be one of : `vdc`, `vdc-group`.
+- `owner_name` (String) The name of the Edge Gateway owner. It can be a VDC or a VDC Group name.
+- `owner_type` (String, Deprecated) The type of the Edge Gateway owner. Value must be one of : `vdc`, `vdc-group`. 
+
+ ~> **Attribute deprecated** Remove the `owner_type` attribute configuration, it will be removed in the version [`v0.32.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/20) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/952) for more information.
 - `tier0_vrf_name` (String) The name of the Tier-0 VRF to which the Edge Gateway is attached.
 
