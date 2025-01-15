@@ -11,6 +11,7 @@ package iam
 
 import (
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
+	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -19,6 +20,7 @@ import (
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -43,25 +45,24 @@ func userSchema() superschema.Schema {
 			MarkdownDescription: "data source allows you to read users in Cloud Avenue.",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"id": superschema.StringAttribute{
+			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the user.",
+					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
-					Computed: true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
 					Optional: true,
-					Computed: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
 					},
 				},
 			},
-			"name": superschema.StringAttribute{
+			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the user.",
 				},
@@ -70,6 +71,12 @@ func userSchema() superschema.Schema {
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
+					Validators: []validator.String{
+						fstringvalidator.Cases([]fstringvalidator.CasesValidatorType{
+							fstringvalidator.CasesDisallowSpace,
+							fstringvalidator.CasesDisallowUpper,
+						}),
+					},
 				},
 				DataSource: &schemaD.StringAttribute{
 					Optional: true,
@@ -79,7 +86,7 @@ func userSchema() superschema.Schema {
 					},
 				},
 			},
-			"role_name": superschema.StringAttribute{
+			"role_name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The role assigned to the user.",
 				},
@@ -90,7 +97,7 @@ func userSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"full_name": superschema.StringAttribute{
+			"full_name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The user's full name.",
 				},
@@ -101,7 +108,7 @@ func userSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"email": superschema.StringAttribute{
+			"email": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The user's email address.",
 				},
@@ -112,7 +119,7 @@ func userSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"telephone": superschema.StringAttribute{
+			"telephone": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The user's telephone number.",
 				},
@@ -123,61 +130,58 @@ func userSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"enabled": superschema.BoolAttribute{
+			"enabled": superschema.SuperBoolAttribute{
 				Common: &schemaR.BoolAttribute{
 					MarkdownDescription: "`true` if the user is enabled and can log in.",
+					Computed:            true,
 				},
 				Resource: &schemaR.BoolAttribute{
 					Optional: true,
-					Computed: true,
 					Default:  booldefault.StaticBool(true),
 				},
-				DataSource: &schemaD.BoolAttribute{
-					Computed: true,
-				},
 			},
-			"deployed_vm_quota": superschema.Int64Attribute{
+			"deployed_vm_quota": superschema.SuperInt64Attribute{
 				Common: &schemaR.Int64Attribute{
 					MarkdownDescription: "Quota of vApps that this user can deploy. A value of `0` specifies an unlimited quota.",
+					Computed:            true,
 				},
 				Resource: &schemaR.Int64Attribute{
 					Optional: true,
-					Computed: true,
 					Default:  int64default.StaticInt64(0),
 				},
-				DataSource: &schemaD.Int64Attribute{
-					Computed: true,
-				},
 			},
-			"stored_vm_quota": superschema.Int64Attribute{
+			"stored_vm_quota": superschema.SuperInt64Attribute{
 				Common: &schemaR.Int64Attribute{
 					MarkdownDescription: "Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.",
+					Computed:            true,
 				},
 				Resource: &schemaR.Int64Attribute{
 					Optional: true,
-					Computed: true,
 					Default:  int64default.StaticInt64(0),
 				},
-				DataSource: &schemaD.Int64Attribute{
-					Computed: true,
-				},
 			},
-			"password": superschema.StringAttribute{
+			"password": superschema.SuperStringAttribute{
 				Resource: &schemaR.StringAttribute{
 					MarkdownDescription: "The user's password. This value is never returned on read.",
 					Required:            true,
 					Sensitive:           true,
+					Validators: []validator.String{
+						stringvalidator.LengthAtLeast(6),
+					},
 				},
 			},
-			"take_ownership": superschema.BoolAttribute{
+			"take_ownership": superschema.SuperBoolAttribute{
 				Resource: &schemaR.BoolAttribute{
 					MarkdownDescription: "`true` if the user should take ownership of all vApps and media that are currently owned by the user that is being deleted.",
 					Optional:            true,
 					Computed:            true,
 					Default:             booldefault.StaticBool(true),
+					PlanModifiers: []planmodifier.Bool{
+						boolplanmodifier.UseStateForUnknown(),
+					},
 				},
 			},
-			"provider_type": superschema.StringAttribute{
+			"provider_type": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					MarkdownDescription: "Identity provider type for this this user.",
 					Computed:            true,

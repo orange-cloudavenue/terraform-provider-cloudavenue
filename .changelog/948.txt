@@ -1,0 +1,3 @@
+```release-note:note
+`resource/cloudavenue_iam_user` - Improve the documentation for the `name` attribute. The `name` attribute disallow the use of `uppercase` and `space` characters.
+```
