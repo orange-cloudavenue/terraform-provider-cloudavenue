@@ -43,5 +43,13 @@
 			"},",
 			"}",
 		],
+	},
+	"replace-go-mod": {
+		"scope": "go",
+		"prefix": "tf-replace-go-mod",
+		"body": [
+			"replace github.com/orange-cloudavenue/cloudavenue-sdk-go => ../cloudavenue-sdk-go",
+		],
+		"description": "Replace go.mod"
 	}
 }
