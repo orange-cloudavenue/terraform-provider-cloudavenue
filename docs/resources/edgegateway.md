@@ -17,7 +17,6 @@ The Edge Gateway resource allows you to create and delete Edge Gateways in Cloud
 resource "cloudavenue_edgegateway" "example" {
   owner_name     = cloudavenue_vdc.example.name
   tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-  owner_type     = "vdc"
 }
 ```
 
@@ -27,7 +26,6 @@ resource "cloudavenue_edgegateway" "example" {
 resource "cloudavenue_edgegateway" "example" {
   owner_name     = cloudavenue_vdc_group.example.name
   tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-  owner_type     = "vdc-group"
 }
 ```
 
@@ -36,13 +34,15 @@ resource "cloudavenue_edgegateway" "example" {
 
 ### Required
 
-- `owner_name` (String) (ForceNew) The name of the Edge Gateway owner.
-- `owner_type` (String) (ForceNew) The type of the Edge Gateway owner. Value must be one of : `vdc`, `vdc-group`.
+- `owner_name` (String) (ForceNew) The name of the Edge Gateway owner. It can be a VDC or a VDC Group name.
 - `tier0_vrf_name` (String) (ForceNew) The name of the Tier-0 VRF to which the Edge Gateway is attached.
 
 ### Optional
 
 - `bandwidth` (Number) The bandwidth in Mbps of the Edge Gateway. If no value is not specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF.
+- `owner_type` (String, Deprecated) The type of the Edge Gateway owner. Value must be one of : `vdc`, `vdc-group`. 
+
+ ~> **Attribute deprecated** Remove the `owner_type` attribute configuration, it will be removed in the version [`v0.32.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/20) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/952) for more information.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

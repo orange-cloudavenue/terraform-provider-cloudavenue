@@ -1,0 +1,7 @@
+```release-note:deprecation
+`resource/cloudavenue_edgegateway` - The `ower_type` attribute is deprecated and will be removed in the release v0.32.0. Please remove it from your configuration.
+```
+
+```release-note:deprecation
+`datasource/cloudavenue_edgegateway` - The `ower_type` attribute is deprecated and will be removed in the release v0.32.0. Please ensure you are not using it in your configuration.
+```
