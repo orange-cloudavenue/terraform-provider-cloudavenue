@@ -258,7 +258,7 @@ func vdcSchema() superschema.Schema {
 					},
 					"limit": superschema.SuperInt64Attribute{
 						Common: &schemaR.Int64Attribute{
-							MarkdownDescription: "Max number in *Gb* of units allocated for this storage profile.",
+							MarkdownDescription: "Max number in *Go* of units allocated for this storage profile.",
 						},
 						Resource: &schemaR.Int64Attribute{
 							Required: true,

@@ -6,7 +6,7 @@ toolchain go1.23.3
 
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
-	github.com/aws/aws-sdk-go v1.55.5
+	github.com/aws/aws-sdk-go v1.55.6
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/aws-sdk-go-base v1.1.0
@@ -19,7 +19,7 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.35.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.20.0
+	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.20.1
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
 	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
 	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.0

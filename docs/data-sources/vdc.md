@@ -50,5 +50,5 @@ Read-Only:
 
 - `class` (String) The storage class of the storage profile.
 - `default` (Boolean) Set this storage profile as default for this vDC. Only one storage profile can be default per vDC.
-- `limit` (Number) Max number in *Gb* of units allocated for this storage profile.
+- `limit` (Number) Max number in *Go* of units allocated for this storage profile.
 
