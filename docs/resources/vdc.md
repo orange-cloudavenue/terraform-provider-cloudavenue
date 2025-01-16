@@ -74,7 +74,7 @@ Required:
 
 - `class` (String) The storage class of the storage profile. The storage class available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm` or custom storage profile class delivered by Cloud Avenue.
 - `default` (Boolean) Set this storage profile as default for this vDC. Only one storage profile can be default per vDC.
-- `limit` (Number) Max number in *Gb* of units allocated for this storage profile.
+- `limit` (Number) Max number in *Go* of units allocated for this storage profile.
 
 
 <a id="nestedatt--timeouts"></a>
@@ -121,71 +121,71 @@ More information about rules can be found [here](https://wiki.cloudavenue.orange
 More information about storage profiles can be found [here](https://wiki.cloudavenue.orange-business.com/wiki/Storage).All fields with a ** are editable.
 
 ### ServiceClass ECO
-| StorageProfileClass | SizeLimit (Gb)          | IOPSLimit   | BillingModels  | DisponibilityClasses |
+| StorageProfileClass | SizeLimit (Go)          | IOPSLimit   | BillingModels  | DisponibilityClasses |
 | ------------------- | ----------------------- | ----------- | -------------- | -------------------- |
-| silver              | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | ONE-ROOM             |
-| silver_r1           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
-| silver_r2           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
-| gold                | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | ONE-ROOM             |
-| gold_r1             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
-| gold_r2             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| silver              | ** min: 100, max: 81920 | equal: 600  | PAYG, RESERVED | ONE-ROOM             |
+| silver_r1           | ** min: 100, max: 81920 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| silver_r2           | ** min: 100, max: 81920 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| gold                | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | ONE-ROOM             |
+| gold_r1             | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| gold_r2             | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
 
 ### ServiceClass STD
-| StorageProfileClass | SizeLimit (Gb)          | IOPSLimit   | BillingModels  | DisponibilityClasses |
+| StorageProfileClass | SizeLimit (Go)          | IOPSLimit   | BillingModels  | DisponibilityClasses |
 | ------------------- | ----------------------- | ----------- | -------------- | -------------------- |
-| silver              | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | ONE-ROOM             |
-| silver_r1           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
-| silver_r2           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
-| gold                | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | ONE-ROOM             |
-| gold_r1             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
-| gold_r2             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
-| gold_hm             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | HA-DUAL-ROOM         |
-| platinum3k          | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | ONE-ROOM             |
-| platinum3k_r1       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
-| platinum3k_r2       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
-| platinum3k_hm       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | HA-DUAL-ROOM         |
-| platinum7k          | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | ONE-ROOM             |
-| platinum7k_r1       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
-| platinum7k_r2       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
-| platinum7k_hm       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| silver              | ** min: 100, max: 81920 | equal: 600  | PAYG, RESERVED | ONE-ROOM             |
+| silver_r1           | ** min: 100, max: 81920 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| silver_r2           | ** min: 100, max: 81920 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| gold                | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | ONE-ROOM             |
+| gold_r1             | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| gold_r2             | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| gold_hm             | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| platinum3k          | ** min: 100, max: 81920 | equal: 3000 | PAYG, RESERVED | ONE-ROOM             |
+| platinum3k_r1       | ** min: 100, max: 81920 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum3k_r2       | ** min: 100, max: 81920 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum3k_hm       | ** min: 100, max: 81920 | equal: 3000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| platinum7k          | ** min: 100, max: 81920 | equal: 7000 | PAYG, RESERVED | ONE-ROOM             |
+| platinum7k_r1       | ** min: 100, max: 81920 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum7k_r2       | ** min: 100, max: 81920 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum7k_hm       | ** min: 100, max: 81920 | equal: 7000 | PAYG, RESERVED | HA-DUAL-ROOM         |
 
 ### ServiceClass HP
-| StorageProfileClass | SizeLimit (Gb)          | IOPSLimit   | BillingModels  | DisponibilityClasses |
+| StorageProfileClass | SizeLimit (Go)          | IOPSLimit   | BillingModels  | DisponibilityClasses |
 | ------------------- | ----------------------- | ----------- | -------------- | -------------------- |
-| silver              | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | ONE-ROOM             |
-| silver_r1           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
-| silver_r2           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
-| gold                | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | ONE-ROOM             |
-| gold_r1             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
-| gold_r2             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
-| gold_hm             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | HA-DUAL-ROOM         |
-| platinum3k          | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | ONE-ROOM             |
-| platinum3k_r1       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
-| platinum3k_r2       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
-| platinum3k_hm       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | HA-DUAL-ROOM         |
-| platinum7k          | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | ONE-ROOM             |
-| platinum7k_r1       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
-| platinum7k_r2       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
-| platinum7k_hm       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| silver              | ** min: 100, max: 81920 | equal: 600  | PAYG, RESERVED | ONE-ROOM             |
+| silver_r1           | ** min: 100, max: 81920 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| silver_r2           | ** min: 100, max: 81920 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| gold                | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | ONE-ROOM             |
+| gold_r1             | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| gold_r2             | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| gold_hm             | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| platinum3k          | ** min: 100, max: 81920 | equal: 3000 | PAYG, RESERVED | ONE-ROOM             |
+| platinum3k_r1       | ** min: 100, max: 81920 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum3k_r2       | ** min: 100, max: 81920 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum3k_hm       | ** min: 100, max: 81920 | equal: 3000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| platinum7k          | ** min: 100, max: 81920 | equal: 7000 | PAYG, RESERVED | ONE-ROOM             |
+| platinum7k_r1       | ** min: 100, max: 81920 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum7k_r2       | ** min: 100, max: 81920 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum7k_hm       | ** min: 100, max: 81920 | equal: 7000 | PAYG, RESERVED | HA-DUAL-ROOM         |
 
 ### ServiceClass VOIP
-| StorageProfileClass | SizeLimit (Gb)          | IOPSLimit   | BillingModels  | DisponibilityClasses |
+| StorageProfileClass | SizeLimit (Go)          | IOPSLimit   | BillingModels  | DisponibilityClasses |
 | ------------------- | ----------------------- | ----------- | -------------- | -------------------- |
-| silver              | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | ONE-ROOM             |
-| silver_r1           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
-| silver_r2           | ** min: 500, max: 50000 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
-| gold                | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | ONE-ROOM             |
-| gold_r1             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
-| gold_r2             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
-| gold_hm             | ** min: 500, max: 50000 | equal: 1000 | PAYG, RESERVED | HA-DUAL-ROOM         |
-| platinum3k          | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | ONE-ROOM             |
-| platinum3k_r1       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
-| platinum3k_r2       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
-| platinum3k_hm       | ** min: 500, max: 50000 | equal: 3000 | PAYG, RESERVED | HA-DUAL-ROOM         |
-| platinum7k          | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | ONE-ROOM             |
-| platinum7k_r1       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
-| platinum7k_r2       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
-| platinum7k_hm       | ** min: 500, max: 50000 | equal: 7000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| silver              | ** min: 100, max: 81920 | equal: 600  | PAYG, RESERVED | ONE-ROOM             |
+| silver_r1           | ** min: 100, max: 81920 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| silver_r2           | ** min: 100, max: 81920 | equal: 600  | PAYG, RESERVED | DUAL-ROOM            |
+| gold                | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | ONE-ROOM             |
+| gold_r1             | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| gold_r2             | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | DUAL-ROOM            |
+| gold_hm             | ** min: 100, max: 81920 | equal: 1000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| platinum3k          | ** min: 100, max: 81920 | equal: 3000 | PAYG, RESERVED | ONE-ROOM             |
+| platinum3k_r1       | ** min: 100, max: 81920 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum3k_r2       | ** min: 100, max: 81920 | equal: 3000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum3k_hm       | ** min: 100, max: 81920 | equal: 3000 | PAYG, RESERVED | HA-DUAL-ROOM         |
+| platinum7k          | ** min: 100, max: 81920 | equal: 7000 | PAYG, RESERVED | ONE-ROOM             |
+| platinum7k_r1       | ** min: 100, max: 81920 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum7k_r2       | ** min: 100, max: 81920 | equal: 7000 | PAYG, RESERVED | DUAL-ROOM            |
+| platinum7k_hm       | ** min: 100, max: 81920 | equal: 7000 | PAYG, RESERVED | HA-DUAL-ROOM         |
 
 
 

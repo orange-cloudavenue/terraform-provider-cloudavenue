@@ -432,6 +432,29 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 				},
 				// ! Updates testing
 				Updates: []testsacc.TFConfig{
+					// This generate a bug in API. Waiting for fix
+					// {
+					// 	TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					// 	resource "cloudavenue_vdc" "example_storage_profiles" {
+					// 		name                  = {{ get . "name" }}
+					// 		description           = {{ get . "description"}}
+					// 		cpu_allocated         = 22000
+					// 		memory_allocated      = 30
+					// 		cpu_speed_in_mhz      = 2200
+					// 		billing_model         = "PAYG"
+					// 		disponibility_class   = "ONE-ROOM"
+					// 		service_class         = "STD"
+					// 		storage_billing_model = "PAYG"
+
+					// 		storage_profiles = [{
+					// 			class   = "gold"
+					// 			default = true
+					// 			limit   = 500
+					// 		}]
+
+					// 	}`),
+					// 	Checks: []resource.TestCheckFunc{},
+					// },
 					// Update storage profile class to custom class
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
@@ -445,7 +468,7 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 							disponibility_class   = "ONE-ROOM"
 							service_class         = "STD"
 							storage_billing_model = "PAYG"
-						  
+
 							storage_profiles = [{
 								class   = "gold"
 								default = true
@@ -456,13 +479,100 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 								default = false
 								limit   = 500
 							}]
-						  
+
 						}`),
 						Checks: []resource.TestCheckFunc{},
 						TFAdvanced: testsacc.TFAdvanced{
 							ExpectNonEmptyPlan: true,
 							// ! Generate a error because the class is not valid for this organization
 							ExpectError: regexp.MustCompile(`Error updating VDC`),
+						},
+					},
+					// Update storage profile class limit under minimum size
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdc" "example_storage_profiles" {
+							name                  = {{ get . "name" }}
+							description           = {{ get . "description"}}
+							cpu_allocated         = 22000
+							memory_allocated      = 30
+							cpu_speed_in_mhz      = 2200
+							billing_model         = "PAYG"
+							disponibility_class   = "ONE-ROOM"
+							service_class         = "STD"
+							storage_billing_model = "PAYG"
+
+							storage_profiles = [{
+								class   = "gold"
+								default = true
+								limit   = 80
+							}]
+						}`),
+						Checks: []resource.TestCheckFunc{},
+						TFAdvanced: testsacc.TFAdvanced{
+							ExpectNonEmptyPlan: true,
+							// ! Generate a error because the limit is under the minimum size
+							ExpectError: regexp.MustCompile(`Storage profile limit attribute is not valid`),
+						},
+					},
+					// Update storage profile class limit over maximum size
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdc" "example_storage_profiles" {
+							name                  = {{ get . "name" }}
+							description           = {{ get . "description"}}
+							cpu_allocated         = 22000
+							memory_allocated      = 30
+							cpu_speed_in_mhz      = 2200
+							billing_model         = "PAYG"
+							disponibility_class   = "ONE-ROOM"
+							service_class         = "STD"
+							storage_billing_model = "PAYG"
+
+							storage_profiles = [{
+								class   = "gold"
+								default = true
+								limit   = 81000
+							}]
+						}`),
+						Checks: []resource.TestCheckFunc{},
+						TFAdvanced: testsacc.TFAdvanced{
+							ExpectNonEmptyPlan: true,
+							// ! Generate a error because the limit is over the maximum size
+							ExpectError: regexp.MustCompile(`Storage profile limit attribute is not valid`),
+						},
+					},
+					// Update storage profile class to valid size
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdc" "example_storage_profiles" {
+							name                  = {{ get . "name" }}
+							description           = {{ get . "description"}}
+							cpu_allocated         = 22000
+							memory_allocated      = 30
+							cpu_speed_in_mhz      = 2200
+							billing_model         = "PAYG"
+							disponibility_class   = "ONE-ROOM"
+							service_class         = "STD"
+							storage_billing_model = "PAYG"
+
+							storage_profiles = [{
+								class   = "gold"
+								default = true
+								limit   = 800
+							},
+							{
+								class   = "silver"
+								default = false
+								limit   = 500
+							}]
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "storage_profiles.*", map[string]string{
+								"class":   "gold",
+								"limit":   "800",
+								"default": "true",
+							}),
 						},
 					},
 				},
