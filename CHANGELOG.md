@@ -7,6 +7,10 @@
 
 * `resource/cloudavenue_vdc` - Update the storages profiles rules to be in compliance with the cloudavenue offer. (GH-958)
 
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/aws/aws-sdk-go from 1.55.5 to 1.55.6 (GH-960)
+
 ## 0.27.0 (January 15, 2025)
 ### :warning: **Deprecations**
 
