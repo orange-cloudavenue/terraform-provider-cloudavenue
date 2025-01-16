@@ -6,7 +6,7 @@ toolchain go1.23.3
 
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
-	github.com/aws/aws-sdk-go v1.55.5
+	github.com/aws/aws-sdk-go v1.55.6
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/aws-sdk-go-base v1.1.0
