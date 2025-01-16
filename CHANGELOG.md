@@ -10,6 +10,7 @@
 ### :dependabot: **Dependencies**
 
 * deps: bumps github.com/aws/aws-sdk-go from 1.55.5 to 1.55.6 (GH-960)
+* deps: bumps github.com/hashicorp/terraform-plugin-framework-timeouts from 0.4.1 to 0.5.0 (GH-961)
 
 ## 0.27.0 (January 15, 2025)
 ### :warning: **Deprecations**
