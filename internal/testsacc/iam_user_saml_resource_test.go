@@ -148,6 +148,60 @@ func (r *IAMUserSAMLResource) Tests(ctx context.Context) map[testsacc.TestName]f
 						ImportStateVerifyIgnore: []string{"take_ownership"},
 					},
 				},
+				Destroy: true,
+			}
+		},
+		"example_quota_on_creation": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.User)),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_iam_user_saml" "example_quota_on_creation" {
+						user_name = "mickael.stanislas.ext"
+						role_name = "Organization Administrator"
+						deployed_vm_quota = 10
+						stored_vm_quota = 5
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "user_name", "mickael.stanislas.ext"),
+						resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
+						resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+						resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "10"),
+						resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "5"),
+						resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"),
+					},
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{
+					// * unset quotas
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_iam_user_saml" "example_quota_on_creation" {
+							user_name = "mickael.stanislas.ext"
+							role_name = "Organization Administrator"
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "user_name", "mickael.stanislas.ext"),
+							resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
+							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+							resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "0"),
+							resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "0"),
+							resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"),
+						},
+					},
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder:    []string{"user_name"},
+						ImportState:             true,
+						ImportStateVerify:       true,
+						ImportStateVerifyIgnore: []string{"take_ownership"},
+					},
+				},
 			}
 		},
 	}

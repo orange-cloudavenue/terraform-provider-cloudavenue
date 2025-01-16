@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_iam_user_saml` - Fixed issue when `deployed_vm_quota` and `stored_vm_quota` are not set in the creation of the IAM user.
+```
