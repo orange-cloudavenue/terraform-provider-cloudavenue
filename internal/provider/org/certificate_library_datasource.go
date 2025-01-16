@@ -5,19 +5,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
 
-	commoncloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/common/cloudavenue"
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 var (
@@ -30,17 +25,20 @@ func NewCertificateLibraryDatasource() datasource.DataSource {
 }
 
 type CertificateLibraryDatasource struct {
-	client *client.CloudAvenue
-	org    org.Org
+	client    *client.CloudAvenue
+	orgClient *org.Client
 }
 
 // Init Initializes the data source.
 func (d *CertificateLibraryDatasource) Init(ctx context.Context, dm *CertificateLibraryDatasourceModel) (diags diag.Diagnostics) {
-	// Uncomment the following lines if you need to access to the Org
-	d.org, diags = org.Init(d.client)
-	if diags.HasError() {
-		return
+	var err error
+
+	org, err := d.client.CAVSDK.V1.Org()
+	if err != nil {
+		diags.AddError("Error initializing ORG client", err.Error())
 	}
+
+	d.orgClient = org.Client
 
 	return
 }
@@ -87,49 +85,36 @@ func (d *CertificateLibraryDatasource) Read(ctx context.Context, req datasource.
 		return
 	}
 
+	/*
+		Implement the data source read logic here.
+	*/
+
+	s := &CertificateLibraryResource{
+		client:    d.client,
+		orgClient: d.orgClient,
+	}
+
+	configResource := &CertificateLibraryModel{
+		ID:   config.ID,
+		Name: config.Name,
+	}
+
 	// Read data from the API
-	data, _, diags := d.read(config)
+	data, found, diags := s.read(ctx, configResource)
+	if !found {
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The Certificate %s(%s) was not found", config.Name.Get(), config.ID.Get()))
+		return
+	}
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	config.ID.Set(data.ID.Get())
+	config.Name.Set(data.Name.Get())
+	config.Description.Set(data.Description.Get())
+	config.Certificate.Set(data.Certificate.Get())
+
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-}
-
-// read reads the data from the API and returns the data to be saved in the Terraform state.
-func (d *CertificateLibraryDatasource) read(config *CertificateLibraryDatasourceModel) (data *CertificateLibraryDatasourceModel, found bool, diags diag.Diagnostics) {
-	var (
-		certificate *v1.CertificateLibraryModel
-		err         error
-	)
-
-	// Get CertificateLibrary
-	if config.ID.IsKnown() {
-		certificate, err = d.org.GetOrgCertificateLibrary(config.ID.Get())
-	} else {
-		certificate, err = d.org.GetOrgCertificateLibrary(config.Name.Get())
-	}
-	if err != nil {
-		if commoncloudavenue.IsNotFound(err) || govcd.IsNotFound(err) {
-			return nil, false, diags
-		}
-		diags.AddError("error while fetching certificate library: %s", err.Error())
-		return nil, true, diags
-	}
-
-	data = &CertificateLibraryDatasourceModel{
-		ID:          supertypes.NewStringNull(),
-		Name:        supertypes.NewStringNull(),
-		Description: supertypes.NewStringNull(),
-		Certificate: supertypes.NewStringNull(),
-	}
-
-	data.ID.Set(certificate.ID)
-	data.Name.Set(certificate.Name)
-	data.Description.Set(certificate.Description)
-	data.Certificate.Set(certificate.Certificate)
-
-	return data, true, nil
+	resp.Diagnostics.Append(resp.State.Set(ctx, &config)...)
 }

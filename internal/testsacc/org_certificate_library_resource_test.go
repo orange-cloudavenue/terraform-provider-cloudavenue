@@ -2,7 +2,10 @@ package testsacc
 
 import (
 	"context"
+	"os"
 	"testing"
+
+	"github.com/madflojo/testcerts"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
@@ -38,56 +41,52 @@ func (r *ORGCertificateLibraryResource) Tests(ctx context.Context) map[testsacc.
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.CertificateLibraryItem)),
+					resource.TestCheckResourceAttrSet(resourceName, "certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "private_key"),
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
-					TFConfig: `
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 					resource "cloudavenue_org_certificate_library" "example" {
-						name = "example"
-						description = "This is a certificate"
-						certificate = file("/Users/micheneaudavid/cav-cert.pem")
-						private_key = file("/Users/micheneaudavid/cav-key.pem")
-					}`,
+						name = {{ generate . "name" }}
+						description = {{ generate . "description" }}
+						certificate = chomp(file("/tmp/cert.pem"))
+						private_key = chomp(file("/tmp/key.pem"))
+					}`),
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "name", "example"),
-						resource.TestCheckResourceAttr(resourceName, "description", "This is a certificate"),
-						resource.TestCheckResourceAttrSet(resourceName, "certificate"),
-						resource.TestCheckResourceAttrSet(resourceName, "private_key"),
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 						resource.TestCheckNoResourceAttr(resourceName, "passphrase"),
 					},
 				},
 				// ! Updates testing
 				Updates: []testsacc.TFConfig{
 					{
-						TFConfig: `
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_org_certificate_library" "example" {
-							name = "example updated"
-							description = "This is a certificate updated"
-							certificate = file("/Users/micheneaudavid/cav-cert.pem")
-							private_key = file("/Users/micheneaudavid/cav-key.pem")
-						}`,
+							name = {{ generate . "name" }}
+							description = {{ get . "description" }}
+							certificate = chomp(file("/tmp/cert.pem"))
+							private_key = chomp(file("/tmp/key.pem"))
+						}`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "name", "example updated"),
-							resource.TestCheckResourceAttr(resourceName, "description", "This is a certificate updated"),
-							resource.TestCheckResourceAttrSet(resourceName, "certificate"),
-							resource.TestCheckResourceAttrSet(resourceName, "private_key"),
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckNoResourceAttr(resourceName, "passphrase"),
 						},
 					},
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_org_certificate_library" "example" {
-							name = "example updated"
-							description = "This is a certificate updated"
-							certificate = file("/Users/micheneaudavid/cav-cert.pem")
-							private_key = file("/Users/micheneaudavid/cav-key.pem")
+							name = {{ generate . "name" }}
+							description = {{ generate . "description" }}
+							certificate = chomp(file("/tmp/cert.pem"))
+							private_key = chomp(file("/tmp/key.pem"))
 							passphrase = "password"
 						}`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "name", "example updated"),
-							resource.TestCheckResourceAttr(resourceName, "description", "This is a certificate updated"),
-							resource.TestCheckResourceAttrSet(resourceName, "certificate"),
-							resource.TestCheckResourceAttrSet(resourceName, "private_key"),
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckResourceAttrSet(resourceName, "passphrase"),
 						},
 					},
@@ -112,7 +111,29 @@ func (r *ORGCertificateLibraryResource) Tests(ctx context.Context) map[testsacc.
 	}
 }
 
+const (
+	orgCertificateLibraryCertFile = "/tmp/cert.pem"
+	orgCertificateLibraryKeyFile  = "/tmp/key.pem"
+)
+
+func orgCertificateLibraryResourcePreCheck() (cleanup func()) {
+	if err := testcerts.GenerateCertsToFile(
+		orgCertificateLibraryCertFile,
+		orgCertificateLibraryKeyFile,
+	); err != nil {
+		panic(err)
+	}
+
+	return func() {
+		os.Remove(orgCertificateLibraryCertFile)
+		os.Remove(orgCertificateLibraryKeyFile)
+	}
+}
+
 func TestAccORGCertificateLibraryResource(t *testing.T) {
+	cleanup := orgCertificateLibraryResourcePreCheck()
+	defer cleanup()
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,

@@ -1,3 +1,3 @@
-data "cloudavenue_alb_certificate_library" "example" {
+data "cloudavenue_org_certificate_library" "example" {
   name = "my-certificate-library"
 }

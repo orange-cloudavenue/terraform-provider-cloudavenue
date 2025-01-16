@@ -6,8 +6,6 @@ toolchain go1.23.3
 
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
-	github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.8.1
-	github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.4.0
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/google/uuid v1.6.0
@@ -21,10 +19,9 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.35.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.20.1
+	github.com/madflojo/testcerts v1.4.0
+	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.21.1
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
-	github.com/k0kubun/pp v3.0.1+incompatible
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.18.1
 	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
 	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.9.1
@@ -67,7 +64,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.24.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/go-resty/resty/v2 v2.16.3 // indirect
+	github.com/go-resty/resty/v2 v2.16.5 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/hashicorp/cli v1.1.6 // indirect
@@ -94,7 +91,6 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
@@ -136,5 +132,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
-
-replace github.com/orange-cloudavenue/cloudavenue-sdk-go => /Users/micheneaudavid/go/src/github.com/orange-cloudavenue/cloudavenue-sdk-go

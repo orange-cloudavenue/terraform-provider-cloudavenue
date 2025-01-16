@@ -28,8 +28,7 @@ func (r *OrgCertificateLibraryDatasource) GetResourceName() string {
 }
 
 func (r *OrgCertificateLibraryDatasource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	// Add dependencies config to the resource
-	// resp.Append(GetResourceConfig()[OrgCertificateLibraryDatasourcesGoResourceName]().GetDefaultConfig),
+	resp.Append(GetResourceConfig()[ORGCertificateLibraryResourceName]().GetDefaultConfig)
 	return
 }
 
@@ -42,7 +41,23 @@ func (r *OrgCertificateLibraryDatasource) Tests(ctx context.Context) map[testsac
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_org_certificate_library" "example" {
-						name = "cert-auto-self-sign"
+						name = cloudavenue_org_certificate_library.example.name
+					}`,
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.CertificateLibraryItem)),
+						resource.TestCheckResourceAttrSet(resourceName, "name"),
+						resource.TestCheckResourceAttrSet(resourceName, "certificate"),
+					},
+				},
+			}
+		},
+		"example_id": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_org_certificate_library" "example_id" {
+						id = cloudavenue_org_certificate_library.example.id
 					}`,
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.CertificateLibraryItem)),
@@ -56,6 +71,9 @@ func (r *OrgCertificateLibraryDatasource) Tests(ctx context.Context) map[testsac
 }
 
 func TestAccOrgCertificateLibraryDatasource(t *testing.T) {
+	cleanup := orgCertificateLibraryResourcePreCheck()
+	defer cleanup()
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,

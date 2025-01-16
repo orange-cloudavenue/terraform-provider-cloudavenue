@@ -3,21 +3,17 @@ package org
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	commoncloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/common/cloudavenue"
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -25,9 +21,6 @@ var (
 	_ resource.Resource                = &CertificateLibraryResource{}
 	_ resource.ResourceWithConfigure   = &CertificateLibraryResource{}
 	_ resource.ResourceWithImportState = &CertificateLibraryResource{}
-	// _ resource.ResourceWithModifyPlan     = &CertificateLibraryResource{}
-	// _ resource.ResourceWithUpgradeState   = &CertificateLibraryResource{}
-	// _ resource.ResourceWithValidateConfig = &CertificateLibraryResource{}.
 )
 
 // NewCertificateLibraryResource is a helper function to simplify the provider implementation.
@@ -37,17 +30,20 @@ func NewCertificateLibraryResource() resource.Resource {
 
 // CertificateLibraryResource is the resource implementation.
 type CertificateLibraryResource struct {
-	client *client.CloudAvenue
-	org    org.Org
+	client    *client.CloudAvenue
+	orgClient *org.Client
 }
 
 // Init Initializes the resource.
 func (r *CertificateLibraryResource) Init(ctx context.Context, rm *CertificateLibraryModel) (diags diag.Diagnostics) {
-	// Uncomment the following lines if you need to access to the Org
-	r.org, diags = org.Init(r.client)
-	if diags.HasError() {
-		return
+	var err error
+
+	org, err := r.client.CAVSDK.V1.Org()
+	if err != nil {
+		diags.AddError("Error initializing ORG client", err.Error())
 	}
+
+	r.orgClient = org.Client
 
 	return
 }
@@ -101,27 +97,19 @@ func (r *CertificateLibraryResource) Create(ctx context.Context, req resource.Cr
 		Implement the resource creation logic here.
 	*/
 
-	// Lock the resource organization
-	mutex.GlobalMutex.KvLock(ctx, r.org.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.org.GetID())
-
-	// Set the SDK certificate library Model
-	certLibrarySDKModel := plan.ToSDKCertificateLibraryModel()
-
 	// Create the certificate library
-	newCertificate, err := r.org.CreateOrgCertificateLibrary(certLibrarySDKModel)
+	newCertificate, err := r.orgClient.CreateCertificateInLibrary(plan.ToSDKCertificateLibraryModel())
 	if err != nil {
-		resp.Diagnostics.AddError("error while creating certificate library: %s", err.Error())
+		resp.Diagnostics.AddError("error while creating certificate %s in library", err.Error())
 		return
 	}
 
-	// Set ID
-	plan.ID.Set(newCertificate.ID)
+	plan.ID.Set(newCertificate.Certificate.ID)
 
 	// Use generic read function to refresh the state
-	state, found, d := r.read(plan)
+	state, found, d := r.read(ctx, plan)
 	if !found {
-		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The certificate library '%s' was not found after creation.", plan.Name.Get()))
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The certificate '%s' was not found after creation.", plan.Name.Get()))
 		return
 	}
 	if d.HasError() {
@@ -152,7 +140,7 @@ func (r *CertificateLibraryResource) Read(ctx context.Context, req resource.Read
 	}
 
 	// Refresh the state
-	stateRefreshed, found, d := r.read(state)
+	stateRefreshed, found, d := r.read(ctx, state)
 	if !found {
 		resp.State.RemoveResource(ctx)
 		return
@@ -192,22 +180,22 @@ func (r *CertificateLibraryResource) Update(ctx context.Context, req resource.Up
 		Implement the resource update here
 	*/
 
-	// Lock the resource organization
-	mutex.GlobalMutex.KvLock(ctx, r.org.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.org.GetID())
+	certificate, err := r.orgClient.GetCertificateFromLibrary(state.ID.Get())
+	if err != nil {
+		resp.Diagnostics.AddError("error while fetching certificate : %s", err.Error())
+		return
+	}
 
-	// Set the SDK certificate library Model
-	certLibrarySDKModel := plan.ToSDKCertificateLibraryModel()
+	certificate.Certificate = plan.ToSDKCertificateLibraryModel()
 
 	// Update the certificate library
-	_, err := certLibrarySDKModel.Update()
-	if err != nil {
-		resp.Diagnostics.AddError("error while updating certificate library: %s", err.Error())
+	if err := certificate.Update(); err != nil {
+		resp.Diagnostics.AddError("error while updating certificate %s", err.Error())
 		return
 	}
 
 	// Use generic read function to refresh the state
-	stateRefreshed, _, d := r.read(plan)
+	stateRefreshed, _, d := r.read(ctx, plan)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -239,21 +227,14 @@ func (r *CertificateLibraryResource) Delete(ctx context.Context, req resource.De
 		Implement the resource deletion here
 	*/
 
-	// Lock the resource organization
-	mutex.GlobalMutex.KvLock(ctx, r.org.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.org.GetID())
-
-	// Use generic read function to refresh the state
-	stateRefreshed, _, d := r.read(state)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	certificate, err := r.orgClient.GetCertificateFromLibrary(state.ID.Get())
+	if err != nil {
+		resp.Diagnostics.AddError("error while fetching certificate : %s", err.Error())
 		return
 	}
 
-	// Delete the certificate library
-	err := stateRefreshed.ToSDKCertificateLibraryModel().Delete()
-	if err != nil {
-		resp.Diagnostics.AddError("error while deleting certificate library: %s", err.Error())
+	if err := certificate.Delete(); err != nil {
+		resp.Diagnostics.AddError("error while deleting certificate : %s", err.Error())
 		return
 	}
 }
@@ -263,56 +244,53 @@ func (r *CertificateLibraryResource) ImportState(ctx context.Context, req resour
 
 	// * ID format is CertificateIdOrName
 
-	// * Import with custom logic
-	idParts := strings.Split(req.ID, ".")
-	if len(idParts) > 1 {
-		resp.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: CertificateIdOrName. Got: %q", req.ID),
-		)
-		return
-	}
+	config := &CertificateLibraryModel{}
 
 	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, &CertificateLibraryModel{})...)
+	resp.Diagnostics.Append(r.Init(ctx, config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Get the certificate library
-	certificate, err := r.org.GetOrgCertificateLibrary(req.ID)
-	if err != nil {
-		resp.Diagnostics.AddError("error while importing certificate library: %s", err.Error())
+	if urn.IsCertificateLibraryItem(req.ID) {
+		config.ID.Set(req.ID)
+	} else {
+		config.Name.Set(req.ID)
+	}
+
+	// Use generic read function to refresh the state
+	stateRefreshed, found, d := r.read(ctx, config)
+	if !found {
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The certificate '%s' was not found after import.", req.ID))
+		return
+	}
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), certificate.ID)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), certificate.Name)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("description"), certificate.Description)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("certificate"), certificate.Certificate)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("private_key"), certificate.PrivateKey)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("passphrase"), certificate.Passphrase)...)
+	// Set state to fully populated data
+	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // * CustomFuncs
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
-func (r *CertificateLibraryResource) read(planOrState *CertificateLibraryModel) (stateRefreshed *CertificateLibraryModel, found bool, diags diag.Diagnostics) {
+func (r *CertificateLibraryResource) read(_ context.Context, planOrState *CertificateLibraryModel) (stateRefreshed *CertificateLibraryModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
 	var (
-		certificate *v1.CertificateLibraryModel
+		certificate *org.CertificateClient
 		err         error
 	)
 
-	// Get CertificateLibrary
 	if planOrState.ID.IsKnown() {
-		certificate, err = r.org.GetOrgCertificateLibrary(planOrState.ID.Get())
+		certificate, err = r.orgClient.GetCertificateFromLibrary(planOrState.ID.Get())
 	} else {
-		certificate, err = r.org.GetOrgCertificateLibrary(planOrState.Name.Get())
+		certificate, err = r.orgClient.GetCertificateFromLibrary(planOrState.Name.Get())
 	}
 	if err != nil {
-		if commoncloudavenue.IsNotFound(err) || govcd.IsNotFound(err) {
+		if govcd.IsNotFound(err) {
 			return nil, false, diags
 		}
 		diags.AddError("error while fetching certificate library: %s", err.Error())
@@ -320,11 +298,10 @@ func (r *CertificateLibraryResource) read(planOrState *CertificateLibraryModel) 
 	}
 
 	// Set the refreshed state
-	stateRefreshed.ID.Set(certificate.ID)
-	stateRefreshed.Name.Set(certificate.Name)
-	stateRefreshed.Description.Set(certificate.Description)
-	stateRefreshed.Certificate.Set(certificate.Certificate)
-	// No need to set the private key and passphrase as they are not returned by the API (security reasons)
+	stateRefreshed.ID.Set(certificate.Certificate.ID)
+	stateRefreshed.Name.Set(certificate.Certificate.Name)
+	stateRefreshed.Description.Set(certificate.Certificate.Description)
+	stateRefreshed.Certificate.Set(certificate.Certificate.Certificate)
 
 	return stateRefreshed, true, nil
 }
