@@ -1,4 +1,8 @@
 ## 0.28.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_iam_user_saml` - Fixed issue when `deployed_vm_quota` and `stored_vm_quota` are not set in the creation of the IAM user. (GH-875)
 ### :information_source: **Notes**
 
 * `resource/cloudavenue_vdc` - Update the storages profiles rules to be in compliance with the cloudavenue offer. (GH-958)
