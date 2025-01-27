@@ -4,6 +4,12 @@ import (
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -30,6 +36,8 @@ func (rm *CertificateLibraryModel) ToSDKCertificateLibraryModel() org.Certificat
 		Name:        rm.Name.Get(),
 		Description: rm.Description.Get(),
 		Certificate: rm.Certificate.Get(),
+		PrivateKey:  rm.PrivateKey.Get(),
+		Passphrase:  rm.Passphrase.Get(),
 	}
 }
 
