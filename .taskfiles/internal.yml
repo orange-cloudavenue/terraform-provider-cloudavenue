@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 Orange
+# SPDX-License-Identifier: Mozilla Public License 2.0
+#
+# This software is distributed under the MPL-2.0 license.
+# the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
+# or see the "LICENSE" file for more details.
+
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+tasks:
+  tools:brew:
+    desc: brew install
+    silent: true
+    preconditions:
+      - sh: command -v brew
+        msg: "brew is not installed. Please install brew. See CONTRIBUTING.md for the required tools"
+    cmds:
+      ## Brew apps
+      - cmd: |
+          brew install {{.APP}} --quiet && \
+            echo "✅ {{.APP}} installed successfully" || \
+            echo "❌ Failed to install {{.APP}}"
+        
+  tools:brew:tap:
+    desc: brew tap
+    silent: true
+    preconditions:
+      - sh: command -v brew
+        msg: "brew is not installed. Please install brew"
+    cmds:
+      ## Brew taps
+      - cmd: |
+          brew tap {{.APP}} --quiet && \
+            echo "✅ {{.APP}} tapped successfully" || \
+            echo "❌ Failed to tap {{.APP}} not tapped"

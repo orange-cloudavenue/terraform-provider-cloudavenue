@@ -1,0 +1,72 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 Orange
+# SPDX-License-Identifier: Mozilla Public License 2.0
+#
+# This software is distributed under the MPL-2.0 license.
+# the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
+# or see the "LICENSE" file for more details.
+
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+includes: 
+  internal: internal.yml
+
+tasks:
+  # * Linters
+  lint:
+    desc: Run license linters
+    cmds:
+      - for: [
+          license-header,
+        ]
+        task: lint:{{.ITEM}}
+
+  lint:license-header:
+    desc: Run license header
+    internal: true
+    preconditions:
+      - sh: command -v license-eye
+        msg: "license-eye is not installed. Please run `task license:install`"
+      - sh: test -f .licenserc.yaml
+        msg: "No .licenserc.yaml file found.`"
+    cmds:
+      - license-eye header check
+
+  # * Init
+  init:
+    desc: Initialize the license
+    silent: true
+    cmds:
+      - defer: echo "✅ License are initialized"
+
+  # * Install
+  install:
+    desc: Install required tools
+    cmds:
+      - for: [
+          license-eye,
+        ]
+        task: internal:tools:brew
+        vars:
+          APP: '{{.ITEM}}'
+
+  # * Actions 
+  run: 
+    desc: Run license actions
+    cmds:
+      - for: [
+          license-header-fix,
+        ]
+        task: actions:{{.ITEM}}
+
+  # ? Generate
+  actions:license-header-fix:
+    desc: Run license header
+    internal: true
+    preconditions:
+      - sh: command -v license-eye
+        msg: "license-eye is not installed. Please run `task license:install`"
+      - sh: test -f .licenserc.yaml
+        msg: "No .licenserc.yaml file found.`"
+    cmds:
+      - license-eye header fix

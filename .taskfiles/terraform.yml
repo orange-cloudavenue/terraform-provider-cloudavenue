@@ -1,0 +1,64 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 Orange
+# SPDX-License-Identifier: Mozilla Public License 2.0
+#
+# This software is distributed under the MPL-2.0 license.
+# the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
+# or see the "LICENSE" file for more details.
+
+version: "3"
+
+includes: 
+  internal: internal.yml
+
+tasks:
+  # * Init
+  init:
+    desc: Initialize the terraform
+    silent: true
+    cmds:
+      - defer: "echo ✅ Terraform are initialized"
+
+  # * Install
+  install:
+    desc: Install required tools
+    cmds:
+      - for: [
+          hashicorp/tap,
+        ]
+        task: internal:tools:brew:tap
+        vars:
+          APP: '{{.ITEM}}'
+      - for: [
+          hashicorp/tap/terraform,
+        ]
+        task: internal:tools:brew
+        vars:
+          APP: '{{.ITEM}}'
+  
+  # * Lint 
+  lint:
+    desc: Run terraform linters
+    cmds:
+      - for: [
+          tf:fmt,
+        ]
+        task: lint:{{.ITEM}}
+
+  lint:tf:fmt:
+    desc: Run terraform fmt
+    internal: true
+    preconditions:
+      - sh: command -v terraform
+        msg: "terraform is not installed. Please run `task install`"
+    cmds:
+      - terraform fmt
+
+  lint:tf:fmt-specific-dir:
+    desc: Run terraform fmt on a specific directory
+    internal: true
+    preconditions:
+      - sh: command -v terraform
+        msg: "terraform is not installed. Please run `task install`"
+    cmds:
+      - find {{.DIRECTORY}} -name "*.tf" -exec terraform fmt {} \;
+    

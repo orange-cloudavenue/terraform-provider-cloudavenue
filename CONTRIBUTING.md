@@ -26,32 +26,53 @@ To add examples or import command in documentation, please add them in the `exam
 
 ##  Development environment
 
-Run doc generation:
+### Setup your environment
 
-```console
-make generate
+To develop the provider, you need to have the following tools installed:
+    - [Golang](https://golang.org/doc/install)
+    - [Brew](https://brew.sh/)
+    - [Task](https://taskfile.dev/installation/)
+
+Create a `.env` file with the following content:
+
+*Required environment variables:*
+
+```sh
+CLOUDAVENUE_ORG=your-org
+CLOUDAVENUE_USER=your-user
+CLOUDAVENUE_PASSWORD=your-password
+```
+
+*Optional environment variables:*
+
+```sh
+NETBACKUP_USERNAME=your-username
+NETBACKUP_PASSWORD=your-password
+```
+
+Run the following commands to install the dependencies and initialize the provider:
+
+```sh
+task install
+task init
+```
+
+Run doc/code generation:
+
+```sh
+task generate
 ```
 
 Install provider locally:
 
-```console
-make install
-```
-
-Run tests:
-
-```console
-make test
+```sh
+task provider:install
 ```
 
 Run acceptance tests:
 
-```console
-export CLOUDAVENUE_ORG=your-org
-export CLOUDAVENUE_USER=your-user
-export CLOUDAVENUE_PASSWORD=your-password
-export CLOUDAVENUE_VDC=your-vdc
-TF_ACC=1 go test -v -count=1 ./internal/tests/your_test_folder
+```sh
+task provider:test TF_TEST_NAME="TestAccIAMUserResource"
 ```
 
 ##  Changelog format
@@ -132,7 +153,7 @@ resource/cloudavenue_alb_pool: This is a breaking change
 ```
 ``````
 
-### Changes that should _not_ have a CHANGELOG entry
+### Changes that should *not* have a CHANGELOG entry
 
 - Resource and provider documentation updates
 - Testing updates
