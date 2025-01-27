@@ -9,9 +9,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 var (
@@ -24,17 +25,20 @@ func NewCertificateLibraryDatasource() datasource.DataSource {
 }
 
 type CertificateLibraryDatasource struct {
-	client *client.CloudAvenue
-	org    org.Org
+	client    *client.CloudAvenue
+	orgClient *org.Client
 }
 
 // Init Initializes the data source.
-func (d *CertificateLibraryDatasource) Init(ctx context.Context, dm *CertificateLibraryDatasourcesGoModel) (diags diag.Diagnostics) {
-	// Uncomment the following lines if you need to access to the Org
-	d.org, diags = org.Init(d.client)
-	if diags.HasError() {
-		return
+func (d *CertificateLibraryDatasource) Init(ctx context.Context, dm *CertificateLibraryDatasourceModel) (diags diag.Diagnostics) {
+	var err error
+
+	org, err := d.client.CAVSDK.V1.Org()
+	if err != nil {
+		diags.AddError("Error initializing ORG client", err.Error())
 	}
+
+	d.orgClient = org.Client
 
 	return
 }
@@ -44,7 +48,7 @@ func (d *CertificateLibraryDatasource) Metadata(ctx context.Context, req datasou
 }
 
 func (d *CertificateLibraryDatasource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = certificateLibraryDatasourceSchema(ctx).GetDataSource(ctx)
+	resp.Schema = certificateLibrarySchema(ctx).GetDataSource(ctx)
 }
 
 func (d *CertificateLibraryDatasource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -67,10 +71,7 @@ func (d *CertificateLibraryDatasource) Configure(ctx context.Context, req dataso
 func (d *CertificateLibraryDatasource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_org_certificate_library", d.client.GetOrgName(), metrics.Read)()
 
-	config := &CertificateLibraryDatasourcesGoModel{}
-
-	// If the data source don't have same schema/structure as the resource, you can use the following code:
-	// config := &CertificateLibraryDatasourceModel{}
+	config := &CertificateLibraryDatasourceModel{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
@@ -88,23 +89,32 @@ func (d *CertificateLibraryDatasource) Read(ctx context.Context, req datasource.
 		Implement the data source read logic here.
 	*/
 
-	// If read function is identical to the resource, you can use the following code:
-	/*
-		s := &CertificateLibraryDatasourcesGoResource{
-			client: d.client,
-			// org:    d.org,
-			// vdc:    d.vdc,
-			// vapp:   d.vapp,
-		}
+	s := &CertificateLibraryResource{
+		client:    d.client,
+		orgClient: d.orgClient,
+	}
 
-		// Read data from the API
-		data, _, diags := s.read(ctx, config)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	configResource := &CertificateLibraryModel{
+		ID:   config.ID,
+		Name: config.Name,
+	}
 
-		// Save data into Terraform state
-		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-	*/
+	// Read data from the API
+	data, found, diags := s.read(ctx, configResource)
+	if !found {
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The Certificate %s(%s) was not found", config.Name.Get(), config.ID.Get()))
+		return
+	}
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	config.ID.Set(data.ID.Get())
+	config.Name.Set(data.Name.Get())
+	config.Description.Set(data.Description.Get())
+	config.Certificate.Set(data.Certificate.Get())
+
+	// Save data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &config)...)
 }

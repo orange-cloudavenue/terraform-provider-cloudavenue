@@ -74,5 +74,8 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		// * IAM
 		IAMUserResourceName:     testsacc.NewResourceConfig(NewIAMUserResourceTest()),
 		IAMUserSAMLResourceName: testsacc.NewResourceConfig(NewIAMUserSAMLResourceTest()),
+
+		// * ORG
+		ORGCertificateLibraryResourceName: testsacc.NewResourceConfig(NewORGCertificateLibraryResourceTest()),
 	}
 }

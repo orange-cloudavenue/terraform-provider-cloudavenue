@@ -4,10 +4,6 @@ github.com/BurntSushi/toml v1.2.1 h1:9F2/+DoOYIOksmaJFPw1tGFy1eDnIJXg+UHjuD8lTak
 github.com/BurntSushi/toml v1.2.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12 h1:rbh0EtyILnuyu07RuOhrEVXXXRcrxSvKSVtOO14h5ok=
 github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12/go.mod h1:j3TxedNm9WrKKseOSBKxnNtquuXa0FQChO/QdcvPKtg=
-github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.8.1 h1:ov6LOLLANE9nZVQ1DrpMLuITkejMzTbZLE54xtxZ14A=
-github.com/FrangipaneTeam/terraform-plugin-framework-superschema v1.8.1/go.mod h1:AkcBw7L/PhgCm1A4P4adGrbEjE7i2maeCn/Jeh5t5Lo=
-github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.4.0 h1:5lFfjKOhBxBQNwQ63PZWBc5Unqgi5ppYq9RDoN05N+k=
-github.com/FrangipaneTeam/terraform-plugin-framework-supertypes v0.4.0/go.mod h1:klzXBi/0nMGXBh4bzRjP2wef+HE6rfCMia81Glc2+eY=
 github.com/Kunde21/markdownfmt/v3 v3.1.0 h1:KiZu9LKs+wFFBQKhrZJrFZwtLnCCWJahL+S+E/3VnM0=
 github.com/Kunde21/markdownfmt/v3 v3.1.0/go.mod h1:tPXN1RTyOzJwhfHoon9wUr4HGYmWgVxSQN6VBJDkrVc=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
@@ -227,6 +223,8 @@ github.com/labstack/echo/v4 v4.2.1/go.mod h1:AA49e0DZ8kk5jTOOCKNuPR6oTnBS0dYiM4F
 github.com/labstack/gommon v0.3.0/go.mod h1:MULnywXg0yavhxWKc+lOruYdAhDwPK9wf0OL7NoOu+k=
 github.com/leodido/go-urn v1.4.0 h1:WT9HwE9SGECu3lg4d/dIA+jxlljEa1/ffXKmRjqdmIQ=
 github.com/leodido/go-urn v1.4.0/go.mod h1:bvxc+MVxLKB4z00jd1z+Dvzr47oO32F/QSNjSBOlFxI=
+github.com/madflojo/testcerts v1.4.0 h1:I09gN0C1ly9IgeVNcAqKk8RAKIJTe3QnFrrPBDyvzN4=
+github.com/madflojo/testcerts v1.4.0/go.mod h1:MW8sh39gLnkKh4K0Nc55AyHEDl9l/FBLDUsQhpmkuo0=
 github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/matryer/moq v0.0.0-20190312154309-6cfb0558e1bd/go.mod h1:9ELz6aaclSIGnZBoaSLZ3NAl1VTufbOrXBPvtcy6WiQ=

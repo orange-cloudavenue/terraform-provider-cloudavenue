@@ -73,5 +73,8 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceCo
 		// * VApp
 		VAppDatasourceName:                testsacc.NewResourceConfig(NewVAppDatasourceTest()),
 		VAppIsolatedNetworkDataSourceName: testsacc.NewResourceConfig(NewVAppIsolatedNetworkDataSourceTest()),
+
+		// * Org
+		OrgCertificateLibraryDatasourceName: testsacc.NewResourceConfig(NewOrgCertificateLibraryDatasourceTest()),
 	}
 }

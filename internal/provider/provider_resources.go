@@ -20,6 +20,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/iam"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/network"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/publicip"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/s3"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vapp"
@@ -110,5 +111,8 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		s3.NewBucketACLResource,
 		s3.NewCredentialResource,
 		s3.NewBucketPolicyResource,
+
+		// * ORG
+		org.NewCertificateLibraryResource,
 	}
 }

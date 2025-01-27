@@ -1,6 +1,6 @@
 package alb
 
-import supertypes "github.com/FrangipaneTeam/terraform-plugin-framework-supertypes"
+import supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 type serviceEngineGroupsModel struct {
 	ID                  supertypes.StringValue                                      `tfsdk:"id"`
