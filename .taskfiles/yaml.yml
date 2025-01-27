@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 Orange
+# SPDX-License-Identifier: Mozilla Public License 2.0
+#
+# This software is distributed under the MPL-2.0 license.
+# the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
+# or see the "LICENSE" file for more details.
+
+version: "3"
+
+includes: 
+  internal: internal.yml
+
+tasks:
+  # * Init
+  init:
+    desc: Initialize the yaml
+    silent: true
+    cmds:
+      - defer: echo "✅ YAML are initialized"
+
+  # * Install
+  install:
+    desc: Install required tools
+    cmds:
+      - for: [
+          yamllint,
+        ]
+        task: internal:tools:brew
+        vars:
+          APP: '{{.ITEM}}'

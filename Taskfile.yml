@@ -1,0 +1,114 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 Orange
+# SPDX-License-Identifier: Mozilla Public License 2.0
+#
+# This software is distributed under the MPL-2.0 license.
+# the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
+# or see the "LICENSE" file for more details.
+
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+---
+version: "3"
+
+vars:
+  PROJECT_NAME: cloudavenue
+
+# silent: true
+
+# * Import
+includes: 
+  go: ".taskfiles/golang.yml"
+  license: ".taskfiles/license.yml"
+  pre-commit: ".taskfiles/pre-commit.yml"
+  tf: ".taskfiles/terraform.yml"
+  yaml: ".taskfiles/yaml.yml"
+
+# * Tasks
+tasks:
+  install:
+    desc: Install required tools
+    cmds:
+      - task: go:install
+      - task: license:install
+      - task: pre-commit:install
+      - task: tf:install
+
+  init:
+    desc: Initialize the project
+    cmds:
+      - task: provider:init
+      - task: go:init
+      - task: license:init
+      - task: pre-commit:init
+      - task: tf:init
+
+  lint:
+    desc: Run linters
+    cmds:
+      - task: license:lint
+      - task: go:lint
+      - task: go:actions:deps
+      - task: go:actions:generate
+      - task: tf:lint:tf:fmt-specific-dir
+        vars:
+          DIRECTORY: "examples"
+
+  generate:
+    desc: Generate code and docs
+    cmds:
+      - task: go:run
+      - task: license:run
+
+  # * Specific terraform provider
+  provider:init:
+    desc: Initialize the provider
+    silent: true
+    preconditions:
+      - sh: test -f .env || test -f '{{.HOME}}/.cloud_avenue.source'
+        msg: "❌ No .env or {{.HOME}}/.cloud_avenue.source file found. Please create one with the required variables. See CONTRIBUTING.md for more details."
+    cmds:
+      - |
+        envfile="{{.HOME}}/.cloud_avenue.source"
+        if [ -f .env ]; then
+          envfile=".env"
+        fi
+
+        listOfVars=(
+          "CLOUDAVENUE_ORG"
+          "CLOUDAVENUE_USERNAME"
+          "CLOUDAVENUE_PASSWORD"
+        )
+
+        echo "🔧 Checking if required variables are present in $envfile"
+
+        for var in "${listOfVars[@]}"; do
+          grep -q "$var" $envfile || echo "❌ $var not found in $envfile" && echo "✅ $var found in $envfile"
+        done
+
+  provider:test:
+    desc: Run tests for the provider
+    silent: false
+    dotenv: ['.env', '{{.HOME}}/.cloud_avenue.source']
+    deps:
+      - task: provider:init
+        silent: true
+    requires:
+      vars:
+        - TF_TEST_NAME
+    vars:
+      TF_ACC_ONLY_PRINT: false
+      NETBACKUP_DEBUG: false
+      CLOUDAVENUE_DEBUG: false
+      S3_DEBUG: false
+      TF_ACC_RUN_TEST: ""
+      TIMEOUT: "30m"
+    env:
+      TF_ACC: 1
+      TF_LOG: '{{.TF_LOG | default "info"}}'
+    cmds:
+      - go test -v ./internal/testsacc/ -count=1 -timeout {{.TIMEOUT}} -run {{.TF_TEST_NAME}}
+
+  provider:install:
+    desc: Install provider locally
+    silent: false
+    cmds:
+      - go install .
