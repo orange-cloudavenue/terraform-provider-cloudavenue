@@ -25,7 +25,7 @@ require (
 	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.9.1
 	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v0.5.0
-	github.com/orange-cloudavenue/terraform-plugin-framework-validators v1.12.0
+	github.com/orange-cloudavenue/terraform-plugin-framework-validators v1.13.0
 	github.com/rs/zerolog v1.33.0
 	github.com/thanhpk/randstr v1.0.6
 	github.com/vmware/go-vcloud-director/v2 v2.26.1
