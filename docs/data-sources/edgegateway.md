@@ -30,7 +30,7 @@ output "gateway" {
 
 ### Read-Only
 
-- `bandwidth` (Number) The bandwidth in Mbps of the Edge Gateway.
+- `bandwidth` (Number) The bandwidth in `Mbps` of the Edge Gateway.
 - `description` (String) The description of the Edge Gateway.
 - `id` (String) The ID of the Edge Gateway.
 - `owner_name` (String) The name of the Edge Gateway owner. It can be a VDC or a VDC Group name.

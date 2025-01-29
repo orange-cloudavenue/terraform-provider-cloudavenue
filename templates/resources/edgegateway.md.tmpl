@@ -31,6 +31,24 @@ resource "cloudavenue_edgegateway" "example" {
 
 {{ .SchemaMarkdown | trimspace }}
 
+## Bandwidth Attribute
+
+The `bandwidth` attribute is optional. If no value is specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF. For more information, see the [documentation of edge gateway](https://wiki.cloudavenue.orange-business.com/wiki/Network).
+
+The following values are supported depending on the service class of the Tier-0 :
+
+<!-- TABLE BANDWIDTH VALUES -->
+
+Example with bandwidth:
+
+```hcl
+resource "cloudavenue_edgegateway" "example" {
+  owner_name     = cloudavenue_vdc.example.name
+  tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+  bandwidth      = 100
+}
+```
+
 {{ if .HasImport -}}
 ## Import
 

@@ -4,6 +4,8 @@ go 1.22.7
 
 toolchain go1.23.3
 
+replace github.com/orange-cloudavenue/cloudavenue-sdk-go => ../cloudavenue-sdk-go
+
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
 	github.com/aws/aws-sdk-go v1.55.6

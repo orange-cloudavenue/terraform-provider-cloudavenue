@@ -140,12 +140,12 @@ func edgegwSchema() superschema.Schema {
 			},
 			"bandwidth": &superschema.SuperInt64Attribute{
 				Common: &schemaR.Int64Attribute{
-					MarkdownDescription: "The bandwidth in Mbps of the Edge Gateway.",
+					MarkdownDescription: "The bandwidth in `Mbps` of the Edge Gateway.",
 					Computed:            true,
 				},
 				Resource: &schemaR.Int64Attribute{
 					Optional:            true,
-					MarkdownDescription: "If no value is not specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF.",
+					MarkdownDescription: "If no value is not specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF. More information can be found [here](#bandwidth-attribute).",
 				},
 			},
 		},
