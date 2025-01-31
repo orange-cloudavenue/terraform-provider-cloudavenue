@@ -60,6 +60,9 @@ header: # `header` section is configurations for source codes license header.
     - "examples/"
     - ".taskfiles/"
     - "Taskfile.yml"
+    - ".teraform-docs.yml"
+    - ".tflint.yml"
+
 
   comment: on-failure # on what condition license-eye will comment on the pull request, `on-failure`, `always`, `never`.
 
