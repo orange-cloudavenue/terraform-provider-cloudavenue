@@ -30,8 +30,6 @@ func (rm *CertificateLibraryModel) ToSDKCertificateLibraryModel() org.Certificat
 		Name:        rm.Name.Get(),
 		Description: rm.Description.Get(),
 		Certificate: rm.Certificate.Get(),
-		PrivateKey:  rm.PrivateKey.Get(),
-		Passphrase:  rm.Passphrase.Get(),
 	}
 }
 

@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -26,7 +25,7 @@ func NewCertificateLibraryDatasource() datasource.DataSource {
 
 type CertificateLibraryDatasource struct {
 	client    *client.CloudAvenue
-	orgClient *org.Client
+	orgClient org.Client
 }
 
 // Init Initializes the data source.
