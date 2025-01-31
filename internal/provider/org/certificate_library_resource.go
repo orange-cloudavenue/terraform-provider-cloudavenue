@@ -32,7 +32,7 @@ func NewCertificateLibraryResource() resource.Resource {
 // CertificateLibraryResource is the resource implementation.
 type CertificateLibraryResource struct {
 	client    *client.CloudAvenue
-	orgClient *org.Client
+	orgClient org.Client
 }
 
 // Init Initializes the resource.
@@ -99,13 +99,19 @@ func (r *CertificateLibraryResource) Create(ctx context.Context, req resource.Cr
 	*/
 
 	// Create the certificate library
-	newCertificate, err := r.orgClient.CreateCertificateInLibrary(plan.ToSDKCertificateLibraryModel())
+	newCertificate, err := r.orgClient.CreateCertificateInLibrary(ctx, &org.CertificateCreateRequest{
+		Name:        plan.Name.Get(),
+		Description: plan.Description.Get(),
+		Certificate: plan.Certificate.Get(),
+		PrivateKey:  plan.PrivateKey.Get(),
+		Passphrase:  plan.Passphrase.Get(),
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("error while creating certificate %s in library", err.Error())
 		return
 	}
 
-	plan.ID.Set(newCertificate.Certificate.ID)
+	plan.ID.Set(newCertificate.ID)
 
 	// Use generic read function to refresh the state
 	state, found, d := r.read(ctx, plan)
@@ -181,17 +187,12 @@ func (r *CertificateLibraryResource) Update(ctx context.Context, req resource.Up
 		Implement the resource update here
 	*/
 
-	certificate, err := r.orgClient.GetCertificateFromLibrary(state.ID.Get())
+	_, err := r.orgClient.UpdateCertificateInLibrary(ctx, state.ID.Get(), &org.CertificateUpdateRequest{
+		Name:        plan.Name.Get(),
+		Description: plan.Description.Get(),
+	})
 	if err != nil {
-		resp.Diagnostics.AddError("error while fetching certificate : %s", err.Error())
-		return
-	}
-
-	certificate.Certificate = plan.ToSDKCertificateLibraryModel()
-
-	// Update the certificate library
-	if err := certificate.Update(); err != nil {
-		resp.Diagnostics.AddError("error while updating certificate %s", err.Error())
+		resp.Diagnostics.AddError("error while updating certificate : %s", err.Error())
 		return
 	}
 
@@ -228,13 +229,7 @@ func (r *CertificateLibraryResource) Delete(ctx context.Context, req resource.De
 		Implement the resource deletion here
 	*/
 
-	certificate, err := r.orgClient.GetCertificateFromLibrary(state.ID.Get())
-	if err != nil {
-		resp.Diagnostics.AddError("error while fetching certificate : %s", err.Error())
-		return
-	}
-
-	if err := certificate.Delete(); err != nil {
+	if err := r.orgClient.DeleteCertificateFromLibrary(ctx, state.ID.Get()); err != nil {
 		resp.Diagnostics.AddError("error while deleting certificate : %s", err.Error())
 		return
 	}
@@ -277,18 +272,18 @@ func (r *CertificateLibraryResource) ImportState(ctx context.Context, req resour
 // * CustomFuncs
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
-func (r *CertificateLibraryResource) read(_ context.Context, planOrState *CertificateLibraryModel) (stateRefreshed *CertificateLibraryModel, found bool, diags diag.Diagnostics) {
+func (r *CertificateLibraryResource) read(ctx context.Context, planOrState *CertificateLibraryModel) (stateRefreshed *CertificateLibraryModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
 	var (
-		certificate *org.CertificateClient
+		certificate *org.CertificateModel
 		err         error
 	)
 
 	if planOrState.ID.IsKnown() {
-		certificate, err = r.orgClient.GetCertificateFromLibrary(planOrState.ID.Get())
+		certificate, err = r.orgClient.GetCertificateFromLibrary(ctx, planOrState.ID.Get())
 	} else {
-		certificate, err = r.orgClient.GetCertificateFromLibrary(planOrState.Name.Get())
+		certificate, err = r.orgClient.GetCertificateFromLibrary(ctx, planOrState.Name.Get())
 	}
 	if err != nil {
 		if govcd.IsNotFound(err) {
@@ -299,10 +294,10 @@ func (r *CertificateLibraryResource) read(_ context.Context, planOrState *Certif
 	}
 
 	// Set the refreshed state
-	stateRefreshed.ID.Set(certificate.Certificate.ID)
-	stateRefreshed.Name.Set(certificate.Certificate.Name)
-	stateRefreshed.Description.Set(certificate.Certificate.Description)
-	stateRefreshed.Certificate.Set(certificate.Certificate.Certificate)
+	stateRefreshed.ID.Set(certificate.ID)
+	stateRefreshed.Name.Set(certificate.Name)
+	stateRefreshed.Description.Set(certificate.Description)
+	stateRefreshed.Certificate.Set(certificate.Certificate)
 
 	return stateRefreshed, true, nil
 }
