@@ -145,7 +145,7 @@ func edgegwSchema() superschema.Schema {
 				},
 				Resource: &schemaR.Int64Attribute{
 					Optional:            true,
-					MarkdownDescription: "If no value is not specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF. More information can be found [here](#bandwidth-attribute).",
+					MarkdownDescription: "If no value is specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF. More information can be found [here](#bandwidth-attribute).",
 				},
 			},
 		},

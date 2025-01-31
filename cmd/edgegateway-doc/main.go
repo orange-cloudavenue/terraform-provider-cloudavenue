@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strings"
 
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
@@ -39,10 +40,17 @@ func main() {
 
 	// * Retrieve the rules for the edgegateway and construct a markdown table
 
-	rules := []string{}
+	keys := []string{}
 
-	for key, value := range v1.EdgeGatewayAllowedBandwidth {
-		rules = append(rules, fmt.Sprintf("* `%s` %s\n", key, strings.Trim(strings.ReplaceAll(fmt.Sprint(value.T1AllowedBandwidth), " ", ", "), "[]")))
+	for key := range v1.EdgeGatewayAllowedBandwidth {
+		keys = append(keys, string(key))
+	}
+
+	slices.Sort(keys)
+
+	rules := []string{}
+	for _, value := range keys {
+		rules = append(rules, fmt.Sprintf("* `%s` %s\n", value, strings.Trim(strings.ReplaceAll(fmt.Sprint(v1.EdgeGatewayAllowedBandwidth[v1.ClassService(value)]), " ", ", "), "[]")))
 	}
 
 	// Generate the content of the file
