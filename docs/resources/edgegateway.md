@@ -39,7 +39,7 @@ resource "cloudavenue_edgegateway" "example" {
 
 ### Optional
 
-- `bandwidth` (Number) The bandwidth in Mbps of the Edge Gateway. If no value is not specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF.
+- `bandwidth` (Number) The bandwidth in `Mbps` of the Edge Gateway. If no value is specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF. More information can be found [here](#bandwidth-attribute).
 - `owner_type` (String, Deprecated) The type of the Edge Gateway owner. Value must be one of : `vdc`, `vdc-group`. 
 
  ~> **Attribute deprecated** Remove the `owner_type` attribute configuration, it will be removed in the version [`v0.32.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/20) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/952) for more information.
@@ -60,6 +60,30 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Bandwidth Attribute
+
+The `bandwidth` attribute is optional. If no value is specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF. For more information, see the [documentation of edge gateway](https://wiki.cloudavenue.orange-business.com/wiki/Network).
+
+The following values are supported depending on the service class of the Tier-0 :
+
+<!-- TABLE BANDWIDTH VALUES -->
+* `VRF_DEDICATED_LARGE` {10000, [5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000]}
+* `VRF_DEDICATED_MEDIUM` {3500, [5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000, 2000]}
+* `VRF_PREMIUM` {1000, [5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000]}
+* `VRF_STANDARD` {300, [5, 25, 50, 75, 100, 150, 200, 250, 300]}
+
+
+
+Example with bandwidth:
+
+```hcl
+resource "cloudavenue_edgegateway" "example" {
+  owner_name     = cloudavenue_vdc.example.name
+  tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+  bandwidth      = 100
+}
+```
 
 ## Import
 

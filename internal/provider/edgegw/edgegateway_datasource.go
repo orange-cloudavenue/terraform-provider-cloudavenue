@@ -88,7 +88,7 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 	data.OwnerName.Set(edgegw.GetOwnerName())
 	data.OwnerType.Set(string(edgegw.GetOwnerType()))
 	data.Description.Set(edgegw.GetDescription())
-	data.Bandwidth.SetInt(int(edgegw.GetBandwidth()))
+	data.Bandwidth.SetInt(edgegw.GetBandwidth())
 
 	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

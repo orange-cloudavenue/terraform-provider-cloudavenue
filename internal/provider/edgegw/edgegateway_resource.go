@@ -313,7 +313,7 @@ func (r *edgeGatewayResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	if int(edgegwNew.GetBandwidth()) != plan.Bandwidth.GetInt() {
+	if edgegwNew.GetBandwidth() != plan.Bandwidth.GetInt() {
 		job, err = edgegwNew.UpdateBandwidth(plan.Bandwidth.GetInt())
 		if err != nil {
 			resp.Diagnostics.AddError("Error setting Bandwidth", err.Error())
@@ -518,7 +518,7 @@ func (r *edgeGatewayResource) read(_ context.Context, planOrState *edgeGatewayRe
 	stateRefreshed.Tier0VrfID.Set(edgegw.GetTier0VrfID())
 	stateRefreshed.OwnerName.Set(edgegw.GetOwnerName())
 	stateRefreshed.Description.Set(edgegw.GetDescription())
-	stateRefreshed.Bandwidth.SetInt(int(edgegw.GetBandwidth()))
+	stateRefreshed.Bandwidth.SetInt(edgegw.GetBandwidth())
 
 	return stateRefreshed, true, nil
 }
