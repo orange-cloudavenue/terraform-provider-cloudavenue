@@ -5,6 +5,7 @@
 * `resource/cloudavenue_iam_user_saml` - Fixed issue when `deployed_vm_quota` and `stored_vm_quota` are not set in the creation of the IAM user. (GH-875)
 ### :information_source: **Notes**
 
+* `resource/cloudavenue_edgegateway` - Improve the documentation of the `bandwidth` attribute in the edge gateway resource. (GH-954)
 * `resource/cloudavenue_vdc` - Update the storages profiles rules to be in compliance with the cloudavenue offer. (GH-958)
 
 ### :dependabot: **Dependencies**
