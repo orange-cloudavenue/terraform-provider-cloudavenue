@@ -21,6 +21,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/iam"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/network"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/publicip"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/s3"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/storage"
@@ -120,5 +121,8 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 
 		// * BMS
 		bms.NewBMSDataSource,
+
+		// * ORG
+		org.NewOrgDataSource,
 	}
 }

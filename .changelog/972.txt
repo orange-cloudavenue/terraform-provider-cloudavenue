@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_org` - Added new resource `cloudavenue_org` which allows managing organizations settings (e.g. name, description, internet billing mode, etc).
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_org` - Added new data source `cloudavenue_org` which allows fetching organizations settings.
+```
