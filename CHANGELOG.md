@@ -18,6 +18,7 @@
 * deps: bumps github.com/aws/aws-sdk-go from 1.55.5 to 1.55.6 (GH-960)
 * deps: bumps github.com/hashicorp/terraform-plugin-framework-timeouts from 0.4.1 to 0.5.0 (GH-961)
 * deps: bumps github.com/hashicorp/terraform-plugin-go from 0.25.0 to 0.26.0 (GH-963)
+* deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.35.0 to 2.36.0 (GH-978)
 * deps: bumps github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.20.1 to 0.21.1 (GH-966)
 * deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-validators from 1.12.0 to 1.13.0 (GH-967)
 
