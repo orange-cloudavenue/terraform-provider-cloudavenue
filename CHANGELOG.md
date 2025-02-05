@@ -1,5 +1,10 @@
 ## 0.28.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_org` - Added new data source `cloudavenue_org` which allows fetching organizations settings. (GH-972)
+* **New Resource:** `resource/cloudavenue_org` - Added new resource `cloudavenue_org` which allows managing organizations settings (e.g. name, description, internet billing mode, etc). (GH-972)
+
 ### :bug: **Bug Fixes**
 
 * `resource/cloudavenue_iam_user_saml` - Fixed issue when `deployed_vm_quota` and `stored_vm_quota` are not set in the creation of the IAM user. (GH-875)
