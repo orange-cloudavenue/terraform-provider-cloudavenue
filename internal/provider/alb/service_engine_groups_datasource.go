@@ -1,3 +1,12 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2025 Orange
+ * SPDX-License-Identifier: Mozilla Public License 2.0
+ *
+ * This software is distributed under the MPL-2.0 license.
+ * the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
+ * or see the "LICENSE" file for more details.
+ */
+
 // Package alb provides a Terraform datasource.
 package alb
 
@@ -9,12 +18,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgeloadbalancer"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 var (
@@ -27,28 +34,17 @@ func NewServiceEngineGroupsDataSource() datasource.DataSource {
 }
 
 type serviceEngineGroupsDataSource struct {
-	client *client.CloudAvenue
-	edgegw edgegw.EdgeGateway
-	org    org.Org
+	client   *client.CloudAvenue
+	edgegwlb edgeloadbalancer.Client
 }
 
 // Init Initializes the data source.
 func (d *serviceEngineGroupsDataSource) Init(ctx context.Context, dm *serviceEngineGroupsModel) (diags diag.Diagnostics) {
 	var err error
 
-	d.org, diags = org.Init(d.client)
-	if diags.HasError() {
-		return
-	}
-
-	// Retrieve VDC from edge gateway
-	d.edgegw, err = d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   dm.EdgeGatewayID.StringValue,
-		Name: dm.EdgeGatewayName.StringValue,
-	})
+	d.edgegwlb, err = edgeloadbalancer.NewClient()
 	if err != nil {
-		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		diags.AddError("Error creating edge load balancer client", err.Error())
 	}
 
 	return
@@ -101,13 +97,23 @@ func (d *serviceEngineGroupsDataSource) Read(ctx context.Context, req datasource
 	*/
 
 	// Get ServiceEngineGroup
-	var (
-		err     error
-		albSEGs []*v1.EdgeGatewayALBServiceEngineGroupModel
-	)
+	edge, err := d.client.CAVSDK.V1.EdgeGateway.Get(func() string {
+		if config.EdgeGatewayID.IsKnown() {
+			return config.EdgeGatewayID.Get()
+		}
+
+		return config.EdgeGatewayName.Get()
+	}())
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving Edge Gateway", err.Error())
+		return
+	}
+
+	config.EdgeGatewayID.Set(urn.Normalize(urn.Gateway, edge.GetID()).String())
+	config.EdgeGatewayName.Set(edge.GetName())
 
 	// Get Service Engine Groups
-	albSEGs, err = d.edgegw.ListALBServiceEngineGroups()
+	albSEGs, err := d.edgegwlb.ListServiceEngineGroups(ctx, config.EdgeGatewayID.Get())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving Service Engine Groups", err.Error())
 		return
@@ -132,10 +138,8 @@ func (d *serviceEngineGroupsDataSource) Read(ctx context.Context, req datasource
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	config.ID.Set(utils.GenerateUUID(fmt.Sprint(d.edgegw.EdgeName + d.edgegw.EdgeID)).ValueString())
-	config.EdgeGatewayID.Set(d.edgegw.EdgeGateway.ID)
-	config.EdgeGatewayName.Set(d.edgegw.EdgeGateway.Name)
 
+	config.ID.Set(urn.Normalize(urn.Gateway, config.EdgeGatewayID.Get()).String())
 	// Set state
 	resp.Diagnostics.Append(resp.State.Set(ctx, config)...)
 }

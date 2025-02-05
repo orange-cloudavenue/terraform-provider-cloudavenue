@@ -26,8 +26,8 @@ output "example" {
 
 ### Optional
 
-- `edge_gateway_id` (String) Edge gateway ID in which ALB Service Engine Group should be located. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
-- `edge_gateway_name` (String) Edge gateway Name in which ALB Service Engine Group should be located. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
+- `edge_gateway_id` (String) Edge gateway ID in which EdgeGateway LoadBalancer Service Engine Group should be located. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
+- `edge_gateway_name` (String) Edge gateway Name in which EdgeGateway LoadBalancer Service Engine Group should be located. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
 
 ### Read-Only
 

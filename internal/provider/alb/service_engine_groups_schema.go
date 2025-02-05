@@ -1,3 +1,12 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2025 Orange
+ * SPDX-License-Identifier: Mozilla Public License 2.0
+ *
+ * This software is distributed under the MPL-2.0 license.
+ * the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
+ * or see the "LICENSE" file for more details.
+ */
+
 package alb
 
 import (
@@ -27,7 +36,7 @@ func serviceEngineGroupsSchema(ctx context.Context) superschema.Schema {
 			},
 			"edge_gateway_id": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "Edge gateway ID in which ALB Service Engine Group should be located.",
+					MarkdownDescription: "Edge gateway ID in which EdgeGateway LoadBalancer Service Engine Group should be located.",
 					Optional:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
@@ -37,7 +46,7 @@ func serviceEngineGroupsSchema(ctx context.Context) superschema.Schema {
 			},
 			"edge_gateway_name": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "Edge gateway Name in which ALB Service Engine Group should be located.",
+					MarkdownDescription: "Edge gateway Name in which EdgeGateway LoadBalancer Service Engine Group should be located.",
 					Optional:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
