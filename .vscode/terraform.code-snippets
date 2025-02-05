@@ -13,7 +13,7 @@
 			"// - internal/provider/${TM_DIRECTORY/^.+\\/(.*)$/$1/}/${TM_FILENAME/(.*)(_resource|_datasource)\\.go/$1/}_schema_test.go",
 			"// - internal/testsacc/${TM_DIRECTORY/^.+\\/(.*)$/$1/}_${TM_FILENAME/(.*)\\.go/$1/}_test.go",
 			"// * How to use",
-			"// ! Usage: $> terraform-templates -filename $RELATIVE_FILEPATH",
+			"// ! Usage: $> terraform-resource-templates -filename $RELATIVE_FILEPATH",
 			"// ? ---------------------------------------------------------------------------------------------------------------------- ? //",
 			"package ${TM_DIRECTORY/^.+\\/(.*)$/$1/}"
 		],
