@@ -27,7 +27,7 @@ func serviceEngineGroupsSchema(ctx context.Context) superschema.Schema {
 			},
 			"edge_gateway_id": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "Edge gateway ID in which ALB Service Engine Group should be located.",
+					MarkdownDescription: "Edge gateway ID in which EdgeGateway LoadBalancer Service Engine Group should be located.",
 					Optional:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
@@ -37,7 +37,7 @@ func serviceEngineGroupsSchema(ctx context.Context) superschema.Schema {
 			},
 			"edge_gateway_name": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "Edge gateway Name in which ALB Service Engine Group should be located.",
+					MarkdownDescription: "Edge gateway Name in which EdgeGateway LoadBalancer Service Engine Group should be located.",
 					Optional:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),

@@ -12,11 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	commoncloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/common/cloudavenue"
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgeloadbalancer"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 var (
@@ -29,28 +28,17 @@ func NewServiceEngineGroupDataSource() datasource.DataSource {
 }
 
 type serviceEngineGroupDataSource struct {
-	client *client.CloudAvenue
-	edgegw edgegw.EdgeGateway
-	org    org.Org
+	client   *client.CloudAvenue
+	edgegwlb edgeloadbalancer.Client
 }
 
 // Init Initializes the data source.
 func (d *serviceEngineGroupDataSource) Init(ctx context.Context, dm *serviceEngineGroupModel) (diags diag.Diagnostics) {
 	var err error
 
-	d.org, diags = org.Init(d.client)
-	if diags.HasError() {
-		return
-	}
-
-	// Retrieve VDC from edge gateway
-	d.edgegw, err = d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   dm.EdgeGatewayID.StringValue,
-		Name: dm.EdgeGatewayName.StringValue,
-	})
+	d.edgegwlb, err = edgeloadbalancer.NewClient()
 	if err != nil {
-		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		diags.AddError("Error creating edge load balancer client", err.Error())
 	}
 
 	return
@@ -103,7 +91,7 @@ func (d *serviceEngineGroupDataSource) Read(ctx context.Context, req datasource.
 	*/
 
 	// Read data from the API
-	data, found, diags := d.read(config)
+	data, found, diags := d.read(ctx, config)
 	if !found {
 		diags.AddError("Error Not Found", "The Service Engine Group was not found")
 	}
@@ -116,18 +104,30 @@ func (d *serviceEngineGroupDataSource) Read(ctx context.Context, req datasource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (d *serviceEngineGroupDataSource) read(dm *serviceEngineGroupModel) (data *serviceEngineGroupModel, found bool, diags diag.Diagnostics) {
+func (d *serviceEngineGroupDataSource) read(ctx context.Context, dm *serviceEngineGroupModel) (data *serviceEngineGroupModel, found bool, diags diag.Diagnostics) {
 	data = &serviceEngineGroupModel{}
 
 	// Get ServiceEngineGroup
 	var (
 		err    error
-		albSEG *v1.EdgeGatewayALBServiceEngineGroupModel
+		albSEG *edgeloadbalancer.ServiceEngineGroupModel
 	)
+
+	if !dm.EdgeGatewayID.IsKnown() {
+		edge, err := d.client.CAVSDK.V1.EdgeGateway.Get(dm.EdgeGatewayName.Get())
+		if err != nil {
+			diags.AddError("Error retrieving Edge Gateway", err.Error())
+			// True because there was an error on fetch the edge gateway and not the service engine group
+			return nil, true, diags
+		}
+
+		dm.EdgeGatewayID.Set(urn.Normalize(urn.Gateway, edge.GetID()).String())
+	}
+
 	if dm.ID.IsKnown() {
-		albSEG, err = d.edgegw.GetALBServiceEngineGroup(dm.ID.Get())
+		albSEG, err = d.edgegwlb.GetServiceEngineGroup(ctx, dm.EdgeGatewayID.Get(), dm.ID.Get())
 	} else {
-		albSEG, err = d.edgegw.GetALBServiceEngineGroup(dm.Name.Get())
+		albSEG, err = d.edgegwlb.GetServiceEngineGroup(ctx, dm.EdgeGatewayID.Get(), dm.Name.Get())
 	}
 	if err != nil {
 		if commoncloudavenue.IsNotFound(err) || govcd.IsNotFound(err) {

@@ -4,12 +4,6 @@ import (
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
-	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
-
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
