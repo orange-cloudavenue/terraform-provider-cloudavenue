@@ -22,7 +22,7 @@ import (
 var _ testsacc.TestACC = &ALBServiceEngineGroupsDataSource{}
 
 const (
-	ALBServiceEngineGroupsDataSourceName = testsacc.ResourceName("data.cloudavenue_alb_service_engine_groups")
+	ALBServiceEngineGroupsDataSourceName = testsacc.ResourceName("data.cloudavenue_elb_service_engine_groups")
 )
 
 type ALBServiceEngineGroupsDataSource struct{}
@@ -49,7 +49,7 @@ func (r *ALBServiceEngineGroupsDataSource) Tests(ctx context.Context) map[testsa
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
-					data "cloudavenue_alb_service_engine_groups" "example" {
+					data "cloudavenue_elb_service_engine_groups" "example" {
 						edge_gateway_name = data.cloudavenue_edgegateway.example_with_id.name
 					}`,
 					Checks: []resource.TestCheckFunc{
@@ -73,7 +73,7 @@ func (r *ALBServiceEngineGroupsDataSource) Tests(ctx context.Context) map[testsa
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
-					data "cloudavenue_alb_service_engine_groups" "example_with_id" {
+					data "cloudavenue_elb_service_engine_groups" "example_with_id" {
 						edge_gateway_id = data.cloudavenue_edgegateway.example_with_id.id
 					}`,
 					Checks: []resource.TestCheckFunc{

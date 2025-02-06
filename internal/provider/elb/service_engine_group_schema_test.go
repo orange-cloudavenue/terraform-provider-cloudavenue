@@ -7,7 +7,7 @@
  * or see the "LICENSE" file for more details.
  */
 
-package alb_test
+package elb_test
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 
 	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/alb"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/elb"
 )
 
 // TODO : Comment or uncomment the following imports if you are using resources or/and datasources
@@ -51,7 +51,7 @@ func TestALBServiceEngineGroupDataSourceSchema(t *testing.T) {
 	schemaResponse := &fwdatasource.SchemaResponse{}
 
 	// Instantiate the datasource.Datasource and call its Schema method
-	alb.NewServiceEngineGroupDataSource().Schema(ctx, fwdatasource.SchemaRequest{}, schemaResponse)
+	elb.NewServiceEngineGroupDataSource().Schema(ctx, fwdatasource.SchemaRequest{}, schemaResponse)
 
 	if schemaResponse.Diagnostics.HasError() {
 		t.Fatalf("Schema method diagnostics: %+v", schemaResponse.Diagnostics)

@@ -7,7 +7,7 @@
  * or see the "LICENSE" file for more details.
  */
 
-package alb
+package elb
 
 import supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 

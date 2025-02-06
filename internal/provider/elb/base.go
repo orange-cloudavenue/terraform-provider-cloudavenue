@@ -7,13 +7,8 @@
  * or see the "LICENSE" file for more details.
  */
 
-package alb
+package elb
 
 const (
-	categoryName = "alb"
+	categoryName = "elb"
 )
-
-type base struct {
-	id   string
-	name string
-}

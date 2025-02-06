@@ -7,7 +7,7 @@
  * or see the "LICENSE" file for more details.
  */
 
-package alb
+package elb
 
 import (
 	"context"
@@ -25,14 +25,14 @@ import (
 func serviceEngineGroupSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_alb_service_engine_group` data source allows you to retrieve information about an ALB Service Engine Group.",
+			MarkdownDescription: "The `cloudavenue_elb_service_engine_group` data source allows you to retrieve information about an Service Engine Group of an Edge Gateway.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					Computed:            true,
 					Optional:            true,
-					MarkdownDescription: "The ID of the ALB Service Engine Group.",
+					MarkdownDescription: "The ID of the ELB Service Engine Group.",
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("id"), path.MatchRoot("name")),
 					},
@@ -40,7 +40,7 @@ func serviceEngineGroupSchema(_ context.Context) superschema.Schema {
 			},
 			"name": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "The name of the ALB Service Engine Group.",
+					MarkdownDescription: "The name of the ELB Service Engine Group.",
 					Computed:            true,
 					Optional:            true,
 					Validators: []validator.String{
@@ -50,7 +50,7 @@ func serviceEngineGroupSchema(_ context.Context) superschema.Schema {
 			},
 			"edge_gateway_id": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "Edge gateway ID in which ALB Service Engine Group should be located.",
+					MarkdownDescription: "Edge gateway ID in which ELB Service Engine Group should be located.",
 					Optional:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
@@ -60,7 +60,7 @@ func serviceEngineGroupSchema(_ context.Context) superschema.Schema {
 			},
 			"edge_gateway_name": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "Edge gateway Name in which ALB Service Engine Group should be located.",
+					MarkdownDescription: "Edge gateway Name in which ELB Service Engine Group should be located.",
 					Optional:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
@@ -71,19 +71,19 @@ func serviceEngineGroupSchema(_ context.Context) superschema.Schema {
 			"max_virtual_services": superschema.SuperInt64Attribute{
 				DataSource: &schemaD.Int64Attribute{
 					Computed:            true,
-					MarkdownDescription: "The maximum number of virtual services that can be deployed on the ALB Service Engine Group.",
+					MarkdownDescription: "The maximum number of virtual services that can be deployed on the ELB Service Engine Group.",
 				},
 			},
 			"reserved_virtual_services": superschema.SuperInt64Attribute{
 				DataSource: &schemaD.Int64Attribute{
 					Computed:            true,
-					MarkdownDescription: "The number of reserved virtual services for the ALB Service Engine Group.",
+					MarkdownDescription: "The number of reserved virtual services for the ELB Service Engine Group.",
 				},
 			},
 			"deployed_virtual_services": superschema.SuperInt64Attribute{
 				DataSource: &schemaD.Int64Attribute{
 					Computed:            true,
-					MarkdownDescription: "The number of deployed virtual services on the ALB Service Engine Group.",
+					MarkdownDescription: "The number of deployed virtual services on the ELB Service Engine Group.",
 				},
 			},
 		},

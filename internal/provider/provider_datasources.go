@@ -14,11 +14,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/alb"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/backup"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/bms"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/catalog"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/elb"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/iam"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/org"
@@ -35,10 +35,9 @@ import (
 // DataSources defines the data sources implemented in the provider.
 func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		// * ALB
-		alb.NewAlbPoolDataSource,
-		alb.NewServiceEngineGroupDataSource,
-		alb.NewServiceEngineGroupsDataSource,
+		// * EdgeGateway LoadBalancer
+		elb.NewServiceEngineGroupDataSource,
+		elb.NewServiceEngineGroupsDataSource,
 
 		// * TIER0
 		vrf.NewTier0VrfsDataSource,
