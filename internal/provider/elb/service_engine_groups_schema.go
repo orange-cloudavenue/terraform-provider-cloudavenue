@@ -7,7 +7,7 @@
  * or see the "LICENSE" file for more details.
  */
 
-package alb
+package elb
 
 import (
 	"context"
@@ -25,13 +25,13 @@ import (
 func serviceEngineGroupsSchema(ctx context.Context) superschema.Schema {
 	return superschema.Schema{
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_alb_service_engine_groups` data source allows you to retrieve information about all the Service Engine Group of an Edge Gateway.",
+			MarkdownDescription: "The `cloudavenue_elb_service_engine_groups` data source allows you to retrieve information about all the Service Engine Group of an Edge Gateway.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					Computed:            true,
-					MarkdownDescription: "The ID of the service engine groups.",
+					MarkdownDescription: "The ID of the ELB service engine groups.",
 				},
 			},
 			"edge_gateway_id": superschema.SuperStringAttribute{

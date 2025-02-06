@@ -7,8 +7,8 @@
  * or see the "LICENSE" file for more details.
  */
 
-// Package alb provides a Terraform datasource.
-package alb
+// package elb provides a Terraform datasource.
+package elb
 
 import (
 	"context"
@@ -76,7 +76,7 @@ func (d *serviceEngineGroupsDataSource) Configure(ctx context.Context, req datas
 }
 
 func (d *serviceEngineGroupsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	defer metrics.New("data.cloudavenue_alb_service_engine_groups", d.client.GetOrgName(), metrics.Read)()
+	defer metrics.New("data.cloudavenue_elb_service_engine_groups", d.client.GetOrgName(), metrics.Read)()
 
 	config := &serviceEngineGroupsModel{}
 

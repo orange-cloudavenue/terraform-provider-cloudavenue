@@ -22,7 +22,7 @@ import (
 var _ testsacc.TestACC = &ALBServiceEngineGroupDataSource{}
 
 const (
-	ALBServiceEngineGroupDataSourceName = testsacc.ResourceName("data.cloudavenue_alb_service_engine_group")
+	ALBServiceEngineGroupDataSourceName = testsacc.ResourceName("data.cloudavenue_elb_service_engine_group")
 )
 
 type ALBServiceEngineGroupDataSource struct{}
@@ -50,8 +50,8 @@ func (r *ALBServiceEngineGroupDataSource) Tests(ctx context.Context) map[testsac
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
-					data "cloudavenue_alb_service_engine_group" "example" {
-						name = data.cloudavenue_alb_service_engine_groups.example.service_engine_groups.0.name
+					data "cloudavenue_elb_service_engine_group" "example" {
+						name = data.cloudavenue_elb_service_engine_groups.example.service_engine_groups.0.name
 						edge_gateway_name = data.cloudavenue_edgegateway.example_with_id.name
 					}`,
 					Checks: []resource.TestCheckFunc{
@@ -71,8 +71,8 @@ func (r *ALBServiceEngineGroupDataSource) Tests(ctx context.Context) map[testsac
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
-					data "cloudavenue_alb_service_engine_group" "example_with_id" {
-						id = data.cloudavenue_alb_service_engine_groups.example.service_engine_groups.0.id
+					data "cloudavenue_elb_service_engine_group" "example_with_id" {
+						id = data.cloudavenue_elb_service_engine_groups.example.service_engine_groups.0.id
 						edge_gateway_name = data.cloudavenue_edgegateway.example_with_id.name
 					}`,
 					// Here use resource config test to test the data source
@@ -94,8 +94,8 @@ func (r *ALBServiceEngineGroupDataSource) Tests(ctx context.Context) map[testsac
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
-					data "cloudavenue_alb_service_engine_group" "example_with_edge_id" {
-						id = data.cloudavenue_alb_service_engine_groups.example.service_engine_groups.0.id
+					data "cloudavenue_elb_service_engine_group" "example_with_edge_id" {
+						id = data.cloudavenue_elb_service_engine_groups.example.service_engine_groups.0.id
 						edge_gateway_id = data.cloudavenue_edgegateway.example_with_id.id
 					}`,
 					// Here use resource config test to test the data source
@@ -117,8 +117,8 @@ func (r *ALBServiceEngineGroupDataSource) Tests(ctx context.Context) map[testsac
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
-					data "cloudavenue_alb_service_engine_group" "example_with_name_and_edge_id" {
-						name = data.cloudavenue_alb_service_engine_groups.example.service_engine_groups.0.name
+					data "cloudavenue_elb_service_engine_group" "example_with_name_and_edge_id" {
+						name = data.cloudavenue_elb_service_engine_groups.example.service_engine_groups.0.name
 						edge_gateway_id = data.cloudavenue_edgegateway.example_with_id.id
 					}`,
 					// Here use resource config test to test the data source
