@@ -53,6 +53,9 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceCo
 		EdgeGatewayNATRuleDataSourceName:        testsacc.NewResourceConfig(NewEdgeGatewayNATRuleDataSourceTest()),
 		EdgeGatewayIPSetDataSourceName:          testsacc.NewResourceConfig(NewEdgeGatewayIPSetDataSourceTest()),
 
+		// * EdgeGateway LoadBalancer (elb)
+		ELBPoolDataSourceName: testsacc.NewResourceConfig(NewELBPoolDataSourceTest()),
+
 		// * S3
 		S3BucketVersioningConfigurationDatasourceName: testsacc.NewResourceConfig(NewS3BucketVersioningConfigurationDatasourceTest()),
 		S3BucketDatasourceName:                        testsacc.NewResourceConfig(NewS3BucketDatasourceTest()),

@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_elb_pool` - Added new resource `cloudavenue_elb_pool` to manage edgegateway load balancer pools. Pools maintain the list of servers assigned to them and perform health monitoring, load balancing, persistence.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_elb_pool` - Added new datasource `cloudavenue_elb_pool` to read details of an existing edgegateway load balancer pool.
+```

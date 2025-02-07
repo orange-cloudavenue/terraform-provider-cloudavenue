@@ -157,6 +157,28 @@ func (r *EdgeGatewayIPSetResource) Tests(ctx context.Context) map[testsacc.TestN
 				},
 			}
 		},
+		"example_for_elb": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetDataSourceConfig()[EdgeGatewayDataSourceName]().GetSpecificConfig("example_for_elb"))
+					return
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_edgegateway_ip_set" "example_for_elb" {
+						name = {{ generate . "name" }}
+						description = {{ generate . "description" }}
+						ip_addresses = [
+							"192.168.1.1",
+							"192.168.1.2",
+							"192.168.1.3",
+						]
+						edge_gateway_id = data.cloudavenue_edgegateway.example_for_elb.id
+					}`),
+				},
+			}
+		},
 	}
 }
 

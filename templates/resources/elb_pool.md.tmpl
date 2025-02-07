@@ -1,0 +1,162 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "ELB (EdgeGateway Load Balancer)"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+
+Basic working example:
+
+```hcl
+resource "cloudavenue_elb_pool" "example" {
+  name            = "example"
+  edge_gateway_id = data.cloudavenue_edgegateway.example.id
+  enabled         = true
+  default_port    = 80
+  members = {
+    targets = [
+      {
+        ip_address = "192.168.0.1"
+        port       = 80
+      }
+    ]
+  }
+}
+```
+
+ -> More examples can be found at the [Advanced Usage](#advanced-usage) section.
+
+
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Advanced Usage
+
+### Multiple Members and health monitors
+```hcl
+resource "cloudavenue_elb_pool" "example" {
+  name            = "example"
+  edge_gateway_id = data.cloudavenue_edgegateway.example.id
+  enabled         = true
+  default_port    = 80
+  algorithm       = "ROUND_ROBIN"
+  members = {
+    targets = [
+      {
+        ip_address = "192.168.0.1"
+        port       = 80
+      },
+      {
+        ip_address = "192.168.0.2"
+        port       = 80
+      }
+    ]
+  }
+  health = {
+    monitors = ["HTTP", "TCP"]
+  }
+}
+```
+
+### Setting TLS configuration
+```hcl
+resource "cloudavenue_elb_pool" "example" {
+  name            = "example"
+  edge_gateway_id = data.cloudavenue_edgegateway.example.id
+  enabled         = true
+  default_port    = 80
+  members = {
+    targets = [
+      {
+        ip_address = "192.168.0.1"
+        port       = 80
+      }
+    ]
+  }
+  tls = {
+    enabled = true
+    ca_certificate_refs = [
+      cloudavenue_org_certificate_library.example.id
+    ]
+  }
+}
+```
+
+### Use IPSet for members
+```hcl
+resource "cloudavenue_elb_pool" "example" {
+  name            = "example"
+  edge_gateway_id = data.cloudavenue_edgegateway.example.id
+  enabled         = true
+  default_port    = 80
+  members = {
+    graceful_timeout_period = 2
+    target_group = cloudavenue_edgegateway_ip_set.example.id
+  }
+}
+```
+
+### Full configuration
+```hcl
+resource "cloudavenue_elb_pool" "example" {
+  name            = "example"
+  edge_gateway_id = data.cloudavenue_edgegateway.example.id
+  enabled         = true
+  default_port    = 80
+  algorithm       = "ROUND_ROBIN"
+  members = {
+    graceful_timeout_period = 2
+    targets = [
+      {
+        ip_address = "192.168.0.1"
+        port       = 80
+        enabled    = true
+        ratio      = 1
+      },
+      {
+        ip_address = "192.168.0.2"
+        port       = 80
+        enabled    = true
+        ratio      = 1
+      },
+      {
+        ip_address = "192.168.0.10"
+        port       = 8080
+        enabled    = true
+        ratio      = 10
+      }
+    ]
+  }
+
+  health = {
+    monitors                   = ["HTTP", "TCP"]
+    passive_monitoring_enabled = true
+  }
+
+  tls = {
+    enabled = true
+    ca_certificate_refs = [
+      cloudavenue_org_certificate_library.example.id
+    ]
+    common_name_check_enabled = true
+  }
+
+  persistence = {
+    type  = "CUSTOM_HTTP_HEADER"
+    value = "X-Custom"
+  }
+}
+```
+
+{{ if .HasImport -}}
+## Import
+
+Import is supported using the following syntax:
+{{ codefile "shell" .ImportFile }}
+{{- end }}
