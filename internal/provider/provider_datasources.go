@@ -35,10 +35,6 @@ import (
 // DataSources defines the data sources implemented in the provider.
 func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		// * EdgeGateway LoadBalancer
-		elb.NewServiceEngineGroupDataSource,
-		elb.NewServiceEngineGroupsDataSource,
-
 		// * TIER0
 		vrf.NewTier0VrfsDataSource,
 		vrf.NewTier0VrfDataSource,
@@ -46,7 +42,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		// * PUBLICIP
 		publicip.NewPublicIPDataSource,
 
-		// * EDGE GATEWAY
+		// * EdgeGateway
 		edgegw.NewEdgeGatewayDataSource,
 		edgegw.NewEdgeGatewaysDataSource,
 		edgegw.NewFirewallDataSource,
@@ -57,6 +53,11 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		edgegw.NewNATRuleDataSource,
 		edgegw.NewVPNIPSecDataSource,
 		edgegw.NewAppPortProfileDataSource,
+
+		// * EdgeGateway LoadBalancer
+		elb.NewServiceEngineGroupDataSource,
+		elb.NewServiceEngineGroupsDataSource,
+		elb.NewPoolDataSource,
 
 		// * VDC
 		vdc.NewVDCsDataSource,

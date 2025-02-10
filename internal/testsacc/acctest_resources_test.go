@@ -49,6 +49,9 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		EdgeGatewayNATRuleResourceName:        testsacc.NewResourceConfig(NewEdgeGatewayNATRuleResourceTest()),
 		EdgeGatewayIPSetResourceName:          testsacc.NewResourceConfig(NewEdgeGatewayIPSetResourceTest()),
 
+		// * EdgeGateway LoadBalancer (elb)
+		ELBPoolResourceName: testsacc.NewResourceConfig(NewELBPoolResourceTest()),
+
 		// * Backup
 		BackupResourceName: testsacc.NewResourceConfig(NewBackupResourceTest()),
 

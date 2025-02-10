@@ -63,6 +63,19 @@ func (r *EdgeGatewayDataSource) Tests(ctx context.Context) map[testsacc.TestName
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_edgegateway" "example_with_id" {
+						id = cloudavenue_edgegateway.example.id
+					}`,
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
+					},
+				},
+			}
+		},
+		"example_for_elb": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_edgegateway" "example_for_elb" {
 						name = "tn01e02ocb0006205spt101"
 					}`,
 					Checks: []resource.TestCheckFunc{
