@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_elb_virtual_service` - Add new resource `cloudavenue_elb_virtual_service` to manage edgegateway load balancer virtual services. A virtual service advertises an IP address and ports to the external world and listens for client traffic.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_elb_virtual_service` - Add new datasource `cloudavenue_elb_virtual_service` to read details of an existing edgegateway load balancer virtual service.
+```

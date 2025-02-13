@@ -15,6 +15,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/cilium/fake"
 	lorem "github.com/drhodes/golorem"
 	"github.com/thanhpk/randstr"
 )
@@ -33,7 +34,13 @@ var (
 				extraOpts = append(extraOpts, "")
 			}
 
-			randomString := generatePrefix + generateRandomString(extraOpts[0])
+			randomString := ""
+
+			if withoutPrefix(extraOpts[0]) {
+				randomString = generateRandomString(extraOpts[0])
+			} else {
+				randomString = generatePrefix + generateRandomString(extraOpts[0])
+			}
 			(*KeyValueStore)[buildKeyValueStore(resourceName, key)] = randomString
 			return returnWithQuotes(randomString)
 		},
@@ -98,11 +105,25 @@ func buildKeyValueStore(resourceName, key string) string {
 func generateRandomString(format string) string {
 	// generate random string
 	switch format {
+	case "private-ipv4":
+		return fake.IP(fake.WithIPCIDR("10.0.0.0/8"))
+	case "public-ipv4":
+		return fake.IP(fake.WithIPCIDR("62.161.18.0/24"))
 	case "longString":
 		return lorem.Sentence(1, 5)
 	default:
 		return randstr.String(16, "abcdefghijklmnopqrstuvwxyz")
 	}
+}
+
+func withoutPrefix(format string) bool {
+	f := []string{"private-ipv4", "public-ipv4"}
+	for _, v := range f {
+		if v == format {
+			return true
+		}
+	}
+	return false
 }
 
 // returnWithQuotes returns the given string with quotes.
