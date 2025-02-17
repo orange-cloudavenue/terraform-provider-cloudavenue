@@ -1,1 +1,0 @@
-terraform import cloudavenue_vdc_group.example vdcGroupNameOrID
