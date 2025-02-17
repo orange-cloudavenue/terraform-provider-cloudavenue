@@ -1,4 +1,10 @@
 ## 0.29.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps golang.org/x/net from 0.34.0 to 0.35.0 (GH-982)
+* deps: bumps goreleaser/goreleaser-action from 6.1.0 to 6.2.1 (GH-983)
+
 ## 0.28.0 (February 10, 2025)
 
 ### :rocket: **New Features**
