@@ -1,5 +1,16 @@
 ## 0.29.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_elb_pool` - Added new datasource `cloudavenue_elb_pool` to read details of an existing edgegateway load balancer pool. (GH-974)
+* **New Data Source:** `datasource/cloudavenue_elb_service_engine_group` - Added a new data source to retrieve information about a Service Engine Group. (GH-892)
+* **New Data Source:** `datasource/cloudavenue_elb_service_engine_groups` - Added a new data source to list all Service Engine Group attached to an Edge Gateway. (GH-901)
+* **New Data Source:** `datasource/cloudavenue_elb_virtual_service` - Add new datasource `cloudavenue_elb_virtual_service` to read details of an existing edgegateway load balancer virtual service. (GH-973)
+* **New Data Source:** `datasource/cloudavenue_org_certificate_library` - Added new datasource to get certificate information in the Cloud Avenue Organization. (GH-904)
+* **New Resource:** `resource/cloudavenue_elb_pool` - Added new resource `cloudavenue_elb_pool` to manage edgegateway load balancer pools. Pools maintain the list of servers assigned to them and perform health monitoring, load balancing, persistence. (GH-974)
+* **New Resource:** `resource/cloudavenue_elb_virtual_service` - Add new resource `cloudavenue_elb_virtual_service` to manage edgegateway load balancer virtual services. A virtual service advertises an IP address and ports to the external world and listens for client traffic. (GH-973)
+* **New Resource:** `resource/cloudavenue_org_certificate_library` - Added new resource to manage certificate in the Cloud Avenue Organization. (GH-904)
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps golang.org/x/net from 0.34.0 to 0.35.0 (GH-982)
