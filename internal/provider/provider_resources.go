@@ -14,10 +14,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/alb"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/backup"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/catalog"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/elb"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/iam"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/org"
@@ -33,10 +33,7 @@ import (
 // Resources defines the resources implemented in the provider.
 func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		// * ALB
-		alb.NewAlbPoolResource,
-
-		// * EDGE GATEWAY
+		// * EdgeGateway
 		edgegw.NewEdgeGatewayResource,
 		edgegw.NewFirewallResource,
 		edgegw.NewAppPortProfileResource,
@@ -46,6 +43,10 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		edgegw.NewStaticRouteResource,
 		edgegw.NewNATRuleResource,
 		edgegw.NewVPNIPSecResource,
+
+		// * EdgeGateway LoadBalancer
+		elb.NewPoolResource,
+		elb.NewVirtualServiceResource,
 
 		// * VDC
 		vdc.NewVDCResource,
@@ -114,5 +115,6 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 
 		// * ORG
 		org.NewOrgResource,
+		org.NewCertificateLibraryResource,
 	}
 }

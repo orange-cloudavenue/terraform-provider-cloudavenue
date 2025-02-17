@@ -1,0 +1,1 @@
+terraform import cloudavenue_org_certificate_library.example nameOrID

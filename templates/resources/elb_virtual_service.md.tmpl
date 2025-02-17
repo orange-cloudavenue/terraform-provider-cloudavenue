@@ -1,0 +1,97 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "ELB (EdgeGateway Load Balancer)"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+ ~> **SUBSCRIBE REQUIRED** This resource require to subscribe to the Load Balancer service. Please open a ticket to the support team to enable the service.
+
+{{ .Description | trimspace }}
+
+{{ if .HasExample -}}
+## Example Usage
+
+{{ tffile .ExampleFile }}
+{{- end }}
+ -> More examples can be found at the [Advanced Usage](#advanced-usage) section.
+
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Advanced Usage
+
+### Expose TLS service
+
+Use the resource `cloudavenue_org_certificate_library` to reference the certificate used for the HTTPS service.
+This example exposes a HTTPS service on the virtual IP `192.168.0.1` on port `443`.
+
+```hcl
+resource "cloudavenue_elb_virtual_service" "example_https" {
+  name = "example"
+  enabled = true
+  
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+  pool_id = cloudavenue_elb_pool.example.id
+  certificate_id = cloudavenue_org_certificate_library.example.id
+
+  virtual_ip = "192.168.0.1"
+
+  service_type = "HTTPS" // Use HTTPS or L4_TLS
+  service_ports = [
+    {
+      start = 443
+    }
+  ]
+}
+```
+
+### Expose L4 service
+
+This example exposes a L4 TCP service on the virtual IP `192.168.0.1` on port `443`.
+
+```hcl
+resource "cloudavenue_elb_virtual_service" "example_https" {
+  name = "example"
+  enabled = true
+
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+  pool_id = cloudavenue_elb_pool.example.id
+
+  virtual_ip = "192.168.0.1"
+
+  service_type = "L4_TCP" // Use L4_TCP or L4_UDP
+  service_ports = [
+    {
+      start = 443
+    }
+  ]
+}
+```
+
+### Expose service with public IP
+
+The ELB virtual service require a **dedicated public IP** to expose the service.
+If another resource use the same public IP, the ELB virtual service will fail to create.
+
+```hcl
+resource "cloudavenue_elb_virtual_service" "example_https" {
+  name = "example"
+  enabled = true
+
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+  pool_id = cloudavenue_elb_pool.example.id
+  virtual_ip = cloudavenue_public_ip.example.public_ip
+
+  [...]
+}
+```
+
+{{ if .HasImport -}}
+## Import
+
+Import is supported using the following syntax:
+{{ codefile "shell" .ImportFile }}
+{{- end }}

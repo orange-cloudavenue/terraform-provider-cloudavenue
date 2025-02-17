@@ -13,6 +13,10 @@ import "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/he
 
 func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConfig {
 	return map[testsacc.ResourceName]func() *testsacc.ResourceConfig{
+		// * ALB
+		ALBServiceEngineGroupDataSourceName:  testsacc.NewResourceConfig(NewALBServiceEngineGroupDataSourceTest()),
+		ALBServiceEngineGroupsDataSourceName: testsacc.NewResourceConfig(NewALBServiceEngineGroupsDataSourceTest()),
+
 		// * Catalog
 		CatalogDataSourceName:             testsacc.NewResourceConfig(NewCatalogDataSourceTest()),
 		CatalogACLDataSourceName:          testsacc.NewResourceConfig(NewCatalogACLDataSourceTest()),
@@ -49,6 +53,10 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceCo
 		EdgeGatewayNATRuleDataSourceName:        testsacc.NewResourceConfig(NewEdgeGatewayNATRuleDataSourceTest()),
 		EdgeGatewayIPSetDataSourceName:          testsacc.NewResourceConfig(NewEdgeGatewayIPSetDataSourceTest()),
 
+		// * EdgeGateway LoadBalancer (elb)
+		ELBPoolDataSourceName:           testsacc.NewResourceConfig(NewELBPoolDataSourceTest()),
+		ELBVirtualServiceDataSourceName: testsacc.NewResourceConfig(NewELBVirtualServiceDataSourceTest()),
+
 		// * S3
 		S3BucketVersioningConfigurationDatasourceName: testsacc.NewResourceConfig(NewS3BucketVersioningConfigurationDatasourceTest()),
 		S3BucketDatasourceName:                        testsacc.NewResourceConfig(NewS3BucketDatasourceTest()),
@@ -69,5 +77,8 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceCo
 		// * VApp
 		VAppDatasourceName:                testsacc.NewResourceConfig(NewVAppDatasourceTest()),
 		VAppIsolatedNetworkDataSourceName: testsacc.NewResourceConfig(NewVAppIsolatedNetworkDataSourceTest()),
+
+		// * Org
+		OrgCertificateLibraryDatasourceName: testsacc.NewResourceConfig(NewOrgCertificateLibraryDatasourceTest()),
 	}
 }

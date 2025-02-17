@@ -1,0 +1,1 @@
+terraform import cloudavenue_elb_pool.example edgeGatewayNameOrID.poolNameOrID
