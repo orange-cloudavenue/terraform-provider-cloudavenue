@@ -1,34 +1,34 @@
 {
-	"name": "Go",
+	"name": "Cloudavenue Terraform Provider",
 	"build": {
-		"dockerfile": "Dockerfile",
-		"args": {
-			// Update the VARIANT arg to pick a version of Go: 1, 1.18, 1.17
-			// Append -bullseye or -buster to pin to an OS version.
-			// Use -bullseye variants on local arm64/Apple Silicon.
-			"VARIANT": "1-bullseye"
-		}
+		"dockerfile": "Dockerfile"
 	},
 	"runArgs": [
+		"--platform=linux/amd64",
 		"--cap-add=SYS_PTRACE",
 		"--security-opt",
 		"seccomp=unconfined"
 	],
-	// Set *default* container specific settings.json values on container create.
-	"settings": {
-		"go.toolsManagement.checkForUpdates": "local",
-		"go.useLanguageServer": true,
-		"go.gopath": "/go"
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": {
+				"go.toolsManagement.checkForUpdates": "local",
+				"go.useLanguageServer": true,
+				"go.gopath": "/go"
+			},
+			"extensions": [
+				"aaron-bond.better-comments",
+				"usernamehw.errorlens",
+				"GitHub.vscode-pull-request-github",
+				"golang.go"
+			]
+		}
 	},
-	// Add the IDs of extensions you want installed when the container is created.
-	"extensions": [
-		"aaron-bond.better-comments",
-		"usernamehw.errorlens",
-		"mhutchie.git-graph",
-		"donjayamanne.githistory",
-		"golang.go",
-		"4ops.terraform"
-	],
+	"postStartCommand": "task install ; task init",
+	"remoteUser": "vscode",
+	"containerUser": "vscode",
 	"containerEnv": {
 		"HOME": "/home/vscode",
 		// Username
@@ -42,21 +42,7 @@
 		// Netbackup password
 		"NETBACKUP_PASSWORD": "${localEnv:NETBACKUP_PASSWORD}"
 	},
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "go version",
-	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-	"remoteUser": "vscode",
 	"updateRemoteUserUID": true,
-	"features": {
-		"ghcr.io/devcontainers/features/github-cli:1": {},
-		"ghcr.io/devcontainers/features/terraform:1": {},
-		"ghcr.io/guiyomh/features/golangci-lint:0": {},
-		"ghcr.io/meaningful-ooo/devcontainer-features/fish": {},
-		"ghcr.io/devcontainers/features/python:1": {},
-		"ghcr.io/gvatsal60/dev-container-features/pre-commit:1": {}
-	},
 	"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
 	"workspaceFolder": "/workspace"
 }
