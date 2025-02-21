@@ -4,6 +4,10 @@ go 1.22.7
 
 toolchain go1.23.3
 
+replace github.com/orange-cloudavenue/cloudavenue-sdk-go => ../cloudavenue-sdk-go
+
+replace github.com/orange-cloudavenue/terraform-plugin-framework-supertypes => ../terraform-plugin-framework-supertypes
+
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
 	github.com/aws/aws-sdk-go v1.55.6
@@ -13,7 +17,7 @@ require (
 	github.com/hashicorp/aws-sdk-go-base v1.1.0
 	github.com/hashicorp/awspolicyequivalence v1.7.0
 	github.com/hashicorp/terraform-plugin-docs v0.20.1
-	github.com/hashicorp/terraform-plugin-framework v1.13.0
+	github.com/hashicorp/terraform-plugin-framework v1.14.1
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.16.0
 	github.com/hashicorp/terraform-plugin-go v0.26.0
@@ -67,7 +71,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-resty/resty/v2 v2.16.5 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/hashicorp/cli v1.1.6 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-checkpoint v0.5.0 // indirect
