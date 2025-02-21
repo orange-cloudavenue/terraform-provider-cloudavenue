@@ -250,15 +250,15 @@ func (r *edgeGatewayResource) Create(ctx context.Context, req resource.CreateReq
 	ctx, cancel = context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 
+	cloudavenue.Lock(ctx)
+	defer cloudavenue.Unlock(ctx)
+
 	// List all edge gateways for determining the ID of the new edge gateway
 	edgegws, err := r.client.CAVSDK.V1.EdgeGateway.List()
 	if err != nil {
 		resp.Diagnostics.AddError("Error listing edge gateways", err.Error())
 		return
 	}
-
-	cloudavenue.Lock(ctx)
-	defer cloudavenue.Unlock(ctx)
 
 	var job *commoncloudavenue.JobStatus
 
