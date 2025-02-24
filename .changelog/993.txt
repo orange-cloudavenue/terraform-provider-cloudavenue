@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_edgegateway` - Fix the problem that prevents the creation of several edge gateways simultaneously.
+```
