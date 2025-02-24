@@ -1,4 +1,9 @@
 ## 0.30.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_edgegateway` - Fix the problem that prevents the creation of several edge gateways simultaneously. (GH-993)
+
 ## 0.29.0 (February 17, 2025)
 
 ### :rocket: **New Features**
