@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/aws-sdk-go-base v1.1.0
 	github.com/hashicorp/awspolicyequivalence v1.7.0
 	github.com/hashicorp/terraform-plugin-docs v0.20.1
-	github.com/hashicorp/terraform-plugin-framework v1.14.0
+	github.com/hashicorp/terraform-plugin-framework v1.14.1
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.17.0
 	github.com/hashicorp/terraform-plugin-go v0.26.0
@@ -27,7 +27,7 @@ require (
 	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.9.1
 	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v0.5.0
-	github.com/orange-cloudavenue/terraform-plugin-framework-validators v1.13.0
+	github.com/orange-cloudavenue/terraform-plugin-framework-validators v1.14.0
 	github.com/rs/zerolog v1.33.0
 	github.com/thanhpk/randstr v1.0.6
 	github.com/vmware/go-vcloud-director/v2 v2.26.1
