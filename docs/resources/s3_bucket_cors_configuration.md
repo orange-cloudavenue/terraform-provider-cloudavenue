@@ -51,7 +51,7 @@ resource "cloudavenue_s3_bucket_cors_configuration" "example" {
 
 ### Required
 
-- `bucket` (String) (ForceNew) The name of the bucket.
+- `bucket` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the bucket.
 - `cors_rules` (Attributes Set) Set of origins and methods (cross-origin access that you want to allow). Set must contain at least 1 elements and at most 100 elements. (see [below for nested schema](#nestedatt--cors_rules))
 
 ### Optional

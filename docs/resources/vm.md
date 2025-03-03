@@ -149,7 +149,7 @@ If your change network card is primary, the VM will be restarted.
 
 ### Required
 
-- `name` (String) (ForceNew) The name of the VM. Unique within the vApp. Must be between 1 and 80 characters long and can contain only letters, numbers and hyphen. It must not contain only digits.
+- `name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the VM. Unique within the vApp. Must be between 1 and 80 characters long and can contain only letters, numbers and hyphen. It must not contain only digits.
 
 ### Optional
 
@@ -158,9 +158,9 @@ If your change network card is primary, the VM will be restarted.
 - `resource` (Attributes) The resource of the VM. (see [below for nested schema](#nestedatt--resource))
 - `settings` (Attributes) The settings for the VM. (see [below for nested schema](#nestedatt--settings))
 - `state` (Attributes) The state of the VM. (see [below for nested schema](#nestedatt--state))
-- `vapp_id` (String) (ForceNew) The vApp this VM belongs to. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
-- `vapp_name` (String) (ForceNew) The vApp this VM belongs to. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
-- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
+- `vapp_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The vApp this VM belongs to. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
+- `vapp_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The vApp this VM belongs to. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
+- `vdc` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 
@@ -172,9 +172,9 @@ If your change network card is primary, the VM will be restarted.
 Optional:
 
 - `accept_all_eulas` (Boolean) Automatically accept EULA if OVA has it.
-- `boot_image_id` (String) (ForceNew) The ID of the boot image to use for the VM. Ensure that if an attribute is set, these are not set: "[<.vapp_template_id]".
-- `vapp_template_id` (String) (ForceNew) The ID of the vApp template to use for the VM. Ensure that if an attribute is set, these are not set: "[<.boot_image_id]".
-- `vm_name_in_template` (String) (ForceNew) The name of the VM in the vApp template. Ensure that if an attribute is set, these are not set: "[<.boot_image_id]".
+- `boot_image_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the boot image to use for the VM. Ensure that if an attribute is set, these are not set: "[<.vapp_template_id]".
+- `vapp_template_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the vApp template to use for the VM. Ensure that if an attribute is set, these are not set: "[<.boot_image_id]".
+- `vm_name_in_template` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the VM in the vApp template. Ensure that if an attribute is set, these are not set: "[<.boot_image_id]".
 
 
 <a id="nestedatt--resource"></a>
@@ -183,9 +183,9 @@ Optional:
 Optional:
 
 - `cpu_hot_add_enabled` (Boolean) Whether CPU hot add is enabled or not <a href="#restartrequired" style="color:red">(Restart Required)</a>. Value defaults to `true`.
-- `cpus` (Number) The number of virtual CPUs to allocate to the VM. <a href="#restartrequired" style="color:red">(Restart Required)</a>. Value must be at most 256. Value defaults to `1`.
-- `cpus_cores` (Number) The number of cores per virtual CPU to allocate to the VM. <a href="#restartrequired" style="color:red">(Restart Required)</a>. All the possibilities of dividing the value of attribute <.cpus by an integer. Value defaults to `1`.
-- `memory` (Number) The amount of memory to allocate to the VM, in MB. <a href="#restartrequired" style="color:red">(Restart Required)</a>. This attribute needs to be divisible by 4 with zero remainder. Value defaults to `1024`.
+- `cpus` (Number) The number of virtual CPUs to allocate to the VM. <a href="#restartrequired" style="color:red">(Restart Required)</a>. Value defaults to `1`. Value must be at most 256.
+- `cpus_cores` (Number) The number of cores per virtual CPU to allocate to the VM. <a href="#restartrequired" style="color:red">(Restart Required)</a>. Value defaults to `1`. All the possibilities of dividing the value of attribute <.cpus by an integer.
+- `memory` (Number) The amount of memory to allocate to the VM, in MB. <a href="#restartrequired" style="color:red">(Restart Required)</a>. Value defaults to `1024`. This attribute needs to be divisible by 4 with zero remainder.
 - `memory_hot_add_enabled` (Boolean) Whether memory hot add is enabled or not. <a href="#restartrequired" style="color:red">(Restart Required)</a>. Value defaults to `true`.
 - `networks` (Attributes List) The networks to attach to the VM. <a href="#restartrequired" style="color:red">(Restart Required)</a>. (see [below for nested schema](#nestedatt--resource--networks))
 
@@ -194,14 +194,25 @@ Optional:
 
 Required:
 
-- `type` (String) The type of network to attach to the VM. Value must be one of: `vapp` (A vApp network. This network is only available in your vApp structure.), `org` (An organization network. This network can be a network isolated or routed in your Organization.), `none` (No network.).
+- `type` (String) The type of network to attach to the VM. Value must be one of: 
+  - `vapp` A vApp network. This network is only available in your vApp structure.
+  - `org` An organization network. This network can be a network isolated or routed in your Organization.
+  - `none` No network.
 
 Optional:
 
-- `adapter_type` (String) The type of vNic to create on this interface. Value must be one of: `VMXNET3` (A VMXNET3 adapter it's an paravirtualized NIC designed for performance. VMXNET 3 offers all the features available in VMXNET 2 and adds several new features.), `E1000E` (A E1000E adapter it's an Emulated version of the Intel 82574 Gigabit Ethernet NIC. E1000E is the default adapter for Windows 8 and Windows Server 2012.), `VMXNET3VRDMA` (VMXNET3VRDMA adapter it's a paravirtualized NIC that supports remote direct memory access (RDMA) between virtual machines through the OFED verbs API.), `SRIOVETHERNETCARD` (SRIOVETHERNETCARD adapter it's a representation of a virtual function (VF) on a physical NIC with SR-IOV support.). Value defaults to `VMXNET3`.
+- `adapter_type` (String) The type of vNic to create on this interface. Value defaults to `VMXNET3`. Value must be one of: 
+  - `VMXNET3` A VMXNET3 adapter it's an paravirtualized NIC designed for performance. VMXNET 3 offers all the features available in VMXNET 2 and adds several new features.
+  - `E1000E` A E1000E adapter it's an Emulated version of the Intel 82574 Gigabit Ethernet NIC. E1000E is the default adapter for Windows 8 and Windows Server 2012.
+  - `VMXNET3VRDMA` VMXNET3VRDMA adapter it's a paravirtualized NIC that supports remote direct memory access (RDMA) between virtual machines through the OFED verbs API.
+  - `SRIOVETHERNETCARD` SRIOVETHERNETCARD adapter it's a representation of a virtual function (VF) on a physical NIC with SR-IOV support.
 - `connected` (Boolean) Whether the network interface is connected or not. Value defaults to `true`.
 - `ip` (String) The IP address to assign to this VM on this network. Must be a valid IP with net.ParseIP. If the value of [`<.ip_allocation_mode`](#<.ip_allocation_mode) attribute is `MANUAL` this attribute is **REQUIRED**. If the value of [`<.ip_allocation_mode`](#<.ip_allocation_mode) attribute is one of `DHCP`, `NONE` or `POOL` this attribute is **NULL**.
-- `ip_allocation_mode` (String) The IP allocation mode for this network. Value must be one of: `DHCP` (IP address is obtained from a DHCP service.), `POOL` (Static IP address is allocated automatically from defined static pool in network.), `MANUAL` (SIP address is assigned manually in the ip field. Must be valid IP address from static pool.), `NONE` (No IP address will be set because VM will have a NIC without network.). Value defaults to `DHCP`.
+- `ip_allocation_mode` (String) The IP allocation mode for this network. Value defaults to `DHCP`. Value must be one of: 
+  - `DHCP` IP address is obtained from a DHCP service.
+  - `POOL` Static IP address is allocated automatically from defined static pool in network.
+  - `MANUAL` SIP address is assigned manually in the ip field. Must be valid IP address from static pool.
+  - `NONE` No IP address will be set because VM will have a NIC without network.
 - `is_primary` (Boolean) Whether this network is the primary network for the VM <a href="#restartrequired" style="color:red">(Restart Required)</a>. Value defaults to `false`.
 - `mac` (String) The MAC address to assign to this VM on this network. Autogenerated if not specified. Must be a valid mac address.
 - `name` (String) The name of the network to attach to the VM. If the value of [`<.type`](#<.type) attribute is one of `vapp` or `org` this attribute is **REQUIRED**. If the value of [`<.type`](#<.type) attribute is `none` this attribute is **NULL**.
@@ -217,7 +228,134 @@ Optional:
 - `customization` (Attributes) The customization settings for the VM. To enable the customization, set the `enabled` attribute to `true`. (see [below for nested schema](#nestedatt--settings--customization))
 - `expose_hardware_virtualization` (Boolean) Whether to expose hardware CPU virtualization to the guest OS <a href="#restartrequired" style="color:red">(Restart Required)</a>. Value defaults to `false`.
 - `guest_properties` (Map of String) Key/Value settings for guest properties.
-- `os_type` (String) The Operating System type to be installed on the VM.<a href="#restartrequired" style="color:red">(Restart Required)</a>. Value must be one of: `amazonlinux2_64Guest` (Amazon Linux 2 (64-bit)), `asianux3Guest` (ASIANUX 3 (32-bit)), `asianux3_64Guest` (ASIANUX 3 (64-bit)), `asianux4Guest` (ASIANUX 4 (32-bit)), `asianux4_64Guest` (ASIANUX 4 (64-bit)), `asianux7_64Guest` (ASIANUX 7 (64-bit)), `asianux8_64Guest` (ASIANUX 8 (64-bit)), `centos64Guest` (CentOS Linux 5 (64-bit)), `centos6Guest` (CentOS Linux 6 (32-bit)), `centos6_64Guest` (CentOS Linux 6 (64-bit)), `centos7_64Guest` (CentOS Linux 7 (64-bit)), `centos8_64Guest` (CentOS Linux 8 (64-bit)), `centosGuest` (CentOS Linux 5 (32-bit)), `coreos64Guest` (CoreOS Linux (64-bit)), `darwin10Guest` (Apple macOS 10.6 (32-bit)), `darwin10_64Guest` (Apple macOS 10.6 (64-bit)), `darwin11Guest` (Apple macOS 10.7 (32-bit)), `darwin11_64Guest` (Apple macOS 10.7 (64-bit)), `darwin12_64Guest` (Apple macOS 10.8 (64-bit)), `darwin13_64Guest` (Apple macOS 10.9 (64-bit)), `darwin14_64Guest` (Apple macOS 10.10 (64-bit)), `darwin15_64Guest` (Apple macOS 10.11 (64-bit)), `darwin16_64Guest` (Apple macOS 10.12 (64-bit)), `darwin17_64Guest` (Apple macOS 10.13 (64-bit)), `darwin18_64Guest` (Apple macOS 10.14 (64-bit)), `debian10Guest` (Debian Linux 10 (32-bit)), `debian10_64Guest` (Debian Linux 10 (64-bit)), `debian4Guest` (Debian Linux 4 (32-bit)), `debian4_64Guest` (Debian Linux 4 (64-bit)), `debian5Guest` (Debian Linux 5 (32-bit)), `debian5_64Guest` (Debian Linux 5 (64-bit)), `debian6Guest` (Debian Linux 6 (32-bit)), `debian6_64Guest` (Debian Linux 6 (64-bit)), `debian7Guest` (Debian Linux 7 (32-bit)), `debian7_64Guest` (Debian Linux 7 (64-bit)), `debian8Guest` (Debian Linux 8 (32-bit)), `debian8_64Guest` (Debian Linux 8 (64-bit)), `debian9Guest` (Debian Linux 9 (32-bit)), `debian9_64Guest` (Debian Linux 9 (64-bit)), `dosGuest` (Microsoft MS-DOS), `eComStation2Guest` (Serenity Systems eComStation 2), `eComStationGuest` (Serenity Systems eComStation 1), `freebsd11Guest` (FreeBSD 11 (32-bit)), `freebsd11_64Guest` (FreeBSD 11 (64-bit)), `freebsd12Guest` (FreeBSD 12 or later versions (32-bit)), `freebsd12_64Guest` (FreeBSD 12 or later versions (64-bit)), `freebsd64Guest` (FreeBSD Pre-11 versions (64-bit)), `freebsdGuest` (FreeBSD Pre-11 versions (32-bit)), `netware5Guest` (Novell NetWare 5.x), `netware6Guest` (Novell NetWare 6.x), `oesGuest` (Novell Open Enterprise Server (32-bit)), `openServer5Guest` (SCO OpenServer 5), `openServer6Guest` (SCO OpenServer 6), `oracleLinux64Guest` (Oracle Linux 5 (64-bit)), `oracleLinux6Guest` (Oracle Linux 6 (32-bit)), `oracleLinux6_64Guest` (Oracle Linux 6 (64-bit)), `oracleLinux7_64Guest` (Oracle Linux 7 (64-bit)), `oracleLinux8_64Guest` (Oracle Linux 8 (64-bit)), `oracleLinuxGuest` (Oracle Linux 5 (32-bit)), `os2Guest` (IBM OS/2), `other24xLinux64Guest` (Other Linux 2.4.x (64-bit)), `other24xLinuxGuest` (Other Linux 2.4.x (32-bit)), `other26xLinux64Guest` (Other Linux 2.6.x (64-bit)), `other26xLinuxGuest` (Other Linux 2.6.x (32-bit)), `other3xLinux64Guest` (Other Linux 3.x (64-bit)), `other3xLinuxGuest` (Other Linux 3.x (32-bit)), `other4xLinux64Guest` (Other Linux 4.x (64-bit)), `other4xLinuxGuest` (Other Linux 4.x (32-bit)), `otherGuest` (Other (32-bit)), `otherGuest64` (Other (64-bit)), `otherLinux64Guest` (Other Linux (64-bit)), `otherLinuxGuest` (Other Linux (32-bit)), `rhel2Guest` (Red Hat Enterprise Linux 2 (32-bit)), `rhel3Guest` (Red Hat Enterprise Linux 3 (32-bit)), `rhel3_64Guest` (Red Hat Enterprise Linux 3 (64-bit)), `rhel4Guest` (Red Hat Enterprise Linux 4 (32-bit)), `rhel4_64Guest` (Red Hat Enterprise Linux 4 (64-bit)), `rhel5Guest` (Red Hat Enterprise Linux 5 (32-bit)), `rhel5_64Guest` (Red Hat Enterprise Linux 5 (64-bit)), `rhel6Guest` (Red Hat Enterprise Linux 6 (32-bit)), `rhel6_64Guest` (Red Hat Enterprise Linux 6 (64-bit)), `rhel7_64Guest` (Red Hat Enterprise Linux 7 (64-bit)), `rhel8_64Guest` (Red Hat Enterprise Linux 8 (64-bit)), `sles10Guest` (SUSE Linux Enterprise Server 10 (32-bit)), `sles10_64Guest` (SUSE Linux Enterprise Server 10 (64-bit)), `sles11Guest` (SUSE Linux Enterprise Server 11 (32-bit)), `sles11_64Guest` (SUSE Linux Enterprise Server 11 (64-bit)), `sles12_64Guest` (SUSE Linux Enterprise Server 12 (64-bit)), `sles15_64Guest` (SUSE Linux Enterprise Server 15 (64-bit)), `sles64Guest` (SUSE Linux Enterprise Server 11 (64-bit)), `slesGuest` (SUSE Linux Enterprise Server 11 (32-bit)), `solaris10Guest` (Oracle Solaris 10 (32-bit)), `solaris10_64Guest` (Oracle Solaris 10 (64-bit)), `solaris11_64Guest` (Oracle Solaris 11 (64-bit)), `ubuntu64Guest` (Ubuntu Linux 64-bit), `ubuntuGuest` (Ubuntu Linux 32-bit), `unixWare7Guest` (SCO UnixWare 7), `vmwarePhoton64Guest` (VMware Photon OS 64-bit), `win2000AdvServGuest` (Microsoft Windows 2000), `win2000ProGuest` (Microsoft Windows 2000 Professional), `win2000ServGuest` (Microsoft Windows 2000 Server), `win31Guest` (Microsoft Windows 3.1), `win95Guest` (Microsoft Windows 95), `win98Guest` (Microsoft Windows 98), `winLonghorn64Guest` (Microsoft Windows Server 2008 (64-bit)), `winLonghornGuest` (Microsoft Windows Server 2008 (32-bit)), `winNTGuest` (Microsoft Windows NT), `winNetBusinessGuest` (Microsoft Windows Small Business Server 2003), `winNetDatacenter64Guest` (Microsoft Windows Server 2003 Datacenter Edition (64-bit)), `winNetDatacenterGuest` (Microsoft Windows Server 2003 Datacenter Edition (32-bit)), `winNetEnterprise64Guest` (Microsoft Windows Server 2003 (64-bit)), `winNetEnterpriseGuest` (Microsoft Windows Server 2003 (32-bit)), `winNetStandard64Guest` (Microsoft Windows Server 2003 Standard Edition (64-bit)), `winNetStandardGuest` (Microsoft Windows Server 2003 Standard Edition (32-bit)), `winNetWebGuest` (Microsoft Windows Server 2003 Web Edition (32-bit)), `winVista64Guest` (Microsoft Windows Vista (64-bit)), `winVistaGuest` (Microsoft Windows Vista (32-bit)), `winXPPro64Guest` (Microsoft Windows XP Professional (64-bit)), `winXPProGuest` (Microsoft Windows XP Professional (32-bit)), `windows7Guest` (Microsoft Windows 7 (32-bit)), `windows7Server64Guest` (Microsoft Windows Server 2008 R2 (64-bit)), `windows7_64Guest` (Microsoft Windows 7 (64-bit)), `windows8Guest` (Microsoft Windows 8.x (32-bit)), `windows8Server64Guest` (Microsoft Windows Server 2012 (64-bit)), `windows8_64Guest` (Microsoft Windows 8.x (64-bit)), `windows9Guest` (Microsoft Windows 10 (32-bit)), `windows9_64Guest` (Microsoft Windows 10 (64-bit)).
+- `os_type` (String) The Operating System type to be installed on the VM.<a href="#restartrequired" style="color:red">(Restart Required)</a>. Value must be one of: 
+  - `amazonlinux2_64Guest` Amazon Linux 2 (64-bit)
+  - `asianux3Guest` ASIANUX 3 (32-bit)
+  - `asianux3_64Guest` ASIANUX 3 (64-bit)
+  - `asianux4Guest` ASIANUX 4 (32-bit)
+  - `asianux4_64Guest` ASIANUX 4 (64-bit)
+  - `asianux7_64Guest` ASIANUX 7 (64-bit)
+  - `asianux8_64Guest` ASIANUX 8 (64-bit)
+  - `centos64Guest` CentOS Linux 5 (64-bit)
+  - `centos6Guest` CentOS Linux 6 (32-bit)
+  - `centos6_64Guest` CentOS Linux 6 (64-bit)
+  - `centos7_64Guest` CentOS Linux 7 (64-bit)
+  - `centos8_64Guest` CentOS Linux 8 (64-bit)
+  - `centosGuest` CentOS Linux 5 (32-bit)
+  - `coreos64Guest` CoreOS Linux (64-bit)
+  - `darwin10Guest` Apple macOS 10.6 (32-bit)
+  - `darwin10_64Guest` Apple macOS 10.6 (64-bit)
+  - `darwin11Guest` Apple macOS 10.7 (32-bit)
+  - `darwin11_64Guest` Apple macOS 10.7 (64-bit)
+  - `darwin12_64Guest` Apple macOS 10.8 (64-bit)
+  - `darwin13_64Guest` Apple macOS 10.9 (64-bit)
+  - `darwin14_64Guest` Apple macOS 10.10 (64-bit)
+  - `darwin15_64Guest` Apple macOS 10.11 (64-bit)
+  - `darwin16_64Guest` Apple macOS 10.12 (64-bit)
+  - `darwin17_64Guest` Apple macOS 10.13 (64-bit)
+  - `darwin18_64Guest` Apple macOS 10.14 (64-bit)
+  - `debian10Guest` Debian Linux 10 (32-bit)
+  - `debian10_64Guest` Debian Linux 10 (64-bit)
+  - `debian4Guest` Debian Linux 4 (32-bit)
+  - `debian4_64Guest` Debian Linux 4 (64-bit)
+  - `debian5Guest` Debian Linux 5 (32-bit)
+  - `debian5_64Guest` Debian Linux 5 (64-bit)
+  - `debian6Guest` Debian Linux 6 (32-bit)
+  - `debian6_64Guest` Debian Linux 6 (64-bit)
+  - `debian7Guest` Debian Linux 7 (32-bit)
+  - `debian7_64Guest` Debian Linux 7 (64-bit)
+  - `debian8Guest` Debian Linux 8 (32-bit)
+  - `debian8_64Guest` Debian Linux 8 (64-bit)
+  - `debian9Guest` Debian Linux 9 (32-bit)
+  - `debian9_64Guest` Debian Linux 9 (64-bit)
+  - `dosGuest` Microsoft MS-DOS
+  - `eComStation2Guest` Serenity Systems eComStation 2
+  - `eComStationGuest` Serenity Systems eComStation 1
+  - `freebsd11Guest` FreeBSD 11 (32-bit)
+  - `freebsd11_64Guest` FreeBSD 11 (64-bit)
+  - `freebsd12Guest` FreeBSD 12 or later versions (32-bit)
+  - `freebsd12_64Guest` FreeBSD 12 or later versions (64-bit)
+  - `freebsd64Guest` FreeBSD Pre-11 versions (64-bit)
+  - `freebsdGuest` FreeBSD Pre-11 versions (32-bit)
+  - `netware5Guest` Novell NetWare 5.x
+  - `netware6Guest` Novell NetWare 6.x
+  - `oesGuest` Novell Open Enterprise Server (32-bit)
+  - `openServer5Guest` SCO OpenServer 5
+  - `openServer6Guest` SCO OpenServer 6
+  - `oracleLinux64Guest` Oracle Linux 5 (64-bit)
+  - `oracleLinux6Guest` Oracle Linux 6 (32-bit)
+  - `oracleLinux6_64Guest` Oracle Linux 6 (64-bit)
+  - `oracleLinux7_64Guest` Oracle Linux 7 (64-bit)
+  - `oracleLinux8_64Guest` Oracle Linux 8 (64-bit)
+  - `oracleLinuxGuest` Oracle Linux 5 (32-bit)
+  - `os2Guest` IBM OS/2
+  - `other24xLinux64Guest` Other Linux 2.4.x (64-bit)
+  - `other24xLinuxGuest` Other Linux 2.4.x (32-bit)
+  - `other26xLinux64Guest` Other Linux 2.6.x (64-bit)
+  - `other26xLinuxGuest` Other Linux 2.6.x (32-bit)
+  - `other3xLinux64Guest` Other Linux 3.x (64-bit)
+  - `other3xLinuxGuest` Other Linux 3.x (32-bit)
+  - `other4xLinux64Guest` Other Linux 4.x (64-bit)
+  - `other4xLinuxGuest` Other Linux 4.x (32-bit)
+  - `otherGuest` Other (32-bit)
+  - `otherGuest64` Other (64-bit)
+  - `otherLinux64Guest` Other Linux (64-bit)
+  - `otherLinuxGuest` Other Linux (32-bit)
+  - `rhel2Guest` Red Hat Enterprise Linux 2 (32-bit)
+  - `rhel3Guest` Red Hat Enterprise Linux 3 (32-bit)
+  - `rhel3_64Guest` Red Hat Enterprise Linux 3 (64-bit)
+  - `rhel4Guest` Red Hat Enterprise Linux 4 (32-bit)
+  - `rhel4_64Guest` Red Hat Enterprise Linux 4 (64-bit)
+  - `rhel5Guest` Red Hat Enterprise Linux 5 (32-bit)
+  - `rhel5_64Guest` Red Hat Enterprise Linux 5 (64-bit)
+  - `rhel6Guest` Red Hat Enterprise Linux 6 (32-bit)
+  - `rhel6_64Guest` Red Hat Enterprise Linux 6 (64-bit)
+  - `rhel7_64Guest` Red Hat Enterprise Linux 7 (64-bit)
+  - `rhel8_64Guest` Red Hat Enterprise Linux 8 (64-bit)
+  - `sles10Guest` SUSE Linux Enterprise Server 10 (32-bit)
+  - `sles10_64Guest` SUSE Linux Enterprise Server 10 (64-bit)
+  - `sles11Guest` SUSE Linux Enterprise Server 11 (32-bit)
+  - `sles11_64Guest` SUSE Linux Enterprise Server 11 (64-bit)
+  - `sles12_64Guest` SUSE Linux Enterprise Server 12 (64-bit)
+  - `sles15_64Guest` SUSE Linux Enterprise Server 15 (64-bit)
+  - `sles64Guest` SUSE Linux Enterprise Server 11 (64-bit)
+  - `slesGuest` SUSE Linux Enterprise Server 11 (32-bit)
+  - `solaris10Guest` Oracle Solaris 10 (32-bit)
+  - `solaris10_64Guest` Oracle Solaris 10 (64-bit)
+  - `solaris11_64Guest` Oracle Solaris 11 (64-bit)
+  - `ubuntu64Guest` Ubuntu Linux 64-bit
+  - `ubuntuGuest` Ubuntu Linux 32-bit
+  - `unixWare7Guest` SCO UnixWare 7
+  - `vmwarePhoton64Guest` VMware Photon OS 64-bit
+  - `win2000AdvServGuest` Microsoft Windows 2000
+  - `win2000ProGuest` Microsoft Windows 2000 Professional
+  - `win2000ServGuest` Microsoft Windows 2000 Server
+  - `win31Guest` Microsoft Windows 3.1
+  - `win95Guest` Microsoft Windows 95
+  - `win98Guest` Microsoft Windows 98
+  - `winLonghorn64Guest` Microsoft Windows Server 2008 (64-bit)
+  - `winLonghornGuest` Microsoft Windows Server 2008 (32-bit)
+  - `winNTGuest` Microsoft Windows NT
+  - `winNetBusinessGuest` Microsoft Windows Small Business Server 2003
+  - `winNetDatacenter64Guest` Microsoft Windows Server 2003 Datacenter Edition (64-bit)
+  - `winNetDatacenterGuest` Microsoft Windows Server 2003 Datacenter Edition (32-bit)
+  - `winNetEnterprise64Guest` Microsoft Windows Server 2003 (64-bit)
+  - `winNetEnterpriseGuest` Microsoft Windows Server 2003 (32-bit)
+  - `winNetStandard64Guest` Microsoft Windows Server 2003 Standard Edition (64-bit)
+  - `winNetStandardGuest` Microsoft Windows Server 2003 Standard Edition (32-bit)
+  - `winNetWebGuest` Microsoft Windows Server 2003 Web Edition (32-bit)
+  - `winVista64Guest` Microsoft Windows Vista (64-bit)
+  - `winVistaGuest` Microsoft Windows Vista (32-bit)
+  - `winXPPro64Guest` Microsoft Windows XP Professional (64-bit)
+  - `winXPProGuest` Microsoft Windows XP Professional (32-bit)
+  - `windows7Guest` Microsoft Windows 7 (32-bit)
+  - `windows7Server64Guest` Microsoft Windows Server 2008 R2 (64-bit)
+  - `windows7_64Guest` Microsoft Windows 7 (64-bit)
+  - `windows8Guest` Microsoft Windows 8.x (32-bit)
+  - `windows8Server64Guest` Microsoft Windows Server 2012 (64-bit)
+  - `windows8_64Guest` Microsoft Windows 8.x (64-bit)
+  - `windows9Guest` Microsoft Windows 10 (32-bit)
+  - `windows9_64Guest` Microsoft Windows 10 (64-bit).
 - `storage_profile` (String) The storage profile name to use. Value must be one of : `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm`.
 
 <a id="nestedatt--settings--customization"></a>

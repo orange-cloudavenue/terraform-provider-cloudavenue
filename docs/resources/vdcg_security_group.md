@@ -33,8 +33,8 @@ resource "cloudavenue_vdcg_security_group" "example" {
 
 - `description` (String) The description of the security group.
 - `member_org_network_ids` (Set of String) The list of organization network IDs to which the security group is applied. Element value must satisfy all validations: must be a valid URN + must start with "urn:vcloud:network:".
-- `vdc_group_id` (String) (ForceNew) The ID of the VDC Group to which the security group belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id]. This value must start with `urn:vcloud:vdcGroup:`.
-- `vdc_group_name` (String) (ForceNew) The name of the VDC Group to which the security group belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
+- `vdc_group_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the VDC Group to which the security group belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id]. This value must start with `urn:vcloud:vdcGroup:`.
+- `vdc_group_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the VDC Group to which the security group belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
 
 ### Read-Only
 

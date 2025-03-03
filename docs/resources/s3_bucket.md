@@ -22,11 +22,11 @@ resource "cloudavenue_s3_bucket" "example" {
 
 ### Required
 
-- `name` (String) (ForceNew) The name of the bucket. A full list of bucket naming rules (may be found here)[https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html].
+- `name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the bucket. A full list of bucket naming rules (may be found here)[https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html].
 
 ### Optional
 
-- `object_lock` (Boolean) (ForceNew) Indicates whether this bucket has an Object Lock configuration enabled. Value defaults to `false`.
+- `object_lock` (Boolean) <i style="color:red;font-weight: bold">(ForceNew)</i> Indicates whether this bucket has an Object Lock configuration enabled. Value defaults to `false`.
 
 ### Read-Only
 

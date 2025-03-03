@@ -79,8 +79,8 @@ resource "cloudavenue_edgegateway_vpn_ipsec" "example" {
 ### Optional
 
 - `description` (String) A description of the IPsec VPN Tunnel Configuration.
-- `edge_gateway_id` (String) (ForceNew) The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
-- `edge_gateway_name` (String) (ForceNew) The Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
+- `edge_gateway_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
+- `edge_gateway_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 - `enabled` (Boolean) Enable or Disable the IPsec VPN Tunnel Configuration. Value defaults to `true`.
 - `security_profile` (Attributes) Customization of your IPSec configuration. The configuration used must be symmetric for both endpoint VPN. (see [below for nested schema](#nestedatt--security_profile))
 
@@ -97,15 +97,20 @@ Optional:
 - `ike_dh_groups` (String) The Diffie-Hellman (DH) key exchange algorithm is a method used to make a shared encryption key available to two entities over an insecure communications channel. Value must be one of : `GROUP2`, `GROUP5`, `GROUP14`, `GROUP15`, `GROUP16`, `GROUP19`, `GROUP20`, `GROUP21`.
 - `ike_digest_algorithm` (String) Secure hashing algorithms to use during the IKE negotiation. Value must be one of : `SHA1`, `SHA2_256`, `SHA2_384`, `SHA2_512`. If the value of [`<.ike_encryption_algorithm`](#<.ike_encryption_algorithm) attribute is one of `AES_GCM_128`, `AES_GCM_256` or `AES_GCM_512` this attribute is **NULL**.
 - `ike_encryption_algorithm` (String) Encryption algorithms used by IKE. Value must be one of : `AES_128`, `AES_256`, `AES_GCM_128`, `AES_GCM_192`, `AES_GCM_256`.
-- `ike_sa_lifetime` (Number) Security association lifetime in seconds. It is number of seconds before the IPsec tunnel ike part needs to reestablish. Value must be between 21600 and 31536000. Value defaults to `86400`.
-- `ike_version` (String) IKE (Internet Key Exchange) is an encrypt protocol of your VPN data. Value must be one of: `IKE_V1` (When you select this option, IPSec VPN initiates and responds to IKEv1 protocol only.), `IKE_V2` (The default option. When you select this version, IPSec VPN initiates and responds to IKEv2 protocol only.), `IKE_FLEX` (When you select this option, if the tunnel establishment fails with IKEv2 protocol, the source site does not fall back and initiate a connection with the IKEv1 protocol. Instead, if the remote site initiates a connection with the IKEv1 protocol, then the connection is accepted.).
-- `tunnel_df_policy` (String) Policy for handling defragmentation. Value must be one of: `COPY` (Copies the defragmentation bit from the inner IP packet to the outer packet.), `CLEAR` (Ignores the defragmentation bit present in the inner packet.). Value defaults to `COPY`.
+- `ike_sa_lifetime` (Number) Security association lifetime in seconds. It is number of seconds before the IPsec tunnel ike part needs to reestablish. Value defaults to `86400`. Value must be between 21600 and 31536000.
+- `ike_version` (String) IKE (Internet Key Exchange) is an encrypt protocol of your VPN data. Value must be one of: 
+  - `IKE_V1` When you select this option, IPSec VPN initiates and responds to IKEv1 protocol only.
+  - `IKE_V2` The default option. When you select this version, IPSec VPN initiates and responds to IKEv2 protocol only.
+  - `IKE_FLEX` When you select this option, if the tunnel establishment fails with IKEv2 protocol, the source site does not fall back and initiate a connection with the IKEv1 protocol. Instead, if the remote site initiates a connection with the IKEv1 protocol, then the connection is accepted.
+- `tunnel_df_policy` (String) Policy for handling defragmentation. Value defaults to `COPY`. Value must be one of: 
+  - `COPY` Copies the defragmentation bit from the inner IP packet to the outer packet.
+  - `CLEAR` Ignores the defragmentation bit present in the inner packet.
 - `tunnel_dh_groups` (String) The Diffie-Hellman (DH) key exchange algorithm is a method used to make a shared encryption key available to two entities over an insecure communications channel. Value must be one of : `GROUP2`, `GROUP5`, `GROUP14`, `GROUP15`, `GROUP16`, `GROUP19`, `GROUP20`, `GROUP21`.
 - `tunnel_digest_algorithms` (String) Digest algorithms to be used for message digest. Value must be one of : `SHA1`, `SHA2_256`, `SHA2_384`, `SHA2_512`. If the value of [`<.tunnel_encryption_algorithms`](#<.tunnel_encryption_algorithms) attribute is one of `AES_GCM_128`, `AES_GCM_256` or `AES_GCM_512` this attribute is **NULL**.
-- `tunnel_dpd` (Number) Value in seconds of Dead Probe Detection interval. Value must be between 3 and 60. Value defaults to `60`.
+- `tunnel_dpd` (Number) Value in seconds of Dead Probe Detection interval. Value defaults to `60`. Value must be between 3 and 60.
 - `tunnel_encryption_algorithms` (String) Encryption algorithms to use in IPSec tunnel establishment. Value must be one of : `AES_128`, `AES_256`, `AES_GCM_128`, `AES_GCM_192`, `AES_GCM_256`.
 - `tunnel_pfs` (Boolean) PFS (Perfect Forward Secrecy) capacity enabled or disabled. It's generates unique private keys for each secure session. Value defaults to `true`.
-- `tunnel_sa_lifetime` (Number) Security association lifetime in seconds. It is number of seconds before the IPsec tunnel needs to reestablish. Value must be between 900 and 31536000. Value defaults to `3600`.
+- `tunnel_sa_lifetime` (Number) Security association lifetime in seconds. It is number of seconds before the IPsec tunnel needs to reestablish. Value defaults to `3600`. Value must be between 900 and 31536000.
 
 ## Import
 

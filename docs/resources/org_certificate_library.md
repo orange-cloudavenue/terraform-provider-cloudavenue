@@ -25,14 +25,14 @@ resource "cloudavenue_org_certificate_library" "example" {
 
 ### Required
 
-- `certificate` (String) (ForceNew) The certificate content. It can be a PEM encoded certificate or a certificate chain. Contains all strings including the BEGIN CERTIFICATE and END CERTIFICATE lines. No empty lines are allowed.
+- `certificate` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The certificate content. It can be a PEM encoded certificate or a certificate chain. Contains all strings including the BEGIN CERTIFICATE and END CERTIFICATE lines. No empty lines are allowed.
 - `name` (String) The name of the certificate library.
 
 ### Optional
 
 - `description` (String) The description of the certificate library.
-- `passphrase` (String, Sensitive) (ForceNew) The passphrase of the private key.
-- `private_key` (String, Sensitive) (ForceNew) The private key of the certificate in PEM format.
+- `passphrase` (String, Sensitive) <i style="color:red;font-weight: bold">(ForceNew)</i> The passphrase of the private key.
+- `private_key` (String, Sensitive) <i style="color:red;font-weight: bold">(ForceNew)</i> The private key of the certificate in PEM format.
 
 ### Read-Only
 

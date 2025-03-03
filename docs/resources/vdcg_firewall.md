@@ -35,8 +35,8 @@ resource "cloudavenue_vdcg_firewall" "example" {
 ### Optional
 
 - `enabled` (Boolean) Defines if the firewall is enabled or not. Value defaults to `true`.
-- `vdc_group_id` (String) (ForceNew) The ID of the VDC Group to which the firewall belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id]. This value must start with `urn:vcloud:vdcGroup:`.
-- `vdc_group_name` (String) (ForceNew) The name of the VDC Group to which the firewall belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
+- `vdc_group_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the VDC Group to which the firewall belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id]. This value must start with `urn:vcloud:vdcGroup:`.
+- `vdc_group_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the VDC Group to which the firewall belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
 
 ### Read-Only
 
@@ -57,7 +57,7 @@ Optional:
 - `destination_groups_excluded` (Boolean) Reverses value of `destination_ids` for the rule to match everything except specified IDs. Value defaults to `false`.
 - `destination_ids` (Set of String) A set of Destination Firewall Group IDs ([`IP Sets`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_ip_set), [`Security Groups`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_security_group) or [`Dynamic Security Group`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_dynamic_security_group)). Leaving it empty means `Any` (all).
 - `enabled` (Boolean) Defines if the rule is enabled or not. Value defaults to `true`.
-- `ip_protocol` (String) The IP protocol of the rule. Value must be one of : `IPV4`, `IPV6`, `IPV4_IPV6`. Value defaults to `IPV4`.
+- `ip_protocol` (String) The IP protocol of the rule. Value defaults to `IPV4`. Value must be one of : `IPV4`, `IPV6`, `IPV4_IPV6`.
 - `logging` (Boolean) Defines if the rule should log matching traffic. Value defaults to `false`.
 - `source_groups_excluded` (Boolean) Reverses value of `source_ids` for the rule to match everything except specified IDs. Value defaults to `false`.
 - `source_ids` (Set of String) A set of Source Firewall Group IDs ([`IP Sets`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_ip_set), [`Security Groups`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_security_group) or [`Dynamic Security Group`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_dynamic_security_group)). Leaving it empty means `Any` (all).
