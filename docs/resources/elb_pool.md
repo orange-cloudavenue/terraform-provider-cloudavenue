@@ -42,19 +42,28 @@ resource "cloudavenue_elb_pool" "example" {
 ### Required
 
 - `default_port` (Number) DefaultPort defines destination server port used by the traffic sent to the member.
-- `members` (Attributes) . (see [below for nested schema](#nestedatt--members))
+- `members` (Attributes) The members of the pool. (see [below for nested schema](#nestedatt--members))
 - `name` (String) The name of the pool.
 
 ### Optional
 
-- `algorithm` (String) The heart of a load balancer is its ability to effectively distribute traffic across healthy servers. If persistence is enabled, only the first connection from a client is load balanced. While the persistence remains in effect, subsequent connections or requests from a client are directed to the same server. Value must be one of: `CONSISTENT_HASH` (New connections are distributed across the servers by using the IP address of the client to generate an IP hash.), `CORE_AFFINITY` (Each CPU core uses a subset of servers, and each server is used by a subset of cores. Essentially it provides a many-to-many mapping between servers and cores.), `FASTEST_RESPONSE` (New connections are sent to the server that is currently providing the fastest response to new connections or requests.), `FEWEST_SERVERS` (Instead of attempting to distribute all connections or requests across all servers, the fewest number of servers which are required to satisfy the current client load will be determined.), `FEWEST_TASKS` (Load is adaptively balanced, based on server feedback.), `LEAST_CONNECTIONS` (New connections are sent to the server that currently has the least number of outstanding concurrent connections.), `LEAST_LOAD` (New connections are sent to the server with the lightest load, regardless of the number of connections that server has.), `RANDOM` (Picks servers at random), `ROUND_ROBIN` (New connections are sent to the next eligible server in the pool in sequential order.). Value defaults to `LEAST_CONNECTIONS`.
+- `algorithm` (String) The heart of a load balancer is its ability to effectively distribute traffic across healthy servers. If persistence is enabled, only the first connection from a client is load balanced. While the persistence remains in effect, subsequent connections or requests from a client are directed to the same server. Value defaults to `LEAST_CONNECTIONS`. Value must be one of: 
+  - `CONSISTENT_HASH` New connections are distributed across the servers by using the IP address of the client to generate an IP hash.
+  - `CORE_AFFINITY` Each CPU core uses a subset of servers, and each server is used by a subset of cores. Essentially it provides a many-to-many mapping between servers and cores.
+  - `FASTEST_RESPONSE` New connections are sent to the server that is currently providing the fastest response to new connections or requests.
+  - `FEWEST_SERVERS` Instead of attempting to distribute all connections or requests across all servers, the fewest number of servers which are required to satisfy the current client load will be determined.
+  - `FEWEST_TASKS` Load is adaptively balanced, based on server feedback.
+  - `LEAST_CONNECTIONS` New connections are sent to the server that currently has the least number of outstanding concurrent connections.
+  - `LEAST_LOAD` New connections are sent to the server with the lightest load, regardless of the number of connections that server has.
+  - `RANDOM` Picks servers at random
+  - `ROUND_ROBIN` New connections are sent to the next eligible server in the pool in sequential order.
 - `description` (String) The name of the pool.
-- `edge_gateway_id` (String) (ForceNew) The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
-- `edge_gateway_name` (String) (ForceNew) The name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
+- `edge_gateway_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
+- `edge_gateway_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 - `enabled` (Boolean) Enable or disable the pool. Value defaults to `true`.
-- `health` (Attributes) . Value defaults to `{"monitors":<null>,"passive_monitoring_enabled":true}`. (see [below for nested schema](#nestedatt--health))
-- `persistence` (Attributes) . Value defaults to `{"type":"CLIENT_IP","value":<null>}`. (see [below for nested schema](#nestedatt--persistence))
-- `tls` (Attributes) . Value defaults to `{"ca_certificate_refs":<null>,"common_name_check_enabled":false,"domain_names":<null>,"enabled":false}`. (see [below for nested schema](#nestedatt--tls))
+- `health` (Attributes) Health check member servers health. It can be monitored by using one or more health monitors. Active monitors generate synthetic traffic and mark a server up or down based on the response. Value defaults to `{"monitors":<null>,"passive_monitoring_enabled":true}`. (see [below for nested schema](#nestedatt--health))
+- `persistence` (Attributes) Persistence profile will ensure that the same user sticks to the same server for a desired duration of time. If the persistence profile is unmanaged by ELB, updates that leave the values unchanged will continue to use the same unmanaged profile. Any changes made to the persistence profile will cause ELB to switch the pool to a profile managed by ELB. Value defaults to `{"type":"CLIENT_IP","value":<null>}`. (see [below for nested schema](#nestedatt--persistence))
+- `tls` (Attributes) The TLS configuration of the pool. Value defaults to `{"ca_certificate_refs":<null>,"common_name_check_enabled":false,"domain_names":<null>,"enabled":false}`. (see [below for nested schema](#nestedatt--tls))
 
 ### Read-Only
 
@@ -74,7 +83,7 @@ Optional:
 
 Required:
 
-- `ip_address` (String) The IP address of the member. The value must be a valid IPV4 address (`192.168.0.1`).
+- `ip_address` (String) The IP address of the member. The value must be a valid IPV4 address (Ex: `192.168.0.1`).
 - `port` (Number) The port of the member.
 
 Optional:
@@ -98,7 +107,12 @@ Optional:
 
 Optional:
 
-- `type` (String) The type of the persistence. Value must be one of: `APP_COOKIE` (Load Balancer reads existing server cookies or URI embedded data such as JSessionID. Cookie name must be provided as value.), `CLIENT_IP` (The clients IP is used as the identifier and mapped to the server.), `CUSTOM_HTTP_HEADER` (Custom, static mappings of header values to specific servers are used. Header name must be provided as value.), `HTTP_COOKIE` (Load Balancer inserts a cookie into HTTP responses. Cookie name must be provided as value.), `TLS` (Information is embedded in the client's SSL/TLS ticket ID. This will use default system profile System-Persistence-TLS.). Value defaults to `CLIENT_IP`.
+- `type` (String) The type of the persistence. Value defaults to `CLIENT_IP`. Value must be one of: 
+  - `APP_COOKIE` Load Balancer reads existing server cookies or URI embedded data such as JSessionID. Cookie name must be provided as value.
+  - `CLIENT_IP` The clients IP is used as the identifier and mapped to the server.
+  - `CUSTOM_HTTP_HEADER` Custom, static mappings of header values to specific servers are used. Header name must be provided as value.
+  - `HTTP_COOKIE` Load Balancer inserts a cookie into HTTP responses. Cookie name must be provided as value.
+  - `TLS` Information is embedded in the client's SSL/TLS ticket ID. This will use default system profile System-Persistence-TLS.
 - `value` (String) The value of the persistence. If the value of [`<.type`](#<.type) attribute is one of `HTTP_COOKIE`, `CUSTOM_HTTP_HEADER` or `APP_COOKIE` this attribute is **REQUIRED**.
 
 

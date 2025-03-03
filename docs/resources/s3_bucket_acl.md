@@ -69,12 +69,12 @@ resource "cloudavenue_s3_bucket_acl" "example" {
 
 ### Required
 
-- `bucket` (String) (ForceNew) The Name of the bucket.
+- `bucket` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The Name of the bucket.
 
 ### Optional
 
 - `access_control_policy` (Attributes) A configuration block that sets the ACL permissions for an object per grantee. Ensure that if an attribute is set, these are not set: "[access_control_policy,acl]". (see [below for nested schema](#nestedatt--access_control_policy))
-- `acl` (String) (ForceNew) The canned ACL to apply to the bucket. Each canned ACL has a predefined set of grantees and permissions. [For more information](https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#specifying-grantee-predefined-acl). Value must be one of : `private`, `public-read`, `public-read-write`, `authenticated-read`, `bucket-owner-read`, `bucket-owner-full-control`. Ensure that if an attribute is set, these are not set: "[access_control_policy,acl]".
+- `acl` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The canned ACL to apply to the bucket. Each canned ACL has a predefined set of grantees and permissions. [For more information](https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#specifying-grantee-predefined-acl). Value must be one of : `private`, `public-read`, `public-read-write`, `authenticated-read`, `bucket-owner-read`, `bucket-owner-full-control`. Ensure that if an attribute is set, these are not set: "[access_control_policy,acl]".
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

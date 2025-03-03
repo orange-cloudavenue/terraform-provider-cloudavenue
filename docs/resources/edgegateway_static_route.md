@@ -41,8 +41,8 @@ resource "cloudavenue_edgegateway_static_route" "example" {
 ### Optional
 
 - `description` (String) The description of the Static Route.
-- `edge_gateway_id` (String) (ForceNew) The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
-- `edge_gateway_name` (String) (ForceNew) The name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
+- `edge_gateway_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
+- `edge_gateway_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 
 ### Read-Only
 
@@ -57,7 +57,7 @@ Required:
 
 Optional:
 
-- `admin_distance` (Number) Admin distance is used to choose which route to use when there are multiple routes for a specific network. The lower the admin distance, the higher the preference for the route. Value must be at least 1. Value defaults to `1`.
+- `admin_distance` (Number) Admin distance is used to choose which route to use when there are multiple routes for a specific network. The lower the admin distance, the higher the preference for the route. Value defaults to `1`. Value must be at least 1.
 
 ## Import
 

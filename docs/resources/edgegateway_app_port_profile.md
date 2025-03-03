@@ -44,8 +44,8 @@ resource "cloudavenue_edgegateway_app_port_profile" "example" {
 ### Optional
 
 - `description` (String) Application Port Profile description.
-- `edge_gateway_id` (String) (ForceNew) ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`. This value must start with `urn:vcloud:gateway:`.
-- `edge_gateway_name` (String) (ForceNew) Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
+- `edge_gateway_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`. This value must start with `urn:vcloud:gateway:`.
+- `edge_gateway_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
 
 ### Read-Only
 

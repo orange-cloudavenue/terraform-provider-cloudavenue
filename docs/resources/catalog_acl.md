@@ -75,7 +75,7 @@ Required:
 
 Optional:
 
-- `access_level` (String) The access level for the user to which we are sharing. Value must be one of : `ReadOnly`, `Change`, `FullControl`. Value defaults to `ReadOnly`.
+- `access_level` (String) The access level for the user to which we are sharing. Value defaults to `ReadOnly`. Value must be one of : `ReadOnly`, `Change`, `FullControl`.
 
 ## Import
 

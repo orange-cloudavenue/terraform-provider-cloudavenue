@@ -24,8 +24,8 @@ resource "cloudavenue_publicip" "example" {
 
 ### Optional
 
-- `edge_gateway_id` (String) (ForceNew) The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
-- `edge_gateway_name` (String) (ForceNew) The name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
+- `edge_gateway_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
+- `edge_gateway_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

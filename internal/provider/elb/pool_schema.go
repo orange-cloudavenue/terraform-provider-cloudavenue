@@ -156,7 +156,7 @@ func poolSchema(ctx context.Context) superschema.Schema {
 			},
 			"members": superschema.SuperSingleNestedAttributeOf[PoolModelMembers]{
 				Common: &schemaR.SingleNestedAttribute{
-					Description: "The members of the pool.",
+					MarkdownDescription: "The members of the pool.",
 				},
 				Resource: &schemaR.SingleNestedAttribute{
 					Required: true,
@@ -259,8 +259,8 @@ func poolSchema(ctx context.Context) superschema.Schema {
 			},
 			"health": superschema.SuperSingleNestedAttributeOf[PoolModelHealth]{
 				Common: &schemaR.SingleNestedAttribute{
-					Description: "Health check member servers health. It can be monitored by using one or more health monitors. Active monitors generate synthetic traffic and mark a server up or down based on the response.",
-					Computed:    true,
+					MarkdownDescription: "Health check member servers health. It can be monitored by using one or more health monitors. Active monitors generate synthetic traffic and mark a server up or down based on the response.",
+					Computed:            true,
 				},
 				Resource: &schemaR.SingleNestedAttribute{
 					Optional: true,
@@ -306,8 +306,8 @@ func poolSchema(ctx context.Context) superschema.Schema {
 			},
 			"tls": superschema.SuperSingleNestedAttributeOf[PoolModelTLS]{
 				Common: &schemaR.SingleNestedAttribute{
-					Description: "The TLS configuration of the pool.",
-					Computed:    true,
+					MarkdownDescription: "The TLS configuration of the pool.",
+					Computed:            true,
 				},
 				Resource: &schemaR.SingleNestedAttribute{
 					Optional: true,
@@ -374,8 +374,8 @@ func poolSchema(ctx context.Context) superschema.Schema {
 			},
 			"persistence": superschema.SuperSingleNestedAttributeOf[PoolModelPersistence]{
 				Common: &schemaR.SingleNestedAttribute{
-					Description: "Persistence profile will ensure that the same user sticks to the same server for a desired duration of time. If the persistence profile is unmanaged by ELB, updates that leave the values unchanged will continue to use the same unmanaged profile. Any changes made to the persistence profile will cause ELB to switch the pool to a profile managed by ELB.",
-					Computed:    true,
+					MarkdownDescription: "Persistence profile will ensure that the same user sticks to the same server for a desired duration of time. If the persistence profile is unmanaged by ELB, updates that leave the values unchanged will continue to use the same unmanaged profile. Any changes made to the persistence profile will cause ELB to switch the pool to a profile managed by ELB.",
+					Computed:            true,
 				},
 				Resource: &schemaR.SingleNestedAttribute{
 					Optional: true,

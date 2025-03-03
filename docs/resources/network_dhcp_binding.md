@@ -43,14 +43,14 @@ resource "cloudavenue_network_dhcp" "example" {
 - `ip_address` (String) The IP address of the DHCP Binding. Must be a valid IP with net.ParseIP.
 - `mac_address` (String) The MAC address of the DHCP Binding. Must be a valid mac address.
 - `name` (String) The name of the DHCP Binding.
-- `org_network_id` (String) (ForceNew) The ID of the Org Network.<br/>**Note** (`.id` field) of `cloudavenue_network_isolated`, `cloudavenue_network_routed` or `cloudavenue_network_dhcp` can be referenced here. It is more convenient to use reference to `cloudavenue_network_dhcp` ID because it makes sure that DHCP is enabled before configuring pools. Must be a valid URN.
+- `org_network_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the Org Network.<br/>**Note** (`.id` field) of `cloudavenue_network_isolated`, `cloudavenue_network_routed` or `cloudavenue_network_dhcp` can be referenced here. It is more convenient to use reference to `cloudavenue_network_dhcp` ID because it makes sure that DHCP is enabled before configuring pools. Must be a valid URN.
 
 ### Optional
 
 - `description` (String) The description of the DHCP Binding.
 - `dhcp_v4_config` (Attributes) The DHCPv4 configuration for the DHCP Binding. (see [below for nested schema](#nestedatt--dhcp_v4_config))
 - `dns_servers` (List of String) The DNS server IPs to be assigned by this DHCP service. List must contain at most 2 elements.
-- `lease_time` (Number) The lease time in seconds for the DHCP service. Value must be at least 60. Value defaults to `86400`.
+- `lease_time` (Number) The lease time in seconds for the DHCP service. Value defaults to `86400`. Value must be at least 60.
 
 ### Read-Only
 

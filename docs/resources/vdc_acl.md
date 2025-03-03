@@ -25,7 +25,7 @@ resource "cloudavenue_vdc_acl" "example" {
 
 - `everyone_access_level` (String) Access level when the vApp is shared with everyone. Ensure that one and only one attribute from this collection is set : `shared_with`, `everyone_access_level`.
 - `shared_with` (Attributes Set) One or more blocks defining the subjects with whom we are sharing. Ensure that one and only one attribute from this collection is set : `everyone_access_level`, `shared_with`. (see [below for nested schema](#nestedatt--shared_with))
-- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
+- `vdc` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 

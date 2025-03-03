@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/aws-sdk-go-base v1.1.0
 	github.com/hashicorp/awspolicyequivalence v1.7.0
 	github.com/hashicorp/terraform-plugin-docs v0.21.0
-	github.com/hashicorp/terraform-plugin-framework v1.14.0
+	github.com/hashicorp/terraform-plugin-framework v1.14.1
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.17.0
 	github.com/hashicorp/terraform-plugin-go v0.26.0
@@ -25,9 +25,9 @@ require (
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
 	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
 	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.0
-	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.9.1
-	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v0.5.0
-	github.com/orange-cloudavenue/terraform-plugin-framework-validators v1.13.0
+	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.10.1
+	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.0.0
+	github.com/orange-cloudavenue/terraform-plugin-framework-validators v1.14.1
 	github.com/rs/zerolog v1.33.0
 	github.com/thanhpk/randstr v1.0.6
 	github.com/vmware/go-vcloud-director/v2 v2.26.1
@@ -67,7 +67,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-resty/resty/v2 v2.16.5 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/hashicorp/cli v1.1.7 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-checkpoint v0.5.0 // indirect

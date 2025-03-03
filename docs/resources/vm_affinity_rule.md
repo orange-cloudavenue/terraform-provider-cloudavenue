@@ -77,14 +77,14 @@ resource "cloudavenue_vapp" "example" {
 ### Required
 
 - `name` (String) VM affinity rule name.
-- `polarity` (String) (ForceNew) The polarity of the affinity rule. Value must be one of : `Affinity`, `Anti-Affinity`.
+- `polarity` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The polarity of the affinity rule. Value must be one of : `Affinity`, `Anti-Affinity`.
 - `vm_ids` (Set of String) List of VM IDs to apply the affinity rule to. Set must contain at least 2 elements. Element value must satisfy all validations: must be a valid URN.
 
 ### Optional
 
 - `enabled` (Boolean) `True` if this affinity rule is enabled. Value defaults to `true`.
 - `required` (Boolean) `True` if this affinity rule is required. When a rule is mandatory, a host failover will not power on the VM if doing so would violate the rule. Value defaults to `true`.
-- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
+- `vdc` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 
