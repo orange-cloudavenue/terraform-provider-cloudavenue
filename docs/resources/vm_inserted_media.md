@@ -28,15 +28,15 @@ resource "cloudavenue_vm_inserted_media" "example" {
 
 ### Required
 
-- `catalog` (String) (ForceNew) The name of the catalog where to find media file.
-- `name` (String) (ForceNew) Media file name in catalog which will be inserted to VM.
-- `vm_name` (String) (ForceNew) VM name where media will be inserted or ejected.
+- `catalog` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the catalog where to find media file.
+- `name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Media file name in catalog which will be inserted to VM.
+- `vm_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> VM name where media will be inserted or ejected.
 
 ### Optional
 
-- `vapp_id` (String) (ForceNew) ID of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
-- `vapp_name` (String) (ForceNew) Name of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_id`, `vapp_name`.
-- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
+- `vapp_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> ID of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
+- `vapp_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Name of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_id`, `vapp_name`.
+- `vdc` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 

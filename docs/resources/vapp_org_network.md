@@ -64,13 +64,13 @@ resource "cloudavenue_vapp_org_network" "example" {
 
 ### Required
 
-- `network_name` (String) (ForceNew) Organization network name to which vApp network is connected to.
+- `network_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Organization network name to which vApp network is connected to.
 
 ### Optional
 
-- `vapp_id` (String) (ForceNew) ID of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
-- `vapp_name` (String) (ForceNew) Name of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_id`, `vapp_name`.
-- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
+- `vapp_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> ID of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
+- `vapp_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Name of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_id`, `vapp_name`.
+- `vdc` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 

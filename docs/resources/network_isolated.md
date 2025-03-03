@@ -92,9 +92,9 @@ resource "cloudavenue_network_isolated" "example" {
 
 ### Required
 
-- `gateway` (String) (ForceNew) The gateway IP address for the network. This value define also the network IP range with the prefix length. Must be a valid IP with net.ParseIP.
+- `gateway` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The gateway IP address for the network. This value define also the network IP range with the prefix length. Must be a valid IP with net.ParseIP.
 - `name` (String) The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.
-- `prefix_length` (Number) (ForceNew) The prefix length for the network. This value must be a valid prefix length for the network IP range. (e.g. /24 for netmask 255.255.255.0). Value must be between 1 and 32.
+- `prefix_length` (Number) <i style="color:red;font-weight: bold">(ForceNew)</i> The prefix length for the network. This value must be a valid prefix length for the network IP range. (e.g. /24 for netmask 255.255.255.0). Value must be between 1 and 32.
 
 ### Optional
 
@@ -103,7 +103,7 @@ resource "cloudavenue_network_isolated" "example" {
 - `dns2` (String) The secondary DNS server IP address for the network. Must be a valid IP with net.ParseIP.
 - `dns_suffix` (String) The DNS suffix for the network.
 - `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. Set must contain at least 1 elements. (see [below for nested schema](#nestedatt--static_ip_pool))
-- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
+- `vdc` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 

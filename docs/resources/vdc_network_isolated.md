@@ -30,10 +30,10 @@ resource "cloudavenue_vdc_network_isolated" "example" {
 
 ### Required
 
-- `gateway` (String) (ForceNew) The gateway IP address for the network. This value define also the network IP range with the prefix length. Must be a valid IP with net.ParseIP.
+- `gateway` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The gateway IP address for the network. This value define also the network IP range with the prefix length. Must be a valid IP with net.ParseIP.
 - `name` (String) The name of the network. This value must be unique within the `VDC` that owns the network.
-- `prefix_length` (Number) (ForceNew) The prefix length for the network. This value must be a valid prefix length for the network IP range. (e.g. /24 for netmask 255.255.255.0). For more information, see [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing). Value must be between 1 and 32.
-- `vdc` (String) (ForceNew) The name of vDC to use.
+- `prefix_length` (Number) <i style="color:red;font-weight: bold">(ForceNew)</i> The prefix length for the network. This value must be a valid prefix length for the network IP range. (e.g. /24 for netmask 255.255.255.0). For more information, see [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing). Value must be between 1 and 32.
+- `vdc` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of vDC to use.
 
 ### Optional
 

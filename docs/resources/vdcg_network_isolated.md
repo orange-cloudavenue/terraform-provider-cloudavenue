@@ -30,9 +30,9 @@ resource "cloudavenue_vdcg_network_isolated" "example" {
 
 ### Required
 
-- `gateway` (String) (ForceNew) The gateway IP address for the network. This value define also the network IP range with the prefix length. Must be a valid IP with net.ParseIP.
+- `gateway` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The gateway IP address for the network. This value define also the network IP range with the prefix length. Must be a valid IP with net.ParseIP.
 - `name` (String) The name of the network. This value must be unique within the `VDC` that owns the network.
-- `prefix_length` (Number) (ForceNew) The prefix length for the network. This value must be a valid prefix length for the network IP range. (e.g. /24 for netmask 255.255.255.0). For more information, see [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing). Value must be between 1 and 32.
+- `prefix_length` (Number) <i style="color:red;font-weight: bold">(ForceNew)</i> The prefix length for the network. This value must be a valid prefix length for the network IP range. (e.g. /24 for netmask 255.255.255.0). For more information, see [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing). Value must be between 1 and 32.
 
 ### Optional
 
@@ -42,8 +42,8 @@ resource "cloudavenue_vdcg_network_isolated" "example" {
 - `dns_suffix` (String) The DNS suffix for the network.
 - `guest_vlan_allowed` (Boolean) Indicates if the network allows guest VLANs. Value defaults to `false`.
 - `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. (see [below for nested schema](#nestedatt--static_ip_pool))
-- `vdc_group_id` (String) (ForceNew) The ID of vDC group that owns the network. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id]. This value must start with `urn:vcloud:vdcGroup:`.
-- `vdc_group_name` (String) (ForceNew) The name of vDC group that owns the network. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
+- `vdc_group_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of vDC group that owns the network. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id]. This value must start with `urn:vcloud:vdcGroup:`.
+- `vdc_group_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of vDC group that owns the network. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
 
 ### Read-Only
 

@@ -46,8 +46,8 @@ resource "cloudavenue_s3_bucket_policy" "example" {
 
 ### Required
 
-- `bucket` (String) (ForceNew) The name of the bucket.
-- `policy` (String) (ForceNew) The policy document. This is a JSON formatted string. For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies.html).
+- `bucket` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the bucket.
+- `policy` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The policy document. This is a JSON formatted string. For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies.html).
 
 ### Optional
 

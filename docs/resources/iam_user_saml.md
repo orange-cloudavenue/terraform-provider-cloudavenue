@@ -28,7 +28,7 @@ resource "cloudavenue_iam_user_saml" "example" {
 ### Required
 
 - `role_name` (String) The role assigned to the user.
-- `user_name` (String) (ForceNew) The username of the user in the SAML provider.
+- `user_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The username of the user in the SAML provider.
 
 ### Optional
 

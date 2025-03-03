@@ -34,8 +34,8 @@ resource "cloudavenue_edgegateway" "example" {
 
 ### Required
 
-- `owner_name` (String) (ForceNew) The name of the Edge Gateway owner. It can be a VDC or a VDC Group name.
-- `tier0_vrf_name` (String) (ForceNew) The name of the Tier-0 VRF to which the Edge Gateway is attached.
+- `owner_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the Edge Gateway owner. It can be a VDC or a VDC Group name.
+- `tier0_vrf_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the Tier-0 VRF to which the Edge Gateway is attached.
 
 ### Optional
 

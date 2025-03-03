@@ -89,7 +89,7 @@ resource "cloudavenue_s3_bucket_website_configuration" "example" {
 
 ### Required
 
-- `bucket` (String) (ForceNew) The name of the bucket.
+- `bucket` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the bucket.
 
 ### Optional
 

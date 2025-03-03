@@ -53,7 +53,7 @@ resource "cloudavenue_vm_security_tag" "example" {
 
 ### Required
 
-- `id` (String) (ForceNew) ID is the name of the security tag. String length must be between 1 and 129.
+- `id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> ID is the name of the security tag. String length must be between 1 and 129.
 - `vm_ids` (Set of String) The IDs of the VMs to attach to the security tag. Set must contain at least 1 elements. Element value must satisfy all validations: must be a valid URN.
 
 ## Import

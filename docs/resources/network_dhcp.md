@@ -57,14 +57,17 @@ resource "cloudavenue_network_routed" "example" {
 
 ### Required
 
-- `org_network_id` (String) (ForceNew) The ID of the network. Must be a valid URN.
+- `org_network_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the network. Must be a valid URN.
 
 ### Optional
 
 - `dns_servers` (List of String) The DNS server IPs to be assigned by this DHCP service. List must contain at most 2 elements.
-- `lease_time` (Number) The lease time in seconds for the DHCP service. Value must be at least 60. Value defaults to `86400`.
-- `listener_ip_address` (String) (ForceNew) The IP address of the DHCP listener. Must be a valid IP with net.ParseIP. If the value of [`mode`](#mode) attribute is one of `RELAY` or `EDGE` this attribute is **NULL**.
-- `mode` (String) (ForceNew) The mode of the DHCP server. Value must be one of: `EDGE` (The Edge's DHCP service is used to obtain DHCP IP addresses.), `NETWORK` (A new DHCP service directly associated with this network is used to obtain DHCP IP addresses. Use Network Mode if the network is isolated or if you plan to detach this network from the Edge), `RELAY` (DHCP messages are relayed from virtual machines to designated DHCP servers in your physical DHCP infrastructure.). Value defaults to `EDGE`.
+- `lease_time` (Number) The lease time in seconds for the DHCP service. Value defaults to `86400`. Value must be at least 60.
+- `listener_ip_address` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The IP address of the DHCP listener. Must be a valid IP with net.ParseIP. If the value of [`mode`](#mode) attribute is one of `RELAY` or `EDGE` this attribute is **NULL**.
+- `mode` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The mode of the DHCP server. Value defaults to `EDGE`. Value must be one of: 
+  - `EDGE` The Edge's DHCP service is used to obtain DHCP IP addresses.
+  - `NETWORK` A new DHCP service directly associated with this network is used to obtain DHCP IP addresses. Use Network Mode if the network is isolated or if you plan to detach this network from the Edge
+  - `RELAY` DHCP messages are relayed from virtual machines to designated DHCP servers in your physical DHCP infrastructure.
 - `pools` (Attributes Set) IP ranges used for DHCP pool allocation in the network. If the value of [`mode`](#mode) attribute is `RELAY` this attribute is **NULL**. If the value of [`mode`](#mode) attribute is one of `EDGE` or `NETWORK` this attribute is **REQUIRED**. (see [below for nested schema](#nestedatt--pools))
 
 ### Read-Only

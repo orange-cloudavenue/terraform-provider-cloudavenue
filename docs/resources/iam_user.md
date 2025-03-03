@@ -31,7 +31,7 @@ resource "cloudavenue_iam_user" "example" {
 
 ### Required
 
-- `name` (String) (ForceNew) The name of the user. The value must respect the following rules : disallow space characters, disallow uppercase characters.
+- `name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the user. The value must respect the following rules : disallow space characters, disallow uppercase characters.
 - `password` (String, Sensitive) The user's password. This value is never returned on read. String length must be at least 6.
 - `role_name` (String) The role assigned to the user.
 

@@ -55,12 +55,12 @@ resource "cloudavenue_backup" "example-vm" {
 ### Required
 
 - `policies` (Attributes Set) The backup policies of the target. Set must contain at least 1 elements. (see [below for nested schema](#nestedatt--policies))
-- `type` (String) (ForceNew) Scope of the backup. Value must be one of : `vdc`, `vapp`, `vm`.
+- `type` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Scope of the backup. Value must be one of : `vdc`, `vapp`, `vm`.
 
 ### Optional
 
-- `target_id` (String) (ForceNew) The URN of the target. A target can be a VDC, a VApp or a VM. Ensure that one and only one attribute from this collection is set : `target_id`, `target_name`. Must be a valid URN.
-- `target_name` (String) (ForceNew) The name of the target. A target can be a VDC, a VApp or a VM. Ensure that one and only one attribute from this collection is set : `target_id`, `target_name`.
+- `target_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The URN of the target. A target can be a VDC, a VApp or a VM. Ensure that one and only one attribute from this collection is set : `target_id`, `target_name`. Must be a valid URN.
+- `target_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the target. A target can be a VDC, a VApp or a VM. Ensure that one and only one attribute from this collection is set : `target_id`, `target_name`.
 
 ### Read-Only
 

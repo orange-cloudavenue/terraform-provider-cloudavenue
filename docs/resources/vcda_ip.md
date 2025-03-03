@@ -24,7 +24,7 @@ resource "cloudavenue_vcda_ip" "example" {
 
 ### Required
 
-- `ip_address` (String) (ForceNew) The on-premises IP address refers to the IP address of your local infrastructure running vCloud Extender. Must be a valid IP with net.ParseIP.
+- `ip_address` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The on-premises IP address refers to the IP address of your local infrastructure running vCloud Extender. Must be a valid IP with net.ParseIP.
 
 ### Read-Only
 

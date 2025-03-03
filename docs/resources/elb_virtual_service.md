@@ -44,14 +44,14 @@ resource "cloudavenue_elb_virtual_service" "example" {
 - `service_type` (String) The type of the service. The different modes that the ELB supports for handling TCP traffic and various parameters that can be tuned for optimization of the TCP traffic are also detailed here. Value must be one of : `HTTP`, `HTTPS`, `L4_TCP`, `L4_UDP`, `L4_TLS`.
 - `virtual_ip` (String) The virtual IP address of the ELB Virtual Service. 
 
- -> The `virtual_ip` accept a private IP in your network range or a public IP (Warning: the public IP must be reserved and not used by any other service). The value must be a valid IPV4 address (`192.168.0.1`).
+ -> The `virtual_ip` accept a private IP in your network range or a public IP (Warning: the public IP must be reserved and not used by any other service). The value must be a valid IPV4 address (Ex: `192.168.0.1`).
 
 ### Optional
 
 - `certificate_id` (String) The ID of the certificate. The certificate must be uploaded to your certificate library before it can be used. The certificate MUSTN'T be expired. If the value of [`<.service_type`](#<.service_type) attribute is one of `L4_TLS` or `HTTPS` this attribute is **REQUIRED**. If the value of [`<.service_type`](#<.service_type) attribute is one of `HTTP`, `L4_TCP` or `L4_UDP` this attribute is **NULL**. This value must start with `urn:vcloud:certificateLibraryItem:`.
 - `description` (String) The description of the ELB Virtual Service.
-- `edge_gateway_id` (String) (ForceNew) The ID of the edge gateway on which the ELB Virtual Service is to be created. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
-- `edge_gateway_name` (String) (ForceNew) The name of the edge gateway on which the ELB Virtual Service is to be created. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
+- `edge_gateway_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the edge gateway on which the ELB Virtual Service is to be created. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
+- `edge_gateway_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the edge gateway on which the ELB Virtual Service is to be created. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 - `enabled` (Boolean) Defines if the ELB Virtual Service is enabled. Value defaults to `true`.
 - `pool_id` (String) The ID of the ELB Server Pool associated. Ensure that one and only one attribute from this collection is set : `pool_name`, `pool_id`.
 - `pool_name` (String) The name of the ELB Server Pool associated. Ensure that one and only one attribute from this collection is set : `pool_name`, `pool_id`.

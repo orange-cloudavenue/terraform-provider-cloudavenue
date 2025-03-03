@@ -181,7 +181,7 @@ resource "cloudavenue_s3_bucket_lifecycle_configuration" "example" {
 
 ### Required
 
-- `bucket` (String) (ForceNew) The name of the bucket.
+- `bucket` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the bucket.
 - `rules` (Attributes List) Rules that define lifecycle configuration. List must contain at least 1 elements. (see [below for nested schema](#nestedatt--rules))
 
 ### Optional
@@ -205,7 +205,7 @@ Optional:
 - `abort_incomplete_multipart_upload` (Attributes) Configuration block that specifies the days since the initiation of an incomplete multipart upload that S3 will wait before permanently removing all parts of the upload. (see [below for nested schema](#nestedatt--rules--abort_incomplete_multipart_upload))
 - `expiration` (Attributes) Configuration block that specifies the expiration for the lifecycle of the object in the form of date, days and, whether the object has a delete marker. Ensure that if an attribute is set, these are not set: "[<.expiration,<.noncurrent_version_expiration]". (see [below for nested schema](#nestedatt--rules--expiration))
 - `noncurrent_version_expiration` (Attributes) Configuration block that specifies when noncurrent object versions expire. Ensure that if an attribute is set, these are not set: "[<.expiration,<.noncurrent_version_expiration]". (see [below for nested schema](#nestedatt--rules--noncurrent_version_expiration))
-- `status` (String) Whether the rule is currently being applied. Value must be one of : `Enabled`, `Disabled`. Value defaults to `Enabled`.
+- `status` (String) Whether the rule is currently being applied. Value defaults to `Enabled`. Value must be one of : `Enabled`, `Disabled`.
 
 <a id="nestedatt--rules--filter"></a>
 ### Nested Schema for `rules.filter`
