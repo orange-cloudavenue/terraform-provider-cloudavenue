@@ -2,6 +2,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps github.com/hashicorp/terraform-plugin-docs from 0.20.1 to 0.21.0 (GH-999)
 * deps: bumps github.com/hashicorp/terraform-plugin-framework-validators from 0.16.0 to 0.17.0 (GH-991)
 
 ## 0.29.1 (February 24, 2025)
