@@ -122,8 +122,8 @@ github.com/golangci/lint-1 v0.0.0-20181222135242-d2cdd8c08219/go.mod h1:/X8TswGS
 github.com/google/go-cmp v0.3.1/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
 github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
-github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
-github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
+github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
 github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
@@ -170,8 +170,8 @@ github.com/hashicorp/terraform-json v0.24.0 h1:rUiyF+x1kYawXeRth6fKFm/MdfBS6+lW4
 github.com/hashicorp/terraform-json v0.24.0/go.mod h1:Nfj5ubo9xbu9uiAoZVBsNOjvNKB66Oyrvtit74kC7ow=
 github.com/hashicorp/terraform-plugin-docs v0.21.0 h1:yoyA/Y719z9WdFJAhpUkI1jRbKP/nteVNBaI3hW7iQ8=
 github.com/hashicorp/terraform-plugin-docs v0.21.0/go.mod h1:J4Wott1J2XBKZPp/NkQv7LMShJYOcrqhQ2myXBcu64s=
-github.com/hashicorp/terraform-plugin-framework v1.14.0 h1:lsmTJqBlZ4GUabnDxj8Lsa5bmbuUKiUO3Zm9iIKSDf0=
-github.com/hashicorp/terraform-plugin-framework v1.14.0/go.mod h1:xNUKmvTs6ldbwTuId5euAtg37dTxuyj3LHS3uj7BHQ4=
+github.com/hashicorp/terraform-plugin-framework v1.14.1 h1:jaT1yvU/kEKEsxnbrn4ZHlgcxyIfjvZ41BLdlLk52fY=
+github.com/hashicorp/terraform-plugin-framework v1.14.1/go.mod h1:xNUKmvTs6ldbwTuId5euAtg37dTxuyj3LHS3uj7BHQ4=
 github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0 h1:I/N0g/eLZ1ZkLZXUQ0oRSXa8YG/EF0CEuQP1wXdrzKw=
 github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0/go.mod h1:t339KhmxnaF4SzdpxmqW8HnQBHVGYazwtfxU0qCs4eE=
 github.com/hashicorp/terraform-plugin-framework-validators v0.17.0 h1:0uYQcqqgW3BMyyve07WJgpKorXST3zkpzvrOnf3mpbg=
@@ -274,8 +274,8 @@ github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
 github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac/go.mod h1:IYtCusqpEGS0dhC6F8X9GHrrt1gp1zHaNhSKGYV59Xg=
 github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339 h1:DEKcWLGbEhu/I6kn9NAXhVCFrbPhR+Ef7oLmpLVnnPM=
 github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339/go.mod h1:11JAFfGWVmhoT4AAORKsIC5M6nI+uDGSEOScMzavgPA=
-github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.0 h1:IoLYM5vR+G5w07TT/VTsKiQjP/vL77A28UJ9a+wXWqk=
-github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.0/go.mod h1:yjM18ndTmW1V3AW46Yb0/g93HF1kPYnpXxUODBysYAo=
+github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1 h1:eU6rJu+6Nrjd5h/swpeaZOk5ndKdlhRUhb4czwiBq9Q=
+github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1/go.mod h1:P6xBWALTxSvFCPejfnWwP0xAgeVVqkAIPvKHSEbLgYU=
 github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.9.1 h1:PxS9LFaTLhMvjV9FQRvpLsFQZ9KrIAMIMbFvUs4o1Ds=
 github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.9.1/go.mod h1:uizCb9NCH5lJ8nmnnTykkRxsA2GaiN5S7TpZHjiSlfQ=
 github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v0.5.0 h1:0rogLDkZ5gbdEs0zNQ3orqLaLk5gwwF+8LxsnqWCcN8=
