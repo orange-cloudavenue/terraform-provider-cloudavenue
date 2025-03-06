@@ -36,7 +36,7 @@ data "cloudavenue_elb_pool" "example" {
 - `default_port` (Number) DefaultPort defines destination server port used by the traffic sent to the member.
 - `description` (String) The name of the pool.
 - `enabled` (Boolean) Enable or disable the pool.
-- `health` (Attributes) Health check member servers health. It can be monitored by using one or more health monitors. Active monitors generate synthetic traffic and mark a server up or down based on the response. (see [below for nested schema](#nestedatt--health))
+- `health` (Attributes) Checking the health status of member servers. It can be monitored by using one or more health monitors. Active monitors generate synthetic traffic and mark a server up or down based on the response. (see [below for nested schema](#nestedatt--health))
 - `id` (String) The ID of the pool.
 - `members` (Attributes) The members of the pool. (see [below for nested schema](#nestedatt--members))
 - `persistence` (Attributes) Persistence profile will ensure that the same user sticks to the same server for a desired duration of time. If the persistence profile is unmanaged by ELB, updates that leave the values unchanged will continue to use the same unmanaged profile. Any changes made to the persistence profile will cause ELB to switch the pool to a profile managed by ELB. (see [below for nested schema](#nestedatt--persistence))

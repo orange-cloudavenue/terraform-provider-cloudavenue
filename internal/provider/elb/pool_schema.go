@@ -259,7 +259,7 @@ func poolSchema(ctx context.Context) superschema.Schema {
 			},
 			"health": superschema.SuperSingleNestedAttributeOf[PoolModelHealth]{
 				Common: &schemaR.SingleNestedAttribute{
-					MarkdownDescription: "Health check member servers health. It can be monitored by using one or more health monitors. Active monitors generate synthetic traffic and mark a server up or down based on the response.",
+					MarkdownDescription: "Checking the health status of member servers. It can be monitored by using one or more health monitors. Active monitors generate synthetic traffic and mark a server up or down based on the response.",
 					Computed:            true,
 				},
 				Resource: &schemaR.SingleNestedAttribute{
