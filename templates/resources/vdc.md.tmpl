@@ -32,6 +32,11 @@ To disable the validation system, you can use the following environment variable
 ```shell
 export CLOUDAVENUE_VDC_VALIDATION=false
 ```
+
+All checks will be skipped in the `terraform validate` sequence but will be running during the creation or an update of the resource. This is useful for terraform modules that are not compatible with the validation process.
+The validation system is designed to ensure that the VDC resource is created with the correct parameters and configurations. However, in some cases, such as when using Terraform modules, the validation process may not be compatible.
+The errors and warnings are returned during the creation of the resource, which can be confusing and time-consuming to troubleshoot.
+
 The default value is `true`.
 
 ## Timeouts
