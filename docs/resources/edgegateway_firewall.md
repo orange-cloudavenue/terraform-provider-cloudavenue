@@ -58,8 +58,8 @@ resource "cloudavenue_edgegateway_firewall" "example" {
 
 ### Optional
 
-- `edge_gateway_id` (String) (ForceNew) The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
-- `edge_gateway_name` (String) (ForceNew) The name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
+- `edge_gateway_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
+- `edge_gateway_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 
 ### Read-Only
 
@@ -79,7 +79,7 @@ Optional:
 - `app_port_profile_ids` (Set of String) A set of Application Port Profile IDs. Leaving it empty means `Any` (all).
 - `destination_ids` (Set of String) A set of Destination Firewall Group IDs (`IP Sets` or `Security Groups`). Leaving it empty means `Any` (all).
 - `enabled` (Boolean) Defines if the rule is enabled or not. Value defaults to `true`.
-- `ip_protocol` (String) The IP protocol of the rule. Value must be one of : `IPV4`, `IPV6`, `IPV4_IPV6`. Value defaults to `IPV4`.
+- `ip_protocol` (String) The IP protocol of the rule. Value defaults to `IPV4`. Value must be one of : `IPV4`, `IPV6`, `IPV4_IPV6`.
 - `logging` (Boolean) Defines if the rule should log matching traffic. Value defaults to `false`.
 - `source_ids` (Set of String) A set of Source Firewall Group IDs (`IP Sets` or `Security Groups`). Leaving it empty means `Any` (all).
 

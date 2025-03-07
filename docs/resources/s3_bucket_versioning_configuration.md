@@ -34,7 +34,7 @@ resource "cloudavenue_s3_bucket_versioning_configuration" "example" {
 
 ### Required
 
-- `bucket` (String) (ForceNew) The name of the bucket.
+- `bucket` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the bucket.
 - `status` (String) Versioning state of the bucket. Value must be one of : `Enabled`, `Suspended`.
 
 ### Optional

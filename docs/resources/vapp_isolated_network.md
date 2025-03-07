@@ -46,7 +46,7 @@ resource "cloudavenue_vapp_isolated_network" "example" {
 
 ### Required
 
-- `gateway` (String) (ForceNew) The gateway IP address for the network. This value define also the network IP range with the prefix length. Must be a valid IP with net.ParseIP.
+- `gateway` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The gateway IP address for the network. This value define also the network IP range with the prefix length. Must be a valid IP with net.ParseIP.
 - `name` (String) The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.
 
 ### Optional
@@ -56,12 +56,12 @@ resource "cloudavenue_vapp_isolated_network" "example" {
 - `dns2` (String) The secondary DNS server IP address for the network. Must be a valid IP with net.ParseIP.
 - `dns_suffix` (String) The DNS suffix for the network.
 - `guest_vlan_allowed` (Boolean) True if Network allows guest VLAN. Value defaults to `false`.
-- `netmask` (String) (ForceNew) The netmask of the network. Must be a valid netmask. Value defaults to `255.255.255.0`.
+- `netmask` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The netmask of the network. Value defaults to `255.255.255.0`. Must be a valid netmask.
 - `retain_ip_mac_enabled` (Boolean) Specifies whether the network resources such as IP/MAC of router will be retained across deployments. Value defaults to `false`.
 - `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. Set must contain at least 1 elements. (see [below for nested schema](#nestedatt--static_ip_pool))
-- `vapp_id` (String) (ForceNew) ID of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
-- `vapp_name` (String) (ForceNew) Name of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_id`, `vapp_name`.
-- `vdc` (String) (ForceNew) The name of vDC to use, optional if defined at provider level.
+- `vapp_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> ID of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
+- `vapp_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Name of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_id`, `vapp_name`.
+- `vdc` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of vDC to use, optional if defined at provider level.
 
 ### Read-Only
 

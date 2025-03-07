@@ -45,8 +45,8 @@ resource "cloudavenue_vdcg_app_port_profile" "example" {
 ### Optional
 
 - `description` (String) Application Port Profile description.
-- `vdc_group_id` (String) (ForceNew) The ID of vDC group that owns the application port profile. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id]. This value must start with `urn:vcloud:vdcGroup:`.
-- `vdc_group_name` (String) (ForceNew) The name of vDC group that owns the application port profile. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
+- `vdc_group_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of vDC group that owns the application port profile. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id]. This value must start with `urn:vcloud:vdcGroup:`.
+- `vdc_group_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of vDC group that owns the application port profile. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
 
 ### Read-Only
 

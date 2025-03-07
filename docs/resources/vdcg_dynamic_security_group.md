@@ -103,7 +103,9 @@ Required:
 -> **If the value of the attribute [`<.type`](#<.type) is `VM_NAME` the value is one of** - `"STARTS_WITH"` - The VM tag must start with the `value`.<br>- `"CONTAINS"` - The `value` must be contained in the VM tag.<br>. 
 
 -> **If the value of the attribute [`<.type`](#<.type) is `VM_TAG` the value is one of** - `"EQUALS"` - The VM name must be equal to the `value`.<br>- `"CONTAINS"` - The `value` must be contained in the VM name.<br>- `"STARTS_WITH"` - The VM name must start with the `value`.<br>- `"ENDS_WITH"` - The VM name must end with the `value`.<br>.
-- `type` (String) The type of the rule. Value must be one of: `VM_NAME` (The criteria is based on the VM name.), `VM_TAG` (The criteria is based on the VM tag.).
+- `type` (String) The type of the rule. Value must be one of: 
+  - `VM_NAME` The criteria is based on the VM name.
+  - `VM_TAG` The criteria is based on the VM tag.
 - `value` (String) String to evaluate by given `type` and `operator`.
 
 ## Import

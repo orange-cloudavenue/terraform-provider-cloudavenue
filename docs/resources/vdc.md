@@ -48,14 +48,14 @@ resource "cloudavenue_vdc" "example" {
 
 ### Required
 
-- `billing_model` (String) (ForceNew) Choose Billing model of compute resources. The billing model available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of : `RESERVED`, `PAYG`, `DRAAS`.
+- `billing_model` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Choose Billing model of compute resources. The billing model available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of : `RESERVED`, `PAYG`, `DRAAS`.
 - `cpu_allocated` (Number) CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information.
 - `cpu_speed_in_mhz` (Number) Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information.
-- `disponibility_class` (String) (ForceNew) The disponibility class of the vDC. The disponibility class available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of : `ONE-ROOM`, `HA-DUAL-ROOM`, `DUAL-ROOM`.
+- `disponibility_class` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The disponibility class of the vDC. The disponibility class available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of : `ONE-ROOM`, `HA-DUAL-ROOM`, `DUAL-ROOM`.
 - `memory_allocated` (Number) Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode.
-- `name` (String) (ForceNew) The name of the vDC. String length must be between 2 and 27.
-- `service_class` (String) (ForceNew) The service class of the vDC. Value must be one of : `ECO`, `STD`, `HP`, `VOIP`.
-- `storage_billing_model` (String) (ForceNew) Choose Billing model of storage resources. The billing model available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of : `PAYG`, `RESERVED`.
+- `name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the vDC. String length must be between 2 and 27.
+- `service_class` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The service class of the vDC. Value must be one of : `ECO`, `STD`, `HP`, `VOIP`.
+- `storage_billing_model` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Choose Billing model of storage resources. The billing model available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of : `PAYG`, `RESERVED`.
 - `storage_profiles` (Attributes Set) List of storage profiles for this vDC. Set must contain at least 1 elements. (see [below for nested schema](#nestedatt--storage_profiles))
 
 ### Optional

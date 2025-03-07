@@ -22,10 +22,10 @@ resource "cloudavenue_s3_credential" "example" {
 
 ### Optional
 
-- `file_name` (String) (ForceNew) The name of the file to store the API token. Value defaults to `token.json`.
-- `print_token` (Boolean) (ForceNew) If true, the API token will be printed in the console. Set this to true if you understand the security risks of using AccessKey/SecretKey and agree to creating them. This setting is only used when creating a new AccessKey/SecretKey and available only one time. Value defaults to `false`.
-- `save_in_file` (Boolean) (ForceNew) If true, the API token will be saved in a file. Set this to true if you understand the security risks of using AccessKey/SecretKey files and agree to creating them. This setting is only used when creating a new AccessKey/SecretKey and available only one time. Value defaults to `false`.
-- `save_in_tfstate` (Boolean) (ForceNew) If true, the SecretKey will be saved in the terraform state. Set this to true if you understand the security risks of using AccessKey/SecretKey and agree to creating them. This setting is only used when creating a new API token and available only one time. 
+- `file_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the file to store the API token. Value defaults to `token.json`.
+- `print_token` (Boolean) <i style="color:red;font-weight: bold">(ForceNew)</i> If true, the API token will be printed in the console. Set this to true if you understand the security risks of using AccessKey/SecretKey and agree to creating them. This setting is only used when creating a new AccessKey/SecretKey and available only one time. Value defaults to `false`.
+- `save_in_file` (Boolean) <i style="color:red;font-weight: bold">(ForceNew)</i> If true, the API token will be saved in a file. Set this to true if you understand the security risks of using AccessKey/SecretKey files and agree to creating them. This setting is only used when creating a new AccessKey/SecretKey and available only one time. Value defaults to `false`.
+- `save_in_tfstate` (Boolean) <i style="color:red;font-weight: bold">(ForceNew)</i> If true, the SecretKey will be saved in the terraform state. Set this to true if you understand the security risks of using AccessKey/SecretKey and agree to creating them. This setting is only used when creating a new API token and available only one time. 
 
  !> **Warning:** This is a security risk and should only be used for testing purposes. Value defaults to `false`.
 
