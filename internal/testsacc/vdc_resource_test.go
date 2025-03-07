@@ -532,7 +532,7 @@ func (r *VDCResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx 
 							storage_profiles = [{
 								class   = "gold"
 								default = true
-								limit   = 81000
+								limit   = 82000
 							}]
 						}`),
 						Checks: []resource.TestCheckFunc{},
