@@ -11,6 +11,7 @@
 * deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-superschema from 1.9.1 to 1.10.1 (GH-1000)
 * deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-supertypes from 0.5.0 to 1.0.0 (GH-1000)
 * deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-validators from 0.13.0 to 0.14.1 (GH-1000)
+* deps: bumps golang.org/x/net from 0.35.0 to 0.36.0 (GH-1005)
 
 ## 0.29.1 (February 24, 2025)
 
