@@ -274,8 +274,8 @@ github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
 github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac/go.mod h1:IYtCusqpEGS0dhC6F8X9GHrrt1gp1zHaNhSKGYV59Xg=
 github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339 h1:DEKcWLGbEhu/I6kn9NAXhVCFrbPhR+Ef7oLmpLVnnPM=
 github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339/go.mod h1:11JAFfGWVmhoT4AAORKsIC5M6nI+uDGSEOScMzavgPA=
-github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.0 h1:IoLYM5vR+G5w07TT/VTsKiQjP/vL77A28UJ9a+wXWqk=
-github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.0/go.mod h1:yjM18ndTmW1V3AW46Yb0/g93HF1kPYnpXxUODBysYAo=
+github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1 h1:eU6rJu+6Nrjd5h/swpeaZOk5ndKdlhRUhb4czwiBq9Q=
+github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1/go.mod h1:P6xBWALTxSvFCPejfnWwP0xAgeVVqkAIPvKHSEbLgYU=
 github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.10.1 h1:TFUABGDZLZ8EZcDYsdXLfyOVsWGR8yGo8yXggTaEZ3s=
 github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.10.1/go.mod h1:2R4+FiimXRb6we3IP4Jy4XwkmPG17isxcjUfYEWLJ44=
 github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.0.0 h1:HvbMI4JHsl1HmTIVU2N50t7H4qbIXpM7y2ljl3oOKyE=
