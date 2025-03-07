@@ -1,9 +1,15 @@
 ## 0.30.0 (Unreleased)
+### :information_source: **Notes**
+
+* A lot of improvements in the documentation. (GH-1000)
 
 ### :dependabot: **Dependencies**
 
 * deps: bumps github.com/hashicorp/terraform-plugin-docs from 0.20.1 to 0.21.0 (GH-999)
 * deps: bumps github.com/hashicorp/terraform-plugin-framework-validators from 0.16.0 to 0.17.0 (GH-991)
+* deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-superschema from 1.9.1 to 1.10.1 (GH-1000)
+* deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-supertypes from 0.5.0 to 1.0.0 (GH-1000)
+* deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-validators from 0.13.0 to 0.14.1 (GH-1000)
 
 ## 0.29.1 (February 24, 2025)
 
