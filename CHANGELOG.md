@@ -8,6 +8,7 @@
 * deps: bumps github.com/hashicorp/terraform-plugin-docs from 0.20.1 to 0.21.0 (GH-999)
 * deps: bumps github.com/hashicorp/terraform-plugin-framework-validators from 0.16.0 to 0.17.0 (GH-991)
 * deps: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.36.0 to 2.36.1 (GH-989)
+* deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers from 1.4.0 to 1.4.1 (GH-1003)
 * deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-superschema from 1.9.1 to 1.10.1 (GH-1000)
 * deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-supertypes from 0.5.0 to 1.0.0 (GH-1000)
 * deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-validators from 0.13.0 to 0.14.1 (GH-1000)
