@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_elb_policies_http_request` - Add new resource to manage HTTP request policies for CloudAvenue ELB. HTTP request rules modify requests before they are either forwarded to the application, used as a basis for content switching, or discarded.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_elb_policies_http_request` - Add new data source to retrieve HTTP request policies for CloudAvenue ELB.
+```
