@@ -221,6 +221,8 @@ github.com/mitchellh/reflectwalk v1.0.2 h1:G2LzWKi524PWgd3mLHV8Y5k7s6XUvT0Gef6zx
 github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
 github.com/oklog/run v1.1.0 h1:GEenZ1cK0+q0+wsJew9qUg/DyD8k3JzYsZAi5gYi2mA=
 github.com/oklog/run v1.1.0/go.mod h1:sVPdnTZT1zYwAJeCMu2Th4T21pA3FPOQRfWjQlk7DVU=
+github.com/orange-cloudavenue/cloudavenue-sdk-go v0.24.0 h1:sww+B0EZgpZbm1/GmQ42hP4Cbp4xM9ZnbMrSl99UTtI=
+github.com/orange-cloudavenue/cloudavenue-sdk-go v0.24.0/go.mod h1:JC9sN6jDrG3Sa3k4JvM+xa5dzDhOSJQVNmvC5CKZSPM=
 github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac h1:f1Fd70+PMDTK6FE4gHdNfoHSQHLn5pfJMTjZPzOWZtc=
 github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac/go.mod h1:IYtCusqpEGS0dhC6F8X9GHrrt1gp1zHaNhSKGYV59Xg=
 github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339 h1:DEKcWLGbEhu/I6kn9NAXhVCFrbPhR+Ef7oLmpLVnnPM=
