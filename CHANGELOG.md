@@ -2,6 +2,8 @@
 ### :information_source: **Notes**
 
 * A lot of improvements in the documentation. (GH-1000)
+* Bump golang version to 1.23.0 (GH-992)
+* `resource/cloudavenue_vdc` - Now if the environment variable `CLOUDAVENUE_VDC_VALIDATION` is set to `false`, the provider will run the validation during the creation/update of the resource otherwise the validation is done normally under the terraform validate process. This is useful for terraform modules that are not compatible with the validation process. (GH-992)
 
 ### :dependabot: **Dependencies**
 
