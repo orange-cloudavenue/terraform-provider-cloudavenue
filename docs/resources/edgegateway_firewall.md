@@ -70,7 +70,7 @@ resource "cloudavenue_edgegateway_firewall" "example" {
 
 Required:
 
-- `action` (String) Defines if the rule should `ALLOW` or `DROP` matching traffic. Value must be one of : `ALLOW`, `DROP`.
+- `action` (String) Defines the behavior of the rule. Value must be one of : `ALLOW`, `DROP`, `REJECT`.
 - `direction` (String) The direction of the rule. Value must be one of : `IN`, `OUT`, `IN_OUT`.
 - `name` (String) The name of the rule.
 

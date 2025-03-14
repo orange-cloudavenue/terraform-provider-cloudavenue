@@ -29,7 +29,7 @@ The firewall data source allows you to retrieve information about an Firewall.
 
 Read-Only:
 
-- `action` (String) Defines if the rule should `ALLOW` or `DROP` matching traffic.
+- `action` (String) Defines the behavior of the rule.
 - `app_port_profile_ids` (Set of String) A set of Application Port Profile IDs. Leaving it empty means `Any` (all).
 - `destination_ids` (Set of String) A set of Destination Firewall Group IDs (`IP Sets` or `Security Groups`). Leaving it empty means `Any` (all).
 - `direction` (String) The direction of the rule.

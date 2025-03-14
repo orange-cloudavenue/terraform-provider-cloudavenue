@@ -132,12 +132,12 @@ func firewallSchema(_ context.Context) superschema.Schema {
 					},
 					"action": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "Defines if the rule should `ALLOW` or `DROP` matching traffic.",
+							MarkdownDescription: "Defines the behavior of the rule.",
 						},
 						Resource: &schemaR.StringAttribute{
 							Required: true,
 							Validators: []validator.String{
-								stringvalidator.OneOf("ALLOW", "DROP"),
+								stringvalidator.OneOf("ALLOW", "DROP", "REJECT"),
 							},
 						},
 						DataSource: &schemaD.StringAttribute{

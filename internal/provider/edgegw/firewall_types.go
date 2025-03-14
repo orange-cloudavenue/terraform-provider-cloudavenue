@@ -59,7 +59,7 @@ func (rm *firewallModel) rulesToNsxtFirewallRule(ctx context.Context) (nsxtFirew
 	for i, rule := range rules {
 		nsxtFirewallRules[i] = &govcdtypes.NsxtFirewallRule{
 			Name:                      rule.Name.Get(),
-			Action:                    rule.Action.Get(),
+			ActionValue:               rule.Action.Get(),
 			Enabled:                   rule.Enabled.Get(),
 			IpProtocol:                rule.IPProtocol.Get(),
 			Logging:                   rule.Logging.Get(),
