@@ -1,0 +1,7 @@
+```release-note:note
+Bump golang version to 1.23.0
+```
+
+```release-note:note
+`resource/cloudavenue_vdc` - Now if the environment variable `CLOUDAVENUE_VDC_VALIDATION` is set to `false`, the provider will run the validation during the creation/update of the resource otherwise the validation is done normally under the terraform validate process. This is useful for terraform modules that are not compatible with the validation process.
+```

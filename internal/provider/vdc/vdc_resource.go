@@ -40,6 +40,12 @@ var (
 	_ resource.ResourceWithModifyPlan     = &vdcResource{}
 )
 
+var validationDisabled = os.Getenv(envVarValidation) == "false"
+
+const (
+	envVarValidation = "CLOUDAVENUE_VDC_VALIDATION"
+)
+
 // NewVDCResource is a helper function to simplify the provider implementation.
 func NewVDCResource() resource.Resource {
 	return &vdcResource{}
@@ -81,21 +87,10 @@ func (r *vdcResource) Configure(ctx context.Context, req resource.ConfigureReque
 	r.client = client
 }
 
-func (r *vdcResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
-	if os.Getenv("CLOUDAVENUE_VDC_VALIDATION") == "false" {
-		return
-	}
-
-	config := new(vdcResourceModel)
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
+func (r *vdcResource) validateConfig(ctx context.Context, config *vdcResourceModel) (diags diag.Diagnostics) {
 	StorageProfiles, d := config.StorageProfiles.Get(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
+	diags.Append(d...)
+	if diags.HasError() {
 		return
 	}
 
@@ -126,29 +121,47 @@ func (r *vdcResource) ValidateConfig(ctx context.Context, req resource.ValidateC
 	}, false); err != nil {
 		switch {
 		case errors.Is(err, rules.ErrBillingModelNotAvailable):
-			resp.Diagnostics.AddAttributeError(path.Root("billing_model"), "Billing model attribute is not valid", err.Error())
+			diags.AddAttributeError(path.Root("billing_model"), "Billing model attribute is not valid", err.Error())
 		case errors.Is(err, rules.ErrServiceClassNotFound):
-			resp.Diagnostics.AddAttributeError(path.Root("service_class"), "Service class attribute is not valid", err.Error())
+			diags.AddAttributeError(path.Root("service_class"), "Service class attribute is not valid", err.Error())
 		case errors.Is(err, rules.ErrDisponibilityClassNotFound):
-			resp.Diagnostics.AddAttributeError(path.Root("disponibility_class"), "Disponibility class attribute is not valid", err.Error())
+			diags.AddAttributeError(path.Root("disponibility_class"), "Disponibility class attribute is not valid", err.Error())
 		case errors.Is(err, rules.ErrStorageBillingModelNotFound):
-			resp.Diagnostics.AddAttributeError(path.Root("storage_billing_model"), "Storage billing model attribute is not valid", err.Error())
+			diags.AddAttributeError(path.Root("storage_billing_model"), "Storage billing model attribute is not valid", err.Error())
 		case errors.Is(err, rules.ErrStorageProfileClassNotFound):
-			resp.Diagnostics.AddAttributeError(path.Root("storage_profiles"), "Storage profile class attribute is not valid", err.Error())
+			diags.AddAttributeError(path.Root("storage_profiles"), "Storage profile class attribute is not valid", err.Error())
 		case errors.Is(err, rules.ErrCPUAllocatedInvalid):
-			resp.Diagnostics.AddAttributeError(path.Root("cpu_allocated"), "CPU allocated attribute is not valid", err.Error())
+			diags.AddAttributeError(path.Root("cpu_allocated"), "CPU allocated attribute is not valid", err.Error())
 		case errors.Is(err, rules.ErrMemoryAllocatedInvalid):
-			resp.Diagnostics.AddAttributeError(path.Root("memory_allocated"), "Memory allocated attribute is not valid", err.Error())
+			diags.AddAttributeError(path.Root("memory_allocated"), "Memory allocated attribute is not valid", err.Error())
 		case errors.Is(err, rules.ErrVCPUInMhzInvalid):
-			resp.Diagnostics.AddAttributeError(path.Root("cpu_speed_in_mhz"), "CPU speed in MHz attribute is not valid", err.Error())
+			diags.AddAttributeError(path.Root("cpu_speed_in_mhz"), "CPU speed in MHz attribute is not valid", err.Error())
 		case errors.Is(err, rules.ErrStorageProfileLimitInvalid) || errors.Is(err, rules.ErrStorageProfileLimitNotIntegrer):
-			resp.Diagnostics.AddAttributeError(path.Root("storage_profiles").AtName("limit"), "Storage profile limit attribute is not valid", err.Error())
+			diags.AddAttributeError(path.Root("storage_profiles").AtName("limit"), "Storage profile limit attribute is not valid", err.Error())
 		case errors.Is(err, rules.ErrStorageProfileDefault):
-			resp.Diagnostics.AddAttributeError(path.Root("storage_profiles").AtName("default"), "Storage profile default attribute is not valid", err.Error())
+			diags.AddAttributeError(path.Root("storage_profiles").AtName("default"), "Storage profile default attribute is not valid", err.Error())
 		default:
-			resp.Diagnostics.AddError("Error validating VDC", err.Error())
+			diags.AddError("Error validating VDC", err.Error())
 		}
 	}
+
+	return diags
+}
+
+func (r *vdcResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	if validationDisabled {
+		return
+	}
+
+	config := new(vdcResourceModel)
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Validate the configuration
+	resp.Diagnostics.Append(r.validateConfig(ctx, config)...)
 }
 
 func (r *vdcResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
@@ -189,6 +202,14 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	if validationDisabled {
+		// Validate the configuration
+		resp.Diagnostics.Append(r.validateConfig(ctx, plan)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	cloudavenue.Lock(ctx)
@@ -284,15 +305,23 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		state = new(vdcResourceModel)
 	)
 
-	cloudavenue.Lock(ctx)
-	defer cloudavenue.Unlock(ctx)
-
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	if validationDisabled {
+		// Validate the configuration
+		resp.Diagnostics.Append(r.validateConfig(ctx, plan)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	cloudavenue.Lock(ctx)
+	defer cloudavenue.Unlock(ctx)
 
 	// Update() is passed a default timeout to use if no value
 	// has been supplied in the Terraform configuration.
@@ -314,59 +343,36 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	requireUpdate := false
+	vdc.SetDescription(plan.Description.Get())
+	vdc.SetVCPUInMhz(plan.VCPUInMhz.GetInt())
+	vdc.SetCPUAllocated(plan.CPUAllocated.GetInt())
+	vdc.SetMemoryAllocated(plan.MemoryAllocated.GetInt())
 
-	// Update the VDC
-	if !plan.Description.Equal(state.Description) {
-		requireUpdate = true
-		vdc.SetDescription(plan.Description.Get())
+	storageProfiles, d := plan.StorageProfiles.Get(ctx)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	if !plan.VCPUInMhz.Equal(state.VCPUInMhz) {
-		requireUpdate = true
-		vdc.SetVCPUInMhz(plan.VCPUInMhz.GetInt())
+	vdcStorageProfiles := make([]infrapi.StorageProfile, 0)
+
+	for _, storageProfile := range storageProfiles {
+		vdcStorageProfiles = append(vdcStorageProfiles, infrapi.StorageProfile{
+			Class:   infrapi.StorageProfileClass(storageProfile.Class.Get()),
+			Limit:   storageProfile.Limit.GetInt(),
+			Default: storageProfile.Default.Get(),
+		})
 	}
 
-	if !plan.CPUAllocated.Equal(state.CPUAllocated) {
-		requireUpdate = true
-		vdc.SetCPUAllocated(plan.CPUAllocated.GetInt())
-	}
+	vdc.SetStorageProfiles(vdcStorageProfiles)
 
-	if !plan.MemoryAllocated.Equal(state.MemoryAllocated) {
-		requireUpdate = true
-		vdc.SetMemoryAllocated(plan.MemoryAllocated.GetInt())
-	}
-
-	if !plan.StorageProfiles.Equal(state.StorageProfiles) {
-		requireUpdate = true
-		vdcStorageProfiles := make([]infrapi.StorageProfile, 0)
-
-		storageProfiles, d := plan.StorageProfiles.Get(ctx)
-		resp.Diagnostics.Append(d...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		for _, storageProfile := range storageProfiles {
-			vdcStorageProfiles = append(vdcStorageProfiles, infrapi.StorageProfile{
-				Class:   infrapi.StorageProfileClass(storageProfile.Class.Get()),
-				Limit:   storageProfile.Limit.GetInt(),
-				Default: storageProfile.Default.Get(),
-			})
-		}
-
-		vdc.SetStorageProfiles(vdcStorageProfiles)
+	if err := vdc.Update(ctx); err != nil {
+		resp.Diagnostics.AddError("Error updating VDC", err.Error())
+		return
 	}
 
 	if !plan.Timeouts.Equal(state.Timeouts) {
 		state.Timeouts = plan.Timeouts
-	}
-
-	if requireUpdate {
-		if err := vdc.Update(ctx); err != nil {
-			resp.Diagnostics.AddError("Error updating VDC", err.Error())
-			return
-		}
 	}
 
 	stateRefreshed, _, d := r.read(ctx, state)
