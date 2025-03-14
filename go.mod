@@ -4,6 +4,8 @@ go 1.23.0
 
 toolchain go1.24.0
 
+replace github.com/orange-cloudavenue/cloudavenue-sdk-go => ../cloudavenue-sdk-go
+
 require (
 	github.com/FrangipaneTeam/terraform-analytic-tool v0.0.12
 	github.com/aws/aws-sdk-go v1.55.6
@@ -48,7 +50,7 @@ require (
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/avast/retry-go/v4 v4.6.0 // indirect
+	github.com/avast/retry-go/v4 v4.6.1 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.32.7 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.8.1 // indirect
@@ -63,7 +65,7 @@ require (
 	github.com/go-chi/render v1.0.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.24.0 // indirect
+	github.com/go-playground/validator/v10 v10.25.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-resty/resty/v2 v2.16.5 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
@@ -109,7 +111,7 @@ require (
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/rivo/uniseg v0.1.0 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
-	github.com/sethvargo/go-envconfig v1.1.0 // indirect
+	github.com/sethvargo/go-envconfig v1.1.1 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
@@ -120,7 +122,7 @@ require (
 	github.com/zclconf/go-cty v1.16.2 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
-	golang.org/x/mod v0.22.0 // indirect
+	golang.org/x/mod v0.23.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect

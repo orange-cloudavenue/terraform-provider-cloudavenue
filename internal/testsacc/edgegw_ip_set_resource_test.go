@@ -97,66 +97,6 @@ func (r *EdgeGatewayIPSetResource) Tests(ctx context.Context) map[testsacc.TestN
 				Destroy: true,
 			}
 		},
-		"example_with_vdc_group": func(_ context.Context, resourceName string) testsacc.Test {
-			return testsacc.Test{
-				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetSpecificConfig("example_with_vdc_group"))
-					return
-				},
-				// ! Create testing
-				Create: testsacc.TFConfig{
-					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-					resource "cloudavenue_edgegateway_ip_set" "example_with_vdc_group" {
-						name = {{ generate . "name" }}
-						description = {{ generate . "description" }}
-						ip_addresses = [
-							"192.168.1.1",
-							"192.168.1.2",
-						]
-						edge_gateway_id = cloudavenue_edgegateway.example_with_vdc_group.id
-					}`),
-					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttrSet(resourceName, "id"),
-						resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
-						resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
-						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
-						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
-						resource.TestCheckResourceAttr(resourceName, "ip_addresses.#", "2"),
-					},
-				},
-				// ! Updates testing
-				Updates: []testsacc.TFConfig{
-					{
-						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-						resource "cloudavenue_edgegateway_ip_set" "example_with_vdc_group" {
-							name = {{ get . "name" }}
-							description = {{ generate . "description" }}
-							ip_addresses = [
-								"192.168.1.1",
-								"192.168.1.2",
-								"192.168.1.3",
-							]
-							edge_gateway_name = cloudavenue_edgegateway.example_with_vdc_group.name
-						}`),
-						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttrSet(resourceName, "id"),
-							resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
-							resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
-							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
-							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
-							resource.TestCheckResourceAttr(resourceName, "ip_addresses.#", "3"),
-						},
-					},
-				},
-				// ! Imports testing
-				Imports: []testsacc.TFImport{
-					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
-						ImportState:          true,
-					},
-				},
-			}
-		},
 		"example_for_elb": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
