@@ -19,10 +19,8 @@ jobs:
       - uses: actions/setup-go@v5 # v4.0.0
         with:
           go-version-file: 'go.mod'
-      - uses: nightstory/setup-task@v1
-        with:
-          enable-cache: true
-          version: latest
+      - name: Install Task
+        uses: arduino/setup-task@v2
       - run: task generate
       - name: git diff
         run: |
