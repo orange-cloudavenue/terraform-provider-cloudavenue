@@ -12,8 +12,6 @@ version: "3"
 vars:
   PROJECT_NAME: cloudavenue
 
-# silent: true
-
 # * Import
 includes: 
   go: ".taskfiles/golang.yml"
@@ -56,6 +54,9 @@ tasks:
     desc: Generate code and docs
     cmds:
       - task: go:run
+      - task: tf:lint:tf:fmt-specific-dir
+        vars:
+          DIRECTORY: "examples"
       - task: license:run
 
   # * Specific terraform provider
@@ -81,12 +82,31 @@ tasks:
         echo "🔧 Checking if required variables are present in $envfile"
 
         for var in "${listOfVars[@]}"; do
-          grep -q "$var" $envfile || echo "❌ $var not found in $envfile" && echo "✅ $var found in $envfile"
+          grep -q "$var" $envfile || echo "❌ $var not found" && echo "✅ $var found"
         done
+
+        echo -e "\n📝 List of parameters available:"
+        echo -e "In () the value used in the task"
+        echo -e "💥 Required"
+        echo -e " ✨ TF_TEST_NAME:\t({{.TF_TEST_NAME}}) - Specify the test to run"
+        echo -e "🙈 Optionnal"
+        echo -e " ✨ TF_LOG:\t\t({{.TF_LOG | default ""}}) - (Allowed values: trace, debug, info, warn, error) - Set the log level for terraform"
+        echo -e " ✨ TF_ACC_RUN_TEST:\t({{.TF_ACC_RUN_TEST}}) - Specify the sub test to run"
+        echo -e " ✨ TF_ACC_ONLY_PRINT:\t({{.TF_ACC_ONLY_PRINT | default false}}) - Only print the terraform configuration"
+        echo -e " ✨ CLOUDAVENUE_DEBUG:\t({{.CLOUDAVENUE_DEBUG | default false}}) - Enable debug for cloudavenue"
+        echo -e " ✨ NETBACKUP_DEBUG:\t({{.NETBACKUP_DEBUG | default false}}) - Enable debug for netbackup"
+        echo -e " ✨ S3_DEBUG:\t\t({{.S3_DEBUG | default false}}) - Enable debug for s3"
+
+        if [ "{{.CLOUDAVENUE_DEBUG }}" = "true" ] || [ "{{.NETBACKUP_DEBUG}}" = "true" ] || [ "{{.S3_DEBUG}}" = "true" ]; then
+          if [ "{{.TF_LOG}}" = "" ]; then
+            echo -e "\n🚨 DEBUG mode detected set TF_LOG variable to display the debug mode"
+          fi
+        fi 
+
 
   provider:test:
     desc: Run tests for the provider
-    silent: false
+    silent: true
     dotenv: ['.env', '{{.HOME}}/.cloud_avenue.source']
     deps:
       - task: provider:init
@@ -95,16 +115,17 @@ tasks:
       vars:
         - TF_TEST_NAME
     vars:
-      TF_ACC_ONLY_PRINT: false
-      NETBACKUP_DEBUG: false
-      CLOUDAVENUE_DEBUG: false
-      S3_DEBUG: false
-      TF_ACC_RUN_TEST: ""
       TIMEOUT: "30m"
+      TF_LOG: '{{.TF_LOG | default ""}}'
+      TF_ACC_RUN_TEST: '{{.TF_ACC_RUN_TEST | default ""}}'
+      TF_ACC_ONLY_PRINT: '{{.TF_ACC_ONLY_PRINT | default false}}'
+      CLOUDAVENUE_DEBUG: '{{.CLOUDAVENUE_DEBUG | default false}}'
+      NETBACKUP_DEBUG: '{{.NETBACKUP_DEBUG | default false}}'
+      S3_DEBUG: '{{.S3_DEBUG | default false}}'
     env:
       TF_ACC: 1
-      TF_LOG: '{{.TF_LOG | default "info"}}'
     cmds:
+      - echo -e "\n🔧 Running tests for {{.TF_TEST_NAME}}"
       - go test -v ./internal/testsacc/ -count=1 -timeout {{.TIMEOUT}} -run {{.TF_TEST_NAME}}
 
   provider:install:
