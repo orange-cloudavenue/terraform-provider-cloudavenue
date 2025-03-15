@@ -19,8 +19,12 @@ jobs:
       - uses: actions/setup-go@v5 # v4.0.0
         with:
           go-version-file: 'go.mod'
-      - run: make generate
+      - uses: nightstory/setup-task@v1
+        with:
+          enable-cache: true
+          version: latest
+      - run: task generate
       - name: git diff
         run: |
           git diff --compact-summary --exit-code || \
-            (echo; echo "Unexpected difference in directories after code generation. Run 'go generate ./...' command and commit."; exit 1)
+            (echo; echo "Unexpected difference in directories after code generation. Run 'task generate' command and commit."; exit 1)
