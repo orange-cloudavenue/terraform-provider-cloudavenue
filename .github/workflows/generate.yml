@@ -21,7 +21,7 @@ jobs:
           go-version-file: 'go.mod'
       - name: Install Task
         uses: arduino/setup-task@v2
-      - run: task generate
+      - run: task go:run
       - name: git diff
         run: |
           git diff --compact-summary --exit-code || \
