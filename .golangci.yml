@@ -49,7 +49,7 @@ linters:
     - sqlclosecheck # Checks that sql.Rows and sql.Stmt are closed. [fast: false, auto-fix: false]
     - stylecheck # Stylecheck is a replacement for golint [fast: false, auto-fix: false]
     - tagliatelle # Checks the struct tags. [fast: true, auto-fix: false]
-    - tenv # tenv is analyzer that detects using os.Setenv instead of t.Setenv since Go1.17 [fast: false, auto-fix: false]
+    - usetesting # Checks for the use of the testing package [fast: true, auto-fix: false]
     - tparallel # tparallel detects inappropriate usage of t.Parallel() method in your Go test codes [fast: false, auto-fix: false]
     - typecheck # Like the front-end of a Go compiler, parses and type-checks Go code [fast: false, auto-fix: false]
     - unconvert # Remove unnecessary type conversions [fast: false, auto-fix: false]
