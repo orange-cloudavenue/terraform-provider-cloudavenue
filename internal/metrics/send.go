@@ -15,14 +15,12 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
-
-	tat "github.com/FrangipaneTeam/terraform-analytic-tool/api"
 )
 
 // Send is a function to send an event
 // with a given configuration and client.
 // This not return an error because it's not critical.
-func send(event tat.AnalyticRequest) {
+func send(event analyticRequest) {
 	// Serialize and pack event
 	eventPkg, err := json.Marshal(event)
 	if err != nil {
