@@ -69,6 +69,13 @@ func (r *securityGroupResource) Init(ctx context.Context, rm *SecurityGroupModel
 		return
 	}
 
+	if r.edgegw.OwnerType.IsVDCGROUP() {
+		diags.AddError(
+			"Edge Gateway belongs to a VDC Group",
+			"Edge Gateway belongs to a VDC Group, please use the VDC Group resource instead `cloudavenue_vdcg_security_group`.",
+		)
+	}
+
 	return
 }
 

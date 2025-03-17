@@ -58,6 +58,13 @@ func (d *ipSetDataSource) Init(ctx context.Context, dm *IPSetModel) (diags diag.
 		return
 	}
 
+	if d.edgegw.OwnerType.IsVDCGROUP() {
+		diags.AddError(
+			"Edge Gateway belongs to a VDC Group",
+			"Edge Gateway belongs to a VDC Group, please use the VDC Group resource instead `cloudavenue_vdcg_security_group`.",
+		)
+	}
+
 	return
 }
 
