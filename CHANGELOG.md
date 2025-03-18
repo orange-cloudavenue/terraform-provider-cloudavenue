@@ -1,4 +1,8 @@
 ## 0.30.0 (Unreleased)
+
+### :tada: **Improvements**
+
+* `resource/cloudavenue_edgegateway_firewall` - Added support of `REJECT` action for firewall rules. (GH-843)
 ### :information_source: **Notes**
 
 * A lot of improvements in the documentation. (GH-1000)
