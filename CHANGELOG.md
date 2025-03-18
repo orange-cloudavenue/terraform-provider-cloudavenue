@@ -1,5 +1,11 @@
 ## 0.30.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_elb_policies_http_request` - Add new data source to retrieve HTTP request policies for CloudAvenue ELB. (GH-975)
+* **New Resource:** `resource/cloudavenue_elb_policies_http_request` - Add new resource to manage HTTP request policies for CloudAvenue ELB. HTTP request rules modify requests before they are either forwarded to the application, used as a basis for content switching, or discarded. (GH-975)
+* **New Resource:** `resource/cloudavenue_elb_policies_http_response` - Add new resource to manage HTTP response policies for CloudAvenue ELB. HTTP response rules can be used to to evaluate and modify the response and response attributes that the application returns. (GH-976)
+
 ### :tada: **Improvements**
 
 * `resource/cloudavenue_edgegateway_firewall` - Added support of `REJECT` action for firewall rules. (GH-843)
