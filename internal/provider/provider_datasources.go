@@ -65,7 +65,6 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		// * VDC
 		vdc.NewVDCsDataSource,
 		vdc.NewVDCDataSource,
-		vdc.NewGroupDataSource,
 		vdc.NewNetworkIsolatedDataSource,
 
 		// * VDC GROUP
