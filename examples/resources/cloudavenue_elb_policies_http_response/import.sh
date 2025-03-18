@@ -1,0 +1,1 @@
+terraform import cloudavenue_elb_policies_http_response.example virtual_service_id

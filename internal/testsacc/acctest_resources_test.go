@@ -50,8 +50,10 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		EdgeGatewayIPSetResourceName:          testsacc.NewResourceConfig(NewEdgeGatewayIPSetResourceTest()),
 
 		// * EdgeGateway LoadBalancer (elb)
-		ELBPoolResourceName:           testsacc.NewResourceConfig(NewELBPoolResourceTest()),
-		ELBVirtualServiceResourceName: testsacc.NewResourceConfig(NewELBVirtualServiceResourceTest()),
+		ELBPoolResourceName:                 testsacc.NewResourceConfig(NewELBPoolResourceTest()),
+		ELBVirtualServiceResourceName:       testsacc.NewResourceConfig(NewELBVirtualServiceResourceTest()),
+		ELBPoliciesHTTPRequestResourceName:  testsacc.NewResourceConfig(NewELBPoliciesHTTPRequestResourceTest()),
+		ELBPoliciesHTTPResponseResourceName: testsacc.NewResourceConfig(NewELBPoliciesHTTPResponseResourceTest()),
 
 		// * Backup
 		BackupResourceName: testsacc.NewResourceConfig(NewBackupResourceTest()),
