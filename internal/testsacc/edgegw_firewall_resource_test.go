@@ -37,7 +37,7 @@ func (r *EdgeGatewayFirewallResource) GetResourceName() string {
 }
 
 func (r *EdgeGatewayFirewallResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	resp.Append(GetResourceConfig()[EdgeGatewaySecurityGroupResourceName]().GetDefaultConfig)
+	resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
 	return
 }
 
@@ -84,23 +84,35 @@ func (r *EdgeGatewayFirewallResource) Tests(ctx context.Context) map[testsacc.Te
 								ip_protocol = "IPV4"
 							  },
 							  {
-								action      = "ALLOW"
-								name        = "allow OUT IPv4 traffic"
+								action      = "DROP"
+								name        = "drop OUT IPv4 traffic"
 								direction   = "OUT"
+								ip_protocol = "IPV4"
+							  },
+							  {
+								action      = "REJECT"
+								name        = "reject IN_OUT IPv4 traffic"
+								direction   = "IN_OUT"
 								ip_protocol = "IPV4"
 							  }
 							]
 						  }`,
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "rules.#", "2"),
+							resource.TestCheckResourceAttr(resourceName, "rules.#", "3"),
 							resource.TestCheckResourceAttr(resourceName, "rules.0.action", "ALLOW"),
 							resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow all IPv4 traffic"),
 							resource.TestCheckResourceAttr(resourceName, "rules.0.direction", "IN"),
 							resource.TestCheckResourceAttr(resourceName, "rules.0.ip_protocol", "IPV4"),
-							resource.TestCheckResourceAttr(resourceName, "rules.1.action", "ALLOW"),
-							resource.TestCheckResourceAttr(resourceName, "rules.1.name", "allow OUT IPv4 traffic"),
+
+							resource.TestCheckResourceAttr(resourceName, "rules.1.action", "DROP"),
+							resource.TestCheckResourceAttr(resourceName, "rules.1.name", "drop OUT IPv4 traffic"),
 							resource.TestCheckResourceAttr(resourceName, "rules.1.direction", "OUT"),
 							resource.TestCheckResourceAttr(resourceName, "rules.1.ip_protocol", "IPV4"),
+
+							resource.TestCheckResourceAttr(resourceName, "rules.2.action", "REJECT"),
+							resource.TestCheckResourceAttr(resourceName, "rules.2.name", "reject IN_OUT IPv4 traffic"),
+							resource.TestCheckResourceAttr(resourceName, "rules.2.direction", "IN_OUT"),
+							resource.TestCheckResourceAttr(resourceName, "rules.2.ip_protocol", "IPV4"),
 						},
 					},
 				},
@@ -118,6 +130,10 @@ func (r *EdgeGatewayFirewallResource) Tests(ctx context.Context) map[testsacc.Te
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
+				},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[EdgeGatewaySecurityGroupResourceName]().GetDefaultConfig)
+					return
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
