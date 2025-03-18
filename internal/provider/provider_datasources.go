@@ -59,6 +59,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		elb.NewServiceEngineGroupsDataSource,
 		elb.NewPoolDataSource,
 		elb.NewVirtualServiceDataSource,
+		elb.NewPoliciesHTTPRequestDataSource,
 
 		// * VDC
 		vdc.NewVDCsDataSource,

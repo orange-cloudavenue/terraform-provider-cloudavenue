@@ -47,6 +47,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		// * EdgeGateway LoadBalancer
 		elb.NewPoolResource,
 		elb.NewVirtualServiceResource,
+		elb.NewPoliciesHTTPRequestResource,
 
 		// * VDC
 		vdc.NewVDCResource,
