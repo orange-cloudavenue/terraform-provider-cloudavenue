@@ -1,4 +1,5 @@
-## 0.30.0 (Unreleased)
+## 0.31.0 (Unreleased)
+## 0.30.0 (March 18, 2025)
 ### :rotating_light: **Breaking Changes**
 
 * `cloudavenue_vdc_group` - Announced in the release [v0.23.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.23.0) the resource and the datasource `cloudavenue_vdc_group` are now removed. The resource and the datasource `cloudavenue_vdc_group` are replaced by `cloudavenue_vdcg`. (GH-869)
