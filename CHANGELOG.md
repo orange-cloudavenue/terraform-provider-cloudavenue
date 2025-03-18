@@ -1,4 +1,9 @@
 ## 0.31.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-superschema from 1.10.1 to 1.11.0 (GH-1025)
+
 ## 0.30.0 (March 18, 2025)
 ### :rotating_light: **Breaking Changes**
 
