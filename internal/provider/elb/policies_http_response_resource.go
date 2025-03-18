@@ -29,24 +29,24 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &PoliciesHTTPRequestResource{}
-	_ resource.ResourceWithConfigure   = &PoliciesHTTPRequestResource{}
-	_ resource.ResourceWithImportState = &PoliciesHTTPRequestResource{}
+	_ resource.Resource                = &PoliciesHTTPResponseResource{}
+	_ resource.ResourceWithConfigure   = &PoliciesHTTPResponseResource{}
+	_ resource.ResourceWithImportState = &PoliciesHTTPResponseResource{}
 )
 
-// NewPoliciesHTTPRequestResource is a helper function to simplify the provider implementation.
-func NewPoliciesHTTPRequestResource() resource.Resource {
-	return &PoliciesHTTPRequestResource{}
+// NewPoliciesHTTPResponseResource is a helper function to simplify the provider implementation.
+func NewPoliciesHTTPResponseResource() resource.Resource {
+	return &PoliciesHTTPResponseResource{}
 }
 
-// PoliciesHTTPRequestResource is the resource implementation.
-type PoliciesHTTPRequestResource struct {
+// PoliciesHTTPResponseResource is the resource implementation.
+type PoliciesHTTPResponseResource struct {
 	client *client.CloudAvenue
 	elb    edgeloadbalancer.Client
 }
 
 // Init Initializes the resource.
-func (r *PoliciesHTTPRequestResource) Init(ctx context.Context, rm *PoliciesHTTPRequestModel) (diags diag.Diagnostics) {
+func (r *PoliciesHTTPResponseResource) Init(ctx context.Context, rm *PoliciesHTTPResponseModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.elb, err = edgeloadbalancer.NewClient()
@@ -58,16 +58,16 @@ func (r *PoliciesHTTPRequestResource) Init(ctx context.Context, rm *PoliciesHTTP
 }
 
 // Metadata returns the resource type name.
-func (r *PoliciesHTTPRequestResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_policies_http_request"
+func (r *PoliciesHTTPResponseResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_policies_http_response"
 }
 
 // Schema defines the schema for the resource.
-func (r *PoliciesHTTPRequestResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = policiesHTTPRequestSchema(ctx).GetResource(ctx)
+func (r *PoliciesHTTPResponseResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = policiesHTTPResponseSchema(ctx).GetResource(ctx)
 }
 
-func (r *PoliciesHTTPRequestResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *PoliciesHTTPResponseResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -85,10 +85,10 @@ func (r *PoliciesHTTPRequestResource) Configure(ctx context.Context, req resourc
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *PoliciesHTTPRequestResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	defer metrics.New("cloudavenue_elb_policies_http_request", r.client.GetOrgName(), metrics.Create)()
+func (r *PoliciesHTTPResponseResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	defer metrics.New("cloudavenue_elb_policies_http_response", r.client.GetOrgName(), metrics.Create)()
 
-	plan := &PoliciesHTTPRequestModel{}
+	plan := &PoliciesHTTPResponseModel{}
 
 	// Retrieve values from plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -138,10 +138,10 @@ func (r *PoliciesHTTPRequestResource) Create(ctx context.Context, req resource.C
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *PoliciesHTTPRequestResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	defer metrics.New("cloudavenue_elb_policies_http_request", r.client.GetOrgName(), metrics.Read)()
+func (r *PoliciesHTTPResponseResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	defer metrics.New("cloudavenue_elb_policies_http_response", r.client.GetOrgName(), metrics.Read)()
 
-	state := &PoliciesHTTPRequestModel{}
+	state := &PoliciesHTTPResponseModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -172,12 +172,12 @@ func (r *PoliciesHTTPRequestResource) Read(ctx context.Context, req resource.Rea
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *PoliciesHTTPRequestResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	defer metrics.New("cloudavenue_elb_policies_http_request", r.client.GetOrgName(), metrics.Update)()
+func (r *PoliciesHTTPResponseResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	defer metrics.New("cloudavenue_elb_policies_http_response", r.client.GetOrgName(), metrics.Update)()
 
 	var (
-		plan  = &PoliciesHTTPRequestModel{}
-		state = &PoliciesHTTPRequestModel{}
+		plan  = &PoliciesHTTPResponseModel{}
+		state = &PoliciesHTTPResponseModel{}
 	)
 
 	// Get current plan and state
@@ -229,10 +229,10 @@ func (r *PoliciesHTTPRequestResource) Update(ctx context.Context, req resource.U
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *PoliciesHTTPRequestResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	defer metrics.New("cloudavenue_elb_policies_http_request", r.client.GetOrgName(), metrics.Delete)()
+func (r *PoliciesHTTPResponseResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	defer metrics.New("cloudavenue_elb_policies_http_response", r.client.GetOrgName(), metrics.Delete)()
 
-	state := &PoliciesHTTPRequestModel{}
+	state := &PoliciesHTTPResponseModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -261,16 +261,16 @@ func (r *PoliciesHTTPRequestResource) Delete(ctx context.Context, req resource.D
 	defer mutex.GlobalMutex.KvUnlock(ctx, private.EdgeGatewayID)
 
 	// Delete the resource
-	if err := r.elb.DeletePoliciesHTTPRequest(ctx, state.VirtualServiceID.Get()); err != nil {
+	if err := r.elb.DeletePoliciesHTTPResponse(ctx, state.VirtualServiceID.Get()); err != nil {
 		resp.Diagnostics.AddError("Error deleting policies http request", err.Error())
 		return
 	}
 }
 
-func (r *PoliciesHTTPRequestResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	defer metrics.New("cloudavenue_elb_policies_http_request", r.client.GetOrgName(), metrics.Import)()
+func (r *PoliciesHTTPResponseResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	defer metrics.New("cloudavenue_elb_policies_http_response", r.client.GetOrgName(), metrics.Import)()
 
-	x := &PoliciesHTTPRequestModel{
+	x := &PoliciesHTTPResponseModel{
 		ID:               supertypes.NewStringNull(),
 		VirtualServiceID: supertypes.NewStringNull(),
 	}
@@ -299,14 +299,14 @@ func (r *PoliciesHTTPRequestResource) ImportState(ctx context.Context, req resou
 // * CustomFuncs
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
-func (r *PoliciesHTTPRequestResource) read(ctx context.Context, planOrState *PoliciesHTTPRequestModel) (stateRefreshed *PoliciesHTTPRequestModel, found bool, diags diag.Diagnostics) {
+func (r *PoliciesHTTPResponseResource) read(ctx context.Context, planOrState *PoliciesHTTPResponseModel) (stateRefreshed *PoliciesHTTPResponseModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
 	/*
 		Implement the resource read here
 	*/
 
-	data, err := r.elb.GetPoliciesHTTPRequest(ctx, stateRefreshed.VirtualServiceID.Get())
+	data, err := r.elb.GetPoliciesHTTPResponse(ctx, stateRefreshed.VirtualServiceID.Get())
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			return nil, false, nil
@@ -315,40 +315,42 @@ func (r *PoliciesHTTPRequestResource) read(ctx context.Context, planOrState *Pol
 		return nil, true, diags
 	}
 
-	stateRefreshed = &PoliciesHTTPRequestModel{
+	stateRefreshed = &PoliciesHTTPResponseModel{
 		ID:               supertypes.NewStringValueOrNull(data.VirtualServiceID),
 		VirtualServiceID: supertypes.NewStringValueOrNull(data.VirtualServiceID),
-		Policies: func() supertypes.ListNestedObjectValueOf[PoliciesHTTPRequestModelPolicies] {
-			policies := []*PoliciesHTTPRequestModelPolicies{}
+		Policies: func() supertypes.ListNestedObjectValueOf[PoliciesHTTPResponseModelPolicies] {
+			policies := []*PoliciesHTTPResponseModelPolicies{}
 			for _, v := range data.Policies {
-				policy := &PoliciesHTTPRequestModelPolicies{
+				policy := &PoliciesHTTPResponseModelPolicies{
 					Name:    supertypes.NewStringValueOrNull(v.Name),
 					Active:  supertypes.NewBoolValue(v.Active),
 					Logging: supertypes.NewBoolValue(v.Logging),
-					Criteria: func() supertypes.SingleNestedObjectValueOf[PoliciesHTTPRequestMatchCriteria] {
-						return supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPRequestMatchCriteria{
-							Protocol:       supertypes.NewStringValueOrNull(v.MatchCriteria.Protocol),
-							Query:          supertypes.NewSetValueOfSlice(ctx, v.MatchCriteria.QueryMatch),
-							ClientIP:       policiesHTTPClientIPMatchFromSDK(ctx, v.MatchCriteria.ClientIPMatch),
-							ServicePorts:   policiesHTTPServicePortMatchFromSDK(ctx, v.MatchCriteria.ServicePortMatch),
-							HTTPMethods:    policiesHTTPMethodMatchFromSDK(ctx, v.MatchCriteria.MethodMatch),
-							Path:           policiesHTTPPathMatchFromSDK(ctx, v.MatchCriteria.PathMatch),
-							Cookie:         policiesHTTPCookieMatchFromSDK(ctx, v.MatchCriteria.CookieMatch),
-							RequestHeaders: policiesHTTPHeadersMatchFromSDK(ctx, v.MatchCriteria.HeaderMatch),
+					Criteria: func() supertypes.SingleNestedObjectValueOf[PoliciesHTTPResponseMatchCriteria] {
+						return supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPResponseMatchCriteria{
+							Protocol:        supertypes.NewStringValueOrNull(v.MatchCriteria.Protocol),
+							ClientIP:        policiesHTTPClientIPMatchFromSDK(ctx, v.MatchCriteria.ClientIPMatch),
+							ServicePorts:    policiesHTTPServicePortMatchFromSDK(ctx, v.MatchCriteria.ServicePortMatch),
+							HTTPMethods:     policiesHTTPMethodMatchFromSDK(ctx, v.MatchCriteria.MethodMatch),
+							Path:            policiesHTTPPathMatchFromSDK(ctx, v.MatchCriteria.PathMatch),
+							Cookie:          policiesHTTPCookieMatchFromSDK(ctx, v.MatchCriteria.CookieMatch),
+							Location:        policiesHTTPLocationMatchFromSDK(ctx, v.MatchCriteria.LocationMatch),
+							RequestHeaders:  policiesHTTPHeadersMatchFromSDK(ctx, v.MatchCriteria.RequestHeaderMatch),
+							ResponseHeaders: policiesHTTPHeadersMatchFromSDK(ctx, v.MatchCriteria.ResponseHeaderMatch),
+							StatusCode:      policiesHTTPStatusCodeMatchFromSDK(ctx, v.MatchCriteria.StatusCodeMatch),
+							Query:           supertypes.NewSetValueOfSlice(ctx, v.MatchCriteria.QueryMatch),
 						})
 					}(),
-					Actions: func() supertypes.SingleNestedObjectValueOf[PoliciesHTTPRequestActions] {
-						return supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPRequestActions{
-							Redirect:      policiesHTTPActionRedirectFromSDK(ctx, v.RedirectAction),
-							RewriteURL:    policiesHTTPActionURLRewriteFromSDK(ctx, v.URLRewriteAction),
-							ModifyHeaders: policiesHTTPActionHeadersRewriteFromSDK(ctx, v.HeaderRewriteActions),
+					Actions: func() supertypes.SingleNestedObjectValueOf[PoliciesHTTPResponseActions] {
+						return supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPResponseActions{
+							LocationRewrite: policiesHTTPActionLocationRewriteFromSDK(ctx, v.LocationRewriteAction),
+							ModifyHeaders:   policiesHTTPActionHeadersRewriteFromSDK(ctx, v.HeaderRewriteActions),
 						})
 					}(),
 				}
 				policies = append(policies, policy)
 			}
 			if len(policies) == 0 {
-				return supertypes.NewListNestedObjectValueOfNull[PoliciesHTTPRequestModelPolicies](ctx)
+				return supertypes.NewListNestedObjectValueOfNull[PoliciesHTTPResponseModelPolicies](ctx)
 			}
 			return supertypes.NewListNestedObjectValueOfSlice(ctx, policies)
 		}(),
@@ -357,21 +359,21 @@ func (r *PoliciesHTTPRequestResource) read(ctx context.Context, planOrState *Pol
 	return stateRefreshed, true, nil
 }
 
-func (r *PoliciesHTTPRequestResource) createOrUpdate(ctx context.Context, goPlan *PoliciesHTTPRequestModel) (diags diag.Diagnostics) {
-	model, d := goPlan.ToSDKPoliciesHTTPRequestModel(ctx)
+func (r *PoliciesHTTPResponseResource) createOrUpdate(ctx context.Context, goPlan *PoliciesHTTPResponseModel) (diags diag.Diagnostics) {
+	model, d := goPlan.ToSDKPoliciesHTTPResponseModel(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
 		return
 	}
 
-	_, err := r.elb.UpdatePoliciesHTTPRequest(ctx, model)
+	_, err := r.elb.UpdatePoliciesHTTPResponse(ctx, model)
 	if err != nil {
 		diags.AddError("Error updating policies http request", err.Error())
 	}
 	return
 }
 
-func (r *PoliciesHTTPRequestResource) getEdgeGateway(ctx context.Context, virtualServiceID string) (string, diag.Diagnostics) {
+func (r *PoliciesHTTPResponseResource) getEdgeGateway(ctx context.Context, virtualServiceID string) (string, diag.Diagnostics) {
 	diags := diag.Diagnostics{}
 
 	vs, err := r.elb.GetVirtualService(ctx, "", virtualServiceID)

@@ -1,25 +1,25 @@
 ---
-page_title: "cloudavenue_elb_policies_http_request Resource - cloudavenue"
+page_title: "cloudavenue_elb_policies_http_response Resource - cloudavenue"
 subcategory: "ELB (EdgeGateway Load Balancer)"
 description: |-
-  The cloudavenue_elb_policies_http_request resource allows you to manage HTTP request policies. HTTP request rules modify requests before they are either forwarded to the application, used as a basis for content switching, or discarded.
+  The cloudavenue_elb_policies_http_response resource allows you to manage HTTP response policies. HTTP response rules can be used to to evaluate and modify the response and response attributes that the application returns.
 ---
 
-# cloudavenue_elb_policies_http_request (Resource)
+# cloudavenue_elb_policies_http_response (Resource)
 
-The `cloudavenue_elb_policies_http_request` resource allows you to manage HTTP request policies. HTTP request rules modify requests before they are either forwarded to the application, used as a basis for content switching, or discarded.
+The `cloudavenue_elb_policies_http_response` resource allows you to manage HTTP response policies. HTTP response rules can be used to to evaluate and modify the response and response attributes that the application returns.
 
 ## Example Usage
 
 ```terraform
-resource "cloudavenue_elb_policies_http_request" "example" {
+resource "cloudavenue_elb_policies_http_response" "example" {
   virtual_service_id = cloudavenue_elb_virtual_service.example.id
   policies = [
-    # Policy 1
+    // Policy 1
     {
       name = "example"
 
-      # Define the criteria for the policy
+      // Define the criteria for the policy
       criteria = {
         client_ip = {
           criteria = "IS_IN"
@@ -58,29 +58,51 @@ resource "cloudavenue_elb_policies_http_request" "example" {
             values   = ["example"]
           }
         ]
+        response_headers = [
+          {
+            criteria = "CONTAINS"
+            name     = "X-RESPONSE"
+            values   = ["example"]
+          },
+          {
+            criteria = "BEGINS_WITH"
+            name     = "X-RESPONSE-CUSTOM"
+            values   = ["example"]
+          }
+        ]
         service_ports = {
           criteria = "IS_IN"
-          ports    = ["80"]
+          ports    = ["443"]
+        }
+        location = {
+          criteria = "BEGINS_WITH"
+          values = [
+            "example.com"
+          ]
+        }
+        status_code = {
+          criteria = "IS_IN"
+          codes    = ["200", "302"]
         }
       }
 
       // Define the action to take when the criteria is met
       actions = {
+
+        location_rewrite = {
+          host       = "example.org"
+          protocol   = "HTTPS"
+          keep_query = true
+          port       = 443
+        }
+
         modify_headers = [
           {
             action = "ADD"
-            name   = "X-SECURE"
-            value  = "example"
-          },
-          {
-            action = "REMOVE"
-            name   = "X-EXAMPLE"
+            name   = "X-FROM-OLD-DOMAIN"
+            value  = "example.com"
           }
         ]
-        rewrite_url = {
-          host = "example.com"
-          path = "/example"
-        }
       }
     } // End policy 1
   ]   // End policies
@@ -92,12 +114,12 @@ resource "cloudavenue_elb_policies_http_request" "example" {
 
 ### Required
 
-- `policies` (Attributes List) HTTP request policies. (see [below for nested schema](#nestedatt--policies))
-- `virtual_service_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the virtual service to which the policies http request belongs.
+- `policies` (Attributes List) HTTP response policies. (see [below for nested schema](#nestedatt--policies))
+- `virtual_service_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the virtual service to which the policies http response belongs.
 
 ### Read-Only
 
-- `id` (String) The ID of the policies http request.
+- `id` (String) The ID of the policies http response.
 
 <a id="nestedatt--policies"></a>
 ### Nested Schema for `policies`
@@ -105,22 +127,36 @@ resource "cloudavenue_elb_policies_http_request" "example" {
 Required:
 
 - `actions` (Attributes) Actions to perform when the rule matches. (see [below for nested schema](#nestedatt--policies--actions))
-- `criteria` (Attributes) Match criteria for the HTTP request. (see [below for nested schema](#nestedatt--policies--criteria))
+- `criteria` (Attributes) Match criteria for the HTTP response. (see [below for nested schema](#nestedatt--policies--criteria))
 - `name` (String) The name of the policy.
 
 Optional:
 
 - `active` (Boolean) Whether the policy is active or not. Value defaults to `true`.
-- `logging` (Boolean) Whether to enable logging with headers on rule match or not. Value defaults to `false`.
+- `logging` (Boolean) Enable logging for this policy. Value defaults to `false`.
 
 <a id="nestedatt--policies--actions"></a>
 ### Nested Schema for `policies.actions`
 
 Optional:
 
-- `modify_headers` (Attributes Set) Modify HTTP request headers. Set must contain at most 10 elements. If the [`<.redirect`](#<.redirect) attribute is set this attribute is **NULL**. (see [below for nested schema](#nestedatt--policies--actions--modify_headers))
-- `redirect` (Attributes) Redirects the request to different location. If the [`<.modify_headers`](#<.modify_headers) attribute is set this attribute is **NULL**. If the [`<.rewrite_url`](#<.rewrite_url) attribute is set this attribute is **NULL**. (see [below for nested schema](#nestedatt--policies--actions--redirect))
-- `rewrite_url` (Attributes) Rewrite the request URL. If the [`<.redirect`](#<.redirect) attribute is set this attribute is **NULL**. (see [below for nested schema](#nestedatt--policies--actions--rewrite_url))
+- `location_rewrite` (Attributes) Redirects the request to different location. (see [below for nested schema](#nestedatt--policies--actions--location_rewrite))
+- `modify_headers` (Attributes Set) Modify HTTP request headers. (see [below for nested schema](#nestedatt--policies--actions--modify_headers))
+
+<a id="nestedatt--policies--actions--location_rewrite"></a>
+### Nested Schema for `policies.actions.location_rewrite`
+
+Required:
+
+- `port` (Number) Port to which redirect the request. Value must be between 1 and 65535.
+- `protocol` (String) HTTP protocol. Value must be one of : `HTTP`, `HTTPS`.
+
+Optional:
+
+- `host` (String) Host to which redirect the request. Default is the original host.
+- `keep_query` (Boolean) Keep or drop the query of the incoming request URI in the redirected URI. Value defaults to `true`.
+- `path` (String) Path to which redirect the request. Default is the original path.
+
 
 <a id="nestedatt--policies--actions--modify_headers"></a>
 ### Nested Schema for `policies.actions.modify_headers`
@@ -135,36 +171,6 @@ Optional:
 - `value` (String) Value of the HTTP header to modify. String length must be at most 128.
 
 
-<a id="nestedatt--policies--actions--redirect"></a>
-### Nested Schema for `policies.actions.redirect`
-
-Required:
-
-- `port` (Number) Port to which redirect the request. Value must be between 1 and 65535.
-- `protocol` (String) HTTP protocol. Value must be one of : `HTTP`, `HTTPS`.
-
-Optional:
-
-- `host` (String) Host to which redirect the request. Default is the original host.
-- `keep_query` (Boolean) Keep or drop the query of the incoming request URI in the redirected URI. Value defaults to `true`.
-- `path` (String) Path to which redirect the request. Default is the original path.
-- `status_code` (Number) Redirect status code. Value defaults to `302`. Value must be one of : `301`, `302`, `307`.
-
-
-<a id="nestedatt--policies--actions--rewrite_url"></a>
-### Nested Schema for `policies.actions.rewrite_url`
-
-Required:
-
-- `host` (String) Host header to use for the rewritten URL.
-- `path` (String) Path to use for the rewritten URL.
-
-Optional:
-
-- `keep_query` (Boolean) Whether or not to keep the existing query string when rewriting the URL. Defaults to true. Value defaults to `true`.
-- `query` (String) Query string to use or append to the existing query string in the rewritten URL.
-
-
 
 <a id="nestedatt--policies--criteria"></a>
 ### Nested Schema for `policies.criteria`
@@ -174,11 +180,14 @@ Optional:
 - `client_ip` (Attributes) Match the rule based on client IP address rules. (see [below for nested schema](#nestedatt--policies--criteria--client_ip))
 - `cookie` (Attributes) Match the rule based on cookie rules. (see [below for nested schema](#nestedatt--policies--criteria--cookie))
 - `http_methods` (Attributes) Match the rule based on HTTP method rules. (see [below for nested schema](#nestedatt--policies--criteria--http_methods))
+- `location` (Attributes) Match the rule based on location rules. (see [below for nested schema](#nestedatt--policies--criteria--location))
 - `path` (Attributes) Match the rule based on path rules. (see [below for nested schema](#nestedatt--policies--criteria--path))
 - `protocol` (String) Protocol to match. Value must be one of : `HTTP`, `HTTPS`.
 - `query` (Set of String) Text contained in the query string.
 - `request_headers` (Attributes Set) Match the rule based on request headers rules. (see [below for nested schema](#nestedatt--policies--criteria--request_headers))
+- `response_headers` (Attributes Set) Match the rule based on response headers rules. (see [below for nested schema](#nestedatt--policies--criteria--response_headers))
 - `service_ports` (Attributes) Match the rule based on service port rules. (see [below for nested schema](#nestedatt--policies--criteria--service_ports))
+- `status_code` (Attributes) Match the rule based on response HTTP status code. (see [below for nested schema](#nestedatt--policies--criteria--status_code))
 
 <a id="nestedatt--policies--criteria--client_ip"></a>
 ### Nested Schema for `policies.criteria.client_ip`
@@ -212,6 +221,15 @@ Required:
 - `methods` (Set of String) Methods to match. Element value must satisfy all validations: value must be one of: ["GET" "POST" "PUT" "DELETE" "PATCH" "OPTIONS" "TRACE" "CONNECT" "PROPFIND" "PROPPATCH" "MKCOL" "COPY" "MOVE" "LOCK" "UNLOCK"].
 
 
+<a id="nestedatt--policies--criteria--location"></a>
+### Nested Schema for `policies.criteria.location`
+
+Required:
+
+- `criteria` (String) Criteria to match. Value must be one of : `BEGINS_WITH`, `DOES_NOT_BEGIN_WITH`, `CONTAINS`, `DOES_NOT_CONTAIN`, `ENDS_WITH`, `DOES_NOT_END_WITH`, `EQUALS`, `DOES_NOT_EQUAL`, `REGEX_MATCH`, `REGEX_DOES_NOT_MATCH`.
+- `values` (Set of String) A set of locations to match given criteria.
+
+
 <a id="nestedatt--policies--criteria--path"></a>
 ### Nested Schema for `policies.criteria.path`
 
@@ -234,6 +252,19 @@ Optional:
 - `values` (Set of String) Values of the HTTP header to match.
 
 
+<a id="nestedatt--policies--criteria--response_headers"></a>
+### Nested Schema for `policies.criteria.response_headers`
+
+Required:
+
+- `criteria` (String) Criteria to match. Value must be one of : `BEGINS_WITH`, `DOES_NOT_BEGIN_WITH`, `CONTAINS`, `DOES_NOT_CONTAIN`, `ENDS_WITH`, `DOES_NOT_END_WITH`, `EQUALS`, `DOES_NOT_EQUAL`, `EXISTS`, `DOES_NOT_EXIST`.
+- `name` (String) Name of the HTTP header whose value is to be matched.
+
+Optional:
+
+- `values` (Set of String) Values of the HTTP header to match.
+
+
 <a id="nestedatt--policies--criteria--service_ports"></a>
 ### Nested Schema for `policies.criteria.service_ports`
 
@@ -242,9 +273,18 @@ Required:
 - `criteria` (String) Criteria to match. Value must be one of : `IS_IN`, `IS_NOT_IN`.
 - `ports` (Set of Number) Ports to match. Element value must satisfy all validations: value must be between 1 and 65535.
 
+
+<a id="nestedatt--policies--criteria--status_code"></a>
+### Nested Schema for `policies.criteria.status_code`
+
+Required:
+
+- `codes` (Set of String) HTTP Status codes or range to match. (Example: `200` or `301-304`) Warning: all ports must have valid HTTP return codes. `200-299` are invalid range because they are not a valid HTTP status code.
+- `criteria` (String) Criteria to match. Value must be one of : `IS_IN`, `IS_NOT_IN`.
+
 ## Import
 
 Import is supported using the following syntax:
 ```shell
-terraform import cloudavenue_elb_policies_http_request.example virtual_service_id
+terraform import cloudavenue_elb_policies_http_response.example virtual_service_id
 ```
