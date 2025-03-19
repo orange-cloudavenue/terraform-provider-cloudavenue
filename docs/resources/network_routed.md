@@ -45,7 +45,7 @@ resource "cloudavenue_network_routed" "example" {
 ### Required
 
 - `gateway` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The gateway IP address for the network. This value define also the network IP range with the prefix length. Must be a valid IP with net.ParseIP.
-- `name` (String) The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.
+- `name` (String) The name of the network. .
 - `prefix_length` (Number) <i style="color:red;font-weight: bold">(ForceNew)</i> The prefix length for the network. This value must be a valid prefix length for the network IP range. (e.g. /24 for netmask 255.255.255.0). Value must be between 1 and 32.
 
 ### Optional

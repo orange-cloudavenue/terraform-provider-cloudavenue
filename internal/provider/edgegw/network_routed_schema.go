@@ -7,7 +7,7 @@
  * or see the "LICENSE" file for more details.
  */
 
-package network
+package edgegw
 
 import (
 	"context"
@@ -21,9 +21,9 @@ import (
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -31,30 +31,39 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 )
 
-func routedSchema(_ context.Context) superschema.Schema {
+func networkRoutedSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "Provides a Cloud Avenue vDC routed Network. This can be used to create, modify, and delete VDC routed networks.",
+			MarkdownDescription: "The `cloudavenue_edgegateway_network_routed` resource allows you to manage a routed network why the edge gateway scope. If you want to manage a routed network in the vDC Groupe scope, please use the [`cloudavenue_vdcg_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_network_routed) resource.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "Provides a Cloud Avenue vDC routed Network data source to read data or reference existing network",
+			MarkdownDescription: "The `cloudavenue_edgegateway_network_routed` data source allows you to retrieve information about an existing routed network why the edge gateway scope. If you want to retrieve information about a routed network in the vDC Groupe scope, please use the [`cloudavenue_vdcg_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdcg_network_routed) data source.",
 		},
-		Attributes: superschema.Attributes{
+		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					Computed:            true,
-					MarkdownDescription: "The ID of the network.",
+					MarkdownDescription: "The ID of the network routed.",
 				},
 				Resource: &schemaR.StringAttribute{
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
+				DataSource: &schemaD.StringAttribute{
+					Optional: true,
+				},
 			},
 			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the network. ",
-					Required:            true,
+					MarkdownDescription: "The name of the network routed.",
+				},
+				Resource: &schemaR.StringAttribute{
+					Required: true,
+				},
+				DataSource: &schemaD.StringAttribute{
+					Optional: true,
+					Computed: true,
 				},
 			},
 			"description": superschema.SuperStringAttribute{
@@ -73,14 +82,14 @@ func routedSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The ID of the edge gateway in which the routed network should be located.",
 					Optional:            true,
 					Computed:            true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
+					},
 				},
 				Resource: &schemaR.StringAttribute{
 					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.RequiresReplaceIfConfigured(),
 						stringplanmodifier.UseStateForUnknown(),
-					},
-					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
+						stringplanmodifier.RequiresReplaceIfConfigured(),
 					},
 				},
 			},
@@ -88,40 +97,29 @@ func routedSchema(_ context.Context) superschema.Schema {
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the edge gateway in which the routed network should be located.",
 					Computed:            true,
-				},
-				Resource: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the edge gateway in which the routed network should be located.",
 					Optional:            true,
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.RequiresReplaceIfConfigured(),
-						stringplanmodifier.UseStateForUnknown(),
-					},
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
 					},
 				},
-			},
-			"interface_type": superschema.SuperStringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "An interface for the network",
-					Computed:            true,
-				},
 				Resource: &schemaR.StringAttribute{
-					Optional: true,
-					Default:  stringdefault.StaticString("INTERNAL"),
-					Validators: []validator.String{
-						stringvalidator.OneOf("INTERNAL", "SUBINTERFACE", "DISTRIBUTED"),
+					MarkdownDescription: "The name of the edge gateway in which the routed network should be located.",
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+						stringplanmodifier.RequiresReplaceIfConfigured(),
 					},
 				},
 			},
 			"gateway": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The gateway IP address for the network. This value define also the network IP range with the prefix length.",
+					MarkdownDescription: "The gateway IP address for the network. This value define also the network IP range with the prefix length. (e.g. 192.168.1.1 with prefix length 24 for netmask, define the network IP range 192.168.1.0/24 with the gateway 192.168.1.1)",
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,
 					Validators: []validator.String{
-						fstringvalidator.IsIP(),
+						fstringvalidator.IsNetwork([]fstringvalidator.NetworkValidatorType{
+							fstringvalidator.IPV4,
+						}, false),
 					},
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
@@ -155,7 +153,9 @@ func routedSchema(_ context.Context) superschema.Schema {
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
-						fstringvalidator.IsIP(),
+						fstringvalidator.IsNetwork([]fstringvalidator.NetworkValidatorType{
+							fstringvalidator.IPV4,
+						}, false),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -169,7 +169,9 @@ func routedSchema(_ context.Context) superschema.Schema {
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
-						fstringvalidator.IsIP(),
+						fstringvalidator.IsNetwork([]fstringvalidator.NetworkValidatorType{
+							fstringvalidator.IPV4,
+						}, false),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -187,7 +189,17 @@ func routedSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"static_ip_pool": superschema.SuperSetNestedAttributeOf[networkRoutedModelStaticIPPool]{
+			"guest_vlan_allowed": superschema.SuperBoolAttribute{
+				Common: &schemaR.BoolAttribute{
+					MarkdownDescription: "Indicates if the network allows guest VLANs.",
+					Computed:            true,
+				},
+				Resource: &schemaR.BoolAttribute{
+					Optional: true,
+					Default:  booldefault.StaticBool(false),
+				},
+			},
+			"static_ip_pool": superschema.SuperSetNestedAttributeOf[NetworkRoutedModelStaticIPPool]{
 				Common: &schemaR.SetNestedAttribute{
 					MarkdownDescription: "A set of static IP pools to be used for this network.",
 				},
@@ -209,7 +221,9 @@ func routedSchema(_ context.Context) superschema.Schema {
 						Resource: &schemaR.StringAttribute{
 							Required: true,
 							Validators: []validator.String{
-								fstringvalidator.IsIP(),
+								fstringvalidator.IsNetwork([]fstringvalidator.NetworkValidatorType{
+									fstringvalidator.IPV4,
+								}, false),
 							},
 						},
 						DataSource: &schemaD.StringAttribute{
@@ -223,7 +237,9 @@ func routedSchema(_ context.Context) superschema.Schema {
 						Resource: &schemaR.StringAttribute{
 							Required: true,
 							Validators: []validator.String{
-								fstringvalidator.IsIP(),
+								fstringvalidator.IsNetwork([]fstringvalidator.NetworkValidatorType{
+									fstringvalidator.IPV4,
+								}, false),
 							},
 						},
 						DataSource: &schemaD.StringAttribute{

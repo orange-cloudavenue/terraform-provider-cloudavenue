@@ -45,7 +45,7 @@ data "cloudavenue_network_routed" "example" {
 
 ### Required
 
-- `name` (String) The name of the network. This value must be unique within the `VDC` or `VDC Group` that owns the network.
+- `name` (String) The name of the network. .
 
 ### Optional
 

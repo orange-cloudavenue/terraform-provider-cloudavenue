@@ -4,6 +4,8 @@ go 1.23.0
 
 toolchain go1.24.0
 
+replace github.com/orange-cloudavenue/cloudavenue-sdk-go => ../cloudavenue-sdk-go
+
 require (
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/cilium/fake v0.7.0
