@@ -63,6 +63,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		vdcg.NewSecurityGroupResource,
 		vdcg.NewAppPortProfileResource,
 		vdcg.NewFirewallResource,
+		vdcg.NewNetworkRoutedResource,
 
 		// * VCDA
 		vcda.NewVCDAIPResource,

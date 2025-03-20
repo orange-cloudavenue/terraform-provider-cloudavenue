@@ -38,6 +38,7 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceCo
 		VDCGDynamicSecurityGroupDataSourceName: testsacc.NewResourceConfig(NewVDCGDynamicSecurityGroupDataSourceTest()),
 		VDCGAppPortProfileDatasourceName:       testsacc.NewResourceConfig(NewVDCGAppPortProfileDatasourceTest()),
 		VDCGFirewallDataSourceName:             testsacc.NewResourceConfig(NewVDCGFirewallDataSourceTest()),
+		VDCGNetworkRoutedDataSourceName:        testsacc.NewResourceConfig(NewVDCGNetworkRoutedDataSourceTest()),
 
 		// * Backup
 		BackupDataSourceName: testsacc.NewResourceConfig(NewBackupDataSourceTest()),

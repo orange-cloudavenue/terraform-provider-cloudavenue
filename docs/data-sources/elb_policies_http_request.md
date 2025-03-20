@@ -13,7 +13,7 @@ The `cloudavenue_elb_policies_http_request` data source allows you to retrieve i
 
 ```terraform
 data "cloudavenue_elb_policies_http_request" "example" {
-  name              = "example"
+  name = "example"
 }
 ```
 
