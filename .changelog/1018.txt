@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_edgegateway_network_routed` - Add new resource to manage routed networks in the Edge Gateway in scope VDC.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_edgegateway_network_routed` - Add new data source to retrieve information about routed networks in the Edge Gateway in scope VDC.
+```
