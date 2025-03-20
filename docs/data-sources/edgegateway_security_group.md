@@ -31,5 +31,5 @@ data "cloudavenue_edgegateway_security_group" "example" {
 ### Read-Only
 
 - `description` (String) The description of the security group.
-- `member_org_network_ids` (Set of String) The list of organization network IDs to which the security group is applied.
+- `member_org_network_ids` (Set of String) The list of IDs of the routed organization networks to which the security group is applied.
 
