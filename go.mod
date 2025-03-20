@@ -25,7 +25,7 @@ require (
 	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
 	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1
 	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.11.0
-	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.1.0
+	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.1.1
 	github.com/orange-cloudavenue/terraform-plugin-framework-validators v1.15.0
 	github.com/rs/zerolog v1.33.0
 	github.com/thanhpk/randstr v1.0.6
