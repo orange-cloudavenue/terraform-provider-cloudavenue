@@ -26,6 +26,7 @@ import (
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -132,6 +133,9 @@ func (r *NetworkRoutedResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetURN())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetURN())
+
 	netRouted, err := r.vdc.CreateNetworkRouted(sdkValues)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating network routed", fmt.Sprintf("Error: %s", err.Error()))
@@ -222,6 +226,9 @@ func (r *NetworkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetURN())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetURN())
+
 	netRouted, err := r.vdc.GetNetworkRouted(state.ID.Get())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving network routed", fmt.Sprintf("Error: %s", err.Error()))
@@ -269,6 +276,9 @@ func (r *NetworkRoutedResource) Delete(ctx context.Context, req resource.DeleteR
 	/*
 		Implement the resource deletion here
 	*/
+
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetURN())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetURN())
 
 	netRouted, err := r.vdc.GetNetworkRouted(state.ID.Get())
 	if err != nil {
