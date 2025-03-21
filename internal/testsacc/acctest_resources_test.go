@@ -30,6 +30,7 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		VDCGFirewallResourceName:             testsacc.NewResourceConfig(NewVDCGFirewallResourceTest()),
 		VDCGDynamicSecurityGroupResourceName: testsacc.NewResourceConfig(NewVDCGDynamicSecurityGroupResourceTest()),
 		VDCGAppPortProfileResourceName:       testsacc.NewResourceConfig(NewVDCGAppPortProfileResourceTest()),
+		VDCGNetworkRoutedResourceName:        testsacc.NewResourceConfig(NewVDCGNetworkRoutedResourceTest()),
 
 		// * VAPP
 		VAppResourceName:                testsacc.NewResourceConfig(NewVAppResourceTest()),

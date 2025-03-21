@@ -1,0 +1,7 @@
+```release-note:new-resource
+`resource/cloudavenue_vdcg_network_routed` - Add new resource to manage routed networks in VDC Group.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_vdcg_network_routed` - Add new data source to retrieve routed networks in VDC Group.
+```

@@ -1,0 +1,1 @@
+terraform import cloudavenue_vdcg_network_routed.example vdcGroupIDOrName.networkRoutedIDOrName
