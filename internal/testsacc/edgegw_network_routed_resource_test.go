@@ -58,7 +58,7 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 						description = {{ generate . "description" }}
 						edge_gateway_id = cloudavenue_edgegateway.example.id
 					
-						gateway       = "192.168.0.1"
+						gateway       = "192.168.40.1"
 						prefix_length = 24
 					
 						dns1 = "1.1.1.1"
@@ -67,19 +67,19 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 					
 						static_ip_pool = [
 						{
-							start_address = "192.168.0.10"
-							end_address   = "192.168.0.20"
+							start_address = "192.168.40.10"
+							end_address   = "192.168.40.20"
 						},
 						{
-							start_address = "192.168.0.100"
-							end_address   = "192.168.0.130"
+							start_address = "192.168.40.100"
+							end_address   = "192.168.40.130"
 						}
 						]
 					}`),
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
-						resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.0.1"),
+						resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.40.1"),
 						resource.TestCheckResourceAttr(resourceName, "prefix_length", "24"),
 						resource.TestCheckResourceAttr(resourceName, "dns1", "1.1.1.1"),
 						resource.TestCheckResourceAttr(resourceName, "dns2", "1.0.0.1"),
@@ -87,12 +87,12 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 						resource.TestCheckResourceAttr(resourceName, "static_ip_pool.#", "2"),
 						resource.TestCheckResourceAttr(resourceName, "guest_vlan_allowed", "false"), // Default value
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-							"start_address": "192.168.0.10",
-							"end_address":   "192.168.0.20",
+							"start_address": "192.168.40.10",
+							"end_address":   "192.168.40.20",
 						}),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-							"start_address": "192.168.0.100",
-							"end_address":   "192.168.0.130",
+							"start_address": "192.168.40.100",
+							"end_address":   "192.168.40.130",
 						}),
 					},
 				},
@@ -106,7 +106,7 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 							description = {{ get . "description" }}
 							edge_gateway_id = cloudavenue_edgegateway.example.id
 						
-							gateway       = "192.168.0.1"
+							gateway       = "192.168.40.1"
 							prefix_length = 24
 						
 							dns1 = "1.1.1.1"
@@ -115,19 +115,19 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 						
 							static_ip_pool = [
 							{
-								start_address = "192.168.0.10"
-								end_address   = "192.168.0.20"
+								start_address = "192.168.40.10"
+								end_address   = "192.168.40.20"
 							},
 							{
-								start_address = "192.168.0.100"
-								end_address   = "192.168.0.130"
+								start_address = "192.168.40.100"
+								end_address   = "192.168.40.130"
 							}
 							]
 						}`),
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
-							resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.0.1"),
+							resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.40.1"),
 							resource.TestCheckResourceAttr(resourceName, "prefix_length", "24"),
 							resource.TestCheckResourceAttr(resourceName, "dns1", "1.1.1.1"),
 							resource.TestCheckResourceAttr(resourceName, "dns2", "1.0.0.1"),
@@ -135,12 +135,12 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 							resource.TestCheckResourceAttr(resourceName, "static_ip_pool.#", "2"),
 							resource.TestCheckResourceAttr(resourceName, "guest_vlan_allowed", "false"), // Default value
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.10",
-								"end_address":   "192.168.0.20",
+								"start_address": "192.168.40.10",
+								"end_address":   "192.168.40.20",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.100",
-								"end_address":   "192.168.0.130",
+								"start_address": "192.168.40.100",
+								"end_address":   "192.168.40.130",
 							}),
 						},
 					},
@@ -152,7 +152,7 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 							description = {{ generate . "description" }}
 							edge_gateway_id = cloudavenue_edgegateway.example.id
 						
-							gateway       = "192.168.0.1"
+							gateway       = "192.168.40.1"
 							prefix_length = 24
 						
 							dns1 = "1.1.1.1"
@@ -161,19 +161,19 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 						
 							static_ip_pool = [
 							{
-								start_address = "192.168.0.10"
-								end_address   = "192.168.0.20"
+								start_address = "192.168.40.10"
+								end_address   = "192.168.40.20"
 							},
 							{
-								start_address = "192.168.0.100"
-								end_address   = "192.168.0.130"
+								start_address = "192.168.40.100"
+								end_address   = "192.168.40.130"
 							}
 							]
 						}`),
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
-							resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.0.1"),
+							resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.40.1"),
 							resource.TestCheckResourceAttr(resourceName, "prefix_length", "24"),
 							resource.TestCheckResourceAttr(resourceName, "dns1", "1.1.1.1"),
 							resource.TestCheckResourceAttr(resourceName, "dns2", "1.0.0.1"),
@@ -181,12 +181,12 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 							resource.TestCheckResourceAttr(resourceName, "static_ip_pool.#", "2"),
 							resource.TestCheckResourceAttr(resourceName, "guest_vlan_allowed", "false"), // Default value
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.10",
-								"end_address":   "192.168.0.20",
+								"start_address": "192.168.40.10",
+								"end_address":   "192.168.40.20",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.100",
-								"end_address":   "192.168.0.130",
+								"start_address": "192.168.40.100",
+								"end_address":   "192.168.40.130",
 							}),
 						},
 					},
@@ -198,7 +198,7 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 							description = {{ generate . "description" }}
 							edge_gateway_id = cloudavenue_edgegateway.example.id
 						
-							gateway       = "192.168.0.1"
+							gateway       = "192.168.40.1"
 							prefix_length = 24
 						
 							dns1 = "208.67.222.222"
@@ -207,19 +207,19 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 						
 							static_ip_pool = [
 							{
-								start_address = "192.168.0.10"
-								end_address   = "192.168.0.20"
+								start_address = "192.168.40.10"
+								end_address   = "192.168.40.20"
 							},
 							{
-								start_address = "192.168.0.100"
-								end_address   = "192.168.0.130"
+								start_address = "192.168.40.100"
+								end_address   = "192.168.40.130"
 							}
 							]
 						}`),
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
-							resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.0.1"),
+							resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.40.1"),
 							resource.TestCheckResourceAttr(resourceName, "prefix_length", "24"),
 							resource.TestCheckResourceAttr(resourceName, "dns1", "208.67.222.222"),
 							resource.TestCheckResourceAttr(resourceName, "dns2", "208.67.220.220"),
@@ -227,12 +227,12 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 							resource.TestCheckResourceAttr(resourceName, "static_ip_pool.#", "2"),
 							resource.TestCheckResourceAttr(resourceName, "guest_vlan_allowed", "false"), // Default value
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.10",
-								"end_address":   "192.168.0.20",
+								"start_address": "192.168.40.10",
+								"end_address":   "192.168.40.20",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.100",
-								"end_address":   "192.168.0.130",
+								"start_address": "192.168.40.100",
+								"end_address":   "192.168.40.130",
 							}),
 						},
 					},
@@ -244,7 +244,7 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 							description = {{ generate . "description" }}
 							edge_gateway_id = cloudavenue_edgegateway.example.id
 						
-							gateway       = "192.168.0.1"
+							gateway       = "192.168.40.1"
 							prefix_length = 24
 						
 							dns1 = "208.67.222.222"
@@ -253,23 +253,23 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 						
 							static_ip_pool = [
 							{
-								start_address = "192.168.0.40"
-								end_address   = "192.168.0.60"
+								start_address = "192.168.40.40"
+								end_address   = "192.168.40.60"
 							},
 							{
-								start_address = "192.168.0.100"
-								end_address   = "192.168.0.130"
+								start_address = "192.168.40.100"
+								end_address   = "192.168.40.130"
 							},
 							{
-								start_address = "192.168.0.200"
-								end_address   = "192.168.0.220"
+								start_address = "192.168.40.200"
+								end_address   = "192.168.40.220"
 							}
 							]
 						}`),
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
-							resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.0.1"),
+							resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.40.1"),
 							resource.TestCheckResourceAttr(resourceName, "prefix_length", "24"),
 							resource.TestCheckResourceAttr(resourceName, "dns1", "208.67.222.222"),
 							resource.TestCheckResourceAttr(resourceName, "dns2", "208.67.220.220"),
@@ -277,16 +277,16 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 							resource.TestCheckResourceAttr(resourceName, "static_ip_pool.#", "3"),
 							resource.TestCheckResourceAttr(resourceName, "guest_vlan_allowed", "false"), // Default value
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.40",
-								"end_address":   "192.168.0.60",
+								"start_address": "192.168.40.40",
+								"end_address":   "192.168.40.60",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.100",
-								"end_address":   "192.168.0.130",
+								"start_address": "192.168.40.100",
+								"end_address":   "192.168.40.130",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.200",
-								"end_address":   "192.168.0.220",
+								"start_address": "192.168.40.200",
+								"end_address":   "192.168.40.220",
 							}),
 						},
 					},
@@ -298,7 +298,7 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 							description = {{ get . "description" }}
 							edge_gateway_id = cloudavenue_edgegateway.example.id
 
-														gateway       = "192.168.0.1"
+														gateway       = "192.168.40.1"
 							prefix_length = 24
 						
 							dns1 = "208.67.222.222"
@@ -307,16 +307,16 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 						
 							static_ip_pool = [
 							{
-								start_address = "192.168.0.40"
-								end_address   = "192.168.0.60"
+								start_address = "192.168.40.40"
+								end_address   = "192.168.40.60"
 							},
 							{
-								start_address = "192.168.0.100"
-								end_address   = "192.168.0.130"
+								start_address = "192.168.40.100"
+								end_address   = "192.168.40.130"
 							},
 							{
-								start_address = "192.168.0.200"
-								end_address   = "192.168.0.220"
+								start_address = "192.168.40.200"
+								end_address   = "192.168.40.220"
 							}
 							]
 							guest_vlan_allowed = true
@@ -324,7 +324,7 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
-							resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.0.1"),
+							resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.40.1"),
 							resource.TestCheckResourceAttr(resourceName, "prefix_length", "24"),
 							resource.TestCheckResourceAttr(resourceName, "dns1", "208.67.222.222"),
 							resource.TestCheckResourceAttr(resourceName, "dns2", "208.67.220.220"),
@@ -332,16 +332,16 @@ func (r *EdgeGatewayNetworkRoutedResource) Tests(ctx context.Context) map[testsa
 							resource.TestCheckResourceAttr(resourceName, "static_ip_pool.#", "3"),
 							resource.TestCheckResourceAttr(resourceName, "guest_vlan_allowed", "true"), // Default value
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.40",
-								"end_address":   "192.168.0.60",
+								"start_address": "192.168.40.40",
+								"end_address":   "192.168.40.60",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.100",
-								"end_address":   "192.168.0.130",
+								"start_address": "192.168.40.100",
+								"end_address":   "192.168.40.130",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.200",
-								"end_address":   "192.168.0.220",
+								"start_address": "192.168.40.200",
+								"end_address":   "192.168.40.220",
 							}),
 						},
 					},

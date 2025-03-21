@@ -110,10 +110,11 @@ func securityGroupSchema(_ context.Context) superschema.Schema {
 			},
 			"member_org_network_ids": superschema.SuperSetAttributeOf[string]{
 				Common: &schemaR.SetAttribute{
-					MarkdownDescription: "The list of organization network IDs to which the security group is applied.",
+					MarkdownDescription: "The list of organization routed network IDs to which the security group is applied.",
 				},
 				Resource: &schemaR.SetAttribute{
-					Optional: true,
+					MarkdownDescription: "Only `cloudavenue_edgegateway_network_routed` are allowed. If you want to add `cloudavenue_vdcg_network_isolated` or `cloudavenue_vdcg_network_isolated` to the security group, you need to use the `cloudavenue_vdcg_security_group` resource.",
+					Optional:            true,
 					Validators: []validator.Set{
 						setvalidator.ValueStringsAre(fstringvalidator.IsURN()),
 					},

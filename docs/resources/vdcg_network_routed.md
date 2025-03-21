@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vdcg_network_routed Resource - cloudavenue"
 subcategory: "vDC Group (Virtual Datacenter Group)"
 description: |-
-  The cloudavenue_vdcg_network_routed resource allows you to manage a routed network why the VDC Group scope. If you want to manage a routed network in the edge gateway scope, please use the cloudavenue_edgegateway_network_routed https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/edgegateway_network_routed resource.
+  The cloudavenue_vdcg_network_routed resource allows you to manage a routed network whithin the VDC Group scope. If you want to manage a routed network in the vdc scope, please use the cloudavenue_edgegateway_network_routed https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/edgegateway_network_routed resource.
 ---
 
 # cloudavenue_vdcg_network_routed (Resource)
 
-The `cloudavenue_vdcg_network_routed` resource allows you to manage a routed network why the VDC Group scope. If you want to manage a routed network in the edge gateway scope, please use the [`cloudavenue_edgegateway_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/edgegateway_network_routed) resource.
+The `cloudavenue_vdcg_network_routed` resource allows you to manage a routed network whithin the VDC Group scope. If you want to manage a routed network in the vdc scope, please use the [`cloudavenue_edgegateway_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/edgegateway_network_routed) resource.
 
 ## Example Usage
 
@@ -50,8 +50,8 @@ resource "cloudavenue_vdcg_network_routed" "example" {
 - `dns1` (String) The primary DNS server IP address for the network. The value must be a valid IPV4 address (Ex: `192.168.0.1`).
 - `dns2` (String) The secondary DNS server IP address for the network. The value must be a valid IPV4 address (Ex: `192.168.0.1`).
 - `dns_suffix` (String) The DNS suffix for the network.
-- `edge_gateway_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the edge gateway in which the routed network should be located. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
-- `edge_gateway_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the edge gateway in which the routed network should be located. The name of the edge gateway in which the routed network should be located. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
+- `edge_gateway_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the edge gateway in which the routed network should be connected. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
+- `edge_gateway_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the edge gateway in which the routed network should be connected. The name of the edge gateway in which the routed network should be located. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
 - `guest_vlan_allowed` (Boolean) Indicates if the network allows guest VLANs. Value defaults to `false`.
 - `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. Set must contain at least 1 elements. (see [below for nested schema](#nestedatt--static_ip_pool))
 - `vdc_group_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the VDC Group in which the routed network should be located. Ensure that one and only one attribute from this collection is set : `vdc_group_id`, `vdc_group_name`.
