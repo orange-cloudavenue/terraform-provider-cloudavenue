@@ -9,6 +9,53 @@ description: |-
 
 {{ .Description | trimspace }}
 
+
+## How to migrate existing resources
+
+Original configuration:
+
+{{ tffile .ExampleFile }}
+
+Migrated configuration:
+
+Rename the resource to `cloudavenue_edgegateway_network_routed` and add the `moved` block to the configuration:
+
+```hcl
+resource "cloudavenue_edgegateway_network_routed" "example" {
+  name               = "my-isolated-network"
+  edge_gateway_name  = cloudavenue_edgegateway.example.name
+
+  gateway       = "192.168.0.1"
+  prefix_length = 24
+
+  dns1       = "192.168.0.2"
+  dns2       = "192.168.0.3"
+  dns_suffix = "example.local"
+}
+
+moved {
+  from = cloudavenue_network_routed.example
+  to   = cloudavenue_edgegateway_network_routed.example
+}
+```
+
+Run `terraform plan` and `terraform apply` to migrate the resource.
+
+Example of terraform plan output:
+
+```shell
+Terraform will perform the following actions:
+
+  # cloudavenue_network_routed.example has moved to cloudavenue_edgegateway_network_routed.example
+    resource "cloudavenue_edgegateway_network_routed" "example" {
+        id                 = "urn:vcloud:network:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        name               = "rsx-example-isolated-network"
+        # (10 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 0 to change, 0 to destroy.
+```
+
 {{ if .HasExample -}}
 ## Example Usage
 

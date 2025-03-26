@@ -3,24 +3,90 @@ page_title: "cloudavenue_network_routed Resource - cloudavenue"
 subcategory: "Network"
 description: |-
   Provides a Cloud Avenue vDC routed Network. This can be used to create, modify, and delete VDC routed networks.
+  !> Resource deprecated The resource has renamed to cloudavenue_edgegateway_network_routed https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/edgegateway_network_routed, it will be removed in the version v0.38.0 https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/21 of the provider. See the GitHub issue https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1020 for more information.
 ---
 
 # cloudavenue_network_routed (Resource)
 
-Provides a Cloud Avenue vDC routed Network. This can be used to create, modify, and delete VDC routed networks.
+Provides a Cloud Avenue vDC routed Network. This can be used to create, modify, and delete VDC routed networks. 
+
+ !> **Resource deprecated** The resource has renamed to [`cloudavenue_edgegateway_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/edgegateway_network_routed), it will be removed in the version [`v0.38.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/21) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1020) for more information.
+
+
+## How to migrate existing resources
+
+Original configuration:
+
+```terraform
+resource "cloudavenue_network_routed" "example" {
+  name = "example"
+
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+
+  gateway       = "192.168.1.254"
+  prefix_length = 24
+
+  dns1 = "1.1.1.1"
+  dns2 = "8.8.8.8"
+
+  dns_suffix = "example"
+
+  static_ip_pool = [
+    {
+      start_address = "192.168.1.10"
+      end_address   = "192.168.1.20"
+    }
+  ]
+}
+```
+
+Migrated configuration:
+
+Rename the resource to `cloudavenue_edgegateway_network_routed` and add the `moved` block to the configuration:
+
+```hcl
+resource "cloudavenue_edgegateway_network_routed" "example" {
+  name               = "my-isolated-network"
+  edge_gateway_name  = cloudavenue_edgegateway.example.name
+
+  gateway       = "192.168.0.1"
+  prefix_length = 24
+
+  dns1       = "192.168.0.2"
+  dns2       = "192.168.0.3"
+  dns_suffix = "example.local"
+}
+
+moved {
+  from = cloudavenue_network_routed.example
+  to   = cloudavenue_edgegateway_network_routed.example
+}
+```
+
+Run `terraform plan` and `terraform apply` to migrate the resource.
+
+Example of terraform plan output:
+
+```shell
+Terraform will perform the following actions:
+
+  # cloudavenue_network_routed.example has moved to cloudavenue_edgegateway_network_routed.example
+    resource "cloudavenue_edgegateway_network_routed" "example" {
+        id                 = "urn:vcloud:network:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        name               = "rsx-example-isolated-network"
+        # (10 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 0 to change, 0 to destroy.
+```
 
 ## Example Usage
 
 ```terraform
-data "cloudavenue_edgegateway" "example" {
-  name = "tn01e02ocb0006205spt101"
-}
-
 resource "cloudavenue_network_routed" "example" {
-  name        = "OrgNetExampleOnVDCGroup"
-  description = "Org Net Example"
+  name = "example"
 
-  edge_gateway_id = data.cloudavenue_edgegateway.example.id
+  edge_gateway_id = cloudavenue_edgegateway.example.id
 
   gateway       = "192.168.1.254"
   prefix_length = 24
@@ -75,5 +141,5 @@ Required:
 
 Import is supported using the following syntax:
 ```shell
-terraform import EdgeGatewayName.NetworkName Or EdgeGatewayID.NetworkName
+terraform import cloudavenue_network_routed EdgeGatewayIDOrName.NetworkIDOrName
 ```

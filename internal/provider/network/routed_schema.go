@@ -34,9 +34,30 @@ import (
 func routedSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
+			Deprecated: superschema.DeprecatedResource{
+				DeprecationMessage:                "The `cloudavenue_network_routed` resource is deprecated. Please use the `cloudavenue_edgegateway_network_routed` resource instead.",
+				ComputeMarkdownDeprecationMessage: true,
+				Renamed:                           true,
+				TargetResourceName:                "cloudavenue_edgegateway_network_routed",
+				TargetRelease:                     "v0.38.0",
+				LinkToMigrationGuide:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/network_routed#how-to-migrate-existing-resources",
+				LinkToNewResourceDoc:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/edgegateway_network_routed",
+				LinkToMilestone:                   "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/21",
+				LinkToIssue:                       "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1020",
+			},
 			MarkdownDescription: "Provides a Cloud Avenue vDC routed Network. This can be used to create, modify, and delete VDC routed networks.",
 		},
 		DataSource: superschema.SchemaDetails{
+			Deprecated: superschema.DeprecatedResource{
+				DeprecationMessage:                "The `cloudavenue_network_routed` datasource is deprecated. Please use the `cloudavenue_edgegateway_network_routed` datasource instead.",
+				ComputeMarkdownDeprecationMessage: true,
+				Renamed:                           true,
+				TargetResourceName:                "cloudavenue_edgegateway_network_routed",
+				TargetRelease:                     "v0.38.0",
+				LinkToNewResourceDoc:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/edgegateway_network_routed",
+				LinkToMilestone:                   "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/21",
+				LinkToIssue:                       "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1020",
+			},
 			MarkdownDescription: "Provides a Cloud Avenue vDC routed Network data source to read data or reference existing network",
 		},
 		Attributes: superschema.Attributes{
@@ -187,7 +208,7 @@ func routedSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"static_ip_pool": superschema.SuperSetNestedAttributeOf[networkRoutedModelStaticIPPool]{
+			"static_ip_pool": superschema.SuperSetNestedAttributeOf[RoutedModelStaticIPPool]{
 				Common: &schemaR.SetNestedAttribute{
 					MarkdownDescription: "A set of static IP pools to be used for this network.",
 				},

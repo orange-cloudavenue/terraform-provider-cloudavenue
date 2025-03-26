@@ -1,12 +1,7 @@
-data "cloudavenue_edgegateway" "example" {
-  name = "tn01e02ocb0006205spt101"
-}
-
 resource "cloudavenue_network_routed" "example" {
-  name        = "OrgNetExampleOnVDCGroup"
-  description = "Org Net Example"
+  name = "example"
 
-  edge_gateway_id = data.cloudavenue_edgegateway.example.id
+  edge_gateway_id = cloudavenue_edgegateway.example.id
 
   gateway       = "192.168.1.254"
   prefix_length = 24

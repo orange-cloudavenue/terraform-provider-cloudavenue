@@ -21,12 +21,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/network"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -103,6 +105,83 @@ func (r *NetworkRoutedResource) Configure(ctx context.Context, req resource.Conf
 		return
 	}
 	r.client = client
+}
+
+// ResourceWithMoveState interface implementation.
+func (r *NetworkRoutedResource) MoveState(ctx context.Context) []resource.StateMover {
+	return []resource.StateMover{
+		{
+			SourceSchema: func() *schema.Schema {
+				ctx := context.Background()
+				schemaRequest := resource.SchemaRequest{}
+				schemaResponse := &resource.SchemaResponse{}
+
+				network.NewNetworkRoutedResource().Schema(ctx, schemaRequest, schemaResponse)
+				if schemaResponse.Diagnostics.HasError() {
+					return nil
+				}
+
+				return &schemaResponse.Schema
+			}(),
+			StateMover: func(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+				if req.SourceTypeName != "cloudavenue_network_routed" {
+					return
+				}
+
+				if req.SourceSchemaVersion != 0 {
+					return
+				}
+
+				if !strings.HasSuffix(req.SourceProviderAddress, "orange-cloudavenue/cloudavenue") {
+					return
+				}
+
+				source := &network.RoutedModel{}
+				resp.Diagnostics.Append(req.SourceState.Get(ctx, source)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
+				dest := &NetworkRoutedModel{
+					ID:              source.ID,
+					Name:            source.Name,
+					EdgeGatewayID:   source.EdgeGatewayID,
+					EdgeGatewayName: source.EdgeGatewayName,
+					Description:     source.Description,
+					Gateway:         source.Gateway,
+					PrefixLength:    source.PrefixLength,
+					DNS1:            source.DNS1,
+					DNS2:            source.DNS2,
+					DNSSuffix:       source.DNSSuffix,
+					StaticIPPool:    supertypes.NewSetNestedObjectValueOfNull[NetworkRoutedModelStaticIPPool](ctx),
+
+					// GuestVLANAllowed is a new field
+					GuestVLANAllowed: supertypes.NewBoolNull(),
+				}
+
+				sIPPools, d := source.StaticIPPool.Get(ctx)
+				if d.HasError() {
+					resp.Diagnostics.Append(d...)
+					return
+				}
+
+				dIPPools := []*NetworkRoutedModelStaticIPPool{}
+				for _, ipPool := range sIPPools {
+					dIPPools = append(dIPPools, &NetworkRoutedModelStaticIPPool{
+						StartAddress: ipPool.StartAddress,
+						EndAddress:   ipPool.EndAddress,
+					})
+				}
+
+				resp.Diagnostics.Append(dest.StaticIPPool.Set(ctx, dIPPools)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
+				resp.Diagnostics.Append(resp.TargetState.Set(ctx, &dest)...)
+			},
+		},
+	}
 }
 
 // Create creates the resource and sets the initial Terraform state.
