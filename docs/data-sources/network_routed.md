@@ -3,11 +3,14 @@ page_title: "cloudavenue_network_routed Data Source - cloudavenue"
 subcategory: "Network"
 description: |-
   Provides a Cloud Avenue vDC routed Network data source to read data or reference existing network
+  !> Resource deprecated The resource has renamed to cloudavenue_edgegateway_network_routed https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/edgegateway_network_routed, it will be removed in the version v0.38.0 https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/21 of the provider. See the GitHub issue https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1020 for more information.
 ---
 
 # cloudavenue_network_routed (Data Source)
 
-Provides a Cloud Avenue vDC routed Network data source to read data or reference existing network
+Provides a Cloud Avenue vDC routed Network data source to read data or reference existing network 
+
+ !> **Resource deprecated** The resource has renamed to [`cloudavenue_edgegateway_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/edgegateway_network_routed), it will be removed in the version [`v0.38.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/21) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1020) for more information.
 
 ## Example Usage
 

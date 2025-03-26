@@ -62,7 +62,7 @@ func (r *networkRoutedResource) Schema(ctx context.Context, _ resource.SchemaReq
 }
 
 // Init resource used to initialize the resource.
-func (r *networkRoutedResource) Init(_ context.Context, rm *networkRoutedModel) (diags diag.Diagnostics) {
+func (r *networkRoutedResource) Init(_ context.Context, rm *RoutedModel) (diags diag.Diagnostics) {
 	// Init Org
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
@@ -107,7 +107,7 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 	defer metrics.New("cloudavenue_network_routed", r.client.GetOrgName(), metrics.Create)()
 
 	// Retrieve values from plan
-	plan := &networkRoutedModel{}
+	plan := &RoutedModel{}
 
 	// Get Plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -172,7 +172,7 @@ func (r *networkRoutedResource) Create(ctx context.Context, req resource.CreateR
 func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	defer metrics.New("cloudavenue_network_routed", r.client.GetOrgName(), metrics.Read)()
 
-	state := &networkRoutedModel{}
+	state := &RoutedModel{}
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
@@ -203,7 +203,7 @@ func (r *networkRoutedResource) Read(ctx context.Context, req resource.ReadReque
 func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	defer metrics.New("cloudavenue_network_routed", r.client.GetOrgName(), metrics.Update)()
 
-	plan := &networkRoutedModel{}
+	plan := &RoutedModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
@@ -274,7 +274,7 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	defer metrics.New("cloudavenue_network_routed", r.client.GetOrgName(), metrics.Delete)()
 
-	state := &networkRoutedModel{}
+	state := &RoutedModel{}
 
 	// Get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
@@ -341,7 +341,7 @@ func (r *networkRoutedResource) ImportState(ctx context.Context, req resource.Im
 		edgeGWName = edgeGatewayNameOrEdgeGatewayID
 	}
 
-	newPlan := &networkRoutedModel{}
+	newPlan := &RoutedModel{}
 	newPlan.EdgeGatewayID.Set(edgeGWID)
 	newPlan.EdgeGatewayName.Set(edgeGWName)
 
@@ -374,7 +374,7 @@ func (r *networkRoutedResource) ImportState(ctx context.Context, req resource.Im
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), r.edgegw.GetName())...)
 }
 
-func (r *networkRoutedResource) read(ctx context.Context, planOrState *networkRoutedModel) (stateRefreshed *networkRoutedModel, found bool, diags diag.Diagnostics) {
+func (r *networkRoutedResource) read(ctx context.Context, planOrState *RoutedModel) (stateRefreshed *RoutedModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
 	// Get Parent Edge Gateway ID to define the owner (VDC or VDC Group)
@@ -403,9 +403,9 @@ func (r *networkRoutedResource) read(ctx context.Context, planOrState *networkRo
 	stateRefreshed.DNS2.Set(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSServer2)
 	stateRefreshed.DNSSuffix.Set(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].DNSSuffix)
 
-	ipPools := []*networkRoutedModelStaticIPPool{}
+	ipPools := []*RoutedModelStaticIPPool{}
 	for _, ipRange := range orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].IPRanges.Values {
-		ipPool := &networkRoutedModelStaticIPPool{}
+		ipPool := &RoutedModelStaticIPPool{}
 		ipPool.StartAddress.Set(ipRange.StartAddress)
 		ipPool.EndAddress.Set(ipRange.EndAddress)
 		ipPools = append(ipPools, ipPool)
@@ -415,7 +415,7 @@ func (r *networkRoutedResource) read(ctx context.Context, planOrState *networkRo
 	return stateRefreshed, true, diags
 }
 
-func (r *networkRoutedResource) setNetworkAPIObject(ctx context.Context, plan *networkRoutedModel, vdcOrVDCGroup sdkv1.VDCOrVDCGroupInterface) (orgVDCNetwork *govcdtypes.OpenApiOrgVdcNetwork, diags diag.Diagnostics) {
+func (r *networkRoutedResource) setNetworkAPIObject(ctx context.Context, plan *RoutedModel, vdcOrVDCGroup sdkv1.VDCOrVDCGroupInterface) (orgVDCNetwork *govcdtypes.OpenApiOrgVdcNetwork, diags diag.Diagnostics) {
 	ipPools, d := plan.StaticIPPool.Get(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
