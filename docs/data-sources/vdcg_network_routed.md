@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vdcg_network_routed Data Source - cloudavenue"
 subcategory: "vDC Group (Virtual Datacenter Group)"
 description: |-
-  The cloudavenue_vdcg_network_routed data source allows you to retrieve information about an existing routed network why the VDC Group scope. If you want to retrieve information about a routed network in the edge gateway scope, please use the cloudavenue_edgegateway_network_routed https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/edgegateway_network_routed data source.
+  The cloudavenue_vdcg_network_routed data source allows you to retrieve information about an existing routed network within the VDC Group scope. If you want to retrieve information about a routed network in the vdc scope, please use the cloudavenue_edgegateway_network_routed https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/edgegateway_network_routed data source.
 ---
 
 # cloudavenue_vdcg_network_routed (Data Source)
 
-The `cloudavenue_vdcg_network_routed` data source allows you to retrieve information about an existing routed network why the VDC Group scope. If you want to retrieve information about a routed network in the edge gateway scope, please use the [`cloudavenue_edgegateway_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/edgegateway_network_routed) data source.
+The `cloudavenue_vdcg_network_routed` data source allows you to retrieve information about an existing routed network within the VDC Group scope. If you want to retrieve information about a routed network in the vdc scope, please use the [`cloudavenue_edgegateway_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/edgegateway_network_routed) data source.
 
 ## Example Usage
 
@@ -24,8 +24,8 @@ data "cloudavenue_vdcg_network_routed" "example" {
 
 ### Optional
 
-- `edge_gateway_id` (String) The ID of the edge gateway in which the routed network should be located. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
-- `edge_gateway_name` (String) The name of the edge gateway in which the routed network should be located. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
+- `edge_gateway_id` (String) The ID of the edge gateway in which the routed network should be connected. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
+- `edge_gateway_name` (String) The name of the edge gateway in which the routed network should be connected. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
 - `id` (String) The ID of the network routed.
 - `name` (String) The name of the network routed.
 - `vdc_group_id` (String) The ID of the VDC Group in which the routed network should be located. Ensure that one and only one attribute from this collection is set : `vdc_group_id`, `vdc_group_name`.
