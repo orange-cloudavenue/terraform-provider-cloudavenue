@@ -31,7 +31,7 @@ import (
 func securityGroupSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The Security Group resource allows you to manage an security group in an Edge Gateway. Security Groups are groups of data center group networks to which distributed firewall rules apply. Grouping networks helps you to reduce the total number of distributed firewall rules to be created.",
+			MarkdownDescription: "The Security Group resource allows you to manage an security group in an Edge Gateway. Security Groups are groups of data center group networks to which firewall rules apply. Grouping networks helps you to reduce the total number of firewall rules to be created.",
 		},
 		DataSource: superschema.SchemaDetails{
 			MarkdownDescription: "The Security Group data source allows you to retrieve information about an security group in an Edge Gateway.",
@@ -110,10 +110,11 @@ func securityGroupSchema(_ context.Context) superschema.Schema {
 			},
 			"member_org_network_ids": superschema.SuperSetAttributeOf[string]{
 				Common: &schemaR.SetAttribute{
-					MarkdownDescription: "The list of organization network IDs to which the security group is applied.",
+					MarkdownDescription: "The list of IDs of the routed organization networks to which the security group is applied.",
 				},
 				Resource: &schemaR.SetAttribute{
-					Optional: true,
+					MarkdownDescription: "Only IDs from `cloudavenue_edgegateway_network_routed` resources are allowed. If you want to add `cloudavenue_vdcg_network_routed` or `cloudavenue_vdcg_network_isolated` to the security group, you need to use the `cloudavenue_vdcg_security_group` resource.",
+					Optional:            true,
 					Validators: []validator.Set{
 						setvalidator.ValueStringsAre(fstringvalidator.IsURN()),
 					},

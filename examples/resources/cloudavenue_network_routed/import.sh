@@ -1,2 +1,2 @@
-terraform import EdgeGatewayName.NetworkName Or EdgeGatewayID.NetworkName
+terraform import cloudavenue_network_routed EdgeGatewayIDOrName.NetworkIDOrName
 

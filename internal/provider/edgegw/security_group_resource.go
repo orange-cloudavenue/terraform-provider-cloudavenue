@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
@@ -49,6 +50,7 @@ type securityGroupResource struct {
 	client *client.CloudAvenue
 	org    org.Org
 	edgegw edgegw.EdgeGateway
+	vdc    *v1.VDC
 }
 
 // Init Initializes the resource.
@@ -66,6 +68,17 @@ func (r *securityGroupResource) Init(ctx context.Context, rm *SecurityGroupModel
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
+		return
+	}
+
+	if r.edgegw.OwnerType.IsVDCGROUP() {
+		diags.AddError("Error Edge Gateway connected to a VDC Group", "Edge Gateway is connected to a VDC Group, please use the VDC Group resource (`cloudavenue_vdcg_security_group`) instead.")
+		return
+	}
+
+	r.vdc, err = r.client.CAVSDK.V1.VDC().GetVDC(r.edgegw.OwnerName)
+	if err != nil {
+		diags.AddError("Error retrieving VDC from EdgeGateway", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
 
@@ -120,6 +133,11 @@ func (r *securityGroupResource) Create(ctx context.Context, req resource.CreateR
 	/*
 		Implement the resource creation logic here.
 	*/
+
+	resp.Diagnostics.Append(r.validateNetworks(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
 	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
@@ -212,6 +230,11 @@ func (r *securityGroupResource) Update(ctx context.Context, req resource.UpdateR
 	/*
 		Implement the resource update here
 	*/
+
+	resp.Diagnostics.Append(r.validateNetworks(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
 	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
@@ -375,4 +398,37 @@ func (r *securityGroupResource) read(ctx context.Context, planOrState *SecurityG
 	}
 
 	return stateRefreshed, true, diags
+}
+
+// validateNetworks validates the networks in the security group.
+func (r *securityGroupResource) validateNetworks(ctx context.Context, rm *SecurityGroupModel) (diags diag.Diagnostics) {
+	// Add Validation to check the network
+	// Allow only networks routed no shared
+
+	networks, d := rm.Members.Get(ctx)
+	if d.HasError() {
+		diags.Append(d...)
+		return
+	}
+
+	for _, network := range networks {
+		net, err := r.vdc.GetNetworkRouted(network)
+		if err != nil {
+			diags.AddError(fmt.Sprintf("Error retrieving network %s", network), err.Error())
+			continue
+		}
+		switch { // = true
+		case net.IsIsolated() && !net.IsShared():
+			diags.AddError(fmt.Sprintf("Error creating security group %s", rm.Name.Get()), fmt.Sprintf("EdgeGateway security group doesn't support isolated network (%s)", network))
+		case net.IsIsolated() && net.IsShared():
+			diags.AddError(fmt.Sprintf("Error creating security group %s", rm.Name.Get()), fmt.Sprintf("Isolated network %s is connected to VDC Group, please use the VDC Group resource (cloudavenue_vdcg_security_group) instead", network))
+		case net.IsRouted() && net.IsShared():
+			diags.AddError(fmt.Sprintf("Error creating security group %s", rm.Name.Get()), fmt.Sprintf("Network %s is connected to VDC Group, please use the VDC Group resource instead", network))
+		}
+	}
+	if diags.HasError() {
+		return
+	}
+
+	return nil
 }

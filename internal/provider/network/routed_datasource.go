@@ -48,7 +48,7 @@ func (d *networkRoutedDataSource) Schema(ctx context.Context, req datasource.Sch
 }
 
 // Init resource used to initialize the resource.
-func (d *networkRoutedDataSource) Init(_ context.Context, rm *networkRoutedModel) (diags diag.Diagnostics) {
+func (d *networkRoutedDataSource) Init(_ context.Context, rm *RoutedModel) (diags diag.Diagnostics) {
 	// Init Org
 	d.org, diags = org.Init(d.client)
 	if diags.HasError() {
@@ -90,7 +90,7 @@ func (d *networkRoutedDataSource) Configure(ctx context.Context, req datasource.
 func (d *networkRoutedDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_network_routed", d.client.GetOrgName(), metrics.Read)()
 
-	config := &networkRoutedModel{}
+	config := &RoutedModel{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)

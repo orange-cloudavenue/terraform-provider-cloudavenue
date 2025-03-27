@@ -2,12 +2,12 @@
 page_title: "cloudavenue_edgegateway_security_group Resource - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  The Security Group resource allows you to manage an security group in an Edge Gateway. Security Groups are groups of data center group networks to which distributed firewall rules apply. Grouping networks helps you to reduce the total number of distributed firewall rules to be created.
+  The Security Group resource allows you to manage an security group in an Edge Gateway. Security Groups are groups of data center group networks to which firewall rules apply. Grouping networks helps you to reduce the total number of firewall rules to be created.
 ---
 
 # cloudavenue_edgegateway_security_group (Resource)
 
-The Security Group resource allows you to manage an security group in an Edge Gateway. Security Groups are groups of data center group networks to which distributed firewall rules apply. Grouping networks helps you to reduce the total number of distributed firewall rules to be created.
+The Security Group resource allows you to manage an security group in an Edge Gateway. Security Groups are groups of data center group networks to which firewall rules apply. Grouping networks helps you to reduce the total number of firewall rules to be created.
 
 ## Example Usage
 
@@ -58,7 +58,7 @@ resource "cloudavenue_network_routed" "example" {
 - `description` (String) The description of the security group.
 - `edge_gateway_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 - `edge_gateway_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
-- `member_org_network_ids` (Set of String) The list of organization network IDs to which the security group is applied. Element value must satisfy all validations: must be a valid URN.
+- `member_org_network_ids` (Set of String) The list of IDs of the routed organization networks to which the security group is applied. Only IDs from `cloudavenue_edgegateway_network_routed` resources are allowed. If you want to add `cloudavenue_vdcg_network_routed` or `cloudavenue_vdcg_network_isolated` to the security group, you need to use the `cloudavenue_vdcg_security_group` resource. Element value must satisfy all validations: must be a valid URN.
 
 ### Read-Only
 

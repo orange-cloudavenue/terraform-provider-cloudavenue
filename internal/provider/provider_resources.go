@@ -43,6 +43,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		edgegw.NewStaticRouteResource,
 		edgegw.NewNATRuleResource,
 		edgegw.NewVPNIPSecResource,
+		edgegw.NewNetworkRoutedResource,
 
 		// * EdgeGateway LoadBalancer
 		elb.NewPoolResource,
@@ -63,6 +64,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		vdcg.NewSecurityGroupResource,
 		vdcg.NewAppPortProfileResource,
 		vdcg.NewFirewallResource,
+		vdcg.NewNetworkRoutedResource,
 
 		// * VCDA
 		vcda.NewVCDAIPResource,

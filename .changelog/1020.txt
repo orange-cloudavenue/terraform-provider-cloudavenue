@@ -1,0 +1,11 @@
+```release-note:deprecation
+`resource/cloudavenue_network_routed` - The `cloudavenue_network_routed` resource is deprecated and will be removed in the release v0.38.0. Please use the `cloudavenue_edgegateway_network_routed` resource instead.
+```
+
+```release-note:deprecation
+`datasource/cloudavenue_network_routed` - The `cloudavenue_network_routed` datasource is deprecated and will be removed in the release v0.38.0. Please use the `cloudavenue_edgegateway_network_routed` datasource instead.
+```
+
+```release-note:note
+`resource/cloudavenue_network_routed` - Add a migration guide to migrate from `cloudavenue_network_routed` to `cloudavenue_edgegateway_network_routed`.
+```

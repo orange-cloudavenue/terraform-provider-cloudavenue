@@ -1,0 +1,1 @@
+terraform import cloudavenue_edgegateway_network_routed.example edgeGatewayIDOrName.networkRoutedIDOrName

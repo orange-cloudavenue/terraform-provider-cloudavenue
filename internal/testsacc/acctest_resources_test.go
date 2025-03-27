@@ -30,6 +30,7 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		VDCGFirewallResourceName:             testsacc.NewResourceConfig(NewVDCGFirewallResourceTest()),
 		VDCGDynamicSecurityGroupResourceName: testsacc.NewResourceConfig(NewVDCGDynamicSecurityGroupResourceTest()),
 		VDCGAppPortProfileResourceName:       testsacc.NewResourceConfig(NewVDCGAppPortProfileResourceTest()),
+		VDCGNetworkRoutedResourceName:        testsacc.NewResourceConfig(NewVDCGNetworkRoutedResourceTest()),
 
 		// * VAPP
 		VAppResourceName:                testsacc.NewResourceConfig(NewVAppResourceTest()),
@@ -47,6 +48,7 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		EdgeGatewayDhcpForwardingResourceName: testsacc.NewResourceConfig(NewEdgeGatewayDhcpForwardingResourceTest()),
 		EdgeGatewayNATRuleResourceName:        testsacc.NewResourceConfig(NewEdgeGatewayNATRuleResourceTest()),
 		EdgeGatewayIPSetResourceName:          testsacc.NewResourceConfig(NewEdgeGatewayIPSetResourceTest()),
+		EdgeGatewayNetworkRoutedResourceName:  testsacc.NewResourceConfig(NewEdgeGatewayNetworkRoutedResourceTest()),
 
 		// * EdgeGateway LoadBalancer (elb)
 		ELBPoolResourceName:                 testsacc.NewResourceConfig(NewELBPoolResourceTest()),

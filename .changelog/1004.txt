@@ -1,0 +1,7 @@
+```release-note:note
+`resource/cloudavenue_edgegateway_security_group` - Now the resource trigger an error if the edge gateway is in VDC Group.
+```
+
+```release-note:note
+`resource/cloudavenue_edgegateway_ip_set` - Now the resource trigger an error if the edge gateway is in VDC Group.
+```
