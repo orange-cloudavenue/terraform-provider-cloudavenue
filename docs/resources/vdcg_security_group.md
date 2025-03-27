@@ -13,11 +13,14 @@ The `cloudavenue_vdcg_security_group` resource allows you to manage a security g
 
 ```terraform
 resource "cloudavenue_vdcg_security_group" "example" {
+  name        = "example"
+  description = "Example security group"
+
   vdc_group_id = cloudavenue_vdcg_network_isolated.example.vdc_group_id
-  name         = "example"
-  description  = "Example security group"
+
   member_org_network_ids = [
-    cloudavenue_vdcg_network_isolated.example.id
+    cloudavenue_vdcg_network_isolated.example.id,
+    cloudavenue_vdcg_network_routed.example.id
   ]
 }
 ```
@@ -32,7 +35,7 @@ resource "cloudavenue_vdcg_security_group" "example" {
 ### Optional
 
 - `description` (String) The description of the security group.
-- `member_org_network_ids` (Set of String) The list of organization network IDs to which the security group is applied. Element value must satisfy all validations: must be a valid URN + must start with "urn:vcloud:network:".
+- `member_org_network_ids` (Set of String) The list of organization network IDs to which the security group is applied. Only `cloudavenue_vdcg_network_routed` or `cloudavenue_vdcg_network_isolated` are allowed. If you want to add `cloudavenue_edgegateway_network_routed` to the security group, you need to use the `cloudavenue_edgegateway_security_group` resource. Element value must satisfy all validations: must be a valid URN + must start with "urn:vcloud:network:".
 - `vdc_group_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the VDC Group to which the security group belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id]. This value must start with `urn:vcloud:vdcGroup:`.
 - `vdc_group_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the VDC Group to which the security group belongs. Ensure that at least one attribute from this collection is set: [vdc_group_name,vdc_group_id].
 

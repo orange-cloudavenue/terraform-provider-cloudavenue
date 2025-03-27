@@ -11,6 +11,7 @@ package testsacc
 
 import (
 	"context"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -187,6 +188,122 @@ func (r *VDCGSecurityGroupResource) Tests(ctx context.Context) map[testsacc.Test
 					},
 					{
 						ImportStateIDBuilder: []string{"vdc_group_id", "name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"vdc_group_name", "name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
+			}
+		},
+		"example_advanced": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.SecurityGroup)),
+					resource.TestCheckResourceAttrSet(resourceName, "vdc_group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "vdc_group_name"),
+				},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[VDCNetworkIsolatedResourceName]().GetDefaultConfig)
+					resp.Append(GetResourceConfig()[VDCGNetworkIsolatedResourceName]().GetDefaultConfig)
+					resp.Append(GetResourceConfig()[VDCGNetworkRoutedResourceName]().GetDefaultConfig)
+					resp.Append(GetResourceConfig()[EdgeGatewayNetworkRoutedResourceName]().GetDefaultConfig)
+					return
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_vdcg_security_group" "example_advanced" {
+						name            = {{ generate . "name" }}
+						description     = {{ generate . "description" }}
+						
+						vdc_group_id  = cloudavenue_vdcg_network_isolated.example.vdc_group_id
+						member_org_network_ids = [
+						  cloudavenue_vdcg_network_routed.example.id
+						]
+					  }`),
+					Checks: []resource.TestCheckFunc{
+						// id
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "member_org_network_ids.#", "1"),
+					},
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{
+					// * Update fail add vdc_network_isolated
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdcg_security_group" "example_advanced" {
+							name            = {{ generate . "name" }}
+							description     = {{ generate . "description" }}
+							
+							vdc_group_id  = cloudavenue_vdcg_network_isolated.example.vdc_group_id
+							member_org_network_ids = [
+							  cloudavenue_vdcg_network_routed.example.id,
+							  cloudavenue_vdc_network_isolated.example.id
+							]
+						  }`),
+						TFAdvanced: testsacc.TFAdvanced{
+							ExpectNonEmptyPlan: true,
+							ExpectError:        regexp.MustCompile("EdgeGateway security group doesn't support isolated network"),
+						},
+					},
+					// * Update fail add edgegateway_network_routed
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdcg_security_group" "example_advanced" {
+							name            = {{ generate . "name" }}
+							description     = {{ generate . "description" }}
+							
+							vdc_group_id  = cloudavenue_vdcg_network_isolated.example.vdc_group_id
+							member_org_network_ids = [
+								cloudavenue_vdcg_network_routed.example.id,
+								cloudavenue_edgegateway_network_routed.example.id
+							]
+						  }`),
+						TFAdvanced: testsacc.TFAdvanced{
+							ExpectNonEmptyPlan: true,
+							ExpectError:        regexp.MustCompile("Error creating security group"),
+						},
+					},
+					// * Add vdcg_network_isolated (work)
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdcg_security_group" "example_advanced" {
+							name            = {{ generate . "name" }}
+							description     = {{ generate . "description" }}
+							
+							vdc_group_id  = cloudavenue_vdcg_network_isolated.example.vdc_group_id
+							member_org_network_ids = [
+							  cloudavenue_vdcg_network_routed.example.id,
+							  cloudavenue_vdcg_network_isolated.example.id
+							]
+						  }`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "member_org_network_ids.#", "2"),
+						},
+					},
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"vdc_group_id", "id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"vdc_group_id", "name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"vdc_group_name", "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
