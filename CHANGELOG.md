@@ -1,4 +1,9 @@
 ## 0.32.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/edgegateway_network_routed` - Fixed a crash in the `cloudavenue_edgegateway_network_routed` resource read operation caused by a nil pointer dereference. (GH-1045)
+
 ## 0.31.0 (March 27, 2025)
 ### :warning: **Deprecations**
 
