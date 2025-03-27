@@ -1,4 +1,25 @@
 ## 0.31.0 (Unreleased)
+### :warning: **Deprecations**
+
+* `datasource/cloudavenue_network_routed` - The `cloudavenue_network_routed` datasource is deprecated and will be removed in the release v0.38.0. Please use the `cloudavenue_edgegateway_network_routed` datasource instead. (GH-1020)
+* `resource/cloudavenue_network_routed` - The `cloudavenue_network_routed` resource is deprecated and will be removed in the release v0.38.0. Please use the `cloudavenue_edgegateway_network_routed` resource instead. (GH-1020)
+
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_edgegateway_network_routed` - Add new data source to retrieve information about routed networks in the Edge Gateway in scope VDC. (GH-1018)
+* **New Data Source:** `datasource/cloudavenue_vdcg_network_routed` - Add new data source to retrieve routed networks in VDC Group. (GH-1019)
+* **New Resource:** `resource/cloudavenue_edgegateway_network_routed` - Add new resource to manage routed networks in the Edge Gateway in scope VDC. (GH-1018)
+* **New Resource:** `resource/cloudavenue_vdcg_network_routed` - Add new resource to manage routed networks in VDC Group. (GH-1019)
+
+### :tada: **Improvements**
+
+* `resource/cloudavenue_edgegateway_security_group` - Improve error message when trying to create a security group with an invalid network. (GH-1021)
+* `resource/cloudavenue_vdcg_security_group` - Improved error message for creating a security group with an invalid network. (GH-1022)
+### :information_source: **Notes**
+
+* `resource/cloudavenue_edgegateway_ip_set` - Now the resource trigger an error if the edge gateway is in VDC Group. (GH-1004)
+* `resource/cloudavenue_edgegateway_security_group` - Now the resource trigger an error if the edge gateway is in VDC Group. (GH-1004)
+* `resource/cloudavenue_network_routed` - Add a migration guide to migrate from `cloudavenue_network_routed` to `cloudavenue_edgegateway_network_routed`. (GH-1020)
 
 ### :dependabot: **Dependencies**
 
