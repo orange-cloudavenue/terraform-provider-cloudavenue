@@ -403,7 +403,7 @@ func (r *NetworkRoutedResource) read(ctx context.Context, planOrState *NetworkRo
 }
 
 // getEdgeGateway retrieves the edge gateway and add in the models edgegateway id and name.
-func (r *NetworkRoutedResource) getEdgeGateway(ctx context.Context, rm *NetworkRoutedModel) diag.Diagnostics {
+func (r *NetworkRoutedResource) getEdgeGateway(_ context.Context, rm *NetworkRoutedModel) diag.Diagnostics {
 	diags := diag.Diagnostics{}
 
 	idOrName := rm.EdgeGatewayID.Get()

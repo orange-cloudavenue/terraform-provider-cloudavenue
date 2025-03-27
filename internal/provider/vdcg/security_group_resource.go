@@ -115,6 +115,11 @@ func (r *SecurityGroupResource) Create(ctx context.Context, req resource.CreateR
 		Implement the resource creation logic here.
 	*/
 
+	resp.Diagnostics.Append(r.validateNetworks(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	mutex.GlobalMutex.KvLock(ctx, r.vdcGroup.GetID())
 	defer mutex.GlobalMutex.KvUnlock(ctx, r.vdcGroup.GetID())
 
@@ -206,6 +211,11 @@ func (r *SecurityGroupResource) Update(ctx context.Context, req resource.UpdateR
 	/*
 		Implement the resource update here
 	*/
+
+	resp.Diagnostics.Append(r.validateNetworks(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	mutex.GlobalMutex.KvLock(ctx, r.vdcGroup.GetID())
 	defer mutex.GlobalMutex.KvUnlock(ctx, r.vdcGroup.GetID())
@@ -369,4 +379,35 @@ func (r *SecurityGroupResource) read(ctx context.Context, planOrState *SecurityG
 	}
 
 	return stateRefreshed, true, diags
+}
+
+// validateNetworks validates the networks in the security group.
+func (r *SecurityGroupResource) validateNetworks(ctx context.Context, rm *SecurityGroupModel) (diags diag.Diagnostics) {
+	// Add Validation to check the network
+	// Allow only networks routed shared && isolated shared
+
+	networks, d := rm.Members.Get(ctx)
+	if d.HasError() {
+		diags.Append(d...)
+		return
+	}
+
+	for _, network := range networks {
+		net, err := r.vdcGroup.GetNetworkRouted(network)
+		if err != nil {
+			diags.AddError(fmt.Sprintf("Error retrieving network %s", network), err.Error())
+			continue
+		}
+		switch { // = true
+		case net.IsIsolated() && !net.IsShared():
+			diags.AddError(fmt.Sprintf("Error creating security group %s", rm.Name.Get()), fmt.Sprintf("VDCG security group doesn't support VDC isolated network (%s)", network))
+		case net.IsRouted() && !net.IsShared():
+			diags.AddError(fmt.Sprintf("Error creating security group %s", rm.Name.Get()), fmt.Sprintf("Routed network %s is connected to EdgeGateway, please use the EdgeGateway resource (cloudavenue_edgegateway_security_group) instead", network))
+		}
+	}
+	if diags.HasError() {
+		return
+	}
+
+	return nil
 }
