@@ -34,10 +34,10 @@ import (
 func networkRoutedSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_edgegateway_network_routed` resource allows you to manage a routed network with the edge gateway within VDC scope. If you want to manage a routed network in the vDC Groupe scope, please use the [`cloudavenue_vdcg_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_network_routed) resource.",
+			MarkdownDescription: "The `cloudavenue_edgegateway_network_routed` resource allows you to manage a routed network with the edge gateway within VDC scope. If you want to manage a routed network in the vDC Group scope, please use the [`cloudavenue_vdcg_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_network_routed) resource.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_edgegateway_network_routed` data source allows you to retrieve information about an existing routed network with the edge gateway within VDC scope. If you want to retrieve information about a routed network in the vDC Groupe scope, please use the [`cloudavenue_vdcg_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdcg_network_routed) data source.",
+			MarkdownDescription: "The `cloudavenue_edgegateway_network_routed` data source allows you to retrieve information about an existing routed network with the edge gateway within VDC scope. If you want to retrieve information about a routed network in the vDC Group scope, please use the [`cloudavenue_vdcg_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdcg_network_routed) data source.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
@@ -111,7 +111,7 @@ func networkRoutedSchema(_ context.Context) superschema.Schema {
 			},
 			"gateway": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The gateway IP address for the network. This value define also the network IP range with the prefix length. (e.g. 192.168.1.1 with prefix length 24 for netmask, define the network IP range 192.168.1.0/24 with the gateway 192.168.1.1)",
+					MarkdownDescription: "The gateway IP address for the network. This value defines also the network IP range with the prefix length. (e.g. 192.168.1.1 with prefix length 24 for netmask, defines the network IP range 192.168.1.0/24 with the gateway 192.168.1.1)",
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,

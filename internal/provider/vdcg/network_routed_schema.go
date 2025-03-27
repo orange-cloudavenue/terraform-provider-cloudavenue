@@ -34,7 +34,7 @@ import (
 func networkRoutedSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_vdcg_network_routed` resource allows you to manage a routed network whithin the VDC Group scope. If you want to manage a routed network in the vdc scope, please use the [`cloudavenue_edgegateway_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/edgegateway_network_routed) resource.",
+			MarkdownDescription: "The `cloudavenue_vdcg_network_routed` resource allows you to manage a routed network within the VDC Group scope. If you want to manage a routed network in the vdc scope, please use the [`cloudavenue_edgegateway_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/edgegateway_network_routed) resource.",
 		},
 		DataSource: superschema.SchemaDetails{
 			MarkdownDescription: "The `cloudavenue_vdcg_network_routed` data source allows you to retrieve information about an existing routed network within the VDC Group scope. If you want to retrieve information about a routed network in the vdc scope, please use the [`cloudavenue_edgegateway_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/edgegateway_network_routed) data source.",
@@ -144,7 +144,7 @@ func networkRoutedSchema(_ context.Context) superschema.Schema {
 			},
 			"gateway": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The gateway IP address for the network. This value define also the network IP range with the prefix length. (e.g. 192.168.1.1 with prefix length 24 for netmask, define the network IP range 192.168.1.0/24 with the gateway 192.168.1.1)",
+					MarkdownDescription: "The gateway IP address for the network. This value defines also the network IP range with the prefix length. (e.g. 192.168.1.1 with prefix length 24 for netmask, defines the network IP range 192.168.1.0/24 with the gateway 192.168.1.1)",
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,

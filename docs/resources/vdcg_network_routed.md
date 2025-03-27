@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vdcg_network_routed Resource - cloudavenue"
 subcategory: "vDC Group (Virtual Datacenter Group)"
 description: |-
-  The cloudavenue_vdcg_network_routed resource allows you to manage a routed network whithin the VDC Group scope. If you want to manage a routed network in the vdc scope, please use the cloudavenue_edgegateway_network_routed https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/edgegateway_network_routed resource.
+  The cloudavenue_vdcg_network_routed resource allows you to manage a routed network within the VDC Group scope. If you want to manage a routed network in the vdc scope, please use the cloudavenue_edgegateway_network_routed https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/edgegateway_network_routed resource.
 ---
 
 # cloudavenue_vdcg_network_routed (Resource)
 
-The `cloudavenue_vdcg_network_routed` resource allows you to manage a routed network whithin the VDC Group scope. If you want to manage a routed network in the vdc scope, please use the [`cloudavenue_edgegateway_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/edgegateway_network_routed) resource.
+The `cloudavenue_vdcg_network_routed` resource allows you to manage a routed network within the VDC Group scope. If you want to manage a routed network in the vdc scope, please use the [`cloudavenue_edgegateway_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/edgegateway_network_routed) resource.
 
 ## Example Usage
 
@@ -40,7 +40,7 @@ resource "cloudavenue_vdcg_network_routed" "example" {
 
 ### Required
 
-- `gateway` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The gateway IP address for the network. This value define also the network IP range with the prefix length. (e.g. 192.168.1.1 with prefix length 24 for netmask, define the network IP range 192.168.1.0/24 with the gateway 192.168.1.1). The value must be a valid IPV4 address (Ex: `192.168.0.1`).
+- `gateway` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The gateway IP address for the network. This value defines also the network IP range with the prefix length. (e.g. 192.168.1.1 with prefix length 24 for netmask, defines the network IP range 192.168.1.0/24 with the gateway 192.168.1.1). The value must be a valid IPV4 address (Ex: `192.168.0.1`).
 - `name` (String) The name of the network routed.
 - `prefix_length` (Number) <i style="color:red;font-weight: bold">(ForceNew)</i> The prefix length for the network. This value must be a valid prefix length for the network IP range. (e.g. /24 for netmask 255.255.255.0). Value must be between 1 and 32.
 

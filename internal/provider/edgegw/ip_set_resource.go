@@ -37,9 +37,6 @@ var (
 	_ resource.Resource                = &ipSetResource{}
 	_ resource.ResourceWithConfigure   = &ipSetResource{}
 	_ resource.ResourceWithImportState = &ipSetResource{}
-	// _ resource.ResourceWithModifyPlan     = &ipSetResource{}
-	// _ resource.ResourceWithUpgradeState   = &ipSetResource{}
-	// _ resource.ResourceWithValidateConfig = &ipSetResource{}.
 )
 
 // NewIpSetResource is a helper function to simplify the provider implementation.
@@ -70,6 +67,13 @@ func (r *ipSetResource) Init(ctx context.Context, rm *IPSetModel) (diags diag.Di
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
 		return
+	}
+
+	if r.edgegw.OwnerType.IsVDCGROUP() {
+		diags.AddError(
+			"Edge Gateway belongs to a VDC Group",
+			"Edge Gateway belongs to a VDC Group, please use the VDC Group resource instead `cloudavenue_vdcg_ip_set`.",
+		)
 	}
 
 	return

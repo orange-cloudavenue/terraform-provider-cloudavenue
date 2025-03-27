@@ -2,12 +2,12 @@
 page_title: "cloudavenue_edgegateway_network_routed Data Source - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  The cloudavenue_edgegateway_network_routed data source allows you to retrieve information about an existing routed network with the edge gateway within VDC scope. If you want to retrieve information about a routed network in the vDC Groupe scope, please use the cloudavenue_vdcg_network_routed https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdcg_network_routed data source.
+  The cloudavenue_edgegateway_network_routed data source allows you to retrieve information about an existing routed network with the edge gateway within VDC scope. If you want to retrieve information about a routed network in the vDC Group scope, please use the cloudavenue_vdcg_network_routed https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdcg_network_routed data source.
 ---
 
 # cloudavenue_edgegateway_network_routed (Data Source)
 
-The `cloudavenue_edgegateway_network_routed` data source allows you to retrieve information about an existing routed network with the edge gateway within VDC scope. If you want to retrieve information about a routed network in the vDC Groupe scope, please use the [`cloudavenue_vdcg_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdcg_network_routed) data source.
+The `cloudavenue_edgegateway_network_routed` data source allows you to retrieve information about an existing routed network with the edge gateway within VDC scope. If you want to retrieve information about a routed network in the vDC Group scope, please use the [`cloudavenue_vdcg_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdcg_network_routed) data source.
 
 ## Example Usage
 
@@ -34,7 +34,7 @@ data "cloudavenue_edgegateway_network_routed" "example" {
 - `dns1` (String) The primary DNS server IP address for the network.
 - `dns2` (String) The secondary DNS server IP address for the network.
 - `dns_suffix` (String) The DNS suffix for the network.
-- `gateway` (String) The gateway IP address for the network. This value define also the network IP range with the prefix length. (e.g. 192.168.1.1 with prefix length 24 for netmask, define the network IP range 192.168.1.0/24 with the gateway 192.168.1.1).
+- `gateway` (String) The gateway IP address for the network. This value defines also the network IP range with the prefix length. (e.g. 192.168.1.1 with prefix length 24 for netmask, defines the network IP range 192.168.1.0/24 with the gateway 192.168.1.1).
 - `guest_vlan_allowed` (Boolean) Indicates if the network allows guest VLANs.
 - `prefix_length` (Number) The prefix length for the network. This value must be a valid prefix length for the network IP range. (e.g. /24 for netmask 255.255.255.0).
 - `static_ip_pool` (Attributes Set) A set of static IP pools to be used for this network. (see [below for nested schema](#nestedatt--static_ip_pool))
