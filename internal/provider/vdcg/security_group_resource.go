@@ -400,7 +400,7 @@ func (r *SecurityGroupResource) validateNetworks(ctx context.Context, rm *Securi
 		}
 		switch { // = true
 		case net.IsIsolated() && !net.IsShared():
-			diags.AddError(fmt.Sprintf("Error creating security group %s", rm.Name.Get()), fmt.Sprintf("EdgeGateway security group doesn't support isolated network (%s)", network))
+			diags.AddError(fmt.Sprintf("Error creating security group %s", rm.Name.Get()), fmt.Sprintf("VDCG security group doesn't support VDC isolated network (%s)", network))
 		case net.IsRouted() && !net.IsShared():
 			diags.AddError(fmt.Sprintf("Error creating security group %s", rm.Name.Get()), fmt.Sprintf("Routed network %s is connected to EdgeGateway, please use the EdgeGateway resource (cloudavenue_edgegateway_security_group) instead", network))
 		}

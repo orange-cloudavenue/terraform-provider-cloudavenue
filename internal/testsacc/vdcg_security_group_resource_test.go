@@ -140,7 +140,7 @@ func (r *VDCGSecurityGroupResource) Tests(ctx context.Context) map[testsacc.Test
 				Create: testsacc.TFConfig{
 					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 					resource "cloudavenue_vdcg_security_group" "example_with_networks" {
-						vdc_group_id  = cloudavenue_vdcg_network_isolated.example.vdc_group_id
+						vdc_group_id  = cloudavenue_vdcg.example.id
 						name            = {{ generate . "name" }}
 						description     = {{ generate . "description" }}
 						member_org_network_ids = [
@@ -220,7 +220,7 @@ func (r *VDCGSecurityGroupResource) Tests(ctx context.Context) map[testsacc.Test
 						name            = {{ generate . "name" }}
 						description     = {{ generate . "description" }}
 						
-						vdc_group_id  = cloudavenue_vdcg_network_isolated.example.vdc_group_id
+						vdc_group_id  = cloudavenue_vdcg.example.id
 						member_org_network_ids = [
 						  cloudavenue_vdcg_network_routed.example.id
 						]
@@ -241,7 +241,7 @@ func (r *VDCGSecurityGroupResource) Tests(ctx context.Context) map[testsacc.Test
 							name            = {{ generate . "name" }}
 							description     = {{ generate . "description" }}
 							
-							vdc_group_id  = cloudavenue_vdcg_network_isolated.example.vdc_group_id
+							vdc_group_id  = cloudavenue_vdcg.example.id
 							member_org_network_ids = [
 							  cloudavenue_vdcg_network_routed.example.id,
 							  cloudavenue_vdc_network_isolated.example.id
@@ -249,7 +249,7 @@ func (r *VDCGSecurityGroupResource) Tests(ctx context.Context) map[testsacc.Test
 						  }`),
 						TFAdvanced: testsacc.TFAdvanced{
 							ExpectNonEmptyPlan: true,
-							ExpectError:        regexp.MustCompile("EdgeGateway security group doesn't support isolated network"),
+							ExpectError:        regexp.MustCompile("VDCG security group doesn't support VDC isolated network"),
 						},
 					},
 					// * Update fail add edgegateway_network_routed
@@ -259,7 +259,7 @@ func (r *VDCGSecurityGroupResource) Tests(ctx context.Context) map[testsacc.Test
 							name            = {{ generate . "name" }}
 							description     = {{ generate . "description" }}
 							
-							vdc_group_id  = cloudavenue_vdcg_network_isolated.example.vdc_group_id
+							vdc_group_id  = cloudavenue_vdcg.example.id
 							member_org_network_ids = [
 								cloudavenue_vdcg_network_routed.example.id,
 								cloudavenue_edgegateway_network_routed.example.id
@@ -277,7 +277,7 @@ func (r *VDCGSecurityGroupResource) Tests(ctx context.Context) map[testsacc.Test
 							name            = {{ generate . "name" }}
 							description     = {{ generate . "description" }}
 							
-							vdc_group_id  = cloudavenue_vdcg_network_isolated.example.vdc_group_id
+							vdc_group_id  = cloudavenue_vdcg.example.id
 							member_org_network_ids = [
 							  cloudavenue_vdcg_network_routed.example.id,
 							  cloudavenue_vdcg_network_isolated.example.id
