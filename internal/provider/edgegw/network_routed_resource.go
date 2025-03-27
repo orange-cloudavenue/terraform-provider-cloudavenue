@@ -62,6 +62,7 @@ func (r *NetworkRoutedResource) Init(ctx context.Context, rm *NetworkRoutedModel
 	r.edgegw, err = r.client.CAVSDK.V1.EdgeGateway.Get(idOrName)
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", fmt.Sprintf("Error: %s", err.Error()))
+		return
 	}
 
 	rm.EdgeGatewayID.Set(r.edgegw.GetURN())
