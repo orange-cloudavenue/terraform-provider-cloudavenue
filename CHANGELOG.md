@@ -25,6 +25,7 @@
 
 * deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-superschema from 1.10.1 to 1.11.0 (GH-1025)
 * deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-supertypes from 1.0.0 to 1.1.0 (GH-1024)
+* deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-supertypes from 1.1.0 to 1.1.1 (GH-1030)
 * deps: bumps github.com/rs/zerolog from 1.33.0 to 1.34.0 (GH-1036)
 
 ## 0.30.0 (March 18, 2025)
