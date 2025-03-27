@@ -1,4 +1,5 @@
-## 0.31.0 (Unreleased)
+## 0.32.0 (Unreleased)
+## 0.31.0 (March 27, 2025)
 ### :warning: **Deprecations**
 
 * `datasource/cloudavenue_network_routed` - The `cloudavenue_network_routed` datasource is deprecated and will be removed in the release v0.38.0. Please use the `cloudavenue_edgegateway_network_routed` datasource instead. (GH-1020)
