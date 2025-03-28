@@ -1,0 +1,3 @@
+```release-note:note
+Publish the new guide to explain who to store tfstate files in the Cloudavenue S3
+```
