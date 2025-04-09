@@ -54,12 +54,6 @@ func edgeGatewaysSuperSchema(_ context.Context) superschema.Schema {
 							MarkdownDescription: "The ID of the Edge Gateway.",
 						},
 					},
-					"owner_type": superschema.SuperStringAttribute{
-						DataSource: &schemaD.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The type of the Edge Gateway owner. Must be vdc or vdc-group.",
-						},
-					},
 					"owner_name": superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
 							Computed:            true,

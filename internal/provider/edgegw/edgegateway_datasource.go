@@ -86,7 +86,6 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 	data.ID.Set(urn.Normalize(urn.Gateway, edgegw.GetID()).String())
 	data.Tier0VrfID.Set(edgegw.GetTier0VrfID())
 	data.OwnerName.Set(edgegw.GetOwnerName())
-	data.OwnerType.Set(string(edgegw.GetOwnerType()))
 	data.Description.Set(edgegw.GetDescription())
 	data.Bandwidth.SetInt(edgegw.GetBandwidth())
 
