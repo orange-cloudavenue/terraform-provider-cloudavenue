@@ -1,0 +1,26 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Edge Gateway (Tier-1)"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+-> **Info**
+It is strongly recommended to use the terraform module in order to be able to configure services end-to-end.
+
+{{ if .HasExample -}}
+## Example Usage
+
+{{ tffile .ExampleFile }}
+{{- end }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is not supported for this resource.
+For importing the resource create a resource. The resource will be imported automatically.
