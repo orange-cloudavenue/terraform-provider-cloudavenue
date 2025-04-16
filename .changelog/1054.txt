@@ -1,0 +1,3 @@
+```release-note:note
+Add a guide explaining how to use new network and security resources for VDC and VDCG.
+```
