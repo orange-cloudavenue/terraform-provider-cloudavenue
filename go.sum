@@ -147,6 +147,8 @@ github.com/hashicorp/terraform-plugin-framework v1.14.1 h1:jaT1yvU/kEKEsxnbrn4ZH
 github.com/hashicorp/terraform-plugin-framework v1.14.1/go.mod h1:xNUKmvTs6ldbwTuId5euAtg37dTxuyj3LHS3uj7BHQ4=
 github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0 h1:I/N0g/eLZ1ZkLZXUQ0oRSXa8YG/EF0CEuQP1wXdrzKw=
 github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0/go.mod h1:t339KhmxnaF4SzdpxmqW8HnQBHVGYazwtfxU0qCs4eE=
+github.com/hashicorp/terraform-plugin-framework-timetypes v0.5.0 h1:v3DapR8gsp3EM8fKMh6up9cJUFQ2iRaFsYLP8UJnCco=
+github.com/hashicorp/terraform-plugin-framework-timetypes v0.5.0/go.mod h1:c3PnGE9pHBDfdEVG9t1S1C9ia5LW+gkFR0CygXlM8ak=
 github.com/hashicorp/terraform-plugin-framework-validators v0.17.0 h1:0uYQcqqgW3BMyyve07WJgpKorXST3zkpzvrOnf3mpbg=
 github.com/hashicorp/terraform-plugin-framework-validators v0.17.0/go.mod h1:VwdfgE/5Zxm43flraNa0VjcvKQOGVrcO4X8peIri0T0=
 github.com/hashicorp/terraform-plugin-go v0.26.0 h1:cuIzCv4qwigug3OS7iKhpGAbZTiypAfFQmw8aE65O2M=
@@ -231,8 +233,8 @@ github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1 h1
 github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1/go.mod h1:P6xBWALTxSvFCPejfnWwP0xAgeVVqkAIPvKHSEbLgYU=
 github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.11.0 h1:uezhiY+wp4khq2i9z2jbr26e816BQYKFolCjsZlLIzU=
 github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.11.0/go.mod h1:2R4+FiimXRb6we3IP4Jy4XwkmPG17isxcjUfYEWLJ44=
-github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.1.1 h1:5r0bXWxmY/p8YtYsS0ZQNE+fJ5BhUVSVGtVbvENad1c=
-github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.1.1/go.mod h1:iIp5TGuiJnDvcSCYq7mWYIn4HSmjntHv+IJGMK0MsZw=
+github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.2.0 h1:tvDLBfqkKQdlcPyb3dZsZMM52mpzVpys2a9ar/38ulE=
+github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.2.0/go.mod h1:5SJrMDAHcQopy+p9Oq3anoaqclPZgTs27b0WQ3J97E0=
 github.com/orange-cloudavenue/terraform-plugin-framework-validators v1.15.0 h1:HV90eiPGBVZ/eS4W0PI7uzxLXIKGqfl3UCLx5Euqb/Y=
 github.com/orange-cloudavenue/terraform-plugin-framework-validators v1.15.0/go.mod h1:XRoHgbq0xhmUvb3Ti5EiwBaL4r/FHM+eawMH/m7gIqw=
 github.com/peterhellberg/link v1.2.0 h1:UA5pg3Gp/E0F2WdX7GERiNrPQrM1K6CVJUUWfHa4t6c=
