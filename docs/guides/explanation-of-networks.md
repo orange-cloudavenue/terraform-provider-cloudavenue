@@ -1,7 +1,7 @@
 ---
 ** Using Networks in CloudAvenue **
 ---
-This page is a brief overview of the different types of networks available in CloudAvenue. For more detailed information, please refer to the [CloudAvenue documentation](https://docs.cloudavenue.com).
+This page is a brief overview of the different types of networks available in CloudAvenue. For more detailed information, please refer to the [CloudAvenue documentation](https://cloud.orange-business.com/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/accueil/presentation-de-cloud-avenue/).
 
 ## **1. Creating Routed Networks**
 
@@ -50,35 +50,13 @@ This means that you can create a routed network on an Edge Gateway and used it i
 
 ```terraform
 resource "cloudavenue_edgegateway_security_group" "example" {
-  edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[0].id
-  name            = "example"
-  description     = "This is an example security group"
+  name        = "example"
+  description = "This is an example security group"
+
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+
   member_org_network_ids = [
-    cloudavenue_network_routed.example.id
-  ]
-}
-
-data "cloudavenue_edgegateways" "example" {}
-
-resource "cloudavenue_network_routed" "example" {
-  name        = "MyOrgNet"
-  description = "This is an example Net"
-
-  edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[0].id
-
-  gateway       = "192.168.1.254"
-  prefix_length = 24
-
-  dns1 = "1.1.1.1"
-  dns2 = "8.8.8.8"
-
-  dns_suffix = "example"
-
-  static_ip_pool = [
-    {
-      start_address = "192.168.1.10"
-      end_address   = "192.168.1.20"
-    }
+    cloudavenue_edgegateway_network_routed.example.id
   ]
 }
 ```
