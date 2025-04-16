@@ -3,13 +3,13 @@ resource "cloudavenue_edgegateway_security_group" "example" {
   name            = "example"
   description     = "This is an example security group"
   member_org_network_ids = [
-    cloudavenue_network_routed.example.id
+    cloudavenue_edgegateway_network_routed.example.id
   ]
 }
 
 data "cloudavenue_edgegateways" "example" {}
 
-resource "cloudavenue_network_routed" "example" {
+resource "cloudavenue_edgegateway_network_routed" "example" {
   name        = "MyOrgNet"
   description = "This is an example Net"
 
