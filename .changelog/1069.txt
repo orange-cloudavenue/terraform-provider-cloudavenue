@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_edgegateway` - Add Workaround where desactivate calculating remaining bandwidth and disallow to set it if the T0 VRF have class os service `DEDICATED`. This is a workaround for a bug in the API and will be removed when the API is fixed.
+```

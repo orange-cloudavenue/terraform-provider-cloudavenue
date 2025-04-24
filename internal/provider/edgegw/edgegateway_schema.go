@@ -145,7 +145,7 @@ func edgegwSchema() superschema.Schema {
 				},
 				Resource: &schemaR.Int64Attribute{
 					Optional:            true,
-					MarkdownDescription: "If no value is specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF. More information can be found [here](#bandwidth-attribute).",
+					MarkdownDescription: "If no value is specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF. More information can be found [here](#bandwidth-attribute).\n~> **Warning**: This attribute is not supported if your Tier-0 VRF have class of service `DEDICATED`. This is due a bug in the API (See [#1068](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1069))",
 				},
 			},
 		},
