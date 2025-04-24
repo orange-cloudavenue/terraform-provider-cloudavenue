@@ -50,7 +50,7 @@ func main() {
 
 	rules := []string{}
 	for _, value := range keys {
-		rules = append(rules, fmt.Sprintf("* `%s` %s\n", value, strings.Trim(strings.ReplaceAll(fmt.Sprint(v1.EdgeGatewayAllowedBandwidth[v1.ClassService(value)]), " ", ", "), "[]")))
+		rules = append(rules, fmt.Sprintf("* `%s`(Max: %dMbps) : %s\n", value, v1.EdgeGatewayAllowedBandwidth[v1.ClassService(value)].T0TotalBandwidth, strings.Trim(strings.ReplaceAll(fmt.Sprint(v1.EdgeGatewayAllowedBandwidth[v1.ClassService(value)].T1AllowedBandwidth), " ", ", "), "[]")))
 	}
 
 	// Generate the content of the file

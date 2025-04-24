@@ -40,7 +40,8 @@ resource "cloudavenue_edgegateway" "example" {
 ### Optional
 
 - `bandwidth` (Number) The bandwidth in `Mbps` of the Edge Gateway. If no value is specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF. More information can be found [here](#bandwidth-attribute).
-~> **Warning**: This attribute is not supported if your Tier-0 VRF has a class of service `DEDICATED`. This is due to a bug in the API (See [#1068](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1069)).
+
+!> **Warning** This attribute is not supported if your Tier-0 VRF has a class of service `DEDICATED`. This is due to a bug in the API (See [#1068](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1069)).
 - `owner_type` (String, Deprecated) The type of the Edge Gateway owner. Value must be one of : `vdc`, `vdc-group`. 
 
  ~> **Attribute deprecated** Remove the `owner_type` attribute configuration, it will be removed in the version [`v0.32.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/20) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/952) for more information.
@@ -69,10 +70,10 @@ The `bandwidth` attribute is optional. If no value is specified, the bandwidth i
 The following values are supported depending on the service class of the Tier-0 :
 
 <!-- TABLE BANDWIDTH VALUES -->
-* `VRF_DEDICATED_LARGE` {10000, [5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000]}
-* `VRF_DEDICATED_MEDIUM` {3500, [5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000, 2000]}
-* `VRF_PREMIUM` {1000, [5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000]}
-* `VRF_STANDARD` {300, [5, 25, 50, 75, 100, 150, 200, 250, 300]}
+* `VRF_DEDICATED_LARGE`(Max: 10000Mbps) : 5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000
+* `VRF_DEDICATED_MEDIUM`(Max: 3500Mbps) : 5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000, 2000
+* `VRF_PREMIUM`(Max: 1000Mbps) : 5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000
+* `VRF_STANDARD`(Max: 300Mbps) : 5, 25, 50, 75, 100, 150, 200, 250, 300
 
 
 
