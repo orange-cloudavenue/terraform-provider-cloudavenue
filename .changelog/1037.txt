@@ -1,7 +1,7 @@
 ```release-note:new-resource
-`resource/cloudavenue_edgegateway_services` - This resource enables users to manage Edge Gateway network services in CloudAvenue. It serves as the foundation for configuring network services in your Edge Gateway within the CloudAvenue environment.
+`resource/cloudavenue_edgegateway_services` - This resource allows users to manage Edge Gateway network services in CloudAvenue, providing the foundation for configuring network services within the CloudAvenue environment.
 ```
 
 ```release-note:new-data-source
-`datasource/cloudavenue_edgegateway_services` - This data source allows users to retrieve information about Edge Gateway network services in CloudAvenue. It provides a way to query and obtain details about the available network services associated with your Edge Gateway.
+`datasource/cloudavenue_edgegateway_services` - This data source enables users to access information about Edge Gateway network services in CloudAvenue. It allows querying and retrieving details regarding the network services linked to your Edge Gateway.
 ```
