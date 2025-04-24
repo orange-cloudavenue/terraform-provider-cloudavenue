@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_edgegateway_network_routed` - Fixed an issue with the `cloudavenue_edgegateway_network_routed` resource where deletion operations failed due to a `BUSY_ENTITY` error caused by concurrent gateway updates.
+```

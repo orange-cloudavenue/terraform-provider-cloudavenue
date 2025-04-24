@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_edgegateway_network_routed` - Resolved a bug in the `cloudavenue_edgegateway_network_routed` resource where the `static_ip_pool` attribute unexpectedly changed from null to an empty set during application.
+```

@@ -213,8 +213,8 @@ func (r *NetworkRoutedResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetURN())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetURN())
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
 
 	netRouted, err := r.vdc.CreateNetworkRouted(sdkValues)
 	if err != nil {
@@ -306,8 +306,8 @@ func (r *NetworkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetURN())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetURN())
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
 
 	netRouted, err := r.vdc.GetNetworkRouted(state.ID.Get())
 	if err != nil {
@@ -357,8 +357,8 @@ func (r *NetworkRoutedResource) Delete(ctx context.Context, req resource.DeleteR
 		Implement the resource deletion here
 	*/
 
-	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetURN())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetURN())
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
 
 	netRouted, err := r.vdc.GetNetworkRouted(state.ID.Get())
 	if err != nil {
@@ -460,17 +460,21 @@ func (r *NetworkRoutedResource) read(ctx context.Context, planOrState *NetworkRo
 	stateRefreshed.DNSSuffix.Set(net.Subnet.DNSSuffix)
 	stateRefreshed.GuestVLANAllowed.SetPtr(net.GuestVLANTaggingAllowed)
 
-	x := []*NetworkRoutedModelStaticIPPool{}
-	for _, ipRange := range net.Subnet.IPRanges {
-		x = append(x, &NetworkRoutedModelStaticIPPool{
-			StartAddress: supertypes.NewStringValueOrNull(ipRange.StartAddress),
-			EndAddress:   supertypes.NewStringValueOrNull(ipRange.EndAddress),
-		})
-	}
+	if len(net.Subnet.IPRanges) == 0 {
+		stateRefreshed.StaticIPPool.SetNull(ctx)
+	} else {
+		x := []*NetworkRoutedModelStaticIPPool{}
+		for _, ipRange := range net.Subnet.IPRanges {
+			x = append(x, &NetworkRoutedModelStaticIPPool{
+				StartAddress: supertypes.NewStringValueOrNull(ipRange.StartAddress),
+				EndAddress:   supertypes.NewStringValueOrNull(ipRange.EndAddress),
+			})
+		}
 
-	diags.Append(stateRefreshed.StaticIPPool.Set(ctx, x)...)
-	if diags.HasError() {
-		return nil, true, diags
+		diags.Append(stateRefreshed.StaticIPPool.Set(ctx, x)...)
+		if diags.HasError() {
+			return nil, true, diags
+		}
 	}
 
 	return stateRefreshed, true, nil
