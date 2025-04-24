@@ -13,25 +13,12 @@ The `network_dhcp_binding` resource allows you to manage DHCP bindings.
 
 ```terraform
 resource "cloudavenue_network_dhcp_binding" "example" {
-  name           = "example"
-  org_network_id = cloudavenue_network_dhcp.example.id
-  mac_address    = "00:50:56:01:01:01"
-  ip_address     = "192.168.1.231"
-}
+  name = "example"
 
-resource "cloudavenue_network_dhcp" "example" {
-  org_network_id = cloudavenue_network_routed.example.id
-  mode           = "EDGE"
-  pools = [
-    {
-      start_address = "192.168.1.30"
-      end_address   = "192.168.1.100"
-    }
-  ]
-  dns_servers = [
-    "1.1.1.1",
-    "1.0.0.1"
-  ]
+  org_network_id = cloudavenue_network_dhcp.example.id
+
+  mac_address = "00:50:56:01:01:01"
+  ip_address  = "192.168.1.231"
 }
 ```
 
@@ -43,7 +30,7 @@ resource "cloudavenue_network_dhcp" "example" {
 - `ip_address` (String) The IP address of the DHCP Binding. Must be a valid IP with net.ParseIP.
 - `mac_address` (String) The MAC address of the DHCP Binding. Must be a valid mac address.
 - `name` (String) The name of the DHCP Binding.
-- `org_network_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the Org Network.<br/>**Note** (`.id` field) of `cloudavenue_network_isolated`, `cloudavenue_network_routed` or `cloudavenue_network_dhcp` can be referenced here. It is more convenient to use reference to `cloudavenue_network_dhcp` ID because it makes sure that DHCP is enabled before configuring pools. Must be a valid URN.
+- `org_network_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the Org Network.<br/>**Note** (`.id` field) of `cloudavenue_vdc_network_isolated`, `cloudavenue_edgegateway_network_routed` or `cloudavenue_network_dhcp` can be referenced here. It is more convenient to use reference to `cloudavenue_network_dhcp` ID because it makes sure that DHCP is enabled before configuring pools. Must be a valid URN.
 
 ### Optional
 

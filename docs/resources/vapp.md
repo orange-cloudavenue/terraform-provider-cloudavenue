@@ -13,7 +13,8 @@ Provides a Cloud Avenue vApp resource. This can be used to create, modify, and d
 
 ```terraform
 resource "cloudavenue_vapp" "example" {
-  name        = "MyVapp"
+  name        = "example"
+  vdc         = cloudavenue_vdc.example.name
   description = "This is an example vApp"
 
   lease = {

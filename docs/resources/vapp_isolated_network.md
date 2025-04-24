@@ -12,11 +12,6 @@ Provides capability to attach an existing Org VDC Network to a vApp and toggle n
 ## Example Usage
 
 ```terraform
-resource "cloudavenue_vapp" "example" {
-  name        = "MyVapp"
-  description = "This is an example vApp"
-}
-
 resource "cloudavenue_vapp_isolated_network" "example" {
   name                  = "MyVappNet"
   vapp_name             = cloudavenue_vapp.example.name

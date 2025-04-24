@@ -13,6 +13,8 @@ description: |-
 ## Example Usage
 
 {{ tffile .ExampleFile }}
+
+{{ tffile "examples/resources/cloudavenue_edgegateway_network_routed/resource.tf"}}
 {{- end }}
 
 {{ .SchemaMarkdown | trimspace }}

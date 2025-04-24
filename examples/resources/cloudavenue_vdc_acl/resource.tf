@@ -1,4 +1,4 @@
 resource "cloudavenue_vdc_acl" "example" {
-  vdc                   = "VDC_Test" # Optional
+  vdc                   = cloudavenue_vdc.example.name
   everyone_access_level = "ReadOnly"
 }

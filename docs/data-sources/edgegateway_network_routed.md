@@ -13,8 +13,8 @@ The `cloudavenue_edgegateway_network_routed` data source allows you to retrieve 
 
 ```terraform
 data "cloudavenue_edgegateway_network_routed" "example" {
-  name              = "example"
-  edge_gateway_name = cloudavenue_edgegateway.example.name
+  name            = "example"
+  edge_gateway_id = cloudavenue_edgegateway.example.id
 }
 ```
 

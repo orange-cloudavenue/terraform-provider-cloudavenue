@@ -1,4 +1,4 @@
 data "cloudavenue_edgegateway_nat_rule" "example" {
-  edge_gateway_name = "myEdgeName"
-  name              = "example-snat"
+  name            = "example-snat"
+  edge_gateway_id = cloudavenue_edgegateway.example.id
 }

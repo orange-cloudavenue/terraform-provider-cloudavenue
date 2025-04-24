@@ -13,7 +13,7 @@ Provides a Cloud Avenue vDC access control resource. This can be used to share v
 
 ```terraform
 resource "cloudavenue_vdc_acl" "example" {
-  vdc                   = "VDC_Test" # Optional
+  vdc                   = cloudavenue_vdc.example.name
   everyone_access_level = "ReadOnly"
 }
 ```

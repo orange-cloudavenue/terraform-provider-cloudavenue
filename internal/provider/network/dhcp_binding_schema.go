@@ -52,7 +52,7 @@ func dhcpBindingSchema(_ context.Context) superschema.Schema {
 			"org_network_id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					Required:            true,
-					MarkdownDescription: "The ID of the Org Network.<br/>**Note** (`.id` field) of `cloudavenue_network_isolated`, `cloudavenue_network_routed` or `cloudavenue_network_dhcp` can be referenced here. It is more convenient to use reference to `cloudavenue_network_dhcp` ID because it makes sure that DHCP is enabled before configuring pools.",
+					MarkdownDescription: "The ID of the Org Network.<br/>**Note** (`.id` field) of `cloudavenue_vdc_network_isolated`, `cloudavenue_edgegateway_network_routed` or `cloudavenue_network_dhcp` can be referenced here. It is more convenient to use reference to `cloudavenue_network_dhcp` ID because it makes sure that DHCP is enabled before configuring pools.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Validators: []validator.String{

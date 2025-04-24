@@ -1,8 +1,10 @@
 resource "cloudavenue_edgegateway_static_route" "example" {
-  edge_gateway_name = "myEdgeName"
-  name              = "example"
-  description       = "example description"
-  network_cidr      = "192.168.2.0/24"
+  name        = "example"
+  description = "example description"
+
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+
+  network_cidr = "192.168.2.0/24"
   next_hops = [
     {
       ip_address = "192.168.2.254"

@@ -413,24 +413,27 @@ terraform import cloudavenue_vm.example myVDC.myVAPP.myVMID
 
 This example shows how to create a VM from a vApp template connected to a routed network.
 
-```hcl
-data "cloudavenue_tier0_vrfs" "example" {}
-
+```terraform
 resource "cloudavenue_edgegateway" "example" {
-  owner_name     = "example-vdc"
-  tier0_vrf_name = data.cloudavenue_tier0_vrfs.example.names.0
-  owner_type     = "vdc"
+  owner_name     = cloudavenue_vdc.example.name
+  tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
 }
+```
 
-resource "cloudavenue_network_routed" "example" {
-  name        = "example-network"
-  description = "This is an example Net"
+```terraform
+resource "cloudavenue_edgegateway_network_routed" "example" {
+  name = "example"
+
   edge_gateway_id = cloudavenue_edgegateway.example.id
+
   gateway       = "192.168.1.254"
   prefix_length = 24
+
   dns1 = "1.1.1.1"
   dns2 = "8.8.8.8"
+
   dns_suffix = "example"
+
   static_ip_pool = [
     {
       start_address = "192.168.1.10"
@@ -438,17 +441,41 @@ resource "cloudavenue_network_routed" "example" {
     }
   ]
 }
+```
 
+```terraform
 resource "cloudavenue_vapp" "example" {
-  name        = "example-vapp"
+  name        = "example"
+  vdc         = cloudavenue_vdc.example.name
   description = "This is an example vApp"
-}
 
+  lease = {
+    runtime_lease_in_sec = 3600
+    storage_lease_in_sec = 3600
+  }
+
+  guest_properties = {
+    "key" = "Value"
+  }
+}
+```
+
+```terraform
 resource "cloudavenue_vapp_org_network" "example" {
   vapp_name    = cloudavenue_vapp.example.name
-  network_name = cloudavenue_network_routed.example.name
+  network_name = cloudavenue_edgegateway_network_routed.example.name
+  vdc          = cloudavenue_vdc.example.name
 }
+```
 
+```terraform
+data "cloudavenue_catalog_vapp_template" "example" {
+  catalog_name  = "Orange-Linux"
+  template_name = "UBUNTU_24.04"
+}
+```}}
+
+```hcl
 resource "cloudavenue_vm" "example" {
   name      = "example-vm"
   vapp_name = cloudavenue_vapp.example.name

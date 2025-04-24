@@ -14,7 +14,7 @@ The `network_dhcp_binding` data source allows you to retrieve information about 
 ```terraform
 data "cloudavenue_network_dhcp_binding" "example" {
   name           = "example"
-  org_network_id = cloudavenue_network_routed.example.id
+  org_network_id = cloudavenue_edgegateway_network_routed.example.id
 }
 ```
 
@@ -24,7 +24,7 @@ data "cloudavenue_network_dhcp_binding" "example" {
 ### Required
 
 - `name` (String) The name of the DHCP Binding.
-- `org_network_id` (String) The ID of the Org Network.<br/>**Note** (`.id` field) of `cloudavenue_network_isolated`, `cloudavenue_network_routed` or `cloudavenue_network_dhcp` can be referenced here. It is more convenient to use reference to `cloudavenue_network_dhcp` ID because it makes sure that DHCP is enabled before configuring pools.
+- `org_network_id` (String) The ID of the Org Network.<br/>**Note** (`.id` field) of `cloudavenue_vdc_network_isolated`, `cloudavenue_edgegateway_network_routed` or `cloudavenue_network_dhcp` can be referenced here. It is more convenient to use reference to `cloudavenue_network_dhcp` ID because it makes sure that DHCP is enabled before configuring pools.
 
 ### Read-Only
 
