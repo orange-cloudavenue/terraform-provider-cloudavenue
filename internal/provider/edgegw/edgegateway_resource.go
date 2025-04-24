@@ -28,6 +28,7 @@ import (
 	commoncloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/common/cloudavenue"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
@@ -121,7 +122,23 @@ func (r *edgeGatewayResource) ModifyPlan(ctx context.Context, req resource.Modif
 		return
 	}
 
+	// Related in issue #1069 if the T0 is dedicated, the bandwidth is not mandatory.
+	// BUG: Currently the API does not allow to set the bandwidth if the T0 is dedicated.
+	t0, err := r.client.CAVSDK.V1.T0.GetT0(plan.Tier0VrfID.Get())
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving T0", err.Error())
+		return
+	}
+
 	switch {
+	// Bypass bandwidth if T0 is dedicated
+	case t0.ClassService.IsVRFDedicatedMedium(), t0.ClassService.IsVRFDedicatedLarge():
+		// If the T0 is dedicated, the bandwidth is not allowed for the moment
+		if plan.Bandwidth.IsKnown() {
+			resp.Diagnostics.AddError("Bandwidth ignored", "Due to a bug, bandwidth definition for dedicated T0s is currently not supported. Please remove the bandwidth definition from the configuration. See issue #1069")
+		}
+		return
+
 	// Create case with value is known
 	case plan.Bandwidth.IsKnown() && (state == nil || !state.Bandwidth.IsKnown()):
 		allowedValuesFunc()
@@ -313,16 +330,26 @@ func (r *edgeGatewayResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	if edgegwNew.GetBandwidth() != plan.Bandwidth.GetInt() {
+	// Related in issue #1069 if the T0 is dedicated, the bandwidth is not mandatory.
+	// BUG: Currently the API does not allow to set the bandwidth if the T0 is dedicated.
+	t0, err := r.client.CAVSDK.V1.T0.GetT0(plan.Tier0VrfID.Get())
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving T0", err.Error())
+		return
+	}
+
+	// Workaround for the API not allowing to set the bandwidth if the T0 is dedicated.
+	// If the T0 is dedicated, the bandwidth is ignored.
+	if !(t0.ClassService.IsVRFDedicatedLarge() || t0.ClassService.IsVRFDedicatedMedium()) && edgegwNew.GetBandwidth() != plan.Bandwidth.GetInt() {
 		job, err = edgegwNew.UpdateBandwidth(plan.Bandwidth.GetInt())
 		if err != nil {
 			resp.Diagnostics.AddError("Error setting Bandwidth", err.Error())
-			return
 		}
 
-		if err := job.Wait(1, int(createTimeout.Seconds())); err != nil {
-			resp.Diagnostics.AddError("Error waiting for Bandwidth update", err.Error())
-			return
+		if job != nil {
+			if err := job.Wait(1, int(createTimeout.Seconds())); err != nil {
+				resp.Diagnostics.AddError("Error waiting for Bandwidth update", err.Error())
+			}
 		}
 	}
 

@@ -54,6 +54,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		edgegw.NewVPNIPSecDataSource,
 		edgegw.NewAppPortProfileDataSource,
 		edgegw.NewNetworkRoutedDataSource,
+		edgegw.NewServicesDataSource,
 
 		// * EdgeGateway LoadBalancer
 		elb.NewServiceEngineGroupDataSource,
