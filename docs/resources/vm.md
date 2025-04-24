@@ -473,7 +473,7 @@ data "cloudavenue_catalog_vapp_template" "example" {
   catalog_name  = "Orange-Linux"
   template_name = "UBUNTU_24.04"
 }
-```}}
+```
 
 ```hcl
 resource "cloudavenue_vm" "example" {
