@@ -2,6 +2,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps github.com/aws/aws-sdk-go from 1.55.6 to 1.55.7 (GH-1068)
 * deps: bumps golang.org/x/net from 0.37.0 to 0.38.0 (GH-1048)
 
 ## 0.31.1 (March 27, 2025)
