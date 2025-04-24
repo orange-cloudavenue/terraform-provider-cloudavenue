@@ -40,7 +40,7 @@ resource "cloudavenue_edgegateway" "example" {
 ### Optional
 
 - `bandwidth` (Number) The bandwidth in `Mbps` of the Edge Gateway. If no value is specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF. More information can be found [here](#bandwidth-attribute).
-~> **Warning**: This attribute is not supported if your Tier-0 VRF have class of service `DEDICATED`. This is due a bug in the API (See [#1068](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1069)).
+~> **Warning**: This attribute is not supported if your Tier-0 VRF has a class of service `DEDICATED`. This is due to a bug in the API (See [#1068](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1069)).
 - `owner_type` (String, Deprecated) The type of the Edge Gateway owner. Value must be one of : `vdc`, `vdc-group`.
 
  ~> **Attribute deprecated** Remove the `owner_type` attribute configuration, it will be removed in the version [`v0.32.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/20) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/952) for more information.

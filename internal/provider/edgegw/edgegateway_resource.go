@@ -351,8 +351,6 @@ func (r *edgeGatewayResource) Create(ctx context.Context, req resource.CreateReq
 				resp.Diagnostics.AddError("Error waiting for Bandwidth update", err.Error())
 			}
 		}
-
-		// Don't
 	}
 
 	// Use generic read function to refresh the state
