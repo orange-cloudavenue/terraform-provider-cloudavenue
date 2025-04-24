@@ -37,12 +37,12 @@ type IPSetDataSource struct {
 	vdcGroup *v1.VDCGroup
 }
 
-func (d *IPSetDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *IPSetDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_ip_set"
 }
 
 // Init Initializes the datasource.
-func (d *IPSetDataSource) Init(ctx context.Context, rm *IPSetModel) (diags diag.Diagnostics) {
+func (d *IPSetDataSource) Init(_ context.Context, rm *IPSetModel) (diags diag.Diagnostics) {
 	var err error
 
 	idOrName := rm.VDCGroupName.Get()
@@ -59,11 +59,11 @@ func (d *IPSetDataSource) Init(ctx context.Context, rm *IPSetModel) (diags diag.
 	return
 }
 
-func (d *IPSetDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *IPSetDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = ipSetSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *IPSetDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *IPSetDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

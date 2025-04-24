@@ -39,21 +39,20 @@ type BucketLifecycleConfigurationDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *BucketLifecycleConfigurationDataSource) Init(ctx context.Context, dm *BucketLifecycleConfigurationDatasourceModel) (diags diag.Diagnostics) {
+func (d *BucketLifecycleConfigurationDataSource) Init(_ context.Context, _ *BucketLifecycleConfigurationDatasourceModel) (diags diag.Diagnostics) {
 	d.s3Client = d.client.CAVSDK.V1.S3()
-
 	return
 }
 
-func (d *BucketLifecycleConfigurationDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *BucketLifecycleConfigurationDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_bucket_lifecycle_configuration"
 }
 
-func (d *BucketLifecycleConfigurationDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *BucketLifecycleConfigurationDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = bucketLifecycleConfigurationSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *BucketLifecycleConfigurationDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *BucketLifecycleConfigurationDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

@@ -40,7 +40,7 @@ func (r *EdgeGatewaySecurityGroupDataSource) DependenciesConfig() (resp testsacc
 	return
 }
 
-func (r *EdgeGatewaySecurityGroupDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *EdgeGatewaySecurityGroupDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		"example": func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{

@@ -52,7 +52,7 @@ type dhcpForwardingResource struct {
 }
 
 // Init Initializes the resource.
-func (r *dhcpForwardingResource) Init(ctx context.Context, rm *DhcpForwardingModel) (diags diag.Diagnostics) {
+func (r *dhcpForwardingResource) Init(_ context.Context, rm *DhcpForwardingModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.org, diags = org.Init(r.client)
@@ -82,7 +82,7 @@ func (r *dhcpForwardingResource) Schema(ctx context.Context, _ resource.SchemaRe
 	resp.Schema = dhcpForwardingSchema(ctx).GetResource(ctx)
 }
 
-func (r *dhcpForwardingResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *dhcpForwardingResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

@@ -42,7 +42,7 @@ type catalogMediaDataSource struct {
 	catalog  base
 }
 
-func (d *catalogMediaDataSource) Init(ctx context.Context, rm *catalogMediaDataSourceModel) (diags diag.Diagnostics) {
+func (d *catalogMediaDataSource) Init(_ context.Context, rm *catalogMediaDataSourceModel) (diags diag.Diagnostics) {
 	d.catalog = base{
 		name: rm.CatalogName.ValueString(),
 		id:   rm.CatalogID.ValueString(),
@@ -53,15 +53,15 @@ func (d *catalogMediaDataSource) Init(ctx context.Context, rm *catalogMediaDataS
 	return
 }
 
-func (d *catalogMediaDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *catalogMediaDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "media"
 }
 
-func (d *catalogMediaDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *catalogMediaDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = mediaSchema().GetDataSource(ctx)
 }
 
-func (d *catalogMediaDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *catalogMediaDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

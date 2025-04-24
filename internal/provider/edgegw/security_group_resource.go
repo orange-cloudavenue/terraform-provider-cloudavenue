@@ -54,7 +54,7 @@ type securityGroupResource struct {
 }
 
 // Init Initializes the resource.
-func (r *securityGroupResource) Init(ctx context.Context, rm *SecurityGroupModel) (diags diag.Diagnostics) {
+func (r *securityGroupResource) Init(_ context.Context, rm *SecurityGroupModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.org, diags = org.Init(r.client)
@@ -95,7 +95,7 @@ func (r *securityGroupResource) Schema(ctx context.Context, _ resource.SchemaReq
 	resp.Schema = securityGroupSchema(ctx).GetResource(ctx)
 }
 
-func (r *securityGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *securityGroupResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

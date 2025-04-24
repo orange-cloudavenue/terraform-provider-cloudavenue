@@ -37,20 +37,20 @@ type dhcpBindingDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *dhcpBindingDataSource) Init(ctx context.Context, dm *DHCPBindingModel) (diags diag.Diagnostics) {
+func (d *dhcpBindingDataSource) Init(_ context.Context, _ *DHCPBindingModel) (diags diag.Diagnostics) {
 	d.org, diags = org.Init(d.client)
 	return
 }
 
-func (d *dhcpBindingDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *dhcpBindingDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_dhcp_binding"
 }
 
-func (d *dhcpBindingDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *dhcpBindingDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = dhcpBindingSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *dhcpBindingDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *dhcpBindingDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

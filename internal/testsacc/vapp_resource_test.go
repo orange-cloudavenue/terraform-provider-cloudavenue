@@ -42,7 +42,7 @@ func (r *VAppResource) DependenciesConfig() (resp testsacc.DependenciesConfigRes
 	return
 }
 
-func (r *VAppResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *VAppResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * First test named "example"
 		"example": func(_ context.Context, resourceName string) testsacc.Test {

@@ -53,7 +53,7 @@ type vpnIPSecResource struct {
 }
 
 // Init Initializes the resource.
-func (r *vpnIPSecResource) Init(ctx context.Context, rm *VPNIPSecModel) (diags diag.Diagnostics) {
+func (r *vpnIPSecResource) Init(_ context.Context, rm *VPNIPSecModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.org, diags = org.Init(r.client)
@@ -83,7 +83,7 @@ func (r *vpnIPSecResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 	resp.Schema = vpnIPSecSchema(ctx).GetResource(ctx)
 }
 
-func (r *vpnIPSecResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *vpnIPSecResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

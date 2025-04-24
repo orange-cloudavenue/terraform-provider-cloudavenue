@@ -59,7 +59,7 @@ type vmResource struct {
 }
 
 // Init Initializes the resource.
-func (r *vmResource) Init(ctx context.Context, rm *vm.VMResourceModel) (diags diag.Diagnostics) {
+func (r *vmResource) Init(_ context.Context, rm *vm.VMResourceModel) (diags diag.Diagnostics) {
 	var d diag.Diagnostics
 
 	r.vdc, d = vdc.Init(r.client, rm.VDC)
@@ -100,7 +100,7 @@ func (r *vmResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp 
 	resp.Schema = vmSuperSchema(ctx).GetResource(ctx)
 }
 
-func (r *vmResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *vmResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

@@ -45,7 +45,7 @@ type BucketACLResource struct {
 }
 
 // Init Initializes the resource.
-func (r *BucketACLResource) Init(ctx context.Context, rm *BucketACLModel) (diags diag.Diagnostics) {
+func (r *BucketACLResource) Init(_ context.Context, _ *BucketACLModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
 	return
 }
@@ -60,7 +60,7 @@ func (r *BucketACLResource) Schema(ctx context.Context, _ resource.SchemaRequest
 	resp.Schema = bucketACLSchema(ctx).GetResource(ctx)
 }
 
-func (r *BucketACLResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *BucketACLResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

@@ -41,7 +41,7 @@ type VirtualServiceDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *VirtualServiceDataSource) Init(ctx context.Context, dm *VirtualServiceModel) (diags diag.Diagnostics) {
+func (d *VirtualServiceDataSource) Init(_ context.Context, dm *VirtualServiceModel) (diags diag.Diagnostics) {
 	var err error
 
 	d.elb, err = edgeloadbalancer.NewClient()
@@ -64,15 +64,15 @@ func (d *VirtualServiceDataSource) Init(ctx context.Context, dm *VirtualServiceM
 	return
 }
 
-func (d *VirtualServiceDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *VirtualServiceDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_virtual_service"
 }
 
-func (d *VirtualServiceDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *VirtualServiceDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = virtualServiceSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *VirtualServiceDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *VirtualServiceDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

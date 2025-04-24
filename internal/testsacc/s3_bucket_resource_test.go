@@ -40,7 +40,7 @@ func (r *S3BucketResource) DependenciesConfig() (resp testsacc.DependenciesConfi
 	return
 }
 
-func (r *S3BucketResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *S3BucketResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// TODO : Complete tests
 		// * First test named "example"

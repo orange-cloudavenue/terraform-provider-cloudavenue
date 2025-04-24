@@ -41,7 +41,7 @@ type userDataSource struct {
 	iamClient *iam.Client
 }
 
-func (d *userDataSource) Init(_ context.Context, rm *userDataSourceModel) (diags diag.Diagnostics) {
+func (d *userDataSource) Init(_ context.Context, _ *userDataSourceModel) (diags diag.Diagnostics) {
 	var err error
 
 	d.iamClient, err = d.client.CAVSDK.V1.IAM()
@@ -63,7 +63,7 @@ func (d *userDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest,
 }
 
 // Configure configures the data source.
-func (d *userDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *userDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

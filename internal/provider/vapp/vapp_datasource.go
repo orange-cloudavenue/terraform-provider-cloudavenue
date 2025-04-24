@@ -40,15 +40,15 @@ type vappDataSource struct {
 	vdc    vdc.VDC
 }
 
-func (d *vappDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *vappDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
-func (d *vappDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *vappDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = vappSchema().GetDataSource(ctx)
 }
 
-func (d *vappDataSource) Init(ctx context.Context, dm *vappResourceModel) (diags diag.Diagnostics) {
+func (d *vappDataSource) Init(_ context.Context, dm *vappResourceModel) (diags diag.Diagnostics) {
 	d.vdc, diags = vdc.Init(d.client, dm.VDC.StringValue)
 	if diags.HasError() {
 		return
@@ -57,7 +57,7 @@ func (d *vappDataSource) Init(ctx context.Context, dm *vappResourceModel) (diags
 	return
 }
 
-func (d *vappDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *vappDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

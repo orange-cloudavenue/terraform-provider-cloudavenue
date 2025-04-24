@@ -38,12 +38,11 @@ type CertificateLibraryDatasource struct {
 }
 
 // Init Initializes the data source.
-func (d *CertificateLibraryDatasource) Init(ctx context.Context, dm *CertificateLibraryDatasourceModel) (diags diag.Diagnostics) {
-	var err error
-
+func (d *CertificateLibraryDatasource) Init(_ context.Context, _ *CertificateLibraryDatasourceModel) (diags diag.Diagnostics) {
 	org, err := d.client.CAVSDK.V1.Org()
 	if err != nil {
 		diags.AddError("Error initializing ORG client", err.Error())
+		return
 	}
 
 	d.orgClient = org.Client
@@ -51,15 +50,15 @@ func (d *CertificateLibraryDatasource) Init(ctx context.Context, dm *Certificate
 	return
 }
 
-func (d *CertificateLibraryDatasource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *CertificateLibraryDatasource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_certificate_library"
 }
 
-func (d *CertificateLibraryDatasource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *CertificateLibraryDatasource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = certificateLibrarySchema(ctx).GetDataSource(ctx)
 }
 
-func (d *CertificateLibraryDatasource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *CertificateLibraryDatasource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

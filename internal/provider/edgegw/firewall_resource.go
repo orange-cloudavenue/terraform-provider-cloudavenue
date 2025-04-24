@@ -53,7 +53,7 @@ type firewallResource struct {
 }
 
 // Init Initializes the resource.
-func (r *firewallResource) Init(ctx context.Context, rm *firewallModel) (diags diag.Diagnostics) {
+func (r *firewallResource) Init(_ context.Context, rm *firewallModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.org, diags = org.Init(r.client)
@@ -83,7 +83,7 @@ func (r *firewallResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 	resp.Schema = firewallSchema(ctx).GetResource(ctx)
 }
 
-func (r *firewallResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *firewallResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

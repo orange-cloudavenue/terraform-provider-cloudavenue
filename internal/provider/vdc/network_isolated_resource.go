@@ -52,7 +52,7 @@ type NetworkIsolatedResource struct {
 }
 
 // Init Initializes the resource.
-func (r *NetworkIsolatedResource) Init(ctx context.Context, rm *networkIsolatedModel) (diags diag.Diagnostics) {
+func (r *NetworkIsolatedResource) Init(_ context.Context, rm *networkIsolatedModel) (diags diag.Diagnostics) {
 	r.vdc, diags = vdc.Init(r.client, rm.VDC.StringValue)
 	return
 }
@@ -67,7 +67,7 @@ func (r *NetworkIsolatedResource) Schema(ctx context.Context, _ resource.SchemaR
 	resp.Schema = networkIsolatedSchema(ctx).GetResource(ctx)
 }
 
-func (r *NetworkIsolatedResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetworkIsolatedResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -85,7 +85,7 @@ func (r *NetworkIsolatedResource) Configure(ctx context.Context, req resource.Co
 }
 
 // ResourceWithMoveState interface implementation.
-func (r *NetworkIsolatedResource) MoveState(ctx context.Context) []resource.StateMover {
+func (r *NetworkIsolatedResource) MoveState(_ context.Context) []resource.StateMover {
 	return []resource.StateMover{
 		{
 			SourceSchema: func() *schema.Schema {

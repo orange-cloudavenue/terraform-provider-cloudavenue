@@ -49,7 +49,7 @@ type orgNetworkDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *orgNetworkDataSource) Init(ctx context.Context, dm *orgNetworkModel) (diags diag.Diagnostics) {
+func (d *orgNetworkDataSource) Init(_ context.Context, dm *orgNetworkModel) (diags diag.Diagnostics) {
 	d.org, diags = org.Init(d.client)
 	if diags.HasError() {
 		return
@@ -65,15 +65,15 @@ func (d *orgNetworkDataSource) Init(ctx context.Context, dm *orgNetworkModel) (d
 	return
 }
 
-func (d *orgNetworkDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *orgNetworkDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_org_network"
 }
 
-func (d *orgNetworkDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *orgNetworkDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = network.GetSchema(network.SetRoutedVapp()).GetDataSource(ctx)
 }
 
-func (d *orgNetworkDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *orgNetworkDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

@@ -83,7 +83,7 @@ func (r *publicIPResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 	resp.Schema = publicIPSchema().GetResource(ctx)
 }
 
-func (r *publicIPResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *publicIPResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

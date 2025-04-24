@@ -38,20 +38,20 @@ type BucketDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *BucketDataSource) Init(ctx context.Context, dm *BucketModel) (diags diag.Diagnostics) {
+func (d *BucketDataSource) Init(_ context.Context, _ *BucketModel) (diags diag.Diagnostics) {
 	d.s3Client = d.client.CAVSDK.V1.S3()
 	return
 }
 
-func (d *BucketDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *BucketDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_bucket"
 }
 
-func (d *BucketDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *BucketDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = s3BucketSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *BucketDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *BucketDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

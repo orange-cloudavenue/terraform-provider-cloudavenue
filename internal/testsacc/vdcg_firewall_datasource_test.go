@@ -40,7 +40,7 @@ func (r *VDCGFirewallDataSource) DependenciesConfig() (resp testsacc.Dependencie
 	return
 }
 
-func (r *VDCGFirewallDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *VDCGFirewallDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		"example": func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{

@@ -52,7 +52,7 @@ type ipSetResource struct {
 }
 
 // Init Initializes the resource.
-func (r *ipSetResource) Init(ctx context.Context, rm *IPSetModel) (diags diag.Diagnostics) {
+func (r *ipSetResource) Init(_ context.Context, rm *IPSetModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.org, diags = org.Init(r.client)
@@ -89,7 +89,7 @@ func (r *ipSetResource) Schema(ctx context.Context, _ resource.SchemaRequest, re
 	resp.Schema = ipSetSchema(ctx).GetResource(ctx)
 }
 
-func (r *ipSetResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *ipSetResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

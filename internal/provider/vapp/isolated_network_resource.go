@@ -62,7 +62,7 @@ func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaR
 	resp.Schema = isolatedNetworkSchema().GetResource(ctx)
 }
 
-func (r *isolatedNetworkResource) Init(ctx context.Context, rm *isolatedNetworkModel) (diags diag.Diagnostics) {
+func (r *isolatedNetworkResource) Init(_ context.Context, rm *isolatedNetworkModel) (diags diag.Diagnostics) {
 	r.vdc, diags = vdc.Init(r.client, rm.VDC.StringValue)
 	if diags.HasError() {
 		return
@@ -73,7 +73,7 @@ func (r *isolatedNetworkResource) Init(ctx context.Context, rm *isolatedNetworkM
 	return
 }
 
-func (r *isolatedNetworkResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *isolatedNetworkResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

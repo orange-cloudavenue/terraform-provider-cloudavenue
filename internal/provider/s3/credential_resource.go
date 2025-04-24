@@ -43,7 +43,7 @@ type CredentialResource struct {
 }
 
 // Init Initializes the resource.
-func (r *CredentialResource) Init(ctx context.Context, rm *CredentialModel) (diags diag.Diagnostics) {
+func (r *CredentialResource) Init(_ context.Context, _ *CredentialModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
 	return
 }
@@ -58,7 +58,7 @@ func (r *CredentialResource) Schema(ctx context.Context, _ resource.SchemaReques
 	resp.Schema = credentialSchema(ctx).GetResource(ctx)
 }
 
-func (r *CredentialResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *CredentialResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -234,7 +234,7 @@ func (r *CredentialResource) Read(ctx context.Context, req resource.ReadRequest,
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *CredentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *CredentialResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
 	defer metrics.New("cloudavenue_s3_credential", r.client.GetOrgName(), metrics.Update)()
 	// No update for this resource
 }

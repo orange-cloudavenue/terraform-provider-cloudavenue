@@ -49,7 +49,7 @@ type dhcpResource struct {
 }
 
 // Init Initializes the resource.
-func (r *dhcpResource) Init(ctx context.Context, rm *dhcpModel) (diags diag.Diagnostics) {
+func (r *dhcpResource) Init(_ context.Context, _ *dhcpModel) (diags diag.Diagnostics) {
 	r.org, diags = org.Init(r.client)
 	return
 }
@@ -64,7 +64,7 @@ func (r *dhcpResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 	resp.Schema = dhcpSchema(ctx).GetResource(ctx)
 }
 
-func (r *dhcpResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *dhcpResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

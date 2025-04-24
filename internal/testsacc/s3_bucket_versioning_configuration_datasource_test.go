@@ -41,7 +41,7 @@ func (r *S3BucketVersioningConfigurationDatasource) DependenciesConfig() (resp t
 	return
 }
 
-func (r *S3BucketVersioningConfigurationDatasource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *S3BucketVersioningConfigurationDatasource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
 		"example": func(_ context.Context, _ string) testsacc.Test {

@@ -41,7 +41,7 @@ func (r *VDCGNetworkRoutedResource) DependenciesConfig() (resp testsacc.Dependen
 	return
 }
 
-func (r *VDCGNetworkRoutedResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *VDCGNetworkRoutedResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{

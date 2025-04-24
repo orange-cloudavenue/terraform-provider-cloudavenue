@@ -41,7 +41,7 @@ func (r *EdgeGatewayNATRuleDataSource) DependenciesConfig() (resp testsacc.Depen
 	return
 }
 
-func (r *EdgeGatewayNATRuleDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *EdgeGatewayNATRuleDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (with edge_gateway_id)
 		"example": func(_ context.Context, _ string) testsacc.Test {

@@ -53,7 +53,7 @@ type VirtualServiceResource struct {
 }
 
 // Init Initializes the resource.
-func (r *VirtualServiceResource) Init(ctx context.Context, rm *VirtualServiceModel) (diags diag.Diagnostics) {
+func (r *VirtualServiceResource) Init(_ context.Context, rm *VirtualServiceModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.elb, err = edgeloadbalancer.NewClient()
@@ -86,7 +86,7 @@ func (r *VirtualServiceResource) Schema(ctx context.Context, _ resource.SchemaRe
 	resp.Schema = virtualServiceSchema(ctx).GetResource(ctx)
 }
 
-func (r *VirtualServiceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *VirtualServiceResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

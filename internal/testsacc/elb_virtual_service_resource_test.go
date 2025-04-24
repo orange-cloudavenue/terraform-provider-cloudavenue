@@ -43,7 +43,7 @@ func (r *ELBVirtualServiceResource) DependenciesConfig() (resp testsacc.Dependen
 	return
 }
 
-func (r *ELBVirtualServiceResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *ELBVirtualServiceResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Example with service_type: HTTP and Simple Ports
 		"example": func(_ context.Context, resourceName string) testsacc.Test {

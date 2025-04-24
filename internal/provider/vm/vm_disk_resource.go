@@ -70,7 +70,7 @@ func (r *diskResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 	resp.Schema = DiskSuperSchema().GetResource(ctx)
 }
 
-func (r *diskResource) Init(ctx context.Context, rm *vm.Disk) (diags diag.Diagnostics) {
+func (r *diskResource) Init(_ context.Context, rm *vm.Disk) (diags diag.Diagnostics) {
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
 		return
@@ -95,7 +95,7 @@ func (r *diskResource) Init(ctx context.Context, rm *vm.Disk) (diags diag.Diagno
 	return
 }
 
-func (r *diskResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *diskResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

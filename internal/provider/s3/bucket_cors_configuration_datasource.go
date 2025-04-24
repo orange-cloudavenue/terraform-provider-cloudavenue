@@ -42,20 +42,20 @@ type BucketCorsConfigurationDatasource struct {
 }
 
 // Init Initializes the data source.
-func (d *BucketCorsConfigurationDatasource) Init(ctx context.Context, dm *BucketCorsConfigurationModelDatasource) (diags diag.Diagnostics) {
+func (d *BucketCorsConfigurationDatasource) Init(_ context.Context, _ *BucketCorsConfigurationModelDatasource) (diags diag.Diagnostics) {
 	d.s3Client = d.client.CAVSDK.V1.S3()
 	return
 }
 
-func (d *BucketCorsConfigurationDatasource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *BucketCorsConfigurationDatasource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_bucket_cors_configuration"
 }
 
-func (d *BucketCorsConfigurationDatasource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *BucketCorsConfigurationDatasource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = bucketCorsConfigurationSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *BucketCorsConfigurationDatasource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *BucketCorsConfigurationDatasource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

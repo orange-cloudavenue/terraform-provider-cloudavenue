@@ -39,7 +39,7 @@ type backupModelPolicy struct {
 }
 
 // NewBackup returns a new backupModel.
-func NewBackup() *backupModel {
+func newBackup() *backupModel {
 	return &backupModel{
 		ID:         supertypes.NewInt64Unknown(),
 		Policies:   supertypes.NewSetNestedNull(types.ObjectType{AttrTypes: map[string]attr.Type{"policy_id": types.Int64Type, "policy_name": types.StringType}}),

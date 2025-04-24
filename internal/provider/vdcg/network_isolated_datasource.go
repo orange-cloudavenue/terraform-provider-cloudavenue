@@ -36,12 +36,12 @@ type NetworkIsolatedDataSource struct {
 	vdcg   *v1.VDCGroup
 }
 
-func (d *NetworkIsolatedDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *NetworkIsolatedDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_network_isolated"
 }
 
 // Init Initializes the resource.
-func (d *NetworkIsolatedDataSource) Init(ctx context.Context, rm *networkIsolatedModel) (diags diag.Diagnostics) {
+func (d *NetworkIsolatedDataSource) Init(_ context.Context, rm *networkIsolatedModel) (diags diag.Diagnostics) {
 	var err error
 
 	// Get the VDC Group
@@ -57,11 +57,11 @@ func (d *NetworkIsolatedDataSource) Init(ctx context.Context, rm *networkIsolate
 	return
 }
 
-func (d *NetworkIsolatedDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *NetworkIsolatedDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = networkIsolatedSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *NetworkIsolatedDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *NetworkIsolatedDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

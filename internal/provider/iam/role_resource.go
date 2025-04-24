@@ -69,7 +69,7 @@ func (r *roleResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 	resp.Schema = roleSchema().GetResource(ctx)
 }
 
-func (r *roleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *roleResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

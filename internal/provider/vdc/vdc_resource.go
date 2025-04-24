@@ -67,7 +67,7 @@ func (r *vdcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 }
 
 // Configure configures the resource.
-func (r *vdcResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *vdcResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

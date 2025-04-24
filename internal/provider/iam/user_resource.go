@@ -53,7 +53,7 @@ func (r *userResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 	resp.Schema = userSchema().GetResource(ctx)
 }
 
-func (r *userResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *userResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -73,7 +73,7 @@ func (r *userResource) Configure(ctx context.Context, req resource.ConfigureRequ
 	r.client = client
 }
 
-func (r *userResource) Init(_ context.Context, rm *userResourceModel) (diags diag.Diagnostics) {
+func (r *userResource) Init(_ context.Context, _ *userResourceModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.iamClient, err = r.client.CAVSDK.V1.IAM()

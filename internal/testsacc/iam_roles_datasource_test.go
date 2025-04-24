@@ -39,7 +39,7 @@ func (r *IAMRolesDataSource) DependenciesConfig() (resp testsacc.DependenciesCon
 	return
 }
 
-func (r *IAMRolesDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *IAMRolesDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
 		"example": func(_ context.Context, resourceName string) testsacc.Test {

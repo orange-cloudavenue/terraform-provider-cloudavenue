@@ -40,20 +40,20 @@ type BucketVersioningConfigurationDatasource struct {
 }
 
 // Init Initializes the data source.
-func (d *BucketVersioningConfigurationDatasource) Init(ctx context.Context, dm *BucketVersioningConfigurationDatasourceModel) (diags diag.Diagnostics) {
+func (d *BucketVersioningConfigurationDatasource) Init(_ context.Context, _ *BucketVersioningConfigurationDatasourceModel) (diags diag.Diagnostics) {
 	d.s3Client = d.client.CAVSDK.V1.S3()
 	return
 }
 
-func (d *BucketVersioningConfigurationDatasource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *BucketVersioningConfigurationDatasource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_bucket_versioning_configuration"
 }
 
-func (d *BucketVersioningConfigurationDatasource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *BucketVersioningConfigurationDatasource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = bucketVersioningConfigurationSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *BucketVersioningConfigurationDatasource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *BucketVersioningConfigurationDatasource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

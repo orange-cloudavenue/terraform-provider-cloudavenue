@@ -39,20 +39,20 @@ type BucketPolicyDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *BucketPolicyDataSource) Init(ctx context.Context, dm *BucketPolicyModelDatasource) (diags diag.Diagnostics) {
+func (d *BucketPolicyDataSource) Init(_ context.Context, _ *BucketPolicyModelDatasource) (diags diag.Diagnostics) {
 	d.s3Client = d.client.CAVSDK.V1.S3()
 	return
 }
 
-func (d *BucketPolicyDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *BucketPolicyDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_bucket_policy"
 }
 
-func (d *BucketPolicyDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *BucketPolicyDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = bucketPolicySchema(ctx).GetDataSource(ctx)
 }
 
-func (d *BucketPolicyDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *BucketPolicyDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

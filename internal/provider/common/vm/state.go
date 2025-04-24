@@ -44,7 +44,7 @@ func (s *VMResourceModelState) toAttrValues() map[string]attr.Value {
 }
 
 // ToPlan returns the value of the State attribute, if set, as a types.Object.
-func (s *VMResourceModelState) ToPlan(ctx context.Context) types.Object {
+func (s *VMResourceModelState) ToPlan(_ context.Context) types.Object {
 	if s == nil {
 		return types.Object{}
 	}
@@ -60,7 +60,7 @@ func (s *VMResourceModelState) ToPlan(ctx context.Context) types.Object {
 }
 
 // StateRead returns the value of the State attribute, if set, as a *VMResourceModelState.
-func (v VM) StateRead(ctx context.Context) (*VMResourceModelState, error) {
+func (v VM) StateRead(_ context.Context) (*VMResourceModelState, error) {
 	status, err := v.GetStatus()
 	if err != nil {
 		return nil, fmt.Errorf("error getting status: %w", err)

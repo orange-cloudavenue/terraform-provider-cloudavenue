@@ -41,7 +41,7 @@ type dhcpForwardingDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *dhcpForwardingDataSource) Init(ctx context.Context, dm *DhcpForwardingModel) (diags diag.Diagnostics) {
+func (d *dhcpForwardingDataSource) Init(_ context.Context, dm *DhcpForwardingModel) (diags diag.Diagnostics) {
 	var err error
 
 	d.org, diags = org.Init(d.client)
@@ -61,15 +61,15 @@ func (d *dhcpForwardingDataSource) Init(ctx context.Context, dm *DhcpForwardingM
 	return
 }
 
-func (d *dhcpForwardingDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *dhcpForwardingDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_dhcp_forwarding"
 }
 
-func (d *dhcpForwardingDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *dhcpForwardingDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = dhcpForwardingSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *dhcpForwardingDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *dhcpForwardingDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

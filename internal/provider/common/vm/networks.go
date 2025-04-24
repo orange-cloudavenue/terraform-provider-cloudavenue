@@ -74,7 +74,7 @@ func (n *VMResourceModelResourceNetwork) toAttrValues() map[string]attr.Value { 
 }
 
 // ToPlan returns the value of the Networks attribute, if set, as a types.Object.
-func (n *VMResourceModelResourceNetworks) ToPlan(ctx context.Context) (basetypes.ListValue, diag.Diagnostics) {
+func (n *VMResourceModelResourceNetworks) ToPlan(_ context.Context) (basetypes.ListValue, diag.Diagnostics) {
 	if n == nil {
 		return types.ListNull(n.ObjectType()), diag.Diagnostics{}
 	}

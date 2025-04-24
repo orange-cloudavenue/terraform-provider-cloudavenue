@@ -45,7 +45,7 @@ type vdcgResource struct {
 }
 
 // Init Initializes the resource.
-func (r *vdcgResource) Init(ctx context.Context, rm *vdcgModel) (diags diag.Diagnostics) {
+func (r *vdcgResource) Init(_ context.Context, _ *vdcgModel) (diags diag.Diagnostics) {
 	r.adminOrg, diags = adminorg.Init(r.client)
 	return
 }
@@ -60,7 +60,7 @@ func (r *vdcgResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 	resp.Schema = vdcgSchema(ctx).GetResource(ctx)
 }
 
-func (r *vdcgResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *vdcgResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

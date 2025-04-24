@@ -50,7 +50,7 @@ func (s *storageProfiles) objectType(ctx context.Context) types.ObjectType {
 }
 
 // Init Initializes the data source.
-func (d *profilesDataSource) Init(ctx context.Context, dm *profilesDataSourceModel) (diags diag.Diagnostics) {
+func (d *profilesDataSource) Init(_ context.Context, dm *profilesDataSourceModel) (diags diag.Diagnostics) {
 	d.vdc, diags = vdc.Init(d.client, dm.VDC)
 	if diags.HasError() {
 		return
@@ -59,15 +59,15 @@ func (d *profilesDataSource) Init(ctx context.Context, dm *profilesDataSourceMod
 	return
 }
 
-func (d *profilesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *profilesDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_profiles"
 }
 
-func (d *profilesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *profilesDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = d.superSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *profilesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *profilesDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

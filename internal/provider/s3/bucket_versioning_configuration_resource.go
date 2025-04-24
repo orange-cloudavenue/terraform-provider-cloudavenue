@@ -45,7 +45,7 @@ type BucketVersioningConfigurationResource struct {
 }
 
 // Init Initializes the resource.
-func (r *BucketVersioningConfigurationResource) Init(ctx context.Context, rm *BucketVersioningConfigurationModel) (diags diag.Diagnostics) {
+func (r *BucketVersioningConfigurationResource) Init(_ context.Context, _ *BucketVersioningConfigurationModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
 	return
 }
@@ -60,7 +60,7 @@ func (r *BucketVersioningConfigurationResource) Schema(ctx context.Context, _ re
 	resp.Schema = bucketVersioningConfigurationSchema(ctx).GetResource(ctx)
 }
 
-func (r *BucketVersioningConfigurationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *BucketVersioningConfigurationResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

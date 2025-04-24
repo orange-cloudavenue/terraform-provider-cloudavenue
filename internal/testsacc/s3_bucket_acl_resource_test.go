@@ -40,7 +40,7 @@ func (r *S3BucketACLResource) DependenciesConfig() (resp testsacc.DependenciesCo
 	return
 }
 
-func (r *S3BucketACLResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *S3BucketACLResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * First test named "example" with an ACL canned policy
 		"example": func(_ context.Context, resourceName string) testsacc.Test {

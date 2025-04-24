@@ -44,7 +44,7 @@ type CertificateLibraryResource struct {
 }
 
 // Init Initializes the resource.
-func (r *CertificateLibraryResource) Init(ctx context.Context, rm *CertificateLibraryModel) (diags diag.Diagnostics) {
+func (r *CertificateLibraryResource) Init(_ context.Context, _ *CertificateLibraryModel) (diags diag.Diagnostics) {
 	var err error
 
 	org, err := r.client.CAVSDK.V1.Org()
@@ -67,7 +67,7 @@ func (r *CertificateLibraryResource) Schema(ctx context.Context, _ resource.Sche
 	resp.Schema = certificateLibrarySchema(ctx).GetResource(ctx)
 }
 
-func (r *CertificateLibraryResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *CertificateLibraryResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

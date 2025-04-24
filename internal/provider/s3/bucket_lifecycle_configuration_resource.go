@@ -50,9 +50,8 @@ type BucketLifecycleConfigurationResource struct {
 }
 
 // Init Initializes the resource.
-func (r *BucketLifecycleConfigurationResource) Init(ctx context.Context, rm *BucketLifecycleConfigurationModel) (diags diag.Diagnostics) {
+func (r *BucketLifecycleConfigurationResource) Init(_ context.Context, _ *BucketLifecycleConfigurationModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
-
 	return
 }
 
@@ -66,7 +65,7 @@ func (r *BucketLifecycleConfigurationResource) Schema(ctx context.Context, _ res
 	resp.Schema = bucketLifecycleConfigurationSchema(ctx).GetResource(ctx)
 }
 
-func (r *BucketLifecycleConfigurationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *BucketLifecycleConfigurationResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

@@ -48,7 +48,7 @@ type BucketPolicyResource struct {
 }
 
 // Init Initializes the resource.
-func (r *BucketPolicyResource) Init(ctx context.Context, rm *BucketPolicyModel) (diags diag.Diagnostics) {
+func (r *BucketPolicyResource) Init(_ context.Context, _ *BucketPolicyModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
 
 	return
@@ -64,7 +64,7 @@ func (r *BucketPolicyResource) Schema(ctx context.Context, _ resource.SchemaRequ
 	resp.Schema = bucketPolicySchema(ctx).GetResource(ctx)
 }
 
-func (r *BucketPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *BucketPolicyResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -171,7 +171,7 @@ func (r *BucketPolicyResource) Read(ctx context.Context, req resource.ReadReques
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *BucketPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *BucketPolicyResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
 	// No update for this resource, only delete and create for a change.
 }
 

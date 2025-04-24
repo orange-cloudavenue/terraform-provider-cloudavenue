@@ -43,7 +43,7 @@ type UserSAMLResource struct {
 }
 
 // Init Initializes the resource.
-func (r *UserSAMLResource) Init(ctx context.Context, rm *UserSAMLModel) (diags diag.Diagnostics) {
+func (r *UserSAMLResource) Init(_ context.Context, _ *UserSAMLModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.iamClient, err = r.client.CAVSDK.V1.IAM()
@@ -64,7 +64,7 @@ func (r *UserSAMLResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 	resp.Schema = userSAMLSchema(ctx).GetResource(ctx)
 }
 
-func (r *UserSAMLResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *UserSAMLResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

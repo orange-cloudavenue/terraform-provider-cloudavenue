@@ -39,7 +39,7 @@ type NetworkRoutedDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *NetworkRoutedDataSource) Init(ctx context.Context, dm *NetworkRoutedModel) (diags diag.Diagnostics) {
+func (d *NetworkRoutedDataSource) Init(_ context.Context, dm *NetworkRoutedModel) (diags diag.Diagnostics) {
 	var err error
 
 	idOrName := dm.EdgeGatewayID.Get()
@@ -69,15 +69,15 @@ func (d *NetworkRoutedDataSource) Init(ctx context.Context, dm *NetworkRoutedMod
 	return
 }
 
-func (d *NetworkRoutedDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *NetworkRoutedDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_network_routed"
 }
 
-func (d *NetworkRoutedDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *NetworkRoutedDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = networkRoutedSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *NetworkRoutedDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *NetworkRoutedDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

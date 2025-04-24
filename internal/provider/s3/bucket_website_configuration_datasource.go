@@ -38,20 +38,20 @@ type BucketWebsiteConfigurationDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *BucketWebsiteConfigurationDataSource) Init(ctx context.Context, dm *BucketWebsiteConfigurationDataSourceModel) (diags diag.Diagnostics) {
+func (d *BucketWebsiteConfigurationDataSource) Init(_ context.Context, _ *BucketWebsiteConfigurationDataSourceModel) (diags diag.Diagnostics) {
 	d.s3Client = d.client.CAVSDK.V1.S3()
 	return
 }
 
-func (d *BucketWebsiteConfigurationDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *BucketWebsiteConfigurationDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_bucket_website_configuration"
 }
 
-func (d *BucketWebsiteConfigurationDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *BucketWebsiteConfigurationDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = bucketWebsiteConfigurationSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *BucketWebsiteConfigurationDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *BucketWebsiteConfigurationDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

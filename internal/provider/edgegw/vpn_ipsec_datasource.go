@@ -41,7 +41,7 @@ type vpnIpsecDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *vpnIpsecDataSource) Init(ctx context.Context, dm *VPNIPSecModel) (diags diag.Diagnostics) {
+func (d *vpnIpsecDataSource) Init(_ context.Context, dm *VPNIPSecModel) (diags diag.Diagnostics) {
 	var err error
 
 	d.org, diags = org.Init(d.client)
@@ -60,15 +60,15 @@ func (d *vpnIpsecDataSource) Init(ctx context.Context, dm *VPNIPSecModel) (diags
 	return
 }
 
-func (d *vpnIpsecDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *vpnIpsecDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_vpn_ipsec"
 }
 
-func (d *vpnIpsecDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *vpnIpsecDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = vpnIPSecSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *vpnIpsecDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *vpnIpsecDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

@@ -37,12 +37,12 @@ type SecurityGroupDataSource struct {
 	vdcGroup *v1.VDCGroup
 }
 
-func (d *SecurityGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *SecurityGroupDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_security_group"
 }
 
 // Init Initializes the resource.
-func (d *SecurityGroupDataSource) Init(ctx context.Context, rm *SecurityGroupModel) (diags diag.Diagnostics) {
+func (d *SecurityGroupDataSource) Init(_ context.Context, rm *SecurityGroupModel) (diags diag.Diagnostics) {
 	var err error
 
 	idOrName := rm.VDCGroupName.Get()
@@ -59,11 +59,11 @@ func (d *SecurityGroupDataSource) Init(ctx context.Context, rm *SecurityGroupMod
 	return
 }
 
-func (d *SecurityGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *SecurityGroupDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = securityGroupSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *SecurityGroupDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *SecurityGroupDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

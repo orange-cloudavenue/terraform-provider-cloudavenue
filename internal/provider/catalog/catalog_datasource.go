@@ -47,7 +47,7 @@ type catalogDataSource struct {
 	catalog  base
 }
 
-func (d *catalogDataSource) Init(ctx context.Context, rm *catalogDataSourceModel) (diags diag.Diagnostics) {
+func (d *catalogDataSource) Init(_ context.Context, rm *catalogDataSourceModel) (diags diag.Diagnostics) {
 	d.catalog = base{
 		name: rm.Name.ValueString(),
 		id:   rm.ID.ValueString(),
@@ -58,15 +58,15 @@ func (d *catalogDataSource) Init(ctx context.Context, rm *catalogDataSourceModel
 	return
 }
 
-func (d *catalogDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *catalogDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
-func (d *catalogDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *catalogDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = catalogSchema().GetDataSource(ctx)
 }
 
-func (d *catalogDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *catalogDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

@@ -44,21 +44,20 @@ type publicIPDataSource struct {
 }
 
 // Init.
-func (d *publicIPDataSource) Init(_ context.Context, rm *publicIPDataSourceModel) (diags diag.Diagnostics) {
+func (d *publicIPDataSource) Init(_ context.Context, _ *publicIPDataSourceModel) (diags diag.Diagnostics) {
 	d.adminOrg, diags = adminorg.Init(d.client)
-
 	return
 }
 
-func (d *publicIPDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *publicIPDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "s"
 }
 
-func (d *publicIPDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *publicIPDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = publicIPsSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *publicIPDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *publicIPDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

@@ -41,7 +41,7 @@ type natRuleDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *natRuleDataSource) Init(ctx context.Context, dm *NATRuleModel) (diags diag.Diagnostics) {
+func (d *natRuleDataSource) Init(_ context.Context, dm *NATRuleModel) (diags diag.Diagnostics) {
 	var err error
 
 	d.org, diags = org.Init(d.client)
@@ -61,15 +61,15 @@ func (d *natRuleDataSource) Init(ctx context.Context, dm *NATRuleModel) (diags d
 	return
 }
 
-func (d *natRuleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *natRuleDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_nat_rule"
 }
 
-func (d *natRuleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *natRuleDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = natRuleSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *natRuleDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *natRuleDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

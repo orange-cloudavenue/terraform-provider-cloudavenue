@@ -40,7 +40,7 @@ func (r *S3BucketLifecycleConfigurationResource) DependenciesConfig() (resp test
 	return
 }
 
-func (r *S3BucketLifecycleConfigurationResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *S3BucketLifecycleConfigurationResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * First test named "example"
 		// * Specifying a filter using key prefixes

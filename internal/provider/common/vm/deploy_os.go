@@ -44,7 +44,7 @@ func (do *VMResourceModelDeployOS) toAttrValues() map[string]attr.Value {
 }
 
 // ToPlan returns the value of the DeployOS attribute, if set, as a types.Object.
-func (do *VMResourceModelDeployOS) ToPlan(ctx context.Context) types.Object {
+func (do *VMResourceModelDeployOS) ToPlan(_ context.Context) types.Object {
 	if do == nil {
 		return types.Object{}
 	}

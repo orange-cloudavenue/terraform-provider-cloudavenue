@@ -38,7 +38,7 @@ type PoliciesHTTPRequestDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *PoliciesHTTPRequestDataSource) Init(ctx context.Context, dm *PoliciesHTTPRequestModel) (diags diag.Diagnostics) {
+func (d *PoliciesHTTPRequestDataSource) Init(_ context.Context, _ *PoliciesHTTPRequestModel) (diags diag.Diagnostics) {
 	var err error
 
 	d.elb, err = edgeloadbalancer.NewClient()
@@ -49,15 +49,15 @@ func (d *PoliciesHTTPRequestDataSource) Init(ctx context.Context, dm *PoliciesHT
 	return
 }
 
-func (d *PoliciesHTTPRequestDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *PoliciesHTTPRequestDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_policies_http_request"
 }
 
-func (d *PoliciesHTTPRequestDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *PoliciesHTTPRequestDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = policiesHTTPRequestSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *PoliciesHTTPRequestDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *PoliciesHTTPRequestDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

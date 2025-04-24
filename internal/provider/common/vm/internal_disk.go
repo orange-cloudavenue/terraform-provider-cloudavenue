@@ -158,7 +158,7 @@ InternalDiskCreate
 
 Creates a new internal disk associated with a VM.
 */
-func InternalDiskCreate(ctx context.Context, c *client.CloudAvenue, disk InternalDisk, vAppName, vmName, vdcName types.String) (newDisk *InternalDisk, d diag.Diagnostics) {
+func InternalDiskCreate(_ context.Context, c *client.CloudAvenue, disk InternalDisk, vAppName, vmName, vdcName types.String) (newDisk *InternalDisk, d diag.Diagnostics) {
 	vdc, err := c.GetVDC(vdcName.ValueString())
 	if err != nil {
 		d.AddError("Error retrieving VDC", err.Error())
@@ -235,7 +235,7 @@ InternalDiskRead
 
 Reads an internal disk associated with a VM.
 */
-func InternalDiskRead(ctx context.Context, client *client.CloudAvenue, disk *InternalDisk, vm *govcd.VM) (readDisk *InternalDisk, d diag.Diagnostics) {
+func InternalDiskRead(_ context.Context, _ *client.CloudAvenue, disk *InternalDisk, vm *govcd.VM) (readDisk *InternalDisk, d diag.Diagnostics) {
 	diskSettings, err := vm.GetInternalDiskById(disk.ID.ValueString(), true)
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
@@ -260,7 +260,7 @@ InternalDiskUpdate
 
 Updates an internal disk associated with a VM.
 */
-func InternalDiskUpdate(ctx context.Context, c *client.CloudAvenue, disk InternalDisk, vAppName, vmName, vdcName types.String) (updatedDisk *InternalDisk, d diag.Diagnostics) {
+func InternalDiskUpdate(_ context.Context, c *client.CloudAvenue, disk InternalDisk, vAppName, vmName, vdcName types.String) (updatedDisk *InternalDisk, d diag.Diagnostics) {
 	vdc, err := c.GetVDC(vdcName.ValueString())
 	if err != nil {
 		d.AddError("Error retrieving VDC", err.Error())

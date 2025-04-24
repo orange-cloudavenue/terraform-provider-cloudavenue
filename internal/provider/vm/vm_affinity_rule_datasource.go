@@ -38,21 +38,21 @@ type vmAffinityRuleDataSource struct {
 	vdc    vdc.VDC
 }
 
-func (d *vmAffinityRuleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *vmAffinityRuleDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_affinity_rule"
 }
 
-func (d *vmAffinityRuleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *vmAffinityRuleDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = vmAffinityRuleSchema().GetDataSource(ctx)
 }
 
-func (d *vmAffinityRuleDataSource) Init(ctx context.Context, rm *vmAffinityRuleDataSourceModel) (diags diag.Diagnostics) {
+func (d *vmAffinityRuleDataSource) Init(_ context.Context, rm *vmAffinityRuleDataSourceModel) (diags diag.Diagnostics) {
 	d.vdc, diags = vdc.Init(d.client, rm.VDC)
 
 	return
 }
 
-func (d *vmAffinityRuleDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *vmAffinityRuleDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

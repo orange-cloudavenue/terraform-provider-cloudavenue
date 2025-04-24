@@ -41,7 +41,7 @@ type ipSetDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *ipSetDataSource) Init(ctx context.Context, dm *IPSetModel) (diags diag.Diagnostics) {
+func (d *ipSetDataSource) Init(_ context.Context, dm *IPSetModel) (diags diag.Diagnostics) {
 	var err error
 
 	d.org, diags = org.Init(d.client)
@@ -68,15 +68,15 @@ func (d *ipSetDataSource) Init(ctx context.Context, dm *IPSetModel) (diags diag.
 	return
 }
 
-func (d *ipSetDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *ipSetDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_ip_set"
 }
 
-func (d *ipSetDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *ipSetDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = ipSetSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *ipSetDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *ipSetDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

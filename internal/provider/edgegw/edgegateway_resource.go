@@ -201,7 +201,7 @@ func (r *edgeGatewayResource) Schema(ctx context.Context, _ resource.SchemaReque
 	resp.Schema = edgegwSchema().GetResource(ctx)
 }
 
-func (r *edgeGatewayResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *edgeGatewayResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

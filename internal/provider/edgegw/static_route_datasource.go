@@ -41,7 +41,7 @@ type staticRouteDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *staticRouteDataSource) Init(ctx context.Context, dm *StaticRouteModel) (diags diag.Diagnostics) {
+func (d *staticRouteDataSource) Init(_ context.Context, dm *StaticRouteModel) (diags diag.Diagnostics) {
 	var err error
 
 	d.org, diags = org.Init(d.client)
@@ -61,15 +61,15 @@ func (d *staticRouteDataSource) Init(ctx context.Context, dm *StaticRouteModel) 
 	return
 }
 
-func (d *staticRouteDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *staticRouteDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_static_route"
 }
 
-func (d *staticRouteDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *staticRouteDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = staticRouteSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *staticRouteDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *staticRouteDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

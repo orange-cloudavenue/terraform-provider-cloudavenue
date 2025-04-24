@@ -78,7 +78,7 @@ func (rm *PoolModel) Copy() *PoolModel {
 }
 
 // ToSDKPoolGroupModel converts the model to the SDK model.
-func (rm *PoolModel) ToSDKPoolModelRequest(ctx context.Context, cavClient *client.CloudAvenue) (*edgeloadbalancer.PoolModelRequest, diag.Diagnostics) {
+func (rm *PoolModel) ToSDKPoolModelRequest(ctx context.Context, _ *client.CloudAvenue) (*edgeloadbalancer.PoolModelRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	pool := &edgeloadbalancer.PoolModelRequest{

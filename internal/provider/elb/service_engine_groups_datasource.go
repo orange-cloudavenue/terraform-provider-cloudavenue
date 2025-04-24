@@ -39,7 +39,7 @@ type serviceEngineGroupsDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *serviceEngineGroupsDataSource) Init(ctx context.Context, dm *serviceEngineGroupsModel) (diags diag.Diagnostics) {
+func (d *serviceEngineGroupsDataSource) Init(_ context.Context, _ *serviceEngineGroupsModel) (diags diag.Diagnostics) {
 	var err error
 
 	d.edgegwlb, err = edgeloadbalancer.NewClient()
@@ -50,15 +50,15 @@ func (d *serviceEngineGroupsDataSource) Init(ctx context.Context, dm *serviceEng
 	return
 }
 
-func (d *serviceEngineGroupsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *serviceEngineGroupsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_service_engine_groups"
 }
 
-func (d *serviceEngineGroupsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *serviceEngineGroupsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = serviceEngineGroupsSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *serviceEngineGroupsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *serviceEngineGroupsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

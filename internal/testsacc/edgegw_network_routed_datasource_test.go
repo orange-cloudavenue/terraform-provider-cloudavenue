@@ -41,7 +41,7 @@ func (r *EdgeGatewayNetworkRoutedDataSource) DependenciesConfig() (resp testsacc
 	return
 }
 
-func (r *EdgeGatewayNetworkRoutedDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *EdgeGatewayNetworkRoutedDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
 		"example": func(_ context.Context, _ string) testsacc.Test {
