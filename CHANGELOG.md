@@ -5,8 +5,14 @@
 * **New Data Source:** `datasource/cloudavenue_edgegateway_services` - This data source enables users to access information about Edge Gateway network services in CloudAvenue. It allows querying and retrieving details regarding the network services linked to your Edge Gateway. (GH-1037)
 * **New Resource:** `resource/cloudavenue_edgegateway_services` - This resource allows users to manage Edge Gateway network services in CloudAvenue, providing the foundation for configuring network services within the CloudAvenue environment. (GH-1037)
 
+### :tada: **Improvements**
+
+* `resource/cloudavenue_edgegateway` - Improved the `cloudavenue_edgegateway` documentation to clarify the usage of the `bandwidth` argument. (GH-1064)
+
 ### :bug: **Bug Fixes**
 
+* `resource/cloudavenue_edgegateway_network_routed` - Fixed an issue with the `cloudavenue_edgegateway_network_routed` resource where deletion operations failed due to a `BUSY_ENTITY` error caused by concurrent gateway updates. (GH-1071)
+* `resource/cloudavenue_edgegateway_network_routed` - Resolved a bug in the `cloudavenue_edgegateway_network_routed` resource where the `static_ip_pool` attribute unexpectedly changed from null to an empty set during application. (GH-1073)
 * `resource/cloudavenue_edgegateway` - Implement a workaround to deactivate the calculation of remaining bandwidth and prevent its configuration when the T0 VRF has a class of service set to DEDICATED. This workaround addresses a bug in the API and will be removed once the API issue is resolved. (GH-1069)
 
 ### :dependabot: **Dependencies**
