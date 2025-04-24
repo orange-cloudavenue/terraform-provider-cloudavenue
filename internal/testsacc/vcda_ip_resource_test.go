@@ -40,7 +40,7 @@ func (r *VCDAIPResource) DependenciesConfig() (resp testsacc.DependenciesConfigR
 	return
 }
 
-func (r *VCDAIPResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *VCDAIPResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * First test named "example"
 		"example": func(_ context.Context, resourceName string) testsacc.Test {

@@ -53,7 +53,7 @@ type StaticIPPool struct {
 }
 
 // SetNetowrkAPIObject set the network object.
-func (k Kind) SetNetworkAPIObject(ctx context.Context, data GlobalResourceModel) (*govcdtypes.OpenApiOrgVdcNetwork, diag.Diagnostics) {
+func (k Kind) SetNetworkAPIObject(_ context.Context, data GlobalResourceModel) (*govcdtypes.OpenApiOrgVdcNetwork, diag.Diagnostics) {
 	apiObject, d := data.setBaseNetworkAPIObject(context.Background())
 	if d.HasError() {
 		return nil, d

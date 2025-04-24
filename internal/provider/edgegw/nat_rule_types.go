@@ -44,7 +44,7 @@ func (rm *NATRuleModel) Copy() *NATRuleModel {
 	return x
 }
 
-func (rm *NATRuleModel) ToNsxtNATRule(ctx context.Context) (values *govcdtypes.NsxtNatRule, err error) {
+func (rm *NATRuleModel) ToNsxtNATRule(_ context.Context) (values *govcdtypes.NsxtNatRule, err error) {
 	values = &govcdtypes.NsxtNatRule{
 		ApplicationPortProfile: func() *govcdtypes.OpenApiReference {
 			if rm.AppPortProfileID.Get() != "" {

@@ -37,12 +37,12 @@ type FirewallDataSource struct {
 	vdcGroup *v1.VDCGroup
 }
 
-func (d *FirewallDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *FirewallDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_firewall"
 }
 
 // Init Initializes the datasource.
-func (d *FirewallDataSource) Init(ctx context.Context, rm *FirewallModel) (diags diag.Diagnostics) {
+func (d *FirewallDataSource) Init(_ context.Context, rm *FirewallModel) (diags diag.Diagnostics) {
 	var err error
 
 	idOrName := rm.VDCGroupName.Get()
@@ -59,11 +59,11 @@ func (d *FirewallDataSource) Init(ctx context.Context, rm *FirewallModel) (diags
 	return
 }
 
-func (d *FirewallDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *FirewallDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = firewallSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *FirewallDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *FirewallDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

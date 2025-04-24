@@ -41,20 +41,20 @@ type RolesDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *RolesDataSource) Init(ctx context.Context, dm *RolesModel) (diags diag.Diagnostics) {
+func (d *RolesDataSource) Init(_ context.Context, _ *RolesModel) (diags diag.Diagnostics) {
 	d.adminOrg, diags = adminorg.Init(d.client)
 	return
 }
 
-func (d *RolesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *RolesDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_roles"
 }
 
-func (d *RolesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *RolesDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = rolesSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *RolesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *RolesDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

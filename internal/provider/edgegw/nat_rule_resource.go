@@ -55,7 +55,7 @@ type natRuleResource struct {
 }
 
 // Init Initializes the resource.
-func (r *natRuleResource) Init(ctx context.Context, rm *NATRuleModel) (diags diag.Diagnostics) {
+func (r *natRuleResource) Init(_ context.Context, rm *NATRuleModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.org, diags = org.Init(r.client)
@@ -85,7 +85,7 @@ func (r *natRuleResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 	resp.Schema = natRuleSchema(ctx).GetResource(ctx)
 }
 
-func (r *natRuleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *natRuleResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

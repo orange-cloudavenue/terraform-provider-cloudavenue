@@ -57,7 +57,7 @@ func (r *backupResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 	resp.Schema = backupSchema(ctx).GetResource(ctx)
 }
 
-func (r *backupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *backupResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -312,7 +312,7 @@ func (r *backupResource) ImportState(ctx context.Context, req resource.ImportSta
 		return
 	}
 
-	data := NewBackup()
+	data := newBackup()
 	data.Type.Set(idParts[0])
 	data.TargetName.Set(idParts[1])
 

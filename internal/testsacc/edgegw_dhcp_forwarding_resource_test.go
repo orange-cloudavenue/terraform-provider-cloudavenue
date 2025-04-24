@@ -41,7 +41,7 @@ func (r *EdgeGatewayDhcpForwardingResource) DependenciesConfig() (resp testsacc.
 	return
 }
 
-func (r *EdgeGatewayDhcpForwardingResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *EdgeGatewayDhcpForwardingResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{

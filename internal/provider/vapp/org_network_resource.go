@@ -63,7 +63,7 @@ func (r *orgNetworkResource) Schema(ctx context.Context, _ resource.SchemaReques
 	resp.Schema = network.GetSchema(network.SetRoutedVapp()).GetResource(ctx)
 }
 
-func (r *orgNetworkResource) Init(ctx context.Context, rm *orgNetworkModel) (diags diag.Diagnostics) {
+func (r *orgNetworkResource) Init(_ context.Context, rm *orgNetworkModel) (diags diag.Diagnostics) {
 	r.vdc, diags = vdc.Init(r.client, rm.VDC)
 	if diags.HasError() {
 		return
@@ -74,7 +74,7 @@ func (r *orgNetworkResource) Init(ctx context.Context, rm *orgNetworkModel) (dia
 	return
 }
 
-func (r *orgNetworkResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *orgNetworkResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -223,7 +223,7 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *orgNetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *orgNetworkResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
 	defer metrics.New("cloudavenue_vapp_org_network", r.client.GetOrgName(), metrics.Update)()
 	// No update for this resource
 }

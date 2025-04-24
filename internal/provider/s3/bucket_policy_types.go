@@ -63,12 +63,11 @@ func (rm *BucketPolicyModelDatasource) SetID(id *string) {
 	rm.ID.SetPtr(id)
 }
 
-// GetTimeouts returns the value of the Timeouts field.
-func (rm *BucketPolicyModel) GetPolicy(ctx context.Context) string {
+func (rm *BucketPolicyModel) GetPolicy(_ context.Context) string {
 	return rm.Policy.Get()
 }
 
-func (rm *BucketPolicyModelDatasource) GetPolicy(ctx context.Context) string {
+func (rm *BucketPolicyModelDatasource) GetPolicy(_ context.Context) string {
 	return rm.Policy.Get()
 }
 

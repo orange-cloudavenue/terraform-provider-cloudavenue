@@ -49,7 +49,7 @@ type SecurityGroupResource struct {
 }
 
 // Init Initializes the resource.
-func (r *SecurityGroupResource) Init(ctx context.Context, rm *SecurityGroupModel) (diags diag.Diagnostics) {
+func (r *SecurityGroupResource) Init(_ context.Context, rm *SecurityGroupModel) (diags diag.Diagnostics) {
 	var err error
 
 	idOrName := rm.VDCGroupName.Get()
@@ -76,7 +76,7 @@ func (r *SecurityGroupResource) Schema(ctx context.Context, _ resource.SchemaReq
 	resp.Schema = securityGroupSchema(ctx).GetResource(ctx)
 }
 
-func (r *SecurityGroupResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *SecurityGroupResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

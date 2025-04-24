@@ -93,7 +93,7 @@ func (s *VMResourceModelSettingsCustomization) ToPlan(_ context.Context) types.O
 }
 
 // CustomizationRead reads the customization fields from a VM.
-func (v *VM) CustomizationRead(ctx context.Context) (*VMResourceModelSettingsCustomization, error) {
+func (v *VM) CustomizationRead(_ context.Context) (*VMResourceModelSettingsCustomization, error) {
 	customization, err := v.GetCustomization()
 	if err != nil {
 		return nil, err

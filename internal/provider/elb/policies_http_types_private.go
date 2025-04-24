@@ -44,9 +44,8 @@ func (p *policiesHTTPPrivateModel) Get(ctx context.Context, virtualServiceID str
 	if err := json.Unmarshal(privateEncoded, p); err != nil {
 		// Get the virtual service to check if it exists and retrieve the edge gateway ID for locking
 		goto getEdgeID
-	} else {
-		goto END
 	}
+	goto END
 
 getEdgeID:
 	p.EdgeGatewayID, d = gE(ctx, virtualServiceID)

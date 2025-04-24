@@ -82,7 +82,7 @@ func (r *networkRoutedResource) Init(_ context.Context, rm *RoutedModel) (diags 
 	return
 }
 
-func (r *networkRoutedResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *networkRoutedResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

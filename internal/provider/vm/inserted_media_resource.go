@@ -48,7 +48,7 @@ func (r *insertedMediaResource) Schema(ctx context.Context, _ resource.SchemaReq
 	resp.Schema = vmInsertedMediaSuperSchema().GetResource(ctx)
 }
 
-func (r *insertedMediaResource) Init(ctx context.Context, rm *insertedMediaResourceModel) (diags diag.Diagnostics) {
+func (r *insertedMediaResource) Init(_ context.Context, rm *insertedMediaResourceModel) (diags diag.Diagnostics) {
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
 		return
@@ -72,7 +72,7 @@ func (r *insertedMediaResource) Init(ctx context.Context, rm *insertedMediaResou
 	return
 }
 
-func (r *insertedMediaResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *insertedMediaResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -193,7 +193,7 @@ func (r *insertedMediaResource) Read(ctx context.Context, req resource.ReadReque
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *insertedMediaResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *insertedMediaResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
 	/* linked with issue - Disable attributes - Issue referrer: vmware/go-vcloud-director#552
 	var plan, state *insertedMediaResourceModel
 

@@ -43,7 +43,7 @@ type OrgResource struct { //nolint:revive
 }
 
 // Init Initializes the resource.
-func (r *OrgResource) Init(ctx context.Context, rm *OrgModel) (diags diag.Diagnostics) {
+func (r *OrgResource) Init(_ context.Context, _ *OrgModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.org, err = org.NewClient()
@@ -64,7 +64,7 @@ func (r *OrgResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 	resp.Schema = orgSchema(ctx).GetResource(ctx)
 }
 
-func (r *OrgResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *OrgResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -240,7 +240,7 @@ func (r *OrgResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	resp.State.RemoveResource(ctx)
 }
 
-func (r *OrgResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *OrgResource) ImportState(ctx context.Context, _ resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	defer metrics.New("cloudavenue_org", r.client.GetOrgName(), metrics.Import)()
 
 	// No properties is needed for the import

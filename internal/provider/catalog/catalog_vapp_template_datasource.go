@@ -39,7 +39,7 @@ type vAppTemplateDataSource struct {
 	catalog  base
 }
 
-func (d *vAppTemplateDataSource) Init(ctx context.Context, rm *VAPPTemplateModel) (diags diag.Diagnostics) {
+func (d *vAppTemplateDataSource) Init(_ context.Context, rm *VAPPTemplateModel) (diags diag.Diagnostics) {
 	d.catalog = base{
 		name: rm.CatalogName.ValueString(),
 		id:   rm.CatalogID.ValueString(),
@@ -50,11 +50,11 @@ func (d *vAppTemplateDataSource) Init(ctx context.Context, rm *VAPPTemplateModel
 	return
 }
 
-func (d *vAppTemplateDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *vAppTemplateDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_vapp_template"
 }
 
-func (d *vAppTemplateDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *vAppTemplateDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

@@ -94,7 +94,7 @@ func (r *networkIsolatedResource) Schema(ctx context.Context, _ resource.SchemaR
 	resp.Schema = network.GetSchema(network.SetIsolated()).GetResource(ctx)
 }
 
-func (r *networkIsolatedResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *networkIsolatedResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

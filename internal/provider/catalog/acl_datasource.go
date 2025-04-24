@@ -39,7 +39,7 @@ type aclDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *aclDataSource) Init(ctx context.Context, dm *ACLModel) (diags diag.Diagnostics) {
+func (d *aclDataSource) Init(_ context.Context, dm *ACLModel) (diags diag.Diagnostics) {
 	d.catalog = base{
 		id:   dm.CatalogID.Get(),
 		name: dm.CatalogName.Get(),
@@ -49,15 +49,15 @@ func (d *aclDataSource) Init(ctx context.Context, dm *ACLModel) (diags diag.Diag
 	return
 }
 
-func (d *aclDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *aclDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_acl"
 }
 
-func (d *aclDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *aclDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = aclSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *aclDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *aclDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

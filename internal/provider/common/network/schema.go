@@ -32,9 +32,9 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
-type networkSchemaOpts func(*networkSchemaParams)
+type NetworkSchemaOpts func(*NetworkSchemaParams) //nolint:revive
 
-type networkSchemaParams struct {
+type NetworkSchemaParams struct { //nolint:revive
 	resource bool
 
 	typeNetwork Type
@@ -49,29 +49,22 @@ const (
 	ROUTEDVAPP
 )
 
-// Set bool to true to create a schema for a routed network.
-func SetRouted() networkSchemaOpts {
-	return func(params *networkSchemaParams) {
-		params.typeNetwork = NAT_ROUTED
-	}
-}
-
 // Set bool to true to create a schema for an isolated network.
-func SetIsolated() networkSchemaOpts {
-	return func(params *networkSchemaParams) {
+func SetIsolated() NetworkSchemaOpts {
+	return func(params *NetworkSchemaParams) {
 		params.typeNetwork = ISOLATED
 	}
 }
 
 // Set bool to true to create a schema for an isolated vApp network.
-func SetIsolatedVapp() networkSchemaOpts {
-	return func(params *networkSchemaParams) {
+func SetIsolatedVapp() NetworkSchemaOpts {
+	return func(params *NetworkSchemaParams) {
 		params.typeNetwork = ISOLATEDVAPP
 	}
 }
 
-func SetRoutedVapp() networkSchemaOpts {
-	return func(params *networkSchemaParams) {
+func SetRoutedVapp() NetworkSchemaOpts {
+	return func(params *NetworkSchemaParams) {
 		params.typeNetwork = ROUTEDVAPP
 	}
 }
@@ -83,8 +76,8 @@ This function is used to create the schema for the catalog resource and datasour
 Default is to create a resource schema.  If you want to create a datasource schema
 you must pass in the withDataSource() option.
 */
-func GetSchema(opts ...networkSchemaOpts) superschema.Schema {
-	params := &networkSchemaParams{}
+func GetSchema(opts ...NetworkSchemaOpts) superschema.Schema {
+	params := &NetworkSchemaParams{}
 
 	if len(opts) > 0 {
 		for _, opt := range opts {

@@ -49,7 +49,7 @@ type BucketWebsiteConfigurationResource struct {
 }
 
 // Init Initializes the resource.
-func (r *BucketWebsiteConfigurationResource) Init(ctx context.Context, rm *BucketWebsiteConfigurationModel) (diags diag.Diagnostics) {
+func (r *BucketWebsiteConfigurationResource) Init(_ context.Context, _ *BucketWebsiteConfigurationModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
 
 	return
@@ -65,7 +65,7 @@ func (r *BucketWebsiteConfigurationResource) Schema(ctx context.Context, _ resou
 	resp.Schema = bucketWebsiteConfigurationSchema(ctx).GetResource(ctx)
 }
 
-func (r *BucketWebsiteConfigurationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *BucketWebsiteConfigurationResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

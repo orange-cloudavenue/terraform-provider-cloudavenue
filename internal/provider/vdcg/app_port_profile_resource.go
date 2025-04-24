@@ -48,7 +48,7 @@ type AppPortProfileResource struct {
 }
 
 // Init Initializes the resource.
-func (r *AppPortProfileResource) Init(ctx context.Context, rm *AppPortProfileModel) (diags diag.Diagnostics) {
+func (r *AppPortProfileResource) Init(_ context.Context, rm *AppPortProfileModel) (diags diag.Diagnostics) {
 	var err error
 
 	idOrName := rm.VDCGroupName.Get()
@@ -75,7 +75,7 @@ func (r *AppPortProfileResource) Schema(ctx context.Context, _ resource.SchemaRe
 	resp.Schema = appPortProfileSchema(ctx).GetResource(ctx)
 }
 
-func (r *AppPortProfileResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *AppPortProfileResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

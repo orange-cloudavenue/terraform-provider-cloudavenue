@@ -42,7 +42,7 @@ func (r *ALBServiceEngineGroupDataSource) DependenciesConfig() (resp testsacc.De
 	return
 }
 
-func (r *ALBServiceEngineGroupDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *ALBServiceEngineGroupDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
 		"example": func(_ context.Context, resourceName string) testsacc.Test {

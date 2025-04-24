@@ -38,7 +38,7 @@ type OrgDataSource struct { //nolint:revive
 }
 
 // Init Initializes the data source.
-func (d *OrgDataSource) Init(ctx context.Context, dm *OrgModel) (diags diag.Diagnostics) {
+func (d *OrgDataSource) Init(_ context.Context, _ *OrgModel) (diags diag.Diagnostics) {
 	var err error
 
 	d.org, err = org.NewClient()
@@ -49,15 +49,15 @@ func (d *OrgDataSource) Init(ctx context.Context, dm *OrgModel) (diags diag.Diag
 	return
 }
 
-func (d *OrgDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *OrgDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
-func (d *OrgDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *OrgDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = orgSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *OrgDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *OrgDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

@@ -51,7 +51,7 @@ type NetworkRoutedResource struct {
 }
 
 // Init Initializes the resource.
-func (r *NetworkRoutedResource) Init(ctx context.Context, rm *NetworkRoutedModel) (diags diag.Diagnostics) {
+func (r *NetworkRoutedResource) Init(_ context.Context, rm *NetworkRoutedModel) (diags diag.Diagnostics) {
 	var err error
 
 	idOrName := rm.EdgeGatewayID.Get()
@@ -91,7 +91,7 @@ func (r *NetworkRoutedResource) Schema(ctx context.Context, _ resource.SchemaReq
 	resp.Schema = networkRoutedSchema(ctx).GetResource(ctx)
 }
 
-func (r *NetworkRoutedResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetworkRoutedResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -109,7 +109,7 @@ func (r *NetworkRoutedResource) Configure(ctx context.Context, req resource.Conf
 }
 
 // ResourceWithMoveState interface implementation.
-func (r *NetworkRoutedResource) MoveState(ctx context.Context) []resource.StateMover {
+func (r *NetworkRoutedResource) MoveState(_ context.Context) []resource.StateMover {
 	return []resource.StateMover{
 		{
 			SourceSchema: func() *schema.Schema {

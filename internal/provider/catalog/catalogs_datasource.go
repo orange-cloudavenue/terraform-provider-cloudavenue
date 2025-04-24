@@ -45,20 +45,20 @@ func NewCatalogsDataSource() datasource.DataSource {
 	return &catalogsDataSource{}
 }
 
-func (d *catalogsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *catalogsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = catalogsSuperSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *catalogsDataSource) Init(ctx context.Context, rm *catalogsDataSourceModel) (diags diag.Diagnostics) {
+func (d *catalogsDataSource) Init(_ context.Context, _ *catalogsDataSourceModel) (diags diag.Diagnostics) {
 	d.adminOrg, diags = adminorg.Init(d.client)
 	return
 }
 
-func (d *catalogsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *catalogsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "s"
 }
 
-func (d *catalogsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *catalogsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -78,7 +78,7 @@ func (d *catalogsDataSource) Configure(ctx context.Context, req datasource.Confi
 	d.client = client
 }
 
-func (d *catalogsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *catalogsDataSource) Read(ctx context.Context, _ datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_catalogs", d.client.GetOrgName(), metrics.Read)()
 
 	state := &catalogsDataSourceModel{}
@@ -98,68 +98,68 @@ func (d *catalogsDataSource) Read(ctx context.Context, req datasource.ReadReques
 			}
 			resp.Diagnostics.AddError("Unable to get catalog", err.Error())
 			continue
-		} else {
-			s := catalogDataSourceModel{
-				ID:                          types.StringValue(catalog.AdminCatalog.ID),
-				Name:                        types.StringValue(catalog.AdminCatalog.Name),
-				CreatedAt:                   types.StringValue(catalog.AdminCatalog.DateCreated),
-				Description:                 utils.StringValueOrNull(catalog.AdminCatalog.Description),
-				IsPublished:                 types.BoolValue(catalog.AdminCatalog.IsPublished),
-				IsLocal:                     types.BoolValue(!catalog.AdminCatalog.IsPublished),
-				IsCached:                    types.BoolNull(),
-				IsShared:                    types.BoolNull(),
-				PreserveIdentityInformation: types.BoolNull(),
-				OwnerName:                   types.StringNull(),
-				MediaItemList:               types.ListNull(types.StringType),
-				NumberOfMedia:               types.Int64Null(),
-			}
-
-			catalogsName = append(catalogsName, catalog.AdminCatalog.Name)
-
-			if catalog.AdminCatalog.Owner != nil && catalog.AdminCatalog.Owner.User != nil {
-				s.OwnerName = utils.StringValueOrNull(catalog.AdminCatalog.Owner.User.Name)
-			}
-
-			if catalog.AdminCatalog.PublishExternalCatalogParams != nil {
-				if catalog.AdminCatalog.PublishExternalCatalogParams.IsCachedEnabled != nil {
-					s.IsCached = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsCachedEnabled)
-				}
-				if catalog.AdminCatalog.PublishExternalCatalogParams.IsPublishedExternally != nil {
-					s.IsShared = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsPublishedExternally)
-				}
-				if catalog.AdminCatalog.PublishExternalCatalogParams.PreserveIdentityInfoFlag != nil {
-					s.PreserveIdentityInformation = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.PreserveIdentityInfoFlag)
-				}
-			}
-
-			var (
-				rawMediaItemsList []attr.Value
-				mediaItemList     []string
-			)
-
-			filter := fmt.Sprintf("catalog==%s", url.QueryEscape(catalog.AdminCatalog.HREF))
-			mediaResults, err := d.client.Vmware.QueryWithNotEncodedParams(nil, map[string]string{"type": "media", "filter": filter, "filterEncoded": "true"})
-			if err != nil {
-				resp.Diagnostics.AddWarning(
-					"Unable to get media records",
-					fmt.Sprintf("Unable to get media records: %s", err),
-				)
-				continue
-			} else {
-				for _, media := range mediaResults.Results.MediaRecord {
-					mediaItemList = append(mediaItemList, media.Name)
-				}
-				// Sort the lists, so that they will always match in state
-				sort.Strings(mediaItemList)
-				for _, mediaName := range mediaItemList {
-					rawMediaItemsList = append(rawMediaItemsList, types.StringValue(mediaName))
-				}
-				s.MediaItemList = basetypes.NewListValueMust(types.StringType, rawMediaItemsList)
-				s.NumberOfMedia = types.Int64Value(int64(len(mediaItemList)))
-			}
-
-			catalogs[catalog.AdminCatalog.Name] = s
 		}
+
+		s := catalogDataSourceModel{
+			ID:                          types.StringValue(catalog.AdminCatalog.ID),
+			Name:                        types.StringValue(catalog.AdminCatalog.Name),
+			CreatedAt:                   types.StringValue(catalog.AdminCatalog.DateCreated),
+			Description:                 utils.StringValueOrNull(catalog.AdminCatalog.Description),
+			IsPublished:                 types.BoolValue(catalog.AdminCatalog.IsPublished),
+			IsLocal:                     types.BoolValue(!catalog.AdminCatalog.IsPublished),
+			IsCached:                    types.BoolNull(),
+			IsShared:                    types.BoolNull(),
+			PreserveIdentityInformation: types.BoolNull(),
+			OwnerName:                   types.StringNull(),
+			MediaItemList:               types.ListNull(types.StringType),
+			NumberOfMedia:               types.Int64Null(),
+		}
+
+		catalogsName = append(catalogsName, catalog.AdminCatalog.Name)
+
+		if catalog.AdminCatalog.Owner != nil && catalog.AdminCatalog.Owner.User != nil {
+			s.OwnerName = utils.StringValueOrNull(catalog.AdminCatalog.Owner.User.Name)
+		}
+
+		if catalog.AdminCatalog.PublishExternalCatalogParams != nil {
+			if catalog.AdminCatalog.PublishExternalCatalogParams.IsCachedEnabled != nil {
+				s.IsCached = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsCachedEnabled)
+			}
+			if catalog.AdminCatalog.PublishExternalCatalogParams.IsPublishedExternally != nil {
+				s.IsShared = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.IsPublishedExternally)
+			}
+			if catalog.AdminCatalog.PublishExternalCatalogParams.PreserveIdentityInfoFlag != nil {
+				s.PreserveIdentityInformation = types.BoolValue(*catalog.AdminCatalog.PublishExternalCatalogParams.PreserveIdentityInfoFlag)
+			}
+		}
+
+		var (
+			rawMediaItemsList []attr.Value
+			mediaItemList     []string
+		)
+
+		filter := fmt.Sprintf("catalog==%s", url.QueryEscape(catalog.AdminCatalog.HREF))
+		mediaResults, err := d.client.Vmware.QueryWithNotEncodedParams(nil, map[string]string{"type": "media", "filter": filter, "filterEncoded": "true"})
+		if err != nil {
+			resp.Diagnostics.AddWarning(
+				"Unable to get media records",
+				fmt.Sprintf("Unable to get media records: %s", err),
+			)
+			continue
+		}
+
+		for _, media := range mediaResults.Results.MediaRecord {
+			mediaItemList = append(mediaItemList, media.Name)
+		}
+		// Sort the lists, so that they will always match in state
+		sort.Strings(mediaItemList)
+		for _, mediaName := range mediaItemList {
+			rawMediaItemsList = append(rawMediaItemsList, types.StringValue(mediaName))
+		}
+		s.MediaItemList = basetypes.NewListValueMust(types.StringType, rawMediaItemsList)
+		s.NumberOfMedia = types.Int64Value(int64(len(mediaItemList)))
+
+		catalogs[catalog.AdminCatalog.Name] = s
 	}
 
 	sort.Strings(catalogsName)

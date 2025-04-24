@@ -36,19 +36,19 @@ type BMSDataSource struct { //nolint: revive
 }
 
 // Init Initializes the data source.
-func (d *BMSDataSource) Init(ctx context.Context, dm *bmsModelDatasource) (diags diag.Diagnostics) {
+func (d *BMSDataSource) Init(_ context.Context, _ *bmsModelDatasource) (diags diag.Diagnostics) {
 	return
 }
 
-func (d *BMSDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *BMSDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
-func (d *BMSDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *BMSDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = bmsSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *BMSDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *BMSDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -104,7 +104,7 @@ func (d *BMSDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	data := []*bmsModelDatasourceEnv{}
 	for _, b := range *bms {
 		// Set Network
-		net := NetworkToTerraform(&b)
+		net := networkToTerraform(&b)
 
 		// Set BMS
 		bms := BMSToTerraform(ctx, &b)

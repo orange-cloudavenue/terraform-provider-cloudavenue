@@ -59,17 +59,8 @@ type (
 	}
 )
 
-// NewbmsModelDatasource returns a new bmsModelDatasource.
-func NewBMSModelDatasource(ctx context.Context) *bmsModelDatasource {
-	return &bmsModelDatasource{
-		ID:       supertypes.NewStringNull(),
-		Timeouts: timeoutsD.Value{},
-		Env:      supertypes.NewSetNestedObjectValueOfNull[bmsModelDatasourceEnv](ctx),
-	}
-}
-
 // Put API Network information to Terraform Object.
-func NetworkToTerraform(bms *v1.BMS) (net []*bmsModelDatasourceNetwork) {
+func networkToTerraform(bms *v1.BMS) (net []*bmsModelDatasourceNetwork) {
 	for _, network := range bms.GetNetworks() {
 		var x bmsModelDatasourceNetwork
 		x.VLANID.Set(network.VLANID)

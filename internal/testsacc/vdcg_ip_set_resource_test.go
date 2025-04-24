@@ -40,7 +40,7 @@ func (r *VDCGIPSetResource) DependenciesConfig() (resp testsacc.DependenciesConf
 	return
 }
 
-func (r *VDCGIPSetResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *VDCGIPSetResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{

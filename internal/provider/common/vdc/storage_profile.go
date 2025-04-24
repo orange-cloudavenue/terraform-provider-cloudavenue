@@ -33,7 +33,7 @@ func (v *VDC) GetStorageProfile(storageProfileName string, refresh bool) (*govcd
 }
 
 // GetStorageProfileReference returns the storage profile reference.
-func (v *VDC) GetStorageProfileReference(storageProfileName string, refresh bool) (*govcdtypes.Reference, error) {
+func (v *VDC) GetStorageProfileReference(storageProfileName string, _ bool) (*govcdtypes.Reference, error) {
 	if storageProfileName == "" {
 		return nil, storageprofile.ErrStorageProfileNameIsEmpty
 	}

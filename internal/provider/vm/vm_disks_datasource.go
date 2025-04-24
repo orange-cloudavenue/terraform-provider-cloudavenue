@@ -48,7 +48,7 @@ type disksDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *disksDataSource) Init(ctx context.Context, dm *DisksModel) (diags diag.Diagnostics) {
+func (d *disksDataSource) Init(_ context.Context, dm *DisksModel) (diags diag.Diagnostics) {
 	d.org, diags = org.Init(d.client)
 	if diags.HasError() {
 		return
@@ -71,15 +71,15 @@ func (d *disksDataSource) Init(ctx context.Context, dm *DisksModel) (diags diag.
 	return
 }
 
-func (d *disksDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *disksDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_disks"
 }
 
-func (d *disksDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *disksDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = disksSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *disksDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *disksDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

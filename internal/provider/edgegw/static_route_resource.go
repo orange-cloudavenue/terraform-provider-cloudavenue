@@ -52,7 +52,7 @@ type staticRouteResource struct {
 }
 
 // Init Initializes the resource.
-func (r *staticRouteResource) Init(ctx context.Context, rm *StaticRouteModel) (diags diag.Diagnostics) {
+func (r *staticRouteResource) Init(_ context.Context, rm *StaticRouteModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.org, diags = org.Init(r.client)
@@ -82,7 +82,7 @@ func (r *staticRouteResource) Schema(ctx context.Context, _ resource.SchemaReque
 	resp.Schema = staticRouteSchema(ctx).GetResource(ctx)
 }
 
-func (r *staticRouteResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *staticRouteResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

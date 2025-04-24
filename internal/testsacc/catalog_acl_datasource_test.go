@@ -40,7 +40,7 @@ func (r *CatalogACLDataSource) DependenciesConfig() (resp testsacc.DependenciesC
 	return
 }
 
-func (r *CatalogACLDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *CatalogACLDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
 		"example": func(_ context.Context, _ string) testsacc.Test {

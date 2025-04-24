@@ -69,7 +69,7 @@ func (r *catalogResource) Schema(ctx context.Context, _ resource.SchemaRequest, 
 	resp.Schema = catalogSchema().GetResource(ctx)
 }
 
-func (r *catalogResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *catalogResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

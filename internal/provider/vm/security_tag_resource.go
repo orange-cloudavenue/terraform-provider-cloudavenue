@@ -65,7 +65,7 @@ func (r *securityTagResource) Schema(ctx context.Context, _ resource.SchemaReque
 	resp.Schema = securityTagSchema().GetResource(ctx)
 }
 
-func (r *securityTagResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *securityTagResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

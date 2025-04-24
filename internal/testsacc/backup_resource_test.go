@@ -39,7 +39,7 @@ func (r *BackupResource) DependenciesConfig() (resp testsacc.DependenciesConfigR
 	return
 }
 
-func (r *BackupResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *BackupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * First Test For a VDC Backup named "example"
 		"example": func(_ context.Context, resourceName string) testsacc.Test {

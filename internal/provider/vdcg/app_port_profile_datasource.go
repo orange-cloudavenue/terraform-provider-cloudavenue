@@ -40,12 +40,12 @@ type AppPortProfileDataSource struct {
 	vdcGroup *v1.VDCGroup
 }
 
-func (d *AppPortProfileDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *AppPortProfileDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_app_port_profile"
 }
 
 // Init Initializes the resource.
-func (d *AppPortProfileDataSource) Init(ctx context.Context, rm *AppPortProfileModelDatasource) (diags diag.Diagnostics) {
+func (d *AppPortProfileDataSource) Init(_ context.Context, rm *AppPortProfileModelDatasource) (diags diag.Diagnostics) {
 	var err error
 
 	idOrName := rm.VDCGroupName.Get()
@@ -62,11 +62,11 @@ func (d *AppPortProfileDataSource) Init(ctx context.Context, rm *AppPortProfileM
 	return
 }
 
-func (d *AppPortProfileDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *AppPortProfileDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = appPortProfileSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *AppPortProfileDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *AppPortProfileDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

@@ -43,7 +43,7 @@ type tokenResource struct {
 }
 
 // Init Initializes the resource.
-func (r *tokenResource) Init(ctx context.Context, rm *TokenModel) (diags diag.Diagnostics) {
+func (r *tokenResource) Init(_ context.Context, _ *TokenModel) (diags diag.Diagnostics) {
 	r.org, diags = org.Init(r.client)
 	return
 }
@@ -58,7 +58,7 @@ func (r *tokenResource) Schema(ctx context.Context, _ resource.SchemaRequest, re
 	resp.Schema = tokenSchema(ctx).GetResource(ctx)
 }
 
-func (r *tokenResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *tokenResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -180,7 +180,7 @@ func (r *tokenResource) Read(ctx context.Context, req resource.ReadRequest, resp
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *tokenResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *tokenResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
 }
 
 // Delete deletes the resource and removes the Terraform state on success.

@@ -40,7 +40,7 @@ func (r *VDCGSecurityGroupDataSource) DependenciesConfig() (resp testsacc.Depend
 	return
 }
 
-func (r *VDCGSecurityGroupDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *VDCGSecurityGroupDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		"example": func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{

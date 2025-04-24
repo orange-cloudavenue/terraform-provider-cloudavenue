@@ -38,7 +38,7 @@ type PoolDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *PoolDataSource) Init(ctx context.Context, dm *PoolModel) (diags diag.Diagnostics) {
+func (d *PoolDataSource) Init(_ context.Context, _ *PoolModel) (diags diag.Diagnostics) {
 	var err error
 
 	d.elb, err = edgeloadbalancer.NewClient()
@@ -49,15 +49,15 @@ func (d *PoolDataSource) Init(ctx context.Context, dm *PoolModel) (diags diag.Di
 	return
 }
 
-func (d *PoolDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *PoolDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_pool"
 }
 
-func (d *PoolDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *PoolDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = poolSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *PoolDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *PoolDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

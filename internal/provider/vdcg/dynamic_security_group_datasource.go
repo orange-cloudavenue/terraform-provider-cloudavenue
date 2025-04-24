@@ -37,12 +37,12 @@ type DynamicSecurityGroupDataSource struct {
 	vdcGroup *v1.VDCGroup
 }
 
-func (d *DynamicSecurityGroupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *DynamicSecurityGroupDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_dynamic_security_group"
 }
 
 // Init Initializes the resource.
-func (d *DynamicSecurityGroupDataSource) Init(ctx context.Context, rm *DynamicSecurityGroupModel) (diags diag.Diagnostics) {
+func (d *DynamicSecurityGroupDataSource) Init(_ context.Context, rm *DynamicSecurityGroupModel) (diags diag.Diagnostics) {
 	var err error
 
 	idOrName := rm.VDCGroupName.Get()
@@ -59,11 +59,11 @@ func (d *DynamicSecurityGroupDataSource) Init(ctx context.Context, rm *DynamicSe
 	return
 }
 
-func (d *DynamicSecurityGroupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *DynamicSecurityGroupDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = dynamicSecurityGroupSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *DynamicSecurityGroupDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *DynamicSecurityGroupDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

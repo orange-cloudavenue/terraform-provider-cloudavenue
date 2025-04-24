@@ -36,21 +36,21 @@ type vdcgDataSource struct {
 	adminOrg adminorg.AdminOrg
 }
 
-func (d *vdcgDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *vdcgDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
 // Init Initializes the resource.
-func (d *vdcgDataSource) Init(ctx context.Context, rm *vdcgModel) (diags diag.Diagnostics) {
+func (d *vdcgDataSource) Init(_ context.Context, _ *vdcgModel) (diags diag.Diagnostics) {
 	d.adminOrg, diags = adminorg.Init(d.client)
 	return
 }
 
-func (d *vdcgDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *vdcgDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = vdcgSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *vdcgDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *vdcgDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

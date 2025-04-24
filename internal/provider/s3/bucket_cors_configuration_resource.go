@@ -46,7 +46,7 @@ type BucketCorsConfigurationResource struct {
 }
 
 // Init Initializes the resource.
-func (r *BucketCorsConfigurationResource) Init(ctx context.Context, rm *BucketCorsConfigurationModel) (diags diag.Diagnostics) {
+func (r *BucketCorsConfigurationResource) Init(_ context.Context, _ *BucketCorsConfigurationModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
 	return
 }
@@ -61,7 +61,7 @@ func (r *BucketCorsConfigurationResource) Schema(ctx context.Context, _ resource
 	resp.Schema = bucketCorsConfigurationSchema(ctx).GetResource(ctx)
 }
 
-func (r *BucketCorsConfigurationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *BucketCorsConfigurationResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

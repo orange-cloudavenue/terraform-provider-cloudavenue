@@ -41,7 +41,7 @@ func (r *EdgeGatewayAppPortProfileResource) DependenciesConfig() (resp testsacc.
 	return
 }
 
-func (r *EdgeGatewayAppPortProfileResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{

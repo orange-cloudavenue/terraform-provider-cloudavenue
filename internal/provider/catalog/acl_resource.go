@@ -47,7 +47,7 @@ type aclResource struct {
 }
 
 // Init Initializes the resource.
-func (r *aclResource) Init(ctx context.Context, rm *ACLModel) (diags diag.Diagnostics) {
+func (r *aclResource) Init(_ context.Context, rm *ACLModel) (diags diag.Diagnostics) {
 	r.catalog = base{
 		id:   rm.CatalogID.Get(),
 		name: rm.CatalogName.Get(),
@@ -67,7 +67,7 @@ func (r *aclResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 	resp.Schema = aclSchema(ctx).GetResource(ctx)
 }
 
-func (r *aclResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *aclResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

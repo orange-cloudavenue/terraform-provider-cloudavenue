@@ -47,7 +47,7 @@ type dhcpBindingResource struct {
 }
 
 // Init Initializes the resource.
-func (r *dhcpBindingResource) Init(ctx context.Context, rm *DHCPBindingModel) (diags diag.Diagnostics) {
+func (r *dhcpBindingResource) Init(_ context.Context, _ *DHCPBindingModel) (diags diag.Diagnostics) {
 	r.org, diags = org.Init(r.client)
 
 	return
@@ -63,7 +63,7 @@ func (r *dhcpBindingResource) Schema(ctx context.Context, _ resource.SchemaReque
 	resp.Schema = dhcpBindingSchema(ctx).GetResource(ctx)
 }
 
-func (r *dhcpBindingResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *dhcpBindingResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

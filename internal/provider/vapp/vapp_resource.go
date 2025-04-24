@@ -68,7 +68,7 @@ func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 	resp.Schema = vappSchema().GetResource(ctx)
 }
 
-func (r *vappResource) Init(ctx context.Context, rm *vappResourceModel) (diags diag.Diagnostics) {
+func (r *vappResource) Init(_ context.Context, rm *vappResourceModel) (diags diag.Diagnostics) {
 	r.adminorg, diags = adminorg.Init(r.client)
 	if diags.HasError() {
 		return
@@ -78,7 +78,7 @@ func (r *vappResource) Init(ctx context.Context, rm *vappResourceModel) (diags d
 	return
 }
 
-func (r *vappResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *vappResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

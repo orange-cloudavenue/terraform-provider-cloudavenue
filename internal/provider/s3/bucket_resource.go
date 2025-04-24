@@ -46,7 +46,7 @@ type BucketResource struct {
 }
 
 // Init Initializes the resource.
-func (r *BucketResource) Init(ctx context.Context, rm *BucketModel) (diags diag.Diagnostics) {
+func (r *BucketResource) Init(_ context.Context, _ *BucketModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
 	return
 }
@@ -61,7 +61,7 @@ func (r *BucketResource) Schema(ctx context.Context, _ resource.SchemaRequest, r
 	resp.Schema = s3BucketSchema(ctx).GetResource(ctx)
 }
 
-func (r *BucketResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *BucketResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -158,7 +158,7 @@ func (r *BucketResource) Read(ctx context.Context, req resource.ReadRequest, res
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *BucketResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *BucketResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
 	defer metrics.New("cloudavenue_s3_bucket", r.client.GetOrgName(), metrics.Update)()
 	// All attributes are immutable
 }

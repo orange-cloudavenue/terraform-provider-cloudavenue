@@ -47,7 +47,7 @@ type FirewallResource struct {
 }
 
 // Init Initializes the resource.
-func (r *FirewallResource) Init(ctx context.Context, rm *FirewallModel) (diags diag.Diagnostics) {
+func (r *FirewallResource) Init(_ context.Context, rm *FirewallModel) (diags diag.Diagnostics) {
 	var err error
 
 	idOrName := rm.VDCGroupName.Get()
@@ -74,7 +74,7 @@ func (r *FirewallResource) Schema(ctx context.Context, _ resource.SchemaRequest,
 	resp.Schema = firewallSchema(ctx).GetResource(ctx)
 }
 
-func (r *FirewallResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *FirewallResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

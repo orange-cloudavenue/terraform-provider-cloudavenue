@@ -46,7 +46,7 @@ type PoliciesHTTPRequestResource struct {
 }
 
 // Init Initializes the resource.
-func (r *PoliciesHTTPRequestResource) Init(ctx context.Context, rm *PoliciesHTTPRequestModel) (diags diag.Diagnostics) {
+func (r *PoliciesHTTPRequestResource) Init(_ context.Context, _ *PoliciesHTTPRequestModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.elb, err = edgeloadbalancer.NewClient()
@@ -67,7 +67,7 @@ func (r *PoliciesHTTPRequestResource) Schema(ctx context.Context, _ resource.Sch
 	resp.Schema = policiesHTTPRequestSchema(ctx).GetResource(ctx)
 }
 
-func (r *PoliciesHTTPRequestResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *PoliciesHTTPRequestResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

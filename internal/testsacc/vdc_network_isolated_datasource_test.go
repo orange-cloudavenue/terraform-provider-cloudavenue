@@ -40,7 +40,7 @@ func (r *VDCNetworkIsolatedDataSource) DependenciesConfig() (resp testsacc.Depen
 	return
 }
 
-func (r *VDCNetworkIsolatedDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *VDCNetworkIsolatedDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		"example": func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{

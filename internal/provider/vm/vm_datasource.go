@@ -45,7 +45,7 @@ type vmDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *vmDataSource) Init(ctx context.Context, dm *VMDataSourceModel) (diags diag.Diagnostics) {
+func (d *vmDataSource) Init(_ context.Context, dm *VMDataSourceModel) (diags diag.Diagnostics) {
 	var mydiag diag.Diagnostics
 
 	d.vdc, mydiag = vdc.Init(d.client, dm.VDC)
@@ -80,15 +80,15 @@ func (d *vmDataSource) Init(ctx context.Context, dm *VMDataSourceModel) (diags d
 	return
 }
 
-func (d *vmDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *vmDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
 }
 
-func (d *vmDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *vmDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = vmSuperSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *vmDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *vmDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

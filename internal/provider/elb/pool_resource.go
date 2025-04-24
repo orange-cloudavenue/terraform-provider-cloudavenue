@@ -50,7 +50,7 @@ type PoolResource struct {
 }
 
 // Init Initializes the resource.
-func (r *PoolResource) Init(ctx context.Context, rm *PoolModel) (diags diag.Diagnostics) {
+func (r *PoolResource) Init(_ context.Context, rm *PoolModel) (diags diag.Diagnostics) {
 	var err error
 
 	r.elb, err = edgeloadbalancer.NewClient()
@@ -83,7 +83,7 @@ func (r *PoolResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 	resp.Schema = poolSchema(ctx).GetResource(ctx)
 }
 
-func (r *PoolResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *PoolResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

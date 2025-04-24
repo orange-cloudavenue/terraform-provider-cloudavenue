@@ -48,7 +48,7 @@ type NetworkIsolatedResource struct {
 }
 
 // Init Initializes the resource.
-func (r *NetworkIsolatedResource) Init(ctx context.Context, rm *networkIsolatedModel) (diags diag.Diagnostics) {
+func (r *NetworkIsolatedResource) Init(_ context.Context, rm *networkIsolatedModel) (diags diag.Diagnostics) {
 	var err error
 
 	idOrName := rm.VDCGroupName.Get()
@@ -75,7 +75,7 @@ func (r *NetworkIsolatedResource) Schema(ctx context.Context, _ resource.SchemaR
 	resp.Schema = networkIsolatedSchema(ctx).GetResource(ctx)
 }
 
-func (r *NetworkIsolatedResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetworkIsolatedResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

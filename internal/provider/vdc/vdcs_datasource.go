@@ -41,19 +41,19 @@ type vdcsDataSource struct {
 }
 
 // Init Initializes the resource.
-func (d *vdcsDataSource) Init(ctx context.Context, rm *vdcsDataSourceModel) (diags diag.Diagnostics) {
+func (d *vdcsDataSource) Init(_ context.Context, _ *vdcsDataSourceModel) (diags diag.Diagnostics) {
 	return
 }
 
-func (d *vdcsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *vdcsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "s"
 }
 
-func (d *vdcsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *vdcsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = vdcsSchema().GetDataSource(ctx)
 }
 
-func (d *vdcsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *vdcsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

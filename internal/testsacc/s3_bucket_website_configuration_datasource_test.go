@@ -40,7 +40,7 @@ func (r *S3BucketWebsiteConfigurationDataSource) DependenciesConfig() (deps test
 	return
 }
 
-func (r *S3BucketWebsiteConfigurationDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *S3BucketWebsiteConfigurationDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
 		"example": func(_ context.Context, _ string) testsacc.Test {

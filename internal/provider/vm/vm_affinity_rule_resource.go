@@ -61,13 +61,13 @@ func (r *vmAffinityRuleResource) Schema(ctx context.Context, _ resource.SchemaRe
 	resp.Schema = vmAffinityRuleSchema().GetResource(ctx)
 }
 
-func (r *vmAffinityRuleResource) Init(ctx context.Context, rm *vmAffinityRuleResourceModel) (diags diag.Diagnostics) {
+func (r *vmAffinityRuleResource) Init(_ context.Context, rm *vmAffinityRuleResourceModel) (diags diag.Diagnostics) {
 	r.vdc, diags = vdc.Init(r.client, rm.VDC)
 
 	return
 }
 
-func (r *vmAffinityRuleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *vmAffinityRuleResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

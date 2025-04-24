@@ -41,7 +41,7 @@ func (r *StorageProfilesDataSource) DependenciesConfig() (resp testsacc.Dependen
 	return
 }
 
-func (r *StorageProfilesDataSource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *StorageProfilesDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
 		"example": func(_ context.Context, resourceName string) testsacc.Test {

@@ -44,7 +44,7 @@ type appPortProfileDataSource struct {
 }
 
 // Init Initializes the data source.
-func (d *appPortProfileDataSource) Init(ctx context.Context, dm *AppPortProfileModelDatasource) (diags diag.Diagnostics) {
+func (d *appPortProfileDataSource) Init(_ context.Context, dm *AppPortProfileModelDatasource) (diags diag.Diagnostics) {
 	var err error
 
 	d.org, diags = org.Init(d.client)
@@ -65,15 +65,15 @@ func (d *appPortProfileDataSource) Init(ctx context.Context, dm *AppPortProfileM
 	return
 }
 
-func (d *appPortProfileDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *appPortProfileDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_app_port_profile"
 }
 
-func (d *appPortProfileDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *appPortProfileDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = appPortProfilesSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *appPortProfileDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *appPortProfileDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

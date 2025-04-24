@@ -24,7 +24,7 @@ const (
 )
 
 func testCheckFileExists(filename string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
+	return func(_ *terraform.State) error {
 		filename = filepath.Clean(filename)
 		_, err := os.ReadFile(filename)
 		if err != nil {
@@ -35,7 +35,7 @@ func testCheckFileExists(filename string) resource.TestCheckFunc {
 }
 
 func testCheckFileNotExists(filename string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
+	return func(_ *terraform.State) error {
 		filename = filepath.Clean(filename)
 		// Check if file exists
 		if _, err := os.Stat(filename); err == nil {
