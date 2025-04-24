@@ -7,7 +7,7 @@
 
 ### :bug: **Bug Fixes**
 
-* `resource/cloudavenue_edgegateway` - Add Workaround where deactivate calculating remaining bandwidth and disallow to set it if the T0 VRF has a class of service `DEDICATED`. This is a workaround for a bug in the API and will be removed when the API is fixed. (GH-1069)
+* `resource/cloudavenue_edgegateway` - Implement a workaround to deactivate the calculation of remaining bandwidth and prevent its configuration when the T0 VRF has a class of service set to DEDICATED. This workaround addresses a bug in the API and will be removed once the API issue is resolved. (GH-1069)
 
 ### :dependabot: **Dependencies**
 
