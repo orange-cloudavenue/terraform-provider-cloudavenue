@@ -1,5 +1,14 @@
 ## 0.32.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_edgegateway_services` - This data source enables users to access information about Edge Gateway network services in CloudAvenue. It allows querying and retrieving details regarding the network services linked to your Edge Gateway. (GH-1037)
+* **New Resource:** `resource/cloudavenue_edgegateway_services` - This resource allows users to manage Edge Gateway network services in CloudAvenue, providing the foundation for configuring network services within the CloudAvenue environment. (GH-1037)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_edgegateway` - Add Workaround where deactivate calculating remaining bandwidth and disallow to set it if the T0 VRF has a class of service `DEDICATED`. This is a workaround for a bug in the API and will be removed when the API is fixed. (GH-1069)
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps github.com/aws/aws-sdk-go from 1.55.6 to 1.55.7 (GH-1068)
