@@ -11,6 +11,7 @@
 
 ### :tada: **Improvements**
 
+* - Improve documentation examples for these resources and datasources `cloudavenue_catalog_vapp_template`, `cloudavenue_edgegateway_dhcp_forwarding`, `cloudavenue_edgegateway_ip_set`, `cloudavenue_edgegateway_nat_rule`, `cloudavenue_edgegateway_network_routed`, `cloudavenue_edgegateway_security_group`, `cloudavenue_network_dhcp`, `cloudavenue_network_dhcp_binding`, `cloudavenue_vapp_org_network`, `cloudavenue_edgegateway` (GH-1066)
 * `resource/cloudavenue_edgegateway` - Improved the `cloudavenue_edgegateway` documentation to clarify the usage of the `bandwidth` argument. (GH-1064)
 
 ### :bug: **Bug Fixes**
