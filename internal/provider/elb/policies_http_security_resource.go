@@ -12,19 +12,17 @@ package elb
 import (
 	"context"
 	"fmt"
+	"time"
 
-	"github.com/k0kubun/pp/v3"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgeloadbalancer"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
@@ -306,6 +304,8 @@ func (r *PoliciesHTTPSecurityResource) ImportState(ctx context.Context, req reso
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
 func (r *PoliciesHTTPSecurityResource) read(ctx context.Context, planOrState *PoliciesHTTPSecurityModel) (stateRefreshed *PoliciesHTTPSecurityModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
+	// sleep to wait for the resource to be created
+	time.Sleep(5 * time.Second)
 
 	/*
 		Implement the resource read here
@@ -369,17 +369,13 @@ func (r *PoliciesHTTPSecurityResource) read(ctx context.Context, planOrState *Po
 }
 
 func (r *PoliciesHTTPSecurityResource) createOrUpdate(ctx context.Context, goPlan *PoliciesHTTPSecurityModel) (diags diag.Diagnostics) {
-	// TODO : NEED TO CHECK goplan and model
-	tflog.Info(ctx, pp.Sprintf("*****BEFORE: createOrUpdate policies http security: %v", goPlan))
 	model, d := goPlan.ToSDKPoliciesHTTPSecurityModel(ctx)
-	tflog.Info(ctx, pp.Sprintf("*****AFTER: createOrUpdate policies http security model: %v", model))
 	diags.Append(d...)
 	if diags.HasError() {
 		diags.AddError("TF Error updating policies http security", "Failed to convert to SDK model")
 		return
 	}
 
-	// TODO : Return error, suspect problem in model
 	_, err := r.elb.UpdatePoliciesHTTPSecurity(ctx, model)
 	if err != nil {
 		diags.AddError("SDK Error updating policies http security", err.Error())

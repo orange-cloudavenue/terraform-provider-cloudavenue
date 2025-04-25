@@ -29,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	stringplanmodifier "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -374,9 +373,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									},
 								},
 							}, // End cookie
-							"security_headers": superschema.SuperSetNestedAttributeOf[PoliciesHTTPHeaderMatch]{
+							"request_headers": superschema.SuperSetNestedAttributeOf[PoliciesHTTPHeaderMatch]{
 								Common: &schemaR.SetNestedAttribute{
-									MarkdownDescription: "Match the rule based on security headers rules.",
+									MarkdownDescription: "Match the rule based on request headers rules.",
 								},
 								Resource: &schemaR.SetNestedAttribute{
 									Optional: true,
@@ -472,7 +471,6 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 							"connection": superschema.SuperStringAttribute{
 								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "Connection action to perform.",
-									Computed:            true,
 								},
 								Resource: &schemaR.StringAttribute{
 									Optional: true,
@@ -480,13 +478,15 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 										stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPConnectionActionsString...),
 										fstringvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect_to_https")),
 									},
-									Default: stringdefault.StaticString(string(edgeloadbalancer.PoliciesHTTPConnectionActionALLOW)),
+									// Default: stringdefault.StaticString(string(edgeloadbalancer.PoliciesHTTPConnectionActionALLOW)),
+								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
 								},
 							},
 							"redirect_to_https": superschema.SuperInt64Attribute{
 								Common: &schemaR.Int64Attribute{
 									MarkdownDescription: "Redirect to HTTPS action.",
-									Computed:            true,
 								},
 								Resource: &schemaR.Int64Attribute{
 									Optional: true,
@@ -494,7 +494,10 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 										int64validator.Between(1, 65535),
 										fintvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("connection")),
 									},
-									Default: int64default.StaticInt64(443),
+									// Default: int64default.StaticInt64(443),
+								},
+								DataSource: &schemaD.Int64Attribute{
+									Computed: true,
 								},
 							},
 							"send_response": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionSendResponse]{
@@ -545,6 +548,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 										},
 										Resource: &schemaR.StringAttribute{
 											Required: true,
+											Validators: []validator.String{
+												stringvalidator.OneOf("application/json", "text/html", "text/plain"),
+											},
 										},
 										DataSource: &schemaD.StringAttribute{
 											Computed: true,
@@ -600,10 +606,10 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											MarkdownDescription: "Redirects the request to different location.",
 										},
 										Resource: &schemaR.SingleNestedAttribute{
-											Optional:   true,
+											Optional: true,
 											Validators: []validator.Object{
-												// objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("modify_headers")),
-												// objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("rewrite_url")),
+												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("local_response")),
+												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("close_connection")),
 											},
 										},
 										DataSource: &schemaD.SingleNestedAttribute{
@@ -714,9 +720,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 													Computed: true,
 												},
 											},
-											"body": superschema.SuperStringAttribute{
+											"content": superschema.SuperStringAttribute{
 												Common: &schemaR.StringAttribute{
-													MarkdownDescription: "Body of the response.",
+													MarkdownDescription: "Content of the response must be a base64 encoded string. IE: result of `echo -n 'Hello World' | base64` will be `SGVsbG8gV29ybGQ=`.",
 												},
 												Resource: &schemaR.StringAttribute{
 													Required: true,
@@ -734,6 +740,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 												},
 												Resource: &schemaR.StringAttribute{
 													Required: true,
+													Validators: []validator.String{
+														stringvalidator.OneOf("application/json", "text/html", "text/plain"),
+													},
 												},
 												DataSource: &schemaD.StringAttribute{
 													Computed: true,

@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgeloadbalancer"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -43,7 +42,7 @@ type (
 		HTTPMethods    supertypes.SingleNestedObjectValueOf[PoliciesHTTPMethodMatch]      `tfsdk:"http_methods"`
 		Path           supertypes.SingleNestedObjectValueOf[PoliciesHTTPPathMatch]        `tfsdk:"path"`
 		Cookie         supertypes.SingleNestedObjectValueOf[PoliciesHTTPCookieMatch]      `tfsdk:"cookie"`
-		RequestHeaders supertypes.SetNestedObjectValueOf[PoliciesHTTPHeaderMatch]         `tfsdk:"security_headers"`
+		RequestHeaders supertypes.SetNestedObjectValueOf[PoliciesHTTPHeaderMatch]         `tfsdk:"request_headers"`
 		Query          supertypes.SetValueOf[string]                                      `tfsdk:"query"`
 	}
 

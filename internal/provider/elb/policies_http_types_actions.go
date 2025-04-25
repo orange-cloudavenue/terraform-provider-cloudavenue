@@ -11,6 +11,7 @@ package elb
 
 import (
 	"context"
+	"encoding/base64"
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
@@ -54,11 +55,11 @@ type (
 	}
 
 	PoliciesHTTPActionRateLimit struct {
-		Count           supertypes.Int64Value          `tfsdk:"count"`
-		Period          supertypes.Int64Value          `tfsdk:"period"`
-		Redirect        PoliciesHTTPActionRedirect     `tfsdk:"redirect"`
-		LocalResponse   PoliciesHTTPActionSendResponse `tfsdk:"local_response"`
-		CloseConnection supertypes.BoolValue           `tfsdk:"close_connection"`
+		Count           supertypes.Int64Value                                                `tfsdk:"count"`
+		Period          supertypes.Int64Value                                                `tfsdk:"period"`
+		Redirect        supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionRedirect]     `tfsdk:"redirect"`
+		LocalResponse   supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionSendResponse] `tfsdk:"local_response"`
+		CloseConnection supertypes.BoolValue                                                 `tfsdk:"close_connection"`
 	}
 )
 
@@ -239,8 +240,16 @@ func policiesHTTPActionSendResponseToSDK(ctx context.Context, diags diag.Diagnos
 	}
 
 	return &edgeloadbalancer.PoliciesHTTPActionSendResponse{
-		StatusCode:  v.StatusCode.GetInt(),
-		Content:     v.Content.Get(),
+		StatusCode: v.StatusCode.GetInt(),
+		// check if content is base64 encoded
+		Content: func() string {
+			_, err := base64.StdEncoding.DecodeString(v.Content.Get())
+			if err != nil {
+				panic(err)
+			}
+			return v.Content.Get()
+		}(),
+		// Content:     v.Content.Get(),
 		ContentType: v.ContentType.Get(),
 	}
 }
@@ -252,8 +261,16 @@ func policiesHTTPActionSendResponseFromSDK(ctx context.Context, v *edgeloadbalan
 	}
 
 	return supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPActionSendResponse{
-		StatusCode:  supertypes.NewInt64Value(int64(v.StatusCode)),
-		Content:     supertypes.NewStringValueOrNull(v.Content),
+		StatusCode: supertypes.NewInt64Value(int64(v.StatusCode)),
+		// Content:     supertypes.NewStringValueOrNull(v.Content),
+		// check if content is base64 encoded
+		Content: func() supertypes.StringValue {
+			_, err := base64.StdEncoding.DecodeString(v.Content)
+			if err != nil {
+				panic(err)
+			}
+			return supertypes.NewStringValueOrNull(v.Content)
+		}(),
 		ContentType: supertypes.NewStringValueOrNull(v.ContentType),
 	})
 }
@@ -275,27 +292,10 @@ func policiesHTTPActionRateLimitToSDK(ctx context.Context, diags diag.Diagnostic
 		Period:                v.Period.GetInt(),
 		CloseConnectionAction: v.CloseConnection.GetPtr(),
 		RedirectAction: func() *edgeloadbalancer.PoliciesHTTPActionRedirect {
-			if !(v.Redirect).Port.IsKnown() {
-				return nil
-			}
-			return policiesHTTPActionRedirectToSDK(ctx, diags, supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPActionRedirect{
-				Host:       v.Redirect.Host,
-				KeepQuery:  v.Redirect.KeepQuery,
-				Path:       v.Redirect.Path,
-				Port:       v.Redirect.Port,
-				Protocol:   v.Redirect.Protocol,
-				StatusCode: v.Redirect.StatusCode,
-			}))
+			return policiesHTTPActionRedirectToSDK(ctx, diags, v.Redirect)
 		}(),
 		LocalResponseAction: func() *edgeloadbalancer.PoliciesHTTPActionSendResponse {
-			if !(v.LocalResponse).StatusCode.IsKnown() {
-				return nil
-			}
-			return policiesHTTPActionSendResponseToSDK(ctx, diags, supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPActionSendResponse{
-				StatusCode:  v.LocalResponse.StatusCode,
-				Content:     v.LocalResponse.Content,
-				ContentType: v.LocalResponse.ContentType,
-			}))
+			return policiesHTTPActionSendResponseToSDK(ctx, diags, v.LocalResponse)
 		}(),
 	}
 }
@@ -314,10 +314,16 @@ func policiesHTTPActionRateLimitFromSDK(ctx context.Context, v *edgeloadbalancer
 			return supertypes.NewInt64Value(int64(v.Period))
 		}(),
 		CloseConnection: func() supertypes.BoolValue {
-			if v.CloseConnectionAction != nil && *v.CloseConnectionAction {
-				return supertypes.NewBoolValue(true)
+			if v.CloseConnectionAction == nil {
+				return supertypes.NewBoolNull()
 			}
-			return supertypes.NewBoolNull()
+			return supertypes.NewBoolValue(*v.CloseConnectionAction)
+		}(),
+		Redirect: func() supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionRedirect] {
+			return policiesHTTPActionRedirectFromSDK(ctx, v.RedirectAction)
+		}(),
+		LocalResponse: func() supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionSendResponse] {
+			return policiesHTTPActionSendResponseFromSDK(ctx, v.LocalResponseAction)
 		}(),
 	})
 }
