@@ -13,8 +13,8 @@ The `cloudavenue_edgegateway_ip_set` data source allows you to retrieve informat
 
 ```terraform
 data "cloudavenue_edgegateway_ip_set" "example" {
-  name              = "example"
-  edge_gateway_name = "myEdgeName"
+  name            = "example"
+  edge_gateway_id = cloudavenue_edgegateway.example.id
 }
 ```
 

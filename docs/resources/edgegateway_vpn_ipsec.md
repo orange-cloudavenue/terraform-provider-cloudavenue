@@ -13,7 +13,7 @@ Provides a resource to manage an IPsec VPN Tunnel. You can configure a site-to-s
 ### Example Usage (IPsec VPN Tunnel with default Security Profile)
 ```hcl
 resource "cloudavenue_edgegateway_vpn_ipsec" "example" {
-  edge_gateway_id = data.cloudavenue_edgegateway.example.id
+  edge_gateway_id = cloudavenue_edgegateway.example.id
 
   name        = "example"
   description = "example VPN IPSec"
@@ -32,7 +32,7 @@ resource "cloudavenue_edgegateway_vpn_ipsec" "example" {
 ### Example Usage (IPsec VPN Tunnel with a custom Security Profile)
 ```hcl
 resource "cloudavenue_edgegateway_vpn_ipsec" "example" {
-  edge_gateway_id = data.cloudavenue_edgegateway.example.id
+  edge_gateway_id = cloudavenue_edgegateway.example.id
 
   name        = "example"
   description = "example VPN IPSec"

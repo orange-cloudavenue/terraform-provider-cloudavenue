@@ -13,7 +13,7 @@ The `cloudavenue_edgegateway_dhcp_forwarding` data source allows you to retrieve
 
 ```terraform
 data "cloudavenue_edgegateway_dhcp_forwarding" "example" {
-  edge_gateway_name = "myEdgeName"
+  edge_gateway_id = cloudavenue_edgegateway.example.id
 }
 ```
 

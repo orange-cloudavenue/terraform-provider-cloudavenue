@@ -13,20 +13,14 @@ description: |-
 
 ### Example with VDC
 
-```hcl
-resource "cloudavenue_edgegateway" "example" {
-  owner_name     = cloudavenue_vdc.example.name
-  tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-}
-```
+{{ tffile "examples/resources/cloudavenue_edgegateway/resource.tf" }}
 
 ### Example with VDC Group
 
 ```hcl
-resource "cloudavenue_edgegateway" "example" {
-  owner_name     = cloudavenue_vdc_group.example.name
-  tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-}
+
+{{ tffile "examples/resources/cloudavenue_edgegateway/resource-with-vdc-group.tf" }}
+
 ```
 
 {{ .SchemaMarkdown | trimspace }}

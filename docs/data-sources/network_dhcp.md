@@ -13,17 +13,15 @@ The `network_dhcp` data source allows you to retrieve information about an exist
 
 ```terraform
 data "cloudavenue_network_dhcp" "example" {
-  org_network_id = cloudavenue_network_routed.example.id
+  org_network_id = cloudavenue_edgegateway_network_routed.example.id
 }
+```
 
+```terraform
+resource "cloudavenue_edgegateway_network_routed" "example" {
+  name = "example"
 
-data "cloudavenue_edgegateways" "example" {}
-
-resource "cloudavenue_network_routed" "example" {
-  name        = "MyOrgNet"
-  description = "This is an example Net"
-
-  edge_gateway_id = data.cloudavenue_edgegateways.example.edge_gateways[0].id
+  edge_gateway_id = cloudavenue_edgegateway.example.id
 
   gateway       = "192.168.1.254"
   prefix_length = 24

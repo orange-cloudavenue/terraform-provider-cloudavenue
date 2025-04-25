@@ -14,7 +14,7 @@ The `cloudavenue_edgegateway_nat_rule` resource allows you to manage EdgeGateway
 ```terraform
 # Example NAT Rule SNAT (NAT out from network 11.11.11.0/24 to dest 8.8.8.8 translate in 89.32.25.10)
 resource "cloudavenue_edgegateway_nat_rule" "example-snat" {
-  edge_gateway_name = "myEdgeGateway"
+  edge_gateway_id = cloudavenue_edgegateway.example.id
 
   name        = "example-snat"
   rule_type   = "SNAT"
@@ -29,7 +29,7 @@ resource "cloudavenue_edgegateway_nat_rule" "example-snat" {
 
 # Example NAT Rule DNAT (Translate 89.32.25.10 to internal dest 4.11.11.11 on port 8080)
 resource "cloudavenue_edgegateway_nat_rule" "example-dnat" {
-  edge_gateway_name = "myEdgeGateway"
+  edge_gateway_id = cloudavenue_edgegateway.example.id
 
   name        = "example-dnat"
   rule_type   = "DNAT"
@@ -43,7 +43,7 @@ resource "cloudavenue_edgegateway_nat_rule" "example-dnat" {
 
 # Example NAT Rule Reflexive (Nat in both way (in and out) external and internal on all port translated)
 resource "cloudavenue_edgegateway_nat_rule" "example-reflexive" {
-  edge_gateway_name = "myEdgeGateway"
+  edge_gateway_id = cloudavenue_edgegateway.example.id
 
   name        = "example-reflexive"
   rule_type   = "REFLEXIVE"

@@ -43,7 +43,7 @@ func s3BucketSchema(_ context.Context) superschema.Schema {
 					Required:            true,
 				},
 				Resource: &schemaR.StringAttribute{
-					MarkdownDescription: "A full list of bucket naming rules (may be found here)[https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html].",
+					MarkdownDescription: "A full list of bucket naming rules [may be found here](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html).",
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
