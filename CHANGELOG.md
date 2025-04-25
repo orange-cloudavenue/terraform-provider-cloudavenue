@@ -19,6 +19,9 @@
 * `resource/cloudavenue_edgegateway_network_routed` - Fixed an issue with the `cloudavenue_edgegateway_network_routed` resource where deletion operations failed due to a `BUSY_ENTITY` error caused by concurrent gateway updates. (GH-1071)
 * `resource/cloudavenue_edgegateway_network_routed` - Resolved a bug in the `cloudavenue_edgegateway_network_routed` resource where the `static_ip_pool` attribute unexpectedly changed from null to an empty set during application. (GH-1073)
 * `resource/cloudavenue_edgegateway` - Implement a workaround to deactivate the calculation of remaining bandwidth and prevent its configuration when the T0 VRF has a class of service set to DEDICATED. This workaround addresses a bug in the API and will be removed once the API issue is resolved. (GH-1069)
+### :information_source: **Notes**
+
+* Add a guide explaining how to use new network and security resources for VDC and VDCG. (GH-1054)
 
 ### :dependabot: **Dependencies**
 
