@@ -89,7 +89,6 @@ func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRe
 		gw.ID.Set(urn.Normalize(urn.Gateway, edge.GetID()).String())
 		gw.Name.Set(edge.GetName())
 		gw.Description.Set(edge.GetDescription())
-		gw.OwnerType.Set(string(edge.GetOwnerType()))
 		gw.OwnerName.Set(edge.GetOwnerName())
 		gw.Tier0VrfName.Set(edge.GetT0())
 

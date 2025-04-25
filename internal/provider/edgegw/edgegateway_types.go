@@ -22,7 +22,6 @@ type edgeGatewayResourceModel struct {
 	ID          supertypes.StringValue `tfsdk:"id"`
 	Tier0VrfID  supertypes.StringValue `tfsdk:"tier0_vrf_name"`
 	Name        supertypes.StringValue `tfsdk:"name"`
-	OwnerType   supertypes.StringValue `tfsdk:"owner_type"`
 	OwnerName   supertypes.StringValue `tfsdk:"owner_name"`
 	Description supertypes.StringValue `tfsdk:"description"`
 	Bandwidth   supertypes.Int64Value  `tfsdk:"bandwidth"`
@@ -32,7 +31,6 @@ type edgeGatewayDatasourceModel struct {
 	ID          supertypes.StringValue `tfsdk:"id"`
 	Tier0VrfID  supertypes.StringValue `tfsdk:"tier0_vrf_name"`
 	Name        supertypes.StringValue `tfsdk:"name"`
-	OwnerType   supertypes.StringValue `tfsdk:"owner_type"`
 	OwnerName   supertypes.StringValue `tfsdk:"owner_name"`
 	Description supertypes.StringValue `tfsdk:"description"`
 	Bandwidth   supertypes.Int64Value  `tfsdk:"bandwidth"`

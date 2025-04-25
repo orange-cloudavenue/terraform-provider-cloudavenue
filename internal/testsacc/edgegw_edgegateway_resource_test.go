@@ -194,57 +194,6 @@ func (r *EdgeGatewayResource) Tests(_ context.Context) map[testsacc.TestName]fun
 				},
 			}
 		},
-		"example_test_deprecated": func(_ context.Context, resourceName string) testsacc.Test {
-			return testsacc.Test{
-				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
-
-					// Read-Only attributes
-					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
-					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
-				},
-				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					resp.Append(GetResourceConfig()[VDCGResourceName]().GetDefaultConfig)
-					return
-				},
-				// ! Create testing
-				Create: testsacc.TFConfig{
-					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-					resource "cloudavenue_edgegateway" "example_test_deprecated" {
-						owner_name     = cloudavenue_vdcg.example.name
-						tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-						bandwidth      = 25
-						owner_type     = "vdc-group"
-					  }`),
-					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "owner_type", "vdc-group"),
-					},
-				},
-				// ! Updates testing
-				Updates: []testsacc.TFConfig{
-					{
-						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-						resource "cloudavenue_edgegateway" "example_test_deprecated" {
-							owner_name     = cloudavenue_vdcg.example.name
-							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-							bandwidth      = 25
-						  }`),
-						Checks: []resource.TestCheckFunc{
-							resource.TestCheckNoResourceAttr(resourceName, "owner_type"),
-						},
-					},
-				},
-				// ! Imports testing
-				Imports: []testsacc.TFImport{
-					{
-						ImportStateIDBuilder: []string{"name"},
-						ImportState:          true,
-						ImportStateVerify:    true,
-					},
-				},
-			}
-		},
 	}
 }
 
