@@ -128,7 +128,7 @@ Required:
 
 - `actions` (Attributes) Actions to perform when the rule matches. (see [below for nested schema](#nestedatt--policies--actions))
 - `criteria` (Attributes) Match criteria for the HTTP response. (see [below for nested schema](#nestedatt--policies--criteria))
-- `name` (String) The name of the policy.
+- `name` (String) Policy name, it must be unique within the virtual service's HTTP response policies.
 
 Optional:
 
@@ -204,7 +204,7 @@ a valid IPV4 address (Ex: 192.168.0.1), a valid IPV4 address with CIDR (Ex: 192.
 
 Required:
 
-- `criteria` (String) Criteria to match. Value must be one of : `BEGINS_WITH`, `DOES_NOT_BEGIN_WITH`, `CONTAINS`, `DOES_NOT_CONTAIN`, `ENDS_WITH`, `DOES_NOT_END_WITH`, `EQUALS`, `DOES_NOT_EQUAL`.
+- `criteria` (String) Criteria to match. Value must be one of : `BEGINS_WITH`, `DOES_NOT_BEGIN_WITH`, `CONTAINS`, `DOES_NOT_CONTAIN`, `ENDS_WITH`, `DOES_NOT_END_WITH`, `EQUALS`, `DOES_NOT_EQUAL`, `EXISTS`, `DOES_NOT_EXIST`.
 - `name` (String) Name of the cookie to match.
 
 Optional:
@@ -271,7 +271,7 @@ Optional:
 Required:
 
 - `criteria` (String) Criteria to match. Value must be one of : `IS_IN`, `IS_NOT_IN`.
-- `ports` (Set of Number) Ports to match. Element value must satisfy all validations: value must be between 1 and 65535.
+- `ports` (Set of Number) A port list allows you to define which service ports (e.g.: [80, 443] ) the HTTP security policy should match. Element value must satisfy all validations: value must be between 1 and 65535.
 
 
 <a id="nestedatt--policies--criteria--status_code"></a>

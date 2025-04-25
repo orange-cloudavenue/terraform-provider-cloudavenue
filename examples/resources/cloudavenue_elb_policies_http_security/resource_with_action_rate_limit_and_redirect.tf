@@ -15,9 +15,18 @@ resource "cloudavenue_elb_policies_http_security" "example" {
         }
       }
 
-      // Define the action to take when the criteria is met
+      // The action rate_limit can be set to limit the number of requests.
+      // The action redirect can be set to redirect the request on port 8443 when the rate limit is reached.
+      // Only one action can be set at a time
       actions = {
-        redirect_to_https = 443
+        rate_limit = {
+          count  = 1000
+          period = 60
+          redirect = {
+            port     = 8443
+            protocol = "HTTPS"
+          }
+        }
       }
     } // End policy 1
   ]   // End policies

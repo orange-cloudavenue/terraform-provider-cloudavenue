@@ -13,17 +13,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/k0kubun/pp/v3"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgeloadbalancer"
+	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
@@ -122,19 +117,17 @@ func (r *PoliciesHTTPSecurityResource) Create(ctx context.Context, req resource.
 	// Create the resource
 	resp.Diagnostics.Append(r.createOrUpdate(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Error creating policies http security", "Failed to create the resource")
 		return
 	}
 
 	// Use generic read function to refresh the state
 	state, found, d := r.read(ctx, plan)
 	if !found {
-		resp.Diagnostics.AddError("Resource not found", "The resource was not found after creation")
+		resp.Diagnostics.AddError("HTTP Security not found", "The resource was not found after creation")
 		return
 	}
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
-		resp.Diagnostics.AddError("Error reading policies http security", "Failed to read the resource after creation")
 		return
 	}
 
@@ -332,7 +325,7 @@ func (r *PoliciesHTTPSecurityResource) read(ctx context.Context, planOrState *Po
 					Logging: supertypes.NewBoolValue(v.Logging),
 					Criteria: func() supertypes.SingleNestedObjectValueOf[PoliciesHTTPSecurityMatchCriteria] {
 						return supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPSecurityMatchCriteria{
-							Protocol:       supertypes.NewStringValueOrNull(v.MatchCriteria.Protocol),
+							Protocol:       supertypes.NewStringValueOrNull(string(v.MatchCriteria.Protocol)),
 							Query:          supertypes.NewSetValueOfSlice(ctx, v.MatchCriteria.QueryMatch),
 							ClientIP:       policiesHTTPClientIPMatchFromSDK(ctx, v.MatchCriteria.ClientIPMatch),
 							ServicePorts:   policiesHTTPServicePortMatchFromSDK(ctx, v.MatchCriteria.ServicePortMatch),
@@ -344,7 +337,7 @@ func (r *PoliciesHTTPSecurityResource) read(ctx context.Context, planOrState *Po
 					}(),
 					Actions: func() supertypes.SingleNestedObjectValueOf[PoliciesHTTPSecurityActions] {
 						return supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPSecurityActions{
-							Connection: supertypes.NewStringValueOrNull(v.ConnectionAction),
+							Connection: supertypes.NewStringValueOrNull(string(v.ConnectionAction)),
 							RedirectToHTTPS: func() supertypes.Int64Value {
 								if v.RedirectToHTTPSAction != nil {
 									return supertypes.NewInt64Value(int64(*v.RedirectToHTTPSAction))
@@ -369,20 +362,15 @@ func (r *PoliciesHTTPSecurityResource) read(ctx context.Context, planOrState *Po
 }
 
 func (r *PoliciesHTTPSecurityResource) createOrUpdate(ctx context.Context, goPlan *PoliciesHTTPSecurityModel) (diags diag.Diagnostics) {
-	// TODO : NEED TO CHECK goplan and model
-	tflog.Info(ctx, pp.Sprintf("*****BEFORE: createOrUpdate policies http security: %v", goPlan))
 	model, d := goPlan.ToSDKPoliciesHTTPSecurityModel(ctx)
-	tflog.Info(ctx, pp.Sprintf("*****AFTER: createOrUpdate policies http security model: %v", model))
 	diags.Append(d...)
 	if diags.HasError() {
-		diags.AddError("TF Error updating policies http security", "Failed to convert to SDK model")
 		return
 	}
 
-	// TODO : Return error, suspect problem in model
 	_, err := r.elb.UpdatePoliciesHTTPSecurity(ctx, model)
 	if err != nil {
-		diags.AddError("SDK Error updating policies http security", err.Error())
+		diags.AddError("Error updating policies http security", err.Error())
 	}
 	return
 }

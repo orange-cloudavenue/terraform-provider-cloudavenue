@@ -1,0 +1,57 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "ELB (EdgeGateway Load Balancer)"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+{{ if .HasExample -}}
+## Example Usage
+
+{{ tffile .ExampleFile }}
+{{- end }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Advanced usages
+
+### With action connection
+
+This example shows how to create a HTTP security policy with an action connection.
+{{ tffile (printf "examples/resources/%s/resource_with_action_connection.tf" .Name)}}
+
+### With action redirect to https
+This example shows how to create a HTTP security policy with an action redirect.
+{{ tffile (printf "examples/resources/%s/resource_with_action_redirect_to_https.tf" .Name)}}
+
+### With action send response
+This example shows how to create a HTTP security policy with an action send response.
+{{ tffile (printf "examples/resources/%s/resource_with_action_send_response.tf" .Name)}}
+
+### With action rate limit and close
+This example shows how to create a HTTP security policy with an action rate limit and close.
+{{ tffile (printf "examples/resources/%s/resource_with_action_rate_limit_and_close.tf" .Name)}}
+
+### With action rate limit and redirect
+This example shows how to create a HTTP security policy with an action rate limit and redirect.
+{{ tffile (printf "examples/resources/%s/resource_with_action_rate_limit_and_redirect.tf" .Name)}}
+
+### With action rate limit and local response
+This example shows how to create a HTTP security policy with an action rate limit and local response.
+{{ tffile (printf "examples/resources/%s/resource_with_action_rate_limit_and_local_response.tf" .Name)}}
+
+### With multiple criterias
+This example shows how to create a HTTP security policy with multiple criterias.
+{{ tffile (printf "examples/resources/%s/resource_with_multi_criterias.tf" .Name)}}
+
+{{ if .HasImport -}}
+## Import
+
+Import is supported using the following syntax:
+{{ codefile "shell" .ImportFile }}
+{{- end }}
+

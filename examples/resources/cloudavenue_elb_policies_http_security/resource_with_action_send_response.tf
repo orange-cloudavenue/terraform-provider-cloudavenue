@@ -15,9 +15,15 @@ resource "cloudavenue_elb_policies_http_security" "example" {
         }
       }
 
-      // Define the action to take when the criteria is met
+      // The action send_response
+      // The send_response action can be used to send a custom response
+      // Only one action can be set at a time
       actions = {
-        redirect_to_https = 443
+        send_response = {
+          status_code  = 403
+          content      = base64("Access Denied")
+          content_type = "text/plain"
+        }
       }
     } // End policy 1
   ]   // End policies

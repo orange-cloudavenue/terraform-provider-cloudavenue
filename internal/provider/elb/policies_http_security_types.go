@@ -15,7 +15,6 @@ import (
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgeloadbalancer"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -43,7 +42,7 @@ type (
 		HTTPMethods    supertypes.SingleNestedObjectValueOf[PoliciesHTTPMethodMatch]      `tfsdk:"http_methods"`
 		Path           supertypes.SingleNestedObjectValueOf[PoliciesHTTPPathMatch]        `tfsdk:"path"`
 		Cookie         supertypes.SingleNestedObjectValueOf[PoliciesHTTPCookieMatch]      `tfsdk:"cookie"`
-		RequestHeaders supertypes.SetNestedObjectValueOf[PoliciesHTTPHeaderMatch]         `tfsdk:"security_headers"`
+		RequestHeaders supertypes.SetNestedObjectValueOf[PoliciesHTTPHeaderMatch]         `tfsdk:"request_headers"`
 		Query          supertypes.SetValueOf[string]                                      `tfsdk:"query"`
 	}
 
@@ -89,7 +88,7 @@ func (rm *PoliciesHTTPSecurityModel) ToSDKPoliciesHTTPSecurityModel(ctx context.
 
 				criteria := policy.Criteria.DiagsGet(ctx, diags)
 				return edgeloadbalancer.PoliciesHTTPSecurityMatchCriteria{
-					Protocol:         criteria.Protocol.Get(),
+					Protocol:         edgeloadbalancer.PoliciesHTTPProtocol(criteria.Protocol.Get()),
 					ClientIPMatch:    policiesHTTPClientIPMatchToSDK(ctx, diags, criteria.ClientIP),
 					ServicePortMatch: policiesHTTPServicePortMatchToSDK(ctx, diags, criteria.ServicePorts),
 					MethodMatch:      policiesHTTPMethodMatchToSDK(ctx, diags, criteria.HTTPMethods),
@@ -99,14 +98,9 @@ func (rm *PoliciesHTTPSecurityModel) ToSDKPoliciesHTTPSecurityModel(ctx context.
 					QueryMatch:       criteria.Query.DiagsGet(ctx, diags),
 				}
 			}(),
-			ConnectionAction: actions.Connection.Get(),
+			ConnectionAction: edgeloadbalancer.PoliciesHTTPConnectionAction(actions.Connection.Get()),
 
-			RedirectToHTTPSAction: func() *int {
-				if !actions.RedirectToHTTPS.IsKnown() {
-					return nil
-				}
-				return actions.RedirectToHTTPS.GetIntPtr()
-			}(),
+			RedirectToHTTPSAction: actions.RedirectToHTTPS.GetIntPtr(),
 
 			SendResponseAction: policiesHTTPActionSendResponseToSDK(ctx, diags, actions.SendResponse),
 			RateLimitAction:    policiesHTTPActionRateLimitToSDK(ctx, diags, actions.RateLimit),

@@ -15,9 +15,10 @@ resource "cloudavenue_elb_policies_http_security" "example" {
         }
       }
 
-      // Define the action to take when the criteria is met
+      // The action connection can be "ALLOW" or "CLOSE"
+      // Only one action can be set at a time
       actions = {
-        redirect_to_https = 443
+        connection = "ALLOW"
       }
     } // End policy 1
   ]   // End policies

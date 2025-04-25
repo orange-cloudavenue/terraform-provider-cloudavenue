@@ -15,7 +15,9 @@ resource "cloudavenue_elb_policies_http_security" "example" {
         }
       }
 
-      // Define the action to take when the criteria is met
+      // The action redirect_to_https must be a port number
+      // This action redirects the request to HTTPS on the specified port.
+      // Only one action can be set at a time
       actions = {
         redirect_to_https = 443
       }

@@ -21,7 +21,7 @@ import (
 var _ testsacc.TestACC = &ELBPoliciesHTTPSecurityDataSource{}
 
 const (
-	ELBPoliciesHTTPSecurityDataSourceName = testsacc.ResourceName("data.cloudavenue_elb_policies_http_request")
+	ELBPoliciesHTTPSecurityDataSourceName = testsacc.ResourceName("data.cloudavenue_elb_policies_http_security")
 )
 
 type ELBPoliciesHTTPSecurityDataSource struct{}
@@ -47,7 +47,7 @@ func (r *ELBPoliciesHTTPSecurityDataSource) Tests(ctx context.Context) map[tests
 			return testsacc.Test{
 				Create: testsacc.TFConfig{
 					TFConfig: `
-					data "cloudavenue_elb_policies_http_request" "example" {
+					data "cloudavenue_elb_policies_http_security" "example" {
 						virtual_service_id = cloudavenue_elb_virtual_service.example.id
 					}`,
 					// Here use resource config test to test the data source

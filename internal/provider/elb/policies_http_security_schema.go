@@ -29,20 +29,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	stringplanmodifier "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgeloadbalancer"
 )
 
 func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_elb_policies_http_security` resource allows you to manage HTTP security policies. HTTP security rules modify securitys before they are either forwarded to the application, used as a basis for content switching, or discarded.",
+			MarkdownDescription: "The `cloudavenue_elb_policies_http_security` resource allows you to manage HTTP security policies. HTTP security rules modify requests before they are either forwarded to the application, used as a basis for content switching, or discarded.",
 		},
 		DataSource: superschema.SchemaDetails{
 			MarkdownDescription: "The `cloudavenue_elb_policies_http_security` data source allows you to retrieve information about an existing HTTP security policies.",
@@ -58,6 +58,15 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the virtual service to which the policies http security belongs.",
 					Required:            true,
+					Validators: []validator.String{
+						fstringvalidator.Formats(
+							[]fstringvalidator.FormatsValidatorType{
+								fstringvalidator.FormatsIsURN,
+							},
+							false,
+						),
+						fstringvalidator.PrefixContains(string(urn.LoadBalancerVirtualService)),
+					},
 				},
 				Resource: &schemaR.StringAttribute{
 					PlanModifiers: []planmodifier.String{
@@ -78,7 +87,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 				Attributes: superschema.Attributes{
 					"name": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The name of the policy.",
+							MarkdownDescription: "Policy name, it must be unique within the virtual service's HTTP security policies.",
 						},
 						Resource: &schemaR.StringAttribute{
 							Required: true,
@@ -89,7 +98,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 					},
 					"active": superschema.SuperBoolAttribute{
 						Common: &schemaR.BoolAttribute{
-							MarkdownDescription: "Whether the policy is active or not.",
+							MarkdownDescription: "Whether the policy is enable or not.",
 							Computed:            true,
 						},
 						Resource: &schemaR.BoolAttribute{
@@ -109,7 +118,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 					},
 					"criteria": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPSecurityMatchCriteria]{
 						Common: &schemaR.SingleNestedAttribute{
-							MarkdownDescription: "Match criteria for the HTTP security.",
+							MarkdownDescription: "Match criteria for the HTTP security. The criteria is used to match the request and determine if the action should be applied.",
 						},
 						Resource: &schemaR.SingleNestedAttribute{
 							Required: true,
@@ -120,7 +129,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 						Attributes: superschema.Attributes{
 							"protocol": superschema.SuperStringAttribute{
 								Common: &schemaR.StringAttribute{
-									MarkdownDescription: "Protocol to match.",
+									MarkdownDescription: "Protocol to match. Only HTTP application layer protocol (OSI 7) are supported.",
 								},
 								Resource: &schemaR.StringAttribute{
 									Optional: true,
@@ -206,7 +215,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									},
 									"ports": superschema.SuperSetAttributeOf[int64]{
 										Common: &schemaR.SetAttribute{
-											MarkdownDescription: "Ports to match.",
+											MarkdownDescription: "A port list allows you to define which service ports (e.g.: [80, 443] ) the HTTP security policy should match.",
 										},
 										Resource: &schemaR.SetAttribute{
 											Required: true,
@@ -374,9 +383,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									},
 								},
 							}, // End cookie
-							"security_headers": superschema.SuperSetNestedAttributeOf[PoliciesHTTPHeaderMatch]{
+							"request_headers": superschema.SuperSetNestedAttributeOf[PoliciesHTTPHeaderMatch]{
 								Common: &schemaR.SetNestedAttribute{
-									MarkdownDescription: "Match the rule based on security headers rules.",
+									MarkdownDescription: "Match the rule based on request headers rules.",
 								},
 								Resource: &schemaR.SetNestedAttribute{
 									Optional: true,
@@ -417,6 +426,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 										},
 										Resource: &schemaR.SetAttribute{
 											Optional: true,
+											// ref: https://github.com/orange-cloudavenue/terraform-plugin-framework-validators/issues/71
 											// Validators: []validator.Set{
 											// 	fsetvalidator.NullIfAttributeIsOneOf(
 											// 		path.MatchRelative().AtParent().AtName("criteria"),
@@ -429,7 +439,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											// 		path.MatchRelative().AtParent().AtName("criteria"),
 											// 		func() []attr.Value {
 											// 			x := make([]attr.Value, 0)
-											// 			for _, v := range edgeloadbalancer.PoliciesHTTPSecurityHeaderMatchCriteriaString {
+											// 			for _, v := range edgeloadbalancer.PoliciesHTTPHeaderMatchCriteriaString {
 											// 				if v != string(edgeloadbalancer.PoliciesHTTPMatchCriteriaCriteriaEXISTS) && v != string(edgeloadbalancer.PoliciesHTTPMatchCriteriaCriteriaDOESNOTEXIST) {
 											// 					x = append(x, types.StringValue(v))
 											// 				}
@@ -472,29 +482,35 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 							"connection": superschema.SuperStringAttribute{
 								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "Connection action to perform.",
-									Computed:            true,
 								},
 								Resource: &schemaR.StringAttribute{
 									Optional: true,
 									Validators: []validator.String{
 										stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPConnectionActionsString...),
 										fstringvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect_to_https")),
+										fstringvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("send_response")),
+										fstringvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("rate_limit")),
 									},
-									Default: stringdefault.StaticString(string(edgeloadbalancer.PoliciesHTTPConnectionActionALLOW)),
+								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
 								},
 							},
 							"redirect_to_https": superschema.SuperInt64Attribute{
 								Common: &schemaR.Int64Attribute{
-									MarkdownDescription: "Redirect to HTTPS action.",
-									Computed:            true,
+									MarkdownDescription: "A port number, when set, configures the rule to redirect matching HTTP requests to HTTPS on the specified port.",
 								},
 								Resource: &schemaR.Int64Attribute{
 									Optional: true,
 									Validators: []validator.Int64{
 										int64validator.Between(1, 65535),
 										fintvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("connection")),
+										fintvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("send_response")),
+										fintvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("rate_limit")),
 									},
-									Default: int64default.StaticInt64(443),
+								},
+								DataSource: &schemaD.Int64Attribute{
+									Computed: true,
 								},
 							},
 							"send_response": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionSendResponse]{
@@ -506,6 +522,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									Validators: []validator.Object{
 										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect_to_https")),
 										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("connection")),
+										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("rate_limit")),
 									},
 								},
 								DataSource: &schemaD.SingleNestedAttribute{
@@ -520,7 +537,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 										Resource: &schemaR.Int64Attribute{
 											Optional: true,
 											Validators: []validator.Int64{
-												int64validator.OneOf(200, 204, 403, 404, 429, 501),
+												int64validator.OneOf(edgeloadbalancer.PoliciesHTTPActionResponseStatusCodes...),
 											},
 											Default: int64default.StaticInt64(200),
 										},
@@ -533,6 +550,12 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											Required: true,
 											Validators: []validator.String{
 												stringvalidator.LengthAtMost(10240),
+												fstringvalidator.Formats(
+													[]fstringvalidator.FormatsValidatorType{
+														fstringvalidator.FormatsIsBase64,
+													},
+													false,
+												),
 											},
 										},
 										DataSource: &schemaD.StringAttribute{
@@ -545,6 +568,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 										},
 										Resource: &schemaR.StringAttribute{
 											Required: true,
+											Validators: []validator.String{
+												stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPActionContentTypesString...),
+											},
 										},
 										DataSource: &schemaD.StringAttribute{
 											Computed: true,
@@ -554,7 +580,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 							},
 							"rate_limit": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionRateLimit]{
 								Common: &schemaR.SingleNestedAttribute{
-									MarkdownDescription: "Rate limit action.",
+									MarkdownDescription: "The rate_limit allows you to specify an action to take when the rate limit is reached. A rate limit defines the maximum number of requests permitted within a specific time frame.",
 								},
 								Resource: &schemaR.SingleNestedAttribute{
 									Optional: true,
@@ -578,7 +604,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											Validators: []validator.Int64{
 												int64validator.Between(1, 1000),
 											},
-											Default: int64default.StaticInt64(10),
+											Default: int64default.StaticInt64(100),
 										},
 									},
 									"period": superschema.SuperInt64Attribute{
@@ -594,16 +620,15 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											Default: int64default.StaticInt64(60),
 										},
 									},
-									// TODO : Add redirect action
 									"redirect": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionRedirect]{
 										Common: &schemaR.SingleNestedAttribute{
-											MarkdownDescription: "Redirects the request to different location.",
+											MarkdownDescription: "Redirects the request to different location when the rate limit is reached.",
 										},
 										Resource: &schemaR.SingleNestedAttribute{
-											Optional:   true,
+											Optional: true,
 											Validators: []validator.Object{
-												// objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("modify_headers")),
-												// objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("rewrite_url")),
+												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("local_response")),
+												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("close_connection")),
 											},
 										},
 										DataSource: &schemaD.SingleNestedAttribute{
@@ -678,7 +703,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 												Resource: &schemaR.Int64Attribute{
 													Optional: true,
 													Validators: []validator.Int64{
-														int64validator.OneOf(301, 302, 307),
+														int64validator.OneOf(edgeloadbalancer.PoliciesHTTPRedirectStatusCodes...),
 													},
 													Default: int64default.StaticInt64(302),
 												},
@@ -687,7 +712,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									}, // End redirect
 									"local_response": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionSendResponse]{
 										Common: &schemaR.SingleNestedAttribute{
-											MarkdownDescription: "Local response action.",
+											MarkdownDescription: "Local response action can be used to send a customized response when the rate limit is reached.",
 										},
 										Resource: &schemaR.SingleNestedAttribute{
 											Optional: true,
@@ -707,21 +732,28 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 												Resource: &schemaR.Int64Attribute{
 													Required: true,
 													Validators: []validator.Int64{
-														int64validator.OneOf(200, 204, 403, 404, 429, 501),
+														int64validator.OneOf(edgeloadbalancer.PoliciesHTTPActionResponseStatusCodes...),
 													},
 												},
 												DataSource: &schemaD.Int64Attribute{
 													Computed: true,
 												},
 											},
-											"body": superschema.SuperStringAttribute{
+											"content": superschema.SuperStringAttribute{
 												Common: &schemaR.StringAttribute{
-													MarkdownDescription: "Body of the response.",
+													MarkdownDescription: "Content of the response must be a base64 encoded string.",
 												},
 												Resource: &schemaR.StringAttribute{
-													Required: true,
+													MarkdownDescription: "Example: result of `echo -n 'Hello World' | base64` will be `SGVsbG8gV29ybGQ=`.",
+													Required:            true,
 													Validators: []validator.String{
 														stringvalidator.LengthAtMost(10240),
+														fstringvalidator.Formats(
+															[]fstringvalidator.FormatsValidatorType{
+																fstringvalidator.FormatsIsBase64,
+															},
+															false,
+														),
 													},
 												},
 												DataSource: &schemaD.StringAttribute{
@@ -734,6 +766,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 												},
 												Resource: &schemaR.StringAttribute{
 													Required: true,
+													Validators: []validator.String{
+														stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPActionContentTypesString...),
+													},
 												},
 												DataSource: &schemaD.StringAttribute{
 													Computed: true,
@@ -743,7 +778,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									}, // End local_response
 									"close_connection": superschema.SuperBoolAttribute{
 										Common: &schemaR.BoolAttribute{
-											MarkdownDescription: "Close connection action.",
+											MarkdownDescription: "Close connection when the rate limit is reached",
 										},
 										Resource: &schemaR.BoolAttribute{
 											Optional: true,

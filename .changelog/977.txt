@@ -2,6 +2,6 @@
 `resource/cloudavenue_elb_policies_http_security` - Add new resource to manage HTTP security policies for CloudAvenue ELB. HTTP security rules allow users to configure allowing or denying certain requests, to close the TCP connection, to redirect a request to HTTPS, or to apply a rate limit.
 ```
 
-```release-note:new-data-sourceelb_policies_http_req
+```release-note:new-data-source
 `datasource/cloudavenue_elb_policies_http_security` - Add new data source to retrieve HTTP security policies for CloudAvenue ELB.
 ```

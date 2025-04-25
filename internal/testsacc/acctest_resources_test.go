@@ -56,6 +56,7 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		ELBVirtualServiceResourceName:       testsacc.NewResourceConfig(NewELBVirtualServiceResourceTest()),
 		ELBPoliciesHTTPRequestResourceName:  testsacc.NewResourceConfig(NewELBPoliciesHTTPRequestResourceTest()),
 		ELBPoliciesHTTPResponseResourceName: testsacc.NewResourceConfig(NewELBPoliciesHTTPResponseResourceTest()),
+		ELBPoliciesHTTPSecurityResourceName: testsacc.NewResourceConfig(NewELBPoliciesHTTPSecurityResourceTest()),
 
 		// * Backup
 		BackupResourceName: testsacc.NewResourceConfig(NewBackupResourceTest()),

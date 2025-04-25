@@ -54,11 +54,11 @@ type (
 	}
 
 	PoliciesHTTPActionRateLimit struct {
-		Count           supertypes.Int64Value          `tfsdk:"count"`
-		Period          supertypes.Int64Value          `tfsdk:"period"`
-		Redirect        PoliciesHTTPActionRedirect     `tfsdk:"redirect"`
-		LocalResponse   PoliciesHTTPActionSendResponse `tfsdk:"local_response"`
-		CloseConnection supertypes.BoolValue           `tfsdk:"close_connection"`
+		Count           supertypes.Int64Value                                                `tfsdk:"count"`
+		Period          supertypes.Int64Value                                                `tfsdk:"period"`
+		Redirect        supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionRedirect]     `tfsdk:"redirect"`
+		LocalResponse   supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionSendResponse] `tfsdk:"local_response"`
+		CloseConnection supertypes.BoolValue                                                 `tfsdk:"close_connection"`
 	}
 )
 
@@ -274,29 +274,8 @@ func policiesHTTPActionRateLimitToSDK(ctx context.Context, diags diag.Diagnostic
 		Count:                 v.Count.GetInt(),
 		Period:                v.Period.GetInt(),
 		CloseConnectionAction: v.CloseConnection.GetPtr(),
-		RedirectAction: func() *edgeloadbalancer.PoliciesHTTPActionRedirect {
-			if !(v.Redirect).Port.IsKnown() {
-				return nil
-			}
-			return policiesHTTPActionRedirectToSDK(ctx, diags, supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPActionRedirect{
-				Host:       v.Redirect.Host,
-				KeepQuery:  v.Redirect.KeepQuery,
-				Path:       v.Redirect.Path,
-				Port:       v.Redirect.Port,
-				Protocol:   v.Redirect.Protocol,
-				StatusCode: v.Redirect.StatusCode,
-			}))
-		}(),
-		LocalResponseAction: func() *edgeloadbalancer.PoliciesHTTPActionSendResponse {
-			if !(v.LocalResponse).StatusCode.IsKnown() {
-				return nil
-			}
-			return policiesHTTPActionSendResponseToSDK(ctx, diags, supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPActionSendResponse{
-				StatusCode:  v.LocalResponse.StatusCode,
-				Content:     v.LocalResponse.Content,
-				ContentType: v.LocalResponse.ContentType,
-			}))
-		}(),
+		RedirectAction:        policiesHTTPActionRedirectToSDK(ctx, diags, v.Redirect),
+		LocalResponseAction:   policiesHTTPActionSendResponseToSDK(ctx, diags, v.LocalResponse),
 	}
 }
 
@@ -307,17 +286,10 @@ func policiesHTTPActionRateLimitFromSDK(ctx context.Context, v *edgeloadbalancer
 	}
 
 	return supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPActionRateLimit{
-		Count: func() supertypes.Int64Value {
-			return supertypes.NewInt64Value(int64(v.Count))
-		}(),
-		Period: func() supertypes.Int64Value {
-			return supertypes.NewInt64Value(int64(v.Period))
-		}(),
-		CloseConnection: func() supertypes.BoolValue {
-			if v.CloseConnectionAction != nil && *v.CloseConnectionAction {
-				return supertypes.NewBoolValue(true)
-			}
-			return supertypes.NewBoolNull()
-		}(),
+		Count:           supertypes.NewInt64Value(int64(v.Count)),
+		Period:          supertypes.NewInt64Value(int64(v.Period)),
+		CloseConnection: supertypes.NewBoolPointerValueOrNull(v.CloseConnectionAction),
+		Redirect:        policiesHTTPActionRedirectFromSDK(ctx, v.RedirectAction),
+		LocalResponse:   policiesHTTPActionSendResponseFromSDK(ctx, v.LocalResponseAction),
 	})
 }

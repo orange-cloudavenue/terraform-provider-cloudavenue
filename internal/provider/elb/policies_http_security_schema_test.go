@@ -13,14 +13,13 @@ import (
 	"context"
 	"testing"
 
-	// fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource".
 	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/elb"
 )
 
-// Unit test for the schema of the resource cloudavenue_elb_policies_http_request.
+// Unit test for the schema of the resource cloudavenue_elb_policies_http_security.
 func TestPoliciesHTTPSecurityResourceSchema(t *testing.T) {
 	t.Parallel()
 
@@ -42,7 +41,7 @@ func TestPoliciesHTTPSecurityResourceSchema(t *testing.T) {
 	}
 }
 
-// Unit test for the schema of the datasource cloudavenue_elb_policies_http_request
+// Unit test for the schema of the datasource cloudavenue_elb_policies_http_security
 
 func TestPoliciesHTTPSecurityDataSourceSchema(t *testing.T) {
 	t.Parallel()
