@@ -46,6 +46,20 @@ type (
 		Path      supertypes.StringValue `tfsdk:"path"`
 		KeepQuery supertypes.BoolValue   `tfsdk:"keep_query"`
 	}
+
+	PoliciesHTTPActionSendResponse struct {
+		StatusCode  supertypes.Int64Value  `tfsdk:"status_code"`
+		Content     supertypes.StringValue `tfsdk:"content"`
+		ContentType supertypes.StringValue `tfsdk:"content_type"`
+	}
+
+	PoliciesHTTPActionRateLimit struct {
+		Count           supertypes.Int64Value          `tfsdk:"count"`
+		Period          supertypes.Int64Value          `tfsdk:"period"`
+		Redirect        PoliciesHTTPActionRedirect     `tfsdk:"redirect"`
+		LocalResponse   PoliciesHTTPActionSendResponse `tfsdk:"local_response"`
+		CloseConnection supertypes.BoolValue           `tfsdk:"close_connection"`
+	}
 )
 
 // * ActionRedirect
@@ -209,5 +223,101 @@ func policiesHTTPActionLocationRewriteFromSDK(ctx context.Context, v *edgeloadba
 		}(),
 		Path:      supertypes.NewStringValueOrNull(v.Path),
 		KeepQuery: supertypes.NewBoolValue(v.KeepQuery),
+	})
+}
+
+// * ActionSendResponse
+// policiesHTTPActionSendResponseToSDK converts the terraform model to the SDK model.
+func policiesHTTPActionSendResponseToSDK(ctx context.Context, diags diag.Diagnostics, s supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionSendResponse]) *edgeloadbalancer.PoliciesHTTPActionSendResponse {
+	if !s.IsKnown() {
+		return nil
+	}
+
+	v := s.DiagsGet(ctx, diags)
+	if diags.HasError() {
+		return nil
+	}
+
+	return &edgeloadbalancer.PoliciesHTTPActionSendResponse{
+		StatusCode:  v.StatusCode.GetInt(),
+		Content:     v.Content.Get(),
+		ContentType: v.ContentType.Get(),
+	}
+}
+
+// policiesHTTPActionSendResponseFromSDK converts the SDK model to the terraform model.
+func policiesHTTPActionSendResponseFromSDK(ctx context.Context, v *edgeloadbalancer.PoliciesHTTPActionSendResponse) supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionSendResponse] {
+	if v == nil {
+		return supertypes.NewSingleNestedObjectValueOfNull[PoliciesHTTPActionSendResponse](ctx)
+	}
+
+	return supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPActionSendResponse{
+		StatusCode:  supertypes.NewInt64Value(int64(v.StatusCode)),
+		Content:     supertypes.NewStringValueOrNull(v.Content),
+		ContentType: supertypes.NewStringValueOrNull(v.ContentType),
+	})
+}
+
+// * ActionRateLimit
+// policiesHTTPActionRateLimitToSDK converts the terraform model to the SDK model.
+func policiesHTTPActionRateLimitToSDK(ctx context.Context, diags diag.Diagnostics, s supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionRateLimit]) *edgeloadbalancer.PoliciesHTTPActionRateLimit {
+	if !s.IsKnown() {
+		return nil
+	}
+
+	v := s.DiagsGet(ctx, diags)
+	if diags.HasError() {
+		return nil
+	}
+
+	return &edgeloadbalancer.PoliciesHTTPActionRateLimit{
+		Count:                 v.Count.GetInt(),
+		Period:                v.Period.GetInt(),
+		CloseConnectionAction: v.CloseConnection.GetPtr(),
+		RedirectAction: func() *edgeloadbalancer.PoliciesHTTPActionRedirect {
+			if !(v.Redirect).Port.IsKnown() {
+				return nil
+			}
+			return policiesHTTPActionRedirectToSDK(ctx, diags, supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPActionRedirect{
+				Host:       v.Redirect.Host,
+				KeepQuery:  v.Redirect.KeepQuery,
+				Path:       v.Redirect.Path,
+				Port:       v.Redirect.Port,
+				Protocol:   v.Redirect.Protocol,
+				StatusCode: v.Redirect.StatusCode,
+			}))
+		}(),
+		LocalResponseAction: func() *edgeloadbalancer.PoliciesHTTPActionSendResponse {
+			if !(v.LocalResponse).StatusCode.IsKnown() {
+				return nil
+			}
+			return policiesHTTPActionSendResponseToSDK(ctx, diags, supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPActionSendResponse{
+				StatusCode:  v.LocalResponse.StatusCode,
+				Content:     v.LocalResponse.Content,
+				ContentType: v.LocalResponse.ContentType,
+			}))
+		}(),
+	}
+}
+
+// policiesHTTPActionRateLimitFromSDK converts the SDK model to the terraform model.
+func policiesHTTPActionRateLimitFromSDK(ctx context.Context, v *edgeloadbalancer.PoliciesHTTPActionRateLimit) supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionRateLimit] {
+	if v == nil {
+		return supertypes.NewSingleNestedObjectValueOfNull[PoliciesHTTPActionRateLimit](ctx)
+	}
+
+	return supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPActionRateLimit{
+		Count: func() supertypes.Int64Value {
+			return supertypes.NewInt64Value(int64(v.Count))
+		}(),
+		Period: func() supertypes.Int64Value {
+			return supertypes.NewInt64Value(int64(v.Period))
+		}(),
+		CloseConnection: func() supertypes.BoolValue {
+			if v.CloseConnectionAction != nil && *v.CloseConnectionAction {
+				return supertypes.NewBoolValue(true)
+			}
+			return supertypes.NewBoolNull()
+		}(),
 	})
 }

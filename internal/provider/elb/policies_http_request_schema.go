@@ -390,7 +390,7 @@ func policiesHTTPRequestSchema(_ context.Context) superschema.Schema {
 										Resource: &schemaR.StringAttribute{
 											Required: true,
 											Validators: []validator.String{
-												stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPRequestHeaderMatchCriteriaString...),
+												stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPHeaderMatchCriteriaString...),
 											},
 										},
 										DataSource: &schemaD.StringAttribute{

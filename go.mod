@@ -19,6 +19,7 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.36.1
 	github.com/iancoleman/strcase v0.3.0
+	github.com/k0kubun/pp/v3 v3.4.1
 	github.com/madflojo/testcerts v1.4.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.25.0
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
@@ -121,3 +122,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
+
+replace github.com/orange-cloudavenue/cloudavenue-sdk-go => /Users/micheneaudavid/go/src/github.com/orange-cloudavenue/cloudavenue-sdk-go

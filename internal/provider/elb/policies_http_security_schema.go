@@ -13,6 +13,9 @@ import (
 	"context"
 
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
+	fboolvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/boolvalidator"
+	fintvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/int64validator"
+	"github.com/orange-cloudavenue/terraform-plugin-framework-validators/objectvalidator"
 	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -24,7 +27,9 @@ import (
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	stringplanmodifier "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -34,24 +39,24 @@ import (
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgeloadbalancer"
 )
 
-func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
+func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_elb_policies_http_response` resource allows you to manage HTTP response policies. HTTP response rules can be used to to evaluate and modify the response and response attributes that the application returns.",
+			MarkdownDescription: "The `cloudavenue_elb_policies_http_security` resource allows you to manage HTTP security policies. HTTP security rules modify securitys before they are either forwarded to the application, used as a basis for content switching, or discarded.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_elb_policies_http_response` data source allows you to retrieve information about an existing HTTP response policies.",
+			MarkdownDescription: "The `cloudavenue_elb_policies_http_security` data source allows you to retrieve information about an existing HTTP security policies.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					Computed:            true,
-					MarkdownDescription: "The ID of the policies http response.",
+					MarkdownDescription: "The ID of the policies http security.",
 				},
 			},
 			"virtual_service_id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the virtual service to which the policies http response belongs.",
+					MarkdownDescription: "The ID of the virtual service to which the policies http security belongs.",
 					Required:            true,
 				},
 				Resource: &schemaR.StringAttribute{
@@ -60,9 +65,9 @@ func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"policies": superschema.SuperListNestedAttributeOf[PoliciesHTTPResponseModelPolicies]{
+			"policies": superschema.SuperListNestedAttributeOf[PoliciesHTTPSecurityModelPolicies]{
 				Common: &schemaR.ListNestedAttribute{
-					MarkdownDescription: "HTTP response policies.",
+					MarkdownDescription: "HTTP security policies.",
 				},
 				Resource: &schemaR.ListNestedAttribute{
 					Required: true,
@@ -94,7 +99,7 @@ func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
 					},
 					"logging": superschema.SuperBoolAttribute{
 						Common: &schemaR.BoolAttribute{
-							MarkdownDescription: "Enable logging for this policy.",
+							MarkdownDescription: "Whether to enable logging with headers on rule match or not.",
 							Computed:            true,
 						},
 						Resource: &schemaR.BoolAttribute{
@@ -102,9 +107,9 @@ func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
 							Default:  booldefault.StaticBool(false),
 						},
 					},
-					"criteria": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPResponseMatchCriteria]{
+					"criteria": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPSecurityMatchCriteria]{
 						Common: &schemaR.SingleNestedAttribute{
-							MarkdownDescription: "Match criteria for the HTTP response.",
+							MarkdownDescription: "Match criteria for the HTTP security.",
 						},
 						Resource: &schemaR.SingleNestedAttribute{
 							Required: true,
@@ -369,47 +374,9 @@ func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
 									},
 								},
 							}, // End cookie
-							"location": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPLocationMatch]{
-								Common: &schemaR.SingleNestedAttribute{
-									MarkdownDescription: "Match the rule based on location rules.",
-								},
-								Resource: &schemaR.SingleNestedAttribute{
-									Optional: true,
-								},
-								DataSource: &schemaD.SingleNestedAttribute{
-									Computed: true,
-								},
-								Attributes: superschema.Attributes{
-									"criteria": superschema.SuperStringAttribute{
-										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Criteria to match.",
-										},
-										Resource: &schemaR.StringAttribute{
-											Required: true,
-											Validators: []validator.String{
-												stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPLocationMatchCriteriaString...),
-											},
-										},
-										DataSource: &schemaD.StringAttribute{
-											Computed: true,
-										},
-									},
-									"values": superschema.SuperSetAttributeOf[string]{
-										Common: &schemaR.SetAttribute{
-											MarkdownDescription: "A set of locations to match given criteria.",
-										},
-										Resource: &schemaR.SetAttribute{
-											Required: true,
-										},
-										DataSource: &schemaD.SetAttribute{
-											Computed: true,
-										},
-									},
-								},
-							}, // End location
-							"request_headers": superschema.SuperSetNestedAttributeOf[PoliciesHTTPHeaderMatch]{
+							"security_headers": superschema.SuperSetNestedAttributeOf[PoliciesHTTPHeaderMatch]{
 								Common: &schemaR.SetNestedAttribute{
-									MarkdownDescription: "Match the rule based on request headers rules.",
+									MarkdownDescription: "Match the rule based on security headers rules.",
 								},
 								Resource: &schemaR.SetNestedAttribute{
 									Optional: true,
@@ -425,6 +392,7 @@ func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
 										Resource: &schemaR.StringAttribute{
 											Required: true,
 											Validators: []validator.String{
+												// Use the same criteria as for HTTP headers Request
 												stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPHeaderMatchCriteriaString...),
 											},
 										},
@@ -461,7 +429,7 @@ func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
 											// 		path.MatchRelative().AtParent().AtName("criteria"),
 											// 		func() []attr.Value {
 											// 			x := make([]attr.Value, 0)
-											// 			for _, v := range edgeloadbalancer.PoliciesHTTPRequestHeaderMatchCriteriaString {
+											// 			for _, v := range edgeloadbalancer.PoliciesHTTPSecurityHeaderMatchCriteriaString {
 											// 				if v != string(edgeloadbalancer.PoliciesHTTPMatchCriteriaCriteriaEXISTS) && v != string(edgeloadbalancer.PoliciesHTTPMatchCriteriaCriteriaDOESNOTEXIST) {
 											// 					x = append(x, types.StringValue(v))
 											// 				}
@@ -476,77 +444,7 @@ func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
 										},
 									},
 								},
-							}, // End request_headers
-							"response_headers": superschema.SuperSetNestedAttributeOf[PoliciesHTTPHeaderMatch]{
-								Common: &schemaR.SetNestedAttribute{
-									MarkdownDescription: "Match the rule based on response headers rules.",
-								},
-								Resource: &schemaR.SetNestedAttribute{
-									Optional: true,
-								},
-								DataSource: &schemaD.SetNestedAttribute{
-									Computed: true,
-								},
-								Attributes: superschema.Attributes{
-									"criteria": superschema.SuperStringAttribute{
-										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Criteria to match.",
-										},
-										Resource: &schemaR.StringAttribute{
-											Required: true,
-											Validators: []validator.String{
-												stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPHeaderMatchCriteriaString...),
-											},
-										},
-										DataSource: &schemaD.StringAttribute{
-											Computed: true,
-										},
-									},
-									"name": superschema.SuperStringAttribute{
-										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Name of the HTTP header whose value is to be matched.",
-										},
-										Resource: &schemaR.StringAttribute{
-											Required: true,
-										},
-										DataSource: &schemaD.StringAttribute{
-											Computed: true,
-										},
-									},
-									"values": superschema.SuperSetAttributeOf[string]{
-										Common: &schemaR.SetAttribute{
-											MarkdownDescription: "Values of the HTTP header to match.",
-										},
-										Resource: &schemaR.SetAttribute{
-											Optional: true,
-											// Validators: []validator.Set{
-											// 	fsetvalidator.NullIfAttributeIsOneOf(
-											// 		path.MatchRelative().AtParent().AtName("criteria"),
-											// 		[]attr.Value{
-											// 			types.StringValue(string(edgeloadbalancer.PoliciesHTTPMatchCriteriaCriteriaEXISTS)),
-											// 			types.StringValue(string(edgeloadbalancer.PoliciesHTTPMatchCriteriaCriteriaDOESNOTEXIST)),
-											// 		},
-											// 	),
-											// 	fsetvalidator.RequireIfAttributeIsOneOf(
-											// 		path.MatchRelative().AtParent().AtName("criteria"),
-											// 		func() []attr.Value {
-											// 			x := make([]attr.Value, 0)
-											// 			for _, v := range edgeloadbalancer.PoliciesHTTPRequestHeaderMatchCriteriaString {
-											// 				if v != string(edgeloadbalancer.PoliciesHTTPMatchCriteriaCriteriaEXISTS) && v != string(edgeloadbalancer.PoliciesHTTPMatchCriteriaCriteriaDOESNOTEXIST) {
-											// 					x = append(x, types.StringValue(v))
-											// 				}
-											// 			}
-											// 			return x
-											// 		}(),
-											// 	),
-											// },
-										},
-										DataSource: &schemaD.SetAttribute{
-											Computed: true,
-										},
-									},
-								},
-							}, // End request_headers
+							}, // End security_headers
 							"query": superschema.SuperSetAttributeOf[string]{
 								Common: &schemaR.SetAttribute{
 									MarkdownDescription: "Text contained in the query string",
@@ -557,49 +455,10 @@ func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
 								DataSource: &schemaD.SetAttribute{
 									Computed: true,
 								},
-							}, // End query
-							"status_code": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPStatusCodeMatch]{
-								Common: &schemaR.SingleNestedAttribute{
-									MarkdownDescription: "Match the rule based on response HTTP status code.",
-								},
-								Resource: &schemaR.SingleNestedAttribute{
-									Optional: true,
-								},
-								DataSource: &schemaD.SingleNestedAttribute{
-									Computed: true,
-								},
-								Attributes: superschema.Attributes{
-									"criteria": superschema.SuperStringAttribute{
-										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Criteria to match.",
-										},
-										Resource: &schemaR.StringAttribute{
-											Required: true,
-											Validators: []validator.String{
-												stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPStatusCodeMatchCriteriaString...),
-											},
-										},
-										DataSource: &schemaD.StringAttribute{
-											Computed: true,
-										},
-									},
-									"codes": superschema.SuperSetAttributeOf[string]{
-										Common: &schemaR.SetAttribute{
-											MarkdownDescription: "HTTP Status codes or range to match. (Example: `200` or `301-304`) Warning: all ports must have valid HTTP return codes. `200-299` are invalid range because they are not a valid HTTP status code.",
-										},
-										Resource: &schemaR.SetAttribute{
-											Required: true,
-											// TODO add http status code
-										},
-										DataSource: &schemaD.SetAttribute{
-											Computed: true,
-										},
-									},
-								},
-							}, // End status_code
+							},
 						},
 					}, // End criteria
-					"actions": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPResponseActions]{
+					"actions": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPSecurityActions]{
 						Common: &schemaR.SingleNestedAttribute{
 							MarkdownDescription: "Actions to perform when the rule matches.",
 						},
@@ -610,154 +469,295 @@ func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 						Attributes: superschema.Attributes{
-							"location_rewrite": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionLocationRewrite]{
+							"connection": superschema.SuperStringAttribute{
+								Common: &schemaR.StringAttribute{
+									MarkdownDescription: "Connection action to perform.",
+									Computed:            true,
+								},
+								Resource: &schemaR.StringAttribute{
+									Optional: true,
+									Validators: []validator.String{
+										stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPConnectionActionsString...),
+										fstringvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect_to_https")),
+									},
+									Default: stringdefault.StaticString(string(edgeloadbalancer.PoliciesHTTPConnectionActionALLOW)),
+								},
+							},
+							"redirect_to_https": superschema.SuperInt64Attribute{
+								Common: &schemaR.Int64Attribute{
+									MarkdownDescription: "Redirect to HTTPS action.",
+									Computed:            true,
+								},
+								Resource: &schemaR.Int64Attribute{
+									Optional: true,
+									Validators: []validator.Int64{
+										int64validator.Between(1, 65535),
+										fintvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("connection")),
+									},
+									Default: int64default.StaticInt64(443),
+								},
+							},
+							"send_response": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionSendResponse]{
 								Common: &schemaR.SingleNestedAttribute{
-									MarkdownDescription: "Redirects the request to different location.",
+									MarkdownDescription: "Send a customized response.",
 								},
 								Resource: &schemaR.SingleNestedAttribute{
 									Optional: true,
-									// Validators: []validator.Object{
-									// 	objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("modify_headers")),
-									// },
+									Validators: []validator.Object{
+										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect_to_https")),
+										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("connection")),
+									},
 								},
 								DataSource: &schemaD.SingleNestedAttribute{
 									Computed: true,
 								},
 								Attributes: superschema.Attributes{
-									"host": superschema.SuperStringAttribute{
-										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Host to which redirect the request. Default is the original host",
-										},
-										Resource: &schemaR.StringAttribute{
-											Optional: true,
-										},
-										DataSource: &schemaD.StringAttribute{
-											Computed: true,
-										},
-									},
-									"keep_query": superschema.SuperBoolAttribute{
-										Common: &schemaR.BoolAttribute{
-											MarkdownDescription: "Keep or drop the query of the incoming request URI in the redirected URI",
+									"status_code": superschema.SuperInt64Attribute{
+										Common: &schemaR.Int64Attribute{
+											MarkdownDescription: "HTTP status code to return.",
 											Computed:            true,
 										},
-										Resource: &schemaR.BoolAttribute{
-											Optional: true,
-											Default:  booldefault.StaticBool(true),
-										},
-									},
-									"path": superschema.SuperStringAttribute{
-										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Path to which redirect the request. Default is the original path",
-										},
-										Resource: &schemaR.StringAttribute{
-											Optional: true,
-										},
-										DataSource: &schemaD.StringAttribute{
-											Computed: true,
-										},
-									},
-									"port": superschema.SuperInt64Attribute{
-										Common: &schemaR.Int64Attribute{
-											MarkdownDescription: "Port to which redirect the request.",
-										},
 										Resource: &schemaR.Int64Attribute{
-											Required: true,
+											Optional: true,
 											Validators: []validator.Int64{
-												int64validator.Between(1, 65535),
+												int64validator.OneOf(200, 204, 403, 404, 429, 501),
 											},
-										},
-										DataSource: &schemaD.Int64Attribute{
-											Computed: true,
+											Default: int64default.StaticInt64(200),
 										},
 									},
-									"protocol": superschema.SuperStringAttribute{
+									"content": superschema.SuperStringAttribute{
 										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "HTTP protocol",
+											MarkdownDescription: "Content of the response.",
 										},
 										Resource: &schemaR.StringAttribute{
 											Required: true,
 											Validators: []validator.String{
-												stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPProtocolsString...),
+												stringvalidator.LengthAtMost(10240),
 											},
 										},
 										DataSource: &schemaD.StringAttribute{
 											Computed: true,
 										},
 									},
+									"content_type": superschema.SuperStringAttribute{
+										Common: &schemaR.StringAttribute{
+											MarkdownDescription: "Mime type of content.",
+										},
+										Resource: &schemaR.StringAttribute{
+											Required: true,
+										},
+										DataSource: &schemaD.StringAttribute{
+											Computed: true,
+										},
+									},
 								},
-							}, // End redirect
-							"modify_headers": superschema.SuperSetNestedAttributeOf[PoliciesHTTPActionHeaderRewrite]{
-								Common: &schemaR.SetNestedAttribute{
-									MarkdownDescription: "Modify HTTP request headers.",
+							},
+							"rate_limit": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionRateLimit]{
+								Common: &schemaR.SingleNestedAttribute{
+									MarkdownDescription: "Rate limit action.",
 								},
-								Resource: &schemaR.SetNestedAttribute{
+								Resource: &schemaR.SingleNestedAttribute{
 									Optional: true,
-									// Validators: []validator.Set{
-									// 	setvalidator.SizeAtMost(10),
-									// 	fsetvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect")),
-									// },
+									Validators: []validator.Object{
+										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect_to_https")),
+										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("connection")),
+										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("send_response")),
+									},
 								},
-								DataSource: &schemaD.SetNestedAttribute{
+								DataSource: &schemaD.SingleNestedAttribute{
 									Computed: true,
 								},
 								Attributes: superschema.Attributes{
-									"action": superschema.SuperStringAttribute{
-										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Action to perform on the header.",
+									"count": superschema.SuperInt64Attribute{
+										Common: &schemaR.Int64Attribute{
+											MarkdownDescription: "Number of requests.",
+											Computed:            true,
 										},
-										Resource: &schemaR.StringAttribute{
-											Required: true,
-											Validators: []validator.String{
-												stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPActionHeaderRewriteActionsString...),
-											},
-										},
-										DataSource: &schemaD.StringAttribute{
-											Computed: true,
-										},
-									},
-									"name": superschema.SuperStringAttribute{
-										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Name of the HTTP header to modify.",
-										},
-										Resource: &schemaR.StringAttribute{
-											Required: true,
-											Validators: []validator.String{
-												stringvalidator.LengthAtMost(128),
-											},
-										},
-										DataSource: &schemaD.StringAttribute{
-											Computed: true,
-										},
-									},
-									"value": superschema.SuperStringAttribute{
-										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Value of the HTTP header to modify.",
-										},
-										Resource: &schemaR.StringAttribute{
+										Resource: &schemaR.Int64Attribute{
 											Optional: true,
-											Validators: []validator.String{
-												// fstringvalidator.RequireIfAttributeIsOneOf(
-												// 	path.MatchRelative().AtParent().AtName("action"),
-												// 	[]attr.Value{
-												// 		types.StringValue(string(edgeloadbalancer.PoliciesHTTPActionHeaderRewriteActionADD)),
-												// 		types.StringValue(string(edgeloadbalancer.PoliciesHTTPActionHeaderRewriteActionREPLACE)),
-												// 	},
-												// ),
-												// fstringvalidator.NullIfAttributeIsOneOf(
-												// 	path.MatchRelative().AtParent().AtName("action"),
-												// 	[]attr.Value{
-												// 		types.StringValue(string(edgeloadbalancer.PoliciesHTTPActionHeaderRewriteActionREMOVE)),
-												// 	},
-												// ),
-												stringvalidator.LengthAtMost(128),
+											Validators: []validator.Int64{
+												int64validator.Between(1, 1000),
+											},
+											Default: int64default.StaticInt64(10),
+										},
+									},
+									"period": superschema.SuperInt64Attribute{
+										Common: &schemaR.Int64Attribute{
+											MarkdownDescription: "Period in seconds.",
+											Computed:            true,
+										},
+										Resource: &schemaR.Int64Attribute{
+											Optional: true,
+											Validators: []validator.Int64{
+												int64validator.Between(1, 1000000000),
+											},
+											Default: int64default.StaticInt64(60),
+										},
+									},
+									// TODO : Add redirect action
+									"redirect": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionRedirect]{
+										Common: &schemaR.SingleNestedAttribute{
+											MarkdownDescription: "Redirects the request to different location.",
+										},
+										Resource: &schemaR.SingleNestedAttribute{
+											Optional:   true,
+											Validators: []validator.Object{
+												// objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("modify_headers")),
+												// objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("rewrite_url")),
 											},
 										},
-										DataSource: &schemaD.StringAttribute{
+										DataSource: &schemaD.SingleNestedAttribute{
+											Computed: true,
+										},
+										Attributes: superschema.Attributes{
+											"host": superschema.SuperStringAttribute{
+												Common: &schemaR.StringAttribute{
+													MarkdownDescription: "Host to which redirect the request. Default is the original host",
+												},
+												Resource: &schemaR.StringAttribute{
+													Optional: true,
+												},
+												DataSource: &schemaD.StringAttribute{
+													Computed: true,
+												},
+											},
+											"keep_query": superschema.SuperBoolAttribute{
+												Common: &schemaR.BoolAttribute{
+													MarkdownDescription: "Keep or drop the query of the incoming request URI in the redirected URI",
+													Computed:            true,
+												},
+												Resource: &schemaR.BoolAttribute{
+													Optional: true,
+													Default:  booldefault.StaticBool(true),
+												},
+											},
+											"path": superschema.SuperStringAttribute{
+												Common: &schemaR.StringAttribute{
+													MarkdownDescription: "Path to which redirect the request. Default is the original path",
+												},
+												Resource: &schemaR.StringAttribute{
+													Optional: true,
+												},
+												DataSource: &schemaD.StringAttribute{
+													Computed: true,
+												},
+											},
+											"port": superschema.SuperInt64Attribute{
+												Common: &schemaR.Int64Attribute{
+													MarkdownDescription: "Port to which redirect the request.",
+												},
+												Resource: &schemaR.Int64Attribute{
+													Required: true,
+													Validators: []validator.Int64{
+														int64validator.Between(1, 65535),
+													},
+												},
+												DataSource: &schemaD.Int64Attribute{
+													Computed: true,
+												},
+											},
+											"protocol": superschema.SuperStringAttribute{
+												Common: &schemaR.StringAttribute{
+													MarkdownDescription: "HTTP protocol",
+												},
+												Resource: &schemaR.StringAttribute{
+													Required: true,
+													Validators: []validator.String{
+														stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPProtocolsString...),
+													},
+												},
+												DataSource: &schemaD.StringAttribute{
+													Computed: true,
+												},
+											},
+											"status_code": superschema.SuperInt64Attribute{
+												Common: &schemaR.Int64Attribute{
+													MarkdownDescription: "Redirect status code",
+													Computed:            true,
+												},
+												Resource: &schemaR.Int64Attribute{
+													Optional: true,
+													Validators: []validator.Int64{
+														int64validator.OneOf(301, 302, 307),
+													},
+													Default: int64default.StaticInt64(302),
+												},
+											},
+										},
+									}, // End redirect
+									"local_response": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionSendResponse]{
+										Common: &schemaR.SingleNestedAttribute{
+											MarkdownDescription: "Local response action.",
+										},
+										Resource: &schemaR.SingleNestedAttribute{
+											Optional: true,
+											Validators: []validator.Object{
+												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect")),
+												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("close_connection")),
+											},
+										},
+										DataSource: &schemaD.SingleNestedAttribute{
+											Computed: true,
+										},
+										Attributes: superschema.Attributes{
+											"status_code": superschema.SuperInt64Attribute{
+												Common: &schemaR.Int64Attribute{
+													MarkdownDescription: "HTTP status code to return.",
+												},
+												Resource: &schemaR.Int64Attribute{
+													Required: true,
+													Validators: []validator.Int64{
+														int64validator.OneOf(200, 204, 403, 404, 429, 501),
+													},
+												},
+												DataSource: &schemaD.Int64Attribute{
+													Computed: true,
+												},
+											},
+											"body": superschema.SuperStringAttribute{
+												Common: &schemaR.StringAttribute{
+													MarkdownDescription: "Body of the response.",
+												},
+												Resource: &schemaR.StringAttribute{
+													Required: true,
+													Validators: []validator.String{
+														stringvalidator.LengthAtMost(10240),
+													},
+												},
+												DataSource: &schemaD.StringAttribute{
+													Computed: true,
+												},
+											},
+											"content_type": superschema.SuperStringAttribute{
+												Common: &schemaR.StringAttribute{
+													MarkdownDescription: "Mime type of content.",
+												},
+												Resource: &schemaR.StringAttribute{
+													Required: true,
+												},
+												DataSource: &schemaD.StringAttribute{
+													Computed: true,
+												},
+											},
+										},
+									}, // End local_response
+									"close_connection": superschema.SuperBoolAttribute{
+										Common: &schemaR.BoolAttribute{
+											MarkdownDescription: "Close connection action.",
+										},
+										Resource: &schemaR.BoolAttribute{
+											Optional: true,
+											Validators: []validator.Bool{
+												fboolvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect")),
+												fboolvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("local_response")),
+											},
+										},
+										DataSource: &schemaD.BoolAttribute{
 											Computed: true,
 										},
 									},
 								},
-							}, // End modify_headers
+							}, // End rate_limit
 						},
 					}, // End actions
 				},
