@@ -104,7 +104,6 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		vm.NewDisksDataSource,
 
 		// * NETWORK
-		network.NewNetworkIsolatedDataSource,
 		network.NewNetworkRoutedDataSource,
 		network.NewDhcpDataSource,
 		network.NewDhcpBindingDataSource,
