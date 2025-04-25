@@ -1,4 +1,7 @@
 ## 0.32.0 (Unreleased)
+### :rotating_light: **Breaking Changes**
+
+* `cloudavenue_network_isolated` - Announced in the release [v0.24.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.24.0) the resource and the datasource `cloudavenue_network_isolated` are now removed. The resource and the datasource `cloudavenue_network_isolated` are replaced by `cloudavenue_vdc_network_isolated` or `cloudavenue_vdcg_network_isolated`. (GH-880)
 
 ### :rocket: **New Features**
 
