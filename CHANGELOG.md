@@ -1,4 +1,5 @@
-## 0.32.0 (Unreleased)
+## 0.33.0 (Unreleased)
+## 0.32.0 (April 25, 2025)
 ### :rotating_light: **Breaking Changes**
 
 * `cloudavenue_edgegateway` - Announced in the release [v0.24.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.24.0) the attribute `owner_type` for resource/datasource `cloudavenue_edgegateway` and datasource `cloudavenue_edgegateways`, are now removed. (GH-952)
