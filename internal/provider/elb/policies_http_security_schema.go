@@ -29,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	stringplanmodifier "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -89,7 +88,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 					},
 					"active": superschema.SuperBoolAttribute{
 						Common: &schemaR.BoolAttribute{
-							MarkdownDescription: "Whether the policy is active or not.",
+							MarkdownDescription: "Whether the policy is enable or not.",
 							Computed:            true,
 						},
 						Resource: &schemaR.BoolAttribute{
@@ -109,7 +108,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 					},
 					"criteria": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPSecurityMatchCriteria]{
 						Common: &schemaR.SingleNestedAttribute{
-							MarkdownDescription: "Match criteria for the HTTP security.",
+							MarkdownDescription: "Match criteria for the HTTP security. The criteria is used to match the request and determine if the action should be applied.",
 						},
 						Resource: &schemaR.SingleNestedAttribute{
 							Required: true,
@@ -120,7 +119,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 						Attributes: superschema.Attributes{
 							"protocol": superschema.SuperStringAttribute{
 								Common: &schemaR.StringAttribute{
-									MarkdownDescription: "Protocol to match.",
+									MarkdownDescription: "Protocol to match. Only HTTP application layer protocol (OSI 7) are supported.",
 								},
 								Resource: &schemaR.StringAttribute{
 									Optional: true,
@@ -374,9 +373,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									},
 								},
 							}, // End cookie
-							"security_headers": superschema.SuperSetNestedAttributeOf[PoliciesHTTPHeaderMatch]{
+							"request_headers": superschema.SuperSetNestedAttributeOf[PoliciesHTTPHeaderMatch]{
 								Common: &schemaR.SetNestedAttribute{
-									MarkdownDescription: "Match the rule based on security headers rules.",
+									MarkdownDescription: "Match the rule based on request headers rules.",
 								},
 								Resource: &schemaR.SetNestedAttribute{
 									Optional: true,
@@ -472,29 +471,35 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 							"connection": superschema.SuperStringAttribute{
 								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "Connection action to perform.",
-									Computed:            true,
 								},
 								Resource: &schemaR.StringAttribute{
 									Optional: true,
 									Validators: []validator.String{
 										stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPConnectionActionsString...),
 										fstringvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect_to_https")),
+										fstringvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("send_response")),
+										fstringvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("rate_limit")),
 									},
-									Default: stringdefault.StaticString(string(edgeloadbalancer.PoliciesHTTPConnectionActionALLOW)),
+								},
+								DataSource: &schemaD.StringAttribute{
+									Computed: true,
 								},
 							},
 							"redirect_to_https": superschema.SuperInt64Attribute{
 								Common: &schemaR.Int64Attribute{
 									MarkdownDescription: "Redirect to HTTPS action.",
-									Computed:            true,
 								},
 								Resource: &schemaR.Int64Attribute{
 									Optional: true,
 									Validators: []validator.Int64{
 										int64validator.Between(1, 65535),
 										fintvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("connection")),
+										fintvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("send_response")),
+										fintvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("rate_limit")),
 									},
-									Default: int64default.StaticInt64(443),
+								},
+								DataSource: &schemaD.Int64Attribute{
+									Computed: true,
 								},
 							},
 							"send_response": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionSendResponse]{
@@ -506,6 +511,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									Validators: []validator.Object{
 										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect_to_https")),
 										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("connection")),
+										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("rate_limit")),
 									},
 								},
 								DataSource: &schemaD.SingleNestedAttribute{
@@ -533,6 +539,12 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											Required: true,
 											Validators: []validator.String{
 												stringvalidator.LengthAtMost(10240),
+												fstringvalidator.Formats(
+													[]fstringvalidator.FormatsValidatorType{
+														fstringvalidator.FormatsIsBase64,
+													},
+													false,
+												),
 											},
 										},
 										DataSource: &schemaD.StringAttribute{
@@ -545,6 +557,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 										},
 										Resource: &schemaR.StringAttribute{
 											Required: true,
+											Validators: []validator.String{
+												stringvalidator.OneOf("application/json", "text/html", "text/plain"),
+											},
 										},
 										DataSource: &schemaD.StringAttribute{
 											Computed: true,
@@ -554,7 +569,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 							},
 							"rate_limit": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionRateLimit]{
 								Common: &schemaR.SingleNestedAttribute{
-									MarkdownDescription: "Rate limit action.",
+									MarkdownDescription: "The rate_limit can be set an action when the rate limit is reached. A rate limit is a limit on the number of requests that can be made in a given time period.",
 								},
 								Resource: &schemaR.SingleNestedAttribute{
 									Optional: true,
@@ -594,16 +609,15 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											Default: int64default.StaticInt64(60),
 										},
 									},
-									// TODO : Add redirect action
 									"redirect": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionRedirect]{
 										Common: &schemaR.SingleNestedAttribute{
-											MarkdownDescription: "Redirects the request to different location.",
+											MarkdownDescription: "Redirects the request to different location when the rate limit is reached.",
 										},
 										Resource: &schemaR.SingleNestedAttribute{
-											Optional:   true,
+											Optional: true,
 											Validators: []validator.Object{
-												// objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("modify_headers")),
-												// objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("rewrite_url")),
+												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("local_response")),
+												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("close_connection")),
 											},
 										},
 										DataSource: &schemaD.SingleNestedAttribute{
@@ -687,7 +701,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									}, // End redirect
 									"local_response": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionSendResponse]{
 										Common: &schemaR.SingleNestedAttribute{
-											MarkdownDescription: "Local response action.",
+											MarkdownDescription: "Local response action can be used to send a customized response when the rate limit is reached.",
 										},
 										Resource: &schemaR.SingleNestedAttribute{
 											Optional: true,
@@ -714,14 +728,20 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 													Computed: true,
 												},
 											},
-											"body": superschema.SuperStringAttribute{
+											"content": superschema.SuperStringAttribute{
 												Common: &schemaR.StringAttribute{
-													MarkdownDescription: "Body of the response.",
+													MarkdownDescription: "Content of the response must be a base64 encoded string. IE: result of `echo -n 'Hello World' | base64` will be `SGVsbG8gV29ybGQ=`.",
 												},
 												Resource: &schemaR.StringAttribute{
 													Required: true,
 													Validators: []validator.String{
 														stringvalidator.LengthAtMost(10240),
+														fstringvalidator.Formats(
+															[]fstringvalidator.FormatsValidatorType{
+																fstringvalidator.FormatsIsBase64,
+															},
+															false,
+														),
 													},
 												},
 												DataSource: &schemaD.StringAttribute{
@@ -734,6 +754,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 												},
 												Resource: &schemaR.StringAttribute{
 													Required: true,
+													Validators: []validator.String{
+														stringvalidator.OneOf("application/json", "text/html", "text/plain"),
+													},
 												},
 												DataSource: &schemaD.StringAttribute{
 													Computed: true,
@@ -743,7 +766,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									}, // End local_response
 									"close_connection": superschema.SuperBoolAttribute{
 										Common: &schemaR.BoolAttribute{
-											MarkdownDescription: "Close connection action.",
+											MarkdownDescription: "Close connection when the rate limit is reached",
 										},
 										Resource: &schemaR.BoolAttribute{
 											Optional: true,
