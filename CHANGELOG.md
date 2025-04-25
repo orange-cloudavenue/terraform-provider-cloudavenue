@@ -22,6 +22,7 @@
 ### :dependabot: **Dependencies**
 
 * deps: bumps github.com/aws/aws-sdk-go from 1.55.6 to 1.55.7 (GH-1068)
+* deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-supertypes from 1.1.1 to 1.2.0 (GH-1062)
 * deps: bumps golang.org/x/net from 0.37.0 to 0.38.0 (GH-1048)
 * deps: bumps golang.org/x/net from 0.38.0 to 0.39.0 (GH-1055)
 
