@@ -40,6 +40,7 @@ jobs:
       CLOUDAVENUE_VDC: ${{ secrets.CLOUDAVENUE_VDC }}
   tag:
     needs: [golang-ci-lint, tests]
+
     name: Tag
     uses: orange-cloudavenue/workflows/.github/workflows/tag_create-tag.yml@main
     with:
