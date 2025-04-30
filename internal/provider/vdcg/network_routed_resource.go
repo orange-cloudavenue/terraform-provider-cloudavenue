@@ -24,6 +24,7 @@ import (
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
@@ -386,17 +387,21 @@ func (r *NetworkRoutedResource) read(ctx context.Context, planOrState *NetworkRo
 	stateRefreshed.DNSSuffix.Set(net.Subnet.DNSSuffix)
 	stateRefreshed.GuestVLANAllowed.SetPtr(net.GuestVLANTaggingAllowed)
 
-	x := []*NetworkRoutedModelStaticIPPool{}
-	for _, ipRange := range net.Subnet.IPRanges {
-		x = append(x, &NetworkRoutedModelStaticIPPool{
-			StartAddress: supertypes.NewStringValueOrNull(ipRange.StartAddress),
-			EndAddress:   supertypes.NewStringValueOrNull(ipRange.EndAddress),
-		})
-	}
+	if len(net.Subnet.IPRanges) == 0 {
+		stateRefreshed.StaticIPPool.SetNull(ctx)
+	} else {
+		x := []*NetworkRoutedModelStaticIPPool{}
+		for _, ipRange := range net.Subnet.IPRanges {
+			x = append(x, &NetworkRoutedModelStaticIPPool{
+				StartAddress: supertypes.NewStringValueOrNull(ipRange.StartAddress),
+				EndAddress:   supertypes.NewStringValueOrNull(ipRange.EndAddress),
+			})
+		}
 
-	diags.Append(stateRefreshed.StaticIPPool.Set(ctx, x)...)
-	if diags.HasError() {
-		return nil, true, diags
+		diags.Append(stateRefreshed.StaticIPPool.Set(ctx, x)...)
+		if diags.HasError() {
+			return nil, true, diags
+		}
 	}
 
 	return stateRefreshed, true, nil
