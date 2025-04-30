@@ -11,6 +11,7 @@ package elb
 
 import (
 	"context"
+	"encoding/base64"
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
@@ -45,6 +46,20 @@ type (
 		Port      supertypes.Int64Value  `tfsdk:"port"`
 		Path      supertypes.StringValue `tfsdk:"path"`
 		KeepQuery supertypes.BoolValue   `tfsdk:"keep_query"`
+	}
+
+	PoliciesHTTPActionSendResponse struct {
+		StatusCode  supertypes.Int64Value  `tfsdk:"status_code"`
+		Content     supertypes.StringValue `tfsdk:"content"`
+		ContentType supertypes.StringValue `tfsdk:"content_type"`
+	}
+
+	PoliciesHTTPActionRateLimit struct {
+		Count           supertypes.Int64Value                                                `tfsdk:"count"`
+		Period          supertypes.Int64Value                                                `tfsdk:"period"`
+		Redirect        supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionRedirect]     `tfsdk:"redirect"`
+		LocalResponse   supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionSendResponse] `tfsdk:"local_response"`
+		CloseConnection supertypes.BoolValue                                                 `tfsdk:"close_connection"`
 	}
 )
 
@@ -209,5 +224,106 @@ func policiesHTTPActionLocationRewriteFromSDK(ctx context.Context, v *edgeloadba
 		}(),
 		Path:      supertypes.NewStringValueOrNull(v.Path),
 		KeepQuery: supertypes.NewBoolValue(v.KeepQuery),
+	})
+}
+
+// * ActionSendResponse
+// policiesHTTPActionSendResponseToSDK converts the terraform model to the SDK model.
+func policiesHTTPActionSendResponseToSDK(ctx context.Context, diags diag.Diagnostics, s supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionSendResponse]) *edgeloadbalancer.PoliciesHTTPActionSendResponse {
+	if !s.IsKnown() {
+		return nil
+	}
+
+	v := s.DiagsGet(ctx, diags)
+	if diags.HasError() {
+		return nil
+	}
+
+	return &edgeloadbalancer.PoliciesHTTPActionSendResponse{
+		StatusCode: v.StatusCode.GetInt(),
+		// check if content is base64 encoded
+		Content: func() string {
+			_, err := base64.StdEncoding.DecodeString(v.Content.Get())
+			if err != nil {
+				panic(err)
+			}
+			return v.Content.Get()
+		}(),
+		// Content:     v.Content.Get(),
+		ContentType: v.ContentType.Get(),
+	}
+}
+
+// policiesHTTPActionSendResponseFromSDK converts the SDK model to the terraform model.
+func policiesHTTPActionSendResponseFromSDK(ctx context.Context, v *edgeloadbalancer.PoliciesHTTPActionSendResponse) supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionSendResponse] {
+	if v == nil {
+		return supertypes.NewSingleNestedObjectValueOfNull[PoliciesHTTPActionSendResponse](ctx)
+	}
+
+	return supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPActionSendResponse{
+		StatusCode: supertypes.NewInt64Value(int64(v.StatusCode)),
+		// Content:     supertypes.NewStringValueOrNull(v.Content),
+		// check if content is base64 encoded
+		Content: func() supertypes.StringValue {
+			_, err := base64.StdEncoding.DecodeString(v.Content)
+			if err != nil {
+				panic(err)
+			}
+			return supertypes.NewStringValueOrNull(v.Content)
+		}(),
+		ContentType: supertypes.NewStringValueOrNull(v.ContentType),
+	})
+}
+
+// * ActionRateLimit
+// policiesHTTPActionRateLimitToSDK converts the terraform model to the SDK model.
+func policiesHTTPActionRateLimitToSDK(ctx context.Context, diags diag.Diagnostics, s supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionRateLimit]) *edgeloadbalancer.PoliciesHTTPActionRateLimit {
+	if !s.IsKnown() {
+		return nil
+	}
+
+	v := s.DiagsGet(ctx, diags)
+	if diags.HasError() {
+		return nil
+	}
+
+	return &edgeloadbalancer.PoliciesHTTPActionRateLimit{
+		Count:                 v.Count.GetInt(),
+		Period:                v.Period.GetInt(),
+		CloseConnectionAction: v.CloseConnection.GetPtr(),
+		RedirectAction: func() *edgeloadbalancer.PoliciesHTTPActionRedirect {
+			return policiesHTTPActionRedirectToSDK(ctx, diags, v.Redirect)
+		}(),
+		LocalResponseAction: func() *edgeloadbalancer.PoliciesHTTPActionSendResponse {
+			return policiesHTTPActionSendResponseToSDK(ctx, diags, v.LocalResponse)
+		}(),
+	}
+}
+
+// policiesHTTPActionRateLimitFromSDK converts the SDK model to the terraform model.
+func policiesHTTPActionRateLimitFromSDK(ctx context.Context, v *edgeloadbalancer.PoliciesHTTPActionRateLimit) supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionRateLimit] {
+	if v == nil {
+		return supertypes.NewSingleNestedObjectValueOfNull[PoliciesHTTPActionRateLimit](ctx)
+	}
+
+	return supertypes.NewSingleNestedObjectValueOf(ctx, &PoliciesHTTPActionRateLimit{
+		Count: func() supertypes.Int64Value {
+			return supertypes.NewInt64Value(int64(v.Count))
+		}(),
+		Period: func() supertypes.Int64Value {
+			return supertypes.NewInt64Value(int64(v.Period))
+		}(),
+		CloseConnection: func() supertypes.BoolValue {
+			if v.CloseConnectionAction == nil {
+				return supertypes.NewBoolNull()
+			}
+			return supertypes.NewBoolValue(*v.CloseConnectionAction)
+		}(),
+		Redirect: func() supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionRedirect] {
+			return policiesHTTPActionRedirectFromSDK(ctx, v.RedirectAction)
+		}(),
+		LocalResponse: func() supertypes.SingleNestedObjectValueOf[PoliciesHTTPActionSendResponse] {
+			return policiesHTTPActionSendResponseFromSDK(ctx, v.LocalResponseAction)
+		}(),
 	})
 }

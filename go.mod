@@ -121,3 +121,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
+
+replace github.com/orange-cloudavenue/cloudavenue-sdk-go => /Users/micheneaudavid/go/src/github.com/orange-cloudavenue/cloudavenue-sdk-go
