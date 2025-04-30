@@ -1,4 +1,9 @@
 ## 0.33.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vdcg_network_routed` - Resolved a bug in the `cloudavenue_vdcg_network_routed` resource where the `static_ip_pool` attribute unexpectedly changed from null to an empty set during application. (GH-1081)
+
 ## 0.32.0 (April 25, 2025)
 ### :rotating_light: **Breaking Changes**
 
