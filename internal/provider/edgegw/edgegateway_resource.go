@@ -71,7 +71,7 @@ type edgeGatewayResource struct {
 }
 
 // ModifyPlan modifies the plan to add the default values.
-func (r *edgeGatewayResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+func (r *edgeGatewayResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) { //nolint:gocyclo
 	var (
 		plan  = &edgeGatewayResourceModel{}
 		state = &edgeGatewayResourceModel{}
@@ -89,11 +89,11 @@ func (r *edgeGatewayResource) ModifyPlan(ctx context.Context, req resource.Modif
 			return 0, err
 		}
 
-		return edgegws.GetBandwidthCapacityRemaining(plan.Tier0VrfID.Get())
+		return edgegws.GetBandwidthCapacityRemaining(plan.Tier0VRFName.Get())
 	}
 
 	allowedValuesFunc := func() {
-		allowedValues, err := r.client.CAVSDK.V1.EdgeGateway.GetAllowedBandwidthValues(plan.Tier0VrfID.Get())
+		allowedValues, err := r.client.CAVSDK.V1.EdgeGateway.GetAllowedBandwidthValues(plan.Tier0VRFName.Get())
 		if err != nil {
 			resp.Diagnostics.AddError("Error on calculating allowed Bandwidth values", err.Error())
 			return
@@ -121,9 +121,31 @@ func (r *edgeGatewayResource) ModifyPlan(ctx context.Context, req resource.Modif
 		return
 	}
 
+	// If Tier0VRFName is not known, we need to find the T0
+	// IF multiple T0s are available, return an error
+	if !plan.Tier0VRFName.IsKnown() {
+		t0s, err := r.client.CAVSDK.V1.T0.GetT0s()
+		if err != nil {
+			resp.Diagnostics.AddError("Error listing T0s", err.Error())
+			return
+		}
+
+		if len(*t0s) == 0 {
+			resp.Diagnostics.AddError("Error listing T0s", "No T0s found")
+			return
+		}
+
+		if len(*t0s) > 1 {
+			resp.Diagnostics.AddError("Error listing T0s", "Multiple T0s found, please specify the T0 name")
+			return
+		}
+
+		plan.Tier0VRFName.Set((*t0s)[0].GetName())
+	}
+
 	// Related in issue #1069 if the T0 is dedicated, the bandwidth is not mandatory.
 	// BUG: Currently the API does not allow to set the bandwidth if the T0 is dedicated.
-	t0, err := r.client.CAVSDK.V1.T0.GetT0(plan.Tier0VrfID.Get())
+	t0, err := r.client.CAVSDK.V1.T0.GetT0(plan.Tier0VRFName.Get())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving T0", err.Error())
 		return
@@ -168,7 +190,7 @@ func (r *edgeGatewayResource) ModifyPlan(ctx context.Context, req resource.Modif
 			return
 		}
 
-		allowedValues, err := r.client.CAVSDK.V1.EdgeGateway.GetAllowedBandwidthValues(plan.Tier0VrfID.Get())
+		allowedValues, err := r.client.CAVSDK.V1.EdgeGateway.GetAllowedBandwidthValues(plan.Tier0VRFName.Get())
 		if err != nil {
 			resp.Diagnostics.AddError("Error on calculating allowed Bandwidth values", err.Error())
 			return
@@ -182,7 +204,7 @@ func (r *edgeGatewayResource) ModifyPlan(ctx context.Context, req resource.Modif
 
 	// Update case
 	case !plan.Bandwidth.Equal(state.Bandwidth):
-		allowedValues, err := r.client.CAVSDK.V1.EdgeGateway.GetAllowedBandwidthValues(plan.Tier0VrfID.Get())
+		allowedValues, err := r.client.CAVSDK.V1.EdgeGateway.GetAllowedBandwidthValues(plan.Tier0VRFName.Get())
 		if err != nil {
 			resp.Diagnostics.AddError("Error on calculating allowed Bandwidth values", err.Error())
 			return
@@ -285,9 +307,9 @@ func (r *edgeGatewayResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	if vdcOrVDCGroup.IsVDCGroup() {
-		job, err = r.client.CAVSDK.V1.EdgeGateway.NewFromVDCGroup(plan.OwnerName.Get(), plan.Tier0VrfID.Get())
+		job, err = r.client.CAVSDK.V1.EdgeGateway.NewFromVDCGroup(plan.OwnerName.Get(), plan.Tier0VRFName.Get())
 	} else {
-		job, err = r.client.CAVSDK.V1.EdgeGateway.New(plan.OwnerName.Get(), plan.Tier0VrfID.Get())
+		job, err = r.client.CAVSDK.V1.EdgeGateway.New(plan.OwnerName.Get(), plan.Tier0VRFName.Get())
 	}
 
 	if err != nil {
@@ -331,7 +353,7 @@ func (r *edgeGatewayResource) Create(ctx context.Context, req resource.CreateReq
 
 	// Related in issue #1069 if the T0 is dedicated, the bandwidth is not mandatory.
 	// BUG: Currently the API does not allow to set the bandwidth if the T0 is dedicated.
-	t0, err := r.client.CAVSDK.V1.T0.GetT0(plan.Tier0VrfID.Get())
+	t0, err := r.client.CAVSDK.V1.T0.GetT0(plan.Tier0VRFName.Get())
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving T0", err.Error())
 		return
@@ -541,7 +563,7 @@ func (r *edgeGatewayResource) read(_ context.Context, planOrState *edgeGatewayRe
 		stateRefreshed.ID.Set(urn.Normalize(urn.Gateway, edgegw.GetID()).String())
 	}
 
-	stateRefreshed.Tier0VrfID.Set(edgegw.GetTier0VrfID())
+	stateRefreshed.Tier0VRFName.Set(edgegw.GetTier0VrfID())
 	stateRefreshed.OwnerName.Set(edgegw.GetOwnerName())
 	stateRefreshed.Description.Set(edgegw.GetDescription())
 	stateRefreshed.Bandwidth.SetInt(edgegw.GetBandwidth())
