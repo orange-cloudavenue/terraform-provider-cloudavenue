@@ -415,8 +415,7 @@ This example shows how to create a VM from a vApp template connected to a routed
 
 ```terraform
 resource "cloudavenue_edgegateway" "example" {
-  owner_name     = cloudavenue_vdc.example.name
-  tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+  owner_name = cloudavenue_vdc.example.name
 }
 ```
 

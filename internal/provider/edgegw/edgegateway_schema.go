@@ -72,15 +72,14 @@ func edgegwSchema() superschema.Schema {
 			"tier0_vrf_name": &superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the Tier-0 VRF to which the Edge Gateway is attached.",
+					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
+					Optional:            true,
+					MarkdownDescription: "If not specified, the Edge Gateway will be created if only one Tier-0 VRF is available.",
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
 				},
 			},
 			"owner_name": &superschema.SuperStringAttribute{

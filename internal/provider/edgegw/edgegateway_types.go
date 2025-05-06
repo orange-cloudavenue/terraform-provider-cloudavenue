@@ -18,13 +18,13 @@ import (
 )
 
 type edgeGatewayResourceModel struct {
-	Timeouts    timeouts.Value         `tfsdk:"timeouts"`
-	ID          supertypes.StringValue `tfsdk:"id"`
-	Tier0VrfID  supertypes.StringValue `tfsdk:"tier0_vrf_name"`
-	Name        supertypes.StringValue `tfsdk:"name"`
-	OwnerName   supertypes.StringValue `tfsdk:"owner_name"`
-	Description supertypes.StringValue `tfsdk:"description"`
-	Bandwidth   supertypes.Int64Value  `tfsdk:"bandwidth"`
+	Timeouts     timeouts.Value         `tfsdk:"timeouts"`
+	ID           supertypes.StringValue `tfsdk:"id"`
+	Tier0VRFName supertypes.StringValue `tfsdk:"tier0_vrf_name"`
+	Name         supertypes.StringValue `tfsdk:"name"`
+	OwnerName    supertypes.StringValue `tfsdk:"owner_name"`
+	Description  supertypes.StringValue `tfsdk:"description"`
+	Bandwidth    supertypes.Int64Value  `tfsdk:"bandwidth"`
 }
 
 type edgeGatewayDatasourceModel struct {

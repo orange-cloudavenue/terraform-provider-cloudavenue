@@ -1,0 +1,3 @@
+```release-note:enhancement
+`resource/cloudavenue_edgegateway` - Now the `tier0_vrf_name` attribute is optional. If not set, the field is computed (Only if one tier0 are available in your organization). These changes improve usability by simplifying the configuration for users with a single Tier-0 VRF while maintaining flexibility for more complex setups.
+```

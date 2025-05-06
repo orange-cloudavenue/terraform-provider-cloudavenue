@@ -17,11 +17,7 @@ description: |-
 
 ### Example with VDC Group
 
-```hcl
-
 {{ tffile "examples/resources/cloudavenue_edgegateway/resource-with-vdc-group.tf" }}
-
-```
 
 {{ .SchemaMarkdown | trimspace }}
 
@@ -38,7 +34,6 @@ Example with bandwidth:
 ```hcl
 resource "cloudavenue_edgegateway" "example" {
   owner_name     = cloudavenue_vdc.example.name
-  tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
   bandwidth      = 100
 }
 ```
