@@ -76,7 +76,7 @@ func edgegwSchema() superschema.Schema {
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional:            true,
-					MarkdownDescription: "If not specified, the Edge Gateway will be created in the first Tier-0 VRF (Only if 1 Tier-0 VRF is available).",
+					MarkdownDescription: "If not specified, the Edge Gateway will be created if only one Tier-0 VRF is available.",
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
