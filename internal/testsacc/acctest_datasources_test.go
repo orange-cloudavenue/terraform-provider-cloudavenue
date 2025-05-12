@@ -60,6 +60,7 @@ func GetDataSourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceCo
 		ELBVirtualServiceDataSourceName:       testsacc.NewResourceConfig(NewELBVirtualServiceDataSourceTest()),
 		ELBPoliciesHTTPRequestDataSourceName:  testsacc.NewResourceConfig(NewELBPoliciesHTTPRequestDataSourceTest()),
 		ELBPoliciesHTTPResponseDataSourceName: testsacc.NewResourceConfig(NewELBPoliciesHTTPResponseDataSourceTest()),
+		ELBPoliciesHTTPSecurityDataSourceName: testsacc.NewResourceConfig(NewELBPoliciesHTTPSecurityDataSourceTest()),
 
 		// * S3
 		S3BucketVersioningConfigurationDatasourceName: testsacc.NewResourceConfig(NewS3BucketVersioningConfigurationDatasourceTest()),

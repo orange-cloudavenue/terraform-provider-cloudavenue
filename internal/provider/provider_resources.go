@@ -51,6 +51,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		elb.NewVirtualServiceResource,
 		elb.NewPoliciesHTTPRequestResource,
 		elb.NewPoliciesHTTPResponseResource,
+		elb.NewPoliciesHTTPSecurityResource,
 
 		// * VDC
 		vdc.NewVDCResource,
