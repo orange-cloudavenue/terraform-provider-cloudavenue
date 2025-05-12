@@ -62,6 +62,8 @@ header: # `header` section is configurations for source codes license header.
     - "Taskfile.yml"
     - ".teraform-docs.yml"
     - ".tflint.yml"
+    - "go.work"
+    - "go.work.sum"
 
 
   comment: on-failure # on what condition license-eye will comment on the pull request, `on-failure`, `always`, `never`.
