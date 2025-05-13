@@ -33,6 +33,8 @@ header: # `header` section is configurations for source codes license header.
     - '**/testdata/**'
     - '**/go.mod'
     - '**/go.sum'
+    - '**/go.work'
+    - '**/go.work.sum'
     - 'LICENSE'
     - 'LICENCE'
     - 'NOTICE'
@@ -45,6 +47,7 @@ header: # `header` section is configurations for source codes license header.
     - "**/*.tmpl"
     - "**/*.tf"
     - ".changelog/"
+    - "**/.changelog/"
     - ".archive/"
     - ".github/"
     - ".vscode/"
