@@ -17,6 +17,9 @@
 - name: "bug"
   color: "B60205"
   description: "Bug"
+- name: "terraform-module"
+  color: "7B42BC"
+  description: "Terraform module"
 
 # Sync 
 - name: "sync"
