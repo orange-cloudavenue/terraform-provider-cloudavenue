@@ -73,7 +73,7 @@ func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
 				Attributes: superschema.Attributes{
 					"name": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The name of the policy.",
+							MarkdownDescription: "Policy name, it must be unique within the virtual service's HTTP response policies.",
 						},
 						Resource: &schemaR.StringAttribute{
 							Required: true,
@@ -201,7 +201,7 @@ func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
 									},
 									"ports": superschema.SuperSetAttributeOf[int64]{
 										Common: &schemaR.SetAttribute{
-											MarkdownDescription: "Ports to match.",
+											MarkdownDescription: "A port list allows you to define which service ports (e.g.: [80, 443] ) the HTTP security policy should match.",
 										},
 										Resource: &schemaR.SetAttribute{
 											Required: true,
@@ -425,7 +425,7 @@ func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
 										Resource: &schemaR.StringAttribute{
 											Required: true,
 											Validators: []validator.String{
-												stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPRequestHeaderMatchCriteriaString...),
+												stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPHeaderMatchCriteriaString...),
 											},
 										},
 										DataSource: &schemaD.StringAttribute{
@@ -495,7 +495,7 @@ func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
 										Resource: &schemaR.StringAttribute{
 											Required: true,
 											Validators: []validator.String{
-												stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPRequestHeaderMatchCriteriaString...),
+												stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPHeaderMatchCriteriaString...),
 											},
 										},
 										DataSource: &schemaD.StringAttribute{

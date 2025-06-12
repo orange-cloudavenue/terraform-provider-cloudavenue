@@ -38,7 +38,7 @@ Read-Only:
 - `active` (Boolean) Whether the policy is active or not.
 - `criteria` (Attributes) Match criteria for the HTTP response. (see [below for nested schema](#nestedatt--policies--criteria))
 - `logging` (Boolean) Enable logging for this policy.
-- `name` (String) The name of the policy.
+- `name` (String) Policy name, it must be unique within the virtual service's HTTP response policies.
 
 <a id="nestedatt--policies--actions"></a>
 ### Nested Schema for `policies.actions`
@@ -160,7 +160,7 @@ Read-Only:
 Read-Only:
 
 - `criteria` (String) Criteria to match.
-- `ports` (Set of Number) Ports to match.
+- `ports` (Set of Number) A port list allows you to define which service ports (e.g.: [80, 443] ) the HTTP security policy should match.
 
 
 <a id="nestedatt--policies--criteria--status_code"></a>
