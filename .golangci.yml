@@ -76,6 +76,14 @@ linters:
     staticcheck:
       checks:
         - -QF1008
+        - SA1000 # Invalid regular expression
+        - SA1001 # Invalid `time` format or argument
+        - SA1002 # Invalid `net` address format
+        - SA1015 # Using time.Sleep in tests
+        - SA1024 # Non-pointer value passed to Unmarshal/Decode
+        - SA2000 # `sync.WaitGroup` misuse
+        - SA4000 # Inefficient boolean expressions
+        - SA5000 # Invalid `fmt` format string
     revive:
       severity: error
       rules:
