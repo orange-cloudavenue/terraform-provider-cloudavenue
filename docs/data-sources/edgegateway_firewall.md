@@ -2,12 +2,12 @@
 page_title: "cloudavenue_edgegateway_firewall Data Source - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  The firewall data source allows you to retrieve information about an Firewall.
+  The firewall data source allows you to retrieve all rules from a Firewall. It returns all firewall rules, not just those managed by a specific resource.
 ---
 
 # cloudavenue_edgegateway_firewall (Data Source)
 
-The firewall data source allows you to retrieve information about an Firewall.
+The firewall data source allows you to retrieve all rules from a Firewall. It returns all firewall rules, not just those managed by a specific resource.
 
 
 
@@ -39,7 +39,7 @@ Read-Only:
 - `ip_protocol` (String) The IP protocol of the rule. Default value is `IPV4`. .
 - `logging` (Boolean) Defines if the rule should log matching traffic. Default value is `false`.
 - `name` (String) The name of the rule.
-- `priority` (Number) The priority of the rule. Lower values have higher priority. If lots of rules have the same priority, the alphabetical order of the rule name is used to determine the priority.
+- `priority` (Number) The priority of the rule. Lower values have higher priority. If multiple rules have the same priority, the alphabetical order of the rule name is used to determine the evaluation order. Changing the name of a rule (with the same priority) can affect the order in which your firewall rules are processed. In the Cloudavenue web interface, your firewall rule will appear with the following format: <priority>_<name of the rule>.
 - `source_ids` (Set of String) A set of Source Firewall Group IDs (`IP Sets` or `Security Groups`). If `source_ip_addresses` attribute and this attribute are both empty, it means `Any` (all).
 - `source_ip_addresses` (Set of String) A set of source IP addresses, IP Range or CIDR. If `source_ids` attribute and this attribute are both empty, it means `Any` (all).
 

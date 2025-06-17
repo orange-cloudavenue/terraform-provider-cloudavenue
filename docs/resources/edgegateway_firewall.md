@@ -2,12 +2,17 @@
 page_title: "cloudavenue_edgegateway_firewall Resource - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  The firewall resource allows you to manage rules on an Firewall.
+  The firewall resource allows you to manage rules on a Firewall. You can create this resource as many times as needed. Only the rules defined in this resource are managed by it; other firewall rules are not affected. You may create multiple firewall resources for the same Edge Gateway; each resource manages only its own set of rules.
+  About rule priority:
+  Previously, the order of your rules in the Terraform file determined their evaluation priority. Now, the priority attribute allows you to explicitly define the priority of each rule. Rules with a lower priority value are evaluated first, regardless of their position in the file. If multiple rules have the same priority, the alphabetical order of the rule's name is used. Changing the name of a rule (with the same priority) can affect the order in which your firewall rules are processed.
 ---
 
 # cloudavenue_edgegateway_firewall (Resource)
 
-The firewall resource allows you to manage rules on an Firewall.
+The firewall resource allows you to manage rules on a Firewall. You can create this resource as many times as needed. Only the rules defined in this resource are managed by it; other firewall rules are not affected. You may create multiple firewall resources for the same Edge Gateway; each resource manages only its own set of rules.
+
+**About rule priority:**
+Previously, the order of your rules in the Terraform file determined their evaluation priority. Now, the priority attribute allows you to explicitly define the priority of each rule. Rules with a lower priority value are evaluated first, regardless of their position in the file. If multiple rules have the same priority, the alphabetical order of the rule's name is used. Changing the name of a rule (with the same priority) can affect the order in which your firewall rules are processed.
 
 ## Examples Usage
 
@@ -86,7 +91,7 @@ a valid IPV4 address (Ex: 192.168.0.1), a valid IPV4 address range (Ex: 192.168.
 - `enabled` (Boolean) Defines if the rule is enabled or not. Default value is `true`.
 - `ip_protocol` (String) The IP protocol of the rule. Default value is `IPV4`. . Value must be one of : `IPV4`, `IPV6`, `IPV4_IPV6`.
 - `logging` (Boolean) Defines if the rule should log matching traffic. Default value is `false`.
-- `priority` (Number) The priority of the rule. Lower values have higher priority. If lots of rules have the same priority, the alphabetical order of the rule name is used to determine the priority. Value must be between 1 and 1000.
+- `priority` (Number) The priority of the rule. Lower values have higher priority. If multiple rules have the same priority, the alphabetical order of the rule name is used to determine the evaluation order. Changing the name of a rule (with the same priority) can affect the order in which your firewall rules are processed. In the Cloudavenue web interface, your firewall rule will appear with the following format: <priority>_<name of the rule>. Value must be between 1 and 1000.
 - `source_ids` (Set of String) A set of Source Firewall Group IDs (`IP Sets` or `Security Groups`). If `source_ip_addresses` attribute and this attribute are both empty, it means `Any` (all).
 - `source_ip_addresses` (Set of String) A set of source IP addresses, IP Range or CIDR. If `source_ids` attribute and this attribute are both empty, it means `Any` (all). Element value must satisfy all validations: The value must be all of the following :
 a valid IPV4 address (Ex: 192.168.0.1), a valid IPV4 address range (Ex: 192.168.0.1-192.168.0.100), a valid IPV4 address with CIDR (Ex: 192.168.0.1/24).

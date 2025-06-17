@@ -34,10 +34,14 @@ import (
 func firewallSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The firewall resource allows you to manage rules on an Firewall.",
+			MarkdownDescription: `The firewall resource allows you to manage rules on a Firewall. You can create this resource as many times as needed. Only the rules defined in this resource are managed by it; other firewall rules are not affected. You may create multiple firewall resources for the same Edge Gateway; each resource manages only its own set of rules.
+
+**About rule priority:**
+Previously, the order of your rules in the Terraform file determined their evaluation priority. Now, the priority attribute allows you to explicitly define the priority of each rule. Rules with a lower priority value are evaluated first, regardless of their position in the file. If multiple rules have the same priority, the alphabetical order of the rule's name is used. Changing the name of a rule (with the same priority) can affect the order in which your firewall rules are processed.
+`,
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The firewall data source allows you to retrieve information about an Firewall.",
+			MarkdownDescription: "The firewall data source allows you to retrieve all rules from a Firewall. It returns all firewall rules, not just those managed by a specific resource.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
@@ -181,7 +185,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 					},
 					"priority": superschema.SuperInt64Attribute{
 						Common: &schemaR.Int64Attribute{
-							MarkdownDescription: "The priority of the rule. Lower values have higher priority. If lots of rules have the same priority, the alphabetical order of the rule name is used to determine the priority.",
+							MarkdownDescription: "The priority of the rule. Lower values have higher priority. If multiple rules have the same priority, the alphabetical order of the rule name is used to determine the evaluation order. Changing the name of a rule (with the same priority) can affect the order in which your firewall rules are processed. In the Cloudavenue web interface, your firewall rule will appear with the following format: <priority>_<name of the rule>.",
 							Computed:            true,
 						},
 						Resource: &schemaR.Int64Attribute{
