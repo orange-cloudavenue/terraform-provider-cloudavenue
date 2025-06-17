@@ -13,24 +13,23 @@ package edgegw
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgegateway"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -38,6 +37,7 @@ var (
 	_ resource.Resource                = &firewallResource{}
 	_ resource.ResourceWithConfigure   = &firewallResource{}
 	_ resource.ResourceWithImportState = &firewallResource{}
+	_ resource.ResourceWithModifyPlan  = &firewallResource{}
 )
 
 // NewFirewallResource is a helper function to simplify the provider implementation.
@@ -48,26 +48,27 @@ func NewFirewallResource() resource.Resource {
 // firewallResource is the resource implementation.
 type firewallResource struct {
 	client *client.CloudAvenue
-	org    org.Org
-	edgegw edgegw.EdgeGateway
+	edgegw *edgegateway.EdgeGateway
 }
 
 // Init Initializes the resource.
-func (r *firewallResource) Init(_ context.Context, rm *firewallModel) (diags diag.Diagnostics) {
+func (r *firewallResource) Init(ctx context.Context, rm *firewallModel) (diags diag.Diagnostics) {
 	var err error
 
-	r.org, diags = org.Init(r.client)
-	if diags.HasError() {
+	edgegw, err := edgegateway.NewClient()
+	if err != nil {
+		diags.AddError("Error creating Edge Gateway client", err.Error())
 		return
 	}
 
-	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   rm.EdgeGatewayID.StringValue,
-		Name: rm.EdgeGatewayName.StringValue,
-	})
+	nameOrID := rm.EdgeGatewayID.Get()
+	if nameOrID == "" {
+		nameOrID = rm.EdgeGatewayName.Get()
+	}
+
+	r.edgegw, err = edgegw.GetEdgeGateway(ctx, nameOrID)
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
 	}
 
 	return
@@ -81,6 +82,57 @@ func (r *firewallResource) Metadata(_ context.Context, req resource.MetadataRequ
 // Schema defines the schema for the resource.
 func (r *firewallResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = firewallSchema(ctx).GetResource(ctx)
+}
+
+// ModifyPlan modifies the plan before it is applied.
+func (r *firewallResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Get the current plan
+	plan := &firewallModel{}
+	if d := req.Plan.Get(ctx, plan); d.HasError() {
+		// return because plan is empty
+		return
+	}
+
+	// Apply the default values to the plan
+	// The schema is not used here because a bug in the Terraform framework crashes when using `SetDefault` on a SET nested object.
+	// https://github.com/hashicorp/terraform-plugin-framework/issues/783
+
+	rules, d := plan.Rules.Get(ctx)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
+	for _, rule := range rules {
+		// Priority attribute
+		if rule.Priority.IsUnknown() {
+			rule.Priority.SetInt64(1)
+		}
+
+		// IPProtocol attribute
+		if rule.IPProtocol.IsUnknown() {
+			rule.IPProtocol.Set("IPV4")
+		}
+
+		// Enabled attribute
+		if rule.Enabled.IsUnknown() {
+			rule.Enabled.Set(true)
+		}
+
+		// Logging attribute
+		if rule.Logging.IsUnknown() {
+			rule.Logging.Set(false)
+		}
+	}
+
+	plan.Rules.DiagsSet(ctx, resp.Diagnostics, rules)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Set the modified plan back to the response
+	resp.Diagnostics.Append(resp.Plan.Set(ctx, plan)...)
+	return
 }
 
 func (r *firewallResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -132,7 +184,7 @@ func (r *firewallResource) Create(ctx context.Context, req resource.CreateReques
 	stateRefreshed, found, d := r.read(ctx, plan)
 	if !found {
 		resp.State.RemoveResource(ctx)
-		resp.Diagnostics.AddWarning("Resource not found", fmt.Sprintf("Unable to find firewall on edge %s", plan.EdgeGatewayName.Get()))
+		resp.Diagnostics.AddWarning("Resource not found", fmt.Sprintf("Unable to find firewall on edgegateway %s", plan.EdgeGatewayName.Get()))
 		return
 	}
 	resp.Diagnostics.Append(d...)
@@ -169,6 +221,34 @@ func (r *firewallResource) Update(ctx context.Context, req resource.UpdateReques
 	/*
 		Implement the resource update here
 	*/
+
+	// Identify the rules deleted from the state
+	rulesPlan, d := plan.Rules.Get(ctx)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	rulesState, d := state.Rules.Get(ctx)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Find rules that are in the state but not in the plan (= deleted)
+	deletedRules := make([]string, 0)
+	for _, ruleState := range rulesState {
+		if !slices.ContainsFunc(rulesPlan, func(rulePlan *firewallModelRule) bool {
+			return rulePlan.ID.Get() == ruleState.ID.Get()
+		}) {
+			deletedRules = append(deletedRules, ruleState.ID.Get())
+		}
+	}
+	if len(deletedRules) > 0 {
+		if err := r.edgegw.DeleteFirewallRules(ctx, deletedRules); err != nil {
+			resp.Diagnostics.AddError("Error deleting Edge Gateway Firewall rules", err.Error())
+			return
+		}
+	}
 
 	// Use generic createOrUpdate function to update the resource
 	resp.Diagnostics.Append(r.createOrUpdate(ctx, plan)...)
@@ -209,26 +289,21 @@ func (r *firewallResource) Delete(ctx context.Context, req resource.DeleteReques
 		Implement the resource deletion here
 	*/
 
-	vdcOrVDCGroup, err := r.edgegw.GetParent()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.ID)
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.ID)
+
+	rules, d := state.Rules.Get(ctx)
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
 
-	if vdcOrVDCGroup.IsVDCGroup() {
-		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
-	} else {
-		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
-	}
-	fwRules, err := r.edgegw.GetNsxtFirewall()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway Firewall", err.Error())
-		return
+	rulesID := make([]string, len(rules))
+	for i, rule := range rules {
+		rulesID[i] = rule.ID.Get()
 	}
 
-	if err := fwRules.DeleteAllRules(); err != nil {
+	if err := r.edgegw.DeleteFirewallRules(ctx, rulesID); err != nil {
 		resp.Diagnostics.AddError("Error deleting Edge Gateway Firewall", err.Error())
 	}
 }
@@ -272,15 +347,7 @@ func (r *firewallResource) ImportState(ctx context.Context, req resource.ImportS
 	var (
 		edgegwID   string
 		edgegwName string
-		d          diag.Diagnostics
-		err        error
 	)
-
-	r.org, d = org.Init(r.client)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
 
 	if urn.IsValid(req.ID) {
 		edgegwID = urn.Normalize(urn.Gateway, req.ID).String()
@@ -288,24 +355,22 @@ func (r *firewallResource) ImportState(ctx context.Context, req resource.ImportS
 		edgegwName = req.ID
 	}
 
-	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   types.StringValue(edgegwID),
-		Name: types.StringValue(edgegwName),
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("Failed to import firewall.", err.Error())
+	state := &firewallModel{}
+	state.EdgeGatewayID.Set(edgegwID)
+	state.EdgeGatewayName.Set(edgegwName)
+
+	// Init the resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	state := &firewallModel{}
-	state.ID.Set(r.edgegw.GetID())
-	state.EdgeGatewayID.Set(r.edgegw.GetID())
-	state.EdgeGatewayName.Set(r.edgegw.GetName())
+	state.ID.Set(r.edgegw.ID)
 
 	// Refresh the state
 	stateRefreshed, found, d := r.read(ctx, state)
 	if !found {
-		resp.Diagnostics.AddError("Failed to import firewall.", fmt.Sprintf("Unable to find firewall on edge %s", r.edgegw.GetName()))
+		resp.Diagnostics.AddError("Failed to import firewall.", fmt.Sprintf("Unable to find firewall on edgegateway %s", r.edgegw.Name))
 		return
 	}
 	if d.HasError() {
@@ -321,33 +386,19 @@ func (r *firewallResource) ImportState(ctx context.Context, req resource.ImportS
 
 // createOrUpdate creates or updates the resource and sets the Terraform state.
 func (r *firewallResource) createOrUpdate(ctx context.Context, plan *firewallModel) (diags diag.Diagnostics) {
-	// Lock object VDC or VDC Group
-	vdcOrVDCGroup, err := r.edgegw.GetParent()
-	if err != nil {
-		diags.AddError("Error retrieving Edge Gateway parent", err.Error())
-		return
-	}
-
-	if vdcOrVDCGroup.IsVDCGroup() {
-		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
-	} else {
-		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
-	}
-
 	// Set the rules
-	fwRules, d := plan.rulesToNsxtFirewallRule(ctx)
+	fwRules, d := plan.ToSDK(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
 		return
 	}
 
-	if _, err := r.edgegw.UpdateNsxtFirewall(&govcdtypes.NsxtFirewallRuleContainer{
-		UserDefinedRules: fwRules,
-	}); err != nil {
-		diags.AddError("Error to create Firewall", err.Error())
-		return
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.ID)
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.ID)
+
+	if err := r.edgegw.UpdateFirewallRules(ctx, fwRules); err != nil {
+		diags.AddError("Error creating or updating Edge Gateway Firewall rules", err.Error())
+		return diags
 	}
 
 	return
@@ -357,7 +408,7 @@ func (r *firewallResource) createOrUpdate(ctx context.Context, plan *firewallMod
 func (r *firewallResource) read(ctx context.Context, planOrState *firewallModel) (stateRefreshed *firewallModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
-	fwRules, err := r.edgegw.GetNsxtFirewall()
+	fwRules, err := r.edgegw.GetFirewallRules(ctx)
 	if err != nil {
 		if govcd.IsNotFound(err) {
 			return stateRefreshed, false, nil
@@ -366,40 +417,70 @@ func (r *firewallResource) read(ctx context.Context, planOrState *firewallModel)
 		return stateRefreshed, true, diags
 	}
 
-	stateRefreshed.ID.Set(r.edgegw.GetID())
-	stateRefreshed.EdgeGatewayID.Set(r.edgegw.GetID())
-	stateRefreshed.EdgeGatewayName.Set(r.edgegw.GetName())
+	// ID is a generated URN used to identify the resource in Terraform state
+	stateRefreshed.ID.Set(r.edgegw.ID)
+
+	stateRefreshed.EdgeGatewayID.Set(r.edgegw.ID)
+	stateRefreshed.EdgeGatewayName.Set(r.edgegw.Name)
 
 	rules := make([]*firewallModelRule, 0)
 
-	if fwRules.NsxtFirewallRuleContainer == nil {
+	if fwRules.Rules == nil {
 		return stateRefreshed, true, nil
 	}
 
-	for _, rule := range fwRules.NsxtFirewallRuleContainer.UserDefinedRules {
-		fwRule := &firewallModelRule{
-			ID:                supertypes.NewStringNull(),
-			Name:              supertypes.NewStringNull(),
-			Enabled:           supertypes.NewBoolNull(),
-			Direction:         supertypes.NewStringNull(),
-			IPProtocol:        supertypes.NewStringNull(),
-			Action:            supertypes.NewStringNull(),
-			Logging:           supertypes.NewBoolNull(),
-			SourceIDs:         supertypes.NewSetValueOfNull[string](ctx),
-			DestinationIDs:    supertypes.NewSetValueOfNull[string](ctx),
-			AppPortProfileIDs: supertypes.NewSetValueOfNull[string](ctx),
+	existingRules, d := planOrState.Rules.Get(ctx)
+	if d.HasError() {
+		diags.Append(d...)
+		return stateRefreshed, true, diags
+	}
+
+	for _, rule := range fwRules.Rules {
+		// Only rules already in the plan or state should be processed
+		// This is to avoid conflicts with the other rules managed by `cloudavenue_edgegateway_firewall_rule` or manually created rules.
+		for _, existingRule := range existingRules {
+			if (existingRule.ID.Get() == rule.ID) || (edgegateway.FirewallHashRule(existingRule.Name.Get(), existingRule.Action.Get(), existingRule.Direction.Get()) == rule.Hash) {
+				fwRule := &firewallModelRule{
+					ID:                     supertypes.NewStringNull(),
+					Name:                   supertypes.NewStringNull(),
+					Enabled:                supertypes.NewBoolNull(),
+					Direction:              supertypes.NewStringNull(),
+					IPProtocol:             supertypes.NewStringNull(),
+					Action:                 supertypes.NewStringNull(),
+					Logging:                supertypes.NewBoolNull(),
+					Priority:               supertypes.NewInt64Null(),
+					SourceIDs:              supertypes.NewSetValueOfNull[string](ctx),
+					SourceIPAddresses:      supertypes.NewSetValueOfNull[string](ctx),
+					DestinationIDs:         supertypes.NewSetValueOfNull[string](ctx),
+					DestinationIPAddresses: supertypes.NewSetValueOfNull[string](ctx),
+					AppPortProfileIDs:      supertypes.NewSetValueOfNull[string](ctx),
+				}
+
+				fwRule.ID.Set(rule.ID)
+				fwRule.Name.Set(rule.Name)
+				fwRule.Enabled.Set(rule.Enabled)
+				fwRule.Direction.Set(rule.Direction)
+				fwRule.IPProtocol.Set(rule.IPProtocol)
+				fwRule.Action.Set(rule.Action)
+				fwRule.Logging.Set(rule.Logging)
+				fwRule.Priority.SetIntPtr(rule.Priority)
+				fwRule.AppPortProfileIDs.DiagsSet(ctx, diags, common.FromOpenAPIReferenceID(ctx, rule.ApplicationPortProfiles))
+				// * Sources
+				fwRule.SourceIDs.DiagsSet(ctx, diags, common.FromOpenAPIReferenceID(ctx, rule.SourceFirewallGroups))
+				fwRule.SourceIPAddresses.DiagsSet(ctx, diags, rule.SourceIPAddresses)
+				// * Destinations
+				fwRule.DestinationIDs.DiagsSet(ctx, diags, common.FromOpenAPIReferenceID(ctx, rule.DestinationFirewallGroups))
+				fwRule.DestinationIPAddresses.DiagsSet(ctx, diags, rule.DestinationIPAddresses)
+				if diags.HasError() {
+					return stateRefreshed, true, diags
+				}
+				rules = append(rules, fwRule)
+			}
 		}
-		fwRule.ID.Set(rule.ID)
-		fwRule.Name.Set(rule.Name)
-		fwRule.Enabled.Set(rule.Enabled)
-		fwRule.Direction.Set(rule.Direction)
-		fwRule.IPProtocol.Set(rule.IpProtocol)
-		fwRule.Action.Set(rule.ActionValue)
-		fwRule.Logging.Set(rule.Logging)
-		fwRule.SourceIDs.Set(ctx, common.FromOpenAPIReferenceID(ctx, rule.SourceFirewallGroups))
-		fwRule.DestinationIDs.Set(ctx, common.FromOpenAPIReferenceID(ctx, rule.DestinationFirewallGroups))
-		fwRule.AppPortProfileIDs.Set(ctx, common.FromOpenAPIReferenceID(ctx, rule.ApplicationPortProfiles))
-		rules = append(rules, fwRule)
+	}
+
+	if diags.HasError() {
+		return stateRefreshed, true, diags
 	}
 
 	diags.Append(stateRefreshed.Rules.Set(ctx, rules)...)

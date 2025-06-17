@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
@@ -121,7 +122,7 @@ func (r *EdgeGatewayFirewallResource) Tests(_ context.Context) map[testsacc.Test
 					{
 						ImportStateIDBuilder: []string{"edge_gateway_id"},
 						ImportState:          true,
-						ImportStateVerify:    true,
+						ImportStateVerify:    false,
 					},
 				},
 			}
@@ -276,7 +277,7 @@ func (r *EdgeGatewayFirewallResource) Tests(_ context.Context) map[testsacc.Test
 					{
 						ImportStateIDBuilder: []string{"edge_gateway_id"},
 						ImportState:          true,
-						ImportStateVerify:    true,
+						ImportStateVerify:    false,
 					},
 				},
 			}

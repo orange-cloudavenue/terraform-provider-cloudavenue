@@ -12,6 +12,7 @@ package edgegw
 import (
 	"context"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgegateway"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
@@ -23,23 +24,26 @@ import (
 )
 
 type firewallModel struct {
-	ID              supertypes.StringValue                                `tfsdk:"id"`
-	EdgeGatewayID   supertypes.StringValue                                `tfsdk:"edge_gateway_id"`
-	EdgeGatewayName supertypes.StringValue                                `tfsdk:"edge_gateway_name"`
-	Rules           supertypes.ListNestedObjectValueOf[firewallModelRule] `tfsdk:"rules"`
+	ID              supertypes.StringValue                               `tfsdk:"id"`
+	EdgeGatewayID   supertypes.StringValue                               `tfsdk:"edge_gateway_id"`
+	EdgeGatewayName supertypes.StringValue                               `tfsdk:"edge_gateway_name"`
+	Rules           supertypes.SetNestedObjectValueOf[firewallModelRule] `tfsdk:"rules"`
 }
 
 type firewallModelRule struct {
-	ID                supertypes.StringValue        `tfsdk:"id"`
-	Name              supertypes.StringValue        `tfsdk:"name"`
-	Enabled           supertypes.BoolValue          `tfsdk:"enabled"`
-	Direction         supertypes.StringValue        `tfsdk:"direction"`
-	IPProtocol        supertypes.StringValue        `tfsdk:"ip_protocol"`
-	Action            supertypes.StringValue        `tfsdk:"action"`
-	Logging           supertypes.BoolValue          `tfsdk:"logging"`
-	SourceIDs         supertypes.SetValueOf[string] `tfsdk:"source_ids"`
-	DestinationIDs    supertypes.SetValueOf[string] `tfsdk:"destination_ids"`
-	AppPortProfileIDs supertypes.SetValueOf[string] `tfsdk:"app_port_profile_ids"`
+	ID                     supertypes.StringValue        `tfsdk:"id"`
+	Name                   supertypes.StringValue        `tfsdk:"name"`
+	Enabled                supertypes.BoolValue          `tfsdk:"enabled"`
+	Direction              supertypes.StringValue        `tfsdk:"direction"`
+	IPProtocol             supertypes.StringValue        `tfsdk:"ip_protocol"`
+	Priority               supertypes.Int64Value         `tfsdk:"priority"`
+	Action                 supertypes.StringValue        `tfsdk:"action"`
+	Logging                supertypes.BoolValue          `tfsdk:"logging"`
+	SourceIDs              supertypes.SetValueOf[string] `tfsdk:"source_ids"`
+	SourceIPAddresses      supertypes.SetValueOf[string] `tfsdk:"source_ip_addresses"`
+	DestinationIDs         supertypes.SetValueOf[string] `tfsdk:"destination_ids"`
+	DestinationIPAddresses supertypes.SetValueOf[string] `tfsdk:"destination_ip_addresses"`
+	AppPortProfileIDs      supertypes.SetValueOf[string] `tfsdk:"app_port_profile_ids"`
 }
 
 func (rm *firewallModel) Copy() *firewallModel {
@@ -48,48 +52,72 @@ func (rm *firewallModel) Copy() *firewallModel {
 	return x
 }
 
-func (rm *firewallModel) rulesToNsxtFirewallRule(ctx context.Context) (nsxtFirewallRules []*govcdtypes.NsxtFirewallRule, diags diag.Diagnostics) {
-	rules, d := rm.Rules.Get(ctx)
+func (rm *firewallModel) ToSDK(ctx context.Context) (rules edgegateway.FirewallModelRules, diags diag.Diagnostics) {
+	diags = diag.Diagnostics{}
+
+	if rm == nil {
+		return edgegateway.FirewallModelRules{}, diags
+	}
+
+	rulesRM, d := rm.Rules.Get(ctx)
 	if d.HasError() {
 		diags.Append(d...)
-		return
+		return edgegateway.FirewallModelRules{}, diags
 	}
 
-	nsxtFirewallRules = make([]*govcdtypes.NsxtFirewallRule, len(rules))
-	for i, rule := range rules {
-		nsxtFirewallRules[i] = &govcdtypes.NsxtFirewallRule{
-			Name:                      rule.Name.Get(),
-			ActionValue:               rule.Action.Get(),
-			Enabled:                   rule.Enabled.Get(),
-			IpProtocol:                rule.IPProtocol.Get(),
-			Logging:                   rule.Logging.Get(),
-			Direction:                 rule.Direction.Get(),
-			Version:                   nil,
-			SourceFirewallGroups:      nil,
-			DestinationFirewallGroups: nil,
-			ApplicationPortProfiles:   nil,
-		}
-
-		// ! If sourceIDs/destinationIDs is Null, it's an equivalent of any (source/destination)
-
-		nsxtFirewallRules[i].SourceFirewallGroups, d = common.ToOpenAPIReferenceID(ctx, rule.SourceIDs)
-		if d.HasError() {
-			diags.Append(d...)
-			return
-		}
-
-		nsxtFirewallRules[i].DestinationFirewallGroups, d = common.ToOpenAPIReferenceID(ctx, rule.DestinationIDs)
-		if d.HasError() {
-			diags.Append(d...)
-			return
-		}
-
-		nsxtFirewallRules[i].ApplicationPortProfiles, d = common.ToOpenAPIReferenceID(ctx, rule.AppPortProfileIDs)
-		if d.HasError() {
-			diags.Append(d...)
-			return
+	sdkRules := make([]*edgegateway.FirewallModelRule, len(rulesRM))
+	for i, rule := range rulesRM {
+		sdkRules[i] = &edgegateway.FirewallModelRule{
+			ID:         rule.ID.Get(),
+			Name:       rule.Name.Get(),
+			Enabled:    rule.Enabled.Get(),
+			Direction:  rule.Direction.Get(),
+			IPProtocol: rule.IPProtocol.Get(),
+			Priority:   rule.Priority.GetIntPtr(),
+			Action:     rule.Action.Get(),
+			Logging:    rule.Logging.Get(),
+			SourceIPAddresses: func() []string {
+				ips, d := rule.SourceIPAddresses.Get(ctx)
+				if d.HasError() {
+					diags.Append(d...)
+					return nil
+				}
+				return ips
+			}(),
+			SourceFirewallGroups: func() []govcdtypes.OpenApiReference {
+				ids, d := common.ToOpenAPIReferenceID(ctx, rule.SourceIDs)
+				if d.HasError() {
+					diags.Append(d...)
+					return nil
+				}
+				return ids
+			}(),
+			DestinationFirewallGroups: func() []govcdtypes.OpenApiReference {
+				ids, d := common.ToOpenAPIReferenceID(ctx, rule.DestinationIDs)
+				if d.HasError() {
+					diags.Append(d...)
+					return nil
+				}
+				return ids
+			}(),
+			DestinationIPAddresses: func() []string {
+				ips, d := rule.DestinationIPAddresses.Get(ctx)
+				if d.HasError() {
+					diags.Append(d...)
+					return nil
+				}
+				return ips
+			}(),
+			ApplicationPortProfiles: func() []govcdtypes.OpenApiReference {
+				ids, d := common.ToOpenAPIReferenceID(ctx, rule.AppPortProfileIDs)
+				if d.HasError() {
+					diags.Append(d...)
+					return nil
+				}
+				return ids
+			}(),
 		}
 	}
 
-	return
+	return edgegateway.FirewallModelRules{Rules: sdkRules}, diags
 }

@@ -18,10 +18,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgegateway"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 var (
@@ -35,26 +35,27 @@ func NewFirewallDataSource() datasource.DataSource {
 
 type firewallDataSource struct {
 	client *client.CloudAvenue
-	org    org.Org
-	edgegw edgegw.EdgeGateway
+	edgegw *edgegateway.EdgeGateway
 }
 
 // Init Initializes the data source.
-func (d *firewallDataSource) Init(_ context.Context, dm *firewallModel) (diags diag.Diagnostics) {
+func (d *firewallDataSource) Init(ctx context.Context, dm *firewallModel) (diags diag.Diagnostics) {
 	var err error
 
-	d.org, diags = org.Init(d.client)
-	if diags.HasError() {
+	edgegw, err := edgegateway.NewClient()
+	if err != nil {
+		diags.AddError("Error creating Edge Gateway client", err.Error())
 		return
 	}
 
-	d.edgegw, err = d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   dm.EdgeGatewayID.StringValue,
-		Name: dm.EdgeGatewayName.StringValue,
-	})
+	nameOrID := dm.EdgeGatewayID.Get()
+	if nameOrID == "" {
+		nameOrID = dm.EdgeGatewayName.Get()
+	}
+
+	d.edgegw, err = edgegw.GetEdgeGateway(ctx, nameOrID)
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
 	}
 
 	return
@@ -111,7 +112,6 @@ func (d *firewallDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 	s := &firewallResource{
 		client: d.client,
-		org:    d.org,
 		edgegw: d.edgegw,
 	}
 

@@ -21,8 +21,8 @@ The firewall data source allows you to retrieve information about an Firewall.
 
 ### Read-Only
 
-- `id` (String) The ID of the Firewall Edge Gateway Service.
-- `rules` (Attributes List) The list of rules to apply to the firewall. (see [below for nested schema](#nestedatt--rules))
+- `id` (String) The ID of the Firewall Edge Gateway.
+- `rules` (Attributes Set) The collection of rules for configuring the firewall. (see [below for nested schema](#nestedatt--rules))
 
 <a id="nestedatt--rules"></a>
 ### Nested Schema for `rules`
@@ -32,11 +32,14 @@ Read-Only:
 - `action` (String) Defines the behavior of the rule.
 - `app_port_profile_ids` (Set of String) A set of Application Port Profile IDs. Leaving it empty means `Any` (all).
 - `destination_ids` (Set of String) A set of Destination Firewall Group IDs (`IP Sets` or `Security Groups`). Leaving it empty means `Any` (all).
-- `direction` (String) The direction of the rule.
-- `enabled` (Boolean) Defines if the rule is enabled or not.
+- `destination_ip_addresses` (Set of String) A set of destination IP addresses, IP Range or CIDR. If `destination_ids` attribute and this attribute are both empty, it means `Any` (all).
+- `direction` (String) Direction in firewall rules specifies whether the rule applies to incoming (inbound), outgoing (outbound), or both types of traffic. This attribute is crucial for defining how the firewall handles network traffic based on its direction.
+- `enabled` (Boolean) Defines if the rule is enabled or not. Default value is `true`.
 - `id` (String) The ID of the rule.
-- `ip_protocol` (String) The IP protocol of the rule.
-- `logging` (Boolean) Defines if the rule should log matching traffic.
+- `ip_protocol` (String) The IP protocol of the rule. Default value is `IPV4`. .
+- `logging` (Boolean) Defines if the rule should log matching traffic. Default value is `false`.
 - `name` (String) The name of the rule.
-- `source_ids` (Set of String) A set of Source Firewall Group IDs (`IP Sets` or `Security Groups`). Leaving it empty means `Any` (all).
+- `priority` (Number) The priority of the rule. Lower values have higher priority. If lots of rules have the same priority, the alphabetical order of the rule name is used to determine the priority.
+- `source_ids` (Set of String) A set of Source Firewall Group IDs (`IP Sets` or `Security Groups`). If `source_ip_addresses` attribute and this attribute are both empty, it means `Any` (all).
+- `source_ip_addresses` (Set of String) A set of source IP addresses, IP Range or CIDR. If `source_ids` attribute and this attribute are both empty, it means `Any` (all).
 

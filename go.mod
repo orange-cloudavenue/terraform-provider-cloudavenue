@@ -4,6 +4,8 @@ go 1.23.0
 
 toolchain go1.24.1
 
+replace github.com/orange-cloudavenue/cloudavenue-sdk-go => ../cloudavenue-sdk-go
+
 require (
 	github.com/aws/aws-sdk-go v1.55.7
 	github.com/cilium/fake v0.7.0
@@ -20,7 +22,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.36.1
 	github.com/iancoleman/strcase v0.3.0
 	github.com/madflojo/testcerts v1.4.0
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.25.0
+	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.26.1
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
 	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
 	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1
@@ -109,8 +111,8 @@ require (
 	github.com/zclconf/go-cty v1.16.2 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
 	golang.org/x/crypto v0.38.0 // indirect
-	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/sync v0.14.0 // indirect
+	golang.org/x/mod v0.25.0 // indirect
+	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/tools v0.29.0 // indirect
