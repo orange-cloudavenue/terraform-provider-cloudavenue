@@ -1,5 +1,17 @@
 ## 0.33.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* **New Data Source:** `datasource/cloudavenue_elb_policies_http_security` - Add new data source to retrieve HTTP security policies for CloudAvenue ELB. (GH-977)
+* **New Resource:** `resource/cloudavenue_elb_policies_http_security` - Add new resource to manage HTTP security policies for CloudAvenue ELB. HTTP security rules allow users to configure allowing or denying certain requests, to close the TCP connection, to redirect a request to HTTPS, or to apply a rate limit. (GH-977)
+
+### :tada: **Improvements**
+
+* `resource/cloudavenue_edgegateway` - Now the `tier0_vrf_name` attribute is optional. If not set, the field is computed (Only if one tier0 are available in your organization). These changes improve usability by simplifying the configuration for users with a single Tier-0 VRF while maintaining flexibility for more complex setups. (GH-1072)
+### :information_source: **Notes**
+
+* Publish the new guide on how to store tfstate files in Cloudavenue S3. (GH-996)
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-validators from 1.15.0 to 1.16.0 (GH-1084)
