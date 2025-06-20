@@ -1,19 +1,19 @@
 ---
-page_title: "cloudavenue_elb_policies_http_request Data Source - cloudavenue"
+page_title: "cloudavenue_elb_policies_http_security Data Source - cloudavenue"
 subcategory: "ELB (EdgeGateway Load Balancer)"
 description: |-
-  The cloudavenue_elb_policies_http_request data source allows you to retrieve information about an existing HTTP request policies.
+  The cloudavenue_elb_policies_http_security data source allows you to retrieve information about an existing HTTP security policies.
 ---
 
-# cloudavenue_elb_policies_http_request (Data Source)
+# cloudavenue_elb_policies_http_security (Data Source)
 
-The `cloudavenue_elb_policies_http_request` data source allows you to retrieve information about an existing HTTP request policies.
+The `cloudavenue_elb_policies_http_security` data source allows you to retrieve information about an existing HTTP security policies.
 
 ## Example Usage
 
 ```terraform
-data "cloudavenue_elb_policies_http_request" "example" {
-  name = "example"
+data "cloudavenue_elb_policies_http_security" "example" {
+  virtual_service_id = cloudavenue_elb_virtual_service.example.id
 }
 ```
 
@@ -22,12 +22,12 @@ data "cloudavenue_elb_policies_http_request" "example" {
 
 ### Required
 
-- `virtual_service_id` (String) The ID of the virtual service to which the policies http request belongs.
+- `virtual_service_id` (String) The ID of the virtual service to which the policies http security belongs. The value must respect the following rule : must be a valid URN. This value must start with `urn:vcloud:loadBalancerVirtualService:`.
 
 ### Read-Only
 
-- `id` (String) The ID of the policies http request.
-- `policies` (Attributes List) HTTP request policies. (see [below for nested schema](#nestedatt--policies))
+- `id` (String) The ID of the policies http security.
+- `policies` (Attributes List) HTTP security policies. (see [below for nested schema](#nestedatt--policies))
 
 <a id="nestedatt--policies"></a>
 ### Nested Schema for `policies`
@@ -35,32 +35,44 @@ data "cloudavenue_elb_policies_http_request" "example" {
 Read-Only:
 
 - `actions` (Attributes) Actions to perform when the rule matches. (see [below for nested schema](#nestedatt--policies--actions))
-- `active` (Boolean) Whether the policy is active or not.
-- `criteria` (Attributes) Match criteria for the HTTP request. (see [below for nested schema](#nestedatt--policies--criteria))
+- `active` (Boolean) Whether the policy is enable or not.
+- `criteria` (Attributes) Match criteria for the HTTP security. The criteria is used to match the request and determine if the action should be applied. (see [below for nested schema](#nestedatt--policies--criteria))
 - `logging` (Boolean) Whether to enable logging with headers on rule match or not.
-- `name` (String) Policy name, it must be unique within the virtual service's HTTP request policies.
+- `name` (String) Policy name, it must be unique within the virtual service's HTTP security policies.
 
 <a id="nestedatt--policies--actions"></a>
 ### Nested Schema for `policies.actions`
 
 Read-Only:
 
-- `modify_headers` (Attributes Set) Modify HTTP request headers. (see [below for nested schema](#nestedatt--policies--actions--modify_headers))
-- `redirect` (Attributes) Redirects the request to different location. (see [below for nested schema](#nestedatt--policies--actions--redirect))
-- `rewrite_url` (Attributes) Rewrite the request URL. (see [below for nested schema](#nestedatt--policies--actions--rewrite_url))
+- `connection` (String) Connection action to perform.
+- `rate_limit` (Attributes) The rate_limit allows you to specify an action to take when the rate limit is reached. A rate limit defines the maximum number of requests permitted within a specific time frame. (see [below for nested schema](#nestedatt--policies--actions--rate_limit))
+- `redirect_to_https` (Number) A port number, when set, configures the rule to redirect matching HTTP requests to HTTPS on the specified port.
+- `send_response` (Attributes) Send a customized response. (see [below for nested schema](#nestedatt--policies--actions--send_response))
 
-<a id="nestedatt--policies--actions--modify_headers"></a>
-### Nested Schema for `policies.actions.modify_headers`
+<a id="nestedatt--policies--actions--rate_limit"></a>
+### Nested Schema for `policies.actions.rate_limit`
 
 Read-Only:
 
-- `action` (String) Action to perform on the header.
-- `name` (String) Name of the HTTP header to modify.
-- `value` (String) Value of the HTTP header to modify.
+- `close_connection` (Boolean) Close connection when the rate limit is reached.
+- `count` (Number) Number of requests.
+- `local_response` (Attributes) Local response action can be used to send a customized response when the rate limit is reached. (see [below for nested schema](#nestedatt--policies--actions--rate_limit--local_response))
+- `period` (Number) Period in seconds.
+- `redirect` (Attributes) Redirects the request to different location when the rate limit is reached. (see [below for nested schema](#nestedatt--policies--actions--rate_limit--redirect))
+
+<a id="nestedatt--policies--actions--rate_limit--local_response"></a>
+### Nested Schema for `policies.actions.rate_limit.local_response`
+
+Read-Only:
+
+- `content` (String) Content of the response must be a base64 encoded string.
+- `content_type` (String) Mime type of content.
+- `status_code` (Number) HTTP status code to return.
 
 
-<a id="nestedatt--policies--actions--redirect"></a>
-### Nested Schema for `policies.actions.redirect`
+<a id="nestedatt--policies--actions--rate_limit--redirect"></a>
+### Nested Schema for `policies.actions.rate_limit.redirect`
 
 Read-Only:
 
@@ -72,15 +84,15 @@ Read-Only:
 - `status_code` (Number) Redirect status code.
 
 
-<a id="nestedatt--policies--actions--rewrite_url"></a>
-### Nested Schema for `policies.actions.rewrite_url`
+
+<a id="nestedatt--policies--actions--send_response"></a>
+### Nested Schema for `policies.actions.send_response`
 
 Read-Only:
 
-- `host` (String) Host header to use for the rewritten URL.
-- `keep_query` (Boolean) Whether or not to keep the existing query string when rewriting the URL. Defaults to true.
-- `path` (String) Path to use for the rewritten URL.
-- `query` (String) Query string to use or append to the existing query string in the rewritten URL.
+- `content` (String) Content of the response.
+- `content_type` (String) Mime type of content.
+- `status_code` (Number) HTTP status code to return.
 
 
 
@@ -93,7 +105,7 @@ Read-Only:
 - `cookie` (Attributes) Match the rule based on cookie rules. (see [below for nested schema](#nestedatt--policies--criteria--cookie))
 - `http_methods` (Attributes) Match the rule based on HTTP method rules. (see [below for nested schema](#nestedatt--policies--criteria--http_methods))
 - `path` (Attributes) Match the rule based on path rules. (see [below for nested schema](#nestedatt--policies--criteria--path))
-- `protocol` (String) Protocol to match.
+- `protocol` (String) Protocol to match. Only HTTP application layer protocol (OSI 7) are supported.
 - `query` (Set of String) Text contained in the query string.
 - `request_headers` (Attributes Set) Match the rule based on request headers rules. (see [below for nested schema](#nestedatt--policies--criteria--request_headers))
 - `service_ports` (Attributes) Match the rule based on service port rules. (see [below for nested schema](#nestedatt--policies--criteria--service_ports))

@@ -194,6 +194,41 @@ func (r *EdgeGatewayResource) Tests(_ context.Context) map[testsacc.TestName]fun
 				},
 			}
 		},
+		"example_without_t_0": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
+
+					// Read-Only attributes
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
+					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
+				},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
+					return
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_edgegateway" "example_without_t_0" {
+						owner_name     = cloudavenue_vdc.example.name
+						bandwidth      = 5
+					  }`),
+					Checks: []resource.TestCheckFunc{},
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"name"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
+			}
+		},
 	}
 }
 
