@@ -1,4 +1,11 @@
 ## 0.33.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-validators from 1.15.0 to 1.16.0 (GH-1084)
+* deps: bumps golang.org/x/net from 0.39.0 to 0.40.0 (GH-1085)
+* deps: bumps golang.org/x/net from 0.40.0 to 0.41.0 (GH-1105)
+
 ## 0.32.1 (April 30, 2025)
 
 ### :bug: **Bug Fixes**

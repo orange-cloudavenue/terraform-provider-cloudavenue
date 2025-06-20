@@ -17,6 +17,15 @@
 - name: "bug"
   color: "B60205"
   description: "Bug"
+- name: "terraform-module"
+  color: "7B42BC"
+  description: "Terraform module"
+- name: "parent"
+  color: "BFDADC"
+  description: "Parent issue"
+- name: "tests"
+  color: "5be9ff"
+  description: "Tests"
 
 # Sync 
 - name: "sync"

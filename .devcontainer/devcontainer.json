@@ -26,11 +26,11 @@
 			]
 		}
 	},
-	"postStartCommand": "task install ; task init",
-	"remoteUser": "vscode",
-	"containerUser": "vscode",
+	"postStartCommand": "echo -e \"CLOUDAVENUE_USER=$CLOUDAVENUE_USER\nCLOUDAVENUE_PASSWORD=$CLOUDAVENUE_PASSWORD\nCLOUDAVENUE_ORG=$CLOUDAVENUE_ORG\nNETBACKUP_USERNAME=$NETBACKUP_USERNAME\nNETBACKUP_PASSWORD=$NETBACKUP_PASSWORD\" > .env ; task install ; task init",
+	"remoteUser": "cav",
+	"containerUser": "cav",
 	"containerEnv": {
-		"HOME": "/home/vscode",
+		"HOME": "/home/cav",
 		// Username
 		"CLOUDAVENUE_USER": "${localEnv:CLOUDAVENUE_USER}",
 		// Password
