@@ -1,0 +1,19 @@
+```release-note:bug
+`provider` Fixes issue where the provider would fail when used with Terraform >= v1.12.1
+```
+
+```release-note:dependency
+deps: bump github.com/hashicorp/terraform-plugin-go from 0.26.0 to 0.28.0
+```
+
+```release-note:dependency
+deps: bump github.com/hashicorp/terraform-plugin-framework from 1.14.1 to 1.15.0
+```
+
+```release-note:dependency
+deps: bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.36.1 to 2.37.0
+```
+
+```release-note:dependency
+deps: bump github.com/hashicorp/terraform-plugin-framework-validators from 0.17.0 to 0.18.0
+```
