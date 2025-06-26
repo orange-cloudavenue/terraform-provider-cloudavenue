@@ -213,8 +213,8 @@ func (r *NetworkRoutedResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetURN())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetURN())
 
 	netRouted, err := r.vdc.CreateNetworkRouted(sdkValues)
 	if err != nil {
@@ -306,8 +306,8 @@ func (r *NetworkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetURN())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetURN())
 
 	netRouted, err := r.vdc.GetNetworkRouted(state.ID.Get())
 	if err != nil {
@@ -357,8 +357,8 @@ func (r *NetworkRoutedResource) Delete(ctx context.Context, req resource.DeleteR
 		Implement the resource deletion here
 	*/
 
-	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetURN())
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetURN())
 
 	netRouted, err := r.vdc.GetNetworkRouted(state.ID.Get())
 	if err != nil {
