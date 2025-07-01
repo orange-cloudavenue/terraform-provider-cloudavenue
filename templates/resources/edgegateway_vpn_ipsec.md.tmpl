@@ -9,60 +9,15 @@ description: |-
 
 {{ .Description | trimspace }}
 
-## Examples
-### Example Usage (IPsec VPN Tunnel with default Security Profile)
-```hcl
-resource "cloudavenue_edgegateway_vpn_ipsec" "example" {
-  edge_gateway_id = cloudavenue_edgegateway.example.id
+{{ if .HasExample -}}
+## Example Usage
 
-  name        = "example"
-  description = "example VPN IPSec"
-  enabled     = true
+Example Usage (IPsec VPN Tunnel with default Security Profile)
+{{ tffile .ExampleFile }}
+{{- end }}
 
-  pre_shared_key = "my-preshared-key"
-
-  local_ip_address = "123.45.67.89"
-  local_networks   = ["10.10.10.0/24", "30.30.30.0/28"]
-
-  remote_ip_address = "1.2.3.5"
-  remote_networks   = ["192.168.1.0/24", "192.168.10.0/24"]
-}
-```
-
-### Example Usage (IPsec VPN Tunnel with a custom Security Profile)
-```hcl
-resource "cloudavenue_edgegateway_vpn_ipsec" "example" {
-  edge_gateway_id = cloudavenue_edgegateway.example.id
-
-  name        = "example"
-  description = "example VPN IPSec"
-  enabled     = false
-
-  pre_shared_key = "my-preshared-key"
-
-  local_ip_address = "195.25.15.99"
-  local_networks   = ["10.10.10.0/24", "30.30.30.0/28"]
-
-  remote_ip_address = "1.2.3.5"
-  remote_networks   = ["192.168.1.0/24", "192.168.10.0/24"]
-
-  security_profile = {
-    ike_dh_groups                = "GROUP15"
-    ike_digest_algorithm         = "SHA2_384"
-    ike_encryption_algorithm     = "AES_128"
-    ike_sa_lifetime              = 86400
-    ike_version                  = "IKE_V2"
-    tunnel_df_policy             = "COPY"
-    tunnel_dh_groups             = "GROUP15"
-    tunnel_digest_algorithms     = "SHA2_512"
-    tunnel_dpd                   = 45
-    tunnel_encryption_algorithms = "AES_128"
-    tunnel_pfs                   = true
-    tunnel_sa_lifetime           = 3600
-  }
-}
-```
-
+Example Usage (IPsec VPN Tunnel with a custom Security Profile)
+{{ tffile (printf "examples/resources/%s/resource_with_custom_properties.tf" .Name)}}
 
 {{ .SchemaMarkdown | trimspace }}
 

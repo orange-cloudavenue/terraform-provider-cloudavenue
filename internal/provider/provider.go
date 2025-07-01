@@ -21,7 +21,6 @@ import (
 	clientcloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/clients/cloudavenue"
 	clientnetbackup "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/clients/netbackup"
 	caverrors "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/errors"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
 
