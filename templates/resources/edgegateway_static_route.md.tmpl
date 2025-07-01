@@ -12,8 +12,12 @@ description: |-
 {{ if .HasExample -}}
 ## Example Usage
 
+Example Simple Usage (Static Route with default next hop)
 {{ tffile .ExampleFile }}
 {{- end }}
+
+Example Advanced Usage (Static Route with 2 next hops)
+{{ tffile (printf "examples/resources/%s/resource_advanced.tf" .Name)}}
 
 {{ .SchemaMarkdown | trimspace }}
 

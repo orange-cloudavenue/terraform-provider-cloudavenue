@@ -11,6 +11,24 @@ The `cloudavenue_edgegateway_static_route` resource allows you to create and man
 
 ## Example Usage
 
+Example Simple Usage (Static Route with default next hop)
+```terraform
+resource "cloudavenue_edgegateway_static_route" "example" {
+  name        = "example"
+  description = "example description"
+
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+
+  network_cidr = "192.168.2.0/24"
+  next_hops = [
+    {
+      ip_address = "192.168.2.254"
+    }
+  ]
+}
+```
+
+Example Advanced Usage (Static Route with 2 next hops)
 ```terraform
 resource "cloudavenue_edgegateway_static_route" "example" {
   name        = "example"

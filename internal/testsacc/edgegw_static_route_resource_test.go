@@ -43,7 +43,9 @@ func (r *EdgeGatewayStaticRouteResource) Tests(_ context.Context) map[testsacc.T
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					// Check that the resource has been created and has an ID formatted as uuid v4
+					resource.TestCheckResourceAttrWith(resourceName, "id", ToValidate("uuid4")),
+					// Check that the edge_gateway_id is a valid urn of type Gateway
 					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 				},
 				Create: testsacc.TFConfig{
@@ -103,7 +105,7 @@ func (r *EdgeGatewayStaticRouteResource) Tests(_ context.Context) map[testsacc.T
 					return
 				},
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrWith(resourceName, "id", ToValidate("uuid4")),
 					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 				},
 				Create: testsacc.TFConfig{

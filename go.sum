@@ -42,6 +42,8 @@ github.com/cloudflare/circl v1.6.0 h1:cr5JKic4HI+LkINy2lg3W2jF8sHCVTBncJr5gIIq7q
 github.com/cloudflare/circl v1.6.0/go.mod h1:uddAzsPgqdMAYatqJ0lsjX1oECcQLIlRpzZh3pJrofs=
 github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
+github.com/creasty/defaults v1.8.0 h1:z27FJxCAa0JKt3utc0sCImAEb+spPucmKoOdLHvHYKk=
+github.com/creasty/defaults v1.8.0/go.mod h1:iGzKe6pbEHnpMPtfDXZEr0NVxWnPTjb1bbDy08fPzYM=
 github.com/cyphar/filepath-securejoin v0.4.1 h1:JyxxyPEaktOD+GAnqIqTf9A8tHyAG22rowi7HkoSU1s=
 github.com/cyphar/filepath-securejoin v0.4.1/go.mod h1:Sdj7gXlvMcPZsbhwhQ33GguGLDGQL7h7bg04C/+u9jI=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -229,6 +231,8 @@ github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
 github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac/go.mod h1:IYtCusqpEGS0dhC6F8X9GHrrt1gp1zHaNhSKGYV59Xg=
 github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339 h1:DEKcWLGbEhu/I6kn9NAXhVCFrbPhR+Ef7oLmpLVnnPM=
 github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339/go.mod h1:11JAFfGWVmhoT4AAORKsIC5M6nI+uDGSEOScMzavgPA=
+github.com/orange-cloudavenue/common-go/validators v0.2.2 h1:qu8VGNgdp0aq0SSeM8xWXG2+qd+VbblSDGXh0sdRkKA=
+github.com/orange-cloudavenue/common-go/validators v0.2.2/go.mod h1:Lq2b7ANIy5/sEaWzZNjcCEhvDzkUL1fo4e4IK0txKt0=
 github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1 h1:eU6rJu+6Nrjd5h/swpeaZOk5ndKdlhRUhb4czwiBq9Q=
 github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1/go.mod h1:P6xBWALTxSvFCPejfnWwP0xAgeVVqkAIPvKHSEbLgYU=
 github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.11.0 h1:uezhiY+wp4khq2i9z2jbr26e816BQYKFolCjsZlLIzU=

@@ -8,6 +8,10 @@ resource "cloudavenue_edgegateway_static_route" "example" {
   next_hops = [
     {
       ip_address = "192.168.2.254"
+    },
+    {
+      ip_address     = "192.168.2.253"
+      admin_distance = 2
     }
   ]
 }
