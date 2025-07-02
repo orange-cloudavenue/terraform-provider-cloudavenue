@@ -23,24 +23,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
 )
 
-const testAccEdgeGatewayResourceConfig = `
-data "cloudavenue_tier0_vrfs" "example_with_vdc" {}
-
-resource "cloudavenue_edgegateway" "example_with_vdc" {
-  owner_name     = "MyEdgeGateway"
-  tier0_vrf_name = data.cloudavenue_tier0_vrfs.example_with_vdc.names.0
-}
-`
-
-const testAccEdgeGatewayGroupResourceConfig = `
-data "cloudavenue_tier0_vrfs" "example_with_group" {}
-
-resource "cloudavenue_edgegateway" "example_with_group" {
-  owner_name     = "MyEdgeGatewayGroup"
-  tier0_vrf_name = data.cloudavenue_tier0_vrfs.example_with_group.names.0
-}
-`
-
 var _ testsacc.TestACC = &EdgeGatewayResource{}
 
 const (

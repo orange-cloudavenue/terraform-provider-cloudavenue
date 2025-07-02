@@ -23,6 +23,7 @@ require (
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.26.1
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
 	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
+	github.com/orange-cloudavenue/common-go/validators v0.2.2
 	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1
 	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.11.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.2.0
@@ -51,6 +52,7 @@ require (
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.8.1 // indirect
 	github.com/cloudflare/circl v1.6.0 // indirect
+	github.com/creasty/defaults v1.8.0 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fbiville/markdown-table-formatter v0.3.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
