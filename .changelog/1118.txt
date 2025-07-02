@@ -1,0 +1,6 @@
+```release-note:bug
+`provider`: All mutex locking/unlocking for Edge Gateway and related resources now use a single consistent key: URN (extracted UUID). 
+This prevents concurrency bugs where the same Edge Gateway could be locked with different keys. 
+Removed redundant lock utility functions and ensured all resources (firewall, network, etc.) use the same lock logic.
+```
+
