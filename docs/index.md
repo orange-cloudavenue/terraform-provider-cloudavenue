@@ -29,6 +29,7 @@ Configuration for the CloudAvenue Provider can be derived from several sources, 
 * `org` (String) The organization used on Cloud Avenue.
 * `user` (String) The username to use to connect to the Cloud Avenue.
 * `password` (String, Sensitive) The password to use to connect to the Cloud Avenue.
+  -> [DEPRECATED] The 'vdc' field is deprecated since v0.34.0 and will be removed in v0.39.0.
 * `vdc` (String) The VDC used on Cloud Avenue. If this field is set, we will use by default this VDC for all resources. If your set a custom VDC for a resource, this field will be ignored.
 * `url` (String) The URL of the Cloud Avenue. This field is computed by default. If you want to use a custom URL, you can set this field.
 
