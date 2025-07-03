@@ -11,7 +11,7 @@ This provider offers utilities for working with the Cloud Avenue platform.
 
 Documentation regarding data sources and resources can be found in the left sidebar.
 
- -> Note : If you need more information about Cloud Avenue, please visit [Cloud Avenue documentation](https://wiki.cloudavenue.orange-business.com/wiki/Services_catalogue).
+ -> Note : If you need more information about Cloud Avenue, please visit [Cloud Avenue documentation](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/overview/services-presentation/).
 
   !> [DEPRECATED] (Breaking Change Upcoming): The 'vdc' field is now deprecated (since `v0.34.0`) and will be removed in `v0.39.0`.
 

@@ -38,7 +38,7 @@ resource "cloudavenue_org" "example" {
 
 - `description` (String) The description of the organization.
 - `email` (String) The email of the organization.
-- `internet_billing_mode` (String) The internet billing mode of the organization. For more information, see the [documentation](https://wiki.cloudavenue.orange-business.com/wiki/Internet_access). Value must be one of : `PAYG`, `TRAFFIC_VOLUME`.
+- `internet_billing_mode` (String) The internet billing mode of the organization. For more information, see the [documentation](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/internet-access/). Value must be one of : `PAYG`, `TRAFFIC_VOLUME`.
 - `name` (String) The name of the organization.
 
 ### Read-Only

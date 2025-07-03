@@ -2,12 +2,12 @@
 page_title: "cloudavenue_backup Resource - cloudavenue"
 subcategory: "Backup"
 description: |-
-  The cloudavenue_backup resource allows you to manage backup strategy for vdc, vapp and vm from NetBackup solution. Please refer to the documentation for more information. https://wiki.cloudavenue.orange-business.com/wiki/Backup
+  The cloudavenue_backup resource allows you to manage backup strategy for vdc, vapp and vm from NetBackup solution. Please refer to the documentation for more information. https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/practical-sheets/backup/backup/
 ---
 
 # cloudavenue_backup (Resource)
 
-The `cloudavenue_backup` resource allows you to manage backup strategy for `vdc`, `vapp` and `vm` from NetBackup solution. [Please refer to the documentation for more information.](https://wiki.cloudavenue.orange-business.com/wiki/Backup)
+The `cloudavenue_backup` resource allows you to manage backup strategy for `vdc`, `vapp` and `vm` from NetBackup solution. [Please refer to the documentation for more information.](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/practical-sheets/backup/backup/)
 
  ~> The credentials NetBackup are Requires to use this feature. [Please refer to the documentation for more information.](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs#netbackup-configuration)
 
@@ -71,7 +71,7 @@ resource "cloudavenue_backup" "example-vm" {
 
 Required:
 
-- `policy_name` (String) The name of the backup policy. Each letter represent a strategy predefined: D = Daily, W = Weekly, M = Monthly, X = Replication, The number is the retention period. [Please refer to the documentation for more information.](https://wiki.cloudavenue.orange-business.com/wiki/Backup).
+- `policy_name` (String) The name of the backup policy. Each letter represent a strategy predefined: D = Daily, W = Weekly, M = Monthly, X = Replication, The number is the retention period. [Please refer to the documentation for more information.](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/practical-sheets/backup/backup/).
 
 Read-Only:
 

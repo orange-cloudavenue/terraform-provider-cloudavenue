@@ -9,7 +9,7 @@ description: |-
 
 Provides a Cloud Avenue vDC (Virtual Data Center) resource. This can be used to create, update and delete vDC.
  
- -> Note: For more information about Cloud Avenue vDC, please refer to the [Cloud Avenue documentation](https://wiki.cloudavenue.orange-business.com/wiki/Datacenter_virtuel).
+ -> Note: For more information about Cloud Avenue vDC, please refer to the [Cloud Avenue documentation](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/virtual-datacenter/virtual-datacenter/).
 
  ~> **Warning**
  The VDC resource uses a complex validation system that is **incompatible** with the **Terraform module**. (See [Disable validation](#disable-validation))
@@ -88,7 +88,7 @@ Optional:
 
 <!-- TABLE VDC ATTRIBUTES PARAMETERS -->
 ## Rules
-More information about rules can be found [here](https://wiki.cloudavenue.orange-business.com/wiki/Virtual_Datacenter).All fields with a ** are editable.
+More information about rules can be found [here](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/virtual-datacenter/virtual-datacenter/).All fields with a ** are editable.
 
 ### ServiceClass ECO
 | BillingModels | StorageBillingModels | DisponibilityClasses | CPUInMhz (Mhz)          | CPUAllocated (Mhz)         | MemoryAllocated (Gb) |
@@ -118,7 +118,7 @@ More information about rules can be found [here](https://wiki.cloudavenue.orange
 
 <!-- TABLE STORAGE PROFILES ATTRIBUTES PARAMETERS -->
 ## Storage Profiles
-More information about storage profiles can be found [here](https://wiki.cloudavenue.orange-business.com/wiki/Storage).All fields with a ** are editable.
+More information about storage profiles can be found [here](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/block-storage/).All fields with a ** are editable.
 
 ### ServiceClass ECO
 | StorageProfileClass | SizeLimit (Go)          | IOPSLimit   | BillingModels  | DisponibilityClasses |
