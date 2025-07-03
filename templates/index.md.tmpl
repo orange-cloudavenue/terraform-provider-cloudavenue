@@ -13,6 +13,9 @@ Documentation regarding data sources and resources can be found in the left side
 
  -> Note : If you need more information about Cloud Avenue, please visit [Cloud Avenue documentation](https://wiki.cloudavenue.orange-business.com/wiki/Services_catalogue).
 
+  !> [DEPRECATED] (Breaking Change Upcoming): The 'vdc' field is now deprecated (since `v0.34.0`) and will be removed in `v0.39.0`.
+
+
 ## Authentication and Configuration
 
 Configuration for the CloudAvenue Provider can be derived from several sources, which are applied in the following order:
@@ -26,11 +29,12 @@ Configuration for the CloudAvenue Provider can be derived from several sources, 
 
 ### cloudavenue configuration
 
+  !> [DEPRECATED] (Breaking Change Upcoming): The 'vdc' configuration field is now deprecated (since `v0.34.0`) and will be removed in `v0.39.0`.
+
 * `org` (String) The organization used on Cloud Avenue.
 * `user` (String) The username to use to connect to the Cloud Avenue.
 * `password` (String, Sensitive) The password to use to connect to the Cloud Avenue.
-  -> [DEPRECATED] The 'vdc' field is deprecated since v0.34.0 and will be removed in v0.39.0.
-* `vdc` (String) The VDC used on Cloud Avenue. If this field is set, we will use by default this VDC for all resources. If your set a custom VDC for a resource, this field will be ignored.
+* `vdc` (String) (deprecated) The VDC used on Cloud Avenue. If this field is set, we will use by default this VDC for all resources. If you set a custom VDC for a resource, this field will be ignored.
 * `url` (String) The URL of the Cloud Avenue. This field is computed by default. If you want to use a custom URL, you can set this field.
 
 ### Netbackup configuration
@@ -59,6 +63,8 @@ Other settings related to [Schema](#schema) can be configured.
 
 ## Environment Variables
 
+ !> [DEPRECATED] (Breaking Change Upcoming): The 'vdc' variable is now deprecated (since `v0.34.0`) and will be removed in `v0.39.0`.
+
 Credentials can be provided by using the environment variables related to [List of Environment Variables](#list-of-environment-variables).
 It's recommended to use environment variables to avoid hard-coding credentials in any Terraform configuration and risks secret leakage should this file ever be committed to a public version control system.
 
@@ -81,7 +87,7 @@ export CLOUDAVENUE_PASSWORD="my-password"
 | `org` | `CLOUDAVENUE_ORG` |
 | `user` | `CLOUDAVENUE_USERNAME` |
 | `password` | `CLOUDAVENUE_PASSWORD` |
-| `vdc` | `CLOUDAVENUE_VDC` |
+| `vdc` | `CLOUDAVENUE_VDC` (deprecated) |
 | `url` | `CLOUDAVENUE_URL` |
 | `netbackup_user` | `NETBACKUP_USERNAME` |
 | `netbackup_password` | `NETBACKUP_PASSWORD` |
