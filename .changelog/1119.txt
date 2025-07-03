@@ -1,0 +1,3 @@
+```release-note:breaking-change
+`provider` - The attribute `vdc` in the configuration provider is deprecated and will be removed in the release `v0.39.0`. Please adjust your configuration. Warning the environment variable`CLOUDAVENUE_VDC` is also deprecated.
+```
