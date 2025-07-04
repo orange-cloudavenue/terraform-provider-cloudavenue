@@ -1,4 +1,5 @@
-## 0.34.0 (Unreleased)
+## 0.35.0 (Unreleased)
+## 0.34.0 (July  4, 2025)
 
 ### :tada: **Improvements**
 
