@@ -7,7 +7,7 @@
  * or see the "LICENSE" file for more details.
  */
 
-package utils
+package utils //nolint: revive,nolintlint
 
 import (
 	"reflect"

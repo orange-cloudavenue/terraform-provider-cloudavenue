@@ -7,7 +7,7 @@
  * or see the "LICENSE" file for more details.
  */
 
-package common
+package common //nolint:revive,nolintlint
 
 import (
 	"context"
