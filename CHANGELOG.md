@@ -23,6 +23,7 @@ Removed redundant lock utility functions and ensured all resources (firewall, ne
 * deps: bump github.com/hashicorp/terraform-plugin-go from 0.26.0 to 0.28.0 (GH-1113)
 * deps: bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.36.1 to 2.37.0 (GH-1113)
 * deps: bump github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.26.1 to 0.26.2 (GH-1133)
+* deps: bumps stefanzweifel/git-auto-commit-action from 5 to 6 (GH-1109)
 
 ## 0.33.0 (June 20, 2025)
 
