@@ -69,7 +69,7 @@ func orgSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
-					MarkdownDescription: "For more information, see the [documentation](https://wiki.cloudavenue.orange-business.com/wiki/Internet_access).",
+					MarkdownDescription: "For more information, see the [documentation](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/internet-access/).",
 					Optional:            true,
 					Validators: []validator.String{
 						stringvalidator.OneOf("PAYG", "TRAFFIC_VOLUME"),

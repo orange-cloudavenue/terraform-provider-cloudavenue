@@ -1,0 +1,7 @@
+```release-note:documentation
+docs - All documentation portal URLs have been updated to the new Cloud Avenue documentation portal.
+```
+
+```release-note:dependency
+deps: bump github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.26.1 to 0.26.2
+```

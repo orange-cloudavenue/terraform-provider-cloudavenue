@@ -28,7 +28,7 @@ func vcdaIPSchema() superschema.Schema {
 		},
 		Resource: superschema.SchemaDetails{
 			MarkdownDescription: "resource allows you to declare or remove your on-premises IP address for the DRaaS service.\n" +
-				" -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://wiki.cloudavenue.orange-business.com/wiki/DRaaS_with_VCDA).",
+				" -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/draas-with-vcda-2/).",
 		},
 		Attributes: superschema.Attributes{
 			"id": superschema.SuperStringAttribute{

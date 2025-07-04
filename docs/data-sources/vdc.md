@@ -9,7 +9,7 @@ description: |-
 
 Provides a Cloud Avenue vDC (Virtual Data Center) data source. This can be used to reference a vDC and use its data within other resources or data sources.
 
- -> Note: For more information about Cloud Avenue vDC, please refer to the [Cloud Avenue documentation](https://wiki.cloudavenue.orange-business.com/wiki/Datacenter_virtuel).
+ -> Note: For more information about Cloud Avenue vDC, please refer to the [Cloud Avenue documentation](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/virtual-datacenter/virtual-datacenter/).
 
 ## Example Usage
 

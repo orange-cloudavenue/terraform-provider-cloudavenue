@@ -3,13 +3,13 @@ page_title: "cloudavenue_vcda_ip Resource - cloudavenue"
 subcategory: "DRaaS (Disaster Recovery as a Service)"
 description: |-
   The VCDa resource allows you to declare or remove your on-premises IP address for the DRaaS service.
-  -> Note: For more information, please refer to the Cloud Avenue DRaaS documentation https://wiki.cloudavenue.orange-business.com/wiki/DRaaS_with_VCDA.
+  -> Note: For more information, please refer to the Cloud Avenue DRaaS documentation https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/draas-with-vcda-2/.
 ---
 
 # cloudavenue_vcda_ip (Resource)
 
 The VCDa resource allows you to declare or remove your on-premises IP address for the DRaaS service.
- -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://wiki.cloudavenue.orange-business.com/wiki/DRaaS_with_VCDA).
+ -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/draas-with-vcda-2/).
 
 ## Example Usage
 
