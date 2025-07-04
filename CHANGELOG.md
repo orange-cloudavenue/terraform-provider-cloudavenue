@@ -1,4 +1,29 @@
 ## 0.34.0 (Unreleased)
+
+### :tada: **Improvements**
+
+* `resource/cloudavenue_edgegateway_static_route`: Improve example of documentation to reflect recent changes (GH-1130)
+* docs - Update documentation for resource `cloudavenue_edgegateway_vpn_ipsec` to reflect recent changes (GH-1125)
+* tests(acc): Complete refactor of acceptance tests for `cloudavenue_edgegateway_vpn_ipsec` (GH-1125)
+
+### :bug: **Bug Fixes**
+
+* `provider` - All mutex locking/unlocking for Edge Gateway and related resources now use a single consistent key: URN (extracted UUID). 
+This prevents concurrency bugs where the same Edge Gateway could be locked with different keys. 
+Removed redundant lock utility functions and ensured all resources (firewall, network, etc.) use the same lock logic. (GH-1118)
+* `provider` - Fixes issue where the provider would fail when used with Terraform >= v1.12.1 (GH-1113)
+### :information_source: **Notes**
+
+* `provider` - The attribute `vdc` in the configuration provider is deprecated and will be removed in the release `v0.39.0`. Please adjust your configuration. Warning the environment variable`CLOUDAVENUE_VDC` is also deprecated. (GH-1119)
+
+### :dependabot: **Dependencies**
+
+* deps: bump github.com/hashicorp/terraform-plugin-framework from 1.14.1 to 1.15.0 (GH-1113)
+* deps: bump github.com/hashicorp/terraform-plugin-framework-validators from 0.17.0 to 0.18.0 (GH-1113)
+* deps: bump github.com/hashicorp/terraform-plugin-go from 0.26.0 to 0.28.0 (GH-1113)
+* deps: bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.36.1 to 2.37.0 (GH-1113)
+* deps: bump github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.26.1 to 0.26.2 (GH-1133)
+
 ## 0.33.0 (June 20, 2025)
 
 ### :rocket: **New Features**
