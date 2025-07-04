@@ -1,3 +1,3 @@
 ```release-note:enhancement
-`cloudavenue_edgegateway_static_route`: Improve example documentation to reflect recent changes
+`resource/cloudavenue_edgegateway_static_route`: Improve example of documentation to reflect recent changes
 ```

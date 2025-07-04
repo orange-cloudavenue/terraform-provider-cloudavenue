@@ -1,5 +1,5 @@
 ```release-note:documentation
-docs: All documentation portal URLs have been updated to the new Cloud Avenue documentation portal.
+docs - All documentation portal URLs have been updated to the new Cloud Avenue documentation portal.
 ```
 
 ```release-note:dependency

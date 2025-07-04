@@ -1,5 +1,5 @@
 ```release-note:bug
-`provider` Fixes issue where the provider would fail when used with Terraform >= v1.12.1
+`provider` - Fixes issue where the provider would fail when used with Terraform >= v1.12.1
 ```
 
 ```release-note:dependency

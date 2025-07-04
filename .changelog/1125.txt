@@ -3,5 +3,5 @@ tests(acc): Complete refactor of acceptance tests for `cloudavenue_edgegateway_v
 ```
 
 ```release-note:enhancement
-docs(cloudavenue_edgegateway_vpn_ipsec): Updated documentation to reflect recent changes
+docs - Update documentation for resource `cloudavenue_edgegateway_vpn_ipsec` to reflect recent changes
 ```
