@@ -29,15 +29,23 @@ jobs:
     needs: [pre-check]
     name: "Lint"
     uses: orange-cloudavenue/workflows/.github/workflows/go_golangci-lint.yml@main
+    with:
+      ref: ${{ github.ref }}
+      repository: ${{ github.repository }}
+
   tests:
     needs: [pre-check]
     name: "Unit Tests"
     uses: orange-cloudavenue/workflows/.github/workflows/go_unit-test-tf-provider.yml@main
+    with:
+        ref: ${{ github.ref }}
+        repository: ${{ github.repository }}
     secrets:
-      CLOUDAVENUE_ORG: ${{ secrets.CLOUDAVENUE_ORG }}
-      CLOUDAVENUE_USER: ${{ secrets.CLOUDAVENUE_USER }}
-      CLOUDAVENUE_PASSWORD: ${{ secrets.CLOUDAVENUE_PASSWORD }}
-      CLOUDAVENUE_VDC: ${{ secrets.CLOUDAVENUE_VDC }}
+        CLOUDAVENUE_ORG: ${{ secrets.CLOUDAVENUE_ORG }}
+        CLOUDAVENUE_USER: ${{ secrets.CLOUDAVENUE_USER }}
+        CLOUDAVENUE_PASSWORD: ${{ secrets.CLOUDAVENUE_PASSWORD }}
+        CLOUDAVENUE_VDC: ${{ secrets.CLOUDAVENUE_VDC }}
+
   tag:
     needs: [golang-ci-lint, tests]
 
