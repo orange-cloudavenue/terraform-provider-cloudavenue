@@ -6,8 +6,8 @@
 name: PR All events
 
 on:
-  pull_request_target:
-    types: [ opened, reopened, synchronize ]
+  pull_request:
+    types: [ opened, reopened, synchronize, edited ]
 
 
 concurrency:
@@ -29,8 +29,12 @@ jobs:
       
 
   pr-size:
+    if: github.event.action != 'edited'
     name: "PR Size"
     uses: orange-cloudavenue/workflows/.github/workflows/pr_label_size.yml@main
+    with:
+      ref: ${{ github.ref }}
+      repository: ${{ github.repository }}
     secrets:
       TOKEN: ${{ secrets.CHANGELOG_PAT }}
 
@@ -41,17 +45,30 @@ jobs:
       TOKEN: ${{ secrets.CHANGELOG_PAT }}
 
   pr-license:
+    if: github.event.action != 'edited' && github.event.pull_request.draft == false
     name: "License Check"
     uses: orange-cloudavenue/workflows/.github/workflows/pr_license.yml@main
+    with:
+      ref: ${{ github.ref }}
+      repository: ${{ github.repository }}
 
   golang-ci-lint:
+    if: github.event.action != 'edited' && github.event.pull_request.draft == false
     name: "Lint"
     uses: orange-cloudavenue/workflows/.github/workflows/go_golangci-lint.yml@main
+    with:
+      ref: ${{ github.ref }}
+      repository: ${{ github.repository }}
+
   tests:
+    if: github.event.action != 'edited' && github.event.pull_request.draft == false
     name: "Unit Tests"
     uses: orange-cloudavenue/workflows/.github/workflows/go_unit-test-tf-provider.yml@main
+    with:
+        ref: ${{ github.ref }}
+        repository: ${{ github.repository }}
     secrets:
-      CLOUDAVENUE_ORG: ${{ secrets.CLOUDAVENUE_ORG }}
-      CLOUDAVENUE_USER: ${{ secrets.CLOUDAVENUE_USER }}
-      CLOUDAVENUE_PASSWORD: ${{ secrets.CLOUDAVENUE_PASSWORD }}
-      CLOUDAVENUE_VDC: ${{ secrets.CLOUDAVENUE_VDC }}
+        CLOUDAVENUE_ORG: ${{ secrets.CLOUDAVENUE_ORG }}
+        CLOUDAVENUE_USER: ${{ secrets.CLOUDAVENUE_USER }}
+        CLOUDAVENUE_PASSWORD: ${{ secrets.CLOUDAVENUE_PASSWORD }}
+        CLOUDAVENUE_VDC: ${{ secrets.CLOUDAVENUE_VDC }}
