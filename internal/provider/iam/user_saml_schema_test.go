@@ -10,7 +10,6 @@
 package iam_test
 
 import (
-	"context"
 	"testing"
 
 	// fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource".
@@ -25,7 +24,7 @@ import (
 func TestUserSamlResourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	schemaResponse := &fwresource.SchemaResponse{}
 
 	// Instantiate the resource.Resource and call its Schema method
