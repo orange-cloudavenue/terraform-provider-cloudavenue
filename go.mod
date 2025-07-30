@@ -1,8 +1,8 @@
 module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 
-go 1.23.0
+go 1.24.5
 
-toolchain go1.24.1
+replace github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 => ../cloudavenue-sdk-go-v2
 
 require (
 	github.com/aws/aws-sdk-go v1.55.7
@@ -21,9 +21,10 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/madflojo/testcerts v1.4.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.26.3
+	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20250707145714-822ebf0f23d3
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
-	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
-	github.com/orange-cloudavenue/common-go/validators v0.2.2
+	github.com/orange-cloudavenue/common-go/utils v1.0.0
+	github.com/orange-cloudavenue/common-go/validators v1.2.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1
 	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.11.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.2.0
@@ -32,7 +33,7 @@ require (
 	github.com/thanhpk/randstr v1.0.6
 	github.com/vmware/go-vcloud-director/v2 v2.26.1
 	golang.org/x/exp v0.0.0-20240119083558-1b970713d09a
-	golang.org/x/net v0.41.0
+	golang.org/x/net v0.42.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -51,6 +52,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.32.7 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.8.1 // indirect
+	github.com/brianvoe/gofakeit/v7 v7.3.0 // indirect
 	github.com/cloudflare/circl v1.6.0 // indirect
 	github.com/creasty/defaults v1.8.0 // indirect
 	github.com/fatih/color v1.18.0 // indirect
@@ -58,7 +60,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.26.0 // indirect
+	github.com/go-playground/validator/v10 v10.27.0 // indirect
 	github.com/go-resty/resty/v2 v2.16.5 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
@@ -96,6 +98,10 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.1.0 // indirect
+	github.com/orange-cloudavenue/common-go/generator v1.3.4 // indirect
+	github.com/orange-cloudavenue/common-go/regex v1.2.0 // indirect
+	github.com/orange-cloudavenue/common-go/strcase v1.0.1-0.20250917151320-7ed879abafc0 // indirect
+	github.com/orange-cloudavenue/common-go/urn v1.4.0 // indirect
 	github.com/peterhellberg/link v1.2.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/rivo/uniseg v0.1.0 // indirect
@@ -110,16 +116,17 @@ require (
 	github.com/yuin/goldmark-meta v1.1.0 // indirect
 	github.com/zclconf/go-cty v1.16.2 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
-	golang.org/x/crypto v0.39.0 // indirect
-	golang.org/x/mod v0.25.0 // indirect
-	golang.org/x/sync v0.15.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.26.0 // indirect
-	golang.org/x/tools v0.33.0 // indirect
+	golang.org/x/crypto v0.40.0 // indirect
+	golang.org/x/mod v0.26.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/text v0.28.0 // indirect
+	golang.org/x/tools v0.35.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
 	google.golang.org/grpc v1.73.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	resty.dev/v3 v3.0.0-beta.3 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
