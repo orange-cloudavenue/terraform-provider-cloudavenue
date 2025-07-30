@@ -10,23 +10,19 @@
 package elb_test
 
 import (
-	"context"
 	"testing"
 
-	// fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource".
 	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/elb"
 )
 
-// TODO : Comment or uncomment the following imports if you are using resources or/and datasources
-
 // Unit test for the schema of the resource cloudavenue_elb_policies_http_response.
 func TestPoliciesHTTPResponseResourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	schemaResponse := &fwresource.SchemaResponse{}
 
 	// Instantiate the resource.Resource and call its Schema method
@@ -48,7 +44,7 @@ func TestPoliciesHTTPResponseResourceSchema(t *testing.T) {
 func TestPoliciesHTTPResponseDataSourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	schemaResponse := &fwdatasource.SchemaResponse{}
 
 	// Instantiate the datasource.Datasource and call its Schema method
