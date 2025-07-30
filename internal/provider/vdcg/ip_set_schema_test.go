@@ -10,7 +10,6 @@
 package vdcg_test
 
 import (
-	"context"
 	"testing"
 
 	// fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource".
@@ -24,7 +23,7 @@ import (
 func TestIpSetResourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	schemaResponse := &fwresource.SchemaResponse{}
 
 	// Instantiate the resource.Resource and call its Schema method
@@ -47,7 +46,7 @@ func TestIpSetResourceSchema(t *testing.T) {
 func TestIpSetDataSourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	schemaResponse := &fwdatasource.SchemaResponse{}
 
 	// Instantiate the datasource.Datasource and call its Schema method
