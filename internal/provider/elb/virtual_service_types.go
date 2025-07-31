@@ -91,7 +91,7 @@ func (rm *VirtualServiceModel) ToSDKVirtualServiceModelRequest(ctx context.Conte
 		}(),
 	}
 	if rm.ServiceEngineGroupName.IsKnown() {
-		seg, err := c.GetVirtualService(ctx, rm.EdgeGatewayID.Get(), rm.ServiceEngineGroupName.Get())
+		seg, err := c.GetServiceEngineGroup(ctx, rm.EdgeGatewayID.Get(), rm.ServiceEngineGroupName.Get())
 		if err != nil {
 			diags.AddError("Error getting service engine group", err.Error())
 			return nil, diags

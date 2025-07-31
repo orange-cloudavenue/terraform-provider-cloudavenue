@@ -87,7 +87,7 @@ linters:
           disabled: false
         - name: var-naming
           arguments:
-            - []
+            - [] 
             - - ACL
               - API
               - ASCII
@@ -137,6 +137,7 @@ linters:
               - BMS
               - SAML
               - VDCG
+            - - skip-package-name-checks: true
           severity: warning
           disabled: false
   exclusions:

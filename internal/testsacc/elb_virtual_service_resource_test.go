@@ -603,6 +603,53 @@ func (r *ELBVirtualServiceResource) Tests(_ context.Context) map[testsacc.TestNa
 				},
 			}
 		},
+		"example_with_service_engine_group": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.LoadBalancerVirtualService)),
+					resource.TestCheckResourceAttrWith(resourceName, "pool_id", urn.TestIsType(urn.LoadBalancerPool)),
+					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
+					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "pool_name"),
+				},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetDataSourceConfig()[ELBServiceEngineGroupsDataSourceName]().GetDefaultConfig)
+					return
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_elb_virtual_service" "example_with_service_engine_group" {
+						name = {{ generate . "name" }}
+						description = {{ generate . "description" }}
+						edge_gateway_id = data.cloudavenue_edgegateway.example_for_elb.id
+						enabled = true
+						pool_id = cloudavenue_elb_pool.example.id
+						virtual_ip = {{ generate . "virtual_ip" "public-ipv4" }}
+
+						service_type = "L4_UDP"
+						service_ports = [
+							{
+								start = 443
+							}
+						]
+
+						service_engine_group_name = data.cloudavenue_elb_service_engine_groups.example.service_engine_groups[0].name
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+						resource.TestCheckResourceAttr(resourceName, "virtual_ip", testsacc.GetValueFromTemplate(resourceName, "virtual_ip")),
+
+						resource.TestCheckResourceAttr(resourceName, "service_type", "L4_UDP"),
+						resource.TestCheckResourceAttr(resourceName, "service_ports.0.start", "443"),
+						resource.TestCheckResourceAttr(resourceName, "service_ports.0.end", "443"), // port end = port start if not specified
+						resource.TestCheckNoResourceAttr(resourceName, "certificate_id"),
+					},
+				},
+			}
+		},
 	}
 }
 
