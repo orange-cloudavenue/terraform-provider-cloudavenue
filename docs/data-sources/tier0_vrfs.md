@@ -24,6 +24,45 @@ output "vrfs" {
 
 ### Read-Only
 
-- `id` (String) The ID of the Tier-0 VRFs.
+- `id` (String) The ID of the Tier-0 VRFs. This is a generated ID only used to identify the resource in the provider.
 - `names` (List of String) List of Tier-0 VRFs names.
+- `t0s` (Attributes List) List of Tier-0 VRFs. (see [below for nested schema](#nestedatt--t0s))
+
+<a id="nestedatt--t0s"></a>
+### Nested Schema for `t0s`
+
+Optional:
+
+- `edge_gateway_id` (String) The ID of the Edge Gateway where the Tier-0 is located. Ensure that one and only one attribute from this collection is set : `name`, `edge_gateway_id`, `edge_gateway_name`.
+- `edge_gateway_name` (String) The name of the Edge Gateway where the Tier-0 is located. Ensure that one and only one attribute from this collection is set : `name`, `edge_gateway_id`, `edge_gateway_name`.
+- `name` (String) The name of the Tier-0. Ensure that one and only one attribute from this collection is set : `name`, `edge_gateway_id`, `edge_gateway_name`.
+
+Read-Only:
+
+- `bandwidth` (Attributes) The bandwidth information for the Tier-0. (see [below for nested schema](#nestedatt--t0s--bandwidth))
+- `class_service` (String) The class service associated with the Tier-0.
+- `edgegateways` (Attributes List) List of Edge Gateways where the Tier-0 is located. (see [below for nested schema](#nestedatt--t0s--edgegateways))
+- `id` (String) The ID of the Tier-0.
+
+<a id="nestedatt--t0s--bandwidth"></a>
+### Nested Schema for `t0s.bandwidth`
+
+Read-Only:
+
+- `allow_unlimited` (Boolean) Indicates if unlimited bandwidth is allowed for the Tier-0.
+- `allowed_bandwidth_values` (List of Number) The allowed bandwidth values for the new edge gateway in Mbps.
+- `capacity` (Number) The total bandwidth capacity for the Tier-0 in Mbps.
+- `provisioned` (Number) The total bandwidth provisioned for the Tier-0 across all edge gateways in Mbps.
+- `remaining` (Number) The remaining bandwidth that can be allocated to the new edge gateway in Mbps.
+
+
+<a id="nestedatt--t0s--edgegateways"></a>
+### Nested Schema for `t0s.edgegateways`
+
+Read-Only:
+
+- `allowed_bandwidth_values` (List of Number) The allowed bandwidth values for the Edge Gateway in Mbps.
+- `bandwidth` (Number) The bandwidth allocated to the Edge Gateway in Mbps.
+- `id` (String) The ID of the Edge Gateway.
+- `name` (String) The name of the Edge Gateway.
 
