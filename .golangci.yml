@@ -87,7 +87,7 @@ linters:
           disabled: false
         - name: var-naming
           arguments:
-            - [] 
+            - []
             - - ACL
               - API
               - ASCII
