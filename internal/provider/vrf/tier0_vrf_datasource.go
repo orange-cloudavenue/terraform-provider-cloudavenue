@@ -18,6 +18,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	edgegateway "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -34,7 +36,11 @@ func NewTier0VrfDataSource() datasource.DataSource {
 }
 
 type tier0VrfDataSource struct {
+	// Client is a terraform Client
 	client *client.CloudAvenue
+
+	// eClient is the Edge Gateway client from the SDK V2
+	eClient *edgegateway.Client
 }
 
 func (d *tier0VrfDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -62,7 +68,17 @@ func (d *tier0VrfDataSource) Configure(_ context.Context, req datasource.Configu
 		return
 	}
 
+	eC, err := edgegateway.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create Edge Gateway client, got error: %s", err),
+		)
+		return
+	}
+
 	d.client = client
+	d.eClient = eC
 }
 
 func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -76,37 +92,60 @@ func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	t0, err := d.client.CAVSDK.V1.T0.GetT0(data.Name.Get())
+	t0, err := d.eClient.GetT0(ctx, edgegateway.ParamsGetT0{
+		T0Name:          data.Name.Get(),
+		EdgegatewayID:   data.EdgeGatewayID.Get(),
+		EdgegatewayName: data.EdgeGatewayName.Get(),
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Tier-0, got error: %s", err))
 		return
 	}
 
-	data.ID.Set(utils.GenerateUUID(t0.GetName()).String())
-	data.Provider.Set(t0.Tier0Provider)
-	data.Name.Set(t0.GetName())
-	data.ClassService.Set(string(t0.ClassService))
+	data.ID.Set(utils.GenerateUUID(t0.Name).String())
+	data.Name.Set(t0.Name)
+	data.ClassService.Set(t0.ClassOfService)
 
-	var services []*segmentModel
+	bandwidth := &tier0VrfDataSourceModelBandwidth{
+		Capacity:               supertypes.NewInt64Null(),
+		Provisioned:            supertypes.NewInt64Null(),
+		Remaining:              supertypes.NewInt64Null(),
+		AllowedBandwidthValues: supertypes.NewListValueOfNull[int64](ctx),
+		AllowUnlimited:         supertypes.NewBoolNull(),
+	}
+	bandwidth.Capacity.SetInt(t0.Bandwidth.Capacity)
+	bandwidth.Provisioned.SetInt(t0.Bandwidth.Provisioned)
+	bandwidth.Remaining.SetInt(t0.Bandwidth.Remaining)
+	allowedBandwidthValues := make([]int64, 0, len(t0.Bandwidth.AllowedBandwidthValues))
+	for _, bw := range t0.Bandwidth.AllowedBandwidthValues {
+		allowedBandwidthValues = append(allowedBandwidthValues, int64(bw))
+	}
+	resp.Diagnostics.Append(bandwidth.AllowedBandwidthValues.Set(ctx, allowedBandwidthValues)...)
+	bandwidth.AllowUnlimited.Set(t0.Bandwidth.AllowUnlimited)
 
-	for _, segment := range t0.Services {
-		s := &segmentModel{
-			Service: supertypes.NewStringNull(),
-			VLANID:  supertypes.NewStringNull(),
+	resp.Diagnostics.Append(data.Bandwidth.Set(ctx, bandwidth)...)
+
+	edgegateways := make([]*tier0VrfDataSourceModelEdgeGateway, 0, len(t0.EdgeGateways))
+	for _, edgeGateway := range t0.EdgeGateways {
+		e := &tier0VrfDataSourceModelEdgeGateway{
+			AllowedBandwidthValues: supertypes.NewListValueOfNull[int64](ctx),
 		}
+		e.ID.Set(edgeGateway.ID)
+		e.Name.Set(edgeGateway.Name)
+		e.Bandwidth.SetInt(edgeGateway.Bandwidth)
 
-		s.Service.Set(segment.Service)
-		switch segment.VLANID.(type) { //nolint:gocritic
-		case int:
-			s.VLANID.Set(fmt.Sprintf("%d", segment.VLANID))
-		case string:
-			s.VLANID.Set(segment.VLANID.(string))
+		allowedBandwidthValues := make([]int64, 0, len(edgeGateway.AllowedBandwidthValues))
+		for _, bw := range edgeGateway.AllowedBandwidthValues {
+			allowedBandwidthValues = append(allowedBandwidthValues, int64(bw))
 		}
-
-		services = append(services, s)
+		resp.Diagnostics.Append(e.AllowedBandwidthValues.Set(ctx, allowedBandwidthValues)...)
+		edgegateways = append(edgegateways, e)
+	}
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	resp.Diagnostics.Append(data.Services.Set(ctx, services)...)
+	resp.Diagnostics.Append(data.EdgeGateways.Set(ctx, edgegateways)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

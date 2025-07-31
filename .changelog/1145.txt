@@ -1,0 +1,11 @@
+```release-note:breaking-change
+`datasource/cloudavenue_tier0_vrf` - Remove unused attributes `tier0_provider` and `services`.
+```
+
+```release-note:enhancement
+`datasource/cloudavenue_tier0_vrf` - Add ability to retrieve T0 VRF by edge Gateway name or ID.
+``` 
+
+```release-note:enhancement
+`datasource/cloudavenue_tier0_vrf` - Add new attributes `bandwidth` and `edgegateways`. In the `bandwidth` attribute, the `capacity`, `provisioned`, `remaining`, `allowed_bandwidth_values`, and `allow_unlimited` values are now available to retrieve about the bandwidth of the T0 VRF. For the `edgegateways` attribute, the `id`, `name`, `bandwidth`, and `allowed_bandwidth_values` values are now available to retrieve about the each edge gateway associated with the T0 VRF.
+```
