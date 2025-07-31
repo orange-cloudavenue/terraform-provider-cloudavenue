@@ -1,4 +1,9 @@
 ## 0.35.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_elb_virtual_service` - Fix bug where `service_engine_group_name` is not retrieved correctly if attribute is set. (GH-1142)
+
 ## 0.34.0 (July  4, 2025)
 
 ### :tada: **Improvements**
