@@ -19,29 +19,29 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
-var _ testsacc.TestACC = &ALBServiceEngineGroupsDataSource{}
+var _ testsacc.TestACC = &ELBServiceEngineGroupsDataSource{}
 
 const (
-	ALBServiceEngineGroupsDataSourceName = testsacc.ResourceName("data.cloudavenue_elb_service_engine_groups")
+	ELBServiceEngineGroupsDataSourceName = testsacc.ResourceName("data.cloudavenue_elb_service_engine_groups")
 )
 
-type ALBServiceEngineGroupsDataSource struct{}
+type ELBServiceEngineGroupsDataSource struct{}
 
-func NewALBServiceEngineGroupsDataSourceTest() testsacc.TestACC {
-	return &ALBServiceEngineGroupsDataSource{}
+func NewELBServiceEngineGroupsDataSourceTest() testsacc.TestACC {
+	return &ELBServiceEngineGroupsDataSource{}
 }
 
 // GetResourceName returns the name of the resource.
-func (r *ALBServiceEngineGroupsDataSource) GetResourceName() string {
-	return ALBServiceEngineGroupsDataSourceName.String()
+func (r *ELBServiceEngineGroupsDataSource) GetResourceName() string {
+	return ELBServiceEngineGroupsDataSourceName.String()
 }
 
-func (r *ALBServiceEngineGroupsDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	resp.Append(GetDataSourceConfig()[EdgeGatewayDataSourceName]().GetSpecificConfig("example_with_id"))
+func (r *ELBServiceEngineGroupsDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
+	resp.Append(GetDataSourceConfig()[EdgeGatewayDataSourceName]().GetSpecificConfig("example_for_elb"))
 	return
 }
 
-func (r *ALBServiceEngineGroupsDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
+func (r *ELBServiceEngineGroupsDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
@@ -50,7 +50,7 @@ func (r *ALBServiceEngineGroupsDataSource) Tests(_ context.Context) map[testsacc
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_elb_service_engine_groups" "example" {
-						edge_gateway_name = data.cloudavenue_edgegateway.example_with_id.name
+						edge_gateway_name = data.cloudavenue_edgegateway.example_for_elb.name
 					}`,
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
@@ -74,7 +74,7 @@ func (r *ALBServiceEngineGroupsDataSource) Tests(_ context.Context) map[testsacc
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_elb_service_engine_groups" "example_with_id" {
-						edge_gateway_id = data.cloudavenue_edgegateway.example_with_id.id
+						edge_gateway_id = data.cloudavenue_edgegateway.example_for_elb.id
 					}`,
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
@@ -95,10 +95,10 @@ func (r *ALBServiceEngineGroupsDataSource) Tests(_ context.Context) map[testsacc
 	}
 }
 
-func TestAccALBServiceEngineGroupsDataSource(t *testing.T) {
+func TestAccELBServiceEngineGroupsDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
-		Steps:                    testsacc.GenerateTests(&ALBServiceEngineGroupsDataSource{}),
+		Steps:                    testsacc.GenerateTests(&ELBServiceEngineGroupsDataSource{}),
 	})
 }

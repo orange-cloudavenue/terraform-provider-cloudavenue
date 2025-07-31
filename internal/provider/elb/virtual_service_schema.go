@@ -67,6 +67,7 @@ func virtualServiceSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
+						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
@@ -80,6 +81,7 @@ func virtualServiceSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
+						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
