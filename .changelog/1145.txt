@@ -9,3 +9,7 @@
 ```release-note:enhancement
 `datasource/cloudavenue_tier0_vrf` - Add new attributes `bandwidth` and `edgegateways`. In the `bandwidth` attribute, the `capacity`, `provisioned`, `remaining`, `allowed_bandwidth_values`, and `allow_unlimited` values are now available to retrieve about the bandwidth of the T0 VRF. For the `edgegateways` attribute, the `id`, `name`, `bandwidth`, and `allowed_bandwidth_values` values are now available to retrieve about the each edge gateway associated with the T0 VRF.
 ```
+
+```release-note:enhancement
+`datasource/cloudavenue_tier0_vrfs` - Add new attribute `t0s` to retrieve a list of Tier-0 VRFs. Each Tier-0 VRF includes all attributes from the `datasource/cloudavenue_tier0_vrf` datasource.
+```

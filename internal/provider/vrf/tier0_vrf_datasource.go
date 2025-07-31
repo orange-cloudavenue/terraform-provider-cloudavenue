@@ -14,15 +14,11 @@ import (
 	"context"
 	"fmt"
 
-	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	edgegateway "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 var (
@@ -102,53 +98,7 @@ func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	data.ID.Set(utils.GenerateUUID(t0.Name).String())
-	data.Name.Set(t0.Name)
-	data.ClassService.Set(t0.ClassOfService)
-
-	bandwidth := &tier0VrfDataSourceModelBandwidth{
-		Capacity:               supertypes.NewInt64Null(),
-		Provisioned:            supertypes.NewInt64Null(),
-		Remaining:              supertypes.NewInt64Null(),
-		AllowedBandwidthValues: supertypes.NewListValueOfNull[int64](ctx),
-		AllowUnlimited:         supertypes.NewBoolNull(),
-	}
-	bandwidth.Capacity.SetInt(t0.Bandwidth.Capacity)
-	bandwidth.Provisioned.SetInt(t0.Bandwidth.Provisioned)
-	bandwidth.Remaining.SetInt(t0.Bandwidth.Remaining)
-	allowedBandwidthValues := make([]int64, 0, len(t0.Bandwidth.AllowedBandwidthValues))
-	for _, bw := range t0.Bandwidth.AllowedBandwidthValues {
-		allowedBandwidthValues = append(allowedBandwidthValues, int64(bw))
-	}
-	resp.Diagnostics.Append(bandwidth.AllowedBandwidthValues.Set(ctx, allowedBandwidthValues)...)
-	bandwidth.AllowUnlimited.Set(t0.Bandwidth.AllowUnlimited)
-
-	resp.Diagnostics.Append(data.Bandwidth.Set(ctx, bandwidth)...)
-
-	edgegateways := make([]*tier0VrfDataSourceModelEdgeGateway, 0, len(t0.EdgeGateways))
-	for _, edgeGateway := range t0.EdgeGateways {
-		e := &tier0VrfDataSourceModelEdgeGateway{
-			AllowedBandwidthValues: supertypes.NewListValueOfNull[int64](ctx),
-		}
-		e.ID.Set(edgeGateway.ID)
-		e.Name.Set(edgeGateway.Name)
-		e.Bandwidth.SetInt(edgeGateway.Bandwidth)
-
-		allowedBandwidthValues := make([]int64, 0, len(edgeGateway.AllowedBandwidthValues))
-		for _, bw := range edgeGateway.AllowedBandwidthValues {
-			allowedBandwidthValues = append(allowedBandwidthValues, int64(bw))
-		}
-		resp.Diagnostics.Append(e.AllowedBandwidthValues.Set(ctx, allowedBandwidthValues)...)
-		edgegateways = append(edgegateways, e)
-	}
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(data.EdgeGateways.Set(ctx, edgegateways)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(data.fromAPI(ctx, t0)...)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
