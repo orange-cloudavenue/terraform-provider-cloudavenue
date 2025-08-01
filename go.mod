@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.24.1
 
 require (
-	github.com/aws/aws-sdk-go v1.55.7
+	github.com/aws/aws-sdk-go v1.55.8
 	github.com/cilium/fake v0.7.0
 	github.com/drhodes/golorem v0.0.0-20220328165741-da82e5b29246
 	github.com/google/uuid v1.6.0
