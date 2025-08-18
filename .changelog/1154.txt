@@ -1,0 +1,3 @@
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/common-go/validators from 0.2.2 to 1.1.2
+```
