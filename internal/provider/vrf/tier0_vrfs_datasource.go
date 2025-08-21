@@ -16,6 +16,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	edgegateway "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -33,6 +34,9 @@ func NewTier0VrfsDataSource() datasource.DataSource {
 
 type tier0VrfsDataSource struct {
 	client *client.CloudAvenue
+
+	// eClient is the Edge Gateway client from the SDK V2
+	eClient *edgegateway.Client
 }
 
 func (d *tier0VrfsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -60,7 +64,17 @@ func (d *tier0VrfsDataSource) Configure(_ context.Context, req datasource.Config
 		return
 	}
 
+	eC, err := edgegateway.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create Edge Gateway client, got error: %s", err),
+		)
+		return
+	}
+
 	d.client = client
+	d.eClient = eC
 }
 
 func (d *tier0VrfsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -75,7 +89,7 @@ func (d *tier0VrfsDataSource) Read(ctx context.Context, req datasource.ReadReque
 	}
 
 	// Read the list of Tier-0 VRFs
-	t0s, err := d.client.CAVSDK.V1.T0.GetT0s()
+	t0s, err := d.eClient.ListT0(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read list T0, got error: %s", err))
 		return
@@ -83,8 +97,8 @@ func (d *tier0VrfsDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 	var names []string
 
-	for _, t0 := range *t0s {
-		names = append(names, t0.GetName())
+	for _, t0 := range t0s.T0s {
+		names = append(names, t0.Name)
 	}
 
 	// Generate a UUID from the list of names
@@ -92,6 +106,22 @@ func (d *tier0VrfsDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(data.Names.Set(ctx, names)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	dataT0s := make([]*tier0VrfDataSourceModel, 0, len(t0s.T0s))
+
+	for _, t0 := range t0s.T0s {
+		t0Model := &tier0VrfDataSourceModel{}
+		resp.Diagnostics.Append(t0Model.fromAPI(ctx, &t0)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		dataT0s = append(dataT0s, t0Model)
+	}
+
+	resp.Diagnostics.Append(data.T0s.Set(ctx, dataT0s)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

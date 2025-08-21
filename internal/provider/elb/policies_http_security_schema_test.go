@@ -10,7 +10,6 @@
 package elb_test
 
 import (
-	"context"
 	"testing"
 
 	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -23,7 +22,7 @@ import (
 func TestPoliciesHTTPSecurityResourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	schemaResponse := &fwresource.SchemaResponse{}
 
 	// Instantiate the resource.Resource and call its Schema method
@@ -46,7 +45,7 @@ func TestPoliciesHTTPSecurityResourceSchema(t *testing.T) {
 func TestPoliciesHTTPSecurityDataSourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	schemaResponse := &fwdatasource.SchemaResponse{}
 
 	// Instantiate the datasource.Datasource and call its Schema method

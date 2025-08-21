@@ -51,6 +51,9 @@ func (r *Tier0VRFsDataSource) Tests(_ context.Context) map[testsacc.TestName]fun
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
 						resource.TestCheckResourceAttrSet(resourceName, "names.#"),
+						resource.TestCheckResourceAttrSet(resourceName, "t0s.#"),
+						resource.TestCheckResourceAttrSet(resourceName, "t0s.0.id"),
+						resource.TestCheckResourceAttrSet(resourceName, "t0s.0.name"),
 					},
 				},
 			}
