@@ -29,7 +29,7 @@ func tier0VrfsSchema() superschema.Schema {
 		Attributes: superschema.Attributes{
 			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the Tier-0 VRFs.",
+					MarkdownDescription: "The ID of the Tier-0 VRFs. This is a generated ID only used to identify the resource in the provider.",
 				},
 				DataSource: &schemaD.StringAttribute{
 					Computed: true,
@@ -43,6 +43,13 @@ func tier0VrfsSchema() superschema.Schema {
 					ElementType: supertypes.StringType{},
 					Computed:    true,
 				},
+			},
+			"t0s": superschema.SuperListNestedAttributeOf[tier0VrfDataSourceModel]{
+				Common: &schemaR.ListNestedAttribute{
+					MarkdownDescription: "List of Tier-0 VRFs.",
+					Computed:            true,
+				},
+				Attributes: tier0VrfSchema().Attributes,
 			},
 		},
 	}
