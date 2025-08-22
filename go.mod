@@ -1,8 +1,6 @@
 module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 
-go 1.24.4
-
-toolchain go1.24.5
+go 1.24.5
 
 replace github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 => ../cloudavenue-sdk-go-v2
 
@@ -25,8 +23,8 @@ require (
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.26.2
 	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20250707145714-822ebf0f23d3
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
-	github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339
-	github.com/orange-cloudavenue/common-go/validators v1.1.1
+	github.com/orange-cloudavenue/common-go/utils v1.0.0
+	github.com/orange-cloudavenue/common-go/validators v1.1.3
 	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1
 	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.11.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.2.0
@@ -100,15 +98,15 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.1.0 // indirect
-	github.com/orange-cloudavenue/common-go/extractor v1.0.0 // indirect
-	github.com/orange-cloudavenue/common-go/generator v1.3.1 // indirect
-	github.com/orange-cloudavenue/common-go/internal/regex v0.0.0-20250729195615-a2902a82caeb // indirect
-	github.com/orange-cloudavenue/common-go/urn v1.1.0 // indirect
+	github.com/orange-cloudavenue/common-go/extractor v1.0.1 // indirect
+	github.com/orange-cloudavenue/common-go/generator v1.3.2 // indirect
+	github.com/orange-cloudavenue/common-go/internal/regex v0.0.0-20250812201424-07c3423160b3 // indirect
+	github.com/orange-cloudavenue/common-go/strcase v1.0.0 // indirect
+	github.com/orange-cloudavenue/common-go/urn v1.2.0 // indirect
 	github.com/peterhellberg/link v1.2.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/rivo/uniseg v0.1.0 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
-	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.34 // indirect
 	github.com/sethvargo/go-envconfig v1.3.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
@@ -120,11 +118,11 @@ require (
 	github.com/zclconf/go-cty v1.16.2 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
 	golang.org/x/crypto v0.40.0 // indirect
-	golang.org/x/mod v0.25.0 // indirect
+	golang.org/x/mod v0.26.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
 	golang.org/x/sys v0.34.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
-	golang.org/x/tools v0.34.0 // indirect
+	golang.org/x/text v0.28.0 // indirect
+	golang.org/x/tools v0.35.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
 	google.golang.org/grpc v1.73.0 // indirect

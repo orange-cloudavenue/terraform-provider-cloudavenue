@@ -17,6 +17,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	edgegateway "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -88,7 +90,7 @@ func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	t0, err := d.eClient.GetT0(ctx, edgegateway.ParamsGetT0{
+	t0, err := d.eClient.GetT0(ctx, types.ParamsGetT0{
 		T0Name:          data.Name.Get(),
 		EdgegatewayID:   data.EdgeGatewayID.Get(),
 		EdgegatewayName: data.EdgeGatewayName.Get(),

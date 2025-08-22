@@ -1,0 +1,3 @@
+```release-note:breaking-change
+`datasource/cloudavenue_publicips` - Now the datasource return the publicips for a specific edge gateway. The `edge_gateway_id` or `edge_gateway_name` argument is now required.
+```

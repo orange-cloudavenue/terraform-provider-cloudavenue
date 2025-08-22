@@ -15,6 +15,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
@@ -49,14 +51,19 @@ func (r *PublicIPsDataSource) Tests(_ context.Context) map[testsacc.TestName]fun
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_publicips" "example" {
+						depends_on = [
+							cloudavenue_publicip.example
+						]
+
+					 	edge_gateway_id = cloudavenue_edgegateway.example.id
 					}`,
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
+						resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
 						// check if public_ips are not empty
 						resource.TestCheckResourceAttrSet(resourceName, "public_ips.0.id"),
 						resource.TestCheckResourceAttrSet(resourceName, "public_ips.0.public_ip"),
-						resource.TestCheckResourceAttrSet(resourceName, "public_ips.0.edge_gateway_id"),
-						resource.TestCheckResourceAttrSet(resourceName, "public_ips.0.edge_gateway_name"),
 					},
 				},
 			}
