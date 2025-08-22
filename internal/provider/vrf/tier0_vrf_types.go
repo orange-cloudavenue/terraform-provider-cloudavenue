@@ -16,7 +16,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
-	edgegateway "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -47,7 +48,7 @@ type tier0VrfDataSourceModelEdgeGateway struct {
 	AllowedBandwidthValues supertypes.ListValueOf[int64] `tfsdk:"allowed_bandwidth_values"`
 }
 
-func (m *tier0VrfDataSourceModel) fromAPI(ctx context.Context, api *edgegateway.ModelT0) (diags diag.Diagnostics) {
+func (m *tier0VrfDataSourceModel) fromAPI(ctx context.Context, api *types.ModelT0) (diags diag.Diagnostics) {
 	m.ID.Set(utils.GenerateUUID(api.Name).String())
 	m.Name.Set(api.Name)
 	m.ClassService.Set(api.ClassOfService)

@@ -14,17 +14,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -39,14 +37,11 @@ func NewPublicIPDataSource() datasource.DataSource {
 }
 
 type publicIPDataSource struct {
-	client   *client.CloudAvenue
-	adminOrg adminorg.AdminOrg
-}
+	// Client is a terraform Client
+	client *client.CloudAvenue
 
-// Init.
-func (d *publicIPDataSource) Init(_ context.Context, _ *publicIPDataSourceModel) (diags diag.Diagnostics) {
-	d.adminOrg, diags = adminorg.Init(d.client)
-	return
+	// eClient is the Edge Gateway client from the SDK V2
+	eClient *edgegateway.Client
 }
 
 func (d *publicIPDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -74,7 +69,17 @@ func (d *publicIPDataSource) Configure(_ context.Context, req datasource.Configu
 		return
 	}
 
+	eC, err := edgegateway.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create Edge Gateway client, got error: %s", err),
+		)
+		return
+	}
+
 	d.client = client
+	d.eClient = eC
 }
 
 func (d *publicIPDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -88,42 +93,31 @@ func (d *publicIPDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	resp.Diagnostics.Append(d.Init(ctx, data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	ips, err := d.client.CAVSDK.V1.PublicIP.GetIPs()
+	ips, err := d.eClient.ListPublicIP(ctx, types.ParamsEdgeGateway{
+		Name: data.EdgeGatewayName.Get(),
+		ID:   data.EdgeGatewayID.Get(),
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("Error while getting public IPs", err.Error())
 		return
 	}
 
+	data.EdgeGatewayID.Set(ips.EdgegatewayID)
+	data.EdgeGatewayName.Set(ips.EdgegatewayName)
+
 	listOfIps := make([]string, 0)
 	ipPubs := make([]*publicIPNetworkConfigModel, 0)
-	for _, cfg := range ips.NetworkConfig {
-		edgeGateway, err := d.adminOrg.GetEdgeGateway(edgegw.BaseEdgeGW{
-			Name: types.StringValue(cfg.EdgeGatewayName),
-		})
-		if err != nil {
-			resp.Diagnostics.AddError("Error while getting edge gateway", err.Error())
-			return
-		}
-
+	for _, ip := range ips.PublicIPs {
 		x := &publicIPNetworkConfigModel{
-			ID:              supertypes.NewStringNull(),
-			EdgeGatewayName: supertypes.NewStringNull(),
-			EdgeGatewayID:   supertypes.NewStringNull(),
-			PublicIP:        supertypes.NewStringNull(),
+			ID:       supertypes.NewStringNull(),
+			PublicIP: supertypes.NewStringNull(),
 		}
 
-		x.ID.Set(cfg.GetIP())
-		x.EdgeGatewayName.Set(edgeGateway.GetName())
-		x.EdgeGatewayID.Set(edgeGateway.GetID())
-		x.PublicIP.Set(cfg.GetIP())
+		x.ID.Set(ip.IP) // For maintaining compatibility use IP for ID and not ID
+		x.PublicIP.Set(ip.IP)
 
 		ipPubs = append(ipPubs, x)
-		listOfIps = append(listOfIps, cfg.GetIP())
+		listOfIps = append(listOfIps, ip.IP)
 	}
 
 	data.ID.Set(utils.GenerateUUID(listOfIps).String())
