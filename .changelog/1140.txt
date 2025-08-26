@@ -1,0 +1,11 @@
+```release-note:enhancement
+`resource/cloudavenue_edgegateway` - Added new attributes `t0_name`, replacing the deprecated `tier0_vrf_name` attribute. Documentation for the resource has been enriched to provide better context and usage details. New read-only attributes `owner_id` and `t0_id` have been introduced to improve resource introspection and automation. The logic for the `bandwidth` attribute has been refined, with improved state management and updated rules for SHARED and DEDICATED T0 routers.
+```
+
+```release-note:note
+`resource/cloudavenue_edgegateway` - The attribute `tier0_vrf_name` is deprecated and will be removed in a future release. Please migrate to the new attributes `t0_name`.
+```
+
+```release-note:enhancement
+`datasource/cloudavenue_edgegateway` - The schema has been updated to support the new attributes `t0_name`, `t0_id`, and `owner_id`. Validation, rules, and documentation have all been improved to reflect the new behaviors and to facilitate automation.
+```

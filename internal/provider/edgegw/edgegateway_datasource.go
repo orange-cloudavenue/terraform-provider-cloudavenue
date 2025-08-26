@@ -16,7 +16,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -32,7 +32,11 @@ func NewEdgeGatewayDataSource() datasource.DataSource {
 }
 
 type edgeGatewayDataSource struct {
+	// Client is a terraform Client
 	client *client.CloudAvenue
+
+	// eClient is the Edge Gateway client from the SDK V2
+	eClient *edgegateway.Client
 }
 
 func (d *edgeGatewayDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -60,13 +64,23 @@ func (d *edgeGatewayDataSource) Configure(_ context.Context, req datasource.Conf
 		return
 	}
 
+	eC, err := edgegateway.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create Edge Gateway client, got error: %s", err),
+		)
+		return
+	}
+
 	d.client = client
+	d.eClient = eC
 }
 
 func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_edgegateway", d.client.GetOrgName(), metrics.Read)()
 
-	config := &edgeGatewayDatasourceModel{}
+	config := &edgeGatewayResourceModel{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
@@ -74,20 +88,17 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	data := config.Copy()
-
-	// Read data from the API
-	edgegw, err := d.client.CAVSDK.V1.EdgeGateway.Get(config.Name.Get())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving edge gateway", err.Error())
-		return
+	r := edgeGatewayResource{
+		client:  d.client,
+		eClient: d.eClient,
 	}
 
-	data.ID.Set(urn.Normalize(urn.Gateway, edgegw.GetID()).String())
-	data.Tier0VrfID.Set(edgegw.GetTier0VrfID())
-	data.OwnerName.Set(edgegw.GetOwnerName())
-	data.Description.Set(edgegw.GetDescription())
-	data.Bandwidth.SetInt(edgegw.GetBandwidth())
+	// Read data from the API
+	data, diags := r.read(ctx, config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
