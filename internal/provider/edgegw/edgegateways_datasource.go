@@ -16,7 +16,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -33,7 +33,11 @@ func NewEdgeGatewaysDataSource() datasource.DataSource {
 }
 
 type edgeGatewaysDataSource struct {
+	// Client is a terraform Client
 	client *client.CloudAvenue
+
+	// eClient is the Edge Gateway client from the SDK V2
+	eClient *edgegateway.Client
 }
 
 func (d *edgeGatewaysDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -61,7 +65,17 @@ func (d *edgeGatewaysDataSource) Configure(_ context.Context, req datasource.Con
 		return
 	}
 
+	eC, err := edgegateway.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create Edge Gateway client, got error: %s", err),
+		)
+		return
+	}
+
 	d.client = client
+	d.eClient = eC
 }
 
 func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -77,27 +91,37 @@ func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	gateways, err := d.client.CAVSDK.V1.EdgeGateway.List()
+	gateways, err := d.eClient.ListEdgeGateway(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to list edge gateways", err.Error())
 		return
 	}
 
-	gws := make([]*edgeGatewayDataSourceModelEdgeGateway, 0)
-	for _, edge := range *gateways {
-		gw := new(edgeGatewayDataSourceModelEdgeGateway)
-		gw.ID.Set(urn.Normalize(urn.Gateway, edge.GetID()).String())
-		gw.Name.Set(edge.GetName())
-		gw.Description.Set(edge.GetDescription())
-		gw.OwnerName.Set(edge.GetOwnerName())
-		gw.Tier0VrfName.Set(edge.GetT0())
+	gws := make([]*edgeGatewaysDataSourceModelEdgeGateway, 0)
+	for _, edge := range gateways.EdgeGateways {
+		gw := new(edgeGatewaysDataSourceModelEdgeGateway)
+		gw.ID.Set(edge.ID)
+		gw.Name.Set(edge.Name)
+		gw.Description.Set(edge.Description)
 
+		gw.OwnerName.Set(edge.OwnerRef.Name)
+		gw.OwnerID.Set(edge.OwnerRef.ID)
+
+		gw.T0ID.Set(edge.UplinkT0.ID)
+		gw.T0Name.Set(edge.UplinkT0.Name)
+
+		gw.Tier0VRFName.Set(edge.UplinkT0.Name)
 		gws = append(gws, gw)
-		names = append(names, edge.GetName())
+		names = append(names, edge.Name)
 	}
 
 	data.ID.Set(utils.GenerateUUID(names).ValueString())
-	data.EdgeGateways.Set(ctx, gws)
+
+	if len(gws) == 0 {
+		data.EdgeGateways.SetNull(ctx)
+	} else {
+		resp.Diagnostics.Append(data.EdgeGateways.Set(ctx, gws)...)
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

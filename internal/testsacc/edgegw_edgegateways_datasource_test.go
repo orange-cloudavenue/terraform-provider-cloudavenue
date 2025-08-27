@@ -53,6 +53,12 @@ func (r *EdgeGatewaysDataSource) Tests(_ context.Context) map[testsacc.TestName]
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
 						resource.TestCheckResourceAttrWith(resourceName, "edge_gateways.0.id", urn.TestIsType(urn.Gateway)),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateways.0.name"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateways.0.description"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateways.0.owner_name"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateways.0.owner_id"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateways.0.t0_name"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateways.0.t0_id"),
 					},
 				},
 			}
