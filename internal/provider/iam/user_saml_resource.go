@@ -113,7 +113,7 @@ func (r *UserSAMLResource) Create(ctx context.Context, req resource.CreateReques
 			resp.Diagnostics.AddError("User not found after create", fmt.Sprintf("User with name %s not found after create", plan.UserName.Get()))
 			return
 		}
-		resp.Diagnostics.AddError("Error creating user", err.Error())
+		resp.Diagnostics.AddError("Error creating user SAML", err.Error())
 		return
 	}
 

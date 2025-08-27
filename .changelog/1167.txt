@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_iam_user_saml` - Fixed issue when creating a SAML user return an error.
+```
