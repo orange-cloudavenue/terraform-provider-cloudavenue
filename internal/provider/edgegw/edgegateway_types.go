@@ -12,28 +12,24 @@ package edgegw
 import (
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 type edgeGatewayResourceModel struct {
-	Timeouts     timeouts.Value         `tfsdk:"timeouts"`
-	ID           supertypes.StringValue `tfsdk:"id"`
-	Tier0VRFName supertypes.StringValue `tfsdk:"tier0_vrf_name"`
-	Name         supertypes.StringValue `tfsdk:"name"`
-	OwnerName    supertypes.StringValue `tfsdk:"owner_name"`
-	Description  supertypes.StringValue `tfsdk:"description"`
-	Bandwidth    supertypes.Int64Value  `tfsdk:"bandwidth"`
-}
-
-type edgeGatewayDatasourceModel struct {
 	ID          supertypes.StringValue `tfsdk:"id"`
-	Tier0VrfID  supertypes.StringValue `tfsdk:"tier0_vrf_name"`
 	Name        supertypes.StringValue `tfsdk:"name"`
-	OwnerName   supertypes.StringValue `tfsdk:"owner_name"`
 	Description supertypes.StringValue `tfsdk:"description"`
+	T0Name      supertypes.StringValue `tfsdk:"t0_name"`
+	OwnerName   supertypes.StringValue `tfsdk:"owner_name"`
 	Bandwidth   supertypes.Int64Value  `tfsdk:"bandwidth"`
+
+	// Deprecated
+	Tier0VRFName supertypes.StringValue `tfsdk:"tier0_vrf_name"`
+
+	// Read-Only
+	OwnerID supertypes.StringValue `tfsdk:"owner_id"`
+	T0ID    supertypes.StringValue `tfsdk:"t0_id"`
 }
 
 // Copy returns a copy of the edgeGatewayResourceModel.
@@ -43,9 +39,19 @@ func (rm *edgeGatewayResourceModel) Copy() *edgeGatewayResourceModel {
 	return x
 }
 
-// Copy returns a copy of the edgeGatewayDatasourceModel.
-func (dm *edgeGatewayDatasourceModel) Copy() *edgeGatewayDatasourceModel {
-	x := &edgeGatewayDatasourceModel{}
-	utils.ModelCopy(dm, x)
-	return x
+func (rm *edgeGatewayResourceModel) fromSDK(data *types.ModelEdgeGateway) {
+	if data == nil {
+		*rm = edgeGatewayResourceModel{}
+		return
+	}
+
+	rm.ID.Set(data.ID)
+	rm.Name.Set(data.Name)
+	rm.Description.Set(data.Description)
+	rm.OwnerName.Set(data.OwnerRef.Name)
+	rm.OwnerID.Set(data.OwnerRef.ID)
+	rm.T0ID.Set(data.UplinkT0.ID)
+	rm.T0Name.Set(data.UplinkT0.Name)
+	// Deprecated
+	rm.Tier0VRFName.Set(data.UplinkT0.Name)
 }

@@ -23,6 +23,7 @@ require (
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.26.3
 	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20250707145714-822ebf0f23d3
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
+	github.com/orange-cloudavenue/common-go/regex v1.2.0
 	github.com/orange-cloudavenue/common-go/utils v1.0.0
 	github.com/orange-cloudavenue/common-go/validators v1.2.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1
@@ -101,7 +102,6 @@ require (
 	github.com/orange-cloudavenue/common-go/extractor v1.0.1 // indirect
 	github.com/orange-cloudavenue/common-go/generator v1.3.4 // indirect
 	github.com/orange-cloudavenue/common-go/internal/regex v0.0.0-20250812201424-07c3423160b3 // indirect
-	github.com/orange-cloudavenue/common-go/regex v1.2.0 // indirect
 	github.com/orange-cloudavenue/common-go/strcase v1.0.1-0.20250917151320-7ed879abafc0 // indirect
 	github.com/orange-cloudavenue/common-go/urn v1.4.0 // indirect
 	github.com/peterhellberg/link v1.2.0 // indirect
