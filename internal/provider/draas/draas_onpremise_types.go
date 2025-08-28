@@ -7,7 +7,7 @@
  * or see the "LICENSE" file for more details.
  */
 
-package vcda
+package draas
 
 import (
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
@@ -15,13 +15,13 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
-type VcdaIPResourceModel struct { //nolint:revive
+type draasIPResourceModel struct {
 	ID        supertypes.StringValue `tfsdk:"id"`
 	IPAddress supertypes.StringValue `tfsdk:"ip_address"`
 }
 
-func (rm *VcdaIPResourceModel) Copy() *VcdaIPResourceModel {
-	x := &VcdaIPResourceModel{}
+func (rm *draasIPResourceModel) Copy() *draasIPResourceModel {
+	x := &draasIPResourceModel{}
 	utils.ModelCopy(rm, x)
 	return x
 }
