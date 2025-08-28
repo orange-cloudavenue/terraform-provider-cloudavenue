@@ -4,12 +4,114 @@ subcategory: "DRaaS (Disaster Recovery as a Service)"
 description: |-
   The VCDa resource allows you to declare or remove your on-premises IP address for the DRaaS service.
   -> Note: For more information, please refer to the Cloud Avenue DRaaS documentation https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/draas-with-vcda-2/.
+  !> Resource deprecated The resource has renamed to cloudavenue_draas_onpremise https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/draas_onpremise, it will be removed in the version v1.0.0 https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/28 of the provider.
 ---
 
 # cloudavenue_vcda_ip (Resource)
 
 The VCDa resource allows you to declare or remove your on-premises IP address for the DRaaS service.
- -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/draas-with-vcda-2/).
+
+ -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/draas-with-vcda-2/). 
+
+ !> **Resource deprecated** The resource has renamed to [`cloudavenue_draas_onpremise`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/draas_onpremise), it will be removed in the version [`v1.0.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/28) of the provider.
+
+## Migrating from `cloudavenue_vcda_ip` to `cloudavenue_draas_onpremise`
+
+This guide explains how to migrate your Terraform configuration from the legacy resource `cloudavenue_vcda_ip` to the new resource `cloudavenue_draas_onpremise`.  
+All fields and attributes are identical between the two resources, so the migration is straightforward.
+
+---
+
+### Why Migrate?
+
+- The `cloudavenue_draas_onpremise` resource replaces `cloudavenue_vcda_ip` for improved naming consistency and future support.
+- No changes are required to your resource arguments or values.
+
+---
+
+### Migration Steps
+
+#### 1. Update Resource Type
+
+Replace all occurrences of `cloudavenue_vcda_ip` with `cloudavenue_draas_onpremise` in your `.tf` files.
+
+**Before:**
+```hcl
+resource "cloudavenue_vcda_ip" "example" {
+  ip_address  = "192.168.1.10"
+}
+```
+
+**After:**
+```hcl
+resource "cloudavenue_draas_onpremise" "example" {
+  ip_address  = "192.168.1.10"
+}
+```
+
+#### 2. Update References
+
+Update any references to the resource in outputs, data sources, or modules:
+
+**Before:**
+```hcl
+output "ip" {
+  value = cloudavenue_vcda_ip.example.ip_address
+}
+```
+
+**After:**
+```hcl
+output "ip" {
+  value = cloudavenue_draas_onpremise.example.ip_address
+}
+```
+
+#### 3. State Migration
+
+To avoid recreating resources, move the Terraform state:
+
+```shell
+terraform state mv \
+  'cloudavenue_vcda_ip.example' \
+  'cloudavenue_draas_onpremise.example'
+```
+
+Or, if you use modules or want to move multiple resources, you can use the `moved` block in your module configuration:
+
+```hcl
+moved {
+  from = cloudavenue_vcda_ip.example
+  to   = cloudavenue_draas_onpremise.example
+}
+```
+
+This technique is especially useful for refactoring modules or moving resources between modules.
+
+---
+
+### Verification
+
+After migration, run:
+
+```shell
+terraform plan
+```
+
+You should see no changes to infrastructure.  
+Then apply to confirm:
+
+```shell
+terraform apply
+```
+
+---
+
+## Summary
+
+- All fields and arguments remain the same.
+- Only the resource type name changes.
+- Use `terraform state mv` or the `moved` block to preserve existing resources.
 
 ## Example Usage
 
