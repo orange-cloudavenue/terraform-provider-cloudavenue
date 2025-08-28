@@ -2,12 +2,12 @@
 page_title: "cloudavenue_edgegateway Resource - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  The Edge Gateway resource allows you to create and delete Edge Gateways in Cloud Avenue. EdgeGateway is a virtualized network appliance designed to provide secure connectivity, routing, and network services at the edge of a virtualized environment. It acts as a critical component for managing network traffic between internal virtual networks and external networks, such as the internet or remote sites.
+  The Edge Gateway resource allows you to create and delete Edge Gateway in Cloud Avenue. EdgeGateway is a virtualized network appliance designed to provide secure connectivity, routing, and network services at the edge of a virtualized environment. It acts as a critical component for managing network traffic between internal virtual networks and external networks, such as the internet or remote sites.
 ---
 
 # cloudavenue_edgegateway (Resource)
 
-The Edge Gateway resource allows you to create and delete Edge Gateways in Cloud Avenue. EdgeGateway is a virtualized network appliance designed to provide secure connectivity, routing, and network services at the edge of a virtualized environment. It acts as a critical component for managing network traffic between internal virtual networks and external networks, such as the internet or remote sites.
+The Edge Gateway resource allows you to create and delete Edge Gateway in Cloud Avenue. EdgeGateway is a virtualized network appliance designed to provide secure connectivity, routing, and network services at the edge of a virtualized environment. It acts as a critical component for managing network traffic between internal virtual networks and external networks, such as the internet or remote sites.
 
 ## Examples Usage
 

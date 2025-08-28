@@ -16,6 +16,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/backup"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/catalog"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/draas"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/elb"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/iam"
@@ -68,7 +69,9 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		vdcg.NewFirewallResource,
 		vdcg.NewNetworkRoutedResource,
 
-		// * VCDA
+		// * DRAAS
+		draas.NewDraasIPResource,
+		// ! VCDA - Deprecated
 		vcda.NewVCDAIPResource,
 
 		// * PUBLICIP
