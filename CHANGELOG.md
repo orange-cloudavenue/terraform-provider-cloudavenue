@@ -1,4 +1,9 @@
 ## 0.35.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_iam_user_saml` - Fixed issue when creating a SAML user return an error. (GH-1167)
+
 ## 0.34.1 (July 31, 2025)
 
 ### :bug: **Bug Fixes**
