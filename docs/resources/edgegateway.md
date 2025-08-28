@@ -38,7 +38,7 @@ resource "cloudavenue_edgegateway" "example" {
 
 - `bandwidth` (Number) The bandwidth in `Mbps` of the Edge Gateway. The bandwidth limit in Mbps for the edge gateway. If t0 is `SHARED`, it must be one of the available values for the T0 router, if no value is specified, the bandwidth is automatically calculated based on the remaining bandwidth of the T0. If t0 is `DEDICATED`, unlimited bandwidth is allowed (0 = unlimited). More information can be found [here](#bandwidth-attribute).
 - `t0_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the T0 Name to which the Edge Gateway is attached. If not specified, the Edge Gateway will be created on the T0 available in your organization. Works if only one T0 Name is available.
-- `tier0_vrf_name` (String, Deprecated) The name of the Tier-0 VRF to which the Edge Gateway is attached. If not specified, the Edge Gateway will be created if only one Tier-0 VRF is available. 
+- `tier0_vrf_name` (String, Deprecated) The name of the Tier-0 VRF to which the Edge Gateway is attached. If not specified, the Edge Gateway will be created if only one Tier-0 VRF is available.
 
  ~> **Attribute deprecated** Rename the `tier0_vrf_name` attribute to `t0_name`, it will be removed in the version [`1.0.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/28) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1165) for more information.
 
@@ -57,12 +57,10 @@ The `bandwidth` attribute is optional. If no value is specified, the bandwidth i
 The following values are supported depending on the service class of the Tier-0 :
 
 <!-- TABLE BANDWIDTH VALUES -->
-* `VRF_DEDICATED_LARGE`(Max: 10000Mbps) : 5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000
-* `VRF_DEDICATED_MEDIUM`(Max: 3500Mbps) : 5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000, 2000
-* `VRF_PREMIUM`(Max: 1000Mbps) : 5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000
-* `VRF_STANDARD`(Max: 300Mbps) : 5, 25, 50, 75, 100, 150, 200, 250, 300
-
-
+- `VRF_DEDICATED_LARGE`(Max: 10000Mbps) : 5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000
+- `VRF_DEDICATED_MEDIUM`(Max: 3500Mbps) : 5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000, 2000
+- `VRF_PREMIUM`(Max: 1000Mbps) : 5, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000
+- `VRF_STANDARD`(Max: 300Mbps) : 5, 25, 50, 75, 100, 150, 200, 250, 300
 
 Example with bandwidth:
 
@@ -76,6 +74,7 @@ resource "cloudavenue_edgegateway" "example" {
 ## Import
 
 Import is supported using the following syntax:
+
 ```shell
 # use the name to import the edge gateway
 terraform import cloudavenue_edgegateway.example MyEdgeName
