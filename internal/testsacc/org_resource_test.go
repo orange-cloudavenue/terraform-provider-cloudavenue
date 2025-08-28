@@ -12,12 +12,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/common-go/regex"
 	"github.com/orange-cloudavenue/common-go/urn"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/helpers"
 )
@@ -162,5 +163,4 @@ func TestAccOrgResource(t *testing.T) {
 			return nil
 		},
 	})
-
 }
