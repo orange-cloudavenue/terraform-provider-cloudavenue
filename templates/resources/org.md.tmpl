@@ -22,3 +22,13 @@ description: |-
  All fields are optionnal. Only change the fields you want to update.
 
 {{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+
+ ~> **Note**
+The name is informational but for clarity, it is recommended to specify the name of your organization. 
+
+Import is supported using the following syntax:
+{{ codefile "shell" .ImportFile }}
+{{- end }}
