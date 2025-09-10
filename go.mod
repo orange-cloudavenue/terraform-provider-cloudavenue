@@ -2,7 +2,11 @@ module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 
 go 1.24.5
 
-replace github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 => ../cloudavenue-sdk-go-v2
+replace (
+	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 => ../cloudavenue-sdk-go-v2
+// github.com/orange-cloudavenue/common-go => ../common-go
+// github.com/orange-cloudavenue/common-go/urn => ../common-go/urn
+)
 
 require (
 	github.com/aws/aws-sdk-go v1.55.7
@@ -21,11 +25,12 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/madflojo/testcerts v1.4.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.26.2
-	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20250707145714-822ebf0f23d3
+	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20250908083250-13fb72d42263
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
-	github.com/orange-cloudavenue/common-go/regex v1.0.1
+	github.com/orange-cloudavenue/common-go/regex v1.2.0
+	github.com/orange-cloudavenue/common-go/urn v1.3.0
 	github.com/orange-cloudavenue/common-go/utils v1.0.0
-	github.com/orange-cloudavenue/common-go/validators v1.1.3
+	github.com/orange-cloudavenue/common-go/validators v1.2.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1
 	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.11.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.2.0
@@ -100,10 +105,9 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/orange-cloudavenue/common-go/extractor v1.0.1 // indirect
-	github.com/orange-cloudavenue/common-go/generator v1.3.2 // indirect
+	github.com/orange-cloudavenue/common-go/generator v1.3.4 // indirect
 	github.com/orange-cloudavenue/common-go/internal/regex v0.0.0-20250812201424-07c3423160b3 // indirect
 	github.com/orange-cloudavenue/common-go/strcase v1.0.0 // indirect
-	github.com/orange-cloudavenue/common-go/urn v1.2.0 // indirect
 	github.com/peterhellberg/link v1.2.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/rivo/uniseg v0.1.0 // indirect
@@ -120,7 +124,7 @@ require (
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
 	golang.org/x/crypto v0.40.0 // indirect
 	golang.org/x/mod v0.26.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/tools v0.35.0 // indirect
