@@ -13,13 +13,13 @@ import (
 	"context"
 	"fmt"
 
-	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/organization/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -39,19 +39,9 @@ func NewOrgResource() resource.Resource {
 // OrgResource is the resource implementation.
 type OrgResource struct { //nolint:revive
 	client *client.CloudAvenue
-	org    org.Client
-}
 
-// Init Initializes the resource.
-func (r *OrgResource) Init(_ context.Context, _ *OrgModel) (diags diag.Diagnostics) {
-	var err error
-
-	r.org, err = org.NewClient()
-	if err != nil {
-		diags.AddError("Error creating org client", err.Error())
-		return
-	}
-	return
+	// oClient is the Edge Gateway client from the SDK V2
+	oClient *organization.Client
 }
 
 // Metadata returns the resource type name.
@@ -70,6 +60,7 @@ func (r *OrgResource) Configure(_ context.Context, req resource.ConfigureRequest
 		return
 	}
 
+	// Get the provider client from the request data.
 	client, ok := req.ProviderData.(*client.CloudAvenue)
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -79,6 +70,17 @@ func (r *OrgResource) Configure(_ context.Context, req resource.ConfigureRequest
 		return
 	}
 	r.client = client
+
+	// Create the Organisation client from the SDK V2
+	oC, err := organization.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create Organization client, got error: %s", err),
+		)
+		return
+	}
+	r.oClient = oC
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -89,12 +91,6 @@ func (r *OrgResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Retrieve values from plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -118,19 +114,8 @@ func (r *OrgResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	// Refresh the state
-	stateRefreshed, found, d := r.read(ctx, state)
-	if !found {
-		resp.Diagnostics.AddError("Resource not found", "The resource was not found after refresh")
-		resp.State.RemoveResource(ctx)
-		return
-	}
+	stateRefreshed, d := r.read(ctx, state)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -156,56 +141,34 @@ func (r *OrgResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	/*
 		Implement the resource update here
 	*/
 
-	reqP := &org.PropertiesRequest{}
+	// Prepare the update request
+	reqP := &types.ParamsUpdateOrganization{}
 
-	if !state.Description.Equal(plan.Description) {
-		reqP.Description = plan.Description.Get()
+	if plan.FullName != state.FullName && !plan.FullName.IsNull() {
+		reqP.FullName = plan.FullName.ValueString()
+	}
+	if plan.Description != state.Description {
+		reqP.Description = plan.Description.ValueStringPointer()
+	}
+	if plan.Email != state.Email && !plan.Email.IsNull() {
+		reqP.CustomerMail = plan.Email.ValueString()
+	}
+	if plan.InternetBillingModel != state.InternetBillingModel && !plan.InternetBillingModel.IsNull() {
+		reqP.InternetBillingMode = plan.InternetBillingModel.ValueString()
 	}
 
-	if !state.Email.Equal(plan.Email) {
-		reqP.Email = plan.Email.Get()
-	}
-
-	if !state.InternetBillingModel.Equal(plan.InternetBillingModel) {
-		reqP.BillingModel = plan.InternetBillingModel.Get()
-	}
-
-	if !state.Name.Equal(plan.Name) {
-		reqP.FullName = plan.Name.Get()
-	}
-
-	job, err := r.org.UpdateProperties(ctx, reqP)
+	_, err := r.oClient.UpdateOrganization(ctx, *reqP)
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating properties", err.Error())
+		resp.Diagnostics.AddError("Error updating properties ", err.Error())
 		return
-	}
-
-	// Wait for the job to complete
-	jobStatus, err := job.GetJobStatus()
-	if err != nil {
-		resp.Diagnostics.AddError("Error getting job status", err.Error())
-	}
-
-	if err := jobStatus.WaitWithContext(ctx, 2); err != nil {
-		resp.Diagnostics.AddError("Error waiting for job to complete", err.Error())
 	}
 
 	// Use generic read function to refresh the state
-	stateRefreshed, found, d := r.read(ctx, plan)
-	if !found {
-		resp.Diagnostics.AddError("Resource not found", "The resource was not found after update")
-		return
-	}
+	stateRefreshed, d := r.read(ctx, plan)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -227,69 +190,86 @@ func (r *OrgResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	/*
 		Implement the resource deletion here
 	*/
 
+	resp.Diagnostics.AddWarning("Resource does not support delete", "The resource is not deletable. It will be removed from the state file but will still exist in Cloud Avenue.")
 	resp.State.RemoveResource(ctx)
 }
 
-func (r *OrgResource) ImportState(ctx context.Context, _ resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *OrgResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	defer metrics.New("cloudavenue_org", r.client.GetOrgName(), metrics.Import)()
 
-	// No properties is needed for the import
-
-	x := &OrgModel{
-		ID: supertypes.NewStringNull(),
-	}
-
-	resp.Diagnostics.Append(r.Init(ctx, x)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	stateRefreshed, found, d := r.read(ctx, x)
-	if !found {
-		resp.State.RemoveResource(ctx)
-		return
-	}
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
-
-	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
+	// No properties is needed for the import, but we force to precise the name for clarity
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 
 // * CustomFuncs
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
-func (r *OrgResource) read(ctx context.Context, planOrState *OrgModel) (stateRefreshed *OrgModel, found bool, diags diag.Diagnostics) { //nolint:unparam
+func (r *OrgResource) read(ctx context.Context, planOrState *OrgModel) (stateRefreshed *OrgModel, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
-	/*
-		Implement the resource read here
-	*/
-
-	properties, err := r.org.GetProperties(ctx)
+	// Get the organization details
+	org, err := r.oClient.GetOrganization(ctx)
 	if err != nil {
-		diags.AddError("Error getting properties", err.Error())
-		// GetProperties never return not found error
-		return nil, true, diags
+		diags.AddError("Error getting organization", err.Error())
+		return nil, diags
 	}
 
-	stateRefreshed.ID.Set(r.client.GetOrgName())
-	stateRefreshed.Name.Set(properties.FullName)
-	stateRefreshed.Description.Set(properties.Description)
-	stateRefreshed.Email.Set(properties.Email)
-	stateRefreshed.InternetBillingModel.Set(properties.BillingModel)
+	// Map the properties to the state
+	stateRefreshed.ID.Set(org.ID)
+	stateRefreshed.Name.Set(org.Name)
 
-	return stateRefreshed, true, nil
+	// StateRefreshed.Description will be set with null if value is empty else with the value
+	stateRefreshed.Description.Set(org.Description)
+
+	stateRefreshed.Email.Set(org.CustomerMail)
+	stateRefreshed.InternetBillingModel.Set(org.InternetBillingMode)
+	stateRefreshed.Enabled.Set(org.IsEnabled)
+	stateRefreshed.FullName.Set(org.DisplayName)
+
+	// Set stateRefreshed resources
+	x := &OrgModelResources{}
+	x.CountVDC.Set(int64(org.Resources.Vdc))
+	x.CountCatalog.Set(int64(org.Resources.Catalog))
+	x.CountVApp.Set(int64(org.Resources.Vapp))
+	x.CountRunningVM.Set(int64(org.Resources.RunningVM))
+	x.CountUser.Set(int64(org.Resources.User))
+	x.CountDisk.Set(int64(org.Resources.Disk))
+
+	stateRefreshed.Resources.Set(ctx, x)
+
+	return stateRefreshed, nil
+}
+
+func (r *OrgResource) MoveState(ctx context.Context) []resource.StateMover {
+	sc := orgSchema(ctx).GetResource(ctx)
+	return []resource.StateMover{
+		// Migrate name to display_name
+		{
+			SourceSchema: &sc,
+			StateMover: func(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+				var sourceData OrgModel
+
+				// Get the current state
+				resp.Diagnostics.Append(req.SourceState.Get(ctx, &sourceData)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
+				// Now ID is set with the organization ID
+				// Name is normally set with the organization name
+				// // And DisplayName is set with the organization display name
+				targetStateData := OrgModel{
+					ID:   sourceData.ID,
+					Name: sourceData.Name,
+					// DisplayName: sourceData.DisplayName,
+				}
+
+				resp.Diagnostics.Append(resp.TargetState.Set(ctx, &targetStateData)...)
+			},
+		},
+	}
 }

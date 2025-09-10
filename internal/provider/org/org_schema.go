@@ -24,7 +24,7 @@ import (
 func orgSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_org` resource allows you to manage the properties of an organization.",
+			MarkdownDescription: "The `cloudavenue_org` resource allows you to manage the properties of an organization. You can update certain attributes of the organization, such as its `description`, `full_name`, `email`, and `internet_billing_mode`. However, please note that creating or deleting an organization is not supported through this resource.",
 		},
 		DataSource: superschema.SchemaDetails{
 			MarkdownDescription: "The `cloudavenue_org` data source allows you to retrieve information about an organization.",
@@ -41,9 +41,6 @@ func orgSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The name of the organization.",
 					Computed:            true,
 				},
-				Resource: &schemaR.StringAttribute{
-					Optional: true,
-				},
 			},
 			"description": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
@@ -52,11 +49,25 @@ func orgSchema(_ context.Context) superschema.Schema {
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
+					// TODO: move the validator to SDKV2
+					// Validators with min 1 because "" is a string null value in terraform
+					Validators: []validator.String{
+						stringvalidator.LengthBetween(1, 129),
+					},
+				},
+			},
+			"full_name": superschema.SuperStringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The full name of the organization, visible in the VCloud Director IHM.",
+					Computed:            true,
+				},
+				Resource: &schemaR.StringAttribute{
+					Optional: true,
 				},
 			},
 			"email": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The email of the organization.",
+					MarkdownDescription: "Your organization's contact email.",
 					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
@@ -65,7 +76,7 @@ func orgSchema(_ context.Context) superschema.Schema {
 			},
 			"internet_billing_mode": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The internet billing mode of the organization.",
+					MarkdownDescription: "The organization's Internet bandwidth billing method.",
 					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
@@ -73,6 +84,56 @@ func orgSchema(_ context.Context) superschema.Schema {
 					Optional:            true,
 					Validators: []validator.String{
 						stringvalidator.OneOf("PAYG", "TRAFFIC_VOLUME"),
+					},
+				},
+			},
+			"enabled": superschema.SuperBoolAttribute{
+				Common: &schemaR.BoolAttribute{
+					MarkdownDescription: "Indicates whether the organization is enabled.",
+					Computed:            true,
+				},
+			},
+			"resources": superschema.SuperSingleNestedAttributeOf[OrgModelResources]{
+				Common: &schemaR.SingleNestedAttribute{
+					MarkdownDescription: "The resource usage of the organization.",
+					Computed:            true,
+				},
+				Attributes: superschema.Attributes{
+					"count_vdc": superschema.SuperInt64Attribute{
+						Common: &schemaR.Int64Attribute{
+							MarkdownDescription: "The number of VDCs in the organization.",
+							Computed:            true,
+						},
+					},
+					"count_catalog": superschema.SuperInt64Attribute{
+						Common: &schemaR.Int64Attribute{
+							MarkdownDescription: "The number of catalogs in the organization.",
+							Computed:            true,
+						},
+					},
+					"count_vapp": superschema.SuperInt64Attribute{
+						Common: &schemaR.Int64Attribute{
+							MarkdownDescription: "The number of vApps in the organization.",
+							Computed:            true,
+						},
+					},
+					"count_running_vm": superschema.SuperInt64Attribute{
+						Common: &schemaR.Int64Attribute{
+							MarkdownDescription: "The number of running VMs in the organization.",
+							Computed:            true,
+						},
+					},
+					"count_user": superschema.SuperInt64Attribute{
+						Common: &schemaR.Int64Attribute{
+							MarkdownDescription: "The number of users in the organization.",
+							Computed:            true,
+						},
+					},
+					"count_disk": superschema.SuperInt64Attribute{
+						Common: &schemaR.Int64Attribute{
+							MarkdownDescription: "The number of standalone disks in the organization.",
+							Computed:            true,
+						},
 					},
 				},
 			},

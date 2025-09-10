@@ -1,0 +1,14 @@
+```release-note:enhancement
+`cloudavenue_org` - Add new attributes to the organization schema:
+	- `resources`: Provides usage statistics for the organization (number of VDCs, catalogs, vApps, running VMs, users, disks).
+	- `enabled`: Indicates whether the organization is enabled.
+	- `full_name`: A long format of the organization's name.
+```
+
+``````release-note:bug
+`cloudavenue_org` - Fix attribute name of an organization with the good attribute name instead of DisplayName.
+```
+
+```release-note:breaking-change
+`cloudavenue_org` - Now the attribute ID is computed with the organization ID (urn+uuid).
+```
