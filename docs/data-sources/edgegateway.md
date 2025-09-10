@@ -2,12 +2,12 @@
 page_title: "cloudavenue_edgegateway Data Source - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  The Edge Gateway data source allows you to show the details of an Edge Gateways in Cloud Avenue.
+  The Edge Gateway data source allows you to show the details of an Edge Gateway in Cloud Avenue.
 ---
 
 # cloudavenue_edgegateway (Data Source)
 
-The Edge Gateway data source allows you to show the details of an Edge Gateways in Cloud Avenue.
+The Edge Gateway data source allows you to show the details of an Edge Gateway in Cloud Avenue.
 
 ## Example Usage
 
