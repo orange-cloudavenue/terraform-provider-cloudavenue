@@ -22,8 +22,23 @@ data "cloudavenue_org" "example" {
 ### Read-Only
 
 - `description` (String) The description of the organization.
-- `email` (String) The email of the organization.
+- `email` (String) Your organization's contact email.
+- `enabled` (Boolean) Indicates whether the organization is enabled.
+- `full_name` (String) The full name of the organization, visible in the VCloud Director IHM.
 - `id` (String) The ID of the organization.
-- `internet_billing_mode` (String) The internet billing mode of the organization.
+- `internet_billing_mode` (String) The organization's Internet bandwidth billing method.
 - `name` (String) The name of the organization.
+- `resources` (Attributes) The resource usage of the organization. (see [below for nested schema](#nestedatt--resources))
+
+<a id="nestedatt--resources"></a>
+### Nested Schema for `resources`
+
+Read-Only:
+
+- `count_catalog` (Number) The number of catalogs in the organization.
+- `count_disk` (Number) The number of standalone disks in the organization.
+- `count_running_vm` (Number) The number of running VMs in the organization.
+- `count_user` (Number) The number of users in the organization.
+- `count_vapp` (Number) The number of vApps in the organization.
+- `count_vdc` (Number) The number of VDCs in the organization.
 
