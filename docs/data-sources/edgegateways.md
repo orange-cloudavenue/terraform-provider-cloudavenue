@@ -34,8 +34,12 @@ Read-Only:
 
 - `description` (String) The description of the Edge Gateway.
 - `id` (String) The ID of the Edge Gateway.
-- `lb_enabled` (Boolean) Load Balancing state on the Edge Gateway.
 - `name` (String) The name of the Edge Gateway.
-- `owner_name` (String) The name of the Edge Gateway owner.
-- `tier0_vrf_name` (String) The name of the Tier-0 VRF to which the Edge Gateway is attached.
+- `owner_id` (String) The ID of the Edge Gateway owner. It can be a VDC or a VDC Group ID.
+- `owner_name` (String) The name of the Edge Gateway owner. It can be a VDC or a VDC Group name.
+- `t0_id` (String) The ID of the T0 to which the Edge Gateway is attached.
+- `t0_name` (String) The name of the T0 Name to which the Edge Gateway is attached.
+- `tier0_vrf_name` (String, Deprecated) The name of the Tier-0 VRF to which the Edge Gateway is attached. 
+
+ ~> **Attribute deprecated** Rename the `tier0_vrf_name` attribute to `t0_name`, it will be removed in the version [`1.0.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/28) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1165) for more information.
 

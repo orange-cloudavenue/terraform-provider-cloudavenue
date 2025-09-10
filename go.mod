@@ -2,8 +2,6 @@ module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 
 go 1.24.5
 
-replace github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 => ../cloudavenue-sdk-go-v2
-
 require (
 	github.com/aws/aws-sdk-go v1.55.7
 	github.com/cilium/fake v0.7.0
@@ -21,7 +19,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/madflojo/testcerts v1.4.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.26.3
-	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20250707145714-822ebf0f23d3
+	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20250908083250-13fb72d42263
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
 	github.com/orange-cloudavenue/common-go/regex v1.2.0
 	github.com/orange-cloudavenue/common-go/utils v1.0.0

@@ -1,0 +1,7 @@
+```release-note:enhancement
+`datasource/cloudavenue_edgegateways` - Migrated the Edge Gateways datasource to use the new SDK v2 client. The returned gateway attributes have been restructured, and the schema now includes new fields: `t0_name`, `t0_id`, and `owner_id`. These changes improve compatibility with the latest API and provide more detailed gateway information.
+```
+
+```release-note:deprecation
+`datasource/cloudavenue_edgegateways` - The attribute `tier0_vrf_name` is deprecated and will be removed in a future release. Please migrate to the new attributes `t0_name` and `t0_id`.
+```
