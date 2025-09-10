@@ -14,12 +14,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
+
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
