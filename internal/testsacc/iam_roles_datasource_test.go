@@ -36,7 +36,7 @@ func (r *IAMRolesDataSource) GetResourceName() string {
 }
 
 func (r *IAMRolesDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *IAMRolesDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

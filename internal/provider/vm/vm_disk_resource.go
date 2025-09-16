@@ -73,17 +73,17 @@ func (r *diskResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 func (r *diskResource) Init(_ context.Context, rm *vm.Disk) (diags diag.Diagnostics) {
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.vdc, diags = vdc.Init(r.client, rm.VDC)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	if rm.VMName.ValueString() != "" || rm.VMID.ValueString() != "" {
@@ -92,7 +92,7 @@ func (r *diskResource) Init(_ context.Context, rm *vm.Disk) (diags diag.Diagnost
 			Name: rm.VMName,
 		})
 	}
-	return
+	return diags
 }
 
 func (r *diskResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

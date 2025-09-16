@@ -55,7 +55,7 @@ func (d *catalogDataSource) Init(_ context.Context, rm *catalogDataSourceModel) 
 
 	d.adminOrg, diags = adminorg.Init(d.client)
 
-	return
+	return diags
 }
 
 func (d *catalogDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

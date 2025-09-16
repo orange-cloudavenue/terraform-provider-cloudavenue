@@ -37,7 +37,7 @@ func (r *S3BucketLifecycleConfigurationResource) GetResourceName() string {
 
 func (r *S3BucketLifecycleConfigurationResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[S3BucketVersioningConfigurationResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *S3BucketLifecycleConfigurationResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

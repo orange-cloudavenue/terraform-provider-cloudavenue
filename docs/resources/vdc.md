@@ -48,20 +48,25 @@ resource "cloudavenue_vdc" "example" {
 
 ### Required
 
-- `billing_model` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Choose Billing model of compute resources. The billing model available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of : `RESERVED`, `PAYG`, `DRAAS`.
-- `cpu_allocated` (Number) CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information.
-- `cpu_speed_in_mhz` (Number) Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information.
-- `disponibility_class` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The disponibility class of the vDC. The disponibility class available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of : `ONE-ROOM`, `HA-DUAL-ROOM`, `DUAL-ROOM`.
-- `memory_allocated` (Number) Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode.
-- `name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the vDC. String length must be between 2 and 27.
-- `service_class` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The service class of the vDC. Value must be one of : `ECO`, `STD`, `HP`, `VOIP`.
-- `storage_billing_model` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Choose Billing model of storage resources. The billing model available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of : `PAYG`, `RESERVED`.
+- `name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the vDC. VDC name (<alphanumeric> with - _ character and with max length 27 and min length 2).
 - `storage_profiles` (Attributes Set) List of storage profiles for this vDC. Set must contain at least 1 elements. (see [below for nested schema](#nestedatt--storage_profiles))
 
 ### Optional
 
+- `billing_model` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Choose Billing model of compute resources. Value defaults to `PAYG`.
+- `cpu_allocated` (Number, Deprecated) CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode. Ensure that one and only one attribute from this collection is set : `vcpu`, `cpu_allocated`. 
+
+ ~> **Attribute deprecated** Remove the `cpu_allocated` attribute configuration, it will be removed in the version `v1.0.0` of the provider.
+- `cpu_speed_in_mhz` (Number, Deprecated) Frequency of the VCPUs in MHz.
 - `description` (String) A description of the vDC.
-- `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `disponibility_class` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Specifies the service class tier for the Virtual Data Center (vDC), defining its performance and service level. Value defaults to `ONE-ROOM`.
+- `memory` (Number) Amount of memory in *GiB* allocated to the vDC. Ensure that one and only one attribute from this collection is set : `memory`, `memory_allocated`.
+- `memory_allocated` (Number, Deprecated) Memory capacity in GiB that is committed to be available or used as a limit in PAYG mode. Ensure that one and only one attribute from this collection is set : `memory`, `memory_allocated`. 
+
+ ~> **Attribute deprecated** Rename the `memory_allocated` attribute to `memory`, it will be removed in the version `v1.0.0` of the provider.
+- `service_class` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Defines the service class tier for the Virtual Data Center (vDC), indicating its level of service and performance. Value defaults to `STD`.
+- `storage_billing_model` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Choose Billing model of storage resources. Value defaults to `PAYG`.
+- `vcpu` (Number) Number of virtual CPU allocated to the vDC. Ensure that one and only one attribute from this collection is set : `vcpu`, `cpu_allocated`.
 
 ### Read-Only
 
@@ -72,19 +77,14 @@ resource "cloudavenue_vdc" "example" {
 
 Required:
 
-- `class` (String) The storage class of the storage profile. The storage class available are different depending on the service class. See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information. Value must be one of `silver`, `silver_r1`, `silver_r2`, `gold`, `gold_r1`, `gold_r2`, `gold_hm`, `platinum3k`, `platinum3k_r1`, `platinum3k_r2`, `platinum3k_hm`, `platinum7k`, `platinum7k_r1`, `platinum7k_r2`, `platinum7k_hm` or custom storage profile class delivered by Cloud Avenue.
+- `class` (String) Defines the classification tier of the storage profile, indicating its performance and intended use case.
 - `default` (Boolean) Set this storage profile as default for this vDC. Only one storage profile can be default per vDC.
-- `limit` (Number) Max number in *Go* of units allocated for this storage profile.
+- `limit` (Number) Max number in *GiB* of units allocated for this storage profile.
 
+Read-Only:
 
-<a id="nestedatt--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `id` (String) The ID of the storage profile.
+- `used` (Number) Number in *GiB* of units used for this storage profile.
 
 <!-- TABLE VDC ATTRIBUTES PARAMETERS -->
 ## Rules

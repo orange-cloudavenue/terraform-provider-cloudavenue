@@ -37,7 +37,7 @@ func (r *S3BucketCorsConfigurationResource) GetResourceName() string {
 
 func (r *S3BucketCorsConfigurationResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[S3BucketResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *S3BucketCorsConfigurationResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

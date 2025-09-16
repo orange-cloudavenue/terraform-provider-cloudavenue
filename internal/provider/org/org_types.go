@@ -51,7 +51,7 @@ func (rm *OrgModel) Copy() *OrgModel {
 func (data *OrgModel) fromModel(ctx context.Context, o *types.ModelGetOrganization) (diags diag.Diagnostics) {
 	if o == nil {
 		diags.AddError("Error reading organization", "Received nil organization from API")
-		return
+		return diags
 	}
 	data.ID.Set(o.ID)
 	data.Name.Set(o.Name)

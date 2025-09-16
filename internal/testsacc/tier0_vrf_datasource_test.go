@@ -37,7 +37,7 @@ func (r *Tier0VRFDataSource) GetResourceName() string {
 }
 
 func (r *Tier0VRFDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *Tier0VRFDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

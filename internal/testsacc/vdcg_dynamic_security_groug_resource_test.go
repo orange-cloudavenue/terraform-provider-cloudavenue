@@ -37,7 +37,7 @@ func (r *VDCGDynamicSecurityGroupResource) GetResourceName() string {
 }
 
 func (r *VDCGDynamicSecurityGroupResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *VDCGDynamicSecurityGroupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -47,7 +47,7 @@ func (r *VDCGDynamicSecurityGroupResource) Tests(_ context.Context) map[testsacc
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCGResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.SecurityGroup)),
@@ -127,7 +127,7 @@ func (r *VDCGDynamicSecurityGroupResource) Tests(_ context.Context) map[testsacc
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCGResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.SecurityGroup)),

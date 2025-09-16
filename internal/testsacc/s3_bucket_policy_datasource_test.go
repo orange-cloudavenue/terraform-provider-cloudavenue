@@ -38,7 +38,7 @@ func (r *S3BucketPolicyDataSource) GetResourceName() string {
 func (r *S3BucketPolicyDataSource) DependenciesConfig() (deps testsacc.DependenciesConfigResponse) {
 	// Add dependencies config to the resource
 	deps.Append(GetResourceConfig()[S3BucketPolicyResourceName]().GetDefaultConfig)
-	return
+	return deps
 }
 
 func (r *S3BucketPolicyDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

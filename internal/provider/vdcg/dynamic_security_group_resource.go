@@ -60,9 +60,9 @@ func (r *DynamicSecurityGroupResource) Init(_ context.Context, rm *DynamicSecuri
 	r.vdcGroup, err = r.client.CAVSDK.V1.VDC().GetVDCGroup(idOrName)
 	if err != nil {
 		diags.AddError("Error retrieving VDC Group", err.Error())
-		return
+		return diags
 	}
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

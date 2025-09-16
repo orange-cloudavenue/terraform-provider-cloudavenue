@@ -59,7 +59,7 @@ func (r *securityGroupResource) Init(_ context.Context, rm *SecurityGroupModel) 
 
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
@@ -68,21 +68,21 @@ func (r *securityGroupResource) Init(_ context.Context, rm *SecurityGroupModel) 
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
 	if r.edgegw.OwnerType.IsVDCGROUP() {
 		diags.AddError("Error Edge Gateway connected to a VDC Group", "Edge Gateway is connected to a VDC Group, please use the VDC Group resource (`cloudavenue_vdcg_security_group`) instead.")
-		return
+		return diags
 	}
 
 	r.vdc, err = r.client.CAVSDK.V1.VDC().GetVDC(r.edgegw.OwnerName)
 	if err != nil {
 		diags.AddError("Error retrieving VDC from EdgeGateway", fmt.Sprintf("Error: %s", err.Error()))
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -408,7 +408,7 @@ func (r *securityGroupResource) validateNetworks(ctx context.Context, rm *Securi
 	networks, d := rm.Members.Get(ctx)
 	if d.HasError() {
 		diags.Append(d...)
-		return
+		return diags
 	}
 
 	for _, network := range networks {
@@ -427,7 +427,7 @@ func (r *securityGroupResource) validateNetworks(ctx context.Context, rm *Securi
 		}
 	}
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	return nil

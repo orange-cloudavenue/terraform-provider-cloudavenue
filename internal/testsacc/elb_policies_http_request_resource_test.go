@@ -38,7 +38,7 @@ func (r *ELBPoliciesHTTPRequestResource) GetResourceName() string {
 
 func (r *ELBPoliciesHTTPRequestResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[ELBVirtualServiceResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *ELBPoliciesHTTPRequestResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -49,7 +49,7 @@ func (r *ELBPoliciesHTTPRequestResource) Tests(_ context.Context) map[testsacc.T
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.LoadBalancerVirtualService)),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

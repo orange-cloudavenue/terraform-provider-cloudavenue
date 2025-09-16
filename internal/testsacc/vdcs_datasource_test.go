@@ -37,7 +37,7 @@ func (r *VDCsResource) GetResourceName() string {
 
 func (r *VDCsResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *VDCsResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -52,6 +52,8 @@ func (r *VDCsResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx c
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
 						resource.TestCheckResourceAttrSet(resourceName, "vdcs.0.id"),
+						resource.TestCheckResourceAttrSet(resourceName, "vdcs.0.name"),
+						resource.TestCheckResourceAttrSet(resourceName, "vdcs.0.description"),
 					},
 				},
 			}

@@ -56,7 +56,7 @@ func (r *roleResource) Init(_ context.Context, rm *RoleResourceModel) (diags dia
 	}
 	r.adminOrg, diags = adminorg.Init(r.client)
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

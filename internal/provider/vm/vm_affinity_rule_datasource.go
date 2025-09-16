@@ -49,7 +49,7 @@ func (d *vmAffinityRuleDataSource) Schema(ctx context.Context, _ datasource.Sche
 func (d *vmAffinityRuleDataSource) Init(_ context.Context, rm *vmAffinityRuleDataSourceModel) (diags diag.Diagnostics) {
 	d.vdc, diags = vdc.Init(d.client, rm.VDC)
 
-	return
+	return diags
 }
 
 func (d *vmAffinityRuleDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {

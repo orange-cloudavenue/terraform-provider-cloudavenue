@@ -38,7 +38,7 @@ func (r *CatalogsDataSource) GetResourceName() string {
 }
 
 func (r *CatalogsDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *CatalogsDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

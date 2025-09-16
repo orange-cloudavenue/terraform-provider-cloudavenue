@@ -37,7 +37,7 @@ func (r *VDCGDynamicSecurityGroupDataSource) GetResourceName() string {
 
 func (r *VDCGDynamicSecurityGroupDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[VDCGDynamicSecurityGroupResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *VDCGDynamicSecurityGroupDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

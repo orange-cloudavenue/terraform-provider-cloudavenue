@@ -38,7 +38,7 @@ func (r *VDCGSecurityGroupResource) GetResourceName() string {
 }
 
 func (r *VDCGSecurityGroupResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *VDCGSecurityGroupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -47,7 +47,7 @@ func (r *VDCGSecurityGroupResource) Tests(_ context.Context) map[testsacc.TestNa
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCGResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.SecurityGroup)),
@@ -129,7 +129,7 @@ func (r *VDCGSecurityGroupResource) Tests(_ context.Context) map[testsacc.TestNa
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCGNetworkIsolatedResourceName]().GetDefaultConfig)
 					resp.Append(GetResourceConfig()[VDCGNetworkIsolatedResourceName]().GetSpecificConfig("example_without_static_ip_pool"))
-					return
+					return resp
 				},
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.SecurityGroup)),
@@ -211,7 +211,7 @@ func (r *VDCGSecurityGroupResource) Tests(_ context.Context) map[testsacc.TestNa
 					resp.Append(GetResourceConfig()[VDCGNetworkIsolatedResourceName]().GetDefaultConfig)
 					resp.Append(GetResourceConfig()[VDCGNetworkRoutedResourceName]().GetDefaultConfig)
 					resp.Append(GetResourceConfig()[EdgeGatewayNetworkRoutedResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

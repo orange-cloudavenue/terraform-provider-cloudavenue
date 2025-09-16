@@ -38,7 +38,7 @@ func (r *EdgeGatewayServicesResource) GetResourceName() string {
 
 func (r *EdgeGatewayServicesResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *EdgeGatewayServicesResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -49,7 +49,7 @@ func (r *EdgeGatewayServicesResource) Tests(_ context.Context) map[testsacc.Test
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

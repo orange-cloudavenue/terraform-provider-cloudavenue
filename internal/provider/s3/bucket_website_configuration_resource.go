@@ -52,7 +52,7 @@ type BucketWebsiteConfigurationResource struct {
 func (r *BucketWebsiteConfigurationResource) Init(_ context.Context, _ *BucketWebsiteConfigurationModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

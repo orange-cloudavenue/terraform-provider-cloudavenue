@@ -10,25 +10,24 @@
 package vdc
 
 import (
-	"fmt"
-
+	"github.com/orange-cloudavenue/common-go/utils"
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/infrapi/rules"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/validators"
 )
-
-const seeVDCRules = "See [Rules](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdc#rules) for more information."
 
 /*
 vdcSchema
@@ -47,14 +46,6 @@ func vdcSchema() superschema.Schema {
 			MarkdownDescription: "data source. This can be used to reference a vDC and use its data within other resources or data sources.",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"timeouts": &superschema.TimeoutAttribute{
-				Resource: &superschema.ResourceTimeoutAttribute{
-					Create: true,
-					Read:   false,
-					Delete: true,
-					Update: true,
-				},
-			},
 			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the vDC.",
@@ -68,11 +59,11 @@ func vdcSchema() superschema.Schema {
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the vDC.",
 					Required:            true,
-					Validators: []validator.String{
-						stringvalidator.LengthBetween(2, 27),
-					},
 				},
 				Resource: &schemaR.StringAttribute{
+					Validators: []validator.String{
+						validators.ResourceName("vdc"),
+					},
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
@@ -89,138 +80,102 @@ func vdcSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"cpu_speed_in_mhz": superschema.SuperInt64Attribute{
-				Common: &schemaR.Int64Attribute{
-					MarkdownDescription: "Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM.",
-				},
-				Resource: &schemaR.Int64Attribute{
-					Required:            true,
-					MarkdownDescription: seeVDCRules,
-				},
-				DataSource: &schemaD.Int64Attribute{
-					Computed: true,
-				},
-			},
 
-			"cpu_allocated": superschema.SuperInt64Attribute{
-				Common: &schemaR.Int64Attribute{
-					MarkdownDescription: "CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.",
-				},
-				Resource: &schemaR.Int64Attribute{
-					MarkdownDescription: seeVDCRules,
-					Required:            true,
-				},
-				DataSource: &schemaD.Int64Attribute{
-					Computed: true,
-				},
-			},
-			"memory_allocated": superschema.SuperInt64Attribute{
-				Common: &schemaR.Int64Attribute{
-					MarkdownDescription: "Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode.",
-				},
-				Resource: &schemaR.Int64Attribute{
-					Required: true,
-				},
-				DataSource: &schemaD.Int64Attribute{
-					Computed: true,
-				},
-			},
+			// * Availability properties
 			"service_class": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The service class of the vDC.",
+					MarkdownDescription: "Defines the service class tier for the Virtual Data Center (vDC), indicating its level of service and performance.",
+					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
-					Required: true,
+					Optional: true,
+					// TODO: Add link to devex documentation when available
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
-					Validators: []validator.String{
-						stringvalidator.OneOf(func() []string {
-							var serviceClasses []string
-							for _, sC := range rules.ALLServiceClasses {
-								serviceClasses = append(serviceClasses, string(sC))
-							}
-							return serviceClasses
-						}()...),
-					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
+					Default: stringdefault.StaticString("STD"),
 				},
 			},
 			"disponibility_class": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The disponibility class of the vDC.",
+					MarkdownDescription: "Specifies the service class tier for the Virtual Data Center (vDC), defining its performance and service level.",
+					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
-					Required:            true,
-					MarkdownDescription: "The disponibility class available are different depending on the service class. " + seeVDCRules,
+					Optional: true,
+					// TODO: Add link to devex documentation when available
+					MarkdownDescription: "",
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
-					Validators: []validator.String{
-						stringvalidator.OneOf(func() []string {
-							var disponibilityClasses []string
-							for _, dC := range rules.ALLDisponibilityClasses {
-								disponibilityClasses = append(disponibilityClasses, string(dC))
-							}
-							return disponibilityClasses
-						}()...),
-					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
+					Default: stringdefault.StaticString("ONE-ROOM"),
 				},
 			},
+
+			// * Billing properties
 			"billing_model": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Choose Billing model of compute resources.",
+					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
-					Required:            true,
-					MarkdownDescription: "The billing model available are different depending on the service class. " + seeVDCRules,
+					Optional: true,
+					// TODO: Add link to devex documentation when available
+					MarkdownDescription: "",
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
-					Validators: []validator.String{
-						stringvalidator.OneOf(func() []string {
-							var billingModels []string
-							for _, bM := range rules.ALLBillingModels {
-								billingModels = append(billingModels, string(bM))
-							}
-							return billingModels
-						}()...),
-					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
+					Default: stringdefault.StaticString("PAYG"),
 				},
 			},
+
 			"storage_billing_model": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Choose Billing model of storage resources.",
+					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
-					Required:            true,
-					MarkdownDescription: "The billing model available are different depending on the service class. " + seeVDCRules,
+					Optional: true,
+					// TODO: Add link to devex documentation when available
+					MarkdownDescription: "",
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
-					Validators: []validator.String{
-						stringvalidator.OneOf(func() []string {
-							var billingModels []string
-							for _, bM := range rules.ALLStorageBillingModels {
-								billingModels = append(billingModels, string(bM))
-							}
-							return billingModels
-						}()...),
-					},
-				},
-				DataSource: &schemaD.StringAttribute{
-					Computed: true,
+					Default: stringdefault.StaticString("PAYG"),
 				},
 			},
-			"storage_profiles": superschema.SuperSetNestedAttributeOf[vdcResourceModelVDCStorageProfile]{
+
+			// * Resource properties
+			"vcpu": superschema.SuperInt64Attribute{
+				Common: &schemaR.Int64Attribute{
+					MarkdownDescription: "Number of virtual CPU allocated to the vDC.",
+					// TODO: Add link to devex documentation when available
+
+					Computed: true,
+				},
+				Resource: &schemaR.Int64Attribute{
+					Optional: true, // ? Make optional the time that the attribute cpu_allocated is deprecated.
+					Validators: []validator.Int64{
+						int64validator.ExactlyOneOf(path.MatchRoot("vcpu"), path.MatchRoot("cpu_allocated")),
+					},
+				},
+			},
+			"memory": superschema.SuperInt64Attribute{
+				Common: &schemaR.Int64Attribute{
+					MarkdownDescription: "Amount of memory in *GiB* allocated to the vDC.",
+					// TODO: Add link to devex documentation when available
+
+					Computed: true,
+				},
+				Resource: &schemaR.Int64Attribute{
+					Optional: true, // ? Make optional the time that the attribute memory_allocated is deprecated.
+					Validators: []validator.Int64{
+						int64validator.ExactlyOneOf(path.MatchRoot("memory"), path.MatchRoot("memory_allocated")),
+					},
+				},
+			},
+
+			"storage_profiles": superschema.SuperSetNestedAttributeOf[vdcModelStorageProfile]{
 				Common: &schemaR.SetNestedAttribute{
 					MarkdownDescription: "List of storage profiles for this vDC.",
 				},
@@ -234,23 +189,20 @@ func vdcSchema() superschema.Schema {
 					Computed: true,
 				},
 				Attributes: map[string]superschema.Attribute{
+					"id": superschema.SuperStringAttribute{
+						Common: &schemaR.StringAttribute{
+							MarkdownDescription: "The ID of the storage profile.",
+							Computed:            true,
+						},
+					},
 					"class": superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The storage class of the storage profile.",
+							MarkdownDescription: "Defines the classification tier of the storage profile, indicating its performance and intended use case.",
 						},
 						Resource: &schemaR.StringAttribute{
 							Required: true,
-							MarkdownDescription: "The storage class available are different depending on the service class. " + seeVDCRules + " Value must be one of " + func() string {
-								var storageClasses string
-								for i, sC := range rules.ALLStorageProfilesClass {
-									if i == len(rules.ALLStorageProfilesClass)-1 {
-										storageClasses += fmt.Sprintf("`%s`", string(sC))
-									} else {
-										storageClasses += fmt.Sprintf("`%s`, ", string(sC))
-									}
-								}
-								return storageClasses
-							}() + " or custom storage profile class delivered by Cloud Avenue.",
+							// TODO: Add link to devex documentation when available
+							MarkdownDescription: "",
 						},
 						DataSource: &schemaD.StringAttribute{
 							Computed: true,
@@ -258,7 +210,7 @@ func vdcSchema() superschema.Schema {
 					},
 					"limit": superschema.SuperInt64Attribute{
 						Common: &schemaR.Int64Attribute{
-							MarkdownDescription: "Max number in *Go* of units allocated for this storage profile.",
+							MarkdownDescription: "Max number in *GiB* of units allocated for this storage profile.",
 						},
 						Resource: &schemaR.Int64Attribute{
 							Required: true,
@@ -277,6 +229,72 @@ func vdcSchema() superschema.Schema {
 						DataSource: &schemaD.BoolAttribute{
 							Computed: true,
 						},
+					},
+					"used": superschema.SuperInt64Attribute{
+						Common: &schemaR.Int64Attribute{
+							MarkdownDescription: "Number in *GiB* of units used for this storage profile.",
+							Computed:            true,
+						},
+					},
+				},
+			},
+
+			// ! Deprecated fields - Maintain for backward compatibility
+			"cpu_speed_in_mhz": superschema.SuperInt64Attribute{
+				Deprecated: &superschema.Deprecated{
+					DeprecationMessage:         "The attribute `cpu_speed_in_mhz` is no longer mandatory and will be returned as read-only starting from version v1.0.0.",
+					MarkdownDeprecationMessage: "The attribute `cpu_speed_in_mhz` is no longer mandatory and will be returned as read-only starting from version v1.0.0.",
+					OnlyResource:               utils.ToPTR(true),
+				},
+				Common: &schemaR.Int64Attribute{
+					MarkdownDescription: "Frequency of the VCPUs in MHz.",
+					Computed:            true,
+				},
+				Resource: &schemaR.Int64Attribute{
+					Optional: true,
+				},
+				DataSource: &schemaD.Int64Attribute{},
+			},
+
+			"cpu_allocated": superschema.SuperInt64Attribute{
+				Deprecated: &superschema.Deprecated{
+					DeprecationMessage:                "The attribute `cpu_allocated` has been deprecated and will be removed in a future release. Please use the `vcpu` attribute instead.",
+					ComputeMarkdownDeprecationMessage: true,
+					Removed:                           true,
+					FromAttributeName:                 "cpu_allocated",
+					TargetAttributeName:               "vcpu",
+					TargetRelease:                     "v1.0.0",
+					LinkToIssue:                       "",
+				},
+				Common: &schemaR.Int64Attribute{
+					MarkdownDescription: "CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.",
+					Computed:            true,
+				},
+				Resource: &schemaR.Int64Attribute{
+					Optional: true,
+					Validators: []validator.Int64{
+						int64validator.ExactlyOneOf(path.MatchRoot("vcpu"), path.MatchRoot("cpu_allocated")),
+					},
+				},
+			},
+			"memory_allocated": superschema.SuperInt64Attribute{
+				Deprecated: &superschema.Deprecated{
+					DeprecationMessage:                "The attribute `memory_allocated` has been deprecated and will be removed in a future release. Please use the `memory` attribute instead.",
+					ComputeMarkdownDeprecationMessage: true,
+					Renamed:                           true,
+					FromAttributeName:                 "memory_allocated",
+					TargetAttributeName:               "memory",
+					TargetRelease:                     "v1.0.0",
+					LinkToIssue:                       "",
+				},
+				Common: &schemaR.Int64Attribute{
+					MarkdownDescription: "Memory capacity in GiB that is committed to be available or used as a limit in PAYG mode.",
+					Computed:            true,
+				},
+				Resource: &schemaR.Int64Attribute{
+					Optional: true,
+					Validators: []validator.Int64{
+						int64validator.ExactlyOneOf(path.MatchRoot("memory"), path.MatchRoot("memory_allocated")),
 					},
 				},
 			},

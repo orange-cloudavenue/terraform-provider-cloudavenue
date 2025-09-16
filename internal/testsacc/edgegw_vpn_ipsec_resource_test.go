@@ -36,7 +36,7 @@ func (r *VPNIPSecResource) GetResourceName() string {
 func (r *VPNIPSecResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
 	resp.Append(GetResourceConfig()[PublicIPResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *VPNIPSecResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

@@ -16,6 +16,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/vdc/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -25,13 +26,17 @@ var (
 	_ datasource.DataSourceWithConfigure = &vdcDataSource{}
 )
 
-// NewVDCDataSource returns a new resource implementing the vdcs data source.
+// NewVDCDataSource returns a new resource implementing the vdc data source.
 func NewVDCDataSource() datasource.DataSource {
 	return &vdcDataSource{}
 }
 
 type vdcDataSource struct {
+	// Client is a terraform Client
 	client *client.CloudAvenue
+
+	// vClient is the VDC client from the SDK V2
+	vClient *vdc.Client
 }
 
 func (d *vdcDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -59,13 +64,23 @@ func (d *vdcDataSource) Configure(_ context.Context, req datasource.ConfigureReq
 		return
 	}
 
+	vC, err := vdc.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create VDC client, got error: %s", err),
+		)
+		return
+	}
+
 	d.client = client
+	d.vClient = vC
 }
 
 func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_vdc", d.client.GetOrgName(), metrics.Read)()
 
-	data := new(vdcDataSourceModel)
+	data := new(vdcModel)
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -74,38 +89,17 @@ func (d *vdcDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	}
 
 	s := &vdcResource{
-		client: d.client,
+		client:  d.client,
+		vClient: d.vClient,
 	}
-
-	dataResource := new(vdcResourceModel)
-	dataResource.Name = data.Name
 
 	// Read data from the API
-	dataRefreshed, found, diags := s.read(ctx, dataResource)
-	if !found {
-		resp.Diagnostics.AddError("VDC not found", fmt.Sprintf("The VDC with the name %q was not found", data.Name.ValueString()))
-		return
-	}
+	dataRefreshed, diags := s.read(ctx, data)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	data.BillingModel = dataRefreshed.BillingModel
-	data.CPUAllocated = dataRefreshed.CPUAllocated
-	data.Description = dataRefreshed.Description
-	data.DisponibilityClass = dataRefreshed.DisponibilityClass
-	data.ID = dataRefreshed.ID
-	data.MemoryAllocated = dataRefreshed.MemoryAllocated
-	data.Name = dataRefreshed.Name
-	data.ServiceClass = dataRefreshed.ServiceClass
-	data.StorageBillingModel = dataRefreshed.StorageBillingModel
-	data.VCPUInMhz = dataRefreshed.VCPUInMhz
-	data.StorageProfiles = dataRefreshed.StorageProfiles
-
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, dataRefreshed)...)
 }

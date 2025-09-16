@@ -88,12 +88,12 @@ func (m *tier0VrfDataSourceModel) fromAPI(ctx context.Context, api *types.ModelT
 		edgegateways = append(edgegateways, e)
 	}
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	diags.Append(m.EdgeGateways.Set(ctx, edgegateways)...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	return diags

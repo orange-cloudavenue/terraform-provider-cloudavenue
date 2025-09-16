@@ -104,5 +104,5 @@ func (v VM) ResourceRead(_ context.Context) (resource *VMResourceModelResource) 
 		resource.MemoryHotAddEnabled = types.BoolValue(v.GetMemoryHotAddEnabled())
 	}
 
-	return
+	return resource
 }

@@ -59,9 +59,9 @@ func (r *FirewallResource) Init(_ context.Context, rm *FirewallModel) (diags dia
 	r.vdcGroup, err = r.client.CAVSDK.V1.VDC().GetVDCGroup(idOrName)
 	if err != nil {
 		diags.AddError("Error retrieving VDC Group", err.Error())
-		return
+		return diags
 	}
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -322,7 +322,7 @@ func (r *FirewallResource) read(ctx context.Context, planOrState *FirewallModel)
 			return nil, false, nil
 		}
 		diags.AddError("Error retrieving VDC Group Firewall", err.Error())
-		return
+		return stateRefreshed, found, diags
 	}
 
 	if !stateRefreshed.ID.IsKnown() {
@@ -334,7 +334,7 @@ func (r *FirewallResource) read(ctx context.Context, planOrState *FirewallModel)
 	isEnabled, err := vdcgfw.IsEnabled()
 	if err != nil {
 		diags.AddError("Error retrieving VDC Group Firewall enabled status", err.Error())
-		return
+		return stateRefreshed, found, diags
 	}
 	stateRefreshed.Enabled.Set(isEnabled)
 

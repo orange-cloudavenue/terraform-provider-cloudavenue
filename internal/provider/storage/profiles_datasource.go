@@ -53,10 +53,10 @@ func (s *storageProfiles) objectType(ctx context.Context) types.ObjectType {
 func (d *profilesDataSource) Init(_ context.Context, dm *profilesDataSourceModel) (diags diag.Diagnostics) {
 	d.vdc, diags = vdc.Init(d.client, dm.VDC)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 func (d *profilesDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

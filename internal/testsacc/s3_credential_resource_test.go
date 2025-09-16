@@ -37,7 +37,7 @@ func (r *S3CredentialResource) GetResourceName() string {
 }
 
 func (r *S3CredentialResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *S3CredentialResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

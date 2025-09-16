@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vdcs Data Source - cloudavenue"
 subcategory: "vDC (Virtual Datacenter)"
 description: |-
-  List all vDC inside an Organization.
+  Retrieve all Virtual Data Centers (vDCs) within an organization.
 ---
 
 # cloudavenue_vdcs (Data Source)
 
-List all vDC inside an Organization.
+Retrieve all Virtual Data Centers (vDCs) within an organization.
 
 ## Example Usage
 
@@ -25,13 +25,14 @@ output "example" {
 ### Read-Only
 
 - `id` (String) The ID of the resource. This value is system-generated.
-- `vdcs` (Attributes List) VDC list. (see [below for nested schema](#nestedatt--vdcs))
+- `vdcs` (Attributes List) A list of Virtual Data Centers available within the organization. (see [below for nested schema](#nestedatt--vdcs))
 
 <a id="nestedatt--vdcs"></a>
 ### Nested Schema for `vdcs`
 
 Read-Only:
 
-- `id` (String) The ID of the vDC.
+- `description` (String) The description of the vDC.
+- `id` (String) The unique identifier of the Virtual Data Center.
 - `name` (String) The name of the vDC.
 

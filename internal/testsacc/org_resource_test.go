@@ -17,9 +17,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
-	"github.com/orange-cloudavenue/common-go/regex"
-	"github.com/orange-cloudavenue/common-go/urn"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
@@ -44,7 +41,7 @@ func (r *OrgResource) GetResourceName() string {
 }
 
 func (r *OrgResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *OrgResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -166,5 +163,4 @@ func TestAccOrgResource(t *testing.T) {
 			return nil
 		},
 	})
-
 }

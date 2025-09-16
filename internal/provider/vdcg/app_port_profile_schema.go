@@ -127,7 +127,7 @@ func appPortProfileSchema(_ context.Context) superschema.Schema {
 							for _, scope := range v1.FirewallGroupAppPortProfileModelScopes {
 								resp = append(resp, string(scope))
 							}
-							return
+							return resp
 						}()...),
 					},
 				},
@@ -169,7 +169,7 @@ func appPortProfileSchema(_ context.Context) superschema.Schema {
 									for _, protocol := range v1.FirewallGroupAppPortProfileModelPortProtocols {
 										resp = append(resp, string(protocol))
 									}
-									return
+									return resp
 								}()...),
 							},
 						},

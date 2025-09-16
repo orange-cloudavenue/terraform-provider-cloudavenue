@@ -59,7 +59,7 @@ func (rm *FirewallModel) rulesToSDKRules(ctx context.Context) (sdkrules v1.VDCGr
 	rules, d := rm.Rules.Get(ctx)
 	if d.HasError() {
 		diags.Append(d...)
-		return
+		return sdkrules, diags
 	}
 
 	sdkrules.Rules = make(v1.VDCGroupFirewallTypeRules, len(rules))
@@ -102,11 +102,11 @@ func (rm *FirewallModel) rulesToSDKRules(ctx context.Context) (sdkrules v1.VDCGr
 		diags.Append(d...)
 
 		if diags.HasError() {
-			return
+			return sdkrules, diags
 		}
 	}
 
-	return
+	return sdkrules, diags
 }
 
 // sdkRulesToRules.
@@ -141,5 +141,5 @@ func (rm *FirewallModel) sdkRulesToRules(ctx context.Context, rules v1.VDCGroupF
 		diags.Append(terraformRules[i].DestinationIDs.Set(ctx, common.FromOpenAPIReferenceID(ctx, r.DestinationFirewallGroups))...)
 		diags.Append(terraformRules[i].AppPortProfileIDs.Set(ctx, common.FromOpenAPIReferenceID(ctx, r.ApplicationPortProfiles))...)
 	}
-	return
+	return terraformRules, diags
 }

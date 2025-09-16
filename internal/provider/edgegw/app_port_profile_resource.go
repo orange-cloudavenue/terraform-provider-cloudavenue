@@ -50,7 +50,7 @@ func (r *appPortProfileResource) Init(_ context.Context, rm *AppPortProfileModel
 
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	// Retrieve VDC from edge gateway
@@ -60,10 +60,10 @@ func (r *appPortProfileResource) Init(_ context.Context, rm *AppPortProfileModel
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -358,7 +358,7 @@ func (r *appPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 			return nil, false, nil
 		}
 		diags.AddError("Error reading App Port Profile", err.Error())
-		return
+		return stateRefreshed, found, diags
 	}
 
 	appPorts := make([]*AppPortProfileModelAppPort, len(appPortProfile.ApplicationPorts))
@@ -374,7 +374,7 @@ func (r *appPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 			if len(singlePort.DestinationPorts) > 0 {
 				diags.Append(ap.Ports.Set(ctx, singlePort.DestinationPorts)...)
 				if diags.HasError() {
-					return
+					return stateRefreshed, found, diags
 				}
 			}
 		}

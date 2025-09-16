@@ -18,7 +18,7 @@ import (
 func vdcsSchema() superschema.Schema {
 	return superschema.Schema{
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "List all vDC inside an Organization.",
+			MarkdownDescription: "Retrieve all Virtual Data Centers (vDCs) within an organization.",
 		},
 		Attributes: superschema.Attributes{
 			"id": superschema.SuperStringAttribute{
@@ -27,21 +27,27 @@ func vdcsSchema() superschema.Schema {
 					Computed:            true,
 				},
 			},
-			"vdcs": superschema.SuperListNestedAttributeOf[vdcRef]{
+			"vdcs": superschema.SuperListNestedAttributeOf[vdcsDataSourceModelVDC]{
 				DataSource: &schemaD.ListNestedAttribute{
-					MarkdownDescription: "VDC list.",
+					MarkdownDescription: "A list of Virtual Data Centers available within the organization.",
 					Computed:            true,
 				},
 				Attributes: superschema.Attributes{
+					"id": superschema.SuperStringAttribute{
+						DataSource: &schemaD.StringAttribute{
+							MarkdownDescription: "The unique identifier of the Virtual Data Center.",
+							Computed:            true,
+						},
+					},
 					"name": superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
 							MarkdownDescription: "The name of the vDC.",
 							Computed:            true,
 						},
 					},
-					"id": superschema.SuperStringAttribute{
+					"description": superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The ID of the vDC.",
+							MarkdownDescription: "The description of the vDC.",
 							Computed:            true,
 						},
 					},

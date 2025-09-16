@@ -38,7 +38,7 @@ func (r *ELBServiceEngineGroupsDataSource) GetResourceName() string {
 
 func (r *ELBServiceEngineGroupsDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetDataSourceConfig()[EdgeGatewayDataSourceName]().GetSpecificConfig("example_for_elb"))
-	return
+	return resp
 }
 
 func (r *ELBServiceEngineGroupsDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

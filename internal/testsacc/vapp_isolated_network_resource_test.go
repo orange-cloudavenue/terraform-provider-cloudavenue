@@ -36,7 +36,7 @@ func (r *VAppIsolatedNetworkResource) GetResourceName() string {
 }
 
 func (r *VAppIsolatedNetworkResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *VAppIsolatedNetworkResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -50,7 +50,7 @@ func (r *VAppIsolatedNetworkResource) Tests(_ context.Context) map[testsacc.Test
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VAppResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

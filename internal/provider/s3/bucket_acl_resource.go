@@ -47,7 +47,7 @@ type BucketACLResource struct {
 // Init Initializes the resource.
 func (r *BucketACLResource) Init(_ context.Context, _ *BucketACLModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -332,8 +332,8 @@ func (r *BucketACLResource) createOrUpdate(ctx context.Context, planOrState *Buc
 		},
 	}); err != nil {
 		diags.AddError("Error putting ACL configuration", err.Error())
-		return
+		return diags
 	}
 
-	return
+	return diags
 }

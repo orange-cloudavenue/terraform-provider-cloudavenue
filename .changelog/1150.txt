@@ -1,0 +1,35 @@
+```release-note:breaking-change
+`resource/cloudavenue_vdc` - The attribute `timeouts` has been removed.
+```
+
+```release-note:depreciation
+`resource/cloudavenue_vdc` - The attributes `cpu_allocated` and `memory_allocated` are deprecated and will be removed in the release `v1.0.0`. `memory_allocated` attribute is simply renamed to `memory` and these properties are not modified. `cpu_allocated` attribute is replaced by `vcpu` which represents the number of virtual CPUs instead of the total amount of MHz available.
+```
+
+```release-note:depreciation
+`resource/cloudavenue_vdc` - The attributes `cpu_speed_in_mhz` is switched to read only in the release `v1.0.0`. The value is not modified and still represents the speed of each vCPU core in MHz.
+```
+
+```release-note:depreciation
+`datasource/cloudavenue_vdc` - The attributes `cpu_allocated` and `memory_allocated` are deprecated and will be removed in the release `v1.0.0`. `memory_allocated` attribute is simply renamed to `memory` and these properties are not modified. `cpu_allocated` attribute is replaced by `vcpu` which represents the number of virtual CPUs instead of the total amount of MHz available.
+```
+
+```release-note:feature
+`resource/cloudavenue_vdc` - New attribute `vcpu` to define the number of virtual CPUs.
+```
+
+```release-note:feature
+`resource/cloudavenue_vdc` - New attribute `memory` to define the amount of memory GB.
+```
+
+```release-note:enhancement
+`resource/cloudavenue_vdc` - New attributes `storage_profiles.{index}.id` to get the identifier of the storage profile and `storage_profiles.{index}.used` to get the used storage in GiB.
+```
+
+```release-note:enhancement
+`datasource/cloudavenue_vdc` - New attributes `storage_profiles.{index}.id` to get the identifier of the storage profile and `storage_profiles.{index}.used` to get the used storage in GiB.
+```
+
+```release-note:note
+`resource/cloudavenue_vdc` - The environment variable `CLOUDAVENUE_VDC_VALIDATION` is removed because it is no longer used
+```

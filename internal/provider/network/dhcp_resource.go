@@ -51,7 +51,7 @@ type dhcpResource struct {
 // Init Initializes the resource.
 func (r *dhcpResource) Init(_ context.Context, _ *dhcpModel) (diags diag.Diagnostics) {
 	r.org, diags = org.Init(r.client)
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -256,7 +256,7 @@ func (r *dhcpResource) createUpdateDHCP(ctx context.Context, rm *dhcpModel) (dia
 		diags.AddError("Error updating dhcp", err.Error())
 	}
 
-	return
+	return diags
 }
 
 // toNetworkDHCP converts a dhcp to a govcdtypes.OpenApiOrgVdcNetworkDhcp object.
@@ -308,10 +308,10 @@ func (r *dhcpResource) read(ctx context.Context, plan *dhcpModel) (state *dhcpMo
 	if err != nil {
 		if govcd.ContainsNotFound(err) {
 			found = false
-			return
+			return state, found, diags
 		}
 		diags.AddError("Error getting org network dhcp", err.Error())
-		return
+		return state, found, diags
 	}
 
 	// DHCP resource don't have an ID, so we use the OrgNetworkID
@@ -332,7 +332,7 @@ func (r *dhcpResource) read(ctx context.Context, plan *dhcpModel) (state *dhcpMo
 		state.Pools, d = pools.ToPlan(ctx)
 		diags.Append(d...)
 		if diags.HasError() {
-			return
+			return state, found, diags
 		}
 	}
 
@@ -343,9 +343,9 @@ func (r *dhcpResource) read(ctx context.Context, plan *dhcpModel) (state *dhcpMo
 		state.DNSServers, d = dnsServers.ToPlan(ctx)
 		diags.Append(d...)
 		if diags.HasError() {
-			return
+			return state, found, diags
 		}
 	}
 
-	return
+	return state, found, diags
 }

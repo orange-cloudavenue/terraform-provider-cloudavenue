@@ -37,7 +37,7 @@ func (r *EdgeGatewayIPSetResource) GetResourceName() string {
 }
 
 func (r *EdgeGatewayIPSetResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *EdgeGatewayIPSetResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -48,7 +48,7 @@ func (r *EdgeGatewayIPSetResource) Tests(_ context.Context) map[testsacc.TestNam
 				CommonChecks: []resource.TestCheckFunc{},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -101,7 +101,7 @@ func (r *EdgeGatewayIPSetResource) Tests(_ context.Context) map[testsacc.TestNam
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetDataSourceConfig()[EdgeGatewayDataSourceName]().GetSpecificConfig("example_for_elb"))
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

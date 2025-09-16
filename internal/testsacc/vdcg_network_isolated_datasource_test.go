@@ -37,7 +37,7 @@ func (r *VDCGNetworkIsolatedDataSource) GetResourceName() string {
 
 func (r *VDCGNetworkIsolatedDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[VDCGNetworkIsolatedResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *VDCGNetworkIsolatedDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

@@ -37,7 +37,7 @@ type BMSDataSource struct { //nolint: revive
 
 // Init Initializes the data source.
 func (d *BMSDataSource) Init(_ context.Context, _ *bmsModelDatasource) (diags diag.Diagnostics) {
-	return
+	return diags
 }
 
 func (d *BMSDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

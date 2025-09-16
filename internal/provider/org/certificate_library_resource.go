@@ -54,7 +54,7 @@ func (r *CertificateLibraryResource) Init(_ context.Context, _ *CertificateLibra
 
 	r.orgClient = org.Client
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

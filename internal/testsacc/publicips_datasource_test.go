@@ -38,7 +38,7 @@ func (r *PublicIPsDataSource) GetResourceName() string {
 
 func (r *PublicIPsDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[PublicIPResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *PublicIPsDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

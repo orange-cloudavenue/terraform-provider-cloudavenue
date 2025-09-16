@@ -50,7 +50,7 @@ func (d *catalogMediaDataSource) Init(_ context.Context, rm *catalogMediaDataSou
 
 	d.adminOrg, diags = adminorg.Init(d.client)
 
-	return
+	return diags
 }
 
 func (d *catalogMediaDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

@@ -47,7 +47,7 @@ func (d *serviceEngineGroupsDataSource) Init(_ context.Context, _ *serviceEngine
 		diags.AddError("Error creating edge load balancer client", err.Error())
 	}
 
-	return
+	return diags
 }
 
 func (d *serviceEngineGroupsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

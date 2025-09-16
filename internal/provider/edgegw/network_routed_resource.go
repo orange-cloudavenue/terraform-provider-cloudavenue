@@ -62,7 +62,7 @@ func (r *NetworkRoutedResource) Init(_ context.Context, rm *NetworkRoutedModel) 
 	r.edgegw, err = r.client.CAVSDK.V1.EdgeGateway.Get(idOrName)
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", fmt.Sprintf("Error: %s", err.Error()))
-		return
+		return diags
 	}
 
 	rm.EdgeGatewayID.Set(r.edgegw.GetURN())
@@ -71,14 +71,14 @@ func (r *NetworkRoutedResource) Init(_ context.Context, rm *NetworkRoutedModel) 
 	r.vdc, err = r.client.CAVSDK.V1.VDC().GetVDCOrVDCGroup(r.edgegw.OwnerName)
 	if err != nil {
 		diags.AddError("Error retrieving VDC from EdgeGateway", fmt.Sprintf("Error: %s", err.Error()))
-		return
+		return diags
 	}
 
 	if r.vdc.IsVDCGroup() {
 		diags.AddError("EdgeGateway is connected to a VDCGroup", "EdgeGateway is connected to a VDCGroup, please use the VDCGroup resource instead. `cloudavenue_vdcg_network_routed`")
 	}
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

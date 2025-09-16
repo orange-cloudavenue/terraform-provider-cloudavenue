@@ -37,7 +37,7 @@ func (r *VDCGIPSetDataSource) GetResourceName() string {
 
 func (r *VDCGIPSetDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[VDCGIPSetResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *VDCGIPSetDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
