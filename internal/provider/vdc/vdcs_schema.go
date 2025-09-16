@@ -27,21 +27,27 @@ func vdcsSchema() superschema.Schema {
 					Computed:            true,
 				},
 			},
-			"vdcs": superschema.SuperListNestedAttributeOf[vdcRef]{
+			"vdcs": superschema.SuperListNestedAttributeOf[vdcsDataSourceModelVDC]{
 				DataSource: &schemaD.ListNestedAttribute{
 					MarkdownDescription: "VDC list.",
 					Computed:            true,
 				},
 				Attributes: superschema.Attributes{
+					"id": superschema.SuperStringAttribute{
+						DataSource: &schemaD.StringAttribute{
+							MarkdownDescription: "The ID of the vDC.",
+							Computed:            true,
+						},
+					},
 					"name": superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
 							MarkdownDescription: "The name of the vDC.",
 							Computed:            true,
 						},
 					},
-					"id": superschema.SuperStringAttribute{
+					"description": superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The ID of the vDC.",
+							MarkdownDescription: "The description of the vDC.",
 							Computed:            true,
 						},
 					},

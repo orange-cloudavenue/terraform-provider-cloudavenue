@@ -14,11 +14,12 @@ import (
 )
 
 type vdcsDataSourceModel struct {
-	ID   supertypes.StringValue                     `tfsdk:"id"`
-	VDCs supertypes.ListNestedObjectValueOf[vdcRef] `tfsdk:"vdcs"`
+	ID   supertypes.StringValue                                     `tfsdk:"id"`
+	VDCs supertypes.ListNestedObjectValueOf[vdcsDataSourceModelVDC] `tfsdk:"vdcs"`
 }
 
-type vdcRef struct {
-	ID   supertypes.StringValue `tfsdk:"id"`
-	Name supertypes.StringValue `tfsdk:"name"`
+type vdcsDataSourceModelVDC struct {
+	ID          supertypes.StringValue `tfsdk:"id"`
+	Name        supertypes.StringValue `tfsdk:"name"`
+	Description supertypes.StringValue `tfsdk:"description"`
 }
