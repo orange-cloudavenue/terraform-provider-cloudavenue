@@ -13,13 +13,16 @@ import (
 	"context"
 	"fmt"
 
-	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+	"github.com/orange-cloudavenue/common-go/regex"
+	"github.com/orange-cloudavenue/common-go/urn"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/organization/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -39,19 +42,9 @@ func NewOrgResource() resource.Resource {
 // OrgResource is the resource implementation.
 type OrgResource struct { //nolint:revive
 	client *client.CloudAvenue
-	org    org.Client
-}
 
-// Init Initializes the resource.
-func (r *OrgResource) Init(_ context.Context, _ *OrgModel) (diags diag.Diagnostics) {
-	var err error
-
-	r.org, err = org.NewClient()
-	if err != nil {
-		diags.AddError("Error creating org client", err.Error())
-		return
-	}
-	return
+	// oClient is the Organization client from the SDK V2
+	oClient *organization.Client
 }
 
 // Metadata returns the resource type name.
@@ -70,6 +63,7 @@ func (r *OrgResource) Configure(_ context.Context, req resource.ConfigureRequest
 		return
 	}
 
+	// Get the provider client from the request data.
 	client, ok := req.ProviderData.(*client.CloudAvenue)
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -79,6 +73,17 @@ func (r *OrgResource) Configure(_ context.Context, req resource.ConfigureRequest
 		return
 	}
 	r.client = client
+
+	// Create the Organisation client from the SDK V2
+	oC, err := organization.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create Organization client, got error: %s", err),
+		)
+		return
+	}
+	r.oClient = oC
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -89,12 +94,6 @@ func (r *OrgResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Retrieve values from plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -118,19 +117,8 @@ func (r *OrgResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	// Refresh the state
-	stateRefreshed, found, d := r.read(ctx, state)
-	if !found {
-		resp.Diagnostics.AddError("Resource not found", "The resource was not found after refresh")
-		resp.State.RemoveResource(ctx)
-		return
-	}
+	stateRefreshed, d := r.read(ctx)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -156,58 +144,38 @@ func (r *OrgResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	/*
 		Implement the resource update here
 	*/
 
-	reqP := &org.PropertiesRequest{}
+	// Prepare the update request
+	reqP := types.ParamsUpdateOrganization{}
 
-	if !state.Description.Equal(plan.Description) {
-		reqP.Description = plan.Description.Get()
+	if !plan.FullName.IsNull() && !plan.FullName.Equal(state.FullName) {
+		reqP.FullName = plan.FullName.Get()
 	}
-
-	if !state.Email.Equal(plan.Email) {
+	if !plan.Description.Equal(state.Description) {
+		reqP.Description = plan.Description.GetPtr()
+	}
+	if !plan.Email.IsNull() && !plan.Email.Equal(state.Email) {
 		reqP.Email = plan.Email.Get()
 	}
-
-	if !state.InternetBillingModel.Equal(plan.InternetBillingModel) {
-		reqP.BillingModel = plan.InternetBillingModel.Get()
+	if !plan.InternetBillingMode.IsNull() && !plan.InternetBillingMode.Equal(state.InternetBillingMode) {
+		reqP.InternetBillingMode = plan.InternetBillingMode.Get()
 	}
 
-	if !state.Name.Equal(plan.Name) {
-		reqP.FullName = plan.Name.Get()
-	}
-
-	job, err := r.org.UpdateProperties(ctx, reqP)
+	// Update the organization
+	orgUpdated, err := r.oClient.UpdateOrganization(ctx, reqP)
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating properties", err.Error())
+		resp.Diagnostics.AddError("Error updating organization properties", err.Error())
 		return
 	}
 
-	// Wait for the job to complete
-	jobStatus, err := job.GetJobStatus()
-	if err != nil {
-		resp.Diagnostics.AddError("Error getting job status", err.Error())
-	}
-
-	if err := jobStatus.WaitWithContext(ctx, 2); err != nil {
-		resp.Diagnostics.AddError("Error waiting for job to complete", err.Error())
-	}
-
-	// Use generic read function to refresh the state
-	stateRefreshed, found, d := r.read(ctx, plan)
-	if !found {
-		resp.Diagnostics.AddError("Resource not found", "The resource was not found after update")
-		return
-	}
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	// Refresh state after update
+	stateRefreshed := state.Copy()
+	diags := stateRefreshed.fromModel(ctx, orgUpdated)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
 		return
 	}
 
@@ -227,69 +195,53 @@ func (r *OrgResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	/*
 		Implement the resource deletion here
 	*/
 
+	resp.Diagnostics.AddWarning("Resource does not support delete", "The resource is not deletable. It will be removed from the state file but will still exist in Cloud Avenue.")
 	resp.State.RemoveResource(ctx)
 }
 
-func (r *OrgResource) ImportState(ctx context.Context, _ resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *OrgResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	defer metrics.New("cloudavenue_org", r.client.GetOrgName(), metrics.Import)()
 
-	// No properties is needed for the import
+	// * ID (urn format) or Name
 
-	x := &OrgModel{
-		ID: supertypes.NewStringNull(),
-	}
+	// ID format is urn:vcloud:org:<org_uuid>
+	// Name format is the organization name
+	// If ID is provided, it will be used
+	// If Name is provided, it will be used
+	// if wrong format, return error
 
-	resp.Diagnostics.Append(r.Init(ctx, x)...)
-	if resp.Diagnostics.HasError() {
-		return
+	// No properties is needed for the import, but we force to precise the name or id for clarity
+	if urn.IsOrg(req.ID) {
+		resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	} else if regex.OrganizationNameRegex().MatchString(req.ID) {
+		resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
+	} else {
+		resp.Diagnostics.AddError("Invalid import identifier", fmt.Sprintf("The import identifier '%s' is not valid. It should be either the organization URN (urn:vcloud:org:<org_uuid>) or the organization name.", req.ID))
 	}
-
-	stateRefreshed, found, d := r.read(ctx, x)
-	if !found {
-		resp.State.RemoveResource(ctx)
-		return
-	}
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
-
-	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
 }
 
 // * CustomFuncs
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
-func (r *OrgResource) read(ctx context.Context, planOrState *OrgModel) (stateRefreshed *OrgModel, found bool, diags diag.Diagnostics) { //nolint:unparam
-	stateRefreshed = planOrState.Copy()
-
-	/*
-		Implement the resource read here
-	*/
-
-	properties, err := r.org.GetProperties(ctx)
+func (r *OrgResource) read(ctx context.Context) (stateRefreshed *OrgModel, diags diag.Diagnostics) {
+	// Get the organization details
+	org, err := r.oClient.GetOrganization(ctx)
 	if err != nil {
-		diags.AddError("Error getting properties", err.Error())
-		// GetProperties never return not found error
-		return nil, true, diags
+		diags.AddError("Error getting organization", err.Error())
+		return nil, diags
 	}
 
-	stateRefreshed.ID.Set(r.client.GetOrgName())
-	stateRefreshed.Name.Set(properties.FullName)
-	stateRefreshed.Description.Set(properties.Description)
-	stateRefreshed.Email.Set(properties.Email)
-	stateRefreshed.InternetBillingModel.Set(properties.BillingModel)
+	// Set Refresh state with the latest data
+	stateRefreshed = &OrgModel{}
+	diags = stateRefreshed.fromModel(ctx, org)
+	if diags.HasError() {
+		return nil, diags
+	}
 
-	return stateRefreshed, true, nil
+	// Return the refreshed state
+	return stateRefreshed, nil
 }
