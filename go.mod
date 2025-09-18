@@ -18,8 +18,8 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.37.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/madflojo/testcerts v1.4.0
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.26.3
-	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20250915145725-da43d96537a6
+	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.26.2
+	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20250918132204-dd8785fc1845
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
 	github.com/orange-cloudavenue/common-go/regex v1.2.0
 	github.com/orange-cloudavenue/common-go/urn v1.4.0
@@ -33,6 +33,7 @@ require (
 	github.com/thanhpk/randstr v1.0.6
 	github.com/vmware/go-vcloud-director/v2 v2.26.1
 	golang.org/x/exp v0.0.0-20240119083558-1b970713d09a
+	golang.org/x/net v0.42.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -98,7 +99,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/orange-cloudavenue/common-go/extractor v1.0.1 // indirect
-	github.com/orange-cloudavenue/common-go/generator v1.3.4 // indirect
+	github.com/orange-cloudavenue/common-go/generator v1.4.0 // indirect
 	github.com/orange-cloudavenue/common-go/internal/regex v0.0.0-20250812201424-07c3423160b3 // indirect
 	github.com/orange-cloudavenue/common-go/strcase v1.0.1-0.20250917151320-7ed879abafc0 // indirect
 	github.com/peterhellberg/link v1.2.0 // indirect
@@ -117,7 +118,6 @@ require (
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
 	golang.org/x/crypto v0.40.0 // indirect
 	golang.org/x/mod v0.26.0 // indirect
-	golang.org/x/net v0.42.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.28.0 // indirect

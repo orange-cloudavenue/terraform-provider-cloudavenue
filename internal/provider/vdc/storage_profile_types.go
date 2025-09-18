@@ -14,14 +14,10 @@ import (
 )
 
 type (
-	storageProfilesDataSourceModel struct {
-		ID              supertypes.StringValue                                                          `tfsdk:"id"`
-		VDCName         supertypes.StringValue                                                          `tfsdk:"vdc_name"`
-		VDCID           supertypes.StringValue                                                          `tfsdk:"vdc_id"`
-		StorageProfiles supertypes.ListNestedObjectValueOf[storageProfileDataSourceModelStorageProfile] `tfsdk:"storage_profiles"`
-	}
-	storageProfileDataSourceModelStorageProfile struct {
+	storageProfileDataSourceModel struct {
 		ID      supertypes.StringValue `tfsdk:"id"`
+		VDCName supertypes.StringValue `tfsdk:"vdc_name"`
+		VDCID   supertypes.StringValue `tfsdk:"vdc_id"`
 		Class   supertypes.StringValue `tfsdk:"class"`
 		Limit   supertypes.Int64Value  `tfsdk:"limit"`
 		Used    supertypes.Int64Value  `tfsdk:"used"`

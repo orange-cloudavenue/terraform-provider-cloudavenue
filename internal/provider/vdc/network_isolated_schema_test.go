@@ -10,6 +10,7 @@
 package vdc_test
 
 import (
+	"context"
 	"testing"
 
 	// fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource".
@@ -23,7 +24,7 @@ import (
 func TestNetworkIsolatedResourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := t.Context()
+	ctx := context.Background()
 	schemaResponse := &fwresource.SchemaResponse{}
 
 	// Instantiate the resource.Resource and call its Schema method
@@ -46,7 +47,7 @@ func TestNetworkIsolatedResourceSchema(t *testing.T) {
 func TestNetworkIsolatedDataSourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := t.Context()
+	ctx := context.Background()
 	schemaResponse := &fwdatasource.SchemaResponse{}
 
 	// Instantiate the datasource.Datasource and call its Schema method

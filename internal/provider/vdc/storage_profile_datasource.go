@@ -7,7 +7,6 @@
  * or see the "LICENSE" file for more details.
  */
 
-// Package edgegw provides a Terraform resource to manage edge gateways.
 package vdc
 
 import (
@@ -18,26 +17,22 @@ import (
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/vdc/v1"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
-	"github.com/orange-cloudavenue/common-go/utils"
-	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
-
-	cavutils "github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
 
 var (
-	_ datasource.DataSource              = &storageProfilesDataSource{}
-	_ datasource.DataSourceWithConfigure = &storageProfilesDataSource{}
+	_ datasource.DataSource              = &storageProfileDataSource{}
+	_ datasource.DataSourceWithConfigure = &storageProfileDataSource{}
 )
 
-// NewStorageProfilesDataSource returns a new resource implementing the storage_profiles data source.
-func NewStorageProfilesDataSource() datasource.DataSource {
-	return &storageProfilesDataSource{}
+// NewStorageProfileDataSource returns a new resource implementing the storage_profile data source.
+func NewStorageProfileDataSource() datasource.DataSource {
+	return &storageProfileDataSource{}
 }
 
-type storageProfilesDataSource struct {
+type storageProfileDataSource struct {
 	// Client is a terraform Client
 	client *client.CloudAvenue
 
@@ -45,15 +40,15 @@ type storageProfilesDataSource struct {
 	eClient *vdc.Client
 }
 
-func (d *storageProfilesDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_storage_profiles"
+func (d *storageProfileDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_storage_profile"
 }
 
-func (d *storageProfilesDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = storageProfilesSuperSchema(ctx).GetDataSource(ctx)
+func (d *storageProfileDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = storageProfileSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *storageProfilesDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *storageProfileDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -83,11 +78,11 @@ func (d *storageProfilesDataSource) Configure(_ context.Context, req datasource.
 	d.eClient = vC
 }
 
-func (d *storageProfilesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	defer metrics.New("data.cloudavenue_storage_profiles", d.client.GetOrgName(), metrics.Read)()
+func (d *storageProfileDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_vdc_storage_profile", d.client.GetOrgName(), metrics.Read)()
 	var (
-		plan = new(storageProfilesDataSourceModel)
-		data = new(storageProfilesDataSourceModel)
+		plan = new(storageProfileDataSourceModel)
+		data = new(storageProfileDataSourceModel)
 	)
 
 	// Read Terraform configuration data into the model
@@ -96,13 +91,15 @@ func (d *storageProfilesDataSource) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	// Call the API to get the list of storage profiles
+	// Call the API to get the list of storage profile
 	storageProfiles, err := d.eClient.ListStorageProfile(ctx, types.ParamsListStorageProfile{
-		ID:   plan.VDCID.ValueString(),
-		Name: plan.VDCName.ValueString(),
+		ID:      plan.ID.Get(),
+		Class:   plan.Class.Get(),
+		VdcID:   plan.VDCID.Get(),
+		VdcName: plan.VDCName.Get(),
 	})
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to list vdc storage profiles", err.Error())
+		resp.Diagnostics.AddError("Unable to get vdc storage profile", err.Error())
 		return
 	}
 
@@ -110,22 +107,11 @@ func (d *storageProfilesDataSource) Read(ctx context.Context, req datasource.Rea
 	data.VDCID.Set(storageProfiles.VDCS[0].ID)
 	data.VDCName.Set(storageProfiles.VDCS[0].Name)
 
-	// Map each storage profile to the schema
-	storageProfilesList := make([]storageProfilesDataSourceModelStorageProfile, 0, len(storageProfiles.VDCS[0].StorageProfiles))
-	for _, sp := range storageProfiles.VDCS[0].StorageProfiles {
-		storageProfilesList = append(storageProfilesList, storageProfilesDataSourceModelStorageProfile{
-			ID:      supertypes.NewStringValue(sp.ID),
-			Class:   supertypes.NewStringValue(sp.Class),
-			Limit:   supertypes.NewInt64Value(int64(sp.Limit)),
-			Used:    supertypes.NewInt64Value(int64(sp.Used)),
-			Default: supertypes.NewBoolValue(sp.Default),
-		})
-	}
-
-	data.StorageProfiles.Set(ctx, utils.ToPTRSlice(storageProfilesList))
-
-	// Set the ID attribute to a static value as this data source does not have a unique identifier
-	data.ID.Set(cavutils.GenerateUUID(data.VDCName.ValueString()).String())
+	data.ID.Set(storageProfiles.VDCS[0].StorageProfiles[0].ID)
+	data.Class.Set(storageProfiles.VDCS[0].StorageProfiles[0].Class)
+	data.Limit.SetInt(storageProfiles.VDCS[0].StorageProfiles[0].Limit)
+	data.Used.SetInt(storageProfiles.VDCS[0].StorageProfiles[0].Used)
+	data.Default.Set(storageProfiles.VDCS[0].StorageProfiles[0].Default)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

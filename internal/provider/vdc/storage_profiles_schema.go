@@ -7,7 +7,6 @@
  * or see the "LICENSE" file for more details.
  */
 
-// Package edgegw provides a Terraform resource to manage edge gateways.
 package vdc
 
 import (
@@ -24,12 +23,12 @@ import (
 func storageProfilesSuperSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The storage profiles data source show the list of storage prfile of a VDC.",
+			MarkdownDescription: "The storage profiles data source retrieves a list of all storage profiles available within a VDC.",
 		},
 		Attributes: superschema.Attributes{
 			"id": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "Generated ID of the resource storage profile.",
+					MarkdownDescription: "The auto-generated identifier for this data source instance.",
 					Computed:            true,
 				},
 			},
@@ -37,7 +36,7 @@ func storageProfilesSuperSchema(_ context.Context) superschema.Schema {
 				DataSource: &schemaD.StringAttribute{
 					Optional:            true,
 					Computed:            true,
-					MarkdownDescription: "The VDC name of storage profiles contains.",
+					MarkdownDescription: "The name of the VDC containing the storage profiles.",
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("vdc_id"), path.MatchRoot("vdc_name")),
 					},
@@ -45,7 +44,7 @@ func storageProfilesSuperSchema(_ context.Context) superschema.Schema {
 			},
 			"vdc_id": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "The VDC ID of storage profiles contains.",
+					MarkdownDescription: "The unique identifier of the VDC containing the storage profiles.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
@@ -53,39 +52,39 @@ func storageProfilesSuperSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"storage_profiles": superschema.SuperListNestedAttributeOf[storageProfilesDataSourceModelStorageProfile]{
+			"storage_profiles": superschema.SuperListNestedAttributeOf[storageProfileDataSourceModelStorageProfile]{
 				DataSource: &schemaD.ListNestedAttribute{
 					Computed:            true,
-					MarkdownDescription: "A list of Storage Profiles.",
+					MarkdownDescription: "A collection of storage profiles available within the VDC.",
 				},
 				Attributes: superschema.Attributes{
 					"id": &superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The ID of the Storage Profile.",
+							MarkdownDescription: "The unique identifier of the storage profile.",
 							Computed:            true,
 						},
 					},
 					"class": &superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The class name of the Storage Profile.",
+							MarkdownDescription: "The storage class type of the storage profile.",
 							Computed:            true,
 						},
 					},
 					"limit": &superschema.SuperInt64Attribute{
 						DataSource: &schemaD.Int64Attribute{
-							MarkdownDescription: "The limit of the Storage Profile in GiB.",
+							MarkdownDescription: "The maximum storage limit (in GB) allocated to this storage profile.",
 							Computed:            true,
 						},
 					},
 					"used": &superschema.SuperInt64Attribute{
 						DataSource: &schemaD.Int64Attribute{
-							MarkdownDescription: "The used space of the Storage Profile in GiB.",
+							MarkdownDescription: "The amount of storage (in GB) currently used within this storage profile.",
 							Computed:            true,
 						},
 					},
 					"default": &superschema.SuperBoolAttribute{
 						DataSource: &schemaD.BoolAttribute{
-							MarkdownDescription: "Whether the Storage Profile is the default one.",
+							MarkdownDescription: "Indicates whether this storage profile is set as the default profile for the VDC.",
 							Computed:            true,
 						},
 					},

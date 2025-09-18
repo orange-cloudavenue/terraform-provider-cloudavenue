@@ -15,13 +15,16 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	"github.com/orange-cloudavenue/common-go/regex"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
 var _ testsacc.TestACC = &VDCStorageProfilesDataSource{}
 
 const (
-	VDCStorageProfilesDataSourceName = testsacc.ResourceName("data.cloudavenue_vdc_storageprofiles")
+	VDCStorageProfilesDataSourceName = testsacc.ResourceName("data.cloudavenue_vdc_storage_profiles")
 )
 
 type VDCStorageProfilesDataSource struct{}
@@ -36,7 +39,7 @@ func (r *VDCStorageProfilesDataSource) GetResourceName() string {
 }
 
 func (r *VDCStorageProfilesDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
+	resp.Append(GetResourceConfig()[VDCResourceName]().GetSpecificConfig("example_storage_profiles"))
 	return
 }
 
@@ -44,25 +47,29 @@ func (r *VDCStorageProfilesDataSource) Tests(_ context.Context) map[testsacc.Tes
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
-				CommonChecks: []resource.TestCheckFunc{},
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrWith(resourceName, "vdc_id", urn.TestIsType(urn.VDC)),
+					resource.TestMatchResourceAttr(resourceName, "vdc_name", regex.VDCNameRegex()),
+				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 					data "cloudavenue_vdc_storage_profiles" "example" {
-						depends_on = [
-							cloudavenue_vdc.example
-						]
-						vdc_id = cloudavenue_vdc.example.id
+						vdc_id = cloudavenue_vdc.example_storage_profiles.id
 					}`),
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttrSet(resourceName, "id"),
-						resource.TestCheckResourceAttrSet(resourceName, "vdc_id"),
-						resource.TestCheckResourceAttrSet(resourceName, "vdc_name"),
-						resource.TestCheckTypeSetElemAttr(resourceName, "storageprofiles.*.id", "*"),
-						resource.TestCheckTypeSetElemAttr(resourceName, "storageprofiles.*.class", "*"),
-						resource.TestCheckTypeSetElemAttr(resourceName, "storageprofiles.*.limit", "*"),
-						resource.TestCheckTypeSetElemAttr(resourceName, "storageprofiles.*.used", "*"),
-						resource.TestCheckTypeSetElemAttr(resourceName, "storageprofiles.*.default", "*"),
+						resource.TestCheckResourceAttrSet(resourceName, "storage_profiles.#"),
+						resource.TestCheckResourceAttr(resourceName, "storage_profiles.0.class", "gold"),
+						resource.TestCheckResourceAttrSet(resourceName, "storage_profiles.0.id"),
+						resource.TestCheckResourceAttrSet(resourceName, "storage_profiles.0.limit"),
+						resource.TestCheckResourceAttrSet(resourceName, "storage_profiles.0.used"),
+						resource.TestCheckResourceAttr(resourceName, "storage_profiles.0.default", "true"),
+						resource.TestCheckResourceAttr(resourceName, "storage_profiles.1.class", "silver"),
+						resource.TestCheckResourceAttrSet(resourceName, "storage_profiles.1.id"),
+						resource.TestCheckResourceAttrSet(resourceName, "storage_profiles.1.limit"),
+						resource.TestCheckResourceAttrSet(resourceName, "storage_profiles.1.used"),
+						resource.TestCheckResourceAttr(resourceName, "storage_profiles.1.default", "false"),
 					},
 				},
 			}
