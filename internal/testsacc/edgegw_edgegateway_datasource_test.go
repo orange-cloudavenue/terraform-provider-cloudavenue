@@ -60,6 +60,10 @@ func (r *EdgeGatewayDataSource) Tests(_ context.Context) map[testsacc.TestName]f
 		},
 		"example_with_id": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
+					return
+				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_edgegateway" "example_with_id" {

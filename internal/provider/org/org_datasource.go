@@ -14,11 +14,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/organization/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -34,19 +32,9 @@ func NewOrgDataSource() datasource.DataSource {
 
 type OrgDataSource struct { //nolint:revive
 	client *client.CloudAvenue
-	org    org.Client
-}
 
-// Init Initializes the data source.
-func (d *OrgDataSource) Init(_ context.Context, _ *OrgModel) (diags diag.Diagnostics) {
-	var err error
-
-	d.org, err = org.NewClient()
-	if err != nil {
-		diags.AddError("Error creating org client", err.Error())
-		return
-	}
-	return
+	// oClient is the Organization client from the SDK V2
+	oClient *organization.Client
 }
 
 func (d *OrgDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -71,48 +59,40 @@ func (d *OrgDataSource) Configure(_ context.Context, req datasource.ConfigureReq
 		)
 		return
 	}
+
+	eC, err := organization.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create Organization client, got error: %s", err),
+		)
+		return
+	}
+
 	d.client = client
+	d.oClient = eC
 }
 
 func (d *OrgDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_org", d.client.GetOrgName(), metrics.Read)()
-
-	config := &OrgModel{}
-
-	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Init the resource
-	resp.Diagnostics.Append(d.Init(ctx, config)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 
 	/*
 		Implement the data source read logic here.
 	*/
 
 	// If read function is identical to the resource, you can use the following code:
-
 	s := &OrgResource{
-		client: d.client,
-		org:    d.org,
+		client:  d.client,
+		oClient: d.oClient,
 	}
 
 	// Read data from the API
-	data, found, diags := s.read(ctx, config)
-	if !found {
-		resp.Diagnostics.AddError("Resource not found", "The resource was not found")
-		return
-	}
+	data, diags := s.read(ctx)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }

@@ -12,7 +12,6 @@ package testsacc
 
 import (
 	"context"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -54,10 +53,26 @@ func (r *Tier0VRFDataSource) Tests(_ context.Context) map[testsacc.TestName]func
 					}`,
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
-						resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile("^prvrf[0-9]{2}eocb[0-9]{7}allsp[0-9]{2}")),
-						resource.TestCheckResourceAttr(resourceName, "class_service", "VRF_STANDARD"),
-						resource.TestCheckResourceAttr(resourceName, "tier0_provider", "pr01e02t0sp16"),
-						resource.TestCheckResourceAttrSet(resourceName, "services.#"),
+						resource.TestCheckResourceAttr(resourceName, "name", "prvrf01eocb0006205allsp01"),
+						resource.TestCheckResourceAttr(resourceName, "class_service", "SHARED_STANDARD"),
+						resource.TestCheckResourceAttr(resourceName, "bandwidth.capacity", "300"),
+					},
+				},
+			}
+		},
+		"example_by_edge_name": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					data "cloudavenue_tier0_vrf" "example_by_edge_name" {
+						edge_gateway_name = "tn01e02ocb0006205spt102"
+					}`,
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrSet(resourceName, "id"),
+						resource.TestCheckResourceAttr(resourceName, "name", "prvrf01eocb0006205allsp01"),
+						resource.TestCheckResourceAttr(resourceName, "class_service", "SHARED_STANDARD"),
+						resource.TestCheckResourceAttr(resourceName, "bandwidth.capacity", "300"),
 					},
 				},
 			}

@@ -10,7 +10,6 @@
 package s3_test
 
 import (
-	"context"
 	"testing"
 
 	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
@@ -22,7 +21,7 @@ import (
 func TestCredentialResourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	schemaResponse := &fwresource.SchemaResponse{}
 
 	// Instantiate the resource.Resource and call its Schema method

@@ -16,15 +16,21 @@ import (
 
 type (
 	edgeGatewaysDataSourceModel struct {
-		ID           supertypes.StringValue                                                    `tfsdk:"id"`
-		EdgeGateways supertypes.ListNestedObjectValueOf[edgeGatewayDataSourceModelEdgeGateway] `tfsdk:"edge_gateways"`
+		ID           supertypes.StringValue                                                     `tfsdk:"id"`
+		EdgeGateways supertypes.ListNestedObjectValueOf[edgeGatewaysDataSourceModelEdgeGateway] `tfsdk:"edge_gateways"`
 	}
-	edgeGatewayDataSourceModelEdgeGateway struct {
-		Tier0VrfName supertypes.StringValue `tfsdk:"tier0_vrf_name"`
-		Name         supertypes.StringValue `tfsdk:"name"`
-		ID           supertypes.StringValue `tfsdk:"id"`
-		OwnerName    supertypes.StringValue `tfsdk:"owner_name"`
-		Description  supertypes.StringValue `tfsdk:"description"`
-		LbEnabled    supertypes.BoolValue   `tfsdk:"lb_enabled"`
+	edgeGatewaysDataSourceModelEdgeGateway struct {
+		ID          supertypes.StringValue `tfsdk:"id"`
+		Name        supertypes.StringValue `tfsdk:"name"`
+		Description supertypes.StringValue `tfsdk:"description"`
+
+		T0Name supertypes.StringValue `tfsdk:"t0_name"`
+		T0ID   supertypes.StringValue `tfsdk:"t0_id"`
+
+		OwnerName supertypes.StringValue `tfsdk:"owner_name"`
+		OwnerID   supertypes.StringValue `tfsdk:"owner_id"`
+
+		// Deprecated
+		Tier0VRFName supertypes.StringValue `tfsdk:"tier0_vrf_name"`
 	}
 )
