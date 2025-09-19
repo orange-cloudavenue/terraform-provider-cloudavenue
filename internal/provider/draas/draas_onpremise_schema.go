@@ -7,7 +7,7 @@
  * or see the "LICENSE" file for more details.
  */
 
-package vcda
+package draas
 
 import (
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
@@ -21,29 +21,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 )
 
-func VcdaIPSchema() superschema.Schema { //nolint:revive
+func draasIPSchema() superschema.Schema {
 	return superschema.Schema{
 		Common: superschema.SchemaDetails{
-			MarkdownDescription: "The VCDa",
-			Deprecated: superschema.DeprecatedResource{
-				DeprecationMessage:                "The resource 'cloudavenue_vcda_ip' has been deprecated in favor of 'cloudavenue_draas_onpremise'.\n\n" + "Please update your configuration accordingly.",
-				ComputeMarkdownDeprecationMessage: true,
-				Renamed:                           true,
-				TargetResourceName:                "cloudavenue_draas_onpremise",
-				TargetRelease:                     "v1.0.0",
-				LinkToNewResourceDoc:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/draas_onpremise",
-				LinkToMilestone:                   "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/28",
-				LinkToMigrationGuide:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vcda_ip",
-			},
+			MarkdownDescription: "The draas",
 		},
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "resource allows you to declare or remove your on-premises IP address for the DRaaS service.\n\n" +
+			MarkdownDescription: "resource allows you to declare or remove your on-premises IP address for the DRaaS service.\n" +
 				" -> Note: For more information, please refer to the [Cloud Avenue DRaaS documentation](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/draas-with-vcda-2/).",
 		},
 		Attributes: superschema.Attributes{
 			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the VCDa resource.",
+					MarkdownDescription: "The ID of the draas resource.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Computed: true,

@@ -1,0 +1,1 @@
+terraform import cloudavenue_draas_onpremise.example xx.xx.xx.xx

@@ -1,0 +1,7 @@
+```release-note:note
+`resource/cloudavenue_vcda_ip` - The resource `cloudavenue_vcda_ip` is deprecated and will be removed in a release `v1.0.0`. Please use the new resource `cloudavenue_draas_onpremise` instead.
+```
+
+```release-note:feature
+`resource/cloudavenue_draas_onpremise` - New resource to manage your on-premises IP address for the DRaaS service.
+```
