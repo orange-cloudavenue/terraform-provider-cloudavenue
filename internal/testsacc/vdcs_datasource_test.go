@@ -52,6 +52,8 @@ func (r *VDCsResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx c
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
 						resource.TestCheckResourceAttrSet(resourceName, "vdcs.0.id"),
+						resource.TestCheckResourceAttrSet(resourceName, "vdcs.0.name"),
+						resource.TestCheckResourceAttrSet(resourceName, "vdcs.0.description"),
 					},
 				},
 			}

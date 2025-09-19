@@ -13,13 +13,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/orange-cloudavenue/common-go/validators"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/organization/v1"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/vdc/v1"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/vdcgroup/v1"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
-	"github.com/orange-cloudavenue/common-go/validators"
 )
 
 // ToValidate returns a CheckResourceAttrWithFunc that validates a string using the given validator name.

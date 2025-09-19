@@ -32,6 +32,7 @@ output "example" {
 
 Read-Only:
 
+- `description` (String) The description of the vDC.
 - `id` (String) The ID of the vDC.
 - `name` (String) The name of the vDC.
 

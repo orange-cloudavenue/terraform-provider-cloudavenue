@@ -11,6 +11,9 @@
 package client
 
 import (
+	"context"
+	"log/slog"
+
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	clientca "github.com/orange-cloudavenue/cloudavenue-sdk-go"
@@ -31,7 +34,7 @@ type CloudAvenue struct {
 }
 
 // New creates a new CloudAvenue client.
-func (c *CloudAvenue) New() (*CloudAvenue, error) {
+func (c *CloudAvenue) New(ctx context.Context) (*CloudAvenue, error) {
 	var err error
 
 	if c.CAVSDKOpts == nil {
@@ -52,6 +55,7 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 	c.V2, err = sdkv2.NewClient(
 		c.CAVSDKOpts.CloudAvenue.Org,
 		sdkv2.WithCloudAvenueCredential(c.CAVSDKOpts.CloudAvenue.Username, c.CAVSDKOpts.CloudAvenue.Password),
+		sdkv2.WithLogger(slog.New(newTflogHandler())),
 	)
 	if err != nil {
 		return nil, err
