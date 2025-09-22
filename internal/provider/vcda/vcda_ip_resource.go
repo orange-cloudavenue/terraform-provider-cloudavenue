@@ -53,7 +53,7 @@ func (r *vcdaIPResource) Metadata(_ context.Context, req resource.MetadataReques
 
 // Schema defines the schema for the resource.
 func (r *vcdaIPResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = vcdaIPSchema().GetResource(ctx)
+	resp.Schema = VcdaIPSchema().GetResource(ctx)
 }
 
 // Configure configures the resource.
@@ -82,7 +82,7 @@ func (r *vcdaIPResource) Configure(_ context.Context, req resource.ConfigureRequ
 func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	defer metrics.New("cloudavenue_vcda_ip", r.client.GetOrgName(), metrics.Create)()
 
-	plan := new(vcdaIPResourceModel)
+	plan := new(VcdaIPResourceModel)
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -126,7 +126,7 @@ func (r *vcdaIPResource) Create(ctx context.Context, req resource.CreateRequest,
 func (r *vcdaIPResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	defer metrics.New("cloudavenue_vcda_ip", r.client.GetOrgName(), metrics.Read)()
 
-	state := new(vcdaIPResourceModel)
+	state := new(VcdaIPResourceModel)
 
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
@@ -155,7 +155,7 @@ func (r *vcdaIPResource) Update(_ context.Context, _ resource.UpdateRequest, _ *
 func (r *vcdaIPResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	defer metrics.New("cloudavenue_vcda_ip", r.client.GetOrgName(), metrics.Delete)()
 
-	state := new(vcdaIPResourceModel)
+	state := new(VcdaIPResourceModel)
 
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
@@ -190,7 +190,7 @@ func (r *vcdaIPResource) ImportState(ctx context.Context, req resource.ImportSta
 }
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
-func (r *vcdaIPResource) read(_ context.Context, planOrState *vcdaIPResourceModel) (stateRefreshed *vcdaIPResourceModel, found bool, diags diag.Diagnostics) {
+func (r *vcdaIPResource) read(_ context.Context, planOrState *VcdaIPResourceModel) (stateRefreshed *VcdaIPResourceModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
 	listOfIps, err := r.vcda.List()

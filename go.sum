@@ -237,6 +237,8 @@ github.com/orange-cloudavenue/common-go/extractor v1.0.1 h1:NJ1KINgzLfXBFkgloLbN
 github.com/orange-cloudavenue/common-go/extractor v1.0.1/go.mod h1:+vYlSmaZE5uOHO5m5+vtVPa2OmAXukU0+5FE7hMMu04=
 github.com/orange-cloudavenue/common-go/generator v1.3.4 h1:AFsosY54L69rSpomcFt2K6po6w3M9R6jmpWAzHMkC1o=
 github.com/orange-cloudavenue/common-go/generator v1.3.4/go.mod h1:t2twRGIC+pgneyUEb3Cf8EN0l+oFHl4E5bkLn/mF8Bo=
+github.com/orange-cloudavenue/common-go/generator v1.3.4 h1:AFsosY54L69rSpomcFt2K6po6w3M9R6jmpWAzHMkC1o=
+github.com/orange-cloudavenue/common-go/generator v1.3.4/go.mod h1:t2twRGIC+pgneyUEb3Cf8EN0l+oFHl4E5bkLn/mF8Bo=
 github.com/orange-cloudavenue/common-go/internal/regex v0.0.0-20250812201424-07c3423160b3 h1:LvDc/VwHDkB9IfEdYf6y1m7GMnwV2bTw/P4BkO+wxY8=
 github.com/orange-cloudavenue/common-go/internal/regex v0.0.0-20250812201424-07c3423160b3/go.mod h1:T7OxerHaO1q+P6ue/Ka93aoUQK8syveiYhfZaJBMfP0=
 github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac h1:f1Fd70+PMDTK6FE4gHdNfoHSQHLn5pfJMTjZPzOWZtc=
