@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vdcg Resource - cloudavenue"
 subcategory: "vDC Group (Virtual Datacenter Group)"
 description: |-
-  The cloudavenue_vdcg resource allows you to manage a virtual datacenter group.
+  Manages a Virtual Data Center Group (VDC Group) in Cloud Avenue. A VDC Group allows you to aggregate multiple Virtual Data Centers for unified management and networking.
 ---
 
 # cloudavenue_vdcg (Resource)
 
-The `cloudavenue_vdcg` resource allows you to manage a virtual datacenter group.
+Manages a Virtual Data Center Group (VDC Group) in Cloud Avenue. A VDC Group allows you to aggregate multiple Virtual Data Centers for unified management and networking.
  
 ## Example Usage
 
@@ -25,18 +25,16 @@ resource "cloudavenue_vdcg" "example" {
 
 ### Required
 
-- `name` (String) The name of the VDC Group.
-- `vdc_ids` (Set of String) List of VDC IDs attached to the VDC Group. Set must contain at least 1 elements.
+- `name` (String) Name assigned to the VDC Group.
+- `vdc_ids` (Set of String) A set of Virtual Data Center (VDC) IDs that are members of this VDC Group. Set must contain at least 1 elements.
 
 ### Optional
 
-- `description` (String) The description of the VDC Group.
+- `description` (String) Detailed description of the VDC Group and its purpose.
 
 ### Read-Only
 
-- `id` (String) The ID of the VDC Group.
-- `status` (String) The status of the VDC Group. Value must be one of : `SAVING`, `SAVED`, `CONFIGURING`, `REALIZED`, `REALIZATION_FAILED`, `DELETING`, `DELETE_FAILED`, `OBJECT_NOT_FOUND`, `UNCONFIGURED`.
-- `type` (String) The type of the VDC Group. Value must be one of : `LOCAL`, `UNIVERSAL`.
+- `id` (String) Unique identifier of the VDC Group.
 
 ## Import
 

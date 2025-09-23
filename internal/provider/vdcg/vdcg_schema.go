@@ -13,7 +13,6 @@ import (
 	"context"
 
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
-	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -28,16 +27,16 @@ import (
 func vdcgSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_vdcg` resource allows you to manage a virtual datacenter group.",
+			MarkdownDescription: "Manages a Virtual Data Center Group (VDC Group) in Cloud Avenue. A VDC Group allows you to aggregate multiple Virtual Data Centers for unified management and networking.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_vdcg` data source allows you to retrieve informations about an existing virtual datacenter group.",
+			MarkdownDescription: "Retrieves information about an existing Virtual Data Center Group (VDC Group) in Cloud Avenue.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					Computed:            true,
-					MarkdownDescription: "The ID of the VDC Group.",
+					MarkdownDescription: "Unique identifier of the VDC Group.",
 				},
 				DataSource: &schemaD.StringAttribute{
 					Optional: true,
@@ -48,7 +47,7 @@ func vdcgSchema(_ context.Context) superschema.Schema {
 			},
 			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the VDC Group.",
+					MarkdownDescription: "Name assigned to the VDC Group.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,
@@ -62,7 +61,7 @@ func vdcgSchema(_ context.Context) superschema.Schema {
 			},
 			"description": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The description of the VDC Group.",
+					MarkdownDescription: "Detailed description of the VDC Group and its purpose.",
 				},
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
@@ -73,8 +72,7 @@ func vdcgSchema(_ context.Context) superschema.Schema {
 			},
 			"vdc_ids": superschema.SuperSetAttributeOf[string]{
 				Common: &schemaR.SetAttribute{
-					MarkdownDescription: "List of VDC IDs attached to the VDC Group",
-					ElementType:         supertypes.StringType{},
+					MarkdownDescription: "A set of Virtual Data Center (VDC) IDs that are members of this VDC Group.",
 				},
 				Resource: &schemaR.SetAttribute{
 					Required: true,
@@ -84,24 +82,6 @@ func vdcgSchema(_ context.Context) superschema.Schema {
 				},
 				DataSource: &schemaD.SetAttribute{
 					Computed: true,
-				},
-			},
-			"status": superschema.SuperStringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The status of the VDC Group.",
-					Computed:            true,
-					Validators: []validator.String{
-						stringvalidator.OneOf("SAVING", "SAVED", "CONFIGURING", "REALIZED", "REALIZATION_FAILED", "DELETING", "DELETE_FAILED", "OBJECT_NOT_FOUND", "UNCONFIGURED"),
-					},
-				},
-			},
-			"type": superschema.SuperStringAttribute{
-				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The type of the VDC Group.",
-					Computed:            true,
-					Validators: []validator.String{
-						stringvalidator.OneOf("LOCAL", "UNIVERSAL"),
-					},
 				},
 			},
 		},
