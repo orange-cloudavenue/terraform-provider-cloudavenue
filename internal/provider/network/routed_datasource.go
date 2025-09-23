@@ -52,7 +52,7 @@ func (d *networkRoutedDataSource) Init(_ context.Context, rm *RoutedModel) (diag
 	// Init Org
 	d.org, diags = org.Init(d.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	var err error
@@ -62,10 +62,10 @@ func (d *networkRoutedDataSource) Init(_ context.Context, rm *RoutedModel) (diag
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 func (d *networkRoutedDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {

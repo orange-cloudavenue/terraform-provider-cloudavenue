@@ -41,7 +41,7 @@ func FromOpenAPIReferenceID(_ context.Context, apiRefs []govcdtypes.OpenApiRefer
 		values = append(values, apiRef.ID)
 	}
 
-	return
+	return values
 }
 
 func ToOpenAPIReferenceID(ctx context.Context, attribute supertypes.SetValueOf[string]) (apiRefs []govcdtypes.OpenApiReference, diags diag.Diagnostics) {
@@ -49,7 +49,7 @@ func ToOpenAPIReferenceID(ctx context.Context, attribute supertypes.SetValueOf[s
 		values, d := attribute.Get(ctx)
 		if d.HasError() {
 			diags.Append(d...)
-			return
+			return apiRefs, diags
 		}
 
 		if len(values) == 0 {

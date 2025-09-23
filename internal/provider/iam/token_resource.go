@@ -45,7 +45,7 @@ type tokenResource struct {
 // Init Initializes the resource.
 func (r *tokenResource) Init(_ context.Context, _ *TokenModel) (diags diag.Diagnostics) {
 	r.org, diags = org.Init(r.client)
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

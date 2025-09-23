@@ -14,13 +14,12 @@ import (
 	"context"
 	"fmt"
 
-	commonutils "github.com/orange-cloudavenue/common-go/utils"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
-
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/vdc/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -37,12 +36,11 @@ func NewVDCsDataSource() datasource.DataSource {
 }
 
 type vdcsDataSource struct {
+	// Client is a terraform Client
 	client *client.CloudAvenue
-}
 
-// Init Initializes the resource.
-func (d *vdcsDataSource) Init(_ context.Context, _ *vdcsDataSourceModel) (diags diag.Diagnostics) {
-	return
+	// vClient is the VDC client from the SDK V2
+	vClient *vdc.Client
 }
 
 func (d *vdcsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -69,7 +67,17 @@ func (d *vdcsDataSource) Configure(_ context.Context, req datasource.ConfigureRe
 		return
 	}
 
+	vC, err := vdc.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create VDC client, got error: %s", err),
+		)
+		return
+	}
+
 	d.client = client
+	d.vClient = vC
 }
 
 func (d *vdcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -78,7 +86,7 @@ func (d *vdcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	var (
 		state    = new(vdcsDataSourceModel)
 		names    []string
-		dataVDCs = make([]*vdcRef, 0)
+		dataVDCs = make([]*vdcsDataSourceModelVDC, 0)
 	)
 
 	// Read Terraform configuration data into the model
@@ -87,44 +95,33 @@ func (d *vdcsDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(d.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	vdcs, err := d.client.CAVSDK.V1.Querier().List().VDC()
+	vdcs, err := d.vClient.ListVDC(ctx, types.ParamsListVDC{})
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to list VDCs", err.Error())
 		return
 	}
 
-	for _, v := range vdcs {
-		x := &vdcRef{
-			ID:   supertypes.NewStringNull(),
-			Name: supertypes.NewStringNull(),
+	for _, v := range vdcs.VDCS {
+		x := &vdcsDataSourceModelVDC{
+			ID:          supertypes.NewStringNull(),
+			Name:        supertypes.NewStringNull(),
+			Description: supertypes.NewStringNull(),
 		}
 
-		// Extract ID from href
-		uuid, err := commonutils.GetUUIDFromHref(v.HREF, true)
-		if err != nil {
-			resp.Diagnostics.AddError("Unable to extract VDC UUID", err.Error())
-			return
-		}
-
+		x.ID.Set(v.ID)
 		x.Name.Set(v.Name)
-		x.ID.Set(uuid)
+		x.Description.Set(v.Description)
 
 		dataVDCs = append(dataVDCs, x)
 		names = append(names, v.Name)
 	}
 
 	state.ID.Set(utils.GenerateUUID(names).String())
-	state.VDCs.Set(ctx, dataVDCs)
-
-	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	state.VDCs.DiagsSet(ctx, resp.Diagnostics, dataVDCs)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Save data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }

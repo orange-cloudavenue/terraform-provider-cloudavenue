@@ -57,7 +57,7 @@ func (r *staticRouteResource) Init(_ context.Context, rm *StaticRouteModel) (dia
 
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
@@ -66,10 +66,10 @@ func (r *staticRouteResource) Init(_ context.Context, rm *StaticRouteModel) (dia
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

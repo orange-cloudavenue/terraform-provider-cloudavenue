@@ -43,12 +43,12 @@ type isolatedNetworkDataSource struct {
 func (d *isolatedNetworkDataSource) Init(_ context.Context, dm *isolatedNetworkModel) (diags diag.Diagnostics) {
 	d.vdc, diags = vdc.Init(d.client, dm.VDC.StringValue)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	d.vapp, diags = vapp.Init(d.client, d.vdc, dm.VAppID.StringValue, dm.VAppName.StringValue)
 
-	return
+	return diags
 }
 
 func (d *isolatedNetworkDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

@@ -37,7 +37,7 @@ func (r *VDCGFirewallDataSource) GetResourceName() string {
 
 func (r *VDCGFirewallDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[VDCGFirewallResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *VDCGFirewallDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

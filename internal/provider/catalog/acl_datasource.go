@@ -46,7 +46,7 @@ func (d *aclDataSource) Init(_ context.Context, dm *ACLModel) (diags diag.Diagno
 	}
 
 	d.adminOrg, diags = adminorg.Init(d.client)
-	return
+	return diags
 }
 
 func (d *aclDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

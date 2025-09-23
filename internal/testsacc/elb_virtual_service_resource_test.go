@@ -40,7 +40,7 @@ func (r *ELBVirtualServiceResource) GetResourceName() string {
 func (r *ELBVirtualServiceResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetDataSourceConfig()[EdgeGatewayDataSourceName]().GetSpecificConfig("example_for_elb"))
 	resp.Append(GetResourceConfig()[ELBPoolResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *ELBVirtualServiceResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -56,7 +56,7 @@ func (r *ELBVirtualServiceResource) Tests(_ context.Context) map[testsacc.TestNa
 					resource.TestCheckResourceAttrSet(resourceName, "pool_name"),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -184,7 +184,7 @@ func (r *ELBVirtualServiceResource) Tests(_ context.Context) map[testsacc.TestNa
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[ORGCertificateLibraryResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -294,7 +294,7 @@ func (r *ELBVirtualServiceResource) Tests(_ context.Context) map[testsacc.TestNa
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[ORGCertificateLibraryResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -402,7 +402,7 @@ func (r *ELBVirtualServiceResource) Tests(_ context.Context) map[testsacc.TestNa
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[ORGCertificateLibraryResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -508,7 +508,7 @@ func (r *ELBVirtualServiceResource) Tests(_ context.Context) map[testsacc.TestNa
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[ORGCertificateLibraryResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -614,7 +614,7 @@ func (r *ELBVirtualServiceResource) Tests(_ context.Context) map[testsacc.TestNa
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetDataSourceConfig()[ELBServiceEngineGroupsDataSourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

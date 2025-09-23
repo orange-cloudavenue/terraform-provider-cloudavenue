@@ -65,7 +65,7 @@ func (rm *dhcpModel) PoolsFromPlan(ctx context.Context) (pools dhcpModelPools, d
 	pools = make(dhcpModelPools, 0)
 	diags.Append(rm.Pools.ElementsAs(ctx, &pools, false)...)
 	if diags.HasError() {
-		return
+		return pools, diags
 	}
 
 	return pools, diags
@@ -76,7 +76,7 @@ func (rm *dhcpModel) DNSServersFromPlan(ctx context.Context) (dnsServers dhcpMod
 	dnsServers = make(dhcpModelDNSServers, 0)
 	diags.Append(rm.DNSServers.ElementsAs(ctx, &dnsServers, false)...)
 	if diags.HasError() {
-		return
+		return dnsServers, diags
 	}
 
 	return dnsServers, diags

@@ -58,7 +58,7 @@ func initClientCav() (rc resourceClient, err error) {
 	}
 
 	// Initialize the CloudAvenue client
-	return
+	return rc, err
 }
 
 // return an organization.Client to interact with organization resources.

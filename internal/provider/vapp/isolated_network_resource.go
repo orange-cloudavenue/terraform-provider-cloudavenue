@@ -65,12 +65,12 @@ func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaR
 func (r *isolatedNetworkResource) Init(_ context.Context, rm *isolatedNetworkModel) (diags diag.Diagnostics) {
 	r.vdc, diags = vdc.Init(r.client, rm.VDC.StringValue)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID.StringValue, rm.VAppName.StringValue)
 
-	return
+	return diags
 }
 
 func (r *isolatedNetworkResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -302,7 +302,7 @@ func (r *isolatedNetworkResource) read(ctx context.Context, planOrState *isolate
 	networkID, err := govcd.GetUuidFromHref(net.Link.HREF, false)
 	if err != nil {
 		diags.AddError("Error creating vApp network uuid", err.Error())
-		return
+		return stateRefreshed, found, diags
 	}
 
 	planOrState.ID.Set(urn.Normalize(urn.Network, networkID).String())
@@ -332,7 +332,7 @@ func (r *isolatedNetworkResource) read(ctx context.Context, planOrState *isolate
 		}
 		diags.Append(planOrState.StaticIPPool.Set(ctx, ipPool)...)
 		if diags.HasError() {
-			return
+			return stateRefreshed, found, diags
 		}
 	} else {
 		planOrState.StaticIPPool.SetNull(ctx)
@@ -362,7 +362,7 @@ func (r *isolatedNetworkResource) buildVappNetworkObject(ctx context.Context, pl
 	staticIPPools, d := plan.StaticIPPool.Get(ctx)
 	if d.HasError() {
 		diags.Append(d...)
-		return
+		return vappNetworkSettings, diags
 	}
 
 	staticIPRanges := make([]*govcdtypes.IPRange, 0)

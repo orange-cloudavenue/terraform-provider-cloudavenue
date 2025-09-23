@@ -37,7 +37,7 @@ func (r *VCDAIPResource) GetResourceName() string {
 }
 
 func (r *VCDAIPResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *VCDAIPResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

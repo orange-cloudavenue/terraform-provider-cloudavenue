@@ -60,9 +60,9 @@ func (r *NetworkIsolatedResource) Init(_ context.Context, rm *networkIsolatedMod
 	r.vdcg, err = r.client.CAVSDK.V1.VDC().GetVDCGroup(idOrName)
 	if err != nil {
 		diags.AddError("Error retrieving VDC Group", err.Error())
-		return
+		return diags
 	}
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -359,7 +359,7 @@ func (r *NetworkIsolatedResource) read(ctx context.Context, planOrState *network
 			return nil, false, nil
 		}
 		diags.AddError("Error getting isolated network", err.Error())
-		return
+		return stateRefreshed, found, diags
 	}
 
 	// Populate the state with the network data

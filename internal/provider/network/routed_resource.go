@@ -66,7 +66,7 @@ func (r *networkRoutedResource) Init(_ context.Context, rm *RoutedModel) (diags 
 	// Init Org
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	var err error
@@ -76,10 +76,10 @@ func (r *networkRoutedResource) Init(_ context.Context, rm *RoutedModel) (diags 
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 func (r *networkRoutedResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -384,7 +384,7 @@ func (r *networkRoutedResource) read(ctx context.Context, planOrState *RoutedMod
 			return nil, false, nil
 		}
 		diags.AddError("Error retrieving routing network", err.Error())
-		return
+		return stateRefreshed, found, diags
 	}
 
 	stateRefreshed.ID.Set(orgNetwork.OpenApiOrgVdcNetwork.ID)
@@ -395,7 +395,7 @@ func (r *networkRoutedResource) read(ctx context.Context, planOrState *RoutedMod
 	stateRefreshed.InterfaceType.Set(orgNetwork.OpenApiOrgVdcNetwork.Connection.ConnectionType)
 	if len(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values) == 0 {
 		diags.AddError("Error retrieving subnet", "No subnet found")
-		return
+		return stateRefreshed, found, diags
 	}
 	stateRefreshed.Gateway.Set(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].Gateway)
 	stateRefreshed.PrefixLength.Set(int64(orgNetwork.OpenApiOrgVdcNetwork.Subnets.Values[0].PrefixLength))
@@ -419,7 +419,7 @@ func (r *networkRoutedResource) setNetworkAPIObject(ctx context.Context, plan *R
 	ipPools, d := plan.StaticIPPool.Get(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return orgVDCNetwork, diags
 	}
 
 	ipRange := make([]govcdtypes.ExternalNetworkV2IPRange, len(ipPools))

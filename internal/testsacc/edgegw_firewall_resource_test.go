@@ -38,7 +38,7 @@ func (r *EdgeGatewayFirewallResource) GetResourceName() string {
 
 func (r *EdgeGatewayFirewallResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *EdgeGatewayFirewallResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -133,7 +133,7 @@ func (r *EdgeGatewayFirewallResource) Tests(_ context.Context) map[testsacc.Test
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[EdgeGatewaySecurityGroupResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

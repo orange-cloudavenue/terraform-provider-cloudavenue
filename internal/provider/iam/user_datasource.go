@@ -49,7 +49,7 @@ func (d *userDataSource) Init(_ context.Context, _ *userDataSourceModel) (diags 
 		diags.AddError("Error initializing IAM client", err.Error())
 	}
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

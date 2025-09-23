@@ -205,7 +205,7 @@ func genericReadLifeCycleConfiguration[T readLifeCycleConfigurationResourceDatas
 	readTimeout, d := config.Timeout()
 	if d.HasError() {
 		diags.Append(d...)
-		return
+		return stateRefreshed, found, diags
 	}
 
 	var lastOutput, lifecycle *s3.GetBucketLifecycleConfigurationOutput

@@ -243,7 +243,7 @@ func InternalDiskRead(_ context.Context, _ *client.CloudAvenue, disk *InternalDi
 			return nil, nil
 		}
 		d.AddError("Error retrieving disk with id "+disk.ID.ValueString(), err.Error())
-		return
+		return readDisk, d
 	}
 
 	readDisk = disk
@@ -252,7 +252,7 @@ func InternalDiskRead(_ context.Context, _ *client.CloudAvenue, disk *InternalDi
 	readDisk.SizeInMb = types.Int64Value(diskSettings.SizeMb)
 	readDisk.StorageProfile = types.StringValue(diskSettings.StorageProfile.Name)
 
-	return
+	return readDisk, d
 }
 
 /*
@@ -264,19 +264,19 @@ func InternalDiskUpdate(_ context.Context, c *client.CloudAvenue, disk InternalD
 	vdc, err := c.GetVDC(vdcName.ValueString())
 	if err != nil {
 		d.AddError("Error retrieving VDC", err.Error())
-		return
+		return updatedDisk, d
 	}
 
 	myVM, err := GetVMOLD(vdc.Vdc, vAppName.ValueString(), vmName.ValueString())
 	if err != nil {
 		d.AddError("Error retrieving VM", err.Error())
-		return
+		return updatedDisk, d
 	}
 
 	diskSettingsToUpdate, err := myVM.GetInternalDiskById(disk.ID.ValueString(), false)
 	if err != nil {
 		d.AddError("Error retrieving disk", err.Error())
-		return
+		return updatedDisk, d
 	}
 
 	diskSettingsToUpdate.SizeMb = disk.SizeInMb.ValueInt64()
@@ -292,7 +292,7 @@ func InternalDiskUpdate(_ context.Context, c *client.CloudAvenue, disk InternalD
 		storageProfile, errFindStorage := vdc.FindStorageProfileReference(storageProfileName)
 		if errFindStorage != nil {
 			d.AddError("Error retrieving storage profile", errFindStorage.Error())
-			return
+			return updatedDisk, d
 		}
 		storageProfilePrt = &storageProfile
 		overrideVMDefault = true
@@ -307,7 +307,7 @@ func InternalDiskUpdate(_ context.Context, c *client.CloudAvenue, disk InternalD
 	_, err = myVM.UpdateInternalDisks(myVM.VM.VmSpecSection)
 	if err != nil {
 		d.AddError("Error updating disk", err.Error())
-		return
+		return updatedDisk, d
 	}
 
 	updatedDisk = &disk

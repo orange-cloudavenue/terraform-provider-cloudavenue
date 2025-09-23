@@ -38,7 +38,7 @@ func (r *VDCGNetworkRoutedDataSource) GetResourceName() string {
 func (r *VDCGNetworkRoutedDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	// Add dependencies config to the resource
 	resp.Append(GetResourceConfig()[VDCGNetworkRoutedResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *VDCGNetworkRoutedDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

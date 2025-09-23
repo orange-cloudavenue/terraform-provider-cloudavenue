@@ -71,11 +71,11 @@ func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 func (r *vappResource) Init(_ context.Context, rm *vappResourceModel) (diags diag.Diagnostics) {
 	r.adminorg, diags = adminorg.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.vdc, diags = vdc.Init(r.client, rm.VDC.StringValue)
-	return
+	return diags
 }
 
 func (r *vappResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -385,7 +385,7 @@ func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResource
 		lease, d := plan.Lease.Get(ctx)
 		diags.Append(d...)
 		if diags.HasError() {
-			return
+			return diags
 		}
 
 		runtimeLease = lease.RuntimeLeaseInSec.GetInt()
@@ -397,7 +397,7 @@ func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResource
 		storageLease != r.vapp.GetStorageLeaseInSeconds() {
 		if err := r.vapp.RenewLease(runtimeLease, storageLease); err != nil {
 			diags.AddError("Error renewing lease", err.Error())
-			return
+			return diags
 		}
 	}
 
@@ -405,7 +405,7 @@ func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResource
 	if !plan.Description.Equal(state.Description) {
 		if err := r.vapp.UpdateDescription(plan.Description.ValueString()); err != nil {
 			diags.AddError("Error updating VApp description", err.Error())
-			return
+			return diags
 		}
 	}
 
@@ -424,7 +424,7 @@ func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResource
 			guestProperties := make(map[string]string)
 			diags.Append(plan.GuestProperties.Get(ctx, &guestProperties, true)...)
 			if diags.HasError() {
-				return
+				return diags
 			}
 
 			for k, v := range guestProperties {
@@ -440,7 +440,7 @@ func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResource
 		}
 		if _, err := r.vapp.SetProductSectionList(x); err != nil {
 			diags.AddError("Error updating VApp guest properties", err.Error())
-			return
+			return diags
 		}
 	}
 
@@ -470,7 +470,7 @@ func (r *vappResource) read(ctx context.Context, planOrState *vappResourceModel)
 	guestProperties, err := r.vapp.GetProductSectionList()
 	if err != nil {
 		diags.AddError("Error retrieving guest properties", err.Error())
-		return
+		return stateRefreshed, found, diags
 	}
 
 	properties := make(map[string]string)
@@ -493,7 +493,7 @@ func (r *vappResource) read(ctx context.Context, planOrState *vappResourceModel)
 	leaseInfo, err := r.vapp.GetLease()
 	if err != nil {
 		diags.AddError("Error retrieving lease info", err.Error())
-		return
+		return stateRefreshed, found, diags
 	}
 
 	if leaseInfo != nil {

@@ -48,7 +48,7 @@ type BucketCorsConfigurationResource struct {
 // Init Initializes the resource.
 func (r *BucketCorsConfigurationResource) Init(_ context.Context, _ *BucketCorsConfigurationModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -347,5 +347,5 @@ func (r *BucketCorsConfigurationResource) createOrUpdateCorsPolicy(ctx context.C
 		diags.AddError("Error on PUT CORS policy", err.Error())
 	}
 
-	return
+	return diags
 }

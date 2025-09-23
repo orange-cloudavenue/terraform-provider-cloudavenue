@@ -60,7 +60,7 @@ func (r *natRuleResource) Init(_ context.Context, rm *NATRuleModel) (diags diag.
 
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
@@ -69,10 +69,10 @@ func (r *natRuleResource) Init(_ context.Context, rm *NATRuleModel) (diags diag.
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -400,13 +400,13 @@ func (r *natRuleResource) read(_ context.Context, planOrState *NATRuleModel) (st
 				return stateRefreshed, false, nil
 			}
 			diags.AddError("Error retrieving NAT Rule ID", err.Error())
-			return
+			return stateRefreshed, found, diags
 		}
 	} else {
 		rules, err := r.edgegw.GetAllNatRules(nil)
 		if err != nil {
 			diags.AddError("Error retrieving NAT Rules", err.Error())
-			return
+			return stateRefreshed, found, diags
 		}
 
 		foundRules := make([]*govcd.NsxtNatRule, 0)
@@ -447,7 +447,7 @@ func (r *natRuleResource) read(_ context.Context, planOrState *NATRuleModel) (st
 		appPortProfile, err = r.org.GetNsxtAppPortProfileById(stateRefreshed.AppPortProfileID.Get())
 		if err != nil {
 			diags.AddError("Error retrieving Application Port Profile", err.Error())
-			return
+			return stateRefreshed, found, diags
 		}
 		stateRefreshed.AppPortProfileID.Set(appPortProfile.NsxtAppPortProfile.ID)
 	}

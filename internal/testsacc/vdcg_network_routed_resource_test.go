@@ -38,7 +38,7 @@ func (r *VDCGNetworkRoutedResource) GetResourceName() string {
 
 func (r *VDCGNetworkRoutedResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetSpecificConfig("example_with_vdc_group"))
-	return
+	return resp
 }
 
 func (r *VDCGNetworkRoutedResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

@@ -36,7 +36,7 @@ func (r *EdgeGatewayIPSetDataSource) GetResourceName() string {
 }
 
 func (r *EdgeGatewayIPSetDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *EdgeGatewayIPSetDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -45,7 +45,7 @@ func (r *EdgeGatewayIPSetDataSource) Tests(_ context.Context) map[testsacc.TestN
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[EdgeGatewayIPSetResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
@@ -62,7 +62,7 @@ func (r *EdgeGatewayIPSetDataSource) Tests(_ context.Context) map[testsacc.TestN
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[EdgeGatewayIPSetResourceName]().GetSpecificConfig("example_with_vdc_group"))
-					return
+					return resp
 				},
 				Create: testsacc.TFConfig{
 					TFConfig: `

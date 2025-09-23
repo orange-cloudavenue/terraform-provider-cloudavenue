@@ -38,7 +38,7 @@ func (r *VDCResource) GetResourceName() string {
 }
 
 func (r *VDCResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -80,51 +80,57 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "vcpu", "10"),
+						resource.TestCheckResourceAttr(resourceName, "memory", "30"),
+
+						// ! Deprecated fields - Maintain for backward compatibility
+						resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
 						resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22000"),
 						resource.TestCheckResourceAttr(resourceName, "memory_allocated", "30"),
-						resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
 					},
 				},
 				// ! Updates testing
 				Updates: []testsacc.TFConfig{
-					// Update description
+					// Update - replace deprecated fields with new fields
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdc" "example" {
+							name                  = {{ get . "name" }}
+							description           = {{ get . "description" }}
+							vcpu                  = 10
+							memory                = 30
+							billing_model         = "PAYG"
+							disponibility_class   = "ONE-ROOM"
+							service_class         = "STD"
+							storage_billing_model = "PAYG"
+						  
+							storage_profiles = [{
+							  class   = "gold"
+							  default = true
+							  limit   = 500
+							}]
+						  
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "vcpu", "10"),
+							resource.TestCheckResourceAttr(resourceName, "memory", "30"),
+
+							// ! Deprecated fields - Maintain for backward compatibility
+							resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
+							resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22000"),
+							resource.TestCheckResourceAttr(resourceName, "memory_allocated", "30"),
+						},
+					},
+					// Update description and add more VCPU
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_vdc" "example" {
 							name                  = {{ get . "name" }}
 							description           = {{ generate . "description" "longString"}}
-							cpu_allocated         = 22000
-							memory_allocated      = 30
-							cpu_speed_in_mhz      = 2200
-							billing_model         = "PAYG"
-							disponibility_class   = "ONE-ROOM"
-							service_class         = "STD"
-							storage_billing_model = "PAYG"
-						  
-							storage_profiles = [{
-							  class   = "gold"
-							  default = true
-							  limit   = 500
-							}]
-						  
-						}`),
-						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
-							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
-							resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22000"),
-							resource.TestCheckResourceAttr(resourceName, "memory_allocated", "30"),
-							resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
-						},
-					},
-					// Update cpu_allocated
-					{
-						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-						resource "cloudavenue_vdc" "example" {
-							name                  = {{ get . "name" }}
-							description           = {{ get . "description" }}
-							cpu_allocated         = 22500
-							memory_allocated      = 30
-							cpu_speed_in_mhz      = 2200
+							vcpu                  = 12
+							memory                = 30
 							billing_model         = "PAYG"
 							disponibility_class   = "ONE-ROOM"
 							service_class         = "STD"
@@ -139,48 +145,48 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
-							resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22500"),
-							resource.TestCheckResourceAttr(resourceName, "memory_allocated", "30"),
+							resource.TestCheckResourceAttr(resourceName, "vcpu", "12"),
+							resource.TestCheckResourceAttr(resourceName, "memory", "30"),
+
+							// ! Deprecated fields - Maintain for backward compatibility
 							resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
+							resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "26400"),
+							resource.TestCheckResourceAttr(resourceName, "memory_allocated", "30"),
 						},
 					},
-					// Update cpu_speed_in_mhz
-					// NOTE : This generate resource replacement
+					// Update disponibility_class
+					// NOTE : invalid disponibility_class for current configuration
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_vdc" "example" {
 							name                  = {{ get . "name" }}
-							description           = {{ get . "description" }}
-							cpu_allocated         = 22000
-							memory_allocated      = 30
-							cpu_speed_in_mhz      = 2300
+							description           = {{ generate . "description" "longString"}}
+							vcpu                  = 10
+							memory                = 30
 							billing_model         = "PAYG"
-							disponibility_class   = "ONE-ROOM"
+							disponibility_class   = "DUALROOM"
 							service_class         = "STD"
 							storage_billing_model = "PAYG"
-						  
+
 							storage_profiles = [{
-							  class   = "gold"
-							  default = true
-							  limit   = 500
-							}]
-						  
+								class   = "gold"
+								default = true
+								limit   = 500
+							  }]
 						}`),
 						TFAdvanced: testsacc.TFAdvanced{
-							PlanOnly:           true,
 							ExpectNonEmptyPlan: true,
-							ExpectError:        regexp.MustCompile(`CPU speed in MHz attribute is not valid`),
+							ExpectError:        regexp.MustCompile(`validation error`),
 						},
 					},
-					// Update memory_allocated
+					// Update vcpu & memory
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_vdc" "example" {
 							name                  = {{ get . "name" }}
 							description           = {{ get . "description" }}
-							cpu_allocated         = 22500
-							memory_allocated      = 40
-							cpu_speed_in_mhz      = 2200
+							vcpu                  = 12
+							memory                = 50
 							billing_model         = "PAYG"
 							disponibility_class   = "ONE-ROOM"
 							service_class         = "STD"
@@ -195,9 +201,13 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
-							resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22500"),
-							resource.TestCheckResourceAttr(resourceName, "memory_allocated", "40"),
+							resource.TestCheckResourceAttr(resourceName, "vcpu", "12"),
+							resource.TestCheckResourceAttr(resourceName, "memory", "50"),
+
+							// ! Deprecated fields - Maintain for backward compatibility
 							resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
+							resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "26400"),
+							resource.TestCheckResourceAttr(resourceName, "memory_allocated", "50"),
 						},
 					},
 				},
@@ -229,9 +239,8 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 					resource "cloudavenue_vdc" "example_reserved" {
 						name                  = {{ generate . "name" }}
 						description           = {{ generate . "description" "longString"}}
-						cpu_allocated         = 22000
-						memory_allocated      = 30
-						cpu_speed_in_mhz      = 2200
+						vcpu                  = 12
+						memory                = 50
 						billing_model         = "RESERVED"
 						disponibility_class   = "ONE-ROOM"
 						service_class         = "STD"
@@ -247,22 +256,20 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
-						resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22000"),
-						resource.TestCheckResourceAttr(resourceName, "memory_allocated", "30"),
-						resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
+						resource.TestCheckResourceAttr(resourceName, "vcpu", "12"),
+						resource.TestCheckResourceAttr(resourceName, "memory", "50"),
 					},
 				},
 				// ! Updates testing
 				Updates: []testsacc.TFConfig{
-					// Update cpu_speed_in_mhz
+					// Update description and reduce VCPU
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_vdc" "example_reserved" {
 							name                  = {{ get . "name" }}
 							description           = {{ generate . "description" "longString"}}
-							cpu_allocated         = 22000
-							memory_allocated      = 30
-							cpu_speed_in_mhz      = 2000
+							vcpu                  = 10
+							memory                = 50
 							billing_model         = "RESERVED"
 							disponibility_class   = "ONE-ROOM"
 							service_class         = "STD"
@@ -273,14 +280,12 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 							  default = true
 							  limit   = 500
 							}]
-						  
 						}`),
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
-							resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22000"),
-							resource.TestCheckResourceAttr(resourceName, "memory_allocated", "30"),
-							resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2000"),
+							resource.TestCheckResourceAttr(resourceName, "vcpu", "10"),
+							resource.TestCheckResourceAttr(resourceName, "memory", "50"),
 						},
 					},
 				},
@@ -305,9 +310,8 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 					resource "cloudavenue_vdc" "example_vdc_group_1" {
 						name                  = {{ generate . "name" }}
 						description           = {{ generate . "description" "longString"}}
-						cpu_allocated         = 22000
-						memory_allocated      = 30
-						cpu_speed_in_mhz      = 2200
+						vcpu                  = 5
+						memory                = 30
 						billing_model         = "PAYG"
 						disponibility_class   = "ONE-ROOM"
 						service_class         = "STD"
@@ -323,13 +327,13 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
-						resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22000"),
-						resource.TestCheckResourceAttr(resourceName, "memory_allocated", "30"),
-						resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
+						resource.TestCheckResourceAttr(resourceName, "vcpu", "5"),
+						resource.TestCheckResourceAttr(resourceName, "memory", "30"),
 					},
 				},
 			}
 		},
+		// This is used to test vdc_group resource
 		"example_vdc_group_2": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
@@ -348,9 +352,8 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 					resource "cloudavenue_vdc" "example_vdc_group_2" {
 						name                  = {{ generate . "name" }}
 						description           = {{ generate . "description" "longString"}}
-						cpu_allocated         = 22000
-						memory_allocated      = 30
-						cpu_speed_in_mhz      = 2200
+						vcpu                  = 5
+						memory                = 30
 						billing_model         = "PAYG"
 						disponibility_class   = "ONE-ROOM"
 						service_class         = "STD"
@@ -366,9 +369,8 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
-						resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22000"),
-						resource.TestCheckResourceAttr(resourceName, "memory_allocated", "30"),
-						resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
+						resource.TestCheckResourceAttr(resourceName, "vcpu", "5"),
+						resource.TestCheckResourceAttr(resourceName, "memory", "30"),
 					},
 				},
 			}
@@ -382,10 +384,6 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 					resource.TestCheckResourceAttr(resourceName, "disponibility_class", "ONE-ROOM"),
 					resource.TestCheckResourceAttr(resourceName, "service_class", "STD"),
 					resource.TestCheckResourceAttr(resourceName, "storage_billing_model", "PAYG"),
-
-					resource.TestCheckResourceAttr(resourceName, "cpu_allocated", "22000"),
-					resource.TestCheckResourceAttr(resourceName, "memory_allocated", "30"),
-					resource.TestCheckResourceAttr(resourceName, "cpu_speed_in_mhz", "2200"),
 				},
 				// ! Set 2 storages profiles
 				Create: testsacc.TFConfig{
@@ -393,9 +391,8 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 					resource "cloudavenue_vdc" "example_storage_profiles" {
 						name                  = {{ generate . "name" }}
 						description           = {{ generate . "description" "longString"}}
-						cpu_allocated         = 22000
-						memory_allocated      = 30
-						cpu_speed_in_mhz      = 2200
+						vcpu                  = 5
+						memory                = 30
 						billing_model         = "PAYG"
 						disponibility_class   = "ONE-ROOM"
 						service_class         = "STD"
@@ -418,6 +415,7 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "storage_profiles.#", "2"),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "storage_profiles.*", map[string]string{
 							"class":   "silver",
 							"default": "false",
@@ -432,38 +430,43 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 				},
 				// ! Updates testing
 				Updates: []testsacc.TFConfig{
-					// This generate a bug in API. Waiting for fix
-					// {
-					// 	TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-					// 	resource "cloudavenue_vdc" "example_storage_profiles" {
-					// 		name                  = {{ get . "name" }}
-					// 		description           = {{ get . "description"}}
-					// 		cpu_allocated         = 22000
-					// 		memory_allocated      = 30
-					// 		cpu_speed_in_mhz      = 2200
-					// 		billing_model         = "PAYG"
-					// 		disponibility_class   = "ONE-ROOM"
-					// 		service_class         = "STD"
-					// 		storage_billing_model = "PAYG"
+					// Remove one storage profile
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdc" "example_storage_profiles" {
+							name                  = {{ get . "name" }}
+							description           = {{ get . "description"}}
+							vcpu                  = 5
+							memory                = 30
+							billing_model         = "PAYG"
+							disponibility_class   = "ONE-ROOM"
+							service_class         = "STD"
+							storage_billing_model = "PAYG"
 
-					// 		storage_profiles = [{
-					// 			class   = "gold"
-					// 			default = true
-					// 			limit   = 500
-					// 		}]
+							storage_profiles = [{
+								class   = "gold"
+								default = true
+								limit   = 500
+							}]
 
-					// 	}`),
-					// 	Checks: []resource.TestCheckFunc{},
-					// },
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "storage_profiles.#", "1"),
+							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "storage_profiles.*", map[string]string{
+								"class":   "gold",
+								"limit":   "500",
+								"default": "true",
+							}),
+						},
+					},
 					// Update storage profile class to custom class
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_vdc" "example_storage_profiles" {
 							name                  = {{ get . "name" }}
 							description           = {{ get . "description"}}
-							cpu_allocated         = 22000
-							memory_allocated      = 30
-							cpu_speed_in_mhz      = 2200
+							vcpu                  = 5
+							memory                = 30
 							billing_model         = "PAYG"
 							disponibility_class   = "ONE-ROOM"
 							service_class         = "STD"
@@ -485,7 +488,7 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 						TFAdvanced: testsacc.TFAdvanced{
 							ExpectNonEmptyPlan: true,
 							// ! Generate a error because the class is not valid for this organization
-							ExpectError: regexp.MustCompile(`Error updating VDC`),
+							ExpectError: regexp.MustCompile(`failed to add storage`),
 						},
 					},
 					// Update storage profile class limit under minimum size
@@ -494,9 +497,8 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 						resource "cloudavenue_vdc" "example_storage_profiles" {
 							name                  = {{ get . "name" }}
 							description           = {{ get . "description"}}
-							cpu_allocated         = 22000
-							memory_allocated      = 30
-							cpu_speed_in_mhz      = 2200
+							vcpu                  = 5
+							memory                = 30
 							billing_model         = "PAYG"
 							disponibility_class   = "ONE-ROOM"
 							service_class         = "STD"
@@ -512,7 +514,7 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 						TFAdvanced: testsacc.TFAdvanced{
 							ExpectNonEmptyPlan: true,
 							// ! Generate a error because the limit is under the minimum size
-							ExpectError: regexp.MustCompile(`Storage profile limit attribute is not valid`),
+							ExpectError: regexp.MustCompile(`validation error`),
 						},
 					},
 					// Update storage profile class limit over maximum size
@@ -521,9 +523,8 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 						resource "cloudavenue_vdc" "example_storage_profiles" {
 							name                  = {{ get . "name" }}
 							description           = {{ get . "description"}}
-							cpu_allocated         = 22000
-							memory_allocated      = 30
-							cpu_speed_in_mhz      = 2200
+							vcpu                  = 5
+							memory                = 30
 							billing_model         = "PAYG"
 							disponibility_class   = "ONE-ROOM"
 							service_class         = "STD"
@@ -539,7 +540,7 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 						TFAdvanced: testsacc.TFAdvanced{
 							ExpectNonEmptyPlan: true,
 							// ! Generate a error because the limit is over the maximum size
-							ExpectError: regexp.MustCompile(`Storage profile limit attribute is not valid`),
+							ExpectError: regexp.MustCompile(`validation error`),
 						},
 					},
 					// Update storage profile class to valid size
@@ -548,9 +549,8 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 						resource "cloudavenue_vdc" "example_storage_profiles" {
 							name                  = {{ get . "name" }}
 							description           = {{ get . "description"}}
-							cpu_allocated         = 22000
-							memory_allocated      = 30
-							cpu_speed_in_mhz      = 2200
+							vcpu                  = 5
+							memory                = 30
 							billing_model         = "PAYG"
 							disponibility_class   = "ONE-ROOM"
 							service_class         = "STD"
@@ -568,6 +568,12 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 							}]
 						}`),
 						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "storage_profiles.#", "2"),
+							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "storage_profiles.*", map[string]string{
+								"class":   "silver",
+								"default": "false",
+								"limit":   "500",
+							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "storage_profiles.*", map[string]string{
 								"class":   "gold",
 								"limit":   "800",

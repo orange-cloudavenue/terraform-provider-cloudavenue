@@ -51,10 +51,10 @@ func (d *vappDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest,
 func (d *vappDataSource) Init(_ context.Context, dm *vappResourceModel) (diags diag.Diagnostics) {
 	d.vdc, diags = vdc.Init(d.client, dm.VDC.StringValue)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 func (d *vappDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {

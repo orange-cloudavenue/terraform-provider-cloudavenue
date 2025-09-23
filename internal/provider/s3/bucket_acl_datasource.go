@@ -40,7 +40,7 @@ type BucketACLDataSource struct {
 // Init Initializes the data source.
 func (d *BucketACLDataSource) Init(_ context.Context, _ *BucketACLModelDatasource) (diags diag.Diagnostics) {
 	d.s3Client = d.client.CAVSDK.V1.S3()
-	return
+	return diags
 }
 
 func (d *BucketACLDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

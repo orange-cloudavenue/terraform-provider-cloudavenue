@@ -37,7 +37,7 @@ func (r *VDCGIPSetResource) GetResourceName() string {
 }
 
 func (r *VDCGIPSetResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *VDCGIPSetResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -51,7 +51,7 @@ func (r *VDCGIPSetResource) Tests(_ context.Context) map[testsacc.TestName]func(
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCGResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

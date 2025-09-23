@@ -42,12 +42,12 @@ func (d *ServicesDataSource) Init(_ context.Context, _ *ServicesModel) (diags di
 	edge, err := edgegateway.NewClient()
 	if err != nil {
 		diags.AddError("Client Initialization Error", fmt.Sprintf("Failed to create edge gateway client: %s", err))
-		return
+		return diags
 	}
 
 	d.edge = edge
 
-	return
+	return diags
 }
 
 func (d *ServicesDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

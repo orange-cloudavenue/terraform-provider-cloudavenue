@@ -46,7 +46,7 @@ func (d *PoolDataSource) Init(_ context.Context, _ *PoolModel) (diags diag.Diagn
 		diags.AddError("Error creating elb client", err.Error())
 	}
 
-	return
+	return diags
 }
 
 func (d *PoolDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

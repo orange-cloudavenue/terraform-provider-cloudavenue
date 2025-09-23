@@ -37,7 +37,7 @@ func (r *NetworkRoutedResource) GetResourceName() string {
 }
 
 func (r *NetworkRoutedResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *NetworkRoutedResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -46,7 +46,7 @@ func (r *NetworkRoutedResource) Tests(_ context.Context) map[testsacc.TestName]f
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
@@ -140,7 +140,7 @@ func (r *NetworkRoutedResource) Tests(_ context.Context) map[testsacc.TestName]f
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
@@ -193,7 +193,7 @@ func (r *NetworkRoutedResource) Tests(_ context.Context) map[testsacc.TestName]f
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetSpecificConfig("example_with_vdc_group"))
-					return
+					return resp
 				},
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),

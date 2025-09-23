@@ -38,7 +38,7 @@ func (r *EdgeGatewayDhcpForwardingResource) GetResourceName() string {
 }
 
 func (r *EdgeGatewayDhcpForwardingResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *EdgeGatewayDhcpForwardingResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -53,7 +53,7 @@ func (r *EdgeGatewayDhcpForwardingResource) Tests(_ context.Context) map[testsac
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				Create: testsacc.TFConfig{
 					TFConfig: `

@@ -69,7 +69,7 @@ func networkToTerraform(bms *v1.BMS) (net []*bmsModelDatasourceNetwork) {
 		net = append(net, &x)
 	}
 
-	return
+	return net
 }
 
 // Put API BMS information to Terraform Object.
@@ -93,7 +93,7 @@ func setStorage(ctx context.Context, storages v1.BMSStorage) (storage *bmsModelD
 	storage.System.Set(ctx, setStorageDetail(storages.GetSystem()))
 	storage.Data.Set(ctx, setStorageDetail(storages.GetData()))
 	storage.Shared.Set(ctx, setStorageDetail(storages.GetShared()))
-	return
+	return storage
 }
 
 func setStorageDetail(storage []v1.BMSStorageDetail) (storageDetail []*bmsModelDatasourceBMSStorageDetail) {
@@ -104,7 +104,7 @@ func setStorageDetail(storage []v1.BMSStorageDetail) (storageDetail []*bmsModelD
 		x.StorageClass.Set(stor.GetStorageClass())
 		storageDetail = append(storageDetail, x)
 	}
-	return
+	return storageDetail
 }
 
 // Copy returns a new bmsModelDatasource.

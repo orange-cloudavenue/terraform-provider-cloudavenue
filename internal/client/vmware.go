@@ -43,7 +43,7 @@ func (c *CloudAvenue) GetTemplate(iD string) (vAppTemplate *govcd.VAppTemplate, 
 	}
 
 	vAppTemplate.VAppTemplate = template.VAppTemplate.Children.VM[0]
-	return
+	return vAppTemplate, err
 }
 
 // GetTemplateWithVMName retrieves a vApp template with a VM name.
@@ -57,7 +57,7 @@ func (c *CloudAvenue) GetTemplateWithVMName(iD, vmName string) (vAppTemplate *go
 	for i, vm := range template.VAppTemplate.Children.VM {
 		if vm.Name == vmName {
 			vAppTemplate.VAppTemplate = template.VAppTemplate.Children.VM[i]
-			return
+			return vAppTemplate, err
 		}
 	}
 

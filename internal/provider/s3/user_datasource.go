@@ -41,7 +41,7 @@ type UserDataSource struct {
 // Init Initializes the data source.
 func (d *UserDataSource) Init(_ context.Context, _ *UserDataSourceModel) (diags diag.Diagnostics) {
 	d.s3Client = d.client.CAVSDK.V1.S3()
-	return
+	return diags
 }
 
 func (d *UserDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

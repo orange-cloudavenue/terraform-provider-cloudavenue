@@ -38,7 +38,7 @@ func (r *ELBPoliciesHTTPResponseDataSource) GetResourceName() string {
 func (r *ELBPoliciesHTTPResponseDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	// Add dependencies config to the resource
 	resp.Append(GetResourceConfig()[ELBPoliciesHTTPResponseResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *ELBPoliciesHTTPResponseDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

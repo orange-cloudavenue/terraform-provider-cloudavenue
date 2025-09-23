@@ -275,7 +275,7 @@ func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC Test
 		steps = append(steps, destroyTestStep)
 	}
 
-	return
+	return steps
 }
 
 // *TestACC

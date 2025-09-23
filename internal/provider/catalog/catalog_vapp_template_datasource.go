@@ -47,7 +47,7 @@ func (d *vAppTemplateDataSource) Init(_ context.Context, rm *VAPPTemplateModel) 
 
 	d.adminOrg, diags = adminorg.Init(d.client)
 
-	return
+	return diags
 }
 
 func (d *vAppTemplateDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

@@ -207,19 +207,18 @@ func (r *OrgResource) ImportState(ctx context.Context, req resource.ImportStateR
 	defer metrics.New("cloudavenue_org", r.client.GetOrgName(), metrics.Import)()
 
 	// * ID (urn format) or Name
-
+	// No properties is needed for the import, but we force to precise the name or id for clarity
 	// ID format is urn:vcloud:org:<org_uuid>
 	// Name format is the organization name
 	// If ID is provided, it will be used
 	// If Name is provided, it will be used
 	// if wrong format, return error
-
-	// No properties is needed for the import, but we force to precise the name or id for clarity
-	if urn.IsOrg(req.ID) {
+	switch {
+	case urn.IsOrg(req.ID):
 		resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-	} else if regex.OrganizationNameRegex().MatchString(req.ID) {
+	case regex.OrganizationNameRegex().MatchString(req.ID):
 		resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
-	} else {
+	default:
 		resp.Diagnostics.AddError("Invalid import identifier", fmt.Sprintf("The import identifier '%s' is not valid. It should be either the organization URN (urn:vcloud:org:<org_uuid>) or the organization name.", req.ID))
 	}
 }

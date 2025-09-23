@@ -58,7 +58,7 @@ func (r *vpnIPSecResource) Init(_ context.Context, rm *VPNIPSecModel) (diags dia
 
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
@@ -67,10 +67,10 @@ func (r *vpnIPSecResource) Init(_ context.Context, rm *VPNIPSecModel) (diags dia
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

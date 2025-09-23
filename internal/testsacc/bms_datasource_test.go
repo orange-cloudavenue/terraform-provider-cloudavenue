@@ -36,7 +36,7 @@ func (r *BMSDataSource) GetResourceName() string {
 }
 
 func (r *BMSDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *BMSDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

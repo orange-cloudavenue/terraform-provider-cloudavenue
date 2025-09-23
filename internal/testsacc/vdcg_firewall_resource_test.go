@@ -39,7 +39,7 @@ func (r *VDCGFirewallResource) GetResourceName() string {
 
 func (r *VDCGFirewallResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[VDCGResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -310,7 +310,7 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetDataSourceConfig()[EdgeGatewayAppPortProfileDatasourceName]().GetSpecificConfig("example_provider_scope"))
 					resp.Append(GetDataSourceConfig()[EdgeGatewayAppPortProfileDatasourceName]().GetSpecificConfig("example_system_scope"))
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -395,7 +395,7 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 					resp.Append(GetResourceConfig()[VDCGIPSetResourceName]().GetDefaultConfig)
 					resp.Append(GetResourceConfig()[VDCGSecurityGroupResourceName]().GetDefaultConfig)
 					// TODO Add Dynamic security Group
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -479,7 +479,7 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCGIPSetResourceName]().GetDefaultConfig)
 					resp.Append(GetResourceConfig()[VDCGSecurityGroupResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -565,7 +565,7 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 					resp.Append(GetResourceConfig()[VDCGSecurityGroupResourceName]().GetDefaultConfig)
 					resp.Append(GetDataSourceConfig()[EdgeGatewayAppPortProfileDatasourceName]().GetSpecificConfig("example_provider_scope"))
 					resp.Append(GetDataSourceConfig()[EdgeGatewayAppPortProfileDatasourceName]().GetSpecificConfig("example_system_scope"))
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

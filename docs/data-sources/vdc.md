@@ -28,27 +28,35 @@ output "example" {
 
 ### Required
 
-- `name` (String) The name of the vDC. String length must be between 2 and 27.
+- `name` (String) The name of the vDC.
 
 ### Read-Only
 
 - `billing_model` (String) Choose Billing model of compute resources.
-- `cpu_allocated` (Number) CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode.
-- `cpu_speed_in_mhz` (Number) Specifies the clock frequency, in Mhz, for any virtual CPU that is allocated to a VM.
+- `cpu_allocated` (Number, Deprecated) CPU capacity in *MHz* that is committed to be available or used as a limit in PAYG mode. 
+
+ ~> **Attribute deprecated** Remove the `cpu_allocated` attribute configuration, it will be removed in the version `v1.0.0` of the provider.
+- `cpu_speed_in_mhz` (Number, Deprecated) Frequency of the VCPUs in MHz.
 - `description` (String) A description of the vDC.
-- `disponibility_class` (String) The disponibility class of the vDC.
+- `disponibility_class` (String) Specifies the service class tier for the Virtual Data Center (vDC), defining its performance and service level.
 - `id` (String) The ID of the vDC.
-- `memory_allocated` (Number) Memory capacity in Gb that is committed to be available or used as a limit in PAYG mode.
-- `service_class` (String) The service class of the vDC.
+- `memory` (Number) Amount of memory in *GiB* allocated to the vDC.
+- `memory_allocated` (Number, Deprecated) Memory capacity in GiB that is committed to be available or used as a limit in PAYG mode. 
+
+ ~> **Attribute deprecated** Rename the `memory_allocated` attribute to `memory`, it will be removed in the version `v1.0.0` of the provider.
+- `service_class` (String) Defines the service class tier for the Virtual Data Center (vDC), indicating its level of service and performance.
 - `storage_billing_model` (String) Choose Billing model of storage resources.
 - `storage_profiles` (Attributes Set) List of storage profiles for this vDC. (see [below for nested schema](#nestedatt--storage_profiles))
+- `vcpu` (Number) Number of virtual CPU allocated to the vDC.
 
 <a id="nestedatt--storage_profiles"></a>
 ### Nested Schema for `storage_profiles`
 
 Read-Only:
 
-- `class` (String) The storage class of the storage profile.
+- `class` (String) Defines the classification tier of the storage profile, indicating its performance and intended use case.
 - `default` (Boolean) Set this storage profile as default for this vDC. Only one storage profile can be default per vDC.
-- `limit` (Number) Max number in *Go* of units allocated for this storage profile.
+- `id` (String) The ID of the storage profile.
+- `limit` (Number) Max number in *GiB* of units allocated for this storage profile.
+- `used` (Number) Number in *GiB* of units used for this storage profile.
 

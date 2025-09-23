@@ -37,7 +37,7 @@ func Init(c *client.CloudAvenue, adminvdc types.String) (avdc AdminVDC, diags di
 			vdcName = c.GetDefaultVDC()
 		} else {
 			diags.AddError("Empty VDC name provided", client.ErrEmptyVDCNameProvided.Error())
-			return
+			return avdc, diags
 		}
 	}
 

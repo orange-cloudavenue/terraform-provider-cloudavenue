@@ -81,7 +81,7 @@ func (r *userResource) Init(_ context.Context, _ *userResourceModel) (diags diag
 		diags.AddError("Error initializing IAM client", err.Error())
 	}
 
-	return
+	return diags
 }
 
 // Create creates the resource and sets the initial Terraform state.

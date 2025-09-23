@@ -41,7 +41,7 @@ type BucketPolicyDataSource struct {
 // Init Initializes the data source.
 func (d *BucketPolicyDataSource) Init(_ context.Context, _ *BucketPolicyModelDatasource) (diags diag.Diagnostics) {
 	d.s3Client = d.client.CAVSDK.V1.S3()
-	return
+	return diags
 }
 
 func (d *BucketPolicyDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

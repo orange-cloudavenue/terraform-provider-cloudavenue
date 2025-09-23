@@ -40,7 +40,7 @@ func (r *ORGCertificateLibraryResource) GetResourceName() string {
 }
 
 func (r *ORGCertificateLibraryResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *ORGCertificateLibraryResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

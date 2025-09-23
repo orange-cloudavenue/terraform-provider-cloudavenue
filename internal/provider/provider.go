@@ -88,7 +88,7 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 		summaryErrorVCD    = "Unable to Create VMWare VCD Client"
 	)
 
-	cA, err := cloudAvenue.New()
+	cA, err := cloudAvenue.New(ctx)
 	if err != nil {
 		switch {
 		case errors.Is(err, caverrors.ErrEmpty):

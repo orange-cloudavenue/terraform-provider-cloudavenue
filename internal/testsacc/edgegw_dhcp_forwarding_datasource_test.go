@@ -37,7 +37,7 @@ func (r *EdgeGatewayDhcpForwardingDataSource) GetResourceName() string {
 
 func (r *EdgeGatewayDhcpForwardingDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[EdgeGatewayDhcpForwardingResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *EdgeGatewayDhcpForwardingDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

@@ -87,7 +87,7 @@ func (rm *BucketWebsiteConfigurationModel) CreateS3WebsiteConfigurationAPIObject
 		errorDocument, d := rm.ErrorDocument.Get(ctx)
 		diags.Append(d...)
 		if diags.HasError() {
-			return
+			return websiteConfig, diags
 		}
 		websiteConfig.ErrorDocument = &s3.ErrorDocument{
 			Key: errorDocument.Key.GetPtr(),
@@ -98,7 +98,7 @@ func (rm *BucketWebsiteConfigurationModel) CreateS3WebsiteConfigurationAPIObject
 		indexDocument, d := rm.IndexDocument.Get(ctx)
 		diags.Append(d...)
 		if diags.HasError() {
-			return
+			return websiteConfig, diags
 		}
 
 		websiteConfig.IndexDocument = &s3.IndexDocument{
@@ -110,7 +110,7 @@ func (rm *BucketWebsiteConfigurationModel) CreateS3WebsiteConfigurationAPIObject
 		redirectAllRequestsTo, d := rm.RedirectAllRequestsTo.Get(ctx)
 		diags.Append(d...)
 		if diags.HasError() {
-			return
+			return websiteConfig, diags
 		}
 
 		websiteConfig.RedirectAllRequestsTo = &s3.RedirectAllRequestsTo{
@@ -123,7 +123,7 @@ func (rm *BucketWebsiteConfigurationModel) CreateS3WebsiteConfigurationAPIObject
 		routingRules, d := rm.RoutingRules.Get(ctx)
 		diags.Append(d...)
 		if diags.HasError() {
-			return
+			return websiteConfig, diags
 		}
 
 		websiteConfig.RoutingRules = make([]*s3.RoutingRule, len(routingRules))
@@ -133,7 +133,7 @@ func (rm *BucketWebsiteConfigurationModel) CreateS3WebsiteConfigurationAPIObject
 			condition, d := routingRule.Condition.Get(ctx)
 			diags.Append(d...)
 			if diags.HasError() {
-				return
+				return websiteConfig, diags
 			}
 
 			websiteConfig.RoutingRules[i] = &s3.RoutingRule{
@@ -152,7 +152,7 @@ func (rm *BucketWebsiteConfigurationModel) CreateS3WebsiteConfigurationAPIObject
 		}
 	}
 
-	return
+	return websiteConfig, diags
 }
 
 func (rm *BucketWebsiteConfigurationModel) SetErrorDocument(ctx context.Context, errorDocument *BucketWebsiteConfigurationModelErrorDocument) diag.Diagnostics {

@@ -43,7 +43,7 @@ func (d *vdcgDataSource) Metadata(_ context.Context, req datasource.MetadataRequ
 // Init Initializes the resource.
 func (d *vdcgDataSource) Init(_ context.Context, _ *vdcgModel) (diags diag.Diagnostics) {
 	d.adminOrg, diags = adminorg.Init(d.client)
-	return
+	return diags
 }
 
 func (d *vdcgDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
