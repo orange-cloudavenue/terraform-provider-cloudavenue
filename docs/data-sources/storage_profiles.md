@@ -3,11 +3,14 @@ page_title: "cloudavenue_storage_profiles Data Source - cloudavenue"
 subcategory: "Storage"
 description: |-
   The cloudavenue_storage_profile data source can be used to access information about a storage profiles in a VDC.
+  !> Resource deprecated The resource has renamed to cloudavenue_vdc_storage_profiles https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdc_storage_profiles, it will be removed in the version v1.0.0 https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/28 of the provider. See the GitHub issue https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1175 for more information.
 ---
 
 # cloudavenue_storage_profiles (Data Source)
 
-The `cloudavenue_storage_profile` data source can be used to access information about a storage profiles in a VDC.
+The `cloudavenue_storage_profile` data source can be used to access information about a storage profiles in a VDC. 
+
+ !> **Resource deprecated** The resource has renamed to [`cloudavenue_vdc_storage_profiles`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdc_storage_profiles), it will be removed in the version [`v1.0.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/28) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1175) for more information.
 
 ## Example Usage
 
