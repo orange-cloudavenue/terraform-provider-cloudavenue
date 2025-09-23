@@ -19,7 +19,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/madflojo/testcerts v1.4.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.26.3
-	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20250922095448-28fa5931e88f
+	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20250923153013-fa86fe7dd609
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
 	github.com/orange-cloudavenue/common-go/regex v1.2.0
 	github.com/orange-cloudavenue/common-go/urn v1.4.0
@@ -102,7 +102,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/orange-cloudavenue/common-go/extractor v1.0.1 // indirect
-	github.com/orange-cloudavenue/common-go/generator v1.3.4 // indirect
+	github.com/orange-cloudavenue/common-go/generator v1.4.0 // indirect
 	github.com/orange-cloudavenue/common-go/internal/regex v0.0.0-20250812201424-07c3423160b3 // indirect
 	github.com/orange-cloudavenue/common-go/strcase v1.0.1-0.20250917151320-7ed879abafc0 // indirect
 	github.com/peterhellberg/link v1.2.0 // indirect
