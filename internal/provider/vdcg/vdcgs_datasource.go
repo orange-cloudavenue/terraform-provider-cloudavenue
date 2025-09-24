@@ -16,21 +16,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/vdcgroup/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
 
 var (
-	_ datasource.DataSource              = &vdcgDataSource{}
-	_ datasource.DataSourceWithConfigure = &vdcgDataSource{}
+	_ datasource.DataSource              = &vdcgsDataSource{}
+	_ datasource.DataSourceWithConfigure = &vdcgsDataSource{}
 )
 
-func NewVDCGDataSource() datasource.DataSource {
-	return &vdcgDataSource{}
+func NewVDCGsDataSource() datasource.DataSource {
+	return &vdcgsDataSource{}
 }
 
-type vdcgDataSource struct {
+type vdcgsDataSource struct {
 	// Client is a terraform Client
 	client *client.CloudAvenue
 
@@ -38,15 +39,15 @@ type vdcgDataSource struct {
 	vgClient *vdcgroup.Client
 }
 
-func (d *vdcgDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + categoryName
+func (d *vdcgsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "s"
 }
 
-func (d *vdcgDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = vdcgSchema(ctx).GetDataSource(ctx)
+func (d *vdcgsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = vdcgsSchema(ctx).GetDataSource(ctx)
 }
 
-func (d *vdcgDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *vdcgsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -75,10 +76,10 @@ func (d *vdcgDataSource) Configure(_ context.Context, req datasource.ConfigureRe
 	d.vgClient = vgC
 }
 
-func (d *vdcgDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	defer metrics.New("data.cloudavenue_vdcg", d.client.GetOrgName(), metrics.Read)()
+func (d *vdcgsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	defer metrics.New("data.cloudavenue_vdcgs", d.client.GetOrgName(), metrics.Read)()
 
-	config := &vdcgModel{}
+	config := &vdcgsModel{}
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
@@ -86,17 +87,26 @@ func (d *vdcgDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	s := &vdcgResource{
-		client:   d.client,
-		vgClient: d.vgClient,
+	vdcGroups, err := d.vgClient.ListVdcGroup(ctx, types.ParamsListVdcGroup{
+		ID:   config.FilterID.Get(),
+		Name: config.FilterID.Get(),
+	})
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to read VDC Groups, got error: %s", err),
+		)
+		return
 	}
 
-	// Read data from the API
-	data, diags := s.read(ctx, config)
-	resp.Diagnostics.Append(diags...)
+	data := &vdcgsModel{}
+	resp.Diagnostics.Append(data.fromSDK(ctx, vdcGroups)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	data.FilterID = config.FilterID
+	data.FilterName = config.FilterName
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)

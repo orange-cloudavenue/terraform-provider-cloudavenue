@@ -13,10 +13,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/orange-cloudavenue/common-go/urn"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/helpers"
 )
 
 var _ testsacc.TestACC = &VDCGResource{}
@@ -48,9 +50,7 @@ func (r *VDCGResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx c
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDCGroup)),
-					resource.TestCheckResourceAttrSet(resourceName, "status"),
-					resource.TestCheckResourceAttrSet(resourceName, "type"),
+					resource.TestCheckResourceAttrWith(resourceName, "id", helpers.TestIsType(urn.VDCGroup)),
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -87,6 +87,7 @@ func (r *VDCGResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx c
 							resource.TestCheckResourceAttr(resourceName, "vdc_ids.#", "2"),
 						},
 					},
+					// update name
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_vdcg" "example" {
@@ -101,6 +102,22 @@ func (r *VDCGResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx c
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "vdc_ids.#", "2"),
+						},
+					},
+					// remove vdc ids
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdcg" "example" {
+							name = {{ get . "name" }}
+							description = {{ get . "description" }}
+							vdc_ids = [
+								cloudavenue_vdc.example_vdc_group_2.id,
+							]
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "vdc_ids.#", "1"),
 						},
 					},
 				},
@@ -119,54 +136,6 @@ func (r *VDCGResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx c
 				},
 			}
 		},
-		// This test not working on testsacc
-		// "example_move_state": func(_ context.Context, resourceName string) testsacc.Test {
-		// 	return testsacc.Test{
-		// 		CommonChecks: []resource.TestCheckFunc{},
-		// 		// ! Create testing
-		// 		Create: testsacc.TFConfig{
-		// 			TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-		// 			resource "cloudavenue_vdc_group" "example_move_state" {
-		// 				name = "move-state"
-		// 				vdc_ids = [
-		// 					cloudavenue_vdc.example_vdc_group_1.id,
-		// 				]
-		// 			}`),
-		// 			Checks: []resource.TestCheckFunc{
-		// 				resource.TestCheckResourceAttrWith("cloudavenue_vdc_group.example_move_state", "id", urn.TestIsType(urn.VDCGroup)),
-		// 				resource.TestCheckResourceAttrSet("cloudavenue_vdc_group.example_move_state", "status"),
-		// 				resource.TestCheckResourceAttrSet("cloudavenue_vdc_group.example_move_state", "type"),
-		// 				resource.TestCheckResourceAttr("cloudavenue_vdc_group.example_move_state", "name", "move-state"),
-		// 				resource.TestCheckResourceAttr("cloudavenue_vdc_group.example_move_state", "vdc_ids.#", "1"),
-		// 			},
-		// 		},
-		// 		// ! Updates testing
-		// 		Updates: []testsacc.TFConfig{
-		// 			// Update description and add a new vdc_id
-		// 			{
-		// 				TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-		// 				resource "cloudavenue_vdcg" "example_move_state" {
-		// 					name = "move-state"
-		// 					vdc_ids = [
-		// 						cloudavenue_vdc.example_vdc_group_1.id,
-		// 					]
-		// 				}
-
-		// 				moved {
-		// 					from = cloudavenue_vdc_group.example
-		// 					to   = cloudavenue_vdcg.example
-		// 				}`),
-		// 				Checks: []resource.TestCheckFunc{
-		// 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDCGroup)),
-		// 					resource.TestCheckResourceAttrSet(resourceName, "status"),
-		// 					resource.TestCheckResourceAttrSet(resourceName, "type"),
-		// 					resource.TestCheckResourceAttr(resourceName, "name", "move-state"),
-		// 					resource.TestCheckResourceAttr(resourceName, "vdc_ids.#", "1"),
-		// 				},
-		// 			},
-		// 		},
-		// 	}
-		// },
 	}
 }
 

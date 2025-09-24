@@ -1,0 +1,11 @@
+```release-note:deprecation
+`resource/cloudavenue_vdcg` - The attributes `status` and `type` are removed and will no longer be available. These attributes were previously read-only and did not impact resource creation or updates.
+```
+
+```release-note:deprecation
+`datasource/cloudavenue_vdcg` - The attributes `status` and `type` are removed and will no longer be available.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_vdcgs` - New data source to list VDCGs with optional filtering by ID or Name.
+```

@@ -2,12 +2,12 @@
 page_title: "cloudavenue_vdcg Data Source - cloudavenue"
 subcategory: "vDC Group (Virtual Datacenter Group)"
 description: |-
-  The cloudavenue_vdcg data source allows you to retrieve informations about an existing virtual datacenter group.
+  Retrieves information about an existing Virtual Data Center Group (VDC Group) in Cloud Avenue.
 ---
 
 # cloudavenue_vdcg (Data Source)
 
-The `cloudavenue_vdcg` data source allows you to retrieve informations about an existing virtual datacenter group.
+Retrieves information about an existing Virtual Data Center Group (VDC Group) in Cloud Avenue.
 
 ## Example Usage
 
@@ -22,12 +22,10 @@ data "cloudavenue_vdcg" "example" {
 
 ### Optional
 
-- `id` (String) The ID of the VDC Group. Ensure that one and only one attribute from this collection is set : `name`, `id`.
-- `name` (String) The name of the VDC Group. Ensure that one and only one attribute from this collection is set : `name`, `id`.
+- `id` (String) Unique identifier of the VDC Group. Ensure that one and only one attribute from this collection is set : `name`, `id`.
+- `name` (String) Name assigned to the VDC Group. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 
 ### Read-Only
 
-- `description` (String) The description of the VDC Group.
-- `status` (String) The status of the VDC Group. Value must be one of : `SAVING`, `SAVED`, `CONFIGURING`, `REALIZED`, `REALIZATION_FAILED`, `DELETING`, `DELETE_FAILED`, `OBJECT_NOT_FOUND`, `UNCONFIGURED`.
-- `type` (String) The type of the VDC Group. Value must be one of : `LOCAL`, `UNIVERSAL`.
-- `vdc_ids` (Set of String) List of VDC IDs attached to the VDC Group.
+- `description` (String) Detailed description of the VDC Group and its purpose.
+- `vdc_ids` (Set of String) A set of Virtual Data Center (VDC) IDs that are members of this VDC Group.
