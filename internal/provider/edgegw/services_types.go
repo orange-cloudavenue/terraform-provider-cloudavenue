@@ -17,28 +17,29 @@ import (
 
 type (
 	ServicesModel struct {
-		ID              supertypes.StringValue                                   `tfsdk:"id"`
-		EdgeGatewayName supertypes.StringValue                                   `tfsdk:"edge_gateway_name"`
-		EdgeGatewayID   supertypes.StringValue                                   `tfsdk:"edge_gateway_id"`
-		Network         supertypes.StringValue                                   `tfsdk:"network"`
-		IPAddress       supertypes.StringValue                                   `tfsdk:"ip_address"`
-		Services        supertypes.MapNestedObjectValueOf[ServicesModelServices] `tfsdk:"services"`
+		ID              supertypes.StringValue                                  `tfsdk:"id"`
+		EdgeGatewayName supertypes.StringValue                                  `tfsdk:"edge_gateway_name"`
+		EdgeGatewayID   supertypes.StringValue                                  `tfsdk:"edge_gateway_id"`
+		Network         supertypes.StringValue                                  `tfsdk:"network"`
+		IPAddress       supertypes.StringValue                                  `tfsdk:"ip_address"`
+		Services        supertypes.MapNestedObjectValueOf[ServicesModelCatalog] `tfsdk:"services"`
 	}
 
-	ServicesModelServices struct {
-		Network  supertypes.StringValue                                  `tfsdk:"network"`
-		Services supertypes.MapNestedObjectValueOf[ServicesModelService] `tfsdk:"services"`
+	ServicesModelCatalog struct {
+		Network  supertypes.StringValue                                         `tfsdk:"network"`
+		Category supertypes.StringValue                                         `tfsdk:"category"`
+		Services supertypes.MapNestedObjectValueOf[ServicesModelCatalogService] `tfsdk:"services"`
 	}
 
-	ServicesModelService struct {
-		Name        supertypes.StringValue                                        `tfsdk:"name"`
-		Description supertypes.StringValue                                        `tfsdk:"description"`
-		IPs         supertypes.ListValueOf[string]                                `tfsdk:"ips"`
-		FQDNs       supertypes.ListValueOf[string]                                `tfsdk:"fqdns"`
-		Ports       supertypes.ListNestedObjectValueOf[ServicesModelServicePorts] `tfsdk:"ports"`
+	ServicesModelCatalogService struct {
+		Name        supertypes.StringValue                                               `tfsdk:"name"`
+		Description supertypes.StringValue                                               `tfsdk:"description"`
+		IPs         supertypes.ListValueOf[string]                                       `tfsdk:"ips"`
+		FQDNs       supertypes.ListValueOf[string]                                       `tfsdk:"fqdns"`
+		Ports       supertypes.ListNestedObjectValueOf[ServicesModelCatalogServicePorts] `tfsdk:"ports"`
 	}
 
-	ServicesModelServicePorts struct {
+	ServicesModelCatalogServicePorts struct {
 		Port     supertypes.Int32Value  `tfsdk:"port"`
 		Protocol supertypes.StringValue `tfsdk:"protocol"`
 	}

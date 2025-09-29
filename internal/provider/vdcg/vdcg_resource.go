@@ -21,7 +21,6 @@ import (
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/vdcgroup/v1"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -116,7 +115,7 @@ func (r *vdcgResource) Create(ctx context.Context, req resource.CreateRequest, r
 					ID: id,
 				})
 			}
-			return
+			return vdcs
 		}(),
 	})
 	if err != nil {
@@ -197,7 +196,7 @@ func (r *vdcgResource) Update(ctx context.Context, req resource.UpdateRequest, r
 					ID: id,
 				})
 			}
-			return
+			return vdcs
 		}(),
 	})
 	if err != nil {

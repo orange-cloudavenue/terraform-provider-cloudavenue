@@ -25,13 +25,13 @@ resource "cloudavenue_edgegateway_services" "example" {
 
 ### Optional
 
-- `edge_gateway_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Identifier of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
-- `edge_gateway_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
+- `edge_gateway_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Identifier of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`. Must be a valid URN. This value must start with `urn:vcloud:gateway:`.
+- `edge_gateway_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`. Edge Gateway name (tn01e02ocb0001234spt101).
 
 ### Read-Only
 
 - `id` (String) Unique identifier of the services.
-- `ip_address` (String) Dedicated IP address for the CloudAvenue services.
+- `ip_address` (String) Dedicated IP for the service (used for the NAT to connect to the service).
 - `network` (String) Allocated network for the CloudAvenue services.
 - `services` (Attributes Map) Collection of services. (see [below for nested schema](#nestedatt--services))
 
@@ -40,6 +40,7 @@ resource "cloudavenue_edgegateway_services" "example" {
 
 Read-Only:
 
+- `category` (String) Category of services.
 - `network` (String) Network for accessing this category of services.
 - `services` (Attributes Map) Details of individual services. (see [below for nested schema](#nestedatt--services--services))
 
@@ -60,7 +61,7 @@ Read-Only:
 Read-Only:
 
 - `port` (Number) Port number used by the service.
-- `protocol` (String) Protocol used by the service (e.g., TCP, UDP). Value must be one of : `tcp`, `udp`.
+- `protocol` (String) Protocol used by the service (e.g., TCP, UDP).
 
 ## Import
 

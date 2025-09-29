@@ -35,7 +35,7 @@ func (rm *vdcgModel) Copy() *vdcgModel {
 
 func (rm *vdcgModel) fromSDK(ctx context.Context, data *types.ModelGetVdcGroup) (diags diag.Diagnostics) {
 	if data == nil {
-		return
+		return diags
 	}
 
 	rm.ID.Set(data.ID)
@@ -51,5 +51,5 @@ func (rm *vdcgModel) fromSDK(ctx context.Context, data *types.ModelGetVdcGroup) 
 		rm.VDCIDs.SetNull(ctx)
 	}
 
-	return
+	return diags
 }

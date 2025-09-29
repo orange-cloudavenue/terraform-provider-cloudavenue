@@ -1,0 +1,3 @@
+```release-note:enhancement
+`cloudavenue_edgegateway_services` - Add computed attribute `services.category` exposing the category name for each services catalog entry.
+```
