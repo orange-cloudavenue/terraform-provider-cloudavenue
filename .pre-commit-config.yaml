@@ -9,14 +9,14 @@ default_install_hook_types:
 
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v5.0.0
+  rev: v6.0.0
   hooks:
     - id: check-merge-conflict
     - id: forbid-submodules
 
 ## GOLANG
 - repo: https://github.com/golangci/golangci-lint
-  rev: v2.0.2
+  rev: v2.5.0
   hooks:
     - id: golangci-lint
       entry: bash -c 'exec golangci-lint run -j=6'
@@ -32,7 +32,7 @@ repos:
 
 ## GIT
 - repo: https://github.com/compilerla/conventional-pre-commit
-  rev: v4.0.0
+  rev: v4.2.0
   hooks:
     - id: conventional-pre-commit
       stages: [commit-msg]
@@ -40,6 +40,6 @@ repos:
 
 ## SECURITY
 - repo: https://github.com/gitleaks/gitleaks
-  rev: v8.24.0
+  rev: v8.28.0
   hooks:
     - id: gitleaks

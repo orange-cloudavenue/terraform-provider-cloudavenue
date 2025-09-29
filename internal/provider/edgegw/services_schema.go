@@ -12,7 +12,9 @@ package edgegw
 import (
 	"context"
 
+	"github.com/orange-cloudavenue/common-go/urn"
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
+	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -23,6 +25,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/validators"
 )
 
 func servicesSchema(_ context.Context) superschema.Schema {
@@ -36,8 +40,8 @@ func servicesSchema(_ context.Context) superschema.Schema {
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					Computed:            true,
 					MarkdownDescription: "Unique identifier of the services.",
+					Computed:            true,
 				},
 			},
 			"edge_gateway_name": superschema.SuperStringAttribute{
@@ -45,12 +49,15 @@ func servicesSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "Name of the Edge Gateway.",
 					Optional:            true,
 					Computed:            true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						validators.ResourceName("edgegateway"),
+					},
+				},
+				Resource: &schemaR.StringAttribute{
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
 						stringplanmodifier.UseStateForUnknown(),
-					},
-					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
 					},
 				},
 			},
@@ -65,6 +72,8 @@ func servicesSchema(_ context.Context) superschema.Schema {
 					},
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						fstringvalidator.IsURN(),
+						fstringvalidator.PrefixContains(urn.EdgeGateway.String()),
 					},
 				},
 			},
@@ -76,11 +85,11 @@ func servicesSchema(_ context.Context) superschema.Schema {
 			},
 			"ip_address": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "Dedicated IP address for the CloudAvenue services.",
+					MarkdownDescription: "Dedicated IP for the service (used for the NAT to connect to the service).",
 					Computed:            true,
 				},
 			},
-			"services": superschema.SuperMapNestedAttributeOf[ServicesModelServices]{
+			"services": superschema.SuperMapNestedAttributeOf[ServicesModelCatalog]{
 				Common: &schemaR.MapNestedAttribute{
 					MarkdownDescription: "Collection of services.",
 					Computed:            true,
@@ -92,7 +101,13 @@ func servicesSchema(_ context.Context) superschema.Schema {
 							Computed:            true,
 						},
 					},
-					"services": superschema.SuperMapNestedAttributeOf[ServicesModelService]{
+					"category": superschema.SuperStringAttribute{
+						Common: &schemaR.StringAttribute{
+							MarkdownDescription: "Category of services.",
+							Computed:            true,
+						},
+					},
+					"services": superschema.SuperMapNestedAttributeOf[ServicesModelCatalogService]{
 						Common: &schemaR.MapNestedAttribute{
 							MarkdownDescription: "Details of individual services.",
 							Computed:            true,
@@ -122,7 +137,7 @@ func servicesSchema(_ context.Context) superschema.Schema {
 									Computed:            true,
 								},
 							},
-							"ports": superschema.SuperListNestedAttributeOf[ServicesModelServicePorts]{
+							"ports": superschema.SuperListNestedAttributeOf[ServicesModelCatalogServicePorts]{
 								Common: &schemaR.ListNestedAttribute{
 									MarkdownDescription: "List of ports used by the service.",
 									Computed:            true,
@@ -138,9 +153,6 @@ func servicesSchema(_ context.Context) superschema.Schema {
 										Common: &schemaR.StringAttribute{
 											MarkdownDescription: "Protocol used by the service (e.g., TCP, UDP).",
 											Computed:            true,
-											Validators: []validator.String{
-												stringvalidator.OneOf("tcp", "udp"),
-											},
 										},
 									},
 								},

@@ -14,11 +14,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgegateway"
+	edgegateway "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -34,20 +32,8 @@ func NewServicesDataSource() datasource.DataSource {
 
 type ServicesDataSource struct {
 	client *client.CloudAvenue
-	edge   edgegateway.Client
-}
-
-// Init Initializes the data source.
-func (d *ServicesDataSource) Init(_ context.Context, _ *ServicesModel) (diags diag.Diagnostics) {
-	edge, err := edgegateway.NewClient()
-	if err != nil {
-		diags.AddError("Client Initialization Error", fmt.Sprintf("Failed to create edge gateway client: %s", err))
-		return diags
-	}
-
-	d.edge = edge
-
-	return diags
+	// eClient is the Edge Gateway client from the SDK V2
+	eClient *edgegateway.Client
 }
 
 func (d *ServicesDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -72,11 +58,22 @@ func (d *ServicesDataSource) Configure(_ context.Context, req datasource.Configu
 		)
 		return
 	}
+
+	eC, err := edgegateway.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create Edge Gateway client, got error: %s", err),
+		)
+		return
+	}
+
 	d.client = client
+	d.eClient = eC
 }
 
 func (d *ServicesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	defer metrics.New("data.cloudavenue_edgegw_services", d.client.GetOrgName(), metrics.Read)()
+	defer metrics.New("data.cloudavenue_edgegateway_services", d.client.GetOrgName(), metrics.Read)()
 
 	config := &ServicesModel{}
 
@@ -86,32 +83,17 @@ func (d *ServicesDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(d.Init(ctx, config)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	/*
-		Implement the data source read logic here.
-	*/
-
 	s := &ServicesResource{
-		client: d.client,
-		edge:   d.edge,
+		client:  d.client,
+		eClient: d.eClient,
 	}
 
-	// Read data from the API
-	data, found, diags := s.read(ctx, config)
-	if !found {
-		resp.Diagnostics.AddError("Resource not found", "The resource was not found")
-		return
-	}
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	data, diags := s.read(ctx, config)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
 		return
 	}
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }

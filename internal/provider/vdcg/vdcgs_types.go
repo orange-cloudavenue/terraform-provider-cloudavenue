@@ -44,7 +44,7 @@ type (
 
 func (rm *vdcgsModel) fromSDK(ctx context.Context, data *types.ModelListVdcGroup) (diags diag.Diagnostics) {
 	if data == nil {
-		return
+		return diags
 	}
 
 	// listOfVDCGIDs is used to create an ID for the datasource
@@ -70,7 +70,7 @@ func (rm *vdcgsModel) fromSDK(ctx context.Context, data *types.ModelListVdcGroup
 		}
 		diags.Append(item.VDCs.Set(ctx, listOfVDCs)...)
 		if diags.HasError() {
-			return
+			return diags
 		}
 
 		listOfVDCgs = append(listOfVDCgs, item)
@@ -85,5 +85,5 @@ func (rm *vdcgsModel) fromSDK(ctx context.Context, data *types.ModelListVdcGroup
 
 	diags.Append(rm.VDCGs.Set(ctx, listOfVDCgs)...)
 
-	return
+	return diags
 }
