@@ -58,7 +58,7 @@ func (r *firewallResource) Init(_ context.Context, rm *firewallModel) (diags dia
 
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
@@ -67,10 +67,10 @@ func (r *firewallResource) Init(_ context.Context, rm *firewallModel) (diags dia
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -325,7 +325,7 @@ func (r *firewallResource) createOrUpdate(ctx context.Context, plan *firewallMod
 	vdcOrVDCGroup, err := r.edgegw.GetParent()
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway parent", err.Error())
-		return
+		return diags
 	}
 
 	if vdcOrVDCGroup.IsVDCGroup() {
@@ -340,17 +340,17 @@ func (r *firewallResource) createOrUpdate(ctx context.Context, plan *firewallMod
 	fwRules, d := plan.rulesToNsxtFirewallRule(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	if _, err := r.edgegw.UpdateNsxtFirewall(&govcdtypes.NsxtFirewallRuleContainer{
 		UserDefinedRules: fwRules,
 	}); err != nil {
 		diags.AddError("Error to create Firewall", err.Error())
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 // read is a generic read function for the resource.

@@ -38,7 +38,7 @@ func (r *StorageProfileDataSource) GetResourceName() string {
 
 func (r *StorageProfileDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *StorageProfileDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

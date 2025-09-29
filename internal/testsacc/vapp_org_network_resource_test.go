@@ -39,7 +39,7 @@ func (r *VAppOrgNetworkResource) GetResourceName() string {
 func (r *VAppOrgNetworkResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[VAppResourceName]().GetDefaultConfig)
 	resp.Append(GetResourceConfig()[NetworkRoutedResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *VAppOrgNetworkResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

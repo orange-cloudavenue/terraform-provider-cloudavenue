@@ -37,7 +37,7 @@ func (r *NATRuleResource) GetResourceName() string {
 
 func (r *NATRuleResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *NATRuleResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -258,7 +258,7 @@ func (r *NATRuleResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[EdgeGatewayAppPortProfileResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -353,7 +353,7 @@ func (r *NATRuleResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetSpecificConfig("example_with_vdc_group"))
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

@@ -41,7 +41,7 @@ type BucketLifecycleConfigurationDataSource struct {
 // Init Initializes the data source.
 func (d *BucketLifecycleConfigurationDataSource) Init(_ context.Context, _ *BucketLifecycleConfigurationDatasourceModel) (diags diag.Diagnostics) {
 	d.s3Client = d.client.CAVSDK.V1.S3()
-	return
+	return diags
 }
 
 func (d *BucketLifecycleConfigurationDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

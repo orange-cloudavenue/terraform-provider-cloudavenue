@@ -56,7 +56,7 @@ func (r *catalogResource) Init(_ context.Context, rm *catalogResourceModel) (dia
 
 	r.adminOrg, diags = adminorg.Init(r.client)
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

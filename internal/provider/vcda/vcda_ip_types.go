@@ -15,13 +15,13 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
-type vcdaIPResourceModel struct {
+type VcdaIPResourceModel struct { //nolint:revive
 	ID        supertypes.StringValue `tfsdk:"id"`
 	IPAddress supertypes.StringValue `tfsdk:"ip_address"`
 }
 
-func (rm *vcdaIPResourceModel) Copy() *vcdaIPResourceModel {
-	x := &vcdaIPResourceModel{}
+func (rm *VcdaIPResourceModel) Copy() *VcdaIPResourceModel {
+	x := &VcdaIPResourceModel{}
 	utils.ModelCopy(rm, x)
 	return x
 }

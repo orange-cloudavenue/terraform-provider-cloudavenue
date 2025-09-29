@@ -19,7 +19,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgegateway"
+	edgegateway "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+	sdktypes "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
@@ -40,20 +41,8 @@ func NewServicesResource() resource.Resource {
 // ServicesResource is the resource implementation.
 type ServicesResource struct {
 	client *client.CloudAvenue
-	edge   edgegateway.Client
-}
-
-// Init Initializes the resource.
-func (r *ServicesResource) Init(_ context.Context, _ *ServicesModel) (diags diag.Diagnostics) {
-	edge, err := edgegateway.NewClient()
-	if err != nil {
-		diags.AddError("Client Initialization Error", fmt.Sprintf("Failed to create edge gateway client: %s", err))
-		return
-	}
-
-	r.edge = edge
-
-	return
+	// eClient is the Edge Gateway client from the SDK V2
+	eClient *edgegateway.Client
 }
 
 // Metadata returns the resource type name.
@@ -81,6 +70,17 @@ func (r *ServicesResource) Configure(_ context.Context, req resource.ConfigureRe
 		return
 	}
 	r.client = client
+
+	// Initialize SDK v2 EdgeGateway client
+	eC, err := edgegateway.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create Edge Gateway client, got error: %s", err),
+		)
+		return
+	}
+	r.eClient = eC
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -95,39 +95,19 @@ func (r *ServicesResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, plan)...)
-	if resp.Diagnostics.HasError() {
+	// Build params
+	params := r.paramsFromModel(plan)
+
+	// Enable CloudAvenue services (sdkv2 already checks if enabled)
+	cloudavenue.Lock(ctx)
+	defer cloudavenue.Unlock(ctx)
+	if err := r.eClient.EnableCloudavenueServices(ctx, params); err != nil {
+		resp.Diagnostics.AddError("EdgeGateway Service Activation Error", fmt.Sprintf("Failed to enable network service: %s", err))
 		return
-	}
-
-	/*
-		Implement the resource creation logic here.
-	*/
-
-	edge, err := r.genericGetEdgeGateway(ctx, plan)
-	if err != nil {
-		resp.Diagnostics.AddError("Edge Gateway Retrieval Error", fmt.Sprintf("Failed to retrieve edge gateway: %s", err))
-		return
-	}
-
-	// * Allow the service to already be enabled as some edges may have the parameter enabled by default.
-	if !edge.NetworkServiceIsEnabled() {
-		cloudavenue.Lock(ctx)
-		defer cloudavenue.Unlock(ctx)
-
-		if err := edge.EnableNetworkService(ctx); err != nil {
-			resp.Diagnostics.AddError("EdgeGateway Service Activation Error", fmt.Sprintf("Failed to enable network service: %s", err))
-			return
-		}
 	}
 
 	// Use generic read function to refresh the state
-	state, found, d := r.read(ctx, plan)
-	if !found {
-		resp.Diagnostics.AddError("Resource not found", "The resource was not found after creation")
-		return
-	}
+	state, d := r.read(ctx, plan)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -149,21 +129,12 @@ func (r *ServicesResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Refresh the state
-	stateRefreshed, found, d := r.read(ctx, state)
-	if !found {
-		resp.Diagnostics.AddError("Resource not found", "The resource was not found after refresh")
-		resp.State.RemoveResource(ctx)
-		return
-	}
+	// Refresh the state using SDK v2
+	stateRefreshed, d := r.read(ctx, state)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
+		// Remove from state when read fails (resource not available/disabled)
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -191,26 +162,13 @@ func (r *ServicesResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	/*
-		Implement the resource deletion here
-	*/
-
-	edge, err := r.genericGetEdgeGateway(ctx, state)
-	if err != nil {
-		resp.Diagnostics.AddError("Edge Gateway Retrieval Error", fmt.Sprintf("Failed to retrieve edge gateway: %s", err))
-		return
-	}
+	// Disable CloudAvenue services via SDK v2 if enabled
+	params := r.paramsFromModel(state)
 
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
 
-	if err := edge.DisableNetworkService(ctx); err != nil {
+	if err := r.eClient.DisableCloudavenueServices(ctx, params); err != nil {
 		resp.Diagnostics.AddError("EdgeGateway Service Disablement Error", fmt.Sprintf("Failed to disable network service: %s", err))
 		return
 	}
@@ -226,81 +184,74 @@ func (r *ServicesResource) ImportState(_ context.Context, _ resource.ImportState
 // * CustomFuncs
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
-func (r *ServicesResource) read(ctx context.Context, planOrState *ServicesModel) (stateRefreshed *ServicesModel, found bool, diags diag.Diagnostics) {
+func (r *ServicesResource) read(ctx context.Context, planOrState *ServicesModel) (stateRefreshed *ServicesModel, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
-	/*
-		Implement the resource read here
-	*/
-
-	edge, err := r.genericGetEdgeGateway(ctx, planOrState)
+	// Read using SDK v2
+	params := r.paramsFromModel(planOrState)
+	svc, err := r.eClient.GetServices(ctx, params)
 	if err != nil {
-		diags.AddError("Edge Gateway Retrieval Error", fmt.Sprintf("Failed to retrieve edge gateway: %s", err))
-		return nil, true, diags
+		diags.AddError("Client Error", fmt.Sprintf("Failed to retrieve edge gateway services: %s", err))
+		return nil, diags
 	}
-
-	if !edge.NetworkServiceIsEnabled() {
+	if svc == nil || svc.Services == nil {
 		diags.AddError("Edge Gateway Service Disabled", "The edge gateway service is disabled")
-		return nil, false, diags
+		return nil, diags
 	}
 
-	stateRefreshed.ID.Set(edge.ID)
-	stateRefreshed.EdgeGatewayName.Set(edge.Name)
-	stateRefreshed.EdgeGatewayID.Set(edge.ID)
-	stateRefreshed.Network.Set(edge.Services.Service.Network)
-	stateRefreshed.IPAddress.Set(edge.Services.Service.DedicatedIPForService)
-	svcs := map[string]*ServicesModelServices{}
+	// Top-level
+	stateRefreshed.ID.Set(svc.Services.ID)
 
-	for _, svc := range edge.Services.Service.ServiceDetails {
-		if _, ok := svcs[svc.Category]; !ok {
-			svcs[svc.Category] = &ServicesModelServices{
-				Network:  supertypes.NewStringValueOrNull(svc.Network),
-				Services: supertypes.NewMapNestedObjectValueOfNull[ServicesModelService](ctx),
+	stateRefreshed.EdgeGatewayName.Set(svc.Name)
+	stateRefreshed.EdgeGatewayID.Set(svc.ID)
+	stateRefreshed.Network.Set(svc.Services.Network)
+	stateRefreshed.IPAddress.Set(svc.Services.IPAddress)
+
+	// Catalog mapping
+	catalogs := map[string]*ServicesModelCatalog{}
+	for _, cat := range svc.Services.Services {
+		catalogs[cat.Category] = &ServicesModelCatalog{
+			Network:  supertypes.NewStringValueOrNull(cat.Network),
+			Category: supertypes.NewStringValue(cat.Category),
+			Services: supertypes.NewMapNestedObjectValueOfNull[ServicesModelCatalogService](ctx),
+		}
+
+		svMap := map[string]*ServicesModelCatalogService{}
+		for _, s := range cat.Services {
+			ports := make([]*ServicesModelCatalogServicePorts, len(s.Ports))
+			for i, p := range s.Ports {
+				ports[i] = &ServicesModelCatalogServicePorts{
+					Port:     supertypes.NewInt32Null(),
+					Protocol: supertypes.NewStringNull(),
+				}
+				ports[i].Port.SetInt(p.Port)
+				ports[i].Protocol.Set(p.Protocol)
+			}
+
+			svMap[s.Name] = &ServicesModelCatalogService{
+				Name:        supertypes.NewStringValue(s.Name),
+				Description: supertypes.NewStringValue(s.Description),
+				IPs:         supertypes.NewListValueOfSlice(ctx, s.IPs),
+				FQDNs:       supertypes.NewListValueOfSlice(ctx, s.FQDNs),
+				Ports:       supertypes.NewListNestedObjectValueOfSlice(ctx, ports),
 			}
 		}
 
-		svs := map[string]*ServicesModelService{}
-
-		for _, s := range svc.Services {
-			if _, ok := svs[s.Name]; !ok {
-				ports := make([]*ServicesModelServicePorts, len(s.Ports))
-				for i, p := range s.Ports {
-					ports[i] = &ServicesModelServicePorts{
-						Port:     supertypes.NewInt32Null(),
-						Protocol: supertypes.NewStringNull(),
-					}
-
-					ports[i].Port.SetInt(p.Port)
-					ports[i].Protocol.Set(p.Protocol)
-				}
-
-				svs[s.Name] = &ServicesModelService{
-					Name:        supertypes.NewStringValue(s.Name),
-					Description: supertypes.NewStringValue(s.Description),
-					IPs:         supertypes.NewListValueOfSlice(ctx, s.IP),
-					FQDNs:       supertypes.NewListValueOfSlice(ctx, s.FQDN),
-					Ports:       supertypes.NewListNestedObjectValueOfSlice(ctx, ports),
-				}
-			}
-		}
-
-		diags.Append(svcs[svc.Category].Services.Set(ctx, svs)...)
+		diags.Append(catalogs[cat.Category].Services.Set(ctx, svMap)...) // set services for category
 		if diags.HasError() {
-			return nil, true, diags
+			return nil, diags
 		}
 	}
 
-	diags.Append(stateRefreshed.Services.Set(ctx, svcs)...)
+	diags.Append(stateRefreshed.Services.Set(ctx, catalogs)...) // set catalogs map
 
-	return stateRefreshed, true, diags
+	return stateRefreshed, diags
 }
 
-// genericGetEdgeGateway
-func (r *ServicesResource) genericGetEdgeGateway(ctx context.Context, rm *ServicesModel) (*edgegateway.EdgeGateway, error) {
-	idOrName := rm.EdgeGatewayID.Get()
-	if idOrName == "" {
-		idOrName = rm.EdgeGatewayName.Get()
+// paramsFromModel builds SDK v2 params from model
+func (r *ServicesResource) paramsFromModel(rm *ServicesModel) sdktypes.ParamsEdgeGateway {
+	return sdktypes.ParamsEdgeGateway{
+		ID:   rm.EdgeGatewayID.Get(),
+		Name: rm.EdgeGatewayName.Get(),
 	}
-
-	return r.edge.GetEdgeGateway(ctx, idOrName)
 }

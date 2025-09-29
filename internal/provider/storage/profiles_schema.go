@@ -24,6 +24,16 @@ func (d *profilesDataSource) superSchema(ctx context.Context) superschema.Schema
 	return superschema.Schema{
 		DataSource: superschema.SchemaDetails{
 			MarkdownDescription: "The `cloudavenue_storage_profile` data source can be used to access information about a storage profiles in a VDC.",
+			Deprecated: superschema.DeprecatedResource{
+				DeprecationMessage:                "This data source is deprecated and will be removed in a future release. Please use the `cloudavenue_vdc_storage_profiles` data source instead.",
+				ComputeMarkdownDeprecationMessage: true,
+				Renamed:                           true,
+				TargetResourceName:                "cloudavenue_vdc_storage_profiles",
+				TargetRelease:                     "v1.0.0",
+				LinkToMilestone:                   "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/28",
+				LinkToIssue:                       "https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1175",
+				LinkToNewResourceDoc:              "https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/data-sources/vdc_storage_profiles",
+			},
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{

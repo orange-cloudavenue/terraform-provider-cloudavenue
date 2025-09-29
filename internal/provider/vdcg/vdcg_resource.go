@@ -13,17 +13,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/vdcgroup/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -33,21 +32,18 @@ var (
 	_ resource.ResourceWithImportState = &vdcgResource{}
 )
 
-// NewvdcgResource is a helper function to simplify the provider implementation.
+// NewVDCGResource is a helper function to simplify the provider implementation.
 func NewVDCGResource() resource.Resource {
 	return &vdcgResource{}
 }
 
 // vdcgResource is the resource implementation.
 type vdcgResource struct {
-	client   *client.CloudAvenue
-	adminOrg adminorg.AdminOrg
-}
+	// Client is a terraform Client
+	client *client.CloudAvenue
 
-// Init Initializes the resource.
-func (r *vdcgResource) Init(_ context.Context, _ *vdcgModel) (diags diag.Diagnostics) {
-	r.adminOrg, diags = adminorg.Init(r.client)
-	return
+	// vgClient is the VDC Group client from the SDK V2
+	vgClient *vdcgroup.Client
 }
 
 // Metadata returns the resource type name.
@@ -74,7 +70,18 @@ func (r *vdcgResource) Configure(_ context.Context, req resource.ConfigureReques
 		)
 		return
 	}
+
+	vgC, err := vdcgroup.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create VDC Group client, got error: %s", err),
+		)
+		return
+	}
+
 	r.client = client
+	r.vgClient = vgC
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -89,12 +96,6 @@ func (r *vdcgResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	/*
 		Implement the resource creation logic here.
 	*/
@@ -105,23 +106,30 @@ func (r *vdcgResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	vdcGroup, err := r.adminOrg.CreateNsxtVdcGroup(plan.Name.Get(), plan.Description.Get(), vdcIDs[0], vdcIDs)
+	vdcGroup, err := r.vgClient.CreateVdcGroup(ctx, types.ParamsCreateVdcGroup{
+		Name:        plan.Name.Get(),
+		Description: plan.Description.Get(),
+		Vdcs: func() (vdcs []types.ParamsCreateVdcGroupVdc) {
+			for _, id := range vdcIDs {
+				vdcs = append(vdcs, types.ParamsCreateVdcGroupVdc{
+					ID: id,
+				})
+			}
+			return vdcs
+		}(),
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating VDC Group", err.Error())
 		return
 	}
 
-	plan.ID.Set(vdcGroup.VdcGroup.Id)
-
-	// Use generic read function to refresh the state
-	state, _, d := r.read(ctx, plan)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	resp.Diagnostics.Append(plan.fromSDK(ctx, vdcGroup)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -136,18 +144,8 @@ func (r *vdcgResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	// Refresh the state
-	stateRefreshed, found, d := r.read(ctx, state)
-	if !found {
-		resp.State.RemoveResource(ctx)
-		return
-	}
+	stateRefreshed, d := r.read(ctx, state)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
@@ -173,12 +171,6 @@ func (r *vdcgResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	/*
 		Implement the resource update here
 	*/
@@ -189,31 +181,36 @@ func (r *vdcgResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	// Here use GetVdcGroupById instead of GetVdcGroupByNameOrID because we want to update the name of VDC Group
-	vdcGroup, err := r.adminOrg.GetVdcGroupById(state.ID.Get())
+	vdcGroup, err := r.vgClient.UpdateVdcGroup(ctx, types.ParamsUpdateVdcGroup{
+		ID:   state.ID.Get(),
+		Name: plan.Name.Get(),
+		Description: func() *string {
+			if plan.Description.IsNull() {
+				return nil
+			}
+			return plan.Description.GetPtr()
+		}(),
+		Vdcs: func() (vdcs []types.ParamsCreateVdcGroupVdc) {
+			for _, id := range vdcIDs {
+				vdcs = append(vdcs, types.ParamsCreateVdcGroupVdc{
+					ID: id,
+				})
+			}
+			return vdcs
+		}(),
+	})
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading VDC Group", err.Error())
-		return
-	}
-
-	if _, err := vdcGroup.Update(plan.Name.Get(), plan.Description.Get(), vdcIDs); err != nil {
 		resp.Diagnostics.AddError("Error updating VDC Group", err.Error())
 		return
 	}
 
-	// Use generic read function to refresh the state
-	stateRefreshed, found, d := r.read(ctx, plan)
-	if !found {
-		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("Resource with name %s(%s) not found after update.", plan.Name.Get(), plan.ID.Get()))
-		return
-	}
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	resp.Diagnostics.Append(state.fromSDK(ctx, vdcGroup)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -228,23 +225,11 @@ func (r *vdcgResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(r.Init(ctx, state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	/*
-		Implement the resource deletion here
-	*/
-
-	vdcGroup, err := r.adminOrg.GetVdcGroupById(state.ID.Get())
-	if err != nil {
-		resp.Diagnostics.AddError("Error reading VDC Group", err.Error())
-		return
-	}
-
-	if err = vdcGroup.Delete(); err != nil {
+	if err := r.vgClient.DeleteVdcGroup(ctx, types.ParamsDeleteVdcGroup{
+		ID:    state.ID.Get(),
+		Name:  state.Name.Get(),
+		Force: false,
+	}); err != nil {
 		resp.Diagnostics.AddError("Error deleting VDC Group", err.Error())
 		return
 	}
@@ -255,72 +240,39 @@ func (r *vdcgResource) ImportState(ctx context.Context, req resource.ImportState
 
 	// id format is vdcGroupIDOrName
 
-	var d diag.Diagnostics
-
-	r.adminOrg, d = adminorg.Init(r.client)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
-		return
-	}
-
-	var (
-		vdcGroup *govcd.VdcGroup
-		err      error
-	)
-
+	param := types.ParamsGetVdcGroup{}
 	if urn.IsVDCGroup(req.ID) {
-		vdcGroup, err = r.adminOrg.GetVdcGroupById(req.ID)
+		param.ID = req.ID
 	} else {
-		vdcGroup, err = r.adminOrg.GetVdcGroupByName(req.ID)
+		param.Name = req.ID
 	}
+
+	vdcGroup, err := r.vgClient.GetVdcGroup(ctx, param)
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving VDC Group", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), vdcGroup.VdcGroup.Id)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), vdcGroup.VdcGroup.Name)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), vdcGroup.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), vdcGroup.Name)...)
 }
 
 // * CustomFuncs
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
-func (r *vdcgResource) read(ctx context.Context, planOrState *vdcgModel) (stateRefreshed *vdcgModel, found bool, diags diag.Diagnostics) {
+func (r *vdcgResource) read(ctx context.Context, planOrState *vdcgModel) (stateRefreshed *vdcgModel, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
-	/*
-		Implement the resource read here
-	*/
-
-	var (
-		vdcGroup *govcd.VdcGroup
-		err      error
-	)
-
-	if planOrState.ID.IsKnown() {
-		vdcGroup, err = r.adminOrg.GetVdcGroupById(planOrState.ID.Get())
-	} else {
-		vdcGroup, err = r.adminOrg.GetVdcGroupByName(planOrState.Name.Get())
-	}
+	vdcGroup, err := r.vgClient.GetVdcGroup(ctx, types.ParamsGetVdcGroup{
+		ID:   stateRefreshed.ID.Get(),
+		Name: stateRefreshed.Name.Get(),
+	})
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
-			return nil, false, nil
-		}
 		diags.AddError("Error reading VDC Group", err.Error())
-		return nil, true, diags
+		return nil, diags
 	}
 
-	var vdcIDs []string
-	for _, vdc := range vdcGroup.VdcGroup.ParticipatingOrgVdcs {
-		vdcIDs = append(vdcIDs, vdc.VdcRef.ID)
-	}
+	diags.Append(stateRefreshed.fromSDK(ctx, vdcGroup)...)
 
-	stateRefreshed.ID.Set(vdcGroup.VdcGroup.Id)
-	stateRefreshed.Name.Set(vdcGroup.VdcGroup.Name)
-	stateRefreshed.Description.Set(vdcGroup.VdcGroup.Description)
-	stateRefreshed.Status.Set(vdcGroup.VdcGroup.Status)
-	stateRefreshed.Type.Set(vdcGroup.VdcGroup.Type)
-	diags.Append(stateRefreshed.VDCIDs.Set(ctx, vdcIDs)...)
-
-	return stateRefreshed, true, diags
+	return stateRefreshed, diags
 }

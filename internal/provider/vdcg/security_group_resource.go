@@ -61,9 +61,9 @@ func (r *SecurityGroupResource) Init(_ context.Context, rm *SecurityGroupModel) 
 	r.vdcGroup, err = r.client.CAVSDK.V1.VDC().GetVDCGroup(idOrName)
 	if err != nil {
 		diags.AddError("Error retrieving VDC Group", err.Error())
-		return
+		return diags
 	}
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -389,7 +389,7 @@ func (r *SecurityGroupResource) validateNetworks(ctx context.Context, rm *Securi
 	networks, d := rm.Members.Get(ctx)
 	if d.HasError() {
 		diags.Append(d...)
-		return
+		return diags
 	}
 
 	for _, network := range networks {
@@ -406,7 +406,7 @@ func (r *SecurityGroupResource) validateNetworks(ctx context.Context, rm *Securi
 		}
 	}
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	return nil

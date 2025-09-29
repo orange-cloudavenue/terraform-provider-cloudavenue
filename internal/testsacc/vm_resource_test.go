@@ -76,7 +76,7 @@ func (r *VMResource) GetResourceName() string {
 func (r *VMResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[VAppOrgNetworkResourceName]().GetDefaultConfig)
 	resp.Append(GetResourceConfig()[CatalogVAppTemplateDataSourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *VMResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

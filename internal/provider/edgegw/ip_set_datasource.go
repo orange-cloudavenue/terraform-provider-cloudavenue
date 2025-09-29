@@ -46,7 +46,7 @@ func (d *ipSetDataSource) Init(_ context.Context, dm *IPSetModel) (diags diag.Di
 
 	d.org, diags = org.Init(d.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	d.edgegw, err = d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
@@ -55,7 +55,7 @@ func (d *ipSetDataSource) Init(_ context.Context, dm *IPSetModel) (diags diag.Di
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
 	if d.edgegw.OwnerType.IsVDCGROUP() {
@@ -65,7 +65,7 @@ func (d *ipSetDataSource) Init(_ context.Context, dm *IPSetModel) (diags diag.Di
 		)
 	}
 
-	return
+	return diags
 }
 
 func (d *ipSetDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

@@ -45,7 +45,7 @@ func (d *securityGroupDataSource) Init(_ context.Context, dm *SecurityGroupModel
 
 	d.org, diags = org.Init(d.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	d.edgegw, err = d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
@@ -54,7 +54,7 @@ func (d *securityGroupDataSource) Init(_ context.Context, dm *SecurityGroupModel
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
 	if d.edgegw.OwnerType.IsVDCGROUP() {
@@ -64,7 +64,7 @@ func (d *securityGroupDataSource) Init(_ context.Context, dm *SecurityGroupModel
 		)
 	}
 
-	return
+	return diags
 }
 
 func (d *securityGroupDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

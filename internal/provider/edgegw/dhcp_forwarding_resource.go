@@ -57,7 +57,7 @@ func (r *dhcpForwardingResource) Init(_ context.Context, rm *DhcpForwardingModel
 
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
@@ -66,10 +66,10 @@ func (r *dhcpForwardingResource) Init(_ context.Context, rm *DhcpForwardingModel
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -358,7 +358,7 @@ func (r *dhcpForwardingResource) createOrUpdate(ctx context.Context, plan *DhcpF
 	vdcOrVDCGroup, err := r.edgegw.GetParent()
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway parent", err.Error())
-		return
+		return diags
 	}
 
 	if vdcOrVDCGroup.IsVDCGroup() {
@@ -372,12 +372,12 @@ func (r *dhcpForwardingResource) createOrUpdate(ctx context.Context, plan *DhcpF
 	dhcpForwarderConfig, d := plan.ToNsxtEdgeGatewayDhcpForwarder(ctx)
 	if d.HasError() {
 		diags.Append(d...)
-		return
+		return diags
 	}
 
 	if _, err := r.edgegw.UpdateDhcpForwarder(dhcpForwarderConfig); err != nil {
 		diags.AddError("Error on change DHCP forwarding configuration", err.Error())
-		return
+		return diags
 	}
 
 	return nil

@@ -37,7 +37,7 @@ func (r *IAMUserDataSource) GetResourceName() string {
 }
 
 func (r *IAMUserDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *IAMUserDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -47,7 +47,7 @@ func (r *IAMUserDataSource) Tests(_ context.Context) map[testsacc.TestName]func(
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[IAMUserResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
@@ -62,7 +62,7 @@ func (r *IAMUserDataSource) Tests(_ context.Context) map[testsacc.TestName]func(
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[IAMUserSAMLResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				Create: testsacc.TFConfig{
 					TFConfig: `

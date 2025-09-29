@@ -37,7 +37,7 @@ func (r *Tier0VRFsDataSource) GetResourceName() string {
 }
 
 func (r *Tier0VRFsDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *Tier0VRFsDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -51,6 +51,9 @@ func (r *Tier0VRFsDataSource) Tests(_ context.Context) map[testsacc.TestName]fun
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
 						resource.TestCheckResourceAttrSet(resourceName, "names.#"),
+						resource.TestCheckResourceAttrSet(resourceName, "t0s.#"),
+						resource.TestCheckResourceAttrSet(resourceName, "t0s.0.id"),
+						resource.TestCheckResourceAttrSet(resourceName, "t0s.0.name"),
 					},
 				},
 			}

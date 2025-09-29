@@ -38,7 +38,7 @@ func (r *VMDiskResource) GetResourceName() string {
 
 func (r *VMDiskResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[VMResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *VMDiskResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -46,7 +46,7 @@ func (r *VMDiskResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 		"example": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					return
+					return resp
 				},
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Disk)),
@@ -126,7 +126,7 @@ func (r *VMDiskResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 		"example_detachable_scsi": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					return
+					return resp
 				},
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Disk)),
@@ -206,7 +206,7 @@ func (r *VMDiskResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 		"example_internal_nvme": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					return
+					return resp
 				},
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Disk)),

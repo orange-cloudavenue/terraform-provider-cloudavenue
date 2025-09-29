@@ -150,10 +150,10 @@ func Init(_ *client.CloudAvenue, vdc vdc.VDC, vappID, vappName types.String) (va
 	if err != nil {
 		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			d.Append(diag.Diagnostics{DiagVAppNotFound}...)
-			return
+			return vapp, d
 		}
 		d.AddError("Error retrieving vApp", err.Error())
-		return
+		return vapp, d
 	}
 	return VAPP{VAPP: vappOut, vdc: vdc}, nil
 }
@@ -167,7 +167,7 @@ func Create(vdc vdc.VDC, vappName, description string) (vapp VAPP, d diag.Diagno
 	vappOut, err := vdc.CreateVAPP(vappName, description)
 	if err != nil {
 		d.AddError("Error creating vApp", err.Error())
-		return
+		return vapp, d
 	}
 	return VAPP{VAPP: vappOut, vdc: vdc}, nil
 }
@@ -176,20 +176,20 @@ func Create(vdc vdc.VDC, vappName, description string) (vapp VAPP, d diag.Diagno
 func (v VAPP) LockVAPP(ctx context.Context) (d diag.Diagnostics) {
 	if v.vdc.GetName() == "" || v.GetName() == "" || ctx == nil {
 		d.AddError("Incorrect lock args", "vDC: "+v.vdc.GetName()+" vApp: "+v.GetName())
-		return
+		return d
 	}
 	key := fmt.Sprintf("vdc:%s|vapp:%s", v.vdc.GetName(), v.GetName())
 	vcdMutexKV.KvLock(ctx, key)
-	return
+	return d
 }
 
 // UnlockVAPP unlocks the parent vApp.
 func (v VAPP) UnlockVAPP(ctx context.Context) (d diag.Diagnostics) {
 	if v.vdc.GetName() == "" || v.GetName() == "" || ctx == nil {
 		d.AddError("Incorrect lock args", "vDC: "+v.vdc.GetName()+" vApp: "+v.GetName())
-		return
+		return d
 	}
 	key := fmt.Sprintf("vdc:%s|vapp:%s", v.vdc.GetName(), v.GetName())
 	vcdMutexKV.KvUnlock(ctx, key)
-	return
+	return d
 }

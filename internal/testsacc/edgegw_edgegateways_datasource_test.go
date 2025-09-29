@@ -40,7 +40,7 @@ func (r *EdgeGatewaysDataSource) GetResourceName() string {
 func (r *EdgeGatewaysDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	// Add dependencies config to the resource
 	resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *EdgeGatewaysDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -53,6 +53,12 @@ func (r *EdgeGatewaysDataSource) Tests(_ context.Context) map[testsacc.TestName]
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
 						resource.TestCheckResourceAttrWith(resourceName, "edge_gateways.0.id", urn.TestIsType(urn.Gateway)),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateways.0.name"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateways.0.description"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateways.0.owner_name"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateways.0.owner_id"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateways.0.t0_name"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateways.0.t0_id"),
 					},
 				},
 			}

@@ -62,13 +62,13 @@ func (r *NetworkRoutedResource) Init(_ context.Context, rm *NetworkRoutedModel) 
 			"Error retrieving VDC Group",
 			fmt.Sprintf("Error retrieving VDC Group %q: %s", idOrName, err),
 		)
-		return
+		return diags
 	}
 
 	rm.VDCGroupID.Set(r.vdcg.GetID())
 	rm.VDCGroupName.Set(r.vdcg.GetName())
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

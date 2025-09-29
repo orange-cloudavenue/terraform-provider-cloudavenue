@@ -1,0 +1,15 @@
+```release-note:new-data-source
+`datasource/cloudavenue_vdc_storage_profiles` - Add new data source to retrieve a list of all storage profiles contains in VDC.
+```
+
+```release-note:new-data-source
+`datasource/cloudavenue_vdc_storage_profile` - Add new data source to retrieve a storage profile contains in VDC.
+```
+
+```release-note:deprecation
+`datasource/cloudavenue_storage_profile` - This data source is deprecated and has been replaced by `cloudavenue_vdc_storage_profile`. It will be permanently removed in version v1.0.0.
+```
+
+```release-note:deprecation
+`datasource/cloudavenue_storage_profiles` - This data source is deprecated and has been replaced by `cloudavenue_vdc_storage_profiles`. It will be permanently removed in version v1.0.0.
+```

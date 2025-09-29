@@ -47,7 +47,7 @@ type BucketVersioningConfigurationResource struct {
 // Init Initializes the resource.
 func (r *BucketVersioningConfigurationResource) Init(_ context.Context, _ *BucketVersioningConfigurationModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -259,7 +259,7 @@ func (r *BucketVersioningConfigurationResource) read(ctx context.Context, planOr
 	})
 	if err != nil {
 		diags.AddError("Error retrieving bucket versioning configuration", err.Error())
-		return
+		return stateRefreshed, found, diags
 	}
 
 	stateRefreshed.Status.SetPtr(versioningResponse.Status)

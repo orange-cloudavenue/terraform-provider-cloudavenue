@@ -49,7 +49,7 @@ func (d *appPortProfileDataSource) Init(_ context.Context, dm *AppPortProfileMod
 
 	d.org, diags = org.Init(d.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	// Retrieve VDC from edge gateway
@@ -59,10 +59,10 @@ func (d *appPortProfileDataSource) Init(_ context.Context, dm *AppPortProfileMod
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 func (d *appPortProfileDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -135,7 +135,7 @@ func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.Read
 			}
 
 			msg += "Please provide the ID of the App Port Profile to uniquely identify it or add the scope."
-			return
+			return msg
 		}())
 		return
 	}

@@ -14,13 +14,13 @@ import (
 	"context"
 	"regexp"
 	"testing"
-	"time"
+
+	"github.com/orange-cloudavenue/common-go/regex"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
 )
 
 var _ testsacc.TestACC = &EdgeGatewayResource{}
@@ -42,7 +42,7 @@ func (r *EdgeGatewayResource) GetResourceName() string {
 
 func (r *EdgeGatewayResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetDataSourceConfig()[Tier0VRFDataSourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *EdgeGatewayResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -52,27 +52,30 @@ func (r *EdgeGatewayResource) Tests(_ context.Context) map[testsacc.TestName]fun
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
+					resource.TestMatchResourceAttr(resourceName, "t0_name", regex.T0NameRegex()),
 
 					// Read-Only attributes
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
-					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regex.T0NameRegex()),
+					resource.TestCheckResourceAttrWith(resourceName, "t0_id", urn.TestIsType(urn.Network)),
+					resource.TestMatchResourceAttr(resourceName, "name", regex.EdgeGatewayNameRegex()),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 					resource "cloudavenue_edgegateway" "example" {
 						owner_name     = cloudavenue_vdc.example.name
-						tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+						t0_name        =  data.cloudavenue_tier0_vrf.example.name
 						bandwidth      = 25
 					}`),
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "bandwidth"),
+						resource.TestCheckResourceAttrWith(resourceName, "owner_id", urn.TestIsType(urn.VDC)),
 					},
 				},
 				// ! Updates testing
@@ -82,27 +85,13 @@ func (r *EdgeGatewayResource) Tests(_ context.Context) map[testsacc.TestName]fun
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_edgegateway" "example" {
 							owner_name     = cloudavenue_vdc.example.name
-							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+							t0_name        =  data.cloudavenue_tier0_vrf.example.name
 							bandwidth      = 20
 						  }`),
 						TFAdvanced: testsacc.TFAdvanced{
 							PlanOnly:           true,
 							ExpectNonEmptyPlan: true,
-							ExpectError:        regexp.MustCompile(`Invalid Bandwidth value`),
-						},
-					},
-					// Test overcommit bandwidth
-					{
-						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-						resource "cloudavenue_edgegateway" "example" {
-							owner_name     = cloudavenue_vdc.example.name
-							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
-							bandwidth      = 300
-						  }`),
-						TFAdvanced: testsacc.TFAdvanced{
-							PlanOnly:           true,
-							ExpectNonEmptyPlan: true,
-							ExpectError:        regexp.MustCompile(`Overcommitting bandwidth`),
+							ExpectError:        regexp.MustCompile(`is not allowed`),
 						},
 					},
 					// Update bandwidth
@@ -110,7 +99,7 @@ func (r *EdgeGatewayResource) Tests(_ context.Context) map[testsacc.TestName]fun
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_edgegateway" "example" {
 							owner_name     = cloudavenue_vdc.example.name
-							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+							t0_name        =  data.cloudavenue_tier0_vrf.example.name
 							bandwidth      = 5
 						  }`),
 						Checks: []resource.TestCheckFunc{
@@ -132,25 +121,30 @@ func (r *EdgeGatewayResource) Tests(_ context.Context) map[testsacc.TestName]fun
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
+					resource.TestMatchResourceAttr(resourceName, "t0_name", regex.T0NameRegex()),
 
 					// Read-Only attributes
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
-					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
+					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regex.T0NameRegex()),
+					resource.TestMatchResourceAttr(resourceName, "name", regex.EdgeGatewayNameRegex()),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCGResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 					resource "cloudavenue_edgegateway" "example_with_vdc_group" {
 						owner_name     = cloudavenue_vdcg.example.name
-						tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+						t0_name        =  data.cloudavenue_tier0_vrf.example.name
 						bandwidth      = 25
 					  }`),
-					Checks: []resource.TestCheckFunc{},
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrSet(resourceName, "bandwidth"),
+						resource.TestCheckResourceAttrWith(resourceName, "owner_id", urn.TestIsType(urn.VDCGroup)),
+					},
 				},
 				// ! Updates testing
 				Updates: []testsacc.TFConfig{
@@ -158,7 +152,7 @@ func (r *EdgeGatewayResource) Tests(_ context.Context) map[testsacc.TestName]fun
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_edgegateway" "example_with_vdc_group" {
 							owner_name     = cloudavenue_vdcg.example.name
-							tier0_vrf_name = data.cloudavenue_tier0_vrf.example.name
+							t0_name        =  data.cloudavenue_tier0_vrf.example.name
 							bandwidth      = 5
 						  }`),
 						Checks: []resource.TestCheckFunc{
@@ -180,15 +174,17 @@ func (r *EdgeGatewayResource) Tests(_ context.Context) map[testsacc.TestName]fun
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
+					resource.TestMatchResourceAttr(resourceName, "t0_name", regex.T0NameRegex()),
 
 					// Read-Only attributes
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
-					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
+					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regex.T0NameRegex()),
+					resource.TestMatchResourceAttr(resourceName, "name", regex.EdgeGatewayNameRegex()),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -215,12 +211,6 @@ func (r *EdgeGatewayResource) Tests(_ context.Context) map[testsacc.TestName]fun
 }
 
 func TestAccEdgeGatewayResource(t *testing.T) {
-	edgegw.ConfigEdgeGateway = func() edgegw.EdgeGatewayConfig {
-		return edgegw.EdgeGatewayConfig{
-			CheckJobDelay: 10 * time.Second,
-		}
-	}
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,

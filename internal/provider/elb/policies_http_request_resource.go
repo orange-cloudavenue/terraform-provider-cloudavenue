@@ -54,7 +54,7 @@ func (r *PoliciesHTTPRequestResource) Init(_ context.Context, _ *PoliciesHTTPReq
 		diags.AddError("Error creating elb client", err.Error())
 	}
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -361,14 +361,14 @@ func (r *PoliciesHTTPRequestResource) createOrUpdate(ctx context.Context, goPlan
 	model, d := goPlan.ToSDKPoliciesHTTPRequestModel(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	_, err := r.elb.UpdatePoliciesHTTPRequest(ctx, model)
 	if err != nil {
 		diags.AddError("Error updating policies http request", err.Error())
 	}
-	return
+	return diags
 }
 
 func (r *PoliciesHTTPRequestResource) getEdgeGateway(ctx context.Context, virtualServiceID string) (string, diag.Diagnostics) {

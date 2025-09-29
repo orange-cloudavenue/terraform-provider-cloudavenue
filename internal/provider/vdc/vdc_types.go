@@ -16,86 +16,84 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/infrapi"
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/infrapi/rules"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 )
 
 type (
-	vdcResourceModel struct {
-		Timeouts            timeouts.Value                                                       `tfsdk:"timeouts"`
-		ID                  supertypes.StringValue                                               `tfsdk:"id"`
-		Name                supertypes.StringValue                                               `tfsdk:"name"`
-		Description         supertypes.StringValue                                               `tfsdk:"description"`
-		ServiceClass        supertypes.StringValue                                               `tfsdk:"service_class"`
-		DisponibilityClass  supertypes.StringValue                                               `tfsdk:"disponibility_class"`
-		BillingModel        supertypes.StringValue                                               `tfsdk:"billing_model"`
-		VCPUInMhz           supertypes.Int64Value                                                `tfsdk:"cpu_speed_in_mhz"`
-		CPUAllocated        supertypes.Int64Value                                                `tfsdk:"cpu_allocated"`
-		MemoryAllocated     supertypes.Int64Value                                                `tfsdk:"memory_allocated"`
-		StorageBillingModel supertypes.StringValue                                               `tfsdk:"storage_billing_model"`
-		StorageProfiles     supertypes.SetNestedObjectValueOf[vdcResourceModelVDCStorageProfile] `tfsdk:"storage_profiles"`
+	vdcModel struct {
+		ID          supertypes.StringValue `tfsdk:"id"`
+		Name        supertypes.StringValue `tfsdk:"name"`
+		Description supertypes.StringValue `tfsdk:"description"`
+
+		// * Availability properties
+		ServiceClass       supertypes.StringValue `tfsdk:"service_class"`
+		DisponibilityClass supertypes.StringValue `tfsdk:"disponibility_class"`
+
+		// * Billing properties
+		BillingModel        supertypes.StringValue `tfsdk:"billing_model"`
+		StorageBillingModel supertypes.StringValue `tfsdk:"storage_billing_model"`
+
+		// * Resource properties
+		VCPU            supertypes.Int64Value                                     `tfsdk:"vcpu"`
+		Memory          supertypes.Int64Value                                     `tfsdk:"memory"`
+		StorageProfiles supertypes.SetNestedObjectValueOf[vdcModelStorageProfile] `tfsdk:"storage_profiles"`
+
+		// * Deprecated fields - Maintain for backward compatibility
+		VCPUInMhz       supertypes.Int64Value `tfsdk:"cpu_speed_in_mhz"`
+		CPUAllocated    supertypes.Int64Value `tfsdk:"cpu_allocated"`
+		MemoryAllocated supertypes.Int64Value `tfsdk:"memory_allocated"`
 	}
 
-	vdcResourceModelVDCStorageProfile struct {
+	vdcModelStorageProfile struct {
+		ID      supertypes.StringValue `tfsdk:"id"`
 		Class   supertypes.StringValue `tfsdk:"class"`
 		Limit   supertypes.Int64Value  `tfsdk:"limit"`
 		Default supertypes.BoolValue   `tfsdk:"default"`
-	}
-
-	vdcDataSourceModel struct {
-		ID                  supertypes.StringValue                                               `tfsdk:"id"`
-		Name                supertypes.StringValue                                               `tfsdk:"name"`
-		Description         supertypes.StringValue                                               `tfsdk:"description"`
-		ServiceClass        supertypes.StringValue                                               `tfsdk:"service_class"`
-		DisponibilityClass  supertypes.StringValue                                               `tfsdk:"disponibility_class"`
-		BillingModel        supertypes.StringValue                                               `tfsdk:"billing_model"`
-		VCPUInMhz           supertypes.Int64Value                                                `tfsdk:"cpu_speed_in_mhz"`
-		CPUAllocated        supertypes.Int64Value                                                `tfsdk:"cpu_allocated"`
-		MemoryAllocated     supertypes.Int64Value                                                `tfsdk:"memory_allocated"`
-		StorageBillingModel supertypes.StringValue                                               `tfsdk:"storage_billing_model"`
-		StorageProfiles     supertypes.SetNestedObjectValueOf[vdcResourceModelVDCStorageProfile] `tfsdk:"storage_profiles"`
+		Used    supertypes.Int64Value  `tfsdk:"used"`
 	}
 )
 
-func (rm *vdcResourceModel) Copy() *vdcResourceModel {
-	x := &vdcResourceModel{}
-	utils.ModelCopy(rm, x)
-	return x
-}
-
-func (rm *vdcResourceModel) ToCAVVirtualDataCenter(ctx context.Context) (obj *infrapi.CAVVirtualDataCenter, diags diag.Diagnostics) {
-	// Prepare the body to create a VDC.
-	obj = &infrapi.CAVVirtualDataCenter{
-		VDC: infrapi.CAVVirtualDataCenterVDC{
-			Name:                rm.Name.Get(),
-			Description:         rm.Description.Get(),
-			ServiceClass:        rules.ServiceClass(rm.ServiceClass.Get()),
-			DisponibilityClass:  rules.DisponibilityClass(rm.DisponibilityClass.Get()),
-			BillingModel:        rules.BillingModel(rm.BillingModel.Get()),
-			VCPUInMhz:           rm.VCPUInMhz.GetInt(),
-			CPUAllocated:        rm.CPUAllocated.GetInt(),
-			MemoryAllocated:     rm.MemoryAllocated.GetInt(),
-			StorageBillingModel: rules.BillingModel(rm.StorageBillingModel.Get()),
-		},
-	}
-
-	storageProfiles, d := rm.StorageProfiles.Get(ctx)
-	diags.Append(d...)
-	if d.HasError() {
+// fromSDK converts SDK object to model
+func (rm *vdcModel) fromSDK(ctx context.Context, vdc *types.ModelGetVDC, sp *types.ModelListStorageProfiles, diags *diag.Diagnostics) {
+	if rm == nil || vdc == nil || sp == nil {
+		diags.AddError("Error in vdcModel.fromSDK", "Cannot convert to model from SDK: vdcModel, ModelGetVDC or ModelListStorageProfiles is nil")
 		return
 	}
 
-	// Iterate over the storage profiles and add them to the body.
-	for _, storageProfile := range storageProfiles {
-		obj.VDC.StorageProfiles = append(obj.VDC.StorageProfiles, infrapi.StorageProfile{
-			Class:   infrapi.StorageProfileClass(storageProfile.Class.Get()),
-			Limit:   storageProfile.Limit.GetInt(),
-			Default: storageProfile.Default.Get(),
-		})
+	rm.ID.Set(vdc.ID)
+	rm.Name.Set(vdc.Name)
+	rm.Description.Set(vdc.Description)
+
+	// * Resource properties
+	rm.ServiceClass.Set(vdc.Properties.ServiceClass)
+	rm.DisponibilityClass.Set(vdc.Properties.DisponibilityClass)
+
+	// * Billing properties
+	rm.BillingModel.Set(vdc.Properties.BillingModel)
+	rm.StorageBillingModel.Set(vdc.Properties.StorageBillingModel)
+
+	// * Resource properties
+	rm.VCPU.SetInt(vdc.ComputeCapacity.CPU.Limit)
+	rm.Memory.SetInt(vdc.ComputeCapacity.Memory.Limit)
+
+	sps := []*vdcModelStorageProfile{}
+	for _, sp := range sp.VDCS[0].StorageProfiles {
+		sptf := &vdcModelStorageProfile{}
+		sptf.ID.Set(sp.ID)
+		sptf.Class.Set(sp.Class)
+		sptf.Limit.SetInt(sp.Limit)
+		sptf.Default.Set(sp.Default)
+		sptf.Used.SetInt(sp.Used)
+		sps = append(sps, sptf)
 	}
 
-	return obj, diags
+	diags.Append(rm.StorageProfiles.Set(ctx, sps)...)
+	if diags.HasError() {
+		return
+	}
+
+	// ! Deprecated fields - Maintain for backward compatibility
+	rm.VCPUInMhz.SetInt(vdc.ComputeCapacity.CPU.VCPUFrequency)
+	rm.CPUAllocated.SetInt(vdc.ComputeCapacity.CPU.FrequencyLimit)
+	rm.MemoryAllocated.SetInt(vdc.ComputeCapacity.Memory.Limit)
 }

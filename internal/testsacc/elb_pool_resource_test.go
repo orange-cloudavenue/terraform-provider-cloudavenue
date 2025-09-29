@@ -38,7 +38,7 @@ func (r *ELBPoolResource) GetResourceName() string {
 
 func (r *ELBPoolResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetDataSourceConfig()[EdgeGatewayDataSourceName]().GetSpecificConfig("example_for_elb"))
-	return
+	return resp
 }
 
 func (r *ELBPoolResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -49,7 +49,7 @@ func (r *ELBPoolResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.LoadBalancerPool)),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -233,7 +233,7 @@ func (r *ELBPoolResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.LoadBalancerPool)),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -311,7 +311,7 @@ func (r *ELBPoolResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[EdgeGatewayIPSetResourceName]().GetSpecificConfig("example_for_elb"))
 					resp.Append(GetResourceConfig()[ORGCertificateLibraryResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

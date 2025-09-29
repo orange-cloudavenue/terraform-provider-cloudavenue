@@ -42,12 +42,12 @@ func (d *CertificateLibraryDatasource) Init(_ context.Context, _ *CertificateLib
 	org, err := d.client.CAVSDK.V1.Org()
 	if err != nil {
 		diags.AddError("Error initializing ORG client", err.Error())
-		return
+		return diags
 	}
 
 	d.orgClient = org.Client
 
-	return
+	return diags
 }
 
 func (d *CertificateLibraryDatasource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

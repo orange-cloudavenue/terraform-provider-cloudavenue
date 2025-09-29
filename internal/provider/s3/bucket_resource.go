@@ -48,7 +48,7 @@ type BucketResource struct {
 // Init Initializes the resource.
 func (r *BucketResource) Init(_ context.Context, _ *BucketModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

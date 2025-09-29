@@ -36,7 +36,7 @@ func (r *EdgeGatewayStaticRouteDataSource) GetResourceName() string {
 
 func (r *EdgeGatewayStaticRouteDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[EdgeGatewayStaticRouteResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *EdgeGatewayStaticRouteDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

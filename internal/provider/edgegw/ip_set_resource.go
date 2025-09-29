@@ -57,7 +57,7 @@ func (r *ipSetResource) Init(_ context.Context, rm *IPSetModel) (diags diag.Diag
 
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
@@ -66,7 +66,7 @@ func (r *ipSetResource) Init(_ context.Context, rm *IPSetModel) (diags diag.Diag
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
 	if r.edgegw.OwnerType.IsVDCGROUP() {
@@ -76,7 +76,7 @@ func (r *ipSetResource) Init(_ context.Context, rm *IPSetModel) (diags diag.Diag
 		)
 	}
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -423,7 +423,7 @@ func (r *ipSetResource) read(ctx context.Context, planOrState *IPSetModel) (stat
 			return stateRefreshed, false, nil
 		}
 		diags.AddError("Error retrieving IP Set", err.Error())
-		return
+		return stateRefreshed, found, diags
 	}
 
 	stateRefreshed.ID.Set(ipSetConfig.NsxtFirewallGroup.ID)

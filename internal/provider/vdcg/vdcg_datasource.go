@@ -13,13 +13,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/vdcgroup/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
 
 var (
@@ -32,18 +30,15 @@ func NewVDCGDataSource() datasource.DataSource {
 }
 
 type vdcgDataSource struct {
-	client   *client.CloudAvenue
-	adminOrg adminorg.AdminOrg
+	// Client is a terraform Client
+	client *client.CloudAvenue
+
+	// vgClient is the VDC Group client from the SDK V2
+	vgClient *vdcgroup.Client
 }
 
 func (d *vdcgDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
-}
-
-// Init Initializes the resource.
-func (d *vdcgDataSource) Init(_ context.Context, _ *vdcgModel) (diags diag.Diagnostics) {
-	d.adminOrg, diags = adminorg.Init(d.client)
-	return
 }
 
 func (d *vdcgDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -57,7 +52,6 @@ func (d *vdcgDataSource) Configure(_ context.Context, req datasource.ConfigureRe
 	}
 
 	client, ok := req.ProviderData.(*client.CloudAvenue)
-
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
@@ -67,7 +61,17 @@ func (d *vdcgDataSource) Configure(_ context.Context, req datasource.ConfigureRe
 		return
 	}
 
+	vgC, err := vdcgroup.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create VDC Group client, got error: %s", err),
+		)
+		return
+	}
+
 	d.client = client
+	d.vgClient = vgC
 }
 
 func (d *vdcgDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -80,32 +84,19 @@ func (d *vdcgDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	// Init the resource
-	resp.Diagnostics.Append(d.Init(ctx, config)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	/*
-		Implement the data source read logic here.
-	*/
 
 	s := &vdcgResource{
 		client:   d.client,
-		adminOrg: d.adminOrg,
+		vgClient: d.vgClient,
 	}
 
 	// Read data from the API
-	data, found, diags := s.read(ctx, config)
-	if !found {
-		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The VDC Group %s(%s) was not found", config.Name.Get(), config.ID.Get()))
-		return
-	}
+	data, diags := s.read(ctx, config)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }

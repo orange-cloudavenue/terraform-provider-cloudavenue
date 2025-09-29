@@ -73,7 +73,7 @@ func (r *VirtualServiceResource) Init(_ context.Context, rm *VirtualServiceModel
 	rm.EdgeGatewayID.Set(urn.Normalize(urn.Gateway, r.edge.GetID()).String())
 	rm.EdgeGatewayName.Set(r.edge.GetName())
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

@@ -52,9 +52,9 @@ func (d *NetworkIsolatedDataSource) Init(_ context.Context, rm *networkIsolatedM
 	}
 	if err != nil {
 		diags.AddError("Error retrieving VDC Group", err.Error())
-		return
+		return diags
 	}
-	return
+	return diags
 }
 
 func (d *NetworkIsolatedDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {

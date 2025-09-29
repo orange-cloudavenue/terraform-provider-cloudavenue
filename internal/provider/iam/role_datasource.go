@@ -49,7 +49,7 @@ func (d *roleDataSource) Init(_ context.Context, rm *RoleDataSourceModel) (diags
 
 	d.adminOrg, diags = adminorg.Init(d.client)
 
-	return
+	return diags
 }
 
 func (d *roleDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

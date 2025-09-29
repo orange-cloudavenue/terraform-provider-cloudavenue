@@ -2,12 +2,12 @@
 page_title: "cloudavenue_edgegateway Resource - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  The Edge Gateway resource allows you to create and delete Edge Gateways in Cloud Avenue.
+  The Edge Gateway resource allows you to create and delete Edge Gateway in Cloud Avenue. EdgeGateway is a virtualized network appliance designed to provide secure connectivity, routing, and network services at the edge of a virtualized environment. It acts as a critical component for managing network traffic between internal virtual networks and external networks, such as the internet or remote sites.
 ---
 
 # cloudavenue_edgegateway (Resource)
 
-The Edge Gateway resource allows you to create and delete Edge Gateways in Cloud Avenue.
+The Edge Gateway resource allows you to create and delete Edge Gateway in Cloud Avenue. EdgeGateway is a virtualized network appliance designed to provide secure connectivity, routing, and network services at the edge of a virtualized environment. It acts as a critical component for managing network traffic between internal virtual networks and external networks, such as the internet or remote sites.
 
 ## Examples Usage
 
@@ -36,27 +36,19 @@ resource "cloudavenue_edgegateway" "example" {
 
 ### Optional
 
-- `bandwidth` (Number) The bandwidth in `Mbps` of the Edge Gateway. If no value is specified, the bandwidth is automatically calculated based on the remaining bandwidth of the Tier-0 VRF. More information can be found [here](#bandwidth-attribute).
+- `bandwidth` (Number) The bandwidth in `Mbps` of the Edge Gateway. The bandwidth limit in Mbps for the edge gateway. If t0 is `SHARED`, it must be one of the available values for the T0 router, if no value is specified, the bandwidth is automatically calculated based on the remaining bandwidth of the T0. If t0 is `DEDICATED`, unlimited bandwidth is allowed (0 = unlimited). More information can be found [here](#bandwidth-attribute).
+- `t0_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the T0 Name to which the Edge Gateway is attached. If not specified, the Edge Gateway will be created on the T0 available in your organization. Works if only one T0 Name is available.
+- `tier0_vrf_name` (String, Deprecated) The name of the Tier-0 VRF to which the Edge Gateway is attached. If not specified, the Edge Gateway will be created if only one Tier-0 VRF is available. 
 
-!> **Warning** This attribute is not supported if your Tier-0 VRF has a class of service `DEDICATED`. This is due to a bug in the API (See [#1068](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1069)).
-- `tier0_vrf_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the Tier-0 VRF to which the Edge Gateway is attached. If not specified, the Edge Gateway will be created if only one Tier-0 VRF is available.
-- `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+ ~> **Attribute deprecated** Rename the `tier0_vrf_name` attribute to `t0_name`, it will be removed in the version [`1.0.0`](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/milestone/28) of the provider. See the [GitHub issue](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1165) for more information.
 
 ### Read-Only
 
 - `description` (String) The description of the Edge Gateway.
 - `id` (String) The ID of the Edge Gateway.
 - `name` (String) The name of the Edge Gateway.
-
-<a id="nestedatt--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `owner_id` (String) The ID of the Edge Gateway owner. It can be a VDC or a VDC Group ID.
+- `t0_id` (String) The ID of the T0 to which the Edge Gateway is attached.
 
 ## Bandwidth Attribute
 

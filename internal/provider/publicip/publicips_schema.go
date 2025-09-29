@@ -13,7 +13,13 @@ import (
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 	"golang.org/x/net/context"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 )
 
 func publicIPsSchema(_ context.Context) superschema.Schema {
@@ -26,6 +32,30 @@ func publicIPsSchema(_ context.Context) superschema.Schema {
 				DataSource: &schemaD.StringAttribute{
 					MarkdownDescription: "The ID of the Public IP.",
 					Computed:            true,
+				},
+			},
+			"edge_gateway_name": superschema.SuperStringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The name of the Edge Gateway.",
+					Computed:            true,
+				},
+				DataSource: &schemaD.StringAttribute{
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+					},
+				},
+			},
+			"edge_gateway_id": superschema.SuperStringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The ID of the Edge Gateway.",
+					Computed:            true,
+				},
+				DataSource: &schemaD.StringAttribute{
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+					},
 				},
 			},
 			"public_ips": superschema.SuperListNestedAttributeOf[publicIPNetworkConfigModel]{
@@ -43,18 +73,6 @@ func publicIPsSchema(_ context.Context) superschema.Schema {
 					"public_ip": superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
 							MarkdownDescription: "The Public IP Address.",
-							Computed:            true,
-						},
-					},
-					"edge_gateway_name": superschema.SuperStringAttribute{
-						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The name of the Edge Gateway.",
-							Computed:            true,
-						},
-					},
-					"edge_gateway_id": superschema.SuperStringAttribute{
-						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The ID of the Edge Gateway.",
 							Computed:            true,
 						},
 					},

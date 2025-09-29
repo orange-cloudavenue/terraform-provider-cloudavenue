@@ -95,13 +95,13 @@ func (rm *VPNIPSecModel) GetSecurityProfile(ctx context.Context) (values VPNIPSe
 func (rm *VPNIPSecModel) GetNsxtIPSecVPNTunnelSecurityProfile(ctx context.Context) (values *govcdtypes.NsxtIpSecVpnTunnelSecurityProfile, diags diag.Diagnostics) {
 	values = &govcdtypes.NsxtIpSecVpnTunnelSecurityProfile{}
 	if !rm.SecurityProfile.IsKnown() {
-		return
+		return values, diags
 	}
 
 	securityProfile, d := rm.GetSecurityProfile(ctx)
 	diags.Append(d...)
 	if d.HasError() {
-		return
+		return values, diags
 	}
 
 	if securityProfile.IkeDhGroups.IsKnown() {
@@ -140,7 +140,7 @@ func (rm *VPNIPSecModel) GetNsxtIPSecVPNTunnelSecurityProfile(ctx context.Contex
 	if securityProfile.TunnelDpd.IsKnown() {
 		values.DpdConfiguration.ProbeInterval = securityProfile.TunnelDpd.GetInt()
 	}
-	return
+	return values, diags
 }
 
 func (rm VPNIPSecModelLocalNetworks) Get() []string {
@@ -170,7 +170,7 @@ func (rm *VPNIPSecModel) ToNsxtIPSecVPNTunnel(ctx context.Context) (values *govc
 	localNet, diags := rm.GetLocalNetworks(ctx)
 	diags.Append(diags...)
 	if diags.HasError() {
-		return
+		return values, diags
 	}
 	values.LocalEndpoint.LocalId = rm.LocalIPAddress.Get()
 	values.LocalEndpoint.LocalAddress = rm.LocalIPAddress.Get()
@@ -180,11 +180,11 @@ func (rm *VPNIPSecModel) ToNsxtIPSecVPNTunnel(ctx context.Context) (values *govc
 	remoteNet, diags := rm.GetRemoteNetworks(ctx)
 	diags.Append(diags...)
 	if diags.HasError() {
-		return
+		return values, diags
 	}
 	values.RemoteEndpoint.RemoteId = rm.RemoteIPAddress.Get()
 	values.RemoteEndpoint.RemoteAddress = rm.RemoteIPAddress.Get()
 	values.RemoteEndpoint.RemoteNetworks = remoteNet.Get()
 
-	return
+	return values, diags
 }

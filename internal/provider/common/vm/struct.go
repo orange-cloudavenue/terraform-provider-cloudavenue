@@ -45,25 +45,25 @@ func (rm *VMResourceModel) AllStructsFromPlan(ctx context.Context) (allStructs *
 
 	allStructs.DeployOS, diags = rm.DeployOSFromPlan(ctx)
 	if diags.HasError() {
-		return
+		return allStructs, diags
 	}
 
 	allStructs.State, diags = rm.StateFromPlan(ctx)
 	if diags.HasError() {
-		return
+		return allStructs, diags
 	}
 
 	allStructs.Resource, diags = rm.ResourceFromPlan(ctx)
 	if diags.HasError() {
-		return
+		return allStructs, diags
 	}
 
 	allStructs.Settings, diags = rm.SettingsFromPlan(ctx)
 	if diags.HasError() {
-		return
+		return allStructs, diags
 	}
 
-	return
+	return allStructs, diags
 }
 
 // * DeployOS
@@ -87,7 +87,7 @@ func (rm *VMResourceModel) DeployOSFromPlan(ctx context.Context) (deployOS *VMRe
 		UnhandledUnknownAsEmpty: false,
 	})...)
 
-	return
+	return deployOS, diags
 }
 
 // * State
@@ -109,7 +109,7 @@ func (rm *VMResourceModel) StateFromPlan(ctx context.Context) (state *VMResource
 		UnhandledUnknownAsEmpty: false,
 	})...)
 
-	return
+	return state, diags
 }
 
 // * Resource
@@ -137,7 +137,7 @@ func (rm *VMResourceModel) ResourceFromPlan(ctx context.Context) (resource *VMRe
 		UnhandledUnknownAsEmpty: false,
 	})...)
 
-	return
+	return resource, diags
 }
 
 // * Networks
@@ -148,12 +148,12 @@ func (r *VMResourceModelResource) NetworksFromPlan(ctx context.Context) (network
 	networks = &VMResourceModelResourceNetworks{}
 
 	if r.Networks.IsNull() || r.Networks.IsUnknown() {
-		return
+		return networks, diags
 	}
 
 	diags.Append(r.Networks.ElementsAs(ctx, networks, false)...)
 
-	return
+	return networks, diags
 }
 
 // * Settings
@@ -182,7 +182,7 @@ func (rm *VMResourceModel) SettingsFromPlan(ctx context.Context) (settings *VMRe
 		UnhandledUnknownAsEmpty: false,
 	})...)
 
-	return
+	return settings, diags
 }
 
 // * SettingsCustomization
@@ -210,12 +210,12 @@ func (s *VMResourceModelSettings) GuestPropertiesFromPlan(ctx context.Context, x
 	tflog.Info(ctx, "GuestPropertiesFromPlan")
 
 	if s.GuestProperties.IsNull() || s.GuestProperties.IsUnknown() {
-		return
+		return guestProperties, diags
 	}
 
 	guestProperties = &VMResourceModelSettingsGuestProperties{}
 
 	diags = x.ElementsAs(ctx, guestProperties, false)
 
-	return
+	return guestProperties, diags
 }

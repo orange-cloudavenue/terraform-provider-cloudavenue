@@ -2,12 +2,12 @@
 page_title: "cloudavenue_org Resource - cloudavenue"
 subcategory: "Organization"
 description: |-
-  The cloudavenue_org resource allows you to manage the properties of an organization.
+  The cloudavenue_org resource allows you to manage the properties of an organization. You can update certain attributes of the organization, such as its description, full_name, email, and internet_billing_mode. However, please note that creating or deleting an organization is not supported through this resource.
 ---
 
 # cloudavenue_org (Resource)
 
-The `cloudavenue_org` resource allows you to manage the properties of an organization.
+The `cloudavenue_org` resource allows you to manage the properties of an organization. You can update certain attributes of the organization, such as its `description`, `full_name`, `email`, and `internet_billing_mode`. However, please note that creating or deleting an organization is not supported through this resource.
 
  ~> **Warning**
  This resource does not support creation operation. You can only import existing resources. Follow the instructions below to import the resource.
@@ -17,14 +17,18 @@ The `cloudavenue_org` resource allows you to manage the properties of an organiz
 ```terraform
 import {
   to = cloudavenue_org.example
-  # ex : cav01xx00000   
+  # The id field is informational and is only mandatory when using the import function.
+  # For clarity, it is recommended to specify the name of your organization as the id value. 
+  # This helps to easily identify the imported resource in your Terraform state.
+  # ex : cav01xx00000 
   id = "yourOrganizationName"
 }
 
 resource "cloudavenue_org" "example" {
-  name        = "Your Organization Name"
-  description = "This is an example organization"
-  email       = "example@mycompagny.com"
+  name                  = "Your Organization Name"
+  description           = "This is an example organization"
+  email                 = "example@mycompagny.com"
+  internet_billing_mode = "PAYG"
 }
 ```
 
@@ -37,10 +41,35 @@ resource "cloudavenue_org" "example" {
 ### Optional
 
 - `description` (String) The description of the organization.
-- `email` (String) The email of the organization.
-- `internet_billing_mode` (String) The internet billing mode of the organization. For more information, see the [documentation](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/internet-access/). Value must be one of : `PAYG`, `TRAFFIC_VOLUME`.
-- `name` (String) The name of the organization.
+- `email` (String) Your organization's contact email.
+- `full_name` (String) The full name of the organization, visible in the VCloud Director IHM.
+- `internet_billing_mode` (String) The organization's Internet bandwidth billing method. For more information, see the [documentation](https://cloud.orange-business.com/en/offres/infrastructure-iaas/cloud-avenue/wiki-cloud-avenue/services/internet-access/). Value must be one of : `PAYG`, `TRAFFIC_VOLUME`.
 
 ### Read-Only
 
+- `enabled` (Boolean) Indicates whether the organization is enabled.
 - `id` (String) The ID of the organization.
+- `name` (String) The name of the organization.
+- `resources` (Attributes) The resource usage of the organization. (see [below for nested schema](#nestedatt--resources))
+
+<a id="nestedatt--resources"></a>
+### Nested Schema for `resources`
+
+Read-Only:
+
+- `catalog` (Number) The number of catalogs in the organization.
+- `disk` (Number) The number of standalone disks in the organization.
+- `user` (Number) The number of users in the organization.
+- `vapp` (Number) The number of vApps in the organization.
+- `vdc` (Number) The number of VDCs in the organization.
+- `vm_running` (Number) The number of running VMs in the organization.
+
+## Import
+
+ ~> **Note**
+The name is informational but for clarity, it is recommended to specify the name of your organization. 
+
+Import is supported using the following syntax:
+```shell
+terraform import cloudavenue_org.example organizationName
+```

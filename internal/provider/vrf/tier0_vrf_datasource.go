@@ -14,13 +14,12 @@ import (
 	"context"
 	"fmt"
 
-	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	edgegateway "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 var (
@@ -34,7 +33,11 @@ func NewTier0VrfDataSource() datasource.DataSource {
 }
 
 type tier0VrfDataSource struct {
+	// Client is a terraform Client
 	client *client.CloudAvenue
+
+	// eClient is the Edge Gateway client from the SDK V2
+	eClient *edgegateway.Client
 }
 
 func (d *tier0VrfDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -62,7 +65,17 @@ func (d *tier0VrfDataSource) Configure(_ context.Context, req datasource.Configu
 		return
 	}
 
+	eC, err := edgegateway.New(client.V2)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Client Error",
+			fmt.Sprintf("Unable to create Edge Gateway client, got error: %s", err),
+		)
+		return
+	}
+
 	d.client = client
+	d.eClient = eC
 }
 
 func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -76,40 +89,17 @@ func (d *tier0VrfDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	t0, err := d.client.CAVSDK.V1.T0.GetT0(data.Name.Get())
+	t0, err := d.eClient.GetT0(ctx, types.ParamsGetT0{
+		T0Name:          data.Name.Get(),
+		EdgegatewayID:   data.EdgeGatewayID.Get(),
+		EdgegatewayName: data.EdgeGatewayName.Get(),
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read Tier-0, got error: %s", err))
 		return
 	}
 
-	data.ID.Set(utils.GenerateUUID(t0.GetName()).String())
-	data.Provider.Set(t0.Tier0Provider)
-	data.Name.Set(t0.GetName())
-	data.ClassService.Set(string(t0.ClassService))
-
-	var services []*segmentModel
-
-	for _, segment := range t0.Services {
-		s := &segmentModel{
-			Service: supertypes.NewStringNull(),
-			VLANID:  supertypes.NewStringNull(),
-		}
-
-		s.Service.Set(segment.Service)
-		switch segment.VLANID.(type) { //nolint:gocritic
-		case int:
-			s.VLANID.Set(fmt.Sprintf("%d", segment.VLANID))
-		case string:
-			s.VLANID.Set(segment.VLANID.(string))
-		}
-
-		services = append(services, s)
-	}
-
-	resp.Diagnostics.Append(data.Services.Set(ctx, services)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	resp.Diagnostics.Append(data.fromAPI(ctx, t0)...)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

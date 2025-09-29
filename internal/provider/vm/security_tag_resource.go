@@ -55,9 +55,9 @@ func (r *securityTagResource) Init(_ context.Context, _ *securityTagResourceMode
 	// Init Org
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
-	return
+	return diags
 }
 
 // Schema defines the schema for the resource.

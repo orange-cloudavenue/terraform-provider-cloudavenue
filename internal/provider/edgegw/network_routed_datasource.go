@@ -50,7 +50,7 @@ func (d *NetworkRoutedDataSource) Init(_ context.Context, dm *NetworkRoutedModel
 	d.edgegw, err = d.client.CAVSDK.V1.EdgeGateway.Get(idOrName)
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", fmt.Sprintf("Error: %s", err.Error()))
-		return
+		return diags
 	}
 
 	dm.EdgeGatewayID.Set(d.edgegw.GetURN())
@@ -59,14 +59,14 @@ func (d *NetworkRoutedDataSource) Init(_ context.Context, dm *NetworkRoutedModel
 	d.vdc, err = d.client.CAVSDK.V1.VDC().GetVDCOrVDCGroup(d.edgegw.OwnerName)
 	if err != nil {
 		diags.AddError("Error retrieving VDC from EdgeGateway", fmt.Sprintf("Error: %s", err.Error()))
-		return
+		return diags
 	}
 
 	if d.vdc.IsVDCGroup() {
 		diags.AddError("EdgeGateway is connected to a VDCGroup", "EdgeGateway is connected to a VDCGroup, please use the VDCGroup datasource (`cloudavenue_vdcg_network_routed`) instead.")
 	}
 
-	return
+	return diags
 }
 
 func (d *NetworkRoutedDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

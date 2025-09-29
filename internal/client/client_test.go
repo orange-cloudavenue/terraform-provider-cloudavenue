@@ -11,6 +11,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"os"
 	"testing"
@@ -110,7 +111,7 @@ func TestCloudAvenueClient(t *testing.T) {
 					CAVSDKOpts: tt.opts,
 				}
 
-				_, err := c.New()
+				_, err := c.New(context.Background())
 				if tt.wantErr {
 					if err == nil {
 						t.Errorf("expected error: %v", tt.expectedErr)
@@ -153,7 +154,7 @@ func TestCloudAvenueClient(t *testing.T) {
 				t.Setenv("CLOUDAVENUE_PASSWORD", os.Getenv("TEST_CLOUDAVENUE_PASSWORD"))
 				t.Setenv("CLOUDAVENUE_VDC", os.Getenv("TEST_CLOUDAVENUE_VDC"))
 
-				client, err := c.New()
+				client, err := c.New(context.Background())
 				if tt.wantErr {
 					if err == nil {
 						t.Fatalf("expected error: %v", tt.expectedErr)
