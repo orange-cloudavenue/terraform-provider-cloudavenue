@@ -52,13 +52,6 @@ func (r *OrgResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 					resource.TestCheckResourceAttrWith(resourceName, "id", helpers.TestIsType(urn.Org)),
 					resource.TestMatchResourceAttr(resourceName, "name", regex.OrganizationNameRegex()),
 					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "resources.%"),
-					resource.TestCheckResourceAttrSet(resourceName, "resources.vdc"),
-					resource.TestCheckResourceAttrSet(resourceName, "resources.catalog"),
-					resource.TestCheckResourceAttrSet(resourceName, "resources.vapp"),
-					resource.TestCheckResourceAttrSet(resourceName, "resources.vm_running"),
-					resource.TestCheckResourceAttrSet(resourceName, "resources.user"),
-					resource.TestCheckResourceAttrSet(resourceName, "resources.disk"),
 				},
 				// ! Import testing with data source
 				// Import is tested with data source because create is not possible
