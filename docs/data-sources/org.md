@@ -28,17 +28,4 @@ data "cloudavenue_org" "example" {
 - `id` (String) The ID of the organization.
 - `internet_billing_mode` (String) The organization's Internet bandwidth billing method.
 - `name` (String) The name of the organization.
-- `resources` (Attributes) The resource usage of the organization. (see [below for nested schema](#nestedatt--resources))
-
-<a id="nestedatt--resources"></a>
-### Nested Schema for `resources`
-
-Read-Only:
-
-- `catalog` (Number) The number of catalogs in the organization.
-- `disk` (Number) The number of standalone disks in the organization.
-- `user` (Number) The number of users in the organization.
-- `vapp` (Number) The number of vApps in the organization.
-- `vdc` (Number) The number of VDCs in the organization.
-- `vm_running` (Number) The number of running VMs in the organization.
 

@@ -88,50 +88,6 @@ func orgSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 				},
 			},
-			"resources": superschema.SuperSingleNestedAttributeOf[OrgModelResources]{
-				Common: &schemaR.SingleNestedAttribute{
-					MarkdownDescription: "The resource usage of the organization.",
-					Computed:            true,
-				},
-				Attributes: superschema.Attributes{
-					"vdc": superschema.SuperInt64Attribute{
-						Common: &schemaR.Int64Attribute{
-							MarkdownDescription: "The number of VDCs in the organization.",
-							Computed:            true,
-						},
-					},
-					"catalog": superschema.SuperInt64Attribute{
-						Common: &schemaR.Int64Attribute{
-							MarkdownDescription: "The number of catalogs in the organization.",
-							Computed:            true,
-						},
-					},
-					"vapp": superschema.SuperInt64Attribute{
-						Common: &schemaR.Int64Attribute{
-							MarkdownDescription: "The number of vApps in the organization.",
-							Computed:            true,
-						},
-					},
-					"vm_running": superschema.SuperInt64Attribute{
-						Common: &schemaR.Int64Attribute{
-							MarkdownDescription: "The number of running VMs in the organization.",
-							Computed:            true,
-						},
-					},
-					"user": superschema.SuperInt64Attribute{
-						Common: &schemaR.Int64Attribute{
-							MarkdownDescription: "The number of users in the organization.",
-							Computed:            true,
-						},
-					},
-					"disk": superschema.SuperInt64Attribute{
-						Common: &schemaR.Int64Attribute{
-							MarkdownDescription: "The number of standalone disks in the organization.",
-							Computed:            true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
