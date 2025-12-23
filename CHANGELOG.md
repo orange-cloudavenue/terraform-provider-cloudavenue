@@ -2,7 +2,7 @@
 
 ### :tada: **Improvements**
 
-* `datasource/cloudavenue_xx` - Added `remote_id` attribute to retrieve the Remote ID of the VPN tunnel.` (GH-1197)
+* `datasource/cloudavenue_vpn_ipsec` - Added `remote_id` attribute to retrieve the Remote ID of the VPN tunnel.` (GH-1197)
 * `resource/cloudavenue_vpn_ipsec` - Added `remote_id` attribute to specify an optional Remote ID for the VPN tunnel. If not set, the Remote IP Address will be used as the Remote ID.` (GH-1197)
 
 ## 0.34.2 (August 28, 2025)
@@ -27,10 +27,11 @@
 
 ### :bug: **Bug Fixes**
 
-* `provider` - All mutex locking/unlocking for Edge Gateway and related resources now use a single consistent key: URN (extracted UUID). 
-This prevents concurrency bugs where the same Edge Gateway could be locked with different keys. 
+* `provider` - All mutex locking/unlocking for Edge Gateway and related resources now use a single consistent key: URN (extracted UUID).
+This prevents concurrency bugs where the same Edge Gateway could be locked with different keys.
 Removed redundant lock utility functions and ensured all resources (firewall, network, etc.) use the same lock logic. (GH-1118)
 * `provider` - Fixes issue where the provider would fail when used with Terraform >= v1.12.1 (GH-1113)
+
 ### :information_source: **Notes**
 
 * `provider` - The attribute `vdc` in the configuration provider is deprecated and will be removed in the release `v0.39.0`. Please adjust your configuration. Warning the environment variable`CLOUDAVENUE_VDC` is also deprecated. (GH-1119)
@@ -54,6 +55,7 @@ Removed redundant lock utility functions and ensured all resources (firewall, ne
 ### :tada: **Improvements**
 
 * `resource/cloudavenue_edgegateway` - Now the `tier0_vrf_name` attribute is optional. If not set, the field is computed (Only if one tier0 are available in your organization). These changes improve usability by simplifying the configuration for users with a single Tier-0 VRF while maintaining flexibility for more complex setups. (GH-1072)
+
 ### :information_source: **Notes**
 
 * Publish the new guide on how to store tfstate files in Cloudavenue S3. (GH-996)
@@ -71,6 +73,7 @@ Removed redundant lock utility functions and ensured all resources (firewall, ne
 * `resource/cloudavenue_vdcg_network_routed` - Resolved a bug in the `cloudavenue_vdcg_network_routed` resource where the `static_ip_pool` attribute unexpectedly changed from null to an empty set during application. (GH-1081)
 
 ## 0.32.0 (April 25, 2025)
+
 ### :rotating_light: **Breaking Changes**
 
 * `cloudavenue_edgegateway` - Announced in the release [v0.24.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.24.0) the attribute `owner_type` for resource/datasource `cloudavenue_edgegateway` and datasource `cloudavenue_edgegateways`, are now removed. (GH-952)
@@ -83,7 +86,7 @@ Removed redundant lock utility functions and ensured all resources (firewall, ne
 
 ### :tada: **Improvements**
 
-* - Improve documentation examples for these resources and datasources `cloudavenue_catalog_vapp_template`, `cloudavenue_edgegateway_dhcp_forwarding`, `cloudavenue_edgegateway_ip_set`, `cloudavenue_edgegateway_nat_rule`, `cloudavenue_edgegateway_network_routed`, `cloudavenue_edgegateway_security_group`, `cloudavenue_network_dhcp`, `cloudavenue_network_dhcp_binding`, `cloudavenue_vapp_org_network`, `cloudavenue_edgegateway` (GH-1066)
+* * Improve documentation examples for these resources and datasources `cloudavenue_catalog_vapp_template`, `cloudavenue_edgegateway_dhcp_forwarding`, `cloudavenue_edgegateway_ip_set`, `cloudavenue_edgegateway_nat_rule`, `cloudavenue_edgegateway_network_routed`, `cloudavenue_edgegateway_security_group`, `cloudavenue_network_dhcp`, `cloudavenue_network_dhcp_binding`, `cloudavenue_vapp_org_network`, `cloudavenue_edgegateway` (GH-1066)
 * `resource/cloudavenue_edgegateway` - Improved the `cloudavenue_edgegateway` documentation to clarify the usage of the `bandwidth` argument. (GH-1064)
 
 ### :bug: **Bug Fixes**
@@ -91,6 +94,7 @@ Removed redundant lock utility functions and ensured all resources (firewall, ne
 * `resource/cloudavenue_edgegateway_network_routed` - Fixed an issue with the `cloudavenue_edgegateway_network_routed` resource where deletion operations failed due to a `BUSY_ENTITY` error caused by concurrent gateway updates. (GH-1071)
 * `resource/cloudavenue_edgegateway_network_routed` - Resolved a bug in the `cloudavenue_edgegateway_network_routed` resource where the `static_ip_pool` attribute unexpectedly changed from null to an empty set during application. (GH-1073)
 * `resource/cloudavenue_edgegateway` - Implement a workaround to deactivate the calculation of remaining bandwidth and prevent its configuration when the T0 VRF has a class of service set to DEDICATED. This workaround addresses a bug in the API and will be removed once the API issue is resolved. (GH-1069)
+
 ### :information_source: **Notes**
 
 * Add a guide explaining how to use new network and security resources for VDC and VDCG. (GH-1054)
@@ -109,6 +113,7 @@ Removed redundant lock utility functions and ensured all resources (firewall, ne
 * `resource/edgegateway_network_routed` - Fixed a crash in the `cloudavenue_edgegateway_network_routed` resource read operation caused by a nil pointer dereference. (GH-1045)
 
 ## 0.31.0 (March 27, 2025)
+
 ### :warning: **Deprecations**
 
 * `datasource/cloudavenue_network_routed` - The `cloudavenue_network_routed` datasource is deprecated and will be removed in the release v0.38.0. Please use the `cloudavenue_edgegateway_network_routed` datasource instead. (GH-1020)
@@ -125,6 +130,7 @@ Removed redundant lock utility functions and ensured all resources (firewall, ne
 
 * `resource/cloudavenue_edgegateway_security_group` - Improve error message when trying to create a security group with an invalid network. (GH-1021)
 * `resource/cloudavenue_vdcg_security_group` - Improved error message for creating a security group with an invalid network. (GH-1022)
+
 ### :information_source: **Notes**
 
 * `resource/cloudavenue_edgegateway_ip_set` - Now the resource trigger an error if the edge gateway is in VDC Group. (GH-1004)
@@ -139,6 +145,7 @@ Removed redundant lock utility functions and ensured all resources (firewall, ne
 * deps: bumps github.com/rs/zerolog from 1.33.0 to 1.34.0 (GH-1036)
 
 ## 0.30.0 (March 18, 2025)
+
 ### :rotating_light: **Breaking Changes**
 
 * `cloudavenue_vdc_group` - Announced in the release [v0.23.0](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.23.0) the resource and the datasource `cloudavenue_vdc_group` are now removed. The resource and the datasource `cloudavenue_vdc_group` are replaced by `cloudavenue_vdcg`. (GH-869)
@@ -152,6 +159,7 @@ Removed redundant lock utility functions and ensured all resources (firewall, ne
 ### :tada: **Improvements**
 
 * `resource/cloudavenue_edgegateway_firewall` - Added support of `REJECT` action for firewall rules. (GH-843)
+
 ### :information_source: **Notes**
 
 * A lot of improvements in the documentation. (GH-1000)
@@ -203,6 +211,7 @@ Removed redundant lock utility functions and ensured all resources (firewall, ne
 ### :bug: **Bug Fixes**
 
 * `resource/cloudavenue_iam_user_saml` - Fixed issue when `deployed_vm_quota` and `stored_vm_quota` are not set in the creation of the IAM user. (GH-875)
+
 ### :information_source: **Notes**
 
 * `resource/cloudavenue_edgegateway` - Improve the documentation of the `bandwidth` attribute in the edge gateway resource. (GH-954)
@@ -218,6 +227,7 @@ Removed redundant lock utility functions and ensured all resources (firewall, ne
 * deps: bumps github.com/orange-cloudavenue/terraform-plugin-framework-validators from 1.12.0 to 1.13.0 (GH-967)
 
 ## 0.27.0 (January 15, 2025)
+
 ### :warning: **Deprecations**
 
 * `datasource/cloudavenue_edgegateway` - The `ower_type` attribute is deprecated and will be removed in the release v0.32.0. Please ensure you are not using it in your configuration. (GH-847)
@@ -227,6 +237,7 @@ Removed redundant lock utility functions and ensured all resources (firewall, ne
 
 * `datasource/cloudavenue_edgegateway_nat_rule` - Now supports retrieving the NAT rule by name or ID. (GH-824)
 * `resource/cloudavenue_edgegateway_nat_rule` - Now supports updating the NAT rule name. (GH-824)
+
 ### :information_source: **Notes**
 
 * `datasource/cloudavenue_edgegateway_nat_rule` - Improve the documentation for retrieving the NAT rule by name if the name is not unique. (GH-824)
@@ -256,6 +267,7 @@ Removed redundant lock utility functions and ensured all resources (firewall, ne
 
 * `datasource/cloudavenue_vdc` - Fixed a bug where the datasource was not returning the `storage_profiles` attribute. (GH-934)
 * `resource/cloudavenue_vm_disk` - Fix issue where disk creation with a bus type other than "SATA" failed. Many thanks to @xriot2 @MAE-orange @vivekanandita for their help in identifying this problem. (GH-756)
+
 ### :information_source: **Notes**
 
 * `resource/cloudavenue_edgegateway_app_port_profile` - Improve the documentation. (GH-913)
