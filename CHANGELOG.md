@@ -1,4 +1,5 @@
 ## 0.35.0 (Unreleased)
+## 0.34.3 (December 23, 2025)
 
 ### :tada: **Improvements**
 
