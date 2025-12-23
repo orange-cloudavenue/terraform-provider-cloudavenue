@@ -1,4 +1,10 @@
 ## 0.35.0 (Unreleased)
+
+### :tada: **Improvements**
+
+* `datasource/cloudavenue_xx` - Added `remote_id` attribute to retrieve the Remote ID of the VPN tunnel.` (GH-1197)
+* `resource/cloudavenue_vpn_ipsec` - Added `remote_id` attribute to specify an optional Remote ID for the VPN tunnel. If not set, the Remote IP Address will be used as the Remote ID.` (GH-1197)
+
 ## 0.34.2 (August 28, 2025)
 
 ### :bug: **Bug Fixes**
