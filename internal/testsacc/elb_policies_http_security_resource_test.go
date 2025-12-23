@@ -38,7 +38,7 @@ func (r *ELBPoliciesHTTPSecurityResource) GetResourceName() string {
 
 func (r *ELBPoliciesHTTPSecurityResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[ELBVirtualServiceResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *ELBPoliciesHTTPSecurityResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -49,7 +49,7 @@ func (r *ELBPoliciesHTTPSecurityResource) Tests(ctx context.Context) map[testsac
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.LoadBalancerVirtualService)),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					return
+					return resp
 				},
 				// ! Create testing
 				// ? Create a minimalist resource (1)
@@ -590,7 +590,7 @@ func (r *ELBPoliciesHTTPSecurityResource) Tests(ctx context.Context) map[testsac
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.LoadBalancerVirtualService)),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					return
+					return resp
 				},
 				// ! Create testing
 				// ? Create a resource with multiple criteria (16)

@@ -49,9 +49,9 @@ func (r *OrgResource) Init(_ context.Context, _ *OrgModel) (diags diag.Diagnosti
 	r.org, err = org.NewClient()
 	if err != nil {
 		diags.AddError("Error creating org client", err.Error())
-		return
+		return diags
 	}
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

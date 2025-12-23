@@ -38,7 +38,7 @@ func (r *ELBPoolDataSource) GetResourceName() string {
 func (r *ELBPoolDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	// Add dependencies config to the resource
 	resp.Append(GetResourceConfig()[ELBPoolResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *ELBPoolDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

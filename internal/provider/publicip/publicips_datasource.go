@@ -46,7 +46,7 @@ type publicIPDataSource struct {
 // Init.
 func (d *publicIPDataSource) Init(_ context.Context, _ *publicIPDataSourceModel) (diags diag.Diagnostics) {
 	d.adminOrg, diags = adminorg.Init(d.client)
-	return
+	return diags
 }
 
 func (d *publicIPDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

@@ -38,7 +38,7 @@ func (r *EdgeGatewayAppPortProfileResource) GetResourceName() string {
 
 func (r *EdgeGatewayAppPortProfileResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

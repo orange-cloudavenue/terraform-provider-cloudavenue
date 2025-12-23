@@ -42,7 +42,7 @@ type vdcsDataSource struct {
 
 // Init Initializes the resource.
 func (d *vdcsDataSource) Init(_ context.Context, _ *vdcsDataSourceModel) (diags diag.Diagnostics) {
-	return
+	return diags
 }
 
 func (d *vdcsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

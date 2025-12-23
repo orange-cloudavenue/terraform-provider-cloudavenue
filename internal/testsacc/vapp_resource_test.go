@@ -39,7 +39,7 @@ func (r *VAppResource) GetResourceName() string {
 
 func (r *VAppResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *VAppResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

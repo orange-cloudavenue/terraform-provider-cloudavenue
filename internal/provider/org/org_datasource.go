@@ -44,9 +44,9 @@ func (d *OrgDataSource) Init(_ context.Context, _ *OrgModel) (diags diag.Diagnos
 	d.org, err = org.NewClient()
 	if err != nil {
 		diags.AddError("Error creating org client", err.Error())
-		return
+		return diags
 	}
-	return
+	return diags
 }
 
 func (d *OrgDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

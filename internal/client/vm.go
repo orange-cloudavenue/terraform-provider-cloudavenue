@@ -28,7 +28,7 @@ func (v VM) GetGuestProperties() (guestProperties []*govcdtypes.Property, err er
 
 	guestProperties = append(guestProperties, x.ProductSection.Property...)
 
-	return
+	return guestProperties, err
 }
 
 // SetGuestProperties sets the guest properties of a VM
@@ -53,7 +53,7 @@ func (v VM) SetGuestProperties(guestProperties map[string]string) (err error) {
 		},
 	})
 
-	return
+	return err
 }
 
 // * Customization
@@ -66,7 +66,7 @@ func (v VM) GetCustomization() (guestCustomization *govcdtypes.GuestCustomizatio
 // SetCustomization sets the customization of a VM.
 func (v VM) SetCustomization(guestCustomization *govcdtypes.GuestCustomizationSection) (err error) {
 	_, err = v.SetGuestCustomizationSection(guestCustomization)
-	return
+	return err
 }
 
 // * OS type
@@ -78,7 +78,7 @@ func (v VM) SetOSType(osType string) (err error) {
 	updateOsType.OsType = osType
 
 	_, err = v.UpdateVmSpecSection(updateOsType, v.VM.VM.Description)
-	return
+	return err
 }
 
 // SetExposeHardwareVirtualization sets the expose hardware virtualization of a VM.

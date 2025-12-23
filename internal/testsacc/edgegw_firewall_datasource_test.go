@@ -37,7 +37,7 @@ func (r *EdgeGatewayFirewallDataSource) GetResourceName() string {
 
 func (r *EdgeGatewayFirewallDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[EdgeGatewayFirewallResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *EdgeGatewayFirewallDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

@@ -54,9 +54,9 @@ func (d *FirewallDataSource) Init(_ context.Context, rm *FirewallModel) (diags d
 	d.vdcGroup, err = d.client.CAVSDK.V1.VDC().GetVDCGroup(idOrName)
 	if err != nil {
 		diags.AddError("Error retrieving VDC Group", err.Error())
-		return
+		return diags
 	}
-	return
+	return diags
 }
 
 func (d *FirewallDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {

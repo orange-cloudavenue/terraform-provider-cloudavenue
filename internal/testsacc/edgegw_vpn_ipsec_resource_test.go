@@ -36,7 +36,7 @@ func (r *VPNIPSecResource) GetResourceName() string {
 func (r *VPNIPSecResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
 	resp.Append(GetResourceConfig()[PublicIPResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *VPNIPSecResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -70,6 +70,7 @@ func (r *VPNIPSecResource) Tests(_ context.Context) map[testsacc.TestName]func(c
 						resource.TestCheckResourceAttrSet(resourceName, "local_ip_address"),
 						resource.TestCheckResourceAttr(resourceName, "local_networks.#", "3"),
 						resource.TestCheckResourceAttr(resourceName, "remote_ip_address", "1.2.3.4"),
+						resource.TestCheckResourceAttr(resourceName, "remote_id", "1.2.3.4"),
 						resource.TestCheckResourceAttr(resourceName, "remote_networks.#", "3"),
 						resource.TestCheckResourceAttr(resourceName, "security_type", "DEFAULT"),
 					},
@@ -86,6 +87,7 @@ func (r *VPNIPSecResource) Tests(_ context.Context) map[testsacc.TestName]func(c
 							  pre_shared_key = "my-preshared-key-updated"
 							  local_ip_address = cloudavenue_publicip.example.public_ip
 							  local_networks   = ["10.10.10.0/24", "30.30.30.0/28", "40.40.40.1/32"]
+							  remote_id        = "my-remote-id"
 							  remote_ip_address = "4.3.2.1"
 							  remote_networks   = ["192.168.1.0/24", "192.168.10.0/24"]
 							}`),
@@ -96,6 +98,7 @@ func (r *VPNIPSecResource) Tests(_ context.Context) map[testsacc.TestName]func(c
 							resource.TestCheckResourceAttr(resourceName, "pre_shared_key", "my-preshared-key-updated"),
 							resource.TestCheckResourceAttrSet(resourceName, "local_ip_address"),
 							resource.TestCheckResourceAttr(resourceName, "local_networks.#", "3"),
+							resource.TestCheckResourceAttr(resourceName, "remote_id", "my-remote-id"),
 							resource.TestCheckResourceAttr(resourceName, "remote_ip_address", "4.3.2.1"),
 							resource.TestCheckResourceAttr(resourceName, "remote_networks.#", "2"),
 							resource.TestCheckResourceAttr(resourceName, "security_type", "DEFAULT"),

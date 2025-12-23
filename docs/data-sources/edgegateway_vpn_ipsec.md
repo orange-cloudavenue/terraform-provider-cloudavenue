@@ -35,6 +35,7 @@ data "cloudavenue_edgegateway_vpn_ipsec" "example" {
 - `local_ip_address` (String) An IPv4 Address for the local endpoint. This has to be a sub-allocated IP on the Edge Gateway. This endpoint must be reach by the remote endpoint.
 - `local_networks` (Set of String) Set of local networks in CIDR format. This local_networks will be exchanged between both sites in order to route ip traffic in VPN tunnel.
 - `pre_shared_key` (String, Sensitive) The Pre-Shared Key (PSK) is an Authentication method. Is a complex password (ASCII) that will be exchanged between both sites in order to set up the IPsec tunnel.
+- `remote_id` (String) The Remote ID is an optional identity used to establish the VPN tunnel. If not set, the Remote IP Address will be used as Remote ID.
 - `remote_ip_address` (String) An IPv4 Address for the remote endpoint. This is your remote VPN endpoint you need to reach.
 - `remote_networks` (Set of String) Set of remote networks in CIDR format. This remote_networks will be exchanged between both sites in order to route ip traffic in VPN tunnel.
 - `security_profile` (Attributes) Customization of your IPSec configuration. The configuration used must be symmetric for both endpoint VPN. (see [below for nested schema](#nestedatt--security_profile))

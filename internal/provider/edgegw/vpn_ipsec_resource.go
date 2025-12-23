@@ -58,7 +58,7 @@ func (r *vpnIPSecResource) Init(_ context.Context, rm *VPNIPSecModel) (diags dia
 
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
@@ -67,10 +67,10 @@ func (r *vpnIPSecResource) Init(_ context.Context, rm *VPNIPSecModel) (diags dia
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -458,6 +458,7 @@ func (r *vpnIPSecResource) read(ctx context.Context, planOrState *VPNIPSecModel)
 	stateRefreshed.LocalNetworks.Set(ctx, vpnTunnel.NsxtIpSecVpn.LocalEndpoint.LocalNetworks)
 	stateRefreshed.Name.Set(vpnTunnel.NsxtIpSecVpn.Name)
 	stateRefreshed.PreSharedKey.Set(vpnTunnel.NsxtIpSecVpn.PreSharedKey)
+	stateRefreshed.RemoteID.Set(vpnTunnel.NsxtIpSecVpn.RemoteEndpoint.RemoteId)
 	stateRefreshed.RemoteIPAddress.Set(vpnTunnel.NsxtIpSecVpn.RemoteEndpoint.RemoteAddress)
 	stateRefreshed.RemoteNetworks.Set(ctx, vpnTunnel.NsxtIpSecVpn.RemoteEndpoint.RemoteNetworks)
 	stateRefreshed.SecurityType.Set(vpnTunnel.NsxtIpSecVpn.SecurityType)

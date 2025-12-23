@@ -38,7 +38,7 @@ func (r *VDCDataSource) GetResourceName() string {
 
 func (r *VDCDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *VDCDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

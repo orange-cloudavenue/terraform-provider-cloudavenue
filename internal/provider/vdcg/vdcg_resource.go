@@ -47,7 +47,7 @@ type vdcgResource struct {
 // Init Initializes the resource.
 func (r *vdcgResource) Init(_ context.Context, _ *vdcgModel) (diags diag.Diagnostics) {
 	r.adminOrg, diags = adminorg.Init(r.client)
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

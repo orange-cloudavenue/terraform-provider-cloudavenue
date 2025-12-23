@@ -160,6 +160,15 @@ func vpnIPSecSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
+			"remote_id": superschema.SuperStringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "The Remote ID is an optional identity used to establish the VPN tunnel. If not set, the Remote IP Address will be used as Remote ID.",
+					Computed:            true,
+				},
+				Resource: &schemaR.StringAttribute{
+					Optional: true,
+				},
+			},
 			"remote_ip_address": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "An IPv4 Address for the remote endpoint. This is your remote VPN endpoint you need to reach.",

@@ -51,7 +51,7 @@ func (d *catalogsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequ
 
 func (d *catalogsDataSource) Init(_ context.Context, _ *catalogsDataSourceModel) (diags diag.Diagnostics) {
 	d.adminOrg, diags = adminorg.Init(d.client)
-	return
+	return diags
 }
 
 func (d *catalogsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

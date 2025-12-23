@@ -52,17 +52,17 @@ type orgNetworkDataSource struct {
 func (d *orgNetworkDataSource) Init(_ context.Context, dm *orgNetworkModel) (diags diag.Diagnostics) {
 	d.org, diags = org.Init(d.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	d.vdc, diags = vdc.Init(d.client, dm.VDC)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	d.vapp, diags = vapp.Init(d.client, d.vdc, dm.VAppID, dm.VAppName)
 
-	return
+	return diags
 }
 
 func (d *orgNetworkDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

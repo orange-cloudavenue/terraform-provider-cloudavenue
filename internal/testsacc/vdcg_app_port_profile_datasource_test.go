@@ -38,7 +38,7 @@ func (r *VDCGAppPortProfileDatasource) GetResourceName() string {
 }
 
 func (r *VDCGAppPortProfileDatasource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *VDCGAppPortProfileDatasource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -48,7 +48,7 @@ func (r *VDCGAppPortProfileDatasource) Tests(_ context.Context) map[testsacc.Tes
 				// ! Create testing
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCGAppPortProfileResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
@@ -67,7 +67,7 @@ func (r *VDCGAppPortProfileDatasource) Tests(_ context.Context) map[testsacc.Tes
 				// ! Create testing
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCGAppPortProfileResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
@@ -86,7 +86,7 @@ func (r *VDCGAppPortProfileDatasource) Tests(_ context.Context) map[testsacc.Tes
 				// ! Create testing
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCGResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
@@ -110,7 +110,7 @@ func (r *VDCGAppPortProfileDatasource) Tests(_ context.Context) map[testsacc.Tes
 				// ! Create testing
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCGResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
@@ -135,7 +135,7 @@ func (r *VDCGAppPortProfileDatasource) Tests(_ context.Context) map[testsacc.Tes
 				// ! Create testing
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCGAppPortProfileResourceName]().GetSpecificConfig("example_http_scope_tenant"))
-					return
+					return resp
 				},
 				Create: testsacc.TFConfig{
 					TFConfig: `

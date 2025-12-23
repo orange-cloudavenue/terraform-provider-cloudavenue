@@ -61,7 +61,7 @@ func (d *VirtualServiceDataSource) Init(_ context.Context, dm *VirtualServiceMod
 	dm.EdgeGatewayID.Set(urn.Normalize(urn.Gateway, d.edge.GetID()).String())
 	dm.EdgeGatewayName.Set(d.edge.GetName())
 
-	return
+	return diags
 }
 
 func (d *VirtualServiceDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

@@ -46,7 +46,7 @@ func (d *PoliciesHTTPResponseDataSource) Init(_ context.Context, _ *PoliciesHTTP
 		diags.AddError("Error creating elb client", err.Error())
 	}
 
-	return
+	return diags
 }
 
 func (d *PoliciesHTTPResponseDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

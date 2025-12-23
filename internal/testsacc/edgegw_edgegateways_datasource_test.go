@@ -40,7 +40,7 @@ func (r *EdgeGatewaysDataSource) GetResourceName() string {
 func (r *EdgeGatewaysDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	// Add dependencies config to the resource
 	resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *EdgeGatewaysDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

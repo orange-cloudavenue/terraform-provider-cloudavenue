@@ -85,7 +85,7 @@ func (rm *vdcResourceModel) ToCAVVirtualDataCenter(ctx context.Context) (obj *in
 	storageProfiles, d := rm.StorageProfiles.Get(ctx)
 	diags.Append(d...)
 	if d.HasError() {
-		return
+		return obj, diags
 	}
 
 	// Iterate over the storage profiles and add them to the body.

@@ -100,14 +100,14 @@ func (rm *ACLModel) ToControlAccessParams(ctx context.Context, adminOrg adminorg
 		sharedWithusers, d := rm.GetSharedWithUsers(ctx)
 		diags.Append(d...)
 		if diags.HasError() {
-			return
+			return values, diags
 		}
 
 		for _, user := range sharedWithusers {
 			userAPI, err := adminOrg.GetUserById(user.UserID.Get(), true)
 			if err != nil {
 				diags.AddError(fmt.Sprintf("error when retrieving user %s", user.UserID.Get()), err.Error())
-				return
+				return values, diags
 			}
 
 			accessSettings = append(accessSettings, &govcdtypes.AccessSetting{

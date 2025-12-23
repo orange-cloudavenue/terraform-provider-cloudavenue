@@ -64,7 +64,7 @@ func (r *vmAffinityRuleResource) Schema(ctx context.Context, _ resource.SchemaRe
 func (r *vmAffinityRuleResource) Init(_ context.Context, rm *vmAffinityRuleResourceModel) (diags diag.Diagnostics) {
 	r.vdc, diags = vdc.Init(r.client, rm.VDC)
 
-	return
+	return diags
 }
 
 func (r *vmAffinityRuleResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

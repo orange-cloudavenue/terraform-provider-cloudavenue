@@ -52,13 +52,13 @@ func (d *NetworkRoutedDataSource) Init(_ context.Context, dm *NetworkRoutedModel
 			"Error retrieving VDC Group",
 			fmt.Sprintf("Error retrieving VDC Group %q: %s", idOrName, err),
 		)
-		return
+		return diags
 	}
 
 	dm.VDCGroupID.Set(d.vdcg.GetID())
 	dm.VDCGroupName.Set(d.vdcg.GetName())
 
-	return
+	return diags
 }
 
 func (d *NetworkRoutedDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

@@ -51,7 +51,7 @@ type BucketPolicyResource struct {
 func (r *BucketPolicyResource) Init(_ context.Context, _ *BucketPolicyModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

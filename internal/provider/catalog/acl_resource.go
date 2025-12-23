@@ -54,7 +54,7 @@ func (r *aclResource) Init(_ context.Context, rm *ACLModel) (diags diag.Diagnost
 	}
 
 	r.adminOrg, diags = adminorg.Init(r.client)
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -315,19 +315,19 @@ func (r *aclResource) createOrUpdate(ctx context.Context, plan *ACLModel) (diags
 	catalog, err := r.adminOrg.GetCatalogByNameOrId(r.catalog.GetIDOrName(), true)
 	if err != nil {
 		diags.AddError("error when retrieving catalog", err.Error())
-		return
+		return diags
 	}
 
 	aclConfig, d := plan.ToControlAccessParams(ctx, r.adminOrg)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	if err := catalog.SetAccessControl(&aclConfig, true); err != nil {
 		diags.AddError("error when setting access control", err.Error())
-		return
+		return diags
 	}
 
-	return
+	return diags
 }

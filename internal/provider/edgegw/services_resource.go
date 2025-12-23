@@ -48,12 +48,12 @@ func (r *ServicesResource) Init(_ context.Context, _ *ServicesModel) (diags diag
 	edge, err := edgegateway.NewClient()
 	if err != nil {
 		diags.AddError("Client Initialization Error", fmt.Sprintf("Failed to create edge gateway client: %s", err))
-		return
+		return diags
 	}
 
 	r.edge = edge
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

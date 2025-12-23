@@ -45,7 +45,7 @@ type CredentialResource struct {
 // Init Initializes the resource.
 func (r *CredentialResource) Init(_ context.Context, _ *CredentialModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -292,12 +292,12 @@ func (r *CredentialResource) read(_ context.Context, planOrState *CredentialMode
 	user, err := r.s3Client.GetUser(stateRefreshed.Username.Get())
 	if err != nil {
 		diags.AddError("Error getting user", err.Error())
-		return
+		return stateRefreshed, found, diags
 	}
 
 	if _, err := user.GetCredential(stateRefreshed.AccessKey.Get()); err != nil {
 		diags.AddError("Error getting credential", err.Error())
-		return
+		return stateRefreshed, found, diags
 	}
 
 	// ID is a username and 4 first characters of the access key. (e.g. `username-1234`)

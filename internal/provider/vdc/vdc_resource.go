@@ -91,7 +91,7 @@ func (r *vdcResource) validateConfig(ctx context.Context, config *vdcResourceMod
 	StorageProfiles, d := config.StorageProfiles.Get(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	if err := rules.Validate(rules.ValidateData{
@@ -468,7 +468,7 @@ func (r *vdcResource) read(ctx context.Context, planOrState *vdcResourceModel) (
 
 	diags.Append(stateRefreshed.StorageProfiles.Set(ctx, storageProfiles)...)
 	if diags.HasError() {
-		return
+		return stateRefreshed, found, diags
 	}
 
 	return stateRefreshed, true, diags

@@ -51,24 +51,24 @@ func (d *vmDataSource) Init(_ context.Context, dm *VMDataSourceModel) (diags dia
 	d.vdc, mydiag = vdc.Init(d.client, dm.VDC)
 	diags.Append(mydiag...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	d.adminVDC, mydiag = adminvdc.Init(d.client, dm.VDC)
 	diags.Append(mydiag...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	d.vapp, mydiag = vapp.Init(d.client, d.vdc, dm.VappID, dm.VappName)
 	diags.Append(mydiag...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	if d.vapp.VAPP == nil {
 		diags.AddError("Vapp not found", fmt.Sprintf("Vapp %s not found in VDC %s", dm.VappName, dm.VDC))
-		return
+		return diags
 	}
 
 	d.vm, mydiag = vm.Init(d.client, d.vapp, vm.GetVMOpts{
@@ -77,7 +77,7 @@ func (d *vmDataSource) Init(_ context.Context, dm *VMDataSourceModel) (diags dia
 	})
 	diags.Append(mydiag...)
 
-	return
+	return diags
 }
 
 func (d *vmDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -139,7 +139,7 @@ func (d *vmDataSource) Read(ctx context.Context, req datasource.ReadRequest, res
 func (d *vmDataSource) read(ctx context.Context, dm, dmPlan *VMDataSourceModel) (plan *VMDataSourceModel, diags diag.Diagnostics) {
 	if err := d.vm.Refresh(); err != nil {
 		diags.AddError("Error refreshing VM", err.Error())
-		return
+		return plan, diags
 	}
 
 	// ? State
@@ -149,7 +149,7 @@ func (d *vmDataSource) read(ctx context.Context, dm, dmPlan *VMDataSourceModel) 
 			"Unable to get VM state",
 			fmt.Sprintf("Error: %s", err),
 		)
-		return
+		return plan, diags
 	}
 
 	// ? Resource
@@ -159,7 +159,7 @@ func (d *vmDataSource) read(ctx context.Context, dm, dmPlan *VMDataSourceModel) 
 			"Unable to get VM networks",
 			fmt.Sprintf("Error: %s", err),
 		)
-		return
+		return plan, diags
 	}
 
 	// ? Settings
@@ -169,7 +169,7 @@ func (d *vmDataSource) read(ctx context.Context, dm, dmPlan *VMDataSourceModel) 
 			"Unable to get VM settings",
 			fmt.Sprintf("Error: %s", err),
 		)
-		return
+		return plan, diags
 	}
 
 	return &VMDataSourceModel{

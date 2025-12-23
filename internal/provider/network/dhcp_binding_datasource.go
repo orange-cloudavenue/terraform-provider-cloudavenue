@@ -39,7 +39,7 @@ type dhcpBindingDataSource struct {
 // Init Initializes the data source.
 func (d *dhcpBindingDataSource) Init(_ context.Context, _ *DHCPBindingModel) (diags diag.Diagnostics) {
 	d.org, diags = org.Init(d.client)
-	return
+	return diags
 }
 
 func (d *dhcpBindingDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

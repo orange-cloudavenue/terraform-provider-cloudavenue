@@ -41,7 +41,7 @@ type dhcpDataSource struct {
 // Init Initializes the data source.
 func (d *dhcpDataSource) Init(_ context.Context, _ *dhcpModel) (diags diag.Diagnostics) {
 	d.org, diags = org.Init(d.client)
-	return
+	return diags
 }
 
 func (d *dhcpDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

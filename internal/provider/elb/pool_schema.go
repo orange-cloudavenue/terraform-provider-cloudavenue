@@ -138,7 +138,7 @@ func poolSchema(ctx context.Context) superschema.Schema {
 									Description: edgeloadbalancer.PoolAlgorithms[edgeloadbalancer.PoolAlgorithm(v)],
 								})
 							}
-							return
+							return resp
 						}()...),
 					},
 				},
@@ -293,7 +293,7 @@ func poolSchema(ctx context.Context) superschema.Schema {
 											resp = append(resp, string(v))
 										}
 										slices.Sort(resp)
-										return
+										return resp
 									}()...),
 								),
 							},
@@ -409,7 +409,7 @@ func poolSchema(ctx context.Context) superschema.Schema {
 											Description: edgeloadbalancer.PoolPersistenceProfileTypes[edgeloadbalancer.PoolPersistenceProfileType(v)],
 										})
 									}
-									return
+									return resp
 								}()...),
 							},
 						},
@@ -426,7 +426,7 @@ func poolSchema(ctx context.Context) superschema.Schema {
 									resp = append(resp, types.StringValue(string(edgeloadbalancer.PoolPersistenceProfileTypeHTTPCookie)))
 									resp = append(resp, types.StringValue(string(edgeloadbalancer.PoolPersistenceProfileTypeCustomHTTPHeader)))
 									resp = append(resp, types.StringValue(string(edgeloadbalancer.PoolPersistenceProfileTypeAPPCookie)))
-									return
+									return resp
 								}()),
 							},
 						},
