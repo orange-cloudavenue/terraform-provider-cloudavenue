@@ -36,7 +36,7 @@ func (r *BackupResource) GetResourceName() string {
 }
 
 func (r *BackupResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *BackupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -50,7 +50,7 @@ func (r *BackupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -107,7 +107,7 @@ func (r *BackupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VAppResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
@@ -164,7 +164,7 @@ func (r *BackupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VMResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

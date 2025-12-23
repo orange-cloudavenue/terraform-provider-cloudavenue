@@ -1,0 +1,7 @@
+```release-note:enhancement
+`resource/cloudavenue_vpn_ipsec` - Added `remote_id` attribute to specify an optional Remote ID for the VPN tunnel. If not set, the Remote IP Address will be used as the Remote ID.`
+```
+
+```release-note:enhancement
+`datasource/cloudavenue_xx` - Added `remote_id` attribute to retrieve the Remote ID of the VPN tunnel.`
+```

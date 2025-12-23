@@ -50,7 +50,7 @@ type dhcpBindingResource struct {
 func (r *dhcpBindingResource) Init(_ context.Context, _ *DHCPBindingModel) (diags diag.Diagnostics) {
 	r.org, diags = org.Init(r.client)
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

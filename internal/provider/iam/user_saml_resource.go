@@ -51,7 +51,7 @@ func (r *UserSAMLResource) Init(_ context.Context, _ *UserSAMLModel) (diags diag
 		diags.AddError("Error initializing IAM client", err.Error())
 	}
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.

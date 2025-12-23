@@ -81,22 +81,22 @@ func (v VM) constructLockKey() string {
 func (v VM) LockVM(ctx context.Context) (d diag.Diagnostics) {
 	if v.GetID() == "" || ctx == nil {
 		d.AddError("Incorrect lock args", "VM: "+v.GetID())
-		return
+		return d
 	}
 
 	mutex.GlobalMutex.KvLock(ctx, v.constructLockKey())
-	return
+	return d
 }
 
 // UnlockVM unlocks VM.
 func (v VM) UnlockVM(ctx context.Context) (d diag.Diagnostics) {
 	if v.GetID() == "" || ctx == nil {
 		d.AddError("Incorrect Unlock args", "VM: "+v.GetID())
-		return
+		return d
 	}
 
 	mutex.GlobalMutex.KvUnlock(ctx, v.constructLockKey())
-	return
+	return d
 }
 
 // GetName returns the name of the VM.

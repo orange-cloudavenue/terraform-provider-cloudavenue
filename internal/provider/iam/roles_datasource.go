@@ -43,7 +43,7 @@ type RolesDataSource struct {
 // Init Initializes the data source.
 func (d *RolesDataSource) Init(_ context.Context, _ *RolesModel) (diags diag.Diagnostics) {
 	d.adminOrg, diags = adminorg.Init(d.client)
-	return
+	return diags
 }
 
 func (d *RolesDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

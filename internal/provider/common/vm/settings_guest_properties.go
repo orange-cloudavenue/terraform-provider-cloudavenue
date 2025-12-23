@@ -65,7 +65,7 @@ func (g *VMResourceModelSettingsGuestProperties) toAttrValues(_ context.Context)
 		attrValues[k] = types.StringValue(v)
 	}
 
-	return
+	return attrValues
 }
 
 // ToPlan converts a GuestProperties to a plan.
@@ -88,7 +88,7 @@ func (v VM) GuestPropertiesRead() (guestProperties *VMResourceModelSettingsGuest
 	guestProperties = &VMResourceModelSettingsGuestProperties{}
 
 	if guest.ProductSection == nil {
-		return
+		return guestProperties, err
 	}
 
 	for _, guestProperty := range guest.ProductSection.Property {
@@ -97,5 +97,5 @@ func (v VM) GuestPropertiesRead() (guestProperties *VMResourceModelSettingsGuest
 		}
 	}
 
-	return
+	return guestProperties, err
 }

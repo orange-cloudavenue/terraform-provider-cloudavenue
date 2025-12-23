@@ -419,7 +419,7 @@ func (r *backupResource) read(ctx context.Context, planOrState *backupModel) (st
 	typeTarget, d := r.getTarget(planOrState)
 	if d.HasError() {
 		diags.Append(d...)
-		return
+		return stateRefreshed, found, diags
 	}
 
 	// Set ID
@@ -452,7 +452,7 @@ func (r *backupResource) read(ctx context.Context, planOrState *backupModel) (st
 	d = stateRefreshed.Policies.Set(ctx, policies)
 	if d.HasError() {
 		diags.Append(d...)
-		return
+		return stateRefreshed, found, diags
 	}
 
 	return stateRefreshed, true, nil

@@ -65,29 +65,29 @@ func (r *vmResource) Init(_ context.Context, rm *vm.VMResourceModel) (diags diag
 	r.vdc, d = vdc.Init(r.client, rm.VDC)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.adminVDC, d = adminvdc.Init(r.client, rm.VDC)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.vapp, d = vapp.Init(r.client, r.vdc, rm.VappID, rm.VappName)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	if r.vapp.VAPP == nil {
 		diags.AddError("Vapp not found", fmt.Sprintf("Vapp %s not found in VDC %s", rm.VappName, rm.VDC))
-		return
+		return diags
 	}
 
 	// Vm is not initialized here because if VM is not found in read. Delete resource in state will be called.
 
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -1106,14 +1106,14 @@ func (r *vmResource) processAfterCreate(ctx context.Context, vmCreated vm.VM, rm
 	resource, d := rm.ResourceFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return vmUpdated, diags
 	}
 
 	// * Network
 	resourceNetworks, d := resource.NetworksFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return vmUpdated, diags
 	}
 
 	networkConnection := []vm.NetworkConnection{}
@@ -1124,21 +1124,21 @@ func (r *vmResource) processAfterCreate(ctx context.Context, vmCreated vm.VM, rm
 	networkConfig, err := vm.ConstructNetworksConnectionWithoutVM(r.vapp, networkConnection)
 	if err != nil {
 		diags.AddError("Error retrieving network config", err.Error())
-		return
+		return vmUpdated, diags
 	}
 
 	// * Settings
 	settings, d := rm.SettingsFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return vmUpdated, diags
 	}
 
 	// * Expose Hardware Virtualization
 	err = vmCreated.SetExposeHardwareVirtualization(settings.ExposeHardwareVirtualization.ValueBool())
 	if err != nil {
 		diags.AddError("Error updating expose hardware virtualization", err.Error())
-		return
+		return vmUpdated, diags
 	}
 
 	// * Guest Properties
@@ -1149,13 +1149,13 @@ func (r *vmResource) processAfterCreate(ctx context.Context, vmCreated vm.VM, rm
 
 	if err = vmCreated.SetGuestProperties(guestProperties); err != nil {
 		diags.AddError("Error updating guest properties", err.Error())
-		return
+		return vmUpdated, diags
 	}
 
 	// * Os Type
 	if err = vmCreated.SetOSType(settings.OsType.ValueString()); err != nil {
 		diags.AddError("Error updating OS Type", err.Error())
-		return
+		return vmUpdated, diags
 	}
 
 	// * Update CPU and Memory
@@ -1166,7 +1166,7 @@ func (r *vmResource) processAfterCreate(ctx context.Context, vmCreated vm.VM, rm
 			utils.TakeIntPointer(int(resource.CPUsCores.ValueInt64())),
 		); err != nil {
 			diags.AddError("Error updating CPU and Memory", err.Error())
-			return
+			return vmUpdated, diags
 		}
 	}
 
@@ -1174,38 +1174,38 @@ func (r *vmResource) processAfterCreate(ctx context.Context, vmCreated vm.VM, rm
 	if !resource.Memory.IsNull() {
 		if err = vmCreated.ChangeMemory(resource.Memory.ValueInt64()); err != nil {
 			diags.AddError("Error updating Memory", err.Error())
-			return
+			return vmUpdated, diags
 		}
 	}
 
 	// * Network
 	if err = vmCreated.UpdateNetworkConnectionSection(&networkConfig); err != nil {
 		diags.AddError("Error updating network config", err.Error())
-		return
+		return vmUpdated, diags
 	}
 
 	// * Customization
 	customization, d := settings.CustomizationFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return vmUpdated, diags
 	}
 
 	if err = vmCreated.SetCustomization(customization.GetCustomizationSection(rm.Name.ValueString())); err != nil {
 		diags.AddError("Error updating customization", err.Error())
-		return
+		return vmUpdated, diags
 	}
 
 	// * CPU/Memory Hot Add
 	if _, err = vmCreated.UpdateVmCpuAndMemoryHotAdd(resource.CPUHotAddEnabled.ValueBool(), resource.MemoryHotAddEnabled.ValueBool()); err != nil {
 		diags.AddError("Error updating CPU/Memory Hot Add", err.Error())
-		return
+		return vmUpdated, diags
 	}
 
 	err = vmCreated.Refresh()
 	if err != nil {
 		diags.AddError("Error refreshing VM", err.Error())
-		return
+		return vmUpdated, diags
 	}
 
 	return vmCreated, diags
@@ -1217,21 +1217,21 @@ func (r *vmResource) vmPowerOn(ctx context.Context, rm vm.VMResourceModel) (diag
 	state, d := rm.StateFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	// * Settings
 	settings, d := rm.SettingsFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	// * Customization
 	customization, d := settings.CustomizationFromPlan(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	// * Power On
@@ -1239,17 +1239,17 @@ func (r *vmResource) vmPowerOn(ctx context.Context, rm vm.VMResourceModel) (diag
 		if customization.Force.ValueBool() {
 			if err := r.vm.PowerOnAndForceCustomization(); err != nil {
 				diags.AddError("Error powering on VM", err.Error())
-				return
+				return diags
 			}
 		} else {
 			task, err := r.vm.PowerOn()
 			if err != nil {
 				diags.AddError("Error powering on VM", err.Error())
-				return
+				return diags
 			}
 			if err = task.WaitTaskCompletion(); err != nil {
 				diags.AddError("error waiting for power on", err.Error())
-				return
+				return diags
 			}
 		}
 	}
@@ -1261,7 +1261,7 @@ func (r *vmResource) vmPowerOn(ctx context.Context, rm vm.VMResourceModel) (diag
 func (r *vmResource) read(ctx context.Context, rm, rmPlan *vm.VMResourceModel) (plan *vm.VMResourceModel, diags diag.Diagnostics) {
 	if err := r.vm.Refresh(); err != nil {
 		diags.AddError("Error refreshing VM", err.Error())
-		return
+		return plan, diags
 	}
 
 	// ? deployOS -> Use state for unknown value
@@ -1273,7 +1273,7 @@ func (r *vmResource) read(ctx context.Context, rm, rmPlan *vm.VMResourceModel) (
 			"Unable to get VM state",
 			fmt.Sprintf("Error: %s", err),
 		)
-		return
+		return plan, diags
 	}
 
 	// ? Resource
@@ -1283,7 +1283,7 @@ func (r *vmResource) read(ctx context.Context, rm, rmPlan *vm.VMResourceModel) (
 			"Unable to get VM networks",
 			fmt.Sprintf("Error: %s", err),
 		)
-		return
+		return plan, diags
 	}
 
 	// ? Settings
@@ -1293,7 +1293,7 @@ func (r *vmResource) read(ctx context.Context, rm, rmPlan *vm.VMResourceModel) (
 			"Unable to get VM settings",
 			fmt.Sprintf("Error: %s", err),
 		)
-		return
+		return plan, diags
 	}
 
 	return &vm.VMResourceModel{

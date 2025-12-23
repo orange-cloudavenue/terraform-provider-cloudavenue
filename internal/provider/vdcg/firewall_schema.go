@@ -128,7 +128,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 										for _, value := range v1.VDCGroupFirewallTypeRuleDirections {
 											values = append(values, string(value))
 										}
-										return
+										return values
 									}()...,
 								),
 							},
@@ -151,7 +151,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 										for _, value := range v1.VDCGroupFirewallTypeRuleIPProtocols {
 											values = append(values, string(value))
 										}
-										return
+										return values
 									}()...,
 								),
 							},
@@ -169,7 +169,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 										for _, value := range v1.VDCGroupFirewallTypeRuleActions {
 											values = append(values, string(value))
 										}
-										return
+										return values
 									}()...,
 								),
 							},

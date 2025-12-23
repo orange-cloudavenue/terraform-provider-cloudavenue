@@ -46,7 +46,7 @@ func (d *dhcpForwardingDataSource) Init(_ context.Context, dm *DhcpForwardingMod
 
 	d.org, diags = org.Init(d.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	d.edgegw, err = d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
@@ -55,10 +55,10 @@ func (d *dhcpForwardingDataSource) Init(_ context.Context, dm *DhcpForwardingMod
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
-		return
+		return diags
 	}
 
-	return
+	return diags
 }
 
 func (d *dhcpForwardingDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

@@ -82,6 +82,7 @@ resource "cloudavenue_edgegateway_vpn_ipsec" "example" {
 - `edge_gateway_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 - `edge_gateway_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 - `enabled` (Boolean) Enable or Disable the IPsec VPN Tunnel Configuration. Value defaults to `true`.
+- `remote_id` (String) The Remote ID is an optional identity used to establish the VPN tunnel. If not set, the Remote IP Address will be used as Remote ID.
 - `security_profile` (Attributes) Customization of your IPSec configuration. The configuration used must be symmetric for both endpoint VPN. (see [below for nested schema](#nestedatt--security_profile))
 
 ### Read-Only

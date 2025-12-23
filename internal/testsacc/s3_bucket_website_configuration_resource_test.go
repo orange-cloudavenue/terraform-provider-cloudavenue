@@ -37,7 +37,7 @@ func (r *S3BucketWebsiteConfigurationResource) GetResourceName() string {
 
 func (r *S3BucketWebsiteConfigurationResource) DependenciesConfig() (deps testsacc.DependenciesConfigResponse) {
 	deps.Append(GetResourceConfig()[S3BucketResourceName]().GetDefaultConfig)
-	return
+	return deps
 }
 
 func (r *S3BucketWebsiteConfigurationResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

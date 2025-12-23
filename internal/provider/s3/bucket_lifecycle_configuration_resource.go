@@ -52,7 +52,7 @@ type BucketLifecycleConfigurationResource struct {
 // Init Initializes the resource.
 func (r *BucketLifecycleConfigurationResource) Init(_ context.Context, _ *BucketLifecycleConfigurationModel) (diags diag.Diagnostics) {
 	r.s3Client = r.client.CAVSDK.V1.S3()
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -284,7 +284,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 	lifeCycleRules, d := planOrState.Rules.Get(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	rules := make([]*s3.LifecycleRule, 0)
@@ -300,7 +300,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 			abortIncompleteMultipartUpload, d := rule.AbortIncompleteMultipartUpload.Get(ctx)
 			diags.Append(d...)
 			if diags.HasError() {
-				return
+				return diags
 			}
 
 			s3Rule.AbortIncompleteMultipartUpload = &s3.AbortIncompleteMultipartUpload{
@@ -313,7 +313,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 			expiration, d := rule.Expiration.Get(ctx)
 			diags.Append(d...)
 			if diags.HasError() {
-				return
+				return diags
 			}
 
 			s3Rule.Expiration = &s3.LifecycleExpiration{}
@@ -330,7 +330,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 				t, err := time.Parse(time.RFC3339, expiration.Date.Get())
 				if err != nil {
 					diags.AddError("Error parsing S3 Bucket Lifecycle Rule Expiration date", err.Error())
-					return
+					return diags
 				}
 				s3Rule.Expiration.Date = utils.TakePointer(t)
 			}
@@ -341,7 +341,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 			filter, d := rule.Filter.Get(ctx)
 			diags.Append(d...)
 			if diags.HasError() {
-				return
+				return diags
 			}
 
 			s3Rule.Filter = &s3.LifecycleRuleFilter{
@@ -353,7 +353,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 				tag, d := filter.Tag.Get(ctx)
 				diags.Append(d...)
 				if diags.HasError() {
-					return
+					return diags
 				}
 
 				s3Rule.Filter.Tag = &s3.Tag{
@@ -367,7 +367,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 				and, d := filter.And.Get(ctx)
 				diags.Append(d...)
 				if diags.HasError() {
-					return
+					return diags
 				}
 
 				s3Rule.Filter.And = &s3.LifecycleRuleAndOperator{
@@ -379,7 +379,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 					tags, d := and.Tags.Get(ctx)
 					diags.Append(d...)
 					if diags.HasError() {
-						return
+						return diags
 					}
 
 					s3Rule.Filter.And.Tags = make([]*s3.Tag, 0)
@@ -399,7 +399,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 			noncurrentVersionExpiration, d := rule.NoncurrentVersionExpiration.Get(ctx)
 			diags.Append(d...)
 			if diags.HasError() {
-				return
+				return diags
 			}
 
 			s3Rule.NoncurrentVersionExpiration = &s3.NoncurrentVersionExpiration{
@@ -421,7 +421,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 	createTimeout, d := planOrState.Timeouts.Create(ctx, defaultCreateTimeout)
 	if d.HasError() {
 		diags.Append(d...)
-		return
+		return diags
 	}
 
 	if _, err := retryWhenAWSErrCodeEquals(ctx, []string{s3.ErrCodeNoSuchBucket}, &RetryWhenConfig[*s3.PutBucketLifecycleConfigurationOutput]{
@@ -432,14 +432,14 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 		},
 	}); err != nil {
 		diags.AddError("Error putting S3 Bucket Lifecycle Configuration", err.Error())
-		return
+		return diags
 	}
 
 	if err := waitForLifecycleConfigurationRulesStatus(ctx, r.s3Client.S3, planOrState.Bucket.Get(), rules); err != nil {
 		diags.AddError("Error waiting for S3 Lifecycle Configuration for bucket to reach expected rules status", err.Error())
 	}
 
-	return
+	return diags
 }
 
 const (

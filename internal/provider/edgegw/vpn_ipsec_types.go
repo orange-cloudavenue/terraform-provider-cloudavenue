@@ -32,6 +32,7 @@ type VPNIPSecModel struct {
 	LocalNetworks   supertypes.SetValue          `tfsdk:"local_networks"`
 	Name            supertypes.StringValue       `tfsdk:"name"`
 	PreSharedKey    supertypes.StringValue       `tfsdk:"pre_shared_key"`
+	RemoteID        supertypes.StringValue       `tfsdk:"remote_id"`
 	RemoteIPAddress supertypes.StringValue       `tfsdk:"remote_ip_address"`
 	RemoteNetworks  supertypes.SetValue          `tfsdk:"remote_networks"`
 	SecurityProfile supertypes.SingleNestedValue `tfsdk:"security_profile"`
@@ -95,13 +96,13 @@ func (rm *VPNIPSecModel) GetSecurityProfile(ctx context.Context) (values VPNIPSe
 func (rm *VPNIPSecModel) GetNsxtIPSecVPNTunnelSecurityProfile(ctx context.Context) (values *govcdtypes.NsxtIpSecVpnTunnelSecurityProfile, diags diag.Diagnostics) {
 	values = &govcdtypes.NsxtIpSecVpnTunnelSecurityProfile{}
 	if !rm.SecurityProfile.IsKnown() {
-		return
+		return values, diags
 	}
 
 	securityProfile, d := rm.GetSecurityProfile(ctx)
 	diags.Append(d...)
 	if d.HasError() {
-		return
+		return values, diags
 	}
 
 	if securityProfile.IkeDhGroups.IsKnown() {
@@ -140,7 +141,7 @@ func (rm *VPNIPSecModel) GetNsxtIPSecVPNTunnelSecurityProfile(ctx context.Contex
 	if securityProfile.TunnelDpd.IsKnown() {
 		values.DpdConfiguration.ProbeInterval = securityProfile.TunnelDpd.GetInt()
 	}
-	return
+	return values, diags
 }
 
 func (rm VPNIPSecModelLocalNetworks) Get() []string {
@@ -170,8 +171,9 @@ func (rm *VPNIPSecModel) ToNsxtIPSecVPNTunnel(ctx context.Context) (values *govc
 	localNet, diags := rm.GetLocalNetworks(ctx)
 	diags.Append(diags...)
 	if diags.HasError() {
-		return
+		return values, diags
 	}
+
 	values.LocalEndpoint.LocalId = rm.LocalIPAddress.Get()
 	values.LocalEndpoint.LocalAddress = rm.LocalIPAddress.Get()
 	values.LocalEndpoint.LocalNetworks = localNet.Get()
@@ -180,11 +182,17 @@ func (rm *VPNIPSecModel) ToNsxtIPSecVPNTunnel(ctx context.Context) (values *govc
 	remoteNet, diags := rm.GetRemoteNetworks(ctx)
 	diags.Append(diags...)
 	if diags.HasError() {
-		return
+		return values, diags
 	}
+
 	values.RemoteEndpoint.RemoteId = rm.RemoteIPAddress.Get()
+
+	if rm.RemoteID.IsKnown() {
+		values.RemoteEndpoint.RemoteId = rm.RemoteID.Get()
+	}
+
 	values.RemoteEndpoint.RemoteAddress = rm.RemoteIPAddress.Get()
 	values.RemoteEndpoint.RemoteNetworks = remoteNet.Get()
 
-	return
+	return values, diags
 }

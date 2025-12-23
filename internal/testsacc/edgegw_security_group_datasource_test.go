@@ -37,7 +37,7 @@ func (r *EdgeGatewaySecurityGroupDataSource) GetResourceName() string {
 
 func (r *EdgeGatewaySecurityGroupDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[EdgeGatewaySecurityGroupResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *EdgeGatewaySecurityGroupDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

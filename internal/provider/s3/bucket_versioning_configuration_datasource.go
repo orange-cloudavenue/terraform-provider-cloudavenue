@@ -42,7 +42,7 @@ type BucketVersioningConfigurationDatasource struct {
 // Init Initializes the data source.
 func (d *BucketVersioningConfigurationDatasource) Init(_ context.Context, _ *BucketVersioningConfigurationDatasourceModel) (diags diag.Diagnostics) {
 	d.s3Client = d.client.CAVSDK.V1.S3()
-	return
+	return diags
 }
 
 func (d *BucketVersioningConfigurationDatasource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

@@ -66,12 +66,12 @@ func (r *orgNetworkResource) Schema(ctx context.Context, _ resource.SchemaReques
 func (r *orgNetworkResource) Init(_ context.Context, rm *orgNetworkModel) (diags diag.Diagnostics) {
 	r.vdc, diags = vdc.Init(r.client, rm.VDC)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
 
-	return
+	return diags
 }
 
 func (r *orgNetworkResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

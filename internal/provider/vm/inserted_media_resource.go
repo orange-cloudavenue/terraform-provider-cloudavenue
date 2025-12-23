@@ -51,17 +51,17 @@ func (r *insertedMediaResource) Schema(ctx context.Context, _ resource.SchemaReq
 func (r *insertedMediaResource) Init(_ context.Context, rm *insertedMediaResourceModel) (diags diag.Diagnostics) {
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.vdc, diags = vdc.Init(r.client, rm.VDC)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.vm, diags = vm.Get(r.vapp, vm.GetVMOpts{
@@ -69,7 +69,7 @@ func (r *insertedMediaResource) Init(_ context.Context, rm *insertedMediaResourc
 		Name: rm.VMName,
 	})
 
-	return
+	return diags
 }
 
 func (r *insertedMediaResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

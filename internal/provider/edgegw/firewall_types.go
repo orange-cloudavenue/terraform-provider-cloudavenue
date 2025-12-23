@@ -52,7 +52,7 @@ func (rm *firewallModel) rulesToNsxtFirewallRule(ctx context.Context) (nsxtFirew
 	rules, d := rm.Rules.Get(ctx)
 	if d.HasError() {
 		diags.Append(d...)
-		return
+		return nsxtFirewallRules, diags
 	}
 
 	nsxtFirewallRules = make([]*govcdtypes.NsxtFirewallRule, len(rules))
@@ -75,21 +75,21 @@ func (rm *firewallModel) rulesToNsxtFirewallRule(ctx context.Context) (nsxtFirew
 		nsxtFirewallRules[i].SourceFirewallGroups, d = common.ToOpenAPIReferenceID(ctx, rule.SourceIDs)
 		if d.HasError() {
 			diags.Append(d...)
-			return
+			return nsxtFirewallRules, diags
 		}
 
 		nsxtFirewallRules[i].DestinationFirewallGroups, d = common.ToOpenAPIReferenceID(ctx, rule.DestinationIDs)
 		if d.HasError() {
 			diags.Append(d...)
-			return
+			return nsxtFirewallRules, diags
 		}
 
 		nsxtFirewallRules[i].ApplicationPortProfiles, d = common.ToOpenAPIReferenceID(ctx, rule.AppPortProfileIDs)
 		if d.HasError() {
 			diags.Append(d...)
-			return
+			return nsxtFirewallRules, diags
 		}
 	}
 
-	return
+	return nsxtFirewallRules, diags
 }

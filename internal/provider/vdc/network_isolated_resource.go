@@ -50,7 +50,7 @@ type NetworkIsolatedResource struct {
 // Init Initializes the resource.
 func (r *NetworkIsolatedResource) Init(_ context.Context, rm *networkIsolatedModel) (diags diag.Diagnostics) {
 	r.vdc, diags = vdc.Init(r.client, rm.VDC.StringValue)
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -334,7 +334,7 @@ func (r *NetworkIsolatedResource) read(ctx context.Context, planOrState *network
 			return nil, false, nil
 		}
 		diags.AddError("Error getting isolated network", err.Error())
-		return
+		return stateRefreshed, found, diags
 	}
 
 	// Populate the state with the network data

@@ -62,12 +62,12 @@ func (r *aclResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 func (r *aclResource) Init(_ context.Context, rm *aclResourceModel) (diags diag.Diagnostics) {
 	r.vdc, diags = vdc.Init(r.client, rm.VDC)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
 
-	return
+	return diags
 }
 
 func (r *aclResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

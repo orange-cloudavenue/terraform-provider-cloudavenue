@@ -38,7 +38,7 @@ func (r *BackupDataSource) GetResourceName() string {
 func (r *BackupDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	// Add dependencies config to the resource
 	resp.Append(GetResourceConfig()[BackupResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *BackupDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

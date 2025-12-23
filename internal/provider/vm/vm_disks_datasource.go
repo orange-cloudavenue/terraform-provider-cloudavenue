@@ -51,24 +51,24 @@ type disksDataSource struct {
 func (d *disksDataSource) Init(_ context.Context, dm *DisksModel) (diags diag.Diagnostics) {
 	d.org, diags = org.Init(d.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	d.vdc, diags = vdc.Init(d.client, dm.VDC.StringValue)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	d.vapp, diags = vapp.Init(d.client, d.vdc, dm.VAppID.StringValue, dm.VAppName.StringValue)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	d.vm, diags = vm.Get(d.vapp, vm.GetVMOpts{
 		ID:   dm.VMID.StringValue,
 		Name: dm.VMName.StringValue,
 	})
-	return
+	return diags
 }
 
 func (d *disksDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

@@ -37,7 +37,7 @@ func (r *IAMUserSAMLResource) GetResourceName() string {
 }
 
 func (r *IAMUserSAMLResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	return
+	return resp
 }
 
 func (r *IAMUserSAMLResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

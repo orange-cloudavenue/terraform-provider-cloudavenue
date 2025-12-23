@@ -60,9 +60,9 @@ func (r *AppPortProfileResource) Init(_ context.Context, rm *AppPortProfileModel
 	r.vdcGroup, err = r.client.CAVSDK.V1.VDC().GetVDCGroup(idOrName)
 	if err != nil {
 		diags.AddError("Error retrieving VDC Group", err.Error())
-		return
+		return diags
 	}
-	return
+	return diags
 }
 
 // Metadata returns the resource type name.
@@ -353,7 +353,7 @@ func (r *AppPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 			return nil, false, nil
 		}
 		diags.AddError("Error reading App Port Profile", err.Error())
-		return
+		return stateRefreshed, found, diags
 	}
 
 	appPorts := make([]*AppPortProfileModelAppPort, len(appPortProfile.ApplicationPorts))
@@ -369,7 +369,7 @@ func (r *AppPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 			if len(singlePort.DestinationPorts) > 0 {
 				diags.Append(ap.Ports.Set(ctx, singlePort.DestinationPorts)...)
 				if diags.HasError() {
-					return
+					return stateRefreshed, found, diags
 				}
 			}
 		}

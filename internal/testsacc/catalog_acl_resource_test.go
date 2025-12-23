@@ -40,7 +40,7 @@ func (r *CatalogACLResource) DependenciesConfig() (resp testsacc.DependenciesCon
 	resp.Append(GetResourceConfig()[CatalogResourceName]().GetDefaultConfig)
 	resp.Append(GetResourceConfig()[IAMUserResourceName]().GetDefaultConfig)
 	resp.Append(GetResourceConfig()[IAMUserResourceName]().GetSpecificConfig("example_2"))
-	return
+	return resp
 }
 
 func (r *CatalogACLResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {

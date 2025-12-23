@@ -60,7 +60,7 @@ func (r *publicIPResource) Init(_ context.Context, rm *publicIPResourceModel) (d
 
 	r.org, diags = org.Init(r.client)
 	if diags.HasError() {
-		return
+		return diags
 	}
 
 	// EdgeGatewayID and EdgeGatewayName are Null if ImportState
@@ -71,11 +71,11 @@ func (r *publicIPResource) Init(_ context.Context, rm *publicIPResourceModel) (d
 		})
 		if err != nil {
 			diags.AddError("Error retrieving Edge Gateway", err.Error())
-			return
+			return diags
 		}
 	}
 
-	return
+	return diags
 }
 
 // Schema defines the schema for the resource.

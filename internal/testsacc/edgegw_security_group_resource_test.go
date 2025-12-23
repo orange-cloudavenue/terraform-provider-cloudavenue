@@ -39,7 +39,7 @@ func (r *EdgeGatewaySecurityGroupResource) GetResourceName() string {
 
 func (r *EdgeGatewaySecurityGroupResource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
 	resp.Append(GetResourceConfig()[EdgeGatewayNetworkRoutedResourceName]().GetDefaultConfig)
-	return
+	return resp
 }
 
 func (r *EdgeGatewaySecurityGroupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
@@ -128,7 +128,7 @@ func (r *EdgeGatewaySecurityGroupResource) Tests(_ context.Context) map[testsacc
 					resp.Append(GetResourceConfig()[VDCNetworkIsolatedResourceName]().GetDefaultConfig)
 					resp.Append(GetResourceConfig()[VDCGNetworkIsolatedResourceName]().GetDefaultConfig)
 					resp.Append(GetResourceConfig()[VDCGNetworkRoutedResourceName]().GetDefaultConfig)
-					return
+					return resp
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{

@@ -58,7 +58,7 @@ func (d *catalogMediasDataSource) Init(_ context.Context, rm *catalogMediasDataS
 	}
 
 	d.adminOrg, diags = adminorg.Init(d.client)
-	return
+	return diags
 }
 
 func (d *catalogMediasDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {

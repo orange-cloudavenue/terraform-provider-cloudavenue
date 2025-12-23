@@ -43,7 +43,7 @@ func (d *NetworkIsolatedDataSource) Metadata(_ context.Context, req datasource.M
 // Init Initializes the resource.
 func (d *NetworkIsolatedDataSource) Init(_ context.Context, rm *networkIsolatedModel) (diags diag.Diagnostics) {
 	d.vdc, diags = vdc.Init(d.client, rm.VDC.StringValue)
-	return
+	return diags
 }
 
 func (d *NetworkIsolatedDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
