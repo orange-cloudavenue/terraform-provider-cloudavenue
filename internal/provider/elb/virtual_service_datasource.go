@@ -47,6 +47,7 @@ func (d *VirtualServiceDataSource) Init(_ context.Context, dm *VirtualServiceMod
 	d.elb, err = edgeloadbalancer.NewClient()
 	if err != nil {
 		diags.AddError("Error creating elb client", err.Error())
+		return diags
 	}
 
 	eIDOrName := dm.EdgeGatewayID.Get()
@@ -56,6 +57,7 @@ func (d *VirtualServiceDataSource) Init(_ context.Context, dm *VirtualServiceMod
 	d.edge, err = d.client.CAVSDK.V1.EdgeGateway.Get(eIDOrName)
 	if err != nil {
 		diags.AddError("Error creating edge client", err.Error())
+		return diags
 	}
 
 	dm.EdgeGatewayID.Set(urn.Normalize(urn.Gateway, d.edge.GetID()).String())

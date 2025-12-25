@@ -50,6 +50,7 @@ func (r *CertificateLibraryResource) Init(_ context.Context, _ *CertificateLibra
 	org, err := r.client.CAVSDK.V1.Org()
 	if err != nil {
 		diags.AddError("Error initializing ORG client", err.Error())
+		return diags
 	}
 
 	r.orgClient = org.Client
