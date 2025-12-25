@@ -1,4 +1,9 @@
 ## 0.35.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* Fixed a missing return in some initialization functions that could cause a panic if there was an API error. (GH-1199)
+
 ## 0.34.3 (December 23, 2025)
 
 ### :tada: **Improvements**
