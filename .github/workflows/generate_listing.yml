@@ -25,7 +25,7 @@ jobs:
         cd cmd/listing
         go mod tidy
         go run .
-    - uses: stefanzweifel/git-auto-commit-action@v6
+    - uses: stefanzweifel/git-auto-commit-action@v7
       with:
         add_options: '--force'
         commit_message: 'chore(script): changes by ci ListingRD (generate_listing)'
