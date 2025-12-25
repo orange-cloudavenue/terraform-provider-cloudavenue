@@ -1,0 +1,3 @@
+```release-note:bug
+Fixed a missing return in some initialization functions that could cause a panic if there was an API error.
+```

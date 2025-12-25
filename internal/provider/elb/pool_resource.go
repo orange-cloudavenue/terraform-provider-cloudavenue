@@ -56,6 +56,7 @@ func (r *PoolResource) Init(_ context.Context, rm *PoolModel) (diags diag.Diagno
 	r.elb, err = edgeloadbalancer.NewClient()
 	if err != nil {
 		diags.AddError("Error creating elb client", err.Error())
+		return diags
 	}
 
 	eIDOrName := rm.EdgeGatewayID.Get()
@@ -65,6 +66,7 @@ func (r *PoolResource) Init(_ context.Context, rm *PoolModel) (diags diag.Diagno
 	r.edge, err = r.client.CAVSDK.V1.EdgeGateway.Get(eIDOrName)
 	if err != nil {
 		diags.AddError("Error creating edge client", err.Error())
+		return diags
 	}
 
 	rm.EdgeGatewayID.Set(urn.Normalize(urn.Gateway, r.edge.GetID()).String())
