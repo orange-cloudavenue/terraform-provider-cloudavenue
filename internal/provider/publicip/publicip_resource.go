@@ -133,7 +133,7 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	defer cloudavenue.Unlock(ctx)
 
 	// * Create the public IP
-	job, err := r.client.CAVSDK.V1.PublicIP.New(r.edgegw.GetName())
+	job, err := r.client.CAVSDK.V1.PublicIP.New(r.edgegw.GetID())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating Public IP",
