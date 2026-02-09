@@ -1,4 +1,9 @@
 ## 0.36.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* Fix panic in the authentication s3 method. (GH-1201)
+
 ## 0.35.0 (February  9, 2026)
 ### :rotating_light: **Breaking Changes**
 
