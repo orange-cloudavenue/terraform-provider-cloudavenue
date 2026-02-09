@@ -2,8 +2,6 @@ module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 
 go 1.25.0
 
-toolchain go1.24.1
-
 require (
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/cilium/fake v0.7.0

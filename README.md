@@ -25,6 +25,9 @@
   </p>
 </p>
 
+> [!IMPORTANT]  
+> All releases below [**0.35.0**](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.35.0) are considered outdated after 01/10/2026. **Please update to the latest version** to avoid any issues with the end of life of the legacy authentication method.
+
 ## Table of Contents
 
 - [Table of Contents](#table-of-contents)
@@ -43,7 +46,7 @@ Made with <span style="color: #e25555;">&#9829;</span> using [Go](https://golang
 ## Supported Versions
 
 - Terraform v1.5
-- Go v1.22
+- Go v1.25
 
 It doesn't mean that this provider won't run on previous versions of Terraform or Go, though.
 It just means that we can't guarantee backward compatibility.
@@ -57,7 +60,7 @@ terraform {
   required_providers {
     cloudavenue = {
       source = "orange-cloudavenue/cloudavenue"
-      version = ">= 0.26.0"
+      version = ">= 0.35.0"
     }
   }
 }
