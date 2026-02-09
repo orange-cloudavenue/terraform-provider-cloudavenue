@@ -1,4 +1,5 @@
-## 0.35.0 (Unreleased)
+## 0.36.0 (Unreleased)
+## 0.35.0 (February  9, 2026)
 ### :rotating_light: **Breaking Changes**
 
 * This release includes breaking changes to the authentication mechanism and organization retrieval methods. Users will need to update their code to accommodate the new token endpoint. The legacy authentication method will be removed on 01/10/2026, so it is recommended to update to this version as soon as possible.
