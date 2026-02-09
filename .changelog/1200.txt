@@ -1,0 +1,3 @@
+```release-note:breaking-change
+This release includes breaking changes to the authentication mechanism and organization retrieval methods. Users will need to update their code to accommodate the new token endpoint. The legacy authentication method will be deprecated on 01/10/2026, so it is recommended to update to this version as soon as possible.
+```
