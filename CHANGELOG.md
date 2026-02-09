@@ -1,4 +1,9 @@
 ## 0.35.0 (Unreleased)
+### :rotating_light: **Breaking Changes**
+
+* This release includes breaking changes to the authentication mechanism and organization retrieval methods. Users will need to update their code to accommodate the new token endpoint. The legacy authentication method will be removed on 01/10/2026, so it is recommended to update to this version as soon as possible.
+All release below [**0.35.0**](https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/releases/tag/v0.35.0) are considered outdated after 01/10/2026. (GH-1200)
+
 ## 0.34.4 (December 25, 2025)
 
 ### :bug: **Bug Fixes**
