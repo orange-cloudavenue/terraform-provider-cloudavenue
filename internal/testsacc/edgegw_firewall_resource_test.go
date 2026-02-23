@@ -135,6 +135,92 @@ func (r *EdgeGatewayFirewallResource) Tests(_ context.Context) map[testsacc.Test
 				},
 			}
 		},
+		// example_with_logging validates fix for issue #1122:
+		// setting logging=true on a firewall rule must not produce an
+		// "inconsistent result after apply" error (API was returning false
+		// even when true was set).
+		"example_with_logging": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
+				},
+				// ! Create testing — rule with logging=true
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					resource "cloudavenue_edgegateway_firewall" "example_with_logging" {
+					  edge_gateway_id = cloudavenue_edgegateway.example.id
+					  rules = [
+					    {
+					      action      = "ALLOW"
+					      name        = "allow all IPv4 traffic with logging"
+					      direction   = "IN_OUT"
+					      ip_protocol = "IPV4"
+					      logging     = true
+					    }
+					  ]
+					}`,
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.action", "ALLOW"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow all IPv4 traffic with logging"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.direction", "IN_OUT"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.ip_protocol", "IPV4"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.logging", "true"),
+					},
+				},
+				// ! Updates testing — toggle logging off then back on
+				Updates: []testsacc.TFConfig{
+					{
+						// Disable logging — verify no drift
+						TFConfig: `
+						resource "cloudavenue_edgegateway_firewall" "example_with_logging" {
+						  edge_gateway_id = cloudavenue_edgegateway.example.id
+						  rules = [
+						    {
+						      action      = "ALLOW"
+						      name        = "allow all IPv4 traffic with logging"
+						      direction   = "IN_OUT"
+						      ip_protocol = "IPV4"
+						      logging     = false
+						    }
+						  ]
+						}`,
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
+							resource.TestCheckResourceAttr(resourceName, "rules.0.logging", "false"),
+						},
+					},
+					{
+						// Re-enable logging — the core regression from #1122
+						TFConfig: `
+						resource "cloudavenue_edgegateway_firewall" "example_with_logging" {
+						  edge_gateway_id = cloudavenue_edgegateway.example.id
+						  rules = [
+						    {
+						      action      = "ALLOW"
+						      name        = "allow all IPv4 traffic with logging"
+						      direction   = "IN_OUT"
+						      ip_protocol = "IPV4"
+						      logging     = true
+						    }
+						  ]
+						}`,
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
+							resource.TestCheckResourceAttr(resourceName, "rules.0.logging", "true"),
+						},
+					},
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"edge_gateway_id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
+			}
+		},
 		"example_with_ids": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
