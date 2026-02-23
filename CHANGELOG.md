@@ -1,4 +1,9 @@
 ## 0.36.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vapp_org_network` - Fix parallel attachment of multiple org networks to the same vApp. The vApp state is now refreshed after acquiring the lock in Create, Read and Delete operations, preventing stale data from silently overwriting previous network attachments (issue #1202). (GH-1204)
+
 ## 0.35.1 (February  9, 2026)
 
 ### :bug: **Bug Fixes**
