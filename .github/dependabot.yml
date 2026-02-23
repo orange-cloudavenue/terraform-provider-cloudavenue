@@ -9,7 +9,23 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    groups:
+      github-actions-minor:
+        update-types:
+          - "minor"
+          - "patch"
+      github-actions-major:
+        update-types:
+          - "major"
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "daily"
+    groups:
+      gomod-minor:
+        update-types:
+          - "minor"
+          - "patch"
+      gomod-major:
+        update-types:
+          - "major"

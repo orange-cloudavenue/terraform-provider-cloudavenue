@@ -14,5 +14,4 @@
         "--fix"
     ],
     "go.lintOnSave": "package",
-    "go.diagnostic.vulncheck": "Imports",
 }
