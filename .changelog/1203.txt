@@ -1,0 +1,3 @@
+```release-note:enhancement
+`resource/cloudavenue_edgegateway` - Removed the bandwidth restriction for dedicated T0s (VRF Dedicated Medium/Large). It is now possible to define a `bandwidth` for dedicated T0 edge gateways.
+```
