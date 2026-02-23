@@ -9,6 +9,10 @@
 * `resource/cloudavenue_edgegateway_firewall` - Fixed issue where setting `logging = true` on a firewall rule was not applied correctly, causing an "inconsistent result after apply" error. (GH-1205)
 * `resource/cloudavenue_vapp_org_network` - Fix parallel attachment of multiple org networks to the same vApp. The vApp state is now refreshed after acquiring the lock in Create, Read and Delete operations, preventing stale data from silently overwriting previous network attachments (issue #1202). (GH-1204)
 
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/hashicorp/terraform-plugin-docs, github.com/hashicorp/terraform-plugin-framework, github.com/hashicorp/terraform-plugin-framework-timeouts, github.com/hashicorp/terraform-plugin-framework-validators, github.com/hashicorp/terraform-plugin-go, github.com/hashicorp/terraform-plugin-log, github.com/hashicorp/terraform-plugin-sdk/v2, github.com/madflojo/testcerts, golang.org/x/net from  to (GH-1207)
+
 ## 0.35.1 (February  9, 2026)
 
 ### :bug: **Bug Fixes**
