@@ -37,6 +37,7 @@ import (
 	commoncloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/common/cloudavenue"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
@@ -152,23 +153,7 @@ func (r *edgeGatewayResource) ModifyPlan(ctx context.Context, req resource.Modif
 		plan.Tier0VRFName.Set((*t0s)[0].GetName())
 	}
 
-	// Related in issue #1069 if the T0 is dedicated, the bandwidth is not mandatory.
-	// BUG: Currently the API does not allow to set the bandwidth if the T0 is dedicated.
-	t0, err := r.client.CAVSDK.V1.T0.GetT0(plan.Tier0VRFName.Get())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving T0", err.Error())
-		return
-	}
-
 	switch {
-	// Bypass bandwidth if T0 is dedicated
-	case t0.ClassService.IsVRFDedicatedMedium(), t0.ClassService.IsVRFDedicatedLarge():
-		// If the T0 is dedicated, the bandwidth is not allowed for the moment
-		if plan.Bandwidth.IsKnown() && plan.Bandwidth.GetInt() != 0 {
-			resp.Diagnostics.AddError("Bandwidth ignored", "Due to a bug, bandwidth definition for dedicated T0s is currently not supported. Please remove the bandwidth definition from the configuration. See issue #1069")
-		}
-		return
-
 	// Create case with value is known
 	case plan.Bandwidth.IsKnown() && (state == nil || !state.Bandwidth.IsKnown()):
 		allowedValuesFunc()
