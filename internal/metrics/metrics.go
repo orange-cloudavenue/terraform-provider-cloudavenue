@@ -56,7 +56,7 @@ type (
 		// TerraformExecutionID is the uniq id generated at the beginning of the terraform execution
 		TerraformExecutionID string `json:"terraformExecutionId"`
 		// ClientToken is the key used to identify the client
-		ClientToken string `json:"clientToken"`
+		ClientToken string `json:"clientToken"` //nolint:gosec // G117: ClientToken is intentionally serialized as part of the metrics payload
 		// ClientVersion is the version of the provider
 		ClientVersion string `json:"version"`
 	}

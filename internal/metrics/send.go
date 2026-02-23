@@ -53,7 +53,7 @@ func send(event analyticRequest) {
 	}
 
 	// Send request
-	res, err := http.DefaultClient.Do(req)
+	res, err := http.DefaultClient.Do(req) //nolint:gosec // G704: URL is built from internal configuration, not user input
 	// Check error
 	if err != nil {
 		return
