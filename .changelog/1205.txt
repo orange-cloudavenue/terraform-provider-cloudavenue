@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_edgegateway_firewall` - Fixed issue where setting `logging = true` on a firewall rule was not applied correctly, causing an "inconsistent result after apply" error.
+```
