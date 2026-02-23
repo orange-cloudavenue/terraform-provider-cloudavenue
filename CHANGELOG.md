@@ -1,7 +1,12 @@
 ## 0.36.0 (Unreleased)
 
+### :tada: **Improvements**
+
+* `resource/cloudavenue_edgegateway` - Removed the bandwidth restriction for dedicated T0s (VRF Dedicated Medium/Large). It is now possible to define a `bandwidth` for dedicated T0 edge gateways. (GH-1203)
+
 ### :bug: **Bug Fixes**
 
+* `resource/cloudavenue_edgegateway_firewall` - Fixed issue where setting `logging = true` on a firewall rule was not applied correctly, causing an "inconsistent result after apply" error. (GH-1205)
 * `resource/cloudavenue_vapp_org_network` - Fix parallel attachment of multiple org networks to the same vApp. The vApp state is now refreshed after acquiring the lock in Create, Read and Delete operations, preventing stale data from silently overwriting previous network attachments (issue #1202). (GH-1204)
 
 ## 0.35.1 (February  9, 2026)
