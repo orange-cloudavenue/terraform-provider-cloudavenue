@@ -42,6 +42,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
@@ -200,5 +201,6 @@ func (v VAPP) UnlockVAPP(ctx context.Context) (d diag.Diagnostics) {
 	}
 	key := fmt.Sprintf("vdc:%s|vapp:%s", v.vdc.GetName(), v.GetName())
 	vcdMutexKV.KvUnlock(ctx, key)
+
 	return d
 }
