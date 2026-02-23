@@ -35,6 +35,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
@@ -130,6 +131,10 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 	defer r.vapp.UnlockVAPP(ctx)
 
+	if err := r.vapp.Refresh(); err != nil {
+		resp.Diagnostics.AddError("Error refreshing vApp", err.Error())
+	}
+
 	orgNetworkName := plan.NetworkName.ValueString()
 	orgNetwork, err := r.vdc.GetOrgVdcNetworkByNameOrId(orgNetworkName, true)
 	if err != nil {
@@ -202,6 +207,10 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	defer r.vapp.UnlockVAPP(ctx)
 
+	if err := r.vapp.Refresh(); err != nil {
+		resp.Diagnostics.AddError("Error refreshing vApp", err.Error())
+	}
+
 	vAppNetworkConfig, err := r.vapp.GetNetworkConfig()
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving vApp network config", err.Error())
@@ -261,6 +270,10 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 	defer r.vapp.UnlockVAPP(ctx)
+
+	if err := r.vapp.Refresh(); err != nil {
+		resp.Diagnostics.AddError("Error refreshing vApp", err.Error())
+	}
 
 	// Vapp Statuses
 	// 1:  "RESOLVED",
