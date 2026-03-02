@@ -1,0 +1,3 @@
+```release-note:dependency
+deps: bumps crazy-max/ghaction-github-labeler, hashicorp/setup-terraform from  to 
+```
