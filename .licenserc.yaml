@@ -38,12 +38,14 @@ header: # `header` section is configurations for source codes license header.
     - 'LICENSE'
     - 'LICENCE'
     - 'NOTICE'
+    - "**/CODEOWNERS"
     - '**/**.svg'
     - "**/zz_generated*.go"
     - "GNUmakefile"
     - "Makefile"
     - "**/*.json"
     - ".gitignore"
+    - "**/.gitkeep"
     - "**/*.tmpl"
     - "**/*.tf"
     - ".changelog/"
