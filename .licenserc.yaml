@@ -16,7 +16,7 @@ header: # `header` section is configurations for source codes license header.
       or see the "LICENSE" file for more details.
 
     pattern: |
-      SPDX-FileCopyrightText: Copyright (c) [year] [owner]
+      SPDX-FileCopyrightText: Copyright (c) \d{4} Orange
       SPDX-License-Identifier: Mozilla Public License 2.0
 
       This software is distributed under the MPL-2.0 license.
@@ -67,6 +67,7 @@ header: # `header` section is configurations for source codes license header.
     - ".tflint.yml"
     - "go.work"
     - "go.work.sum"
+    - "**/*.txt"
 
 
   comment: on-failure # on what condition license-eye will comment on the pull request, `on-failure`, `always`, `never`.
