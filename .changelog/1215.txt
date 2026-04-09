@@ -1,3 +1,3 @@
 ```release-note:dependency
-deps: bumps actions/checkout, crazy-max/ghaction-github-labeler, hashicorp/setup-terraform from 4 to 6
+deps: bumps actions/checkout, crazy-max/ghaction-github-labeler, hashicorp/setup-terraform from  to 
 ```
