@@ -35,7 +35,8 @@ Configuration for the CloudAvenue Provider can be derived from several sources, 
 * `user` (String) The username to use to connect to the Cloud Avenue.
 * `password` (String, Sensitive) The password to use to connect to the Cloud Avenue.
 * `vdc` (String) (deprecated) The VDC used on Cloud Avenue. If this field is set, we will use by default this VDC for all resources. If you set a custom VDC for a resource, this field will be ignored.
-* `url` (String) The URL of the Cloud Avenue. This field is computed by default. If you want to use a custom URL, you can set this field.
+* `url` (String) The URL of the VMware Cloud Director (VCD) API endpoint. This field should **not** be used to override the Cerberus endpoint — use `core_api` for that.
+* `core_api` (String) The URL of the Cerberus API endpoint. Use this to override the default Cerberus endpoint, for example when your organization must reach Cerberus through an internal URL.
 
 ### Netbackup configuration
 
@@ -89,6 +90,7 @@ export CLOUDAVENUE_PASSWORD="my-password"
 | `password` | `CLOUDAVENUE_PASSWORD` |
 | `vdc` | `CLOUDAVENUE_VDC` (deprecated) |
 | `url` | `CLOUDAVENUE_URL` |
+| `core_api` | `CLOUDAVENUE_CORE_API` |
 | `netbackup_user` | `NETBACKUP_USERNAME` |
 | `netbackup_password` | `NETBACKUP_PASSWORD` |
 | `netbackup_url` | `NETBACKUP_URL` |

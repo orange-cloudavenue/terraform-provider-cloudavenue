@@ -33,7 +33,17 @@ func providerSchema(_ context.Context) schema.Schema {
 		MarkdownDescription: "This provider offers utilities for working with the Cloud Avenue platform.",
 		Attributes: map[string]schema.Attribute{
 			"url": schema.StringAttribute{
-				MarkdownDescription: "The URL of the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_URL` environment variable.",
+				MarkdownDescription: "The URL of the VMware Cloud Director (VCD) API endpoint. Can also be set with the `CLOUDAVENUE_URL` environment variable. This field should **not** be used to override the Cerberus endpoint — use `core_api` for that.",
+				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^https?:\/\/\S+\w$`),
+						"must end with a letter",
+					),
+				},
+			},
+			"core_api": schema.StringAttribute{
+				MarkdownDescription: "The URL of the Cerberus API endpoint. Use this field to override the default Cerberus endpoint, for example when your organization must reach Cerberus through an internal URL. Can also be set with the `CLOUDAVENUE_CORE_API` environment variable.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
