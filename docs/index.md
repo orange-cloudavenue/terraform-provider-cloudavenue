@@ -35,8 +35,8 @@ Configuration for the CloudAvenue Provider can be derived from several sources, 
 * `user` (String) The username to use to connect to the Cloud Avenue.
 * `password` (String, Sensitive) The password to use to connect to the Cloud Avenue.
 * `vdc` (String) (deprecated) The VDC used on Cloud Avenue. If this field is set, we will use by default this VDC for all resources. If you set a custom VDC for a resource, this field will be ignored.
-* `url` (String) The URL of the VMware Cloud Director (VCD) API endpoint. This field should **not** be used to override the Cerberus endpoint — use `core_api` for that.
-* `core_api` (String) The URL of the Cerberus API endpoint. Use this to override the default Cerberus endpoint, for example when your organization must reach Cerberus through an internal URL.
+* `url` (String) The VMware/VCD endpoint URL. This field is computed by default. If you want to use a custom VMware/VCD endpoint, you can set this field.
+* `core_api` (String) The supported override for the Cerberus API endpoint. Use this when you must reach Cerberus through an internal URL. This setting does not replace `url`, which still targets VMware/VCD.
 
 ### Netbackup configuration
 
@@ -49,6 +49,7 @@ Configuration for the CloudAvenue Provider can be derived from several sources, 
  !> Hard-coded credentials are not recommended in any Terraform configuration and risks secret leakage should this file ever be committed to a public version control system.
 
 Credentials can be provided by adding an `org`, `user`, and `password`, to the cloudavenue provider block.
+Use `core_api` only to override the Cerberus API endpoint, including internal URLs when required, while keeping `url` for the VMware/VCD endpoint.
 
 Usage :
 
@@ -57,6 +58,8 @@ provider "cloudavenue" {
   org      = var.org
   user     = var.user
   password = var.password
+  url      = var.url
+  core_api = var.core_api
 }
 ```
 
@@ -79,7 +82,10 @@ provider "cloudavenue" {}
 export CLOUDAVENUE_ORG="my-org"
 export CLOUDAVENUE_USERNAME="my-user"
 export CLOUDAVENUE_PASSWORD="my-password"
+export CLOUDAVENUE_CORE_API="https://core-api.example.com"
 ```
+
+`CLOUDAVENUE_CORE_API` is the supported environment variable for overriding the Cerberus API endpoint. Do not use `url` for Cerberus, as `url` and `core_api` target different backends.
 
 ## List of Environment Variables
 

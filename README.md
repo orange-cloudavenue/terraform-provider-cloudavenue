@@ -66,10 +66,14 @@ terraform {
 }
 
 provider "cloudavenue" {
-  org = "my-org"
-  user = "my-user"
+  org      = "my-org"
+  user     = "my-user"
   password = "my-password"
+  url      = "https://vcd.example.com"
+  core_api = "https://core-api.example.com"
 }
+
+`url` remains the VMware/VCD endpoint. `core_api` is the supported override for the Cerberus API endpoint, including when your Cloud Avenue access requires an internal URL, and can also be provided with `CLOUDAVENUE_CORE_API`. These settings target different backends and must not be confused.
 ```
 
 For more information, please refer to the [Cloud Avenue Provider documentation](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs).

@@ -32,28 +32,28 @@ func providerSchema(_ context.Context) schema.Schema {
 	return schema.Schema{
 		MarkdownDescription: "This provider offers utilities for working with the Cloud Avenue platform.",
 		Attributes: map[string]schema.Attribute{
-			"url": schema.StringAttribute{
-				MarkdownDescription: "The URL of the VMware Cloud Director (VCD) API endpoint. Can also be set with the `CLOUDAVENUE_URL` environment variable. This field should **not** be used to override the Cerberus endpoint — use `core_api` for that.",
-				Optional:            true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https?:\/\/\S+\w$`),
-						"must end with a letter",
-					),
-				},
+		"url": schema.StringAttribute{
+			MarkdownDescription: "The VMware/VCD endpoint URL. Can also be set with the `CLOUDAVENUE_URL` environment variable.",
+			Optional:            true,
+			Validators: []validator.String{
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(`^https?:\/\/\S+\w$`),
+					"must end with a letter",
+				),
 			},
-			"core_api": schema.StringAttribute{
-				MarkdownDescription: "The URL of the Cerberus API endpoint. Use this field to override the default Cerberus endpoint, for example when your organization must reach Cerberus through an internal URL. Can also be set with the `CLOUDAVENUE_CORE_API` environment variable.",
+		},
+		"core_api": schema.StringAttribute{
+			MarkdownDescription: "The Cloud Avenue core backend API endpoint. Can also be set with the `CLOUDAVENUE_CORE_API` environment variable.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https?:\/\/\S+\w$`),
-						"must end with a letter",
+						regexp.MustCompile(`^https:\/\/\S+\w$`),
+						"must use HTTPS and end with a letter",
 					),
 				},
 			},
 			"user": schema.StringAttribute{
-				MarkdownDescription: "The username to use to connect to the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_USER` environment variable.",
+				MarkdownDescription: "The username to use to connect to the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_USERNAME` environment variable.",
 				Optional:            true,
 			},
 			"password": schema.StringAttribute{
@@ -81,7 +81,7 @@ func providerSchema(_ context.Context) schema.Schema {
 				},
 			},
 			"netbackup_user": schema.StringAttribute{
-				MarkdownDescription: "The username to use to connect to the NetBackup API. Can also be set with the `NETBACKUP_USER` environment variable.",
+				MarkdownDescription: "The username to use to connect to the NetBackup API. Can also be set with the `NETBACKUP_USERNAME` environment variable.",
 				Optional:            true,
 			},
 			"netbackup_password": schema.StringAttribute{

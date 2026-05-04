@@ -1,0 +1,3 @@
+```release-note:note
+docs: clarified that `core_api` / `CLOUDAVENUE_CORE_API` override the Cerberus API endpoint, while `url` remains the VMware Cloud Director endpoint.
+```
