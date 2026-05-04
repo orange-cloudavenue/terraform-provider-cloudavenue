@@ -1,4 +1,9 @@
 ## 0.36.0 (Unreleased)
+
+### :tada: **Improvements**
+
+* provider - Add `core_api` argument to override the Cloud Avenue API endpoint URL (authentication and backend). Can also be set with the `CLOUDAVENUE_CORE_API` environment variable. (GH-1220)
+
 ## 0.35.2 (February 24, 2026)
 
 ### :tada: **Improvements**
