@@ -1,13 +1,4 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2026 Orange
- * SPDX-License-Identifier: Mozilla Public License 2.0
- *
- * This software is distributed under the MPL-2.0 license.
- * the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
- * or see the "LICENSE" file for more details.
- */
-
-/*
  * SPDX-FileCopyrightText: Copyright (c) 2025 Orange
  * SPDX-License-Identifier: Mozilla Public License 2.0
  *
@@ -33,17 +24,27 @@ func providerSchema(_ context.Context) schema.Schema {
 		MarkdownDescription: "This provider offers utilities for working with the Cloud Avenue platform.",
 		Attributes: map[string]schema.Attribute{
 			"url": schema.StringAttribute{
-				MarkdownDescription: "The URL of the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_URL` environment variable.",
+				MarkdownDescription: "The VMware/VCD endpoint URL. Can also be set with the `CLOUDAVENUE_URL` environment variable.",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^https?:\/\/\S+\w$`),
-						"must end with a letter",
+						"must be a valid URL (http or https) and not end with a trailing slash",
+					),
+				},
+			},
+			"core_api": schema.StringAttribute{
+				MarkdownDescription: "The Cloud Avenue core backend API endpoint. Can also be set with the `CLOUDAVENUE_CORE_API` environment variable.",
+				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^https:\/\/\S+\w$`),
+						"must be a valid HTTPS URL and not end with a trailing slash",
 					),
 				},
 			},
 			"user": schema.StringAttribute{
-				MarkdownDescription: "The username to use to connect to the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_USER` environment variable.",
+				MarkdownDescription: "The username to use to connect to the Cloud Avenue API. Can also be set with the `CLOUDAVENUE_USERNAME` environment variable.",
 				Optional:            true,
 			},
 			"password": schema.StringAttribute{
@@ -71,7 +72,7 @@ func providerSchema(_ context.Context) schema.Schema {
 				},
 			},
 			"netbackup_user": schema.StringAttribute{
-				MarkdownDescription: "The username to use to connect to the NetBackup API. Can also be set with the `NETBACKUP_USER` environment variable.",
+				MarkdownDescription: "The username to use to connect to the NetBackup API. Can also be set with the `NETBACKUP_USERNAME` environment variable.",
 				Optional:            true,
 			},
 			"netbackup_password": schema.StringAttribute{

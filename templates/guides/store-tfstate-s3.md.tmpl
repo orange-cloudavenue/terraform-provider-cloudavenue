@@ -11,7 +11,7 @@ If you experience these problems, please refer to the linked issue for solutions
 -> **Recommended workaround:**
 Use an earlier version of Terraform (e.g., 1.10) via Docker to apply your changes:<br>
 <br><code>
-  docker run -v $PWD:$PWD -w $PWD -e CLOUDAVENUE_PASSWORD -e CLOUDAVENUE_ORG -e CLOUDAVENUE_URL -e CLOUDAVENUE_USERNAME -it hashicorp/terraform:1.10 apply
+  docker run -v $PWD:$PWD -w $PWD -e CLOUDAVENUE_PASSWORD -e CLOUDAVENUE_ORG -e CLOUDAVENUE_URL -e CLOUDAVENUE_CORE_API -e CLOUDAVENUE_USERNAME -it hashicorp/terraform:1.10 apply
 </code>
 
 This page explains how to configure a backend by adding the backend block to your configuration with the Terraform CloudAvenue provider.

@@ -39,8 +39,9 @@ Create a `.env` file with the following content:
 
 ```sh
 CLOUDAVENUE_ORG=your-org
-CLOUDAVENUE_USER=your-user
+CLOUDAVENUE_USERNAME=your-user
 CLOUDAVENUE_PASSWORD=your-password
+CLOUDAVENUE_CORE_API=https://core-api.example.com
 ```
 
 *Optional environment variables:*

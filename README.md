@@ -66,11 +66,16 @@ terraform {
 }
 
 provider "cloudavenue" {
-  org = "my-org"
-  user = "my-user"
+  org      = "my-org"
+  user     = "my-user"
   password = "my-password"
+  url      = "https://vcd.example.com"
+  # Optional: override the Cloud Avenue API endpoint
+  core_api = "https://core-api.example.com"
 }
 ```
+
+`core_api` overrides the Cloud Avenue API endpoint URL used for authentication and backend calls. Use this when the API must be reached through a private or internal network. Can also be set with the `CLOUDAVENUE_CORE_API` environment variable.
 
 For more information, please refer to the [Cloud Avenue Provider documentation](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs).
 

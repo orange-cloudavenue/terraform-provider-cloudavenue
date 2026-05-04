@@ -22,6 +22,7 @@ import "github.com/hashicorp/terraform-plugin-framework/types"
 
 type cloudavenueProviderModel struct {
 	URL               types.String `tfsdk:"url"`
+	CoreAPI           types.String `tfsdk:"core_api"`
 	User              types.String `tfsdk:"user"`
 	Password          types.String `tfsdk:"password"`
 	Org               types.String `tfsdk:"org"`

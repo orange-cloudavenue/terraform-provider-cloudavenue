@@ -76,21 +76,12 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 
 	cloudAvenue := client.CloudAvenue{
 		// This is a new SDK Cloudavenue
-		CAVSDKOpts: &casdk.ClientOpts{
-			Netbackup: &clientnetbackup.Opts{
-				Endpoint: emptyOrValue(config.NetBackupURL),
-				Username: emptyOrValue(config.NetBackupUser),
-				Password: emptyOrValue(config.NetBackupPassword),
-			},
-			CloudAvenue: &clientcloudavenue.Opts{
-				URL:      emptyOrValue(config.URL),
-				Username: emptyOrValue(config.User),
-				Password: emptyOrValue(config.Password),
-				Org:      emptyOrValue(config.Org),
-				VDC:      emptyOrValue(config.VDC),
-			},
-		},
+		CAVSDKOpts: providerClientOpts(config),
 	}
+
+	// Note: config.CoreAPI (CLOUDAVENUE_CORE_API) contains the Cloud Avenue API endpoint
+	// override value, read from the provider configuration or the environment variable,
+	// and passed to the SDK client options via providerClientOpts(config).
 
 	const (
 		summaryErrorAPICAV = "Unable to Create Cloud Avenue API Client"
@@ -127,6 +118,24 @@ func emptyOrValue(value basetypes.StringValue) string {
 		return ""
 	}
 	return value.ValueString()
+}
+
+func providerClientOpts(config cloudavenueProviderModel) *casdk.ClientOpts {
+	return &casdk.ClientOpts{
+		Netbackup: &clientnetbackup.Opts{
+			Endpoint: emptyOrValue(config.NetBackupURL),
+			Username: emptyOrValue(config.NetBackupUser),
+			Password: emptyOrValue(config.NetBackupPassword),
+		},
+		CloudAvenue: &clientcloudavenue.Opts{
+			URL:      emptyOrValue(config.URL),
+			CoreAPI:  emptyOrValue(config.CoreAPI),
+			Username: emptyOrValue(config.User),
+			Password: emptyOrValue(config.Password),
+			Org:      emptyOrValue(config.Org),
+			VDC:      emptyOrValue(config.VDC),
+		},
+	}
 }
 
 // All methods below are commented out because they are not implemented yet.

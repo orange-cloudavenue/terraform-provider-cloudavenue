@@ -1,0 +1,3 @@
+```release-note:enhancement
+provider - Add `core_api` argument to override the Cloud Avenue API endpoint URL (authentication and backend). Can also be set with the `CLOUDAVENUE_CORE_API` environment variable.
+```
