@@ -79,10 +79,9 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 		CAVSDKOpts: providerClientOpts(config),
 	}
 
-	// Note: config.CoreAPI (CLOUDAVENUE_CORE_API) contains the Cerberus endpoint
-	// override value, read from the provider configuration or the environment variable.
-	// When the SDK adds support for overriding the Cerberus endpoint, this value
-	// will be passed through to the SDK client options.
+	// Note: config.CoreAPI (CLOUDAVENUE_CORE_API) contains the Cloud Avenue API endpoint
+	// override value, read from the provider configuration or the environment variable,
+	// and passed to the SDK client options via providerClientOpts(config).
 
 	const (
 		summaryErrorAPICAV = "Unable to Create Cloud Avenue API Client"
