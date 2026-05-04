@@ -4,6 +4,6 @@ provider "cloudavenue" {
   password = var.password
   # VMware/VCD endpoint.
   url = var.url
-  # Supported Cerberus endpoint override, including internal URLs when required.
+  # Override the Cloud Avenue API endpoint URL (authentication and backend). Useful when accessing through a private or internal network.
   core_api = var.core_api
 }

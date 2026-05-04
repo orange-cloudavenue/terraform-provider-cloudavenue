@@ -36,7 +36,7 @@ Configuration for the CloudAvenue Provider can be derived from several sources, 
 * `password` (String, Sensitive) The password to use to connect to the Cloud Avenue.
 * `vdc` (String) (deprecated) The VDC used on Cloud Avenue. If this field is set, we will use by default this VDC for all resources. If you set a custom VDC for a resource, this field will be ignored.
 * `url` (String) The VMware/VCD endpoint URL. This field is computed by default. If you want to use a custom VMware/VCD endpoint, you can set this field.
-* `core_api` (String) The supported override for the Cerberus API endpoint. Use this when you must reach Cerberus through an internal URL. This setting does not replace `url`, which still targets VMware/VCD.
+* `core_api` (String) Override the Cloud Avenue API endpoint URL (authentication and backend). Useful when accessing through a private or internal network. This setting does not replace `url`, which still targets VMware/VCD.
 
 ### Netbackup configuration
 
@@ -49,7 +49,7 @@ Configuration for the CloudAvenue Provider can be derived from several sources, 
  !> Hard-coded credentials are not recommended in any Terraform configuration and risks secret leakage should this file ever be committed to a public version control system.
 
 Credentials can be provided by adding an `org`, `user`, and `password`, to the cloudavenue provider block.
-Use `core_api` only to override the Cerberus API endpoint, including internal URLs when required, while keeping `url` for the VMware/VCD endpoint.
+Use `core_api` only to override the Cloud Avenue API endpoint URL (authentication and backend), while keeping `url` for the VMware/VCD endpoint.
 
 Usage :
 
@@ -85,7 +85,7 @@ export CLOUDAVENUE_PASSWORD="my-password"
 export CLOUDAVENUE_CORE_API="https://core-api.example.com"
 ```
 
-`CLOUDAVENUE_CORE_API` is the supported environment variable for overriding the Cerberus API endpoint. Do not use `url` for Cerberus, as `url` and `core_api` target different backends.
+`CLOUDAVENUE_CORE_API` — Override the Cloud Avenue API endpoint URL (authentication and backend). Useful when accessing through a private or internal network.
 
 ## List of Environment Variables
 
