@@ -52,7 +52,7 @@ func (r *EdgeGatewayAppPortProfileResource) DependenciesConfig() (resp testsacc.
 
 func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.AppPortProfile)),
@@ -76,7 +76,7 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsac
 						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-							"protocol": "ICMPv4",
+							testAttrProtocol: testProtocolICMPv4,
 						}),
 						resource.TestCheckNoResourceAttr(resourceName, "app_ports.0.ports"),
 					},
@@ -113,13 +113,13 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsac
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "ICMPv4",
+								testAttrProtocol: testProtocolICMPv4,
 							}),
 							resource.TestCheckNoResourceAttr(resourceName, "app_ports.0.ports"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "TCP",
-								"ports.#":  "3",
+								testAttrProtocol:  testProtocolTCP,
+								testAttrPortsHash: "3",
 							}),
 
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "80"),
@@ -127,8 +127,8 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsac
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "8080"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "UDP",
-								"ports.#":  "1",
+								testAttrProtocol:  testProtocolUDP,
+								testAttrPortsHash: "1",
 							}),
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.2.ports.*", "53"),
 						},
@@ -136,41 +136,41 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsac
 					// * Test port range
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-						resource "cloudavenue_edgegateway_app_port_profile" "example" {
-							name = {{ get . "name" }}
-							description = {{ get . "description" }}
-							edge_gateway_id = cloudavenue_edgegateway.example.id
-							app_ports = [
-							  {
-							  	protocol = "ICMPv4"
-							  },
-							  {
-								protocol = "TCP"
-								ports = [
-									"80",
-									"443",
-									"8080-9090",
-								]
-							  },
-							  {
-								protocol = "UDP"
-								ports = [
-									"53",
-								]
-							  }
+					resource "cloudavenue_edgegateway_app_port_profile" "example" {
+						name = {{ get . "name" }}
+						description = {{ get . "description" }}
+						edge_gateway_id = cloudavenue_edgegateway.example.id
+						app_ports = [
+						  {
+						  	protocol = "ICMPv4"
+						  },
+						  {
+							protocol = "TCP"
+							ports = [
+								"80",
+								"443",
+								"8080-9090",
 							]
-						  }`),
+						  },
+						  {
+							protocol = "UDP"
+							ports = [
+								"53",
+							]
+						  }
+						]
+					  }`),
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "ICMPv4",
+								testAttrProtocol: testProtocolICMPv4,
 							}),
 							resource.TestCheckNoResourceAttr(resourceName, "app_ports.0.ports"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "TCP",
-								"ports.#":  "3",
+								testAttrProtocol:  testProtocolTCP,
+								testAttrPortsHash: "3",
 							}),
 
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "80"),
@@ -178,8 +178,8 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsac
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "8080-9090"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "UDP",
-								"ports.#":  "1",
+								testAttrProtocol:  testProtocolUDP,
+								testAttrPortsHash: "1",
 							}),
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.2.ports.*", "53"),
 						},
@@ -187,41 +187,41 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsac
 					// * Update name
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-						resource "cloudavenue_edgegateway_app_port_profile" "example" {
-							name = {{ generate . "name" }}
-							description = {{ get . "description" }}
-							edge_gateway_id = cloudavenue_edgegateway.example.id
-							app_ports = [
-							  {
-							  	protocol = "ICMPv4"
-							  },
-							  {
-								protocol = "TCP"
-								ports = [
-									"80",
-									"443",
-									"8080-9090",
-								]
-							  },
-							  {
-								protocol = "UDP"
-								ports = [
-									"53",
-								]
-							  }
+					resource "cloudavenue_edgegateway_app_port_profile" "example" {
+						name = {{ generate . "name" }}
+						description = {{ get . "description" }}
+						edge_gateway_id = cloudavenue_edgegateway.example.id
+						app_ports = [
+						  {
+						  	protocol = "ICMPv4"
+						  },
+						  {
+							protocol = "TCP"
+							ports = [
+								"80",
+								"443",
+								"8080-9090",
 							]
-						  }`),
+						  },
+						  {
+							protocol = "UDP"
+							ports = [
+								"53",
+							]
+						  }
+						]
+					  }`),
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "ICMPv4",
+								testAttrProtocol: testProtocolICMPv4,
 							}),
 							resource.TestCheckNoResourceAttr(resourceName, "app_ports.0.ports"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "TCP",
-								"ports.#":  "3",
+								testAttrProtocol:  testProtocolTCP,
+								testAttrPortsHash: "3",
 							}),
 
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "80"),
@@ -229,8 +229,8 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsac
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "8080-9090"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "UDP",
-								"ports.#":  "1",
+								testAttrProtocol:  testProtocolUDP,
+								testAttrPortsHash: "1",
 							}),
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.2.ports.*", "53"),
 						},
@@ -238,41 +238,41 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsac
 					// * Update description
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-						resource "cloudavenue_edgegateway_app_port_profile" "example" {
-							name = {{ get . "name" }}
-							description = {{ generate . "description" }}
-							edge_gateway_id = cloudavenue_edgegateway.example.id
-							app_ports = [
-							  {
-							  	protocol = "ICMPv4"
-							  },
-							  {
-								protocol = "TCP"
-								ports = [
-									"80",
-									"443",
-									"8080-9090",
-								]
-							  },
-							  {
-								protocol = "UDP"
-								ports = [
-									"53",
-								]
-							  }
+					resource "cloudavenue_edgegateway_app_port_profile" "example" {
+						name = {{ get . "name" }}
+						description = {{ generate . "description" }}
+						edge_gateway_id = cloudavenue_edgegateway.example.id
+						app_ports = [
+						  {
+						  	protocol = "ICMPv4"
+						  },
+						  {
+							protocol = "TCP"
+							ports = [
+								"80",
+								"443",
+								"8080-9090",
 							]
-						  }`),
+						  },
+						  {
+							protocol = "UDP"
+							ports = [
+								"53",
+							]
+						  }
+						]
+					  }`),
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "ICMPv4",
+								testAttrProtocol: testProtocolICMPv4,
 							}),
 							resource.TestCheckNoResourceAttr(resourceName, "app_ports.0.ports"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "TCP",
-								"ports.#":  "3",
+								testAttrProtocol:  testProtocolTCP,
+								testAttrPortsHash: "3",
 							}),
 
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "80"),
@@ -280,8 +280,8 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsac
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "8080-9090"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "UDP",
-								"ports.#":  "1",
+								testAttrProtocol:  testProtocolUDP,
+								testAttrPortsHash: "1",
 							}),
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.2.ports.*", "53"),
 						},
@@ -290,22 +290,22 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsac
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -340,7 +340,7 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsac
 						resource.TestCheckResourceAttr(resourceName, "name", "HTTP"),
 						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-							"protocol": "TCP",
+							testAttrProtocol: "TCP",
 						}),
 						resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.0.ports.*", "8080"),
 						resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.0.ports.*", "9000-9010"),
@@ -349,22 +349,22 @@ func (r *EdgeGatewayAppPortProfileResource) Tests(_ context.Context) map[testsac
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

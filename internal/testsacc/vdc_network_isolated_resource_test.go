@@ -52,7 +52,7 @@ func (r *VDCNetworkIsolatedResource) DependenciesConfig() (resp testsacc.Depende
 
 func (r *VDCNetworkIsolatedResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
@@ -95,12 +95,12 @@ func (r *VDCNetworkIsolatedResource) Tests(_ context.Context) map[testsacc.TestN
 						resource.TestCheckResourceAttr(resourceName, "static_ip_pool.#", "2"),
 						resource.TestCheckResourceAttr(resourceName, "guest_vlan_allowed", "false"), // Default value
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-							"start_address": "192.168.0.10",
-							"end_address":   "192.168.0.20",
+							testAttrStartAddress: testIsolatedNetworkIP10,
+							testAttrEndAddress:   testIsolatedNetworkIP20,
 						}),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-							"start_address": "192.168.0.100",
-							"end_address":   "192.168.0.130",
+							testAttrStartAddress: testIsolatedNetworkIP100,
+							testAttrEndAddress:   testIsolatedNetworkIP130,
 						}),
 					},
 				},
@@ -143,12 +143,12 @@ func (r *VDCNetworkIsolatedResource) Tests(_ context.Context) map[testsacc.TestN
 							resource.TestCheckResourceAttr(resourceName, "static_ip_pool.#", "2"),
 							resource.TestCheckResourceAttr(resourceName, "guest_vlan_allowed", "false"), // Default value
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.10",
-								"end_address":   "192.168.0.20",
+								testAttrStartAddress: testIsolatedNetworkIP10,
+								testAttrEndAddress:   testIsolatedNetworkIP20,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.100",
-								"end_address":   "192.168.0.130",
+								testAttrStartAddress: testIsolatedNetworkIP100,
+								testAttrEndAddress:   testIsolatedNetworkIP130,
 							}),
 						},
 					},
@@ -189,12 +189,12 @@ func (r *VDCNetworkIsolatedResource) Tests(_ context.Context) map[testsacc.TestN
 							resource.TestCheckResourceAttr(resourceName, "static_ip_pool.#", "2"),
 							resource.TestCheckResourceAttr(resourceName, "guest_vlan_allowed", "false"), // Default value
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.10",
-								"end_address":   "192.168.0.20",
+								testAttrStartAddress: testIsolatedNetworkIP10,
+								testAttrEndAddress:   testIsolatedNetworkIP20,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.100",
-								"end_address":   "192.168.0.130",
+								testAttrStartAddress: testIsolatedNetworkIP100,
+								testAttrEndAddress:   testIsolatedNetworkIP130,
 							}),
 						},
 					},
@@ -235,12 +235,12 @@ func (r *VDCNetworkIsolatedResource) Tests(_ context.Context) map[testsacc.TestN
 							resource.TestCheckResourceAttr(resourceName, "static_ip_pool.#", "2"),
 							resource.TestCheckResourceAttr(resourceName, "guest_vlan_allowed", "false"), // Default value
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.10",
-								"end_address":   "192.168.0.20",
+								testAttrStartAddress: testIsolatedNetworkIP10,
+								testAttrEndAddress:   testIsolatedNetworkIP20,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.100",
-								"end_address":   "192.168.0.130",
+								testAttrStartAddress: testIsolatedNetworkIP100,
+								testAttrEndAddress:   testIsolatedNetworkIP130,
 							}),
 						},
 					},
@@ -285,16 +285,16 @@ func (r *VDCNetworkIsolatedResource) Tests(_ context.Context) map[testsacc.TestN
 							resource.TestCheckResourceAttr(resourceName, "static_ip_pool.#", "3"),
 							resource.TestCheckResourceAttr(resourceName, "guest_vlan_allowed", "false"), // Default value
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.40",
-								"end_address":   "192.168.0.60",
+								testAttrStartAddress: "192.168.0.40",
+								testAttrEndAddress:   "192.168.0.60",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.100",
-								"end_address":   "192.168.0.130",
+								testAttrStartAddress: testIsolatedNetworkIP100,
+								testAttrEndAddress:   testIsolatedNetworkIP130,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.0.200",
-								"end_address":   "192.168.0.220",
+								testAttrStartAddress: "192.168.0.200",
+								testAttrEndAddress:   "192.168.0.220",
 							}),
 						},
 					},
@@ -302,7 +302,7 @@ func (r *VDCNetworkIsolatedResource) Tests(_ context.Context) map[testsacc.TestN
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc", "name"},
+						ImportStateIDBuilder: []string{testAttrVDC, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

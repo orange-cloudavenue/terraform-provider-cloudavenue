@@ -26,6 +26,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
+const testStr = "test"
+
 func Test_generateUUID(t *testing.T) {
 	type args struct {
 		str string
@@ -38,7 +40,7 @@ func Test_generateUUID(t *testing.T) {
 		{
 			name: "generateUUID",
 			args: args{
-				str: "test",
+				str: testStr,
 			},
 			want: "e8b764da-5fe5-51ed-8af8-c5c6eca28d7a",
 		},
@@ -67,7 +69,7 @@ func TestGenerateUUID(t *testing.T) {
 		{
 			name: "GenerateUUIDFromString",
 			args: args[string]{
-				value: "test",
+				value: testStr,
 			},
 			want: types.StringValue("e8b764da-5fe5-51ed-8af8-c5c6eca28d7a"),
 		},
@@ -84,7 +86,7 @@ func TestGenerateUUID(t *testing.T) {
 		{
 			name: "GenerateUUIDFromSliceString",
 			args: args[[]string]{
-				value: []string{"test", "test2"},
+				value: []string{testStr, "test2"},
 			},
 			want: types.StringValue("016fab6f-3c2d-5b38-b6fc-421aff431b61"),
 		},

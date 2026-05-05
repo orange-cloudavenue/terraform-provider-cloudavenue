@@ -56,13 +56,13 @@ func (r *VAppOrgNetworkResource) DependenciesConfig() (resp testsacc.Dependencie
 func (r *VAppOrgNetworkResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * First test named "example"
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
-					resource.TestCheckResourceAttrSet(resourceName, "vdc"),
+					resource.TestCheckResourceAttrSet(resourceName, testAttrVDC),
 					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "vapp_name"),
+					resource.TestCheckResourceAttrSet(resourceName, testAttrVAppName),
 					resource.TestCheckNoResourceAttr(resourceName, "vapp_id"),
 				},
 				// ! Create testing
@@ -80,7 +80,7 @@ func (r *VAppOrgNetworkResource) Tests(_ context.Context) map[testsacc.TestName]
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc", "vapp_name", "network_name"},
+						ImportStateIDBuilder: []string{testAttrVDC, testAttrVAppName, "network_name"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -129,14 +129,14 @@ func (r *VAppOrgNetworkResource) Tests(_ context.Context) map[testsacc.TestName]
 				CommonChecks: []resource.TestCheckFunc{
 					// Checks for the first org network
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
-					resource.TestCheckResourceAttrSet(resourceName, "vdc"),
+					resource.TestCheckResourceAttrSet(resourceName, testAttrVDC),
 					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "vapp_name"),
+					resource.TestCheckResourceAttrSet(resourceName, testAttrVAppName),
 					// Checks for the second org network
 					resource.TestCheckResourceAttrWith(secondResourceName, "id", urn.TestIsType(urn.Network)),
-					resource.TestCheckResourceAttrSet(secondResourceName, "vdc"),
+					resource.TestCheckResourceAttrSet(secondResourceName, testAttrVDC),
 					resource.TestCheckResourceAttrSet(secondResourceName, "network_name"),
-					resource.TestCheckResourceAttrSet(secondResourceName, "vapp_name"),
+					resource.TestCheckResourceAttrSet(secondResourceName, testAttrVAppName),
 				},
 				// ! Create testing — both resources are created in parallel (no depends_on)
 				// to reproduce the race condition described in issue #1202.

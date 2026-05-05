@@ -55,7 +55,7 @@ func (r *ORGCertificateLibraryResource) DependenciesConfig() (resp testsacc.Depe
 func (r *ORGCertificateLibraryResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * First test named "example"
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.CertificateLibraryItem)),
@@ -118,7 +118,7 @@ func (r *ORGCertificateLibraryResource) Tests(_ context.Context) map[testsacc.Te
 						ImportStateVerifyIgnore: []string{"passphrase", "private_key"},
 					},
 					{
-						ImportStateIDBuilder:    []string{"name"},
+						ImportStateIDBuilder:    []string{testAttrName},
 						ImportState:             true,
 						ImportStateVerify:       true,
 						ImportStateVerifyIgnore: []string{"passphrase", "private_key"},

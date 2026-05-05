@@ -46,7 +46,7 @@ func (d *profileDataSource) superSchema(_ context.Context) superschema.Schema {
 					Required:            true,
 				},
 			},
-			"vdc": vdc.SuperSchema(),
+			attrVDC: vdc.SuperSchema(),
 			"limit": superschema.Int64Attribute{
 				DataSource: &schemaD.Int64Attribute{
 					MarkdownDescription: "Maximum number of storage bytes (scaled by 'units' field) allocated for this profile. `0` means `maximum possible`",

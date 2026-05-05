@@ -52,7 +52,7 @@ func (r *VDCGDynamicSecurityGroupResource) DependenciesConfig() (resp testsacc.D
 func (r *VDCGDynamicSecurityGroupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Create an empty dynamic security group
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCGResourceName]().GetDefaultConfig)
@@ -110,22 +110,22 @@ func (r *VDCGDynamicSecurityGroupResource) Tests(_ context.Context) map[testsacc
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -154,28 +154,28 @@ func (r *VDCGDynamicSecurityGroupResource) Tests(_ context.Context) map[testsacc
 							{ # OR
 								rules = [ 
 									{ # AND
-										type = "VM_NAME"
+										type = testMemberTypeVMName
 										value = "test"
-										operator = "STARTS_WITH"
+										operator = testCriteriaStartsWith
 									},
 									{ # AND
-									 	type = "VM_NAME"
+									 	type = testMemberTypeVMName
 										value = "front"
-										operator = "CONTAINS"
+										operator = testCriteriaContains
 									}
 								]
 							},
 							{ # OR
 							 	rules = [ 
 									{ # AND
-										type = "VM_TAG"
+										type = testMemberTypeVMTag
 										value = "test"
-										operator = "STARTS_WITH"
+										operator = testCriteriaStartsWith
 									},
 									{ # AND
-									 	type = "VM_TAG"
+									 	type = testMemberTypeVMTag
 										value = "web-front"
-										operator = "CONTAINS"
+										operator = testCriteriaContains
 									}
 								]
 							}
@@ -186,24 +186,24 @@ func (r *VDCGDynamicSecurityGroupResource) Tests(_ context.Context) map[testsacc
 						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 						resource.TestCheckResourceAttr(resourceName, "criteria.#", "2"),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.0.rules.*", map[string]string{
-							"type":     "VM_NAME",
-							"value":    "test",
-							"operator": "STARTS_WITH",
+							testAttrType:     testMemberTypeVMName,
+							testAttrValue:    testDSGValueTest,
+							testAttrOperator: testCriteriaStartsWith,
 						}),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.0.rules.*", map[string]string{
-							"type":     "VM_NAME",
-							"value":    "front",
-							"operator": "CONTAINS",
+							testAttrType:     testMemberTypeVMName,
+							testAttrValue:    testDSGValueFront,
+							testAttrOperator: testCriteriaContains,
 						}),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.1.rules.*", map[string]string{
-							"type":     "VM_TAG",
-							"value":    "test",
-							"operator": "STARTS_WITH",
+							testAttrType:     testMemberTypeVMTag,
+							testAttrValue:    testDSGValueTest,
+							testAttrOperator: testCriteriaStartsWith,
 						}),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.1.rules.*", map[string]string{
-							"type":     "VM_TAG",
-							"value":    "web-front",
-							"operator": "CONTAINS",
+							testAttrType:     testMemberTypeVMTag,
+							testAttrValue:    testDSGValueWebFront,
+							testAttrOperator: testCriteriaContains,
 						}),
 					},
 				},
@@ -220,17 +220,17 @@ func (r *VDCGDynamicSecurityGroupResource) Tests(_ context.Context) map[testsacc
 							{ # OR
 								rules = [ 
 									{ # AND
-										type = "VM_NAME"
+										type = testMemberTypeVMName
 										value = "test"
-										operator = "STARTS_WITH"
+										operator = testCriteriaStartsWith
 									},
 									{ # AND
-									 	type = "VM_NAME"
+									 	type = testMemberTypeVMName
 										value = "front"
-										operator = "CONTAINS"
+										operator = testCriteriaContains
 									},
 									{ # AND
-									 	type = "VM_TAG"
+									 	type = testMemberTypeVMTag
 										value = "prod"
 										operator = "ENDS_WITH"
 									},
@@ -239,26 +239,26 @@ func (r *VDCGDynamicSecurityGroupResource) Tests(_ context.Context) map[testsacc
 							{ # OR
 							 	rules = [ 
 									{ # AND
-										type = "VM_TAG"
+										type = testMemberTypeVMTag
 										value = "test"
-										operator = "STARTS_WITH"
+										operator = testCriteriaStartsWith
 									},
 									{ # AND
-									 	type = "VM_TAG"
+									 	type = testMemberTypeVMTag
 										value = "web-front"
-										operator = "CONTAINS"
+										operator = testCriteriaContains
 									}
 								]
 							},
 							{ # OR
 								rules = [
 									{ # AND
-										type = "VM_TAG"
+										type = testMemberTypeVMTag
 										value = "prod"
-										operator = "STARTS_WITH"
+										operator = testCriteriaStartsWith
 									},
 									{ # AND
-										type = "VM_TAG"
+										type = testMemberTypeVMTag
 										value = "test-xx"
 										operator = "EQUALS"
 									}
@@ -271,39 +271,39 @@ func (r *VDCGDynamicSecurityGroupResource) Tests(_ context.Context) map[testsacc
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckResourceAttr(resourceName, "criteria.#", "3"),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.0.rules.*", map[string]string{
-								"type":     "VM_NAME",
-								"value":    "test",
-								"operator": "STARTS_WITH",
+								testAttrType:     testMemberTypeVMName,
+								testAttrValue:    testDSGValueTest,
+								testAttrOperator: testCriteriaStartsWith,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.0.rules.*", map[string]string{
-								"type":     "VM_NAME",
-								"value":    "front",
-								"operator": "CONTAINS",
+								testAttrType:     testMemberTypeVMName,
+								testAttrValue:    testDSGValueFront,
+								testAttrOperator: testCriteriaContains,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.0.rules.*", map[string]string{
-								"type":     "VM_TAG",
-								"value":    "prod",
-								"operator": "ENDS_WITH",
+								testAttrType:     testMemberTypeVMTag,
+								testAttrValue:    testDSGValueProd,
+								testAttrOperator: "ENDS_WITH",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.1.rules.*", map[string]string{
-								"type":     "VM_TAG",
-								"value":    "test",
-								"operator": "STARTS_WITH",
+								testAttrType:     testMemberTypeVMTag,
+								testAttrValue:    testDSGValueTest,
+								testAttrOperator: testCriteriaStartsWith,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.1.rules.*", map[string]string{
-								"type":     "VM_TAG",
-								"value":    "web-front",
-								"operator": "CONTAINS",
+								testAttrType:     testMemberTypeVMTag,
+								testAttrValue:    testDSGValueWebFront,
+								testAttrOperator: testCriteriaContains,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.2.rules.*", map[string]string{
-								"type":     "VM_TAG",
-								"value":    "prod",
-								"operator": "STARTS_WITH",
+								testAttrType:     testMemberTypeVMTag,
+								testAttrValue:    testDSGValueProd,
+								testAttrOperator: testCriteriaStartsWith,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.2.rules.*", map[string]string{
-								"type":     "VM_TAG",
-								"value":    "test-xx",
-								"operator": "EQUALS",
+								testAttrType:     testMemberTypeVMTag,
+								testAttrValue:    "test-xx",
+								testAttrOperator: "EQUALS",
 							}),
 						},
 					},
@@ -318,17 +318,17 @@ func (r *VDCGDynamicSecurityGroupResource) Tests(_ context.Context) map[testsacc
 							{ # OR
 								rules = [ 
 									{ # AND
-										type = "VM_NAME"
+										type = testMemberTypeVMName
 										value = "test"
-										operator = "STARTS_WITH"
+										operator = testCriteriaStartsWith
 									},
 									{ # AND
-									 	type = "VM_NAME"
+									 	type = testMemberTypeVMName
 										value = "front"
-										operator = "CONTAINS"
+										operator = testCriteriaContains
 									},
 									{ # AND
-									 	type = "VM_TAG"
+									 	type = testMemberTypeVMTag
 										value = "prod"
 										operator = "ENDS_WITH"
 									},
@@ -337,26 +337,26 @@ func (r *VDCGDynamicSecurityGroupResource) Tests(_ context.Context) map[testsacc
 							{ # OR
 							 	rules = [ 
 									{ # AND
-										type = "VM_TAG"
+										type = testMemberTypeVMTag
 										value = "test"
-										operator = "STARTS_WITH"
+										operator = testCriteriaStartsWith
 									},
 									{ # AND
-									 	type = "VM_TAG"
+									 	type = testMemberTypeVMTag
 										value = "web-front"
-										operator = "CONTAINS"
+										operator = testCriteriaContains
 									}
 								]
 							},
 							{ # OR
 								rules = [
 									{ # AND
-										type = "VM_TAG"
+										type = testMemberTypeVMTag
 										value = "prod"
-										operator = "STARTS_WITH"
+										operator = testCriteriaStartsWith
 									},
 									{ # AND
-										type = "VM_TAG"
+										type = testMemberTypeVMTag
 										value = "test-xx"
 										operator = "EQUALS"
 									}
@@ -369,39 +369,39 @@ func (r *VDCGDynamicSecurityGroupResource) Tests(_ context.Context) map[testsacc
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckResourceAttr(resourceName, "criteria.#", "3"),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.0.rules.*", map[string]string{
-								"type":     "VM_NAME",
-								"value":    "test",
-								"operator": "STARTS_WITH",
+								testAttrType:     testMemberTypeVMName,
+								testAttrValue:    testDSGValueTest,
+								testAttrOperator: testCriteriaStartsWith,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.0.rules.*", map[string]string{
-								"type":     "VM_NAME",
-								"value":    "front",
-								"operator": "CONTAINS",
+								testAttrType:     testMemberTypeVMName,
+								testAttrValue:    testDSGValueFront,
+								testAttrOperator: testCriteriaContains,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.0.rules.*", map[string]string{
-								"type":     "VM_TAG",
-								"value":    "prod",
-								"operator": "ENDS_WITH",
+								testAttrType:     testMemberTypeVMTag,
+								testAttrValue:    testDSGValueProd,
+								testAttrOperator: "ENDS_WITH",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.1.rules.*", map[string]string{
-								"type":     "VM_TAG",
-								"value":    "test",
-								"operator": "STARTS_WITH",
+								testAttrType:     testMemberTypeVMTag,
+								testAttrValue:    testDSGValueTest,
+								testAttrOperator: testCriteriaStartsWith,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.1.rules.*", map[string]string{
-								"type":     "VM_TAG",
-								"value":    "web-front",
-								"operator": "CONTAINS",
+								testAttrType:     testMemberTypeVMTag,
+								testAttrValue:    testDSGValueWebFront,
+								testAttrOperator: testCriteriaContains,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.2.rules.*", map[string]string{
-								"type":     "VM_TAG",
-								"value":    "prod",
-								"operator": "STARTS_WITH",
+								testAttrType:     testMemberTypeVMTag,
+								testAttrValue:    testDSGValueProd,
+								testAttrOperator: testCriteriaStartsWith,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "criteria.2.rules.*", map[string]string{
-								"type":     "VM_TAG",
-								"value":    "test-xx",
-								"operator": "EQUALS",
+								testAttrType:     testMemberTypeVMTag,
+								testAttrValue:    "test-xx",
+								testAttrOperator: "EQUALS",
 							}),
 						},
 					},
@@ -409,22 +409,22 @@ func (r *VDCGDynamicSecurityGroupResource) Tests(_ context.Context) map[testsacc
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

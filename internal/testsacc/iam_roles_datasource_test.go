@@ -51,16 +51,16 @@ func (r *IAMRolesDataSource) DependenciesConfig() (resp testsacc.DependenciesCon
 func (r *IAMRolesDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				Create: testsacc.TFConfig{
 					TFConfig: `data "cloudavenue_iam_roles" "example" {}`,
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "roles.*", map[string]string{
-							"name":        "Organization Administrator",
+							testAttrName:  "Organization Administrator",
 							"description": "Built-in rights for administering an organization",
-							"read_only":   "true",
+							"read_only":   testValueTrue,
 						}),
 					},
 				},

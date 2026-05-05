@@ -46,14 +46,14 @@ func disksSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "Generated ID of the resource.",
 				},
 			},
-			"vdc": superschema.SuperStringAttribute{
+			attrVDC: superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					MarkdownDescription: "The name of vDC to use, optional if defined at provider level.",
 					Optional:            true,
 					Computed:            true,
 				},
 			},
-			"vapp_id": superschema.SuperStringAttribute{
+			attrVappID: superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
@@ -63,7 +63,7 @@ func disksSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"vapp_name": superschema.SuperStringAttribute{
+			attrVappName: superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
@@ -81,7 +81,7 @@ func disksSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"vm_name": superschema.SuperStringAttribute{
+			attrVMName: superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
@@ -101,7 +101,7 @@ func disksSchema(_ context.Context) superschema.Schema {
 							MarkdownDescription: "The ID of the disk.",
 						},
 					},
-					"name": superschema.SuperStringAttribute{
+					attrName: superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "The name of the disk.",
@@ -113,7 +113,7 @@ func disksSchema(_ context.Context) superschema.Schema {
 							MarkdownDescription: "If set to true, the disk could be detached from the VM. If set to false, the disk canot detached to the VM.",
 						},
 					},
-					"storage_profile": superschema.SuperStringAttribute{
+					attrStorageProfile: superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "The name of the storage profile.",

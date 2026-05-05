@@ -50,10 +50,10 @@ func (r *VAppIsolatedNetworkResource) DependenciesConfig() (resp testsacc.Depend
 
 func (r *VAppIsolatedNetworkResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrSet(resourceName, "vdc"),
+					resource.TestCheckResourceAttrSet(resourceName, testAttrVDC),
 					resource.TestCheckResourceAttrSet(resourceName, "vapp_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "vapp_id"),
 				},
@@ -98,12 +98,12 @@ func (r *VAppIsolatedNetworkResource) Tests(_ context.Context) map[testsacc.Test
 						resource.TestCheckResourceAttr(resourceName, "guest_vlan_allowed", "true"),
 						resource.TestCheckResourceAttr(resourceName, "retain_ip_mac_enabled", "true"),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-							"start_address": "192.168.10.51",
-							"end_address":   "192.168.10.101",
+							testAttrStartAddress: "192.168.10.51",
+							testAttrEndAddress:   "192.168.10.101",
 						}),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-							"start_address": "192.168.10.10",
-							"end_address":   "192.168.10.30",
+							testAttrStartAddress: "192.168.10.10",
+							testAttrEndAddress:   "192.168.10.30",
 						}),
 					},
 				},
@@ -142,7 +142,7 @@ func (r *VAppIsolatedNetworkResource) Tests(_ context.Context) map[testsacc.Test
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
-							resource.TestCheckResourceAttrSet(resourceName, "vdc"),
+							resource.TestCheckResourceAttrSet(resourceName, testAttrVDC),
 							resource.TestCheckResourceAttrSet(resourceName, "vapp_name"),
 							resource.TestCheckResourceAttrSet(resourceName, "vapp_id"),
 							resource.TestCheckResourceAttr(resourceName, "gateway", "192.168.10.1"),
@@ -153,16 +153,16 @@ func (r *VAppIsolatedNetworkResource) Tests(_ context.Context) map[testsacc.Test
 							resource.TestCheckResourceAttr(resourceName, "guest_vlan_allowed", "true"),
 							resource.TestCheckResourceAttr(resourceName, "retain_ip_mac_enabled", "true"),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.10.51",
-								"end_address":   "192.168.10.101",
+								testAttrStartAddress: "192.168.10.51",
+								testAttrEndAddress:   "192.168.10.101",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.10.10",
-								"end_address":   "192.168.10.30",
+								testAttrStartAddress: "192.168.10.10",
+								testAttrEndAddress:   "192.168.10.30",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "static_ip_pool.*", map[string]string{
-								"start_address": "192.168.10.200",
-								"end_address":   "192.168.10.210",
+								testAttrStartAddress: "192.168.10.200",
+								testAttrEndAddress:   "192.168.10.210",
 							}),
 						},
 					},
@@ -170,7 +170,7 @@ func (r *VAppIsolatedNetworkResource) Tests(_ context.Context) map[testsacc.Test
 				// ! Import testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc", "vapp_name", "name"},
+						ImportStateIDBuilder: []string{testAttrVDC, testAttrVAppName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

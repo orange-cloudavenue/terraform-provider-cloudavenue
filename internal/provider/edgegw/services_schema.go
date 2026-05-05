@@ -49,9 +49,9 @@ func servicesSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "Unique identifier of the services.",
 				},
 			},
-			"edge_gateway_name": superschema.SuperStringAttribute{
+			edgeGatewayName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "Name of the Edge Gateway.",
+					MarkdownDescription: edgeGatewayNameDescription,
 					Optional:            true,
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
@@ -59,13 +59,13 @@ func servicesSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
 					},
 				},
 			},
-			"edge_gateway_id": superschema.SuperStringAttribute{
+			edgeGatewayID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "Identifier of the Edge Gateway.",
+					MarkdownDescription: edgeGatewayIDDescription,
 					Optional:            true,
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
@@ -73,7 +73,7 @@ func servicesSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
 					},
 				},
 			},
@@ -107,13 +107,13 @@ func servicesSchema(_ context.Context) superschema.Schema {
 							Computed:            true,
 						},
 						Attributes: superschema.Attributes{
-							"name": superschema.SuperStringAttribute{
+							name: superschema.SuperStringAttribute{
 								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "Name of the service.",
 									Computed:            true,
 								},
 							},
-							"description": superschema.SuperStringAttribute{
+							description: superschema.SuperStringAttribute{
 								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "Description of the service.",
 									Computed:            true,

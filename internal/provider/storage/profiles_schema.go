@@ -41,7 +41,7 @@ func (d *profilesDataSource) superSchema(ctx context.Context) superschema.Schema
 					Computed:            true,
 				},
 			},
-			"vdc": vdc.SuperSchema(),
+			attrVDC: vdc.SuperSchema(),
 			"storage_profiles": superschema.ListNestedAttribute{
 				DataSource: &schemaD.ListNestedAttribute{
 					MarkdownDescription: "List of storage profiles.",

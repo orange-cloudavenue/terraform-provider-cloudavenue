@@ -51,7 +51,7 @@ func (r *VDCGIPSetResource) DependenciesConfig() (resp testsacc.DependenciesConf
 
 func (r *VDCGIPSetResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.SecurityGroup)),
@@ -144,22 +144,22 @@ func (r *VDCGIPSetResource) Tests(_ context.Context) map[testsacc.TestName]func(
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

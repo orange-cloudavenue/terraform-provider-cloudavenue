@@ -19,8 +19,9 @@
 package publicip
 
 import (
+	"context"
+
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
-	"golang.org/x/net/context"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
@@ -33,7 +34,7 @@ func publicIPsSchema(_ context.Context) superschema.Schema {
 		Attributes: superschema.Attributes{
 			"id": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "The ID of the Public IP.",
+					MarkdownDescription: publicIPIDDescription,
 					Computed:            true,
 				},
 			},
@@ -45,7 +46,7 @@ func publicIPsSchema(_ context.Context) superschema.Schema {
 				Attributes: superschema.Attributes{
 					"id": superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The ID of the Public IP.",
+							MarkdownDescription: publicIPIDDescription,
 							Computed:            true,
 						},
 					},

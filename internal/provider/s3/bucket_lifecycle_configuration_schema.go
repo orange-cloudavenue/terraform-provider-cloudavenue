@@ -49,7 +49,7 @@ func bucketLifecycleConfigurationSchema(_ context.Context) superschema.Schema {
 			MarkdownDescription: "The `cloudavenue_s3_bucket_lifecycle_configuration` data source allows you to retrieve information about an S3 bucket's lifecycle configuration.",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"timeouts": superschema.TimeoutAttribute{
+			timeouts: superschema.TimeoutAttribute{
 				Resource: &superschema.ResourceTimeoutAttribute{
 					Create: true,
 					Update: true,
@@ -66,9 +66,9 @@ func bucketLifecycleConfigurationSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The ID is a bucket name.",
 				},
 			},
-			"bucket": superschema.SuperStringAttribute{
+			bucket: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the bucket.",
+					MarkdownDescription: bucketNameDescription,
 					Required:            true,
 				},
 				Resource: &schemaR.StringAttribute{
@@ -199,7 +199,7 @@ func bucketLifecycleConfigurationSchema(_ context.Context) superschema.Schema {
 											Computed: true,
 										},
 										Attributes: superschema.Attributes{
-											"key": superschema.SuperStringAttribute{
+											key: superschema.SuperStringAttribute{
 												Common: &schemaR.StringAttribute{
 													MarkdownDescription: "Object tag key.",
 												},

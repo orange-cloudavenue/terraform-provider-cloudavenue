@@ -51,7 +51,7 @@ func (r *NetworkRoutedResource) DependenciesConfig() (resp testsacc.Dependencies
 
 func (r *NetworkRoutedResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
@@ -132,12 +132,12 @@ func (r *NetworkRoutedResource) Tests(_ context.Context) map[testsacc.TestName]f
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -185,12 +185,12 @@ func (r *NetworkRoutedResource) Tests(_ context.Context) map[testsacc.TestName]f
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -198,10 +198,10 @@ func (r *NetworkRoutedResource) Tests(_ context.Context) map[testsacc.TestName]f
 				Destroy: true,
 			}
 		},
-		"example_with_vdc_group": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExampleWithVDCGroup: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetSpecificConfig("example_with_vdc_group"))
+					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetSpecificConfig(testNameExampleWithVDCGroup))
 					return resp
 				},
 				CommonChecks: []resource.TestCheckFunc{
@@ -272,12 +272,12 @@ func (r *NetworkRoutedResource) Tests(_ context.Context) map[testsacc.TestName]f
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

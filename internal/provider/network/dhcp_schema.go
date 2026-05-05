@@ -118,7 +118,7 @@ func dhcpSchema(_ context.Context) superschema.Schema {
 					},
 				},
 				Attributes: superschema.Attributes{
-					"start_address": superschema.StringAttribute{
+					attrStartAddress: superschema.StringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The start address of the DHCP pool IP range.",
 						},
@@ -132,7 +132,7 @@ func dhcpSchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 					},
-					"end_address": superschema.StringAttribute{
+					attrEndAddress: superschema.StringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The end address of the DHCP pool IP range.",
 						},

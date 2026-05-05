@@ -56,8 +56,8 @@ func (p *dhcpModelPools) ObjectType(ctx context.Context) types.ObjectType {
 // AttrTypes() returns the attribute types for the nested object.
 func (p *dhcpModelPools) AttrTypes(_ context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
-		"end_address":   types.StringType,
-		"start_address": types.StringType,
+		attrEndAddress:   types.StringType,
+		attrStartAddress: types.StringType,
 	}
 }
 

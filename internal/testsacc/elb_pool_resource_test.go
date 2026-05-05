@@ -52,7 +52,7 @@ func (r *ELBPoolResource) DependenciesConfig() (resp testsacc.DependenciesConfig
 
 func (r *ELBPoolResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.LoadBalancerPool)),
@@ -87,11 +87,11 @@ func (r *ELBPoolResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 						resource.TestCheckResourceAttr(resourceName, "default_port", "80"),
 						resource.TestCheckResourceAttr(resourceName, "members.targets.#", "1"),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "members.targets.*", map[string]string{
-							"ip_address": "192.168.0.1",
-							"port":       "80",
+							testAttrIPAddress: testELBPoolMemberIP,
+							testAttrPort:      "80",
 							// Default values
-							"ratio":   "1",
-							"enabled": "true",
+							testAttrRatio:   "1",
+							testAttrEnabled: testValueTrue,
 						}),
 
 						// Default values
@@ -108,27 +108,27 @@ func (r *ELBPoolResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 					// * Update name and add a new disabled target
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-						resource "cloudavenue_elb_pool" "example" {
-							name = {{ generate . "name" }}
-							description = {{ get . "description" }}
-							edge_gateway_id = data.cloudavenue_edgegateway.example_for_elb.id
-							enabled = true
-							default_port = 80
-							members = {
-								targets = [
-									{
-										ip_address = "192.168.0.1"
-										port = 80
-									},
-									{
-										ip_address = "192.168.0.2"
-										port = 8080
-										enabled = false
-										ratio = 2
-									}
-								]
-							}
-						}`),
+					resource "cloudavenue_elb_pool" "example" {
+						name = {{ generate . "name" }}
+						description = {{ get . "description" }}
+						edge_gateway_id = data.cloudavenue_edgegateway.example_for_elb.id
+						enabled = true
+						default_port = 80
+						members = {
+							targets = [
+								{
+									ip_address = "192.168.0.1"
+									port = 80
+								},
+								{
+									ip_address = "192.168.0.2"
+									port = 8080
+									enabled = false
+									ratio = 2
+								}
+							]
+						}
+					}`),
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
@@ -138,17 +138,17 @@ func (r *ELBPoolResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 							resource.TestCheckResourceAttr(resourceName, "default_port", "80"),
 							resource.TestCheckResourceAttr(resourceName, "members.targets.#", "2"),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "members.targets.*", map[string]string{
-								"ip_address": "192.168.0.1",
-								"port":       "80",
+								testAttrIPAddress: testELBPoolMemberIP,
+								testAttrPort:      "80",
 								// Default values
-								"ratio":   "1",
-								"enabled": "true",
+								testAttrRatio:   "1",
+								testAttrEnabled: testValueTrue,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "members.targets.*", map[string]string{
-								"ip_address": "192.168.0.2",
-								"port":       "8080",
-								"ratio":      "2",
-								"enabled":    "false",
+								testAttrIPAddress: "192.168.0.2",
+								testAttrPort:      "8080",
+								testAttrRatio:     "2",
+								testAttrEnabled:   testValueFalse,
 							}),
 
 							// Default values
@@ -195,11 +195,11 @@ func (r *ELBPoolResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 							resource.TestCheckResourceAttr(resourceName, "health.monitors.1", "TCP"),
 							resource.TestCheckResourceAttr(resourceName, "members.targets.#", "1"),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "members.targets.*", map[string]string{
-								"ip_address": "192.168.0.1",
-								"port":       "80",
+								testAttrIPAddress: testELBPoolMemberIP,
+								testAttrPort:      "80",
 								// Default values
-								"ratio":   "1",
-								"enabled": "true",
+								testAttrRatio:   "1",
+								testAttrEnabled: testValueTrue,
 							}),
 
 							// Default values
@@ -214,22 +214,22 @@ func (r *ELBPoolResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -271,11 +271,11 @@ func (r *ELBPoolResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 						resource.TestCheckResourceAttr(resourceName, "default_port", "80"),
 						resource.TestCheckResourceAttr(resourceName, "members.targets.#", "1"),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "members.targets.*", map[string]string{
-							"ip_address": "192.168.0.1",
-							"port":       "80",
+							testAttrIPAddress: testELBPoolMemberIP,
+							testAttrPort:      "80",
 							// Default values
-							"ratio":   "1",
-							"enabled": "true",
+							testAttrRatio:   "1",
+							testAttrEnabled: testValueTrue,
 						}),
 
 						// Default values
@@ -290,22 +290,22 @@ func (r *ELBPoolResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -487,22 +487,22 @@ func (r *ELBPoolResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

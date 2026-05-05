@@ -432,8 +432,8 @@ func (r *vpnIPSecResource) ImportState(ctx context.Context, req resource.ImportS
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), vpnIPSec.NsxtIpSecVpn.ID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), vpnIPSec.NsxtIpSecVpn.Name)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_id"), r.edgegw.GetID())...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), r.edgegw.GetName())...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(edgeGatewayID), r.edgegw.GetID())...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(edgeGatewayName), r.edgegw.GetName())...)
 }
 
 func (r *vpnIPSecResource) read(ctx context.Context, planOrState *VPNIPSecModel) (stateRefreshed *VPNIPSecModel, found bool, diags diag.Diagnostics) {

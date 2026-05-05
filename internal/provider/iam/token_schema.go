@@ -47,7 +47,7 @@ func tokenSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			attrName: superschema.SuperStringAttribute{
 				Resource: &schemaR.StringAttribute{
 					MarkdownDescription: "The unique name of the API token for a specific user.",
 					Required:            true,

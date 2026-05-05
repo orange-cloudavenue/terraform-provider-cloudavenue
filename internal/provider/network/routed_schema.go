@@ -232,7 +232,7 @@ func routedSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 				Attributes: map[string]superschema.Attribute{
-					"start_address": superschema.SuperStringAttribute{
+					attrStartAddress: superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The start address of the IP pool. This value must be a valid IP address in the network IP range.",
 						},
@@ -246,7 +246,7 @@ func routedSchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 					},
-					"end_address": superschema.SuperStringAttribute{
+					attrEndAddress: superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The end address of the IP pool. This value must be a valid IP address in the network IP range.",
 						},

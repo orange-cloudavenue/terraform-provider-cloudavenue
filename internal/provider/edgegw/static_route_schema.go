@@ -59,9 +59,9 @@ func staticRouteSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"edge_gateway_name": superschema.SuperStringAttribute{
+			edgeGatewayName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the Edge Gateway.",
+					MarkdownDescription: edgeGatewayNameDescription,
 					Optional:            true,
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
@@ -69,13 +69,13 @@ func staticRouteSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
 					},
 				},
 			},
-			"edge_gateway_id": superschema.SuperStringAttribute{
+			edgeGatewayID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the Edge Gateway.",
+					MarkdownDescription: edgeGatewayIDDescription,
 					Optional:            true,
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
@@ -83,17 +83,17 @@ func staticRouteSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
 					},
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			name: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the Static Route.",
 					Required:            true,
 				},
 			},
-			"description": superschema.SuperStringAttribute{
+			description: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The description of the Static Route.",
 				},

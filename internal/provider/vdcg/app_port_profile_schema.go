@@ -64,11 +64,11 @@ func appPortProfileSchema(_ context.Context) superschema.Schema {
 				DataSource: &schemaD.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(name), path.MatchRoot("id")),
 					},
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			name: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Application Port Profile name.",
 				},
@@ -80,11 +80,11 @@ func appPortProfileSchema(_ context.Context) superschema.Schema {
 					Optional: true,
 					Computed: true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(name), path.MatchRoot("id")),
 					},
 				},
 			},
-			"description": superschema.SuperStringAttribute{
+			description: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Application Port Profile description.",
 				},
@@ -95,13 +95,13 @@ func appPortProfileSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"vdc_group_name": superschema.SuperStringAttribute{
+			vdcGroupName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of vDC group that owns the application port profile.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
+						stringvalidator.AtLeastOneOf(path.MatchRoot(vdcGroupName), path.MatchRoot(vdcGroupID)),
 					},
 				},
 				Resource: &schemaR.StringAttribute{
@@ -110,13 +110,13 @@ func appPortProfileSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"vdc_group_id": superschema.SuperStringAttribute{
+			vdcGroupID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of vDC group that owns the application port profile.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
+						stringvalidator.AtLeastOneOf(path.MatchRoot(vdcGroupName), path.MatchRoot(vdcGroupID)),
 						fstringvalidator.PrefixContains(urn.VDCGroup.String()),
 					},
 				},

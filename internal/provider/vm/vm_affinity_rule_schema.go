@@ -76,8 +76,8 @@ func vmAffinityRuleSchema() superschema.Schema {
 					},
 				},
 			},
-			"vdc": vdc.SuperSchema(),
-			"name": superschema.StringAttribute{
+			attrVDC: vdc.SuperSchema(),
+			attrName: superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "VM affinity rule name.",
 				},

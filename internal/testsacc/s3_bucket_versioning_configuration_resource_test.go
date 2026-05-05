@@ -53,7 +53,7 @@ func (r *S3BucketVersioningConfigurationResource) DependenciesConfig() (resp tes
 func (r *S3BucketVersioningConfigurationResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * First test named "example"
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "bucket"),
@@ -95,7 +95,7 @@ func (r *S3BucketVersioningConfigurationResource) Tests(_ context.Context) map[t
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"bucket"},
+						ImportStateIDBuilder: []string{testAttrBucket},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

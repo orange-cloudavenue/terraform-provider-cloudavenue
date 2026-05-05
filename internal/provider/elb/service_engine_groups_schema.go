@@ -43,22 +43,22 @@ func serviceEngineGroupsSchema(ctx context.Context) superschema.Schema {
 					MarkdownDescription: "The ID of the ELB service engine groups.",
 				},
 			},
-			"edge_gateway_id": superschema.SuperStringAttribute{
+			edgeGatewayID: superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					MarkdownDescription: "Edge gateway ID in which EdgeGateway LoadBalancer Service Engine Group should be located.",
 					Optional:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayID), path.MatchRoot(edgeGatewayName)),
 					},
 					Computed: true,
 				},
 			},
-			"edge_gateway_name": superschema.SuperStringAttribute{
+			edgeGatewayName: superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					MarkdownDescription: "Edge gateway Name in which EdgeGateway LoadBalancer Service Engine Group should be located.",
 					Optional:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayID), path.MatchRoot(edgeGatewayName)),
 					},
 					Computed: true,
 				},
@@ -70,9 +70,9 @@ func serviceEngineGroupsSchema(ctx context.Context) superschema.Schema {
 				},
 				Attributes: map[string]superschema.Attribute{
 					"id":                        serviceEngineGroupSchema(ctx).Attributes["id"],
-					"name":                      serviceEngineGroupSchema(ctx).Attributes["name"],
-					"edge_gateway_id":           serviceEngineGroupSchema(ctx).Attributes["edge_gateway_id"],
-					"edge_gateway_name":         serviceEngineGroupSchema(ctx).Attributes["edge_gateway_name"],
+					name:                        serviceEngineGroupSchema(ctx).Attributes[name],
+					edgeGatewayID:               serviceEngineGroupSchema(ctx).Attributes[edgeGatewayID],
+					edgeGatewayName:             serviceEngineGroupSchema(ctx).Attributes[edgeGatewayName],
 					"max_virtual_services":      serviceEngineGroupSchema(ctx).Attributes["max_virtual_services"],
 					"reserved_virtual_services": serviceEngineGroupSchema(ctx).Attributes["reserved_virtual_services"],
 					"deployed_virtual_services": serviceEngineGroupSchema(ctx).Attributes["deployed_virtual_services"],

@@ -177,7 +177,7 @@ func (r *CredentialResource) Create(ctx context.Context, req resource.CreateRequ
 
 	if plan.SaveInFile.Get() {
 		type credentialFile struct {
-			AK string `json:"accesskey"` //nolint:gosec // G117: AK (access key) is intentionally part of the S3 credential resource schema
+			AK string `json:"accesskey"`
 			SK string `json:"secretkey"`
 		}
 
@@ -186,7 +186,7 @@ func (r *CredentialResource) Create(ctx context.Context, req resource.CreateRequ
 			SK: cred.GetSecretKey(),
 		}
 
-		b, err := json.Marshal(credFile)
+		b, err := json.Marshal(credFile) //nolint:gosec // G117: intentionally marshaling S3 credentials to write to config file
 		if err != nil {
 			resp.Diagnostics.AddError("Error marshalling credential", err.Error())
 			return

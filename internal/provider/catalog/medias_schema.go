@@ -52,73 +52,73 @@ func mediasSchema() superschema.Schema {
 				Attributes: superschema.Attributes{
 					"id": superschema.StringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The ID of the media.",
+							MarkdownDescription: descMediaID,
 							Computed:            true,
 						},
 					},
-					"catalog_id": superschema.StringAttribute{
+					catalogID: superschema.StringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The ID of the catalog.",
+							MarkdownDescription: catalogIDDescription,
 							Computed:            true,
 						},
 					},
-					"catalog_name": superschema.StringAttribute{
+					catalogName: superschema.StringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The name of the catalog.",
+							MarkdownDescription: catalogNameDescription,
 							Computed:            true,
 						},
 					},
-					"name": superschema.StringAttribute{
+					name: superschema.StringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The name of the media.",
+							MarkdownDescription: descMediaName,
 							Computed:            true,
 						},
 					},
-					"description": superschema.StringAttribute{
+					description: superschema.StringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The description of the media.",
+							MarkdownDescription: descMediaDescription,
 							Computed:            true,
 						},
 					},
-					"is_iso": superschema.BoolAttribute{
+					isISO: superschema.BoolAttribute{
 						DataSource: &schemaD.BoolAttribute{
-							MarkdownDescription: "`True` if the media is an ISO.",
+							MarkdownDescription: descMediaIsISO,
 							Computed:            true,
 						},
 					},
-					"owner_name": superschema.StringAttribute{
+					ownerName: superschema.StringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The name of the owner of the media.",
+							MarkdownDescription: descMediaOwnerName,
 							Computed:            true,
 						},
 					},
-					"is_published": superschema.BoolAttribute{
+					isPublished: superschema.BoolAttribute{
 						DataSource: &schemaD.BoolAttribute{
-							MarkdownDescription: "`True` if the media is published.",
+							MarkdownDescription: descMediaIsPublished,
 							Computed:            true,
 						},
 					},
-					"created_at": superschema.StringAttribute{
+					createdAt: superschema.StringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The date and time when the media was created.",
+							MarkdownDescription: descMediaCreatedAt,
 							Computed:            true,
 						},
 					},
-					"size": superschema.Int64Attribute{
+					size: superschema.Int64Attribute{
 						DataSource: &schemaD.Int64Attribute{
-							MarkdownDescription: "The size of the media in bytes.",
+							MarkdownDescription: descMediaSize,
 							Computed:            true,
 						},
 					},
-					"status": superschema.StringAttribute{
+					status: superschema.StringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The status of the media.",
+							MarkdownDescription: descMediaStatus,
 							Computed:            true,
 						},
 					},
-					"storage_profile": superschema.StringAttribute{
+					storageProfile: superschema.StringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The storage profile of the media.",
+							MarkdownDescription: descMediaStorageProfile,
 							Computed:            true,
 						},
 					},

@@ -309,8 +309,8 @@ func (r *dhcpForwardingResource) ImportState(ctx context.Context, req resource.I
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), r.edgegw.GetID())...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_id"), r.edgegw.GetID())...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), r.edgegw.GetName())...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(edgeGatewayID), r.edgegw.GetID())...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(edgeGatewayName), r.edgegw.GetName())...)
 }
 
 // ModifyPlan Check if DHCP servers can be edited.

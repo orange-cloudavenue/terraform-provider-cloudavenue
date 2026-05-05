@@ -92,7 +92,7 @@ func vappSchema() superschema.Schema {
 					},
 				},
 			},
-			"vdc": vdc.SuperSchemaSuperType(),
+			attrVDC: vdc.SuperSchemaSuperType(),
 			"description": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Description of the vApp.",
@@ -125,19 +125,19 @@ func vappSchema() superschema.Schema {
 					Computed: true,
 					Default: objectdefault.StaticValue(types.ObjectValueMust(
 						map[string]attr.Type{
-							"runtime_lease_in_sec": types.Int64Type,
-							"storage_lease_in_sec": types.Int64Type,
+							attrRuntimeLeaseInSec: types.Int64Type,
+							attrStorageLeaseInSec: types.Int64Type,
 						},
 						map[string]attr.Value{
-							"runtime_lease_in_sec": types.Int64Value(0),
-							"storage_lease_in_sec": types.Int64Value(0),
+							attrRuntimeLeaseInSec: types.Int64Value(0),
+							attrStorageLeaseInSec: types.Int64Value(0),
 						})),
 				},
 				DataSource: &schemaD.SingleNestedAttribute{
 					Computed: true,
 				},
 				Attributes: superschema.Attributes{
-					"runtime_lease_in_sec": superschema.SuperInt64Attribute{
+					attrRuntimeLeaseInSec: superschema.SuperInt64Attribute{
 						Common: &schemaR.Int64Attribute{
 							MarkdownDescription: "How long any of the VMs in the vApp can run before the vApp is automatically powered off or suspended. Allowed values are 3600 to 31536000 seconds (1 hour to 365 days) or 0 means never expires.",
 						},
@@ -156,7 +156,7 @@ func vappSchema() superschema.Schema {
 							Computed: true,
 						},
 					},
-					"storage_lease_in_sec": superschema.SuperInt64Attribute{
+					attrStorageLeaseInSec: superschema.SuperInt64Attribute{
 						Common: &schemaR.Int64Attribute{
 							MarkdownDescription: "How long the vApp is available before being automatically deleted or marked as expired. Allowed values are 3600 to 31536000 seconds (1 hour to 365 days) or 0 means never expires.",
 						},

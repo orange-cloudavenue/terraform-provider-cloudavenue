@@ -49,7 +49,7 @@ func (r *EdgeGatewayStaticRouteResource) DependenciesConfig() (resp testsacc.Dep
 
 func (r *EdgeGatewayStaticRouteResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					// Check that the resource has been created and has an ID formatted as uuid v4
@@ -102,12 +102,12 @@ func (r *EdgeGatewayStaticRouteResource) Tests(_ context.Context) map[testsacc.T
 					},
 				},
 				Imports: []testsacc.TFImport{
-					{ImportStateIDBuilder: []string{"edge_gateway_id", "id"}, ImportState: true, ImportStateVerify: true},
+					{ImportStateIDBuilder: []string{testAttrEdgeGatewayID, "id"}, ImportState: true, ImportStateVerify: true},
 				},
 				Destroy: true,
 			}
 		},
-		"example_with_vdc_group": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExampleWithVDCGroup: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetSpecificConfig("example_with_vdc_group"))
@@ -162,7 +162,7 @@ func (r *EdgeGatewayStaticRouteResource) Tests(_ context.Context) map[testsacc.T
 					},
 				},
 				Imports: []testsacc.TFImport{
-					{ImportStateIDBuilder: []string{"edge_gateway_name", "name"}, ImportState: true, ImportStateVerify: true},
+					{ImportStateIDBuilder: []string{testAttrEdgeGatewayName, testAttrName}, ImportState: true, ImportStateVerify: true},
 				},
 			}
 		},

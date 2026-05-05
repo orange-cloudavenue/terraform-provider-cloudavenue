@@ -52,14 +52,14 @@ func rolesSchema(_ context.Context) superschema.Schema {
 							Computed:            true,
 						},
 					},
-					"name": superschema.SuperStringAttribute{
+					attrName: superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{},
 						DataSource: &schemaD.StringAttribute{
 							MarkdownDescription: "The name of the role.",
 							Computed:            true,
 						},
 					},
-					"description": superschema.SuperStringAttribute{
+					attrDescription: superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
 							MarkdownDescription: "A description of the role.",
 							Computed:            true,

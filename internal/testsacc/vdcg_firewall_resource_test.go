@@ -53,7 +53,7 @@ func (r *VDCGFirewallResource) DependenciesConfig() (resp testsacc.DependenciesC
 
 func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDCGroup)),
@@ -75,12 +75,12 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 						]
 					}`),
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+						resource.TestCheckResourceAttr(resourceName, "enabled", testValueTrue),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-							"action":      "ALLOW",
-							"name":        "allow all IPv4 traffic",
-							"direction":   "IN_OUT",
-							"ip_protocol": "IPV4",
+							testAttrAction:     testFirewallActionALLOW,
+							testAttrName:       testFirewallRuleNameAllowAll,
+							testAttrDirection:  testFirewallDirectionINOUT,
+							testAttrIPProtocol: testFirewallIPProtocolIPV4,
 						}),
 					},
 				},
@@ -109,20 +109,20 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 							]
 						}`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+							resource.TestCheckResourceAttr(resourceName, "enabled", testValueTrue),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-								"action":      "REJECT",
-								"name":        "reject in IPv4 traffic",
-								"direction":   "INN",
-								"ip_protocol": "IPV4",
-								"enabled":     "false",
+								testAttrAction:     testFirewallActionREJECT,
+								testAttrName:       testFirewallRuleNameRejectIn,
+								testAttrDirection:  "INN",
+								testAttrIPProtocol: testFirewallIPProtocolIPV4,
+								testAttrEnabled:    testValueFalse,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-								"action":      "ALLOW",
-								"name":        "allow out IPv4 traffic",
-								"direction":   "OUT",
-								"ip_protocol": "IPV4",
-								"enabled":     "true",
+								testAttrAction:     testFirewallActionALLOW,
+								testAttrName:       testFirewallRuleNameAllowOut,
+								testAttrDirection:  testFirewallDirectionOUT,
+								testAttrIPProtocol: testFirewallIPProtocolIPV4,
+								testAttrEnabled:    testValueTrue,
 							}),
 						},
 						TFAdvanced: testsacc.TFAdvanced{
@@ -203,12 +203,12 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 							]
 						}`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+							resource.TestCheckResourceAttr(resourceName, "enabled", testValueFalse),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-								"action":      "ALLOW",
-								"name":        "allow all IPv4 traffic",
-								"direction":   "IN_OUT",
-								"ip_protocol": "IPV4",
+								testAttrAction:     testFirewallActionALLOW,
+								testAttrName:       testFirewallRuleNameAllowAll,
+								testAttrDirection:  testFirewallDirectionINOUT,
+								testAttrIPProtocol: testFirewallIPProtocolIPV4,
 							}),
 						},
 					},
@@ -234,20 +234,20 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 							]
 						}`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+							resource.TestCheckResourceAttr(resourceName, "enabled", testValueTrue),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-								"action":      "REJECT",
-								"name":        "reject in IPv4 traffic",
-								"direction":   "IN",
-								"ip_protocol": "IPV4",
-								"enabled":     "true",
+								testAttrAction:     testFirewallActionREJECT,
+								testAttrName:       testFirewallRuleNameRejectIn,
+								testAttrDirection:  "IN",
+								testAttrIPProtocol: testFirewallIPProtocolIPV4,
+								testAttrEnabled:    testValueTrue,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-								"action":      "ALLOW",
-								"name":        "allow out IPv4 traffic",
-								"direction":   "OUT",
-								"ip_protocol": "IPV4",
-								"enabled":     "true",
+								testAttrAction:     testFirewallActionALLOW,
+								testAttrName:       testFirewallRuleNameAllowOut,
+								testAttrDirection:  testFirewallDirectionOUT,
+								testAttrIPProtocol: testFirewallIPProtocolIPV4,
+								testAttrEnabled:    testValueTrue,
 							}),
 						},
 					},
@@ -274,20 +274,20 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 							]
 						}`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+							resource.TestCheckResourceAttr(resourceName, "enabled", testValueTrue),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-								"action":      "REJECT",
-								"name":        "reject in IPv4 traffic",
-								"direction":   "IN",
-								"ip_protocol": "IPV4",
-								"enabled":     "false",
+								testAttrAction:     testFirewallActionREJECT,
+								testAttrName:       testFirewallRuleNameRejectIn,
+								testAttrDirection:  "IN",
+								testAttrIPProtocol: testFirewallIPProtocolIPV4,
+								testAttrEnabled:    testValueFalse,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-								"action":      "ALLOW",
-								"name":        "allow out IPv4 traffic",
-								"direction":   "OUT",
-								"ip_protocol": "IPV4",
-								"enabled":     "true",
+								testAttrAction:     testFirewallActionALLOW,
+								testAttrName:       testFirewallRuleNameAllowOut,
+								testAttrDirection:  testFirewallDirectionOUT,
+								testAttrIPProtocol: testFirewallIPProtocolIPV4,
+								testAttrEnabled:    testValueTrue,
 							}),
 						},
 					},
@@ -295,12 +295,12 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -338,12 +338,12 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 						]
 					}`),
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+						resource.TestCheckResourceAttr(resourceName, "enabled", testValueTrue),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-							"action":                 "ALLOW",
-							"name":                   "allow all IPv4 traffic",
-							"direction":              "IN_OUT",
-							"app_port_profile_ids.#": "1",
+							testAttrAction:                testFirewallActionALLOW,
+							testAttrName:                  testFirewallRuleNameAllowAll,
+							testAttrDirection:             testFirewallDirectionINOUT,
+							testAttrAppPortProfileIDsHash: "1",
 						}),
 					},
 				},
@@ -367,12 +367,12 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 							]
 						}`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+							resource.TestCheckResourceAttr(resourceName, "enabled", testValueTrue),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-								"action":                 "ALLOW",
-								"name":                   "allow out IPv4 traffic",
-								"direction":              "OUT",
-								"app_port_profile_ids.#": "2",
+								testAttrAction:                testFirewallActionALLOW,
+								testAttrName:                  testFirewallRuleNameAllowOut,
+								testAttrDirection:             testFirewallDirectionOUT,
+								testAttrAppPortProfileIDsHash: "2",
 							}),
 						},
 					},
@@ -380,12 +380,12 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -423,12 +423,12 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 						]
 					}`),
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+						resource.TestCheckResourceAttr(resourceName, "enabled", testValueTrue),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-							"action":       "ALLOW",
-							"name":         "allow all IPv4 traffic",
-							"direction":    "IN_OUT",
-							"source_ids.#": "1",
+							testAttrAction:        testFirewallActionALLOW,
+							testAttrName:          "allow all IPv4 traffic",
+							testAttrDirection:     "IN_OUT",
+							testAttrSourceIDsHash: "1",
 						}),
 					},
 				},
@@ -452,12 +452,12 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 							]
 						}`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+							resource.TestCheckResourceAttr(resourceName, "enabled", testValueTrue),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-								"action":       "ALLOW",
-								"name":         "allow in IPv4 traffic",
-								"direction":    "IN",
-								"source_ids.#": "2",
+								testAttrAction:        testFirewallActionALLOW,
+								testAttrName:          "allow in IPv4 traffic",
+								testAttrDirection:     "IN",
+								testAttrSourceIDsHash: "2",
 							}),
 						},
 					},
@@ -465,12 +465,12 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -507,12 +507,12 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 						]
 					}`),
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+						resource.TestCheckResourceAttr(resourceName, "enabled", testValueTrue),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-							"action":            "ALLOW",
-							"name":              "allow all IPv4 traffic",
-							"direction":         "IN_OUT",
-							"destination_ids.#": "1",
+							testAttrAction:             testFirewallActionALLOW,
+							testAttrName:               "allow all IPv4 traffic",
+							testAttrDirection:          "IN_OUT",
+							testAttrDestinationIDsHash: "1",
 						}),
 					},
 				},
@@ -536,12 +536,12 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 							]
 						}`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+							resource.TestCheckResourceAttr(resourceName, "enabled", testValueTrue),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-								"action":            "ALLOW",
-								"name":              "allow out IPv4 traffic",
-								"direction":         "OUT",
-								"destination_ids.#": "2",
+								testAttrAction:             testFirewallActionALLOW,
+								testAttrName:               "allow out IPv4 traffic",
+								testAttrDirection:          "OUT",
+								testAttrDestinationIDsHash: "2",
 							}),
 						},
 					},
@@ -549,12 +549,12 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -601,16 +601,16 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 						]
 					}`),
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+						resource.TestCheckResourceAttr(resourceName, "enabled", testValueTrue),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-							"action":                      "ALLOW",
-							"name":                        testsacc.GetValueFromTemplate(resourceName, "name"),
-							"direction":                   "IN",
-							"source_ids.#":                "1",
-							"destination_ids.#":           "1",
-							"app_port_profile_ids.#":      "1",
-							"source_groups_excluded":      "true",
-							"destination_groups_excluded": "true",
+							testAttrAction:                    testFirewallActionALLOW,
+							testAttrName:                      testsacc.GetValueFromTemplate(resourceName, "name"),
+							testAttrDirection:                 "IN",
+							testAttrSourceIDsHash:             "1",
+							testAttrDestinationIDsHash:        "1",
+							testAttrAppPortProfileIDsHash:     "1",
+							testAttrSourceGroupsExcluded:      testValueTrue,
+							testAttrDestinationGroupsExcluded: testValueTrue,
 						}),
 					},
 				},
@@ -658,26 +658,26 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 							]
 						}`),
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+							resource.TestCheckResourceAttr(resourceName, "enabled", testValueTrue),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-								"action":                      "ALLOW",
-								"name":                        testsacc.GetValueFromTemplate(resourceName, "name"),
-								"direction":                   "IN",
-								"source_ids.#":                "1",
-								"destination_ids.#":           "1",
-								"app_port_profile_ids.#":      "1",
-								"source_groups_excluded":      "true",
-								"destination_groups_excluded": "true",
+								testAttrAction:                    testFirewallActionALLOW,
+								testAttrName:                      testsacc.GetValueFromTemplate(resourceName, "name"),
+								testAttrDirection:                 "IN",
+								testAttrSourceIDsHash:             "1",
+								testAttrDestinationIDsHash:        "1",
+								testAttrAppPortProfileIDsHash:     "1",
+								testAttrSourceGroupsExcluded:      testValueTrue,
+								testAttrDestinationGroupsExcluded: testValueTrue,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rules.*", map[string]string{
-								"action":                      "DROP",
-								"name":                        testsacc.GetValueFromTemplate(resourceName, "name2"),
-								"direction":                   "IN",
-								"source_ids.#":                "1",
-								"destination_ids.#":           "1",
-								"app_port_profile_ids.#":      "2",
-								"source_groups_excluded":      "false",
-								"destination_groups_excluded": "false",
+								testAttrAction:                    "DROP",
+								testAttrName:                      testsacc.GetValueFromTemplate(resourceName, "name2"),
+								testAttrDirection:                 "IN",
+								testAttrSourceIDsHash:             "1",
+								testAttrDestinationIDsHash:        "1",
+								testAttrAppPortProfileIDsHash:     "2",
+								testAttrSourceGroupsExcluded:      testValueFalse,
+								testAttrDestinationGroupsExcluded: testValueFalse,
 							}),
 						},
 					},
@@ -685,12 +685,12 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

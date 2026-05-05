@@ -73,6 +73,8 @@ linters:
     gosec:
       excludes:
         - G115  # Potential integer overflow when converting between integer types
+    nolintlint:
+      allow-unused: true  # gosec directives may be unused in incremental lint runs (pre-commit) but required for full runs
     staticcheck:
       checks:
         - -QF1008

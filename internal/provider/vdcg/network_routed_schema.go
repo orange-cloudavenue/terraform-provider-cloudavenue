@@ -63,7 +63,7 @@ func networkRoutedSchema(_ context.Context) superschema.Schema {
 					Optional: true,
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			name: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the network routed.",
 				},
@@ -75,7 +75,7 @@ func networkRoutedSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"description": superschema.SuperStringAttribute{
+			description: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "A description of the network.",
 				},
@@ -86,13 +86,13 @@ func networkRoutedSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"vdc_group_id": superschema.SuperStringAttribute{
+			vdcGroupID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the VDC Group in which the routed network should be located.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("vdc_group_id"), path.MatchRoot("vdc_group_name")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(vdcGroupID), path.MatchRoot(vdcGroupName)),
 					},
 				},
 				Resource: &schemaR.StringAttribute{
@@ -102,13 +102,13 @@ func networkRoutedSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"vdc_group_name": superschema.SuperStringAttribute{
+			vdcGroupName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the VDC Group in which the routed network should be located.",
 					Computed:            true,
 					Optional:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("vdc_group_id"), path.MatchRoot("vdc_group_name")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(vdcGroupID), path.MatchRoot(vdcGroupName)),
 					},
 				},
 				Resource: &schemaR.StringAttribute{

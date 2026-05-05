@@ -45,7 +45,7 @@ func bucketCorsConfigurationSchema(_ context.Context) superschema.Schema {
 			MarkdownDescription: "The `cloudavenue_s3_bucket_cors_configuration` data source allows you to retrieve information about an S3 bucket's [Cross-Origin Resource Sharing](https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors.html) configuration.",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"timeouts": superschema.TimeoutAttribute{
+			timeouts: superschema.TimeoutAttribute{
 				Resource: &superschema.ResourceTimeoutAttribute{
 					Create: true,
 					Update: true,
@@ -62,9 +62,9 @@ func bucketCorsConfigurationSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The ID of the bucket",
 				},
 			},
-			"bucket": superschema.SuperStringAttribute{
+			bucket: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the bucket.",
+					MarkdownDescription: bucketNameDescription,
 					Required:            true,
 				},
 				Resource: &schemaR.StringAttribute{

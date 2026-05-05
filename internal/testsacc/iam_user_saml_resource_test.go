@@ -51,7 +51,7 @@ func (r *IAMUserSAMLResource) DependenciesConfig() (resp testsacc.DependenciesCo
 
 func (r *IAMUserSAMLResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.User)),
@@ -69,7 +69,7 @@ func (r *IAMUserSAMLResource) Tests(_ context.Context) map[testsacc.TestName]fun
 						resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 						resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "0"),
 						resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "0"),
-						resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"),
+						resource.TestCheckResourceAttr(resourceName, testAttrTakeOwnership, "true"),
 					},
 				},
 				// ! Updates testing
@@ -88,7 +88,7 @@ func (r *IAMUserSAMLResource) Tests(_ context.Context) map[testsacc.TestName]fun
 							resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 							resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "0"),
 							resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "0"),
-							resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"),
+							resource.TestCheckResourceAttr(resourceName, testAttrTakeOwnership, "true"),
 						},
 					},
 					// * Re-enable the user
@@ -105,7 +105,7 @@ func (r *IAMUserSAMLResource) Tests(_ context.Context) map[testsacc.TestName]fun
 							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 							resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "0"),
 							resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "0"),
-							resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"),
+							resource.TestCheckResourceAttr(resourceName, testAttrTakeOwnership, "true"),
 						},
 					},
 					// * Change Quotas
@@ -124,7 +124,7 @@ func (r *IAMUserSAMLResource) Tests(_ context.Context) map[testsacc.TestName]fun
 							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 							resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "10"),
 							resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "5"),
-							resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"),
+							resource.TestCheckResourceAttr(resourceName, testAttrTakeOwnership, "true"),
 						},
 					},
 					// * Change Take Ownership
@@ -144,7 +144,7 @@ func (r *IAMUserSAMLResource) Tests(_ context.Context) map[testsacc.TestName]fun
 							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 							resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "10"),
 							resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "5"),
-							resource.TestCheckResourceAttr(resourceName, "take_ownership", "false"),
+							resource.TestCheckResourceAttr(resourceName, testAttrTakeOwnership, "false"),
 						},
 					},
 				},
@@ -154,7 +154,7 @@ func (r *IAMUserSAMLResource) Tests(_ context.Context) map[testsacc.TestName]fun
 						ImportStateIDBuilder:    []string{"user_name"},
 						ImportState:             true,
 						ImportStateVerify:       true,
-						ImportStateVerifyIgnore: []string{"take_ownership"},
+						ImportStateVerifyIgnore: []string{testAttrTakeOwnership},
 					},
 				},
 				Destroy: true,
@@ -180,7 +180,7 @@ func (r *IAMUserSAMLResource) Tests(_ context.Context) map[testsacc.TestName]fun
 						resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 						resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "10"),
 						resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "5"),
-						resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"),
+						resource.TestCheckResourceAttr(resourceName, testAttrTakeOwnership, "true"),
 					},
 				},
 				// ! Updates testing
@@ -198,7 +198,7 @@ func (r *IAMUserSAMLResource) Tests(_ context.Context) map[testsacc.TestName]fun
 							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 							resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "0"),
 							resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "0"),
-							resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"),
+							resource.TestCheckResourceAttr(resourceName, testAttrTakeOwnership, "true"),
 						},
 					},
 				},
@@ -208,7 +208,7 @@ func (r *IAMUserSAMLResource) Tests(_ context.Context) map[testsacc.TestName]fun
 						ImportStateIDBuilder:    []string{"user_name"},
 						ImportState:             true,
 						ImportStateVerify:       true,
-						ImportStateVerifyIgnore: []string{"take_ownership"},
+						ImportStateVerifyIgnore: []string{testAttrTakeOwnership},
 					},
 				},
 			}

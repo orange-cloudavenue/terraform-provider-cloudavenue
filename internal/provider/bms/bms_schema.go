@@ -118,13 +118,13 @@ func bmsSchema(_ context.Context) superschema.Schema {
 											MarkdownDescription: "The local storage of the BMS.",
 										},
 										Attributes: superschema.Attributes{
-											"size": superschema.SuperStringAttribute{
+											attrSize: superschema.SuperStringAttribute{
 												DataSource: &schemaD.StringAttribute{
 													Computed:            true,
 													MarkdownDescription: "The size of the local storage.",
 												},
 											},
-											"storage_class": superschema.SuperStringAttribute{
+											attrStorageClass: superschema.SuperStringAttribute{
 												DataSource: &schemaD.StringAttribute{
 													Computed:            true,
 													MarkdownDescription: "The storage class of the local storage.",
@@ -138,13 +138,13 @@ func bmsSchema(_ context.Context) superschema.Schema {
 											MarkdownDescription: "The system storage of the BMS.",
 										},
 										Attributes: superschema.Attributes{
-											"size": superschema.SuperStringAttribute{
+											attrSize: superschema.SuperStringAttribute{
 												DataSource: &schemaD.StringAttribute{
 													Computed:            true,
 													MarkdownDescription: "The size of the system storage.",
 												},
 											},
-											"storage_class": superschema.SuperStringAttribute{
+											attrStorageClass: superschema.SuperStringAttribute{
 												DataSource: &schemaD.StringAttribute{
 													Computed:            true,
 													MarkdownDescription: "The storage class of the system storage.",
@@ -158,13 +158,13 @@ func bmsSchema(_ context.Context) superschema.Schema {
 											MarkdownDescription: "The data storage of the BMS.",
 										},
 										Attributes: superschema.Attributes{
-											"size": superschema.SuperStringAttribute{
+											attrSize: superschema.SuperStringAttribute{
 												DataSource: &schemaD.StringAttribute{
 													Computed:            true,
 													MarkdownDescription: "The size of the data storage.",
 												},
 											},
-											"storage_class": superschema.SuperStringAttribute{
+											attrStorageClass: superschema.SuperStringAttribute{
 												DataSource: &schemaD.StringAttribute{
 													Computed:            true,
 													MarkdownDescription: "The storage class of the data storage.",
@@ -178,13 +178,13 @@ func bmsSchema(_ context.Context) superschema.Schema {
 											MarkdownDescription: "The shared storage of the BMS.",
 										},
 										Attributes: superschema.Attributes{
-											"size": superschema.SuperStringAttribute{
+											attrSize: superschema.SuperStringAttribute{
 												DataSource: &schemaD.StringAttribute{
 													Computed:            true,
 													MarkdownDescription: "The size of the shared storage.",
 												},
 											},
-											"storage_class": superschema.SuperStringAttribute{
+											attrStorageClass: superschema.SuperStringAttribute{
 												DataSource: &schemaD.StringAttribute{
 													Computed:            true,
 													MarkdownDescription: "The storage class of the shared storage.",

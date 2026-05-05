@@ -38,13 +38,13 @@ func iamRightSuperSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			attrName: superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					MarkdownDescription: "The name of the right.",
 					Required:            true,
 				},
 			},
-			"description": superschema.SuperStringAttribute{
+			attrDescription: superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					MarkdownDescription: "A description for the right.",
 					Computed:            true,
@@ -75,7 +75,7 @@ func iamRightSuperSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 				},
 				Attributes: superschema.Attributes{
-					"name": superschema.SuperStringAttribute{
+					attrName: superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
 							MarkdownDescription: "Name of the implied right.",
 							Computed:            true,

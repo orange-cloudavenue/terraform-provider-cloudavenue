@@ -52,7 +52,7 @@ func (r *S3BucketWebsiteConfigurationResource) DependenciesConfig() (deps testsa
 func (r *S3BucketWebsiteConfigurationResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * First test named "example"
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "bucket"),
@@ -139,7 +139,7 @@ func (r *S3BucketWebsiteConfigurationResource) Tests(_ context.Context) map[test
 								  replace_key_prefix_with = "imgs/"
 								  hostname = "www.example.com"
 								  http_redirect_code = "302"
-								  protocol = "https"
+								  protocol = testS3SchemeHTTPS
 								}
 							}]
 						}`,
@@ -149,9 +149,9 @@ func (r *S3BucketWebsiteConfigurationResource) Tests(_ context.Context) map[test
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "routing_rules.*", map[string]string{
 								"condition.key_prefix_equals":      "img/",
 								"redirect.replace_key_prefix_with": "imgs/",
-								"redirect.hostname":                "www.example.com",
-								"redirect.http_redirect_code":      "302",
-								"redirect.protocol":                "https",
+								testS3RedirectHostname:             testS3WWWExample,
+								testS3RedirectHTTPCode:             "302",
+								testS3RedirectProtocol:             testS3SchemeHTTPS,
 							}),
 						},
 					},
@@ -176,7 +176,7 @@ func (r *S3BucketWebsiteConfigurationResource) Tests(_ context.Context) map[test
 								  replace_key_prefix_with = "imgs/"
 								  hostname = "www.example.com"
 								  http_redirect_code = "302"
-								  protocol = "https"
+								  protocol = testS3SchemeHTTPS
 								}
 							},
 							{
@@ -187,7 +187,7 @@ func (r *S3BucketWebsiteConfigurationResource) Tests(_ context.Context) map[test
 								replace_key_with = "errors.html"
 								hostname = "www.example.com"
 								http_redirect_code = "301"
-								protocol = "https"
+								protocol = testS3SchemeHTTPS
 							  }
 						  	}]
 							
@@ -199,16 +199,16 @@ func (r *S3BucketWebsiteConfigurationResource) Tests(_ context.Context) map[test
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "routing_rules.*", map[string]string{
 								"condition.key_prefix_equals":      "img/",
 								"redirect.replace_key_prefix_with": "imgs/",
-								"redirect.hostname":                "www.example.com",
-								"redirect.http_redirect_code":      "302",
-								"redirect.protocol":                "https",
+								testS3RedirectHostname:             testS3WWWExample,
+								testS3RedirectHTTPCode:             "302",
+								testS3RedirectProtocol:             testS3SchemeHTTPS,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "routing_rules.*", map[string]string{
 								"condition.http_error_code_returned_equals": "404",
 								"redirect.replace_key_with":                 "errors.html",
-								"redirect.hostname":                         "www.example.com",
-								"redirect.http_redirect_code":               "301",
-								"redirect.protocol":                         "https",
+								testS3RedirectHostname:                      testS3WWWExample,
+								testS3RedirectHTTPCode:                      "301",
+								testS3RedirectProtocol:                      testS3SchemeHTTPS,
 							}),
 						},
 					},
@@ -216,7 +216,7 @@ func (r *S3BucketWebsiteConfigurationResource) Tests(_ context.Context) map[test
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"bucket"},
+						ImportStateIDBuilder: []string{testAttrBucket},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -251,19 +251,19 @@ func (r *S3BucketWebsiteConfigurationResource) Tests(_ context.Context) map[test
 							bucket = cloudavenue_s3_bucket.example.name
 							redirect_all_requests_to = {
 								hostname = "www.example.com"
-								protocol = "https"
+								protocol = testS3SchemeHTTPS
 							}
 						}`,
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttr(resourceName, "redirect_all_requests_to.hostname", "www.example.com"),
-							resource.TestCheckResourceAttr(resourceName, "redirect_all_requests_to.protocol", "https"),
+							resource.TestCheckResourceAttr(resourceName, "redirect_all_requests_to.hostname", testS3WWWExample),
+							resource.TestCheckResourceAttr(resourceName, "redirect_all_requests_to.protocol", testS3SchemeHTTPS),
 						},
 					},
 				},
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"bucket"},
+						ImportStateIDBuilder: []string{testAttrBucket},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

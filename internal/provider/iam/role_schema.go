@@ -71,7 +71,7 @@ func roleSchema() superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			attrName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the role.",
 				},
@@ -86,7 +86,7 @@ func roleSchema() superschema.Schema {
 					},
 				},
 			},
-			"description": superschema.SuperStringAttribute{
+			attrDescription: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "A description of the role.",
 				},

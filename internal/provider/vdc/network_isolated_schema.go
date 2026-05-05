@@ -52,7 +52,7 @@ func networkIsolatedSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The ID of the isolated network.",
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			attrName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the network. This value must be unique within the `VDC` that owns the network.",
 					Required:            true,

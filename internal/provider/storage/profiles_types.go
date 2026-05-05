@@ -31,7 +31,7 @@ func (s *storageProfiles) attrTypes(_ context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
 		"id":                    types.StringType,
 		"name":                  types.StringType,
-		"vdc":                   types.StringType,
+		attrVDC:                 types.StringType,
 		"limit":                 types.Int64Type,
 		"used_storage":          types.Int64Type,
 		"default":               types.BoolType,

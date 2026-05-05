@@ -53,7 +53,7 @@ func catalogSchema() superschema.Schema {
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the catalog.",
+					MarkdownDescription: catalogIDDescription,
 				},
 				Resource: &schemaR.StringAttribute{
 					Computed: true,
@@ -65,13 +65,13 @@ func catalogSchema() superschema.Schema {
 					Optional: true,
 					Computed: true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(name), path.MatchRoot("id")),
 					},
 				},
 			},
-			"name": superschema.StringAttribute{
+			name: superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the catalog.",
+					MarkdownDescription: catalogNameDescription,
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,
@@ -80,13 +80,13 @@ func catalogSchema() superschema.Schema {
 					Optional: true,
 					Computed: true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(name), path.MatchRoot("id")),
 					},
 				},
 			},
-			"created_at": superschema.StringAttribute{
+			createdAt: superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The creation date of the catalog.",
+					MarkdownDescription: descCatalogCreatedAt,
 					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
@@ -95,9 +95,9 @@ func catalogSchema() superschema.Schema {
 					},
 				},
 			},
-			"description": superschema.StringAttribute{
+			description: superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The description of the catalog.",
+					MarkdownDescription: descCatalogDescription,
 				},
 				Resource: &schemaR.StringAttribute{
 					Required: true,
@@ -106,9 +106,9 @@ func catalogSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"owner_name": superschema.StringAttribute{
+			ownerName: superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The owner name of the catalog.",
+					MarkdownDescription: descCatalogOwnerName,
 					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
@@ -117,50 +117,50 @@ func catalogSchema() superschema.Schema {
 					},
 				},
 			},
-			"preserve_identity_information": superschema.BoolAttribute{
+			preserveIdentityInformation: superschema.BoolAttribute{
 				DataSource: &schemaD.BoolAttribute{
-					MarkdownDescription: "Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Keep in mind that preserving this identity information reduces the package's portability, so only include it when necessary.",
+					MarkdownDescription: descCatalogPreserveIdentityInfo,
 					Computed:            true,
 				},
 			},
-			"number_of_media": superschema.Int64Attribute{
+			numberOfMedia: superschema.Int64Attribute{
 				DataSource: &schemaD.Int64Attribute{
-					MarkdownDescription: "The number of media in the catalog.",
+					MarkdownDescription: descCatalogNumberOfMedia,
 					Computed:            true,
 				},
 			},
-			"media_item_list": superschema.ListAttribute{
+			mediaItemList: superschema.ListAttribute{
 				DataSource: &schemaD.ListAttribute{
-					MarkdownDescription: "The list of media items in the catalog.",
+					MarkdownDescription: descCatalogMediaItemList,
 					Computed:            true,
 					ElementType:         types.StringType,
 				},
 			},
-			"is_shared": superschema.BoolAttribute{
+			isShared: superschema.BoolAttribute{
 				DataSource: &schemaD.BoolAttribute{
-					MarkdownDescription: "Indicates whether the catalog is shared.",
+					MarkdownDescription: descCatalogIsShared,
 					Computed:            true,
 				},
 			},
-			"is_local": superschema.BoolAttribute{
+			isLocal: superschema.BoolAttribute{
 				DataSource: &schemaD.BoolAttribute{
-					MarkdownDescription: "Indicates whether the catalog is local.",
+					MarkdownDescription: descCatalogIsLocal,
 					Computed:            true,
 				},
 			},
-			"is_published": superschema.BoolAttribute{
+			isPublished: superschema.BoolAttribute{
 				DataSource: &schemaD.BoolAttribute{
-					MarkdownDescription: "Indicates whether the catalog is published.",
+					MarkdownDescription: descCatalogIsPublished,
 					Computed:            true,
 				},
 			},
-			"is_cached": superschema.BoolAttribute{
+			isCached: superschema.BoolAttribute{
 				DataSource: &schemaD.BoolAttribute{
-					MarkdownDescription: "Indicates whether the catalog is cached.",
+					MarkdownDescription: descCatalogIsCached,
 					Computed:            true,
 				},
 			},
-			"storage_profile": superschema.StringAttribute{
+			storageProfile: superschema.StringAttribute{
 				// TODO - this is a reference to a storage profile, not a string
 				Resource: &schemaR.StringAttribute{
 					MarkdownDescription: "Storage profile to override the VM default one.",

@@ -46,7 +46,7 @@ func bucketACLSchema(_ context.Context) superschema.Schema {
 			MarkdownDescription: "The `cloudavenue_s3_bucket_acl` data source allows you to retrieve information about an existing S3 (object storage) buckets ACL (Access Control List).",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"timeouts": superschema.TimeoutAttribute{
+			timeouts: superschema.TimeoutAttribute{
 				Resource: &superschema.ResourceTimeoutAttribute{
 					Create: true,
 					Update: true,
@@ -68,7 +68,7 @@ func bucketACLSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"bucket": superschema.SuperStringAttribute{
+			bucket: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					Required:            true,
 					MarkdownDescription: "The Name of the bucket.",

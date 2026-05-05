@@ -54,7 +54,7 @@ func publicIPSchema() superschema.Schema {
 			},
 			"id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the Public IP.",
+					MarkdownDescription: publicIPIDDescription,
 					Computed:            true,
 				},
 			},

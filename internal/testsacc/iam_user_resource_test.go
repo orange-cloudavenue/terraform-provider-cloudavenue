@@ -53,7 +53,7 @@ func (r *IAMUserResource) DependenciesConfig() (resp testsacc.DependenciesConfig
 func (r *IAMUserResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.User)),
@@ -74,7 +74,7 @@ func (r *IAMUserResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 						resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 						resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "0"),
 						resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "0"),
-						resource.TestCheckResourceAttr(resourceName, "take_ownership", "true"),
+						resource.TestCheckResourceAttr(resourceName, testAttrTakeOwnership, "true"),
 						resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
 					},
 				},
@@ -101,7 +101,7 @@ func (r *IAMUserResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 							resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 							resource.TestCheckResourceAttr(resourceName, "email", "foo@bar.org"),
 							resource.TestCheckResourceAttr(resourceName, "telephone", "1234567890"),
-							resource.TestCheckResourceAttr(resourceName, "take_ownership", "false"),
+							resource.TestCheckResourceAttr(resourceName, testAttrTakeOwnership, "false"),
 							resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "10"),
 							resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "5"),
 						},
@@ -110,10 +110,10 @@ func (r *IAMUserResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder:    []string{"name"},
+						ImportStateIDBuilder:    []string{testAttrName},
 						ImportState:             true,
 						ImportStateVerify:       true,
-						ImportStateVerifyIgnore: []string{"take_ownership", "password"},
+						ImportStateVerifyIgnore: []string{testAttrTakeOwnership, "password"},
 					},
 				},
 			}

@@ -53,7 +53,7 @@ func (r *S3BucketLifecycleConfigurationResource) Tests(_ context.Context) map[te
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * First test named "example"
 		// * Specifying a filter using key prefixes
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "bucket"),
@@ -163,7 +163,7 @@ func (r *S3BucketLifecycleConfigurationResource) Tests(_ context.Context) map[te
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"bucket"},
+						ImportStateIDBuilder: []string{testAttrBucket},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -247,7 +247,7 @@ func (r *S3BucketLifecycleConfigurationResource) Tests(_ context.Context) map[te
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"bucket"},
+						ImportStateIDBuilder: []string{testAttrBucket},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -424,7 +424,7 @@ func (r *S3BucketLifecycleConfigurationResource) Tests(_ context.Context) map[te
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"bucket"},
+						ImportStateIDBuilder: []string{testAttrBucket},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -527,7 +527,7 @@ func (r *S3BucketLifecycleConfigurationResource) Tests(_ context.Context) map[te
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"bucket"},
+						ImportStateIDBuilder: []string{testAttrBucket},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

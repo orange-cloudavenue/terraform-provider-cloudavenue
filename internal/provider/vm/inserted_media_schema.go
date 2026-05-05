@@ -45,9 +45,9 @@ func vmInsertedMediaSuperSchema() superschema.Schema {
 					},
 				},
 			},
-			"vdc":       vdc.SuperSchema(),
-			"vapp_id":   vapp.SuperSchema()["vapp_id"],
-			"vapp_name": vapp.SuperSchema()["vapp_name"],
+			attrVDC:      vdc.SuperSchema(),
+			attrVappID:   vapp.SuperSchema()[attrVappID],
+			attrVappName: vapp.SuperSchema()[attrVappName],
 			"catalog": superschema.StringAttribute{
 				Resource: &schemaR.StringAttribute{
 					Required:            true,
@@ -57,7 +57,7 @@ func vmInsertedMediaSuperSchema() superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.StringAttribute{
+			attrName: superschema.StringAttribute{
 				Resource: &schemaR.StringAttribute{
 					Required:            true,
 					MarkdownDescription: "Media file name in catalog which will be inserted to VM",
@@ -66,7 +66,7 @@ func vmInsertedMediaSuperSchema() superschema.Schema {
 					},
 				},
 			},
-			"vm_name": superschema.StringAttribute{
+			attrVMName: superschema.StringAttribute{
 				Resource: &schemaR.StringAttribute{
 					Required:            true,
 					MarkdownDescription: "VM name where media will be inserted or ejected",

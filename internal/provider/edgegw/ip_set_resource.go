@@ -402,8 +402,8 @@ func (r *ipSetResource) ImportState(ctx context.Context, req resource.ImportStat
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), ipSet.NsxtFirewallGroup.ID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), ipSet.NsxtFirewallGroup.Name)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_id"), r.edgegw.GetID())...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), r.edgegw.GetName())...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(edgeGatewayID), r.edgegw.GetID())...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(edgeGatewayName), r.edgegw.GetName())...)
 }
 
 func (r *ipSetResource) read(ctx context.Context, planOrState *IPSetModel) (stateRefreshed *IPSetModel, found bool, diags diag.Diagnostics) {

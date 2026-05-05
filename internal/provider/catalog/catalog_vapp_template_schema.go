@@ -44,49 +44,49 @@ func vappTemplateSuperSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 				},
 			},
-			"description": superschema.SuperStringAttribute{
+			description: superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					MarkdownDescription: "Description of the vApp Template",
 					Computed:            true,
 				},
 			},
-			"template_name": superschema.SuperStringAttribute{
+			templateName: superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					MarkdownDescription: "The Name of the vApp Template.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("template_name"), path.MatchRoot("template_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(templateName), path.MatchRoot(templateID)),
 					},
 				},
 			},
-			"template_id": superschema.SuperStringAttribute{
+			templateID: superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					MarkdownDescription: "The ID of the vApp Template.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("template_name"), path.MatchRoot("template_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(templateName), path.MatchRoot(templateID)),
 					},
 				},
 			},
-			"catalog_id": superschema.SuperStringAttribute{
+			catalogID: superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "The ID of the catalog.",
+					MarkdownDescription: catalogIDDescription,
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("catalog_name"), path.MatchRoot("catalog_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(catalogName), path.MatchRoot(catalogID)),
 					},
 				},
 			},
-			"catalog_name": superschema.SuperStringAttribute{
+			catalogName: superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "The Name of the catalog.",
+					MarkdownDescription: catalogNameDescription,
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("catalog_name"), path.MatchRoot("catalog_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(catalogName), path.MatchRoot(catalogID)),
 					},
 				},
 			},
@@ -97,7 +97,7 @@ func vappTemplateSuperSchema(_ context.Context) superschema.Schema {
 					ElementType:         supertypes.StringType{},
 				},
 			},
-			"created_at": superschema.SuperStringAttribute{
+			createdAt: superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					MarkdownDescription: "Creation date of the vApp Template",
 					Computed:            true,

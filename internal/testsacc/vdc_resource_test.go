@@ -53,7 +53,7 @@ func (r *VDCResource) DependenciesConfig() (resp testsacc.DependenciesConfigResp
 func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDC)),
@@ -428,14 +428,14 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "storage_profiles.*", map[string]string{
-							"class":   "silver",
-							"default": "false",
-							"limit":   "500",
+							testAttrClass:   "silver",
+							testAttrDefault: testValueFalse,
+							testAttrLimit:   "500",
 						}),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "storage_profiles.*", map[string]string{
-							"class":   "gold",
-							"limit":   "500",
-							"default": "true",
+							testAttrClass:   "gold",
+							testAttrLimit:   "500",
+							testAttrDefault: testValueTrue,
 						}),
 					},
 				},
@@ -578,9 +578,9 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 						}`),
 						Checks: []resource.TestCheckFunc{
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "storage_profiles.*", map[string]string{
-								"class":   "gold",
-								"limit":   "800",
-								"default": "true",
+								testAttrClass:   "gold",
+								testAttrLimit:   "800",
+								testAttrDefault: testValueTrue,
 							}),
 						},
 					},

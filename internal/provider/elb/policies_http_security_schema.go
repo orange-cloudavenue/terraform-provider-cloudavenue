@@ -63,7 +63,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The ID of the policies http security.",
 				},
 			},
-			"virtual_service_id": superschema.SuperStringAttribute{
+			virtualServiceID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the virtual service to which the policies http security belongs.",
 					Required:            true,
@@ -83,7 +83,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"policies": superschema.SuperListNestedAttributeOf[PoliciesHTTPSecurityModelPolicies]{
+			policies: superschema.SuperListNestedAttributeOf[PoliciesHTTPSecurityModelPolicies]{
 				Common: &schemaR.ListNestedAttribute{
 					MarkdownDescription: "HTTP security policies.",
 				},
@@ -94,7 +94,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 				Attributes: superschema.Attributes{
-					"name": superschema.SuperStringAttribute{
+					name: superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "Policy name, it must be unique within the virtual service's HTTP security policies.",
 						},
@@ -105,7 +105,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 					},
-					"active": superschema.SuperBoolAttribute{
+					active: superschema.SuperBoolAttribute{
 						Common: &schemaR.BoolAttribute{
 							MarkdownDescription: "Whether the policy is enable or not.",
 							Computed:            true,
@@ -115,7 +115,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 							Default:  booldefault.StaticBool(true),
 						},
 					},
-					"logging": superschema.SuperBoolAttribute{
+					logging: superschema.SuperBoolAttribute{
 						Common: &schemaR.BoolAttribute{
 							MarkdownDescription: "Whether to enable logging with headers on rule match or not.",
 							Computed:            true,
@@ -125,7 +125,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 							Default:  booldefault.StaticBool(false),
 						},
 					},
-					"criteria": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPSecurityMatchCriteria]{
+					criteria: superschema.SuperSingleNestedAttributeOf[PoliciesHTTPSecurityMatchCriteria]{
 						Common: &schemaR.SingleNestedAttribute{
 							MarkdownDescription: "Match criteria for the HTTP security. The criteria is used to match the request and determine if the action should be applied.",
 						},
@@ -136,7 +136,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 						Attributes: superschema.Attributes{
-							"protocol": superschema.SuperStringAttribute{
+							protocol: superschema.SuperStringAttribute{
 								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "Protocol to match. Only HTTP application layer protocol (OSI 7) are supported.",
 								},
@@ -150,9 +150,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									Computed: true,
 								},
 							},
-							"client_ip": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPClientIPMatch]{
+							clientIP: superschema.SuperSingleNestedAttributeOf[PoliciesHTTPClientIPMatch]{
 								Common: &schemaR.SingleNestedAttribute{
-									MarkdownDescription: "Match the rule based on client IP address rules.",
+									MarkdownDescription: clientIPDescription,
 								},
 								Resource: &schemaR.SingleNestedAttribute{
 									Optional: true,
@@ -161,9 +161,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									Computed: true,
 								},
 								Attributes: superschema.Attributes{
-									"criteria": superschema.SuperStringAttribute{
+									criteria: superschema.SuperStringAttribute{
 										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Criteria to match.",
+											MarkdownDescription: criteriaDescription,
 										},
 										Resource: &schemaR.StringAttribute{
 											Required: true,
@@ -175,9 +175,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											Computed: true,
 										},
 									},
-									"ip_addresses": superschema.SuperSetAttributeOf[string]{
+									ipAddresses: superschema.SuperSetAttributeOf[string]{
 										Common: &schemaR.SetAttribute{
-											MarkdownDescription: "IP addresses to match.",
+											MarkdownDescription: ipAddressesDescription,
 										},
 										Resource: &schemaR.SetAttribute{
 											Required: true,
@@ -197,9 +197,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									},
 								},
 							}, // End client_ip
-							"service_ports": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPServicePortMatch]{
+							servicePorts: superschema.SuperSingleNestedAttributeOf[PoliciesHTTPServicePortMatch]{
 								Common: &schemaR.SingleNestedAttribute{
-									MarkdownDescription: "Match the rule based on service port rules.",
+									MarkdownDescription: servicePortsDescription,
 								},
 								Resource: &schemaR.SingleNestedAttribute{
 									Optional: true,
@@ -208,9 +208,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									Computed: true,
 								},
 								Attributes: superschema.Attributes{
-									"criteria": superschema.SuperStringAttribute{
+									criteria: superschema.SuperStringAttribute{
 										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Criteria to match.",
+											MarkdownDescription: criteriaDescription,
 										},
 										Resource: &schemaR.StringAttribute{
 											Required: true,
@@ -222,9 +222,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											Computed: true,
 										},
 									},
-									"ports": superschema.SuperSetAttributeOf[int64]{
+									ports: superschema.SuperSetAttributeOf[int64]{
 										Common: &schemaR.SetAttribute{
-											MarkdownDescription: "A port list allows you to define which service ports (e.g.: [80, 443] ) the HTTP security policy should match.",
+											MarkdownDescription: portsDescription,
 										},
 										Resource: &schemaR.SetAttribute{
 											Required: true,
@@ -240,9 +240,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									},
 								},
 							}, // End service_port
-							"http_methods": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPMethodMatch]{
+							httpMethods: superschema.SuperSingleNestedAttributeOf[PoliciesHTTPMethodMatch]{
 								Common: &schemaR.SingleNestedAttribute{
-									MarkdownDescription: "Match the rule based on HTTP method rules.",
+									MarkdownDescription: httpMethodsDescription,
 								},
 								Resource: &schemaR.SingleNestedAttribute{
 									Optional: true,
@@ -251,9 +251,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									Computed: true,
 								},
 								Attributes: superschema.Attributes{
-									"criteria": superschema.SuperStringAttribute{
+									criteria: superschema.SuperStringAttribute{
 										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Criteria to match.",
+											MarkdownDescription: criteriaDescription,
 										},
 										Resource: &schemaR.StringAttribute{
 											Required: true,
@@ -265,9 +265,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											Computed: true,
 										},
 									},
-									"methods": superschema.SuperSetAttributeOf[string]{
+									methods: superschema.SuperSetAttributeOf[string]{
 										Common: &schemaR.SetAttribute{
-											MarkdownDescription: "Methods to match.",
+											MarkdownDescription: methodsDescription,
 										},
 										Resource: &schemaR.SetAttribute{
 											Required: true,
@@ -283,9 +283,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									},
 								},
 							}, // End method
-							"path": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPPathMatch]{
+							pathAttr: superschema.SuperSingleNestedAttributeOf[PoliciesHTTPPathMatch]{
 								Common: &schemaR.SingleNestedAttribute{
-									MarkdownDescription: "Match the rule based on path rules.",
+									MarkdownDescription: pathDescription,
 								},
 								Resource: &schemaR.SingleNestedAttribute{
 									Optional: true,
@@ -294,9 +294,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									Computed: true,
 								},
 								Attributes: superschema.Attributes{
-									"criteria": superschema.SuperStringAttribute{
+									criteria: superschema.SuperStringAttribute{
 										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Criteria to match.",
+											MarkdownDescription: criteriaDescription,
 										},
 										Resource: &schemaR.StringAttribute{
 											Required: true,
@@ -308,9 +308,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											Computed: true,
 										},
 									},
-									"paths": superschema.SuperSetAttributeOf[string]{
+									paths: superschema.SuperSetAttributeOf[string]{
 										Common: &schemaR.SetAttribute{
-											MarkdownDescription: "A set of paths to match given criteria.",
+											MarkdownDescription: pathsDescription,
 										},
 										Resource: &schemaR.SetAttribute{
 											Required: true,
@@ -321,9 +321,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									},
 								},
 							}, // End path
-							"cookie": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPCookieMatch]{
+							cookie: superschema.SuperSingleNestedAttributeOf[PoliciesHTTPCookieMatch]{
 								Common: &schemaR.SingleNestedAttribute{
-									MarkdownDescription: "Match the rule based on cookie rules.",
+									MarkdownDescription: cookieDescription,
 								},
 								Resource: &schemaR.SingleNestedAttribute{
 									Optional: true,
@@ -332,9 +332,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									Computed: true,
 								},
 								Attributes: superschema.Attributes{
-									"criteria": superschema.SuperStringAttribute{
+									criteria: superschema.SuperStringAttribute{
 										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Criteria to match.",
+											MarkdownDescription: criteriaDescription,
 										},
 										Resource: &schemaR.StringAttribute{
 											Required: true,
@@ -346,9 +346,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											Computed: true,
 										},
 									},
-									"name": superschema.SuperStringAttribute{
+									name: superschema.SuperStringAttribute{
 										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Name of the cookie to match.",
+											MarkdownDescription: cookieNameDescription,
 										},
 										Resource: &schemaR.StringAttribute{
 											Required: true,
@@ -357,22 +357,22 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											Computed: true,
 										},
 									},
-									"value": superschema.SuperStringAttribute{
+									value: superschema.SuperStringAttribute{
 										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Value of the cookie to match.",
+											MarkdownDescription: cookieValueDescription,
 										},
 										Resource: &schemaR.StringAttribute{
 											Optional: true,
 											Validators: []validator.String{
 												fstringvalidator.NullIfAttributeIsOneOf(
-													path.MatchRelative().AtParent().AtName("criteria"),
+													path.MatchRelative().AtParent().AtName(criteria),
 													[]attr.Value{
 														types.StringValue(string(edgeloadbalancer.PoliciesHTTPMatchCriteriaCriteriaEXISTS)),
 														types.StringValue(string(edgeloadbalancer.PoliciesHTTPMatchCriteriaCriteriaDOESNOTEXIST)),
 													},
 												),
 												fstringvalidator.RequireIfAttributeIsOneOf(
-													path.MatchRelative().AtParent().AtName("criteria"),
+													path.MatchRelative().AtParent().AtName(criteria),
 													func() []attr.Value {
 														x := make([]attr.Value, 0)
 														for _, v := range edgeloadbalancer.PoliciesHTTPCookieMatchCriteriaString {
@@ -392,9 +392,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									},
 								},
 							}, // End cookie
-							"request_headers": superschema.SuperSetNestedAttributeOf[PoliciesHTTPHeaderMatch]{
+							requestHeaders: superschema.SuperSetNestedAttributeOf[PoliciesHTTPHeaderMatch]{
 								Common: &schemaR.SetNestedAttribute{
-									MarkdownDescription: "Match the rule based on request headers rules.",
+									MarkdownDescription: requestHeadersDescription,
 								},
 								Resource: &schemaR.SetNestedAttribute{
 									Optional: true,
@@ -403,9 +403,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									Computed: true,
 								},
 								Attributes: superschema.Attributes{
-									"criteria": superschema.SuperStringAttribute{
+									criteria: superschema.SuperStringAttribute{
 										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Criteria to match.",
+											MarkdownDescription: criteriaDescription,
 										},
 										Resource: &schemaR.StringAttribute{
 											Required: true,
@@ -418,9 +418,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											Computed: true,
 										},
 									},
-									"name": superschema.SuperStringAttribute{
+									name: superschema.SuperStringAttribute{
 										Common: &schemaR.StringAttribute{
-											MarkdownDescription: "Name of the HTTP header whose value is to be matched.",
+											MarkdownDescription: headerNameDescription,
 										},
 										Resource: &schemaR.StringAttribute{
 											Required: true,
@@ -429,23 +429,23 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											Computed: true,
 										},
 									},
-									"values": superschema.SuperSetAttributeOf[string]{
+									values: superschema.SuperSetAttributeOf[string]{
 										Common: &schemaR.SetAttribute{
-											MarkdownDescription: "Values of the HTTP header to match.",
+											MarkdownDescription: headerValuesDescription,
 										},
 										Resource: &schemaR.SetAttribute{
 											Optional: true,
 											// ref: https://github.com/orange-cloudavenue/terraform-plugin-framework-validators/issues/71
 											// Validators: []validator.Set{
 											// 	fsetvalidator.NullIfAttributeIsOneOf(
-											// 		path.MatchRelative().AtParent().AtName("criteria"),
+											// 		path.MatchRelative().AtParent().AtName(criteria),
 											// 		[]attr.Value{
 											// 			types.StringValue(string(edgeloadbalancer.PoliciesHTTPMatchCriteriaCriteriaEXISTS)),
 											// 			types.StringValue(string(edgeloadbalancer.PoliciesHTTPMatchCriteriaCriteriaDOESNOTEXIST)),
 											// 		},
 											// 	),
 											// 	fsetvalidator.RequireIfAttributeIsOneOf(
-											// 		path.MatchRelative().AtParent().AtName("criteria"),
+											// 		path.MatchRelative().AtParent().AtName(criteria),
 											// 		func() []attr.Value {
 											// 			x := make([]attr.Value, 0)
 											// 			for _, v := range edgeloadbalancer.PoliciesHTTPHeaderMatchCriteriaString {
@@ -464,9 +464,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									},
 								},
 							}, // End security_headers
-							"query": superschema.SuperSetAttributeOf[string]{
+							query: superschema.SuperSetAttributeOf[string]{
 								Common: &schemaR.SetAttribute{
-									MarkdownDescription: "Text contained in the query string",
+									MarkdownDescription: queryDescription,
 								},
 								Resource: &schemaR.SetAttribute{
 									Optional: true,
@@ -477,9 +477,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 							},
 						},
 					}, // End criteria
-					"actions": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPSecurityActions]{
+					actions: superschema.SuperSingleNestedAttributeOf[PoliciesHTTPSecurityActions]{
 						Common: &schemaR.SingleNestedAttribute{
-							MarkdownDescription: "Actions to perform when the rule matches.",
+							MarkdownDescription: actionsDescription,
 						},
 						Resource: &schemaR.SingleNestedAttribute{
 							Required: true,
@@ -488,7 +488,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 						Attributes: superschema.Attributes{
-							"connection": superschema.SuperStringAttribute{
+							connection: superschema.SuperStringAttribute{
 								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "Connection action to perform.",
 								},
@@ -496,16 +496,16 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									Optional: true,
 									Validators: []validator.String{
 										stringvalidator.OneOf(edgeloadbalancer.PoliciesHTTPConnectionActionsString...),
-										fstringvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect_to_https")),
-										fstringvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("send_response")),
-										fstringvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("rate_limit")),
+										fstringvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(redirectToHTTPS)),
+										fstringvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(sendResponse)),
+										fstringvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(rateLimit)),
 									},
 								},
 								DataSource: &schemaD.StringAttribute{
 									Computed: true,
 								},
 							},
-							"redirect_to_https": superschema.SuperInt64Attribute{
+							redirectToHTTPS: superschema.SuperInt64Attribute{
 								Common: &schemaR.Int64Attribute{
 									MarkdownDescription: "A port number, when set, configures the rule to redirect matching HTTP requests to HTTPS on the specified port.",
 								},
@@ -513,32 +513,32 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									Optional: true,
 									Validators: []validator.Int64{
 										int64validator.Between(1, 65535),
-										fintvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("connection")),
-										fintvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("send_response")),
-										fintvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("rate_limit")),
+										fintvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(connection)),
+										fintvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(sendResponse)),
+										fintvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(rateLimit)),
 									},
 								},
 								DataSource: &schemaD.Int64Attribute{
 									Computed: true,
 								},
 							},
-							"send_response": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionSendResponse]{
+							sendResponse: superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionSendResponse]{
 								Common: &schemaR.SingleNestedAttribute{
 									MarkdownDescription: "Send a customized response.",
 								},
 								Resource: &schemaR.SingleNestedAttribute{
 									Optional: true,
 									Validators: []validator.Object{
-										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect_to_https")),
-										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("connection")),
-										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("rate_limit")),
+										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(redirectToHTTPS)),
+										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(connection)),
+										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(rateLimit)),
 									},
 								},
 								DataSource: &schemaD.SingleNestedAttribute{
 									Computed: true,
 								},
 								Attributes: superschema.Attributes{
-									"status_code": superschema.SuperInt64Attribute{
+									statusCode: superschema.SuperInt64Attribute{
 										Common: &schemaR.Int64Attribute{
 											MarkdownDescription: "HTTP status code to return.",
 											Computed:            true,
@@ -587,16 +587,16 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 									},
 								},
 							},
-							"rate_limit": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionRateLimit]{
+							rateLimit: superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionRateLimit]{
 								Common: &schemaR.SingleNestedAttribute{
 									MarkdownDescription: "The rate_limit allows you to specify an action to take when the rate limit is reached. A rate limit defines the maximum number of requests permitted within a specific time frame.",
 								},
 								Resource: &schemaR.SingleNestedAttribute{
 									Optional: true,
 									Validators: []validator.Object{
-										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect_to_https")),
-										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("connection")),
-										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("send_response")),
+										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(redirectToHTTPS)),
+										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(connection)),
+										objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(sendResponse)),
 									},
 								},
 								DataSource: &schemaD.SingleNestedAttribute{
@@ -629,24 +629,24 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											Default: int64default.StaticInt64(60),
 										},
 									},
-									"redirect": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionRedirect]{
+									redirect: superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionRedirect]{
 										Common: &schemaR.SingleNestedAttribute{
 											MarkdownDescription: "Redirects the request to different location when the rate limit is reached.",
 										},
 										Resource: &schemaR.SingleNestedAttribute{
 											Optional: true,
 											Validators: []validator.Object{
-												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("local_response")),
-												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("close_connection")),
+												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(localResponse)),
+												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(closeConnection)),
 											},
 										},
 										DataSource: &schemaD.SingleNestedAttribute{
 											Computed: true,
 										},
 										Attributes: superschema.Attributes{
-											"host": superschema.SuperStringAttribute{
+											host: superschema.SuperStringAttribute{
 												Common: &schemaR.StringAttribute{
-													MarkdownDescription: "Host to which redirect the request. Default is the original host",
+													MarkdownDescription: hostDescription,
 												},
 												Resource: &schemaR.StringAttribute{
 													Optional: true,
@@ -655,9 +655,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 													Computed: true,
 												},
 											},
-											"keep_query": superschema.SuperBoolAttribute{
+											keepQuery: superschema.SuperBoolAttribute{
 												Common: &schemaR.BoolAttribute{
-													MarkdownDescription: "Keep or drop the query of the incoming request URI in the redirected URI",
+													MarkdownDescription: keepQueryDescription,
 													Computed:            true,
 												},
 												Resource: &schemaR.BoolAttribute{
@@ -665,9 +665,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 													Default:  booldefault.StaticBool(true),
 												},
 											},
-											"path": superschema.SuperStringAttribute{
+											pathAttr: superschema.SuperStringAttribute{
 												Common: &schemaR.StringAttribute{
-													MarkdownDescription: "Path to which redirect the request. Default is the original path",
+													MarkdownDescription: redirectPathDescription,
 												},
 												Resource: &schemaR.StringAttribute{
 													Optional: true,
@@ -676,9 +676,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 													Computed: true,
 												},
 											},
-											"port": superschema.SuperInt64Attribute{
+											port: superschema.SuperInt64Attribute{
 												Common: &schemaR.Int64Attribute{
-													MarkdownDescription: "Port to which redirect the request.",
+													MarkdownDescription: portDescription,
 												},
 												Resource: &schemaR.Int64Attribute{
 													Required: true,
@@ -690,9 +690,9 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 													Computed: true,
 												},
 											},
-											"protocol": superschema.SuperStringAttribute{
+											protocol: superschema.SuperStringAttribute{
 												Common: &schemaR.StringAttribute{
-													MarkdownDescription: "HTTP protocol",
+													MarkdownDescription: httpProtocolDescription,
 												},
 												Resource: &schemaR.StringAttribute{
 													Required: true,
@@ -704,7 +704,7 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 													Computed: true,
 												},
 											},
-											"status_code": superschema.SuperInt64Attribute{
+											statusCode: superschema.SuperInt64Attribute{
 												Common: &schemaR.Int64Attribute{
 													MarkdownDescription: "Redirect status code",
 													Computed:            true,
@@ -719,22 +719,22 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											},
 										},
 									}, // End redirect
-									"local_response": superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionSendResponse]{
+									localResponse: superschema.SuperSingleNestedAttributeOf[PoliciesHTTPActionSendResponse]{
 										Common: &schemaR.SingleNestedAttribute{
 											MarkdownDescription: "Local response action can be used to send a customized response when the rate limit is reached.",
 										},
 										Resource: &schemaR.SingleNestedAttribute{
 											Optional: true,
 											Validators: []validator.Object{
-												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect")),
-												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("close_connection")),
+												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(redirect)),
+												objectvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(closeConnection)),
 											},
 										},
 										DataSource: &schemaD.SingleNestedAttribute{
 											Computed: true,
 										},
 										Attributes: superschema.Attributes{
-											"status_code": superschema.SuperInt64Attribute{
+											statusCode: superschema.SuperInt64Attribute{
 												Common: &schemaR.Int64Attribute{
 													MarkdownDescription: "HTTP status code to return.",
 												},
@@ -785,15 +785,15 @@ func policiesHTTPSecuritySchema(_ context.Context) superschema.Schema {
 											},
 										},
 									}, // End local_response
-									"close_connection": superschema.SuperBoolAttribute{
+									closeConnection: superschema.SuperBoolAttribute{
 										Common: &schemaR.BoolAttribute{
 											MarkdownDescription: "Close connection when the rate limit is reached",
 										},
 										Resource: &schemaR.BoolAttribute{
 											Optional: true,
 											Validators: []validator.Bool{
-												fboolvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("redirect")),
-												fboolvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName("local_response")),
+												fboolvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(redirect)),
+												fboolvalidator.NullIfAttributeIsSet(path.MatchRelative().AtParent().AtName(localResponse)),
 											},
 										},
 										DataSource: &schemaD.BoolAttribute{

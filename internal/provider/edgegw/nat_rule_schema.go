@@ -68,7 +68,7 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			name: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The Name of the NAT rule.",
 				},
@@ -83,13 +83,13 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"edge_gateway_id": superschema.SuperStringAttribute{
+			edgeGatewayID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the Edge Gateway",
+					MarkdownDescription: edgeGatewayIDDescription,
 					Computed:            true,
 					Optional:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
 					},
 				},
 				Resource: &schemaR.StringAttribute{
@@ -99,13 +99,13 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"edge_gateway_name": superschema.SuperStringAttribute{
+			edgeGatewayName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The Name of the Edge Gateway.",
+					MarkdownDescription: edgeGatewayNameDescription,
 					Computed:            true,
 					Optional:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
 					},
 				},
 				Resource: &schemaR.StringAttribute{
@@ -115,7 +115,7 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"description": superschema.SuperStringAttribute{
+			description: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "A description of the NAT rule",
 				},
@@ -126,7 +126,7 @@ func natRuleSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"enabled": superschema.SuperBoolAttribute{
+			attrEnabled: superschema.SuperBoolAttribute{
 				Common: &schemaR.BoolAttribute{
 					MarkdownDescription: "Enable or Disable the NAT rule.",
 					Computed:            true,

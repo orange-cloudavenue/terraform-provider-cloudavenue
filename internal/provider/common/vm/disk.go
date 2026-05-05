@@ -75,19 +75,19 @@ attr.Value is a map[string]attr.Value
 */
 func (d *Disk) ToAttrValue() map[string]attr.Value {
 	return map[string]attr.Value{
-		"id":              d.ID,
-		"vapp_name":       d.VAppName,
-		"vapp_id":         d.VAppID,
-		"vm_name":         d.VMName,
-		"vm_id":           d.VMID,
-		"vdc":             d.VDC,
-		"name":            d.Name,
-		"size_in_mb":      d.SizeInMb,
-		"storage_profile": d.StorageProfile,
-		"is_detachable":   d.IsDetachable,
-		"bus_type":        d.BusType,
-		"bus_number":      d.BusNumber,
-		"unit_number":     d.UnitNumber,
+		"id":               d.ID,
+		"vapp_name":        d.VAppName,
+		"vapp_id":          d.VAppID,
+		"vm_name":          d.VMName,
+		"vm_id":            d.VMID,
+		"vdc":              d.VDC,
+		attrName:           d.Name,
+		attrSizeInMB:       d.SizeInMb,
+		attrStorageProfile: d.StorageProfile,
+		"is_detachable":    d.IsDetachable,
+		attrBusType:        d.BusType,
+		attrBusNumber:      d.BusNumber,
+		attrUnitNumber:     d.UnitNumber,
 	}
 }
 
@@ -112,19 +112,19 @@ attr.Type is a map[string]attr.Type
 */
 func DiskAttrType() map[string]attr.Type {
 	return map[string]attr.Type{
-		"id":              types.StringType,
-		"vapp_name":       types.StringType,
-		"vapp_id":         types.StringType,
-		"vm_name":         types.StringType,
-		"vm_id":           types.StringType,
-		"vdc":             types.StringType,
-		"name":            types.StringType,
-		"bus_type":        types.StringType,
-		"size_in_mb":      types.Int64Type,
-		"storage_profile": types.StringType,
-		"is_detachable":   types.BoolType,
-		"bus_number":      types.Int64Type,
-		"unit_number":     types.Int64Type,
+		"id":               types.StringType,
+		"vapp_name":        types.StringType,
+		"vapp_id":          types.StringType,
+		"vm_name":          types.StringType,
+		"vm_id":            types.StringType,
+		"vdc":              types.StringType,
+		attrName:           types.StringType,
+		attrBusType:        types.StringType,
+		attrSizeInMB:       types.Int64Type,
+		attrStorageProfile: types.StringType,
+		"is_detachable":    types.BoolType,
+		attrBusNumber:      types.Int64Type,
+		attrUnitNumber:     types.Int64Type,
 	}
 }
 
