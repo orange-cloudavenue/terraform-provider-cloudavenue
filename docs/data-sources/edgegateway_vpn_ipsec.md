@@ -24,7 +24,7 @@ data "cloudavenue_edgegateway_vpn_ipsec" "example" {
 ### Optional
 
 - `edge_gateway_id` (String) The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
-- `edge_gateway_name` (String) The Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
+- `edge_gateway_name` (String) The name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_name`, `edge_gateway_id`.
 - `id` (String) The ID of the IPsec VPN Tunnel Configuration.
 - `name` (String) The Name of the IPsec VPN Tunnel Configuration.
 
