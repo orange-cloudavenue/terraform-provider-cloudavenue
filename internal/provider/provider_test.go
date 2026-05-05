@@ -10,7 +10,6 @@
 package provider
 
 import (
-	"context"
 	"testing"
 
 	fwprovider "github.com/hashicorp/terraform-plugin-framework/provider"
@@ -21,7 +20,7 @@ import (
 func TestProviderSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	schemaResponse := &fwprovider.SchemaResponse{}
 
 	New("test")().Schema(ctx, fwprovider.SchemaRequest{}, schemaResponse)

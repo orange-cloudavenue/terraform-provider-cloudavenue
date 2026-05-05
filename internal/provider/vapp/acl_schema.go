@@ -60,7 +60,7 @@ func aclSchema() superschema.Schema {
 					},
 				},
 			},
-			"vdc":       vdc.SuperSchema(),
+			attrVDC:     vdc.SuperSchema(),
 			"vapp_id":   vapp.SuperSchema()["vapp_id"],
 			"vapp_name": vapp.SuperSchema()["vapp_name"],
 			"everyone_access_level": superschema.StringAttribute{

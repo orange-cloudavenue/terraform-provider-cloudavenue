@@ -47,7 +47,7 @@ func bucketWebsiteConfigurationSchema(_ context.Context) superschema.Schema {
 			MarkdownDescription: "The `cloudavenue_s3_bucket_website_configuration` data source allows you to retrieve information about a configuration of static websites content. [For more information](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html)",
 		},
 		Attributes: superschema.Attributes{
-			"timeouts": superschema.TimeoutAttribute{
+			timeouts: superschema.TimeoutAttribute{
 				Resource: &superschema.ResourceTimeoutAttribute{
 					Create: true,
 					Update: true,
@@ -64,9 +64,9 @@ func bucketWebsiteConfigurationSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The ID of the bucket website. This is the same as the bucket name",
 				},
 			},
-			"bucket": superschema.SuperStringAttribute{
+			bucket: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the bucket.",
+					MarkdownDescription: bucketNameDescription,
 					Required:            true,
 				},
 				Resource: &schemaR.StringAttribute{
@@ -113,7 +113,7 @@ func bucketWebsiteConfigurationSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 				Attributes: superschema.Attributes{
-					"key": superschema.SuperStringAttribute{
+					key: superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The key of the error document.",
 						},

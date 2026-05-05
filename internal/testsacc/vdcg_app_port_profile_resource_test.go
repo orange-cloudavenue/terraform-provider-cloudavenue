@@ -52,7 +52,7 @@ func (r *VDCGAppPortProfileResource) DependenciesConfig() (resp testsacc.Depende
 
 func (r *VDCGAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.AppPortProfile)),
@@ -74,7 +74,7 @@ func (r *VDCGAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestN
 						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-							"protocol": "ICMPv4",
+							testAttrProtocol: testProtocolICMPv4,
 						}),
 						resource.TestCheckNoResourceAttr(resourceName, "app_ports.0.ports"),
 					},
@@ -111,13 +111,13 @@ func (r *VDCGAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestN
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "ICMPv4",
+								testAttrProtocol: testProtocolICMPv4,
 							}),
 							resource.TestCheckNoResourceAttr(resourceName, "app_ports.0.ports"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "TCP",
-								"ports.#":  "3",
+								testAttrProtocol:  testProtocolTCP,
+								testAttrPortsHash: "3",
 							}),
 
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "80"),
@@ -125,8 +125,8 @@ func (r *VDCGAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestN
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "8080"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "UDP",
-								"ports.#":  "1",
+								testAttrProtocol:  testProtocolUDP,
+								testAttrPortsHash: "1",
 							}),
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.2.ports.*", "53"),
 						},
@@ -162,13 +162,13 @@ func (r *VDCGAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestN
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "ICMPv4",
+								testAttrProtocol: testProtocolICMPv4,
 							}),
 							resource.TestCheckNoResourceAttr(resourceName, "app_ports.0.ports"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "TCP",
-								"ports.#":  "3",
+								testAttrProtocol:  testProtocolTCP,
+								testAttrPortsHash: "3",
 							}),
 
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "80"),
@@ -176,8 +176,8 @@ func (r *VDCGAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestN
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "8080-9090"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "UDP",
-								"ports.#":  "1",
+								testAttrProtocol:  testProtocolUDP,
+								testAttrPortsHash: "1",
 							}),
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.2.ports.*", "53"),
 						},
@@ -213,13 +213,13 @@ func (r *VDCGAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestN
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "ICMPv4",
+								testAttrProtocol: testProtocolICMPv4,
 							}),
 							resource.TestCheckNoResourceAttr(resourceName, "app_ports.0.ports"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "TCP",
-								"ports.#":  "3",
+								testAttrProtocol:  testProtocolTCP,
+								testAttrPortsHash: "3",
 							}),
 
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "80"),
@@ -227,8 +227,8 @@ func (r *VDCGAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestN
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "8080-9090"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "UDP",
-								"ports.#":  "1",
+								testAttrProtocol:  testProtocolUDP,
+								testAttrPortsHash: "1",
 							}),
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.2.ports.*", "53"),
 						},
@@ -264,13 +264,13 @@ func (r *VDCGAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestN
 							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
 							resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "ICMPv4",
+								testAttrProtocol: testProtocolICMPv4,
 							}),
 							resource.TestCheckNoResourceAttr(resourceName, "app_ports.0.ports"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "TCP",
-								"ports.#":  "3",
+								testAttrProtocol:  testProtocolTCP,
+								testAttrPortsHash: "3",
 							}),
 
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "80"),
@@ -278,8 +278,8 @@ func (r *VDCGAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestN
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.1.ports.*", "8080-9090"),
 
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-								"protocol": "UDP",
-								"ports.#":  "1",
+								testAttrProtocol:  testProtocolUDP,
+								testAttrPortsHash: "1",
 							}),
 							resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.2.ports.*", "53"),
 						},
@@ -288,22 +288,22 @@ func (r *VDCGAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestN
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -338,7 +338,7 @@ func (r *VDCGAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestN
 						resource.TestCheckResourceAttr(resourceName, "name", "HTTP"),
 						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
 						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "app_ports.*", map[string]string{
-							"protocol": "TCP",
+							testAttrProtocol: testProtocolTCP,
 						}),
 						resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.0.ports.*", "8080"),
 						resource.TestCheckTypeSetElemAttr(resourceName, "app_ports.0.ports.*", "9000-9010"),
@@ -347,22 +347,22 @@ func (r *VDCGAppPortProfileResource) Tests(_ context.Context) map[testsacc.TestN
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

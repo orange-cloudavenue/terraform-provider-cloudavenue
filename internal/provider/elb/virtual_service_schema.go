@@ -63,13 +63,13 @@ func virtualServiceSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			name: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the ELB Virtual Service.",
 					Required:            true,
 				},
 			},
-			"edge_gateway_name": superschema.SuperStringAttribute{
+			edgeGatewayName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the edge gateway on which the ELB Virtual Service is to be created.",
 					Optional:            true,
@@ -79,11 +79,11 @@ func virtualServiceSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
 					},
 				},
 			},
-			"edge_gateway_id": superschema.SuperStringAttribute{
+			edgeGatewayID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the edge gateway on which the ELB Virtual Service is to be created.",
 					Optional:            true,
@@ -93,7 +93,7 @@ func virtualServiceSchema(_ context.Context) superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
 					},
 				},
 			},
@@ -108,7 +108,7 @@ func virtualServiceSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"enabled": superschema.SuperBoolAttribute{
+			enabled: superschema.SuperBoolAttribute{
 				Common: &schemaR.BoolAttribute{
 					MarkdownDescription: "Defines if the ELB Virtual Service is enabled.",
 				},
@@ -205,7 +205,7 @@ func virtualServiceSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"service_ports": superschema.SuperListNestedAttributeOf[VirtualServiceModelServicePort]{
+			servicePorts: superschema.SuperListNestedAttributeOf[VirtualServiceModelServicePort]{
 				Common: &schemaR.ListNestedAttribute{
 					MarkdownDescription: "The service port of the ELB Virtual Service. The service port is the port on which the virtual service listens for client traffic.",
 				},

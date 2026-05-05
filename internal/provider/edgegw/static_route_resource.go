@@ -374,8 +374,8 @@ func (r *staticRouteResource) ImportState(ctx context.Context, req resource.Impo
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), staticRoute.NsxtEdgeGatewayStaticRoute.ID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), staticRoute.NsxtEdgeGatewayStaticRoute.Name)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_id"), r.edgegw.GetID())...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("edge_gateway_name"), r.edgegw.GetName())...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(edgeGatewayID), r.edgegw.GetID())...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(edgeGatewayName), r.edgegw.GetName())...)
 }
 
 // * CustomFuncs

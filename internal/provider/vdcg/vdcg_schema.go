@@ -51,11 +51,11 @@ func vdcgSchema(_ context.Context) superschema.Schema {
 				DataSource: &schemaD.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(name), path.MatchRoot("id")),
 					},
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			name: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the VDC Group.",
 				},
@@ -65,11 +65,11 @@ func vdcgSchema(_ context.Context) superschema.Schema {
 				DataSource: &schemaD.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("name"), path.MatchRoot("id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(name), path.MatchRoot("id")),
 					},
 				},
 			},
-			"description": superschema.SuperStringAttribute{
+			description: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The description of the VDC Group.",
 				},

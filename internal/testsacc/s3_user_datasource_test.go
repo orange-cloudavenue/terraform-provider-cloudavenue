@@ -53,7 +53,7 @@ func (r *S3UserDataSource) DependenciesConfig() (resp testsacc.DependenciesConfi
 func (r *S3UserDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				// ! Create testing
 				Create: testsacc.TFConfig{

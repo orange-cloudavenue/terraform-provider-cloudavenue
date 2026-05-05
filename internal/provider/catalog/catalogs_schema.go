@@ -47,7 +47,7 @@ func catalogsSuperSchema(_ context.Context) superschema.Schema {
 					ElementType:         types.StringType,
 				},
 			},
-			"catalogs": superschema.MapNestedAttribute{
+			catalogsAttr: superschema.MapNestedAttribute{
 				DataSource: &schemaD.MapNestedAttribute{
 					MarkdownDescription: "Map of catalogs.",
 					Computed:            true,
@@ -55,74 +55,74 @@ func catalogsSuperSchema(_ context.Context) superschema.Schema {
 				Attributes: superschema.Attributes{
 					"id": superschema.StringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The ID of the catalog.",
+							MarkdownDescription: catalogIDDescription,
 							Computed:            true,
 						},
 					},
-					"name": superschema.StringAttribute{
+					name: superschema.StringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The name of the catalog.",
+							MarkdownDescription: catalogNameDescription,
 							Computed:            true,
 						},
 					},
-					"created_at": superschema.StringAttribute{
+					createdAt: superschema.StringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The creation date of the catalog.",
+							MarkdownDescription: descCatalogCreatedAt,
 							Computed:            true,
 						},
 					},
-					"description": superschema.StringAttribute{
+					description: superschema.StringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The description of the catalog.",
+							MarkdownDescription: descCatalogDescription,
 							Computed:            true,
 						},
 					},
-					"owner_name": superschema.StringAttribute{
+					ownerName: superschema.StringAttribute{
 						DataSource: &schemaD.StringAttribute{
-							MarkdownDescription: "The owner name of the catalog.",
+							MarkdownDescription: descCatalogOwnerName,
 							Computed:            true,
 						},
 					},
-					"preserve_identity_information": superschema.BoolAttribute{
+					preserveIdentityInformation: superschema.BoolAttribute{
 						DataSource: &schemaD.BoolAttribute{
-							MarkdownDescription: "Include BIOS UUIDs and MAC addresses in the downloaded OVF package. Keep in mind that preserving this identity information reduces the package's portability, so only include it when necessary.",
+							MarkdownDescription: descCatalogPreserveIdentityInfo,
 							Computed:            true,
 						},
 					},
-					"number_of_media": superschema.Int64Attribute{
+					numberOfMedia: superschema.Int64Attribute{
 						DataSource: &schemaD.Int64Attribute{
-							MarkdownDescription: "The number of media in the catalog.",
+							MarkdownDescription: descCatalogNumberOfMedia,
 							Computed:            true,
 						},
 					},
-					"media_item_list": superschema.ListAttribute{
+					mediaItemList: superschema.ListAttribute{
 						DataSource: &schemaD.ListAttribute{
-							MarkdownDescription: "The list of media items in the catalog.",
+							MarkdownDescription: descCatalogMediaItemList,
 							Computed:            true,
 							ElementType:         types.StringType,
 						},
 					},
-					"is_shared": superschema.BoolAttribute{
+					isShared: superschema.BoolAttribute{
 						DataSource: &schemaD.BoolAttribute{
-							MarkdownDescription: "Indicates whether the catalog is shared.",
+							MarkdownDescription: descCatalogIsShared,
 							Computed:            true,
 						},
 					},
-					"is_local": superschema.BoolAttribute{
+					isLocal: superschema.BoolAttribute{
 						DataSource: &schemaD.BoolAttribute{
-							MarkdownDescription: "Indicates whether the catalog is local.",
+							MarkdownDescription: descCatalogIsLocal,
 							Computed:            true,
 						},
 					},
-					"is_published": superschema.BoolAttribute{
+					isPublished: superschema.BoolAttribute{
 						DataSource: &schemaD.BoolAttribute{
-							MarkdownDescription: "Indicates whether the catalog is published.",
+							MarkdownDescription: descCatalogIsPublished,
 							Computed:            true,
 						},
 					},
-					"is_cached": superschema.BoolAttribute{
+					isCached: superschema.BoolAttribute{
 						DataSource: &schemaD.BoolAttribute{
-							MarkdownDescription: "Indicates whether the catalog is cached.",
+							MarkdownDescription: descCatalogIsCached,
 							Computed:            true,
 						},
 					},

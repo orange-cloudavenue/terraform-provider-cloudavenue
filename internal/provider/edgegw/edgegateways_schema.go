@@ -51,16 +51,16 @@ func edgeGatewaysSuperSchema(_ context.Context) superschema.Schema {
 							MarkdownDescription: "The name of the Tier-0 VRF to which the Edge Gateway is attached.",
 						},
 					},
-					"name": superschema.SuperStringAttribute{
+					name: superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The name of the Edge Gateway.",
+							MarkdownDescription: edgeGatewayNameDescription,
 						},
 					},
 					"id": superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The ID of the Edge Gateway.",
+							MarkdownDescription: edgeGatewayIDDescription,
 						},
 					},
 					"owner_name": superschema.SuperStringAttribute{
@@ -69,7 +69,7 @@ func edgeGatewaysSuperSchema(_ context.Context) superschema.Schema {
 							MarkdownDescription: "The name of the Edge Gateway owner.",
 						},
 					},
-					"description": superschema.SuperStringAttribute{
+					description: superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "The description of the Edge Gateway.",

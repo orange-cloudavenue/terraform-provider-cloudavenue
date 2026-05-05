@@ -52,7 +52,7 @@ func (r *ELBPoliciesHTTPSecurityResource) DependenciesConfig() (resp testsacc.De
 
 func (r *ELBPoliciesHTTPSecurityResource) Tests(ctx context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.LoadBalancerVirtualService)),
@@ -335,14 +335,14 @@ func (r *ELBPoliciesHTTPSecurityResource) Tests(ctx context.Context) map[testsac
 							resource.TestCheckNoResourceAttr(resourceName, "policies.0.criteria.query"),
 							resource.TestCheckResourceAttr(resourceName, "policies.0.criteria.request_headers.#", "3"),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "policies.0.criteria.request_headers.*", map[string]string{
-								"criteria": "CONTAINS",
-								"name":     "X-EXAMPLE",
-								"values.#": "1",
+								testAttrCriteria:   testCriteriaContains,
+								testAttrName:       testHeaderXExample,
+								testAttrValuesHash: "1",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "policies.0.criteria.request_headers.*", map[string]string{
-								"criteria": "BEGINS_WITH",
-								"name":     "X-CUSTOM",
-								"values.#": "1",
+								testAttrCriteria:   testCriteriaBeginsWith,
+								testAttrName:       testHeaderXCustom,
+								testAttrValuesHash: "1",
 							}),
 							resource.TestCheckResourceAttr(resourceName, "policies.0.actions.connection", "ALLOW"),
 						},
@@ -726,14 +726,14 @@ func (r *ELBPoliciesHTTPSecurityResource) Tests(ctx context.Context) map[testsac
 							resource.TestCheckResourceAttr(resourceName, "policies.0.criteria.query.0", "example=example_updated"),
 							resource.TestCheckResourceAttr(resourceName, "policies.0.criteria.request_headers.#", "2"),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "policies.0.criteria.request_headers.*", map[string]string{
-								"criteria": "CONTAINS",
-								"name":     "X-EXAMPLE",
-								"values.#": "1",
+								testAttrCriteria:   testCriteriaContains,
+								testAttrName:       testHeaderXExample,
+								testAttrValuesHash: "1",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "policies.0.criteria.request_headers.*", map[string]string{
-								"criteria": "BEGINS_WITH",
-								"name":     "X-CUSTOM",
-								"values.#": "1",
+								testAttrCriteria:   testCriteriaBeginsWith,
+								testAttrName:       testHeaderXCustom,
+								testAttrValuesHash: "1",
 							}),
 							resource.TestCheckResourceAttr(resourceName, "policies.0.criteria.service_ports.criteria", "IS_IN"),
 							resource.TestCheckResourceAttr(resourceName, "policies.0.criteria.service_ports.ports.#", "1"),
@@ -863,14 +863,14 @@ func (r *ELBPoliciesHTTPSecurityResource) Tests(ctx context.Context) map[testsac
 							resource.TestCheckResourceAttr(resourceName, "policies.0.criteria.query.0", "example=example_updated"),
 							resource.TestCheckResourceAttr(resourceName, "policies.0.criteria.request_headers.#", "2"),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "policies.0.criteria.request_headers.*", map[string]string{
-								"criteria": "CONTAINS",
-								"name":     "X-EXAMPLE",
-								"values.#": "1",
+								testAttrCriteria:   testCriteriaContains,
+								testAttrName:       testHeaderXExample,
+								testAttrValuesHash: "1",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "policies.0.criteria.request_headers.*", map[string]string{
-								"criteria": "BEGINS_WITH",
-								"name":     "X-CUSTOM",
-								"values.#": "1",
+								testAttrCriteria:   testCriteriaBeginsWith,
+								testAttrName:       testHeaderXCustom,
+								testAttrValuesHash: "1",
 							}),
 							resource.TestCheckResourceAttr(resourceName, "policies.0.criteria.service_ports.criteria", "IS_IN"),
 							resource.TestCheckResourceAttr(resourceName, "policies.0.criteria.service_ports.ports.#", "1"),
@@ -890,9 +890,9 @@ func (r *ELBPoliciesHTTPSecurityResource) Tests(ctx context.Context) map[testsac
 							resource.TestCheckResourceAttr(resourceName, "policies.1.criteria.query.0", "example=example2"),
 							resource.TestCheckResourceAttr(resourceName, "policies.1.criteria.request_headers.#", "1"),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "policies.1.criteria.request_headers.*", map[string]string{
-								"criteria": "CONTAINS",
-								"name":     "X-EXAMPLE",
-								"values.#": "1",
+								testAttrCriteria:   testCriteriaContains,
+								testAttrName:       testHeaderXExample,
+								testAttrValuesHash: "1",
 							}),
 							resource.TestCheckResourceAttr(resourceName, "policies.1.criteria.service_ports.criteria", "IS_IN"),
 							resource.TestCheckResourceAttr(resourceName, "policies.1.criteria.service_ports.ports.#", "1"),

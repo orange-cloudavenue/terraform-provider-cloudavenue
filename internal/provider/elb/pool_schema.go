@@ -68,13 +68,13 @@ func poolSchema(ctx context.Context) superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			name: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the pool.",
 					Required:            true,
 				},
 			},
-			"edge_gateway_name": superschema.SuperStringAttribute{
+			edgeGatewayName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the Edge Gateway.",
 					Optional:            true,
@@ -84,11 +84,11 @@ func poolSchema(ctx context.Context) superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
 					},
 				},
 			},
-			"edge_gateway_id": superschema.SuperStringAttribute{
+			edgeGatewayID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the Edge Gateway.",
 					Optional:            true,
@@ -98,7 +98,7 @@ func poolSchema(ctx context.Context) superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
 					},
 				},
 			},
@@ -113,7 +113,7 @@ func poolSchema(ctx context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"enabled": superschema.SuperBoolAttribute{
+			enabled: superschema.SuperBoolAttribute{
 				Common: &schemaR.BoolAttribute{
 					MarkdownDescription: "Enable or disable the pool.",
 					Computed:            true,
@@ -213,7 +213,7 @@ func poolSchema(ctx context.Context) superschema.Schema {
 							Computed: true,
 						},
 						Attributes: superschema.Attributes{
-							"enabled": superschema.SuperBoolAttribute{
+							enabled: superschema.SuperBoolAttribute{
 								Common: &schemaR.BoolAttribute{
 									MarkdownDescription: "Enable or disable the member.",
 									Computed:            true,
@@ -328,7 +328,7 @@ func poolSchema(ctx context.Context) superschema.Schema {
 					}).ObjectValue),
 				},
 				Attributes: superschema.Attributes{
-					"enabled": superschema.SuperBoolAttribute{
+					enabled: superschema.SuperBoolAttribute{
 						Common: &schemaR.BoolAttribute{
 							MarkdownDescription: "Enable or disable the TLS.",
 							Computed:            true,

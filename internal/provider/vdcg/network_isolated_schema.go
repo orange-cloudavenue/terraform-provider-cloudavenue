@@ -56,13 +56,13 @@ func networkIsolatedSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The ID of the isolated network.",
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			name: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the network. This value must be unique within the `VDC` that owns the network.",
 					Required:            true,
 				},
 			},
-			"description": superschema.SuperStringAttribute{
+			description: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "A description of the network.",
 				},
@@ -73,13 +73,13 @@ func networkIsolatedSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"vdc_group_name": superschema.SuperStringAttribute{
+			vdcGroupName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of vDC group that owns the network.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
+						stringvalidator.AtLeastOneOf(path.MatchRoot(vdcGroupName), path.MatchRoot(vdcGroupID)),
 					},
 				},
 				Resource: &schemaR.StringAttribute{
@@ -88,13 +88,13 @@ func networkIsolatedSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"vdc_group_id": superschema.SuperStringAttribute{
+			vdcGroupID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of vDC group that owns the network.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
+						stringvalidator.AtLeastOneOf(path.MatchRoot(vdcGroupName), path.MatchRoot(vdcGroupID)),
 						fstringvalidator.PrefixContains(urn.VDCGroup.String()),
 					},
 				},

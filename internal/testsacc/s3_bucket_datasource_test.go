@@ -52,7 +52,7 @@ func (r *S3BucketDatasource) DependenciesConfig() (resp testsacc.DependenciesCon
 func (r *S3BucketDatasource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
-		"example": func(_ context.Context, _ string) testsacc.Test {
+		testNameExample: func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{
 				// ! Create testing
 				Create: testsacc.TFConfig{

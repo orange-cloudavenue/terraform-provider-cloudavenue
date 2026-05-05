@@ -19,7 +19,6 @@
 package edgegw_test
 
 import (
-	"context"
 	"testing"
 
 	fwdatasource "github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -31,7 +30,7 @@ import (
 func TestVPNIPSecResourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
 
@@ -53,7 +52,7 @@ func TestVPNIPSecResourceSchema(t *testing.T) {
 func TestVPNIPSecDataSourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	schemaRequest := fwdatasource.SchemaRequest{}
 	schemaResponse := &fwdatasource.SchemaResponse{}
 

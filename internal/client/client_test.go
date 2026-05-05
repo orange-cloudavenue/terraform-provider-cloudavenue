@@ -1,13 +1,4 @@
 /*
- * SPDX-FileCopyrightText: Copyright (c) 2026 Orange
- * SPDX-License-Identifier: Mozilla Public License 2.0
- *
- * This software is distributed under the MPL-2.0 license.
- * the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
- * or see the "LICENSE" file for more details.
- */
-
-/*
  * SPDX-FileCopyrightText: Copyright (c) 2025 Orange
  * SPDX-License-Identifier: Mozilla Public License 2.0
  *
@@ -27,6 +18,12 @@ import (
 	clientca "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 	clientcloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/clients/cloudavenue"
 	caverror "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/errors"
+)
+
+const (
+	testBad      = "bad"
+	testUser     = "user"
+	testPassword = "password"
 )
 
 func TestCloudAvenueClient(t *testing.T) {
@@ -67,9 +64,9 @@ func TestCloudAvenueClient(t *testing.T) {
 				name: "Bad Org",
 				opts: &clientca.ClientOpts{
 					CloudAvenue: &clientcloudavenue.Opts{
-						Org:      "bad",
-						Username: "user",
-						Password: "password",
+						Org:      testBad,
+						Username: testUser,
+						Password: testPassword,
 					},
 				},
 				wantErr:     true,
@@ -79,8 +76,8 @@ func TestCloudAvenueClient(t *testing.T) {
 				name: "Valid Org - Username not set",
 				opts: &clientca.ClientOpts{
 					CloudAvenue: &clientcloudavenue.Opts{
-						Org:      "bad",
-						Password: "password",
+						Org:      testBad,
+						Password: testPassword,
 					},
 				},
 				wantErr:     true,
@@ -90,8 +87,8 @@ func TestCloudAvenueClient(t *testing.T) {
 				name: "Valid Org - Password not set",
 				opts: &clientca.ClientOpts{
 					CloudAvenue: &clientcloudavenue.Opts{
-						Org:      "bad",
-						Username: "user",
+						Org:      testBad,
+						Username: testUser,
 					},
 				},
 				wantErr:     true,
@@ -102,8 +99,8 @@ func TestCloudAvenueClient(t *testing.T) {
 				opts: &clientca.ClientOpts{
 					CloudAvenue: &clientcloudavenue.Opts{
 						Org:      "cav01ev01ocb0001234",
-						Username: "user",
-						Password: "password",
+						Username: testUser,
+						Password: testPassword,
 					},
 				},
 				wantErr: true,

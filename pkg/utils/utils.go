@@ -227,7 +227,7 @@ func (o OpenAPIValues) ToTerraformTypesStringSet(ctx context.Context) basetypes.
 
 func ModelCopy(source, dest interface{}) {
 	x := reflect.ValueOf(source)
-	if x.Kind() == reflect.Ptr {
+	if x.Kind() == reflect.Pointer {
 		starX := x.Elem()
 		y := reflect.New(starX.Type())
 		starY := y.Elem()

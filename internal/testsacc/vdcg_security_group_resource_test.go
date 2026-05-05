@@ -52,7 +52,7 @@ func (r *VDCGSecurityGroupResource) DependenciesConfig() (resp testsacc.Dependen
 
 func (r *VDCGSecurityGroupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCGResourceName]().GetDefaultConfig)
@@ -111,22 +111,22 @@ func (r *VDCGSecurityGroupResource) Tests(_ context.Context) map[testsacc.TestNa
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -186,22 +186,22 @@ func (r *VDCGSecurityGroupResource) Tests(_ context.Context) map[testsacc.TestNa
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -302,22 +302,22 @@ func (r *VDCGSecurityGroupResource) Tests(_ context.Context) map[testsacc.TestNa
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_id", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "id"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc_group_name", "name"},
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

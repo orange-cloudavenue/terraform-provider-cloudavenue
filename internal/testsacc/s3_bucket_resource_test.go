@@ -53,7 +53,7 @@ func (r *S3BucketResource) Tests(_ context.Context) map[testsacc.TestName]func(c
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// TODO : Complete tests
 		// * First test named "example"
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
@@ -77,7 +77,7 @@ func (r *S3BucketResource) Tests(_ context.Context) map[testsacc.TestName]func(c
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"name"},
+						ImportStateIDBuilder: []string{testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -109,7 +109,7 @@ func (r *S3BucketResource) Tests(_ context.Context) map[testsacc.TestName]func(c
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"name"},
+						ImportStateIDBuilder: []string{testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

@@ -69,7 +69,7 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			name: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Application Port Profile name.",
 				},
@@ -85,7 +85,7 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"description": superschema.SuperStringAttribute{
+			description: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Application Port Profile description.",
 				},
@@ -99,13 +99,13 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"edge_gateway_id": superschema.SuperStringAttribute{
+			edgeGatewayID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "ID of the Edge Gateway.",
+					MarkdownDescription: edgeGatewayIDDescription,
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayID), path.MatchRoot(edgeGatewayName)),
 						fstringvalidator.PrefixContains(string(urn.Gateway)),
 					},
 				},
@@ -115,13 +115,13 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"edge_gateway_name": superschema.SuperStringAttribute{
+			edgeGatewayName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "Name of the Edge Gateway.",
+					MarkdownDescription: edgeGatewayNameDescription,
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayID), path.MatchRoot(edgeGatewayName)),
 					},
 				},
 				Resource: &schemaR.StringAttribute{

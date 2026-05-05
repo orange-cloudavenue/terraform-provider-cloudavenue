@@ -44,33 +44,33 @@ type TemplateDiskModel struct {
 // TemplateDiskSchema returns the schema for the template disk.
 func TemplateDiskSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
-		"bus_type":        diskparams.BusTypeAttributeRequired(),
-		"size_in_mb":      diskparams.SizeInMBAttributeRequired(),
-		"bus_number":      diskparams.BusNumberAttributeRequired(),
-		"unit_number":     diskparams.UnitNumberAttributeRequired(),
-		"storage_profile": diskparams.StorageProfileAttributeRequired(),
+		attrBusType:        diskparams.BusTypeAttributeRequired(),
+		attrSizeInMB:       diskparams.SizeInMBAttributeRequired(),
+		attrBusNumber:      diskparams.BusNumberAttributeRequired(),
+		attrUnitNumber:     diskparams.UnitNumberAttributeRequired(),
+		attrStorageProfile: diskparams.StorageProfileAttributeRequired(),
 	}
 }
 
 // TemplateDiskAttrType returns the type map for the template disk.
 func TemplateDiskAttrType() map[string]attr.Type {
 	return map[string]attr.Type{
-		"bus_type":        types.StringType,
-		"size_in_mb":      types.Int64Type,
-		"bus_number":      types.Int64Type,
-		"unit_number":     types.Int64Type,
-		"storage_profile": types.StringType,
+		attrBusType:        types.StringType,
+		attrSizeInMB:       types.Int64Type,
+		attrBusNumber:      types.Int64Type,
+		attrUnitNumber:     types.Int64Type,
+		attrStorageProfile: types.StringType,
 	}
 }
 
 // ToAttrValue converts the model to an attr.Value.
 func (m *TemplateDiskModel) ToAttrValue() map[string]attr.Value {
 	return map[string]attr.Value{
-		"bus_type":        m.BusType,
-		"size_in_mb":      m.SizeInMb,
-		"bus_number":      m.BusNumber,
-		"unit_number":     m.UnitNumber,
-		"storage_profile": m.StorageProfile,
+		attrBusType:        m.BusType,
+		attrSizeInMB:       m.SizeInMb,
+		attrBusNumber:      m.BusNumber,
+		attrUnitNumber:     m.UnitNumber,
+		attrStorageProfile: m.StorageProfile,
 	}
 }
 

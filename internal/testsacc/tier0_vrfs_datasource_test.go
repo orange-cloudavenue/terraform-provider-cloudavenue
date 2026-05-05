@@ -52,7 +52,7 @@ func (r *Tier0VRFsDataSource) DependenciesConfig() (resp testsacc.DependenciesCo
 func (r *Tier0VRFsDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (example)
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				// ! Create testing
 				Create: testsacc.TFConfig{

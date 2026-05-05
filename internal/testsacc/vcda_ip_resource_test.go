@@ -52,7 +52,7 @@ func (r *VCDAIPResource) DependenciesConfig() (resp testsacc.DependenciesConfigR
 func (r *VCDAIPResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * First test named "example"
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VCDA)),
@@ -64,7 +64,7 @@ func (r *VCDAIPResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 						ip_address = "10.0.0.1"
 					}`),
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "ip_address", "10.0.0.1"),
+						resource.TestCheckResourceAttr(resourceName, testAttrIPAddress, "10.0.0.1"),
 					},
 				},
 				// ! Updates testing
@@ -74,7 +74,7 @@ func (r *VCDAIPResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"ip_address"},
+						ImportStateIDBuilder: []string{testAttrIPAddress},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -104,7 +104,7 @@ func (r *VCDAIPResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 					
 					`),
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "ip_address", "10.0.0.1"),
+						resource.TestCheckResourceAttr(resourceName, testAttrIPAddress, "10.0.0.1"),
 					},
 				},
 				// ! Updates testing
@@ -114,7 +114,7 @@ func (r *VCDAIPResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"ip_address"},
+						ImportStateIDBuilder: []string{testAttrIPAddress},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

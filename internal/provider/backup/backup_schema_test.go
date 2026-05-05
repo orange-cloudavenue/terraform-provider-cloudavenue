@@ -19,7 +19,6 @@
 package backup_test
 
 import (
-	"context"
 	"testing"
 
 	// The fwresource import alias is so there is no collistion
@@ -35,7 +34,7 @@ import (
 func TestBackupResourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	schemaResponse := &fwresource.SchemaResponse{}
 
 	// Instantiate the resource.Resource and call its Schema method
@@ -58,7 +57,7 @@ func TestBackupResourceSchema(t *testing.T) {
 func TestBackupDataSourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	schemaResponse := &fwdatasource.SchemaResponse{}
 
 	// Instantiate the datasource.Datasource and call its Schema method

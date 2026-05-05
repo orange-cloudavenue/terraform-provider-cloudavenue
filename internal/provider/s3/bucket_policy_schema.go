@@ -39,7 +39,7 @@ func bucketPolicySchema(_ context.Context) superschema.Schema {
 			MarkdownDescription: "The `cloudavenue_s3_bucket_policy` data source allows you to retrieve information about the IAM policy of an S3 bucket.",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"timeouts": superschema.TimeoutAttribute{
+			timeouts: superschema.TimeoutAttribute{
 				Resource: &superschema.ResourceTimeoutAttribute{
 					Create: true,
 					Update: false,
@@ -56,9 +56,9 @@ func bucketPolicySchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The ID of the bucket_policy.",
 				},
 			},
-			"bucket": superschema.SuperStringAttribute{
+			bucket: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the bucket.",
+					MarkdownDescription: bucketNameDescription,
 					Required:            true,
 				},
 				Resource: &schemaR.StringAttribute{

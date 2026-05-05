@@ -19,7 +19,6 @@
 package network_test
 
 import (
-	"context"
 	"testing"
 
 	// The fwresource import alias is so there is no collistion
@@ -33,7 +32,7 @@ import (
 func TestThingResourceSchema(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	schemaRequest := fwresource.SchemaRequest{}
 	schemaResponse := &fwresource.SchemaResponse{}
 

@@ -51,7 +51,7 @@ func (r *NATRuleResource) DependenciesConfig() (resp testsacc.DependenciesConfig
 
 func (r *NATRuleResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
@@ -142,22 +142,22 @@ func (r *NATRuleResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -353,7 +353,7 @@ func (r *NATRuleResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 				},
 			}
 		},
-		"example_with_vdc_group": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExampleWithVDCGroup: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
@@ -464,12 +464,12 @@ func (r *NATRuleResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 				},
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

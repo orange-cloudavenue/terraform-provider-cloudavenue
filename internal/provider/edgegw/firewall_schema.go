@@ -55,29 +55,29 @@ func firewallSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The ID of the Firewall Edge Gateway Service.",
 				},
 			},
-			"edge_gateway_name": superschema.SuperStringAttribute{
+			edgeGatewayName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the Edge Gateway.",
+					MarkdownDescription: edgeGatewayNameDescription,
 					Optional:            true,
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
 					},
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
 					},
 				},
 			},
-			"edge_gateway_id": superschema.SuperStringAttribute{
+			edgeGatewayID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the Edge Gateway.",
+					MarkdownDescription: edgeGatewayIDDescription,
 					Optional:            true,
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
 					},
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_name"), path.MatchRoot("edge_gateway_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
 					},
 				},
 			},
@@ -101,7 +101,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 							MarkdownDescription: "The ID of the rule.",
 						},
 					},
-					"name": superschema.SuperStringAttribute{
+					name: superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The name of the rule.",
 						},
@@ -153,7 +153,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 					},
-					"enabled": superschema.SuperBoolAttribute{
+					attrEnabled: superschema.SuperBoolAttribute{
 						Common: &schemaR.BoolAttribute{
 							MarkdownDescription: "Defines if the rule is enabled or not.",
 							Computed:            true,

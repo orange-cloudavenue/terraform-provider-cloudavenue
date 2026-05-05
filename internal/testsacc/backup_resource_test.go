@@ -51,11 +51,11 @@ func (r *BackupResource) DependenciesConfig() (resp testsacc.DependenciesConfigR
 func (r *BackupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * First Test For a VDC Backup named "example"
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "target_name"),
+					resource.TestCheckResourceAttrSet(resourceName, testAttrTargetName),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VDCResourceName]().GetDefaultConfig)
@@ -99,10 +99,10 @@ func (r *BackupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder:    []string{"type", "target_name"},
+						ImportStateIDBuilder:    []string{testAttrType, testAttrTargetName},
 						ImportState:             true,
 						ImportStateVerify:       true,
-						ImportStateVerifyIgnore: []string{"target_id"},
+						ImportStateVerifyIgnore: []string{testAttrTargetID},
 					},
 				},
 			}
@@ -112,7 +112,7 @@ func (r *BackupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "target_id"),
+					resource.TestCheckResourceAttrSet(resourceName, testAttrTargetID),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VAppResourceName]().GetDefaultConfig)
@@ -156,10 +156,10 @@ func (r *BackupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder:    []string{"type", "target_name"},
+						ImportStateIDBuilder:    []string{testAttrType, testAttrTargetName},
 						ImportState:             true,
 						ImportStateVerify:       true,
-						ImportStateVerifyIgnore: []string{"target_id"},
+						ImportStateVerifyIgnore: []string{testAttrTargetID},
 					},
 				},
 			}
@@ -169,7 +169,7 @@ func (r *BackupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "target_name"),
+					resource.TestCheckResourceAttrSet(resourceName, testAttrTargetName),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetResourceConfig()[VMResourceName]().GetDefaultConfig)
@@ -212,10 +212,10 @@ func (r *BackupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder:    []string{"type", "target_name"},
+						ImportStateIDBuilder:    []string{testAttrType, testAttrTargetName},
 						ImportState:             true,
 						ImportStateVerify:       true,
-						ImportStateVerifyIgnore: []string{"target_id"},
+						ImportStateVerifyIgnore: []string{testAttrTargetID},
 					},
 				},
 			}

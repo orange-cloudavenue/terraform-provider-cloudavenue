@@ -190,7 +190,7 @@ func isolatedNetworkSchema() superschema.Schema {
 					},
 				},
 			},
-			"vdc": vdc.SuperSchemaSuperType(),
+			attrVDC: vdc.SuperSchemaSuperType(),
 			"vapp_id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "ID of the vApp.",

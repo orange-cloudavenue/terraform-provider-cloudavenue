@@ -53,7 +53,7 @@ func (r *EdgeGatewaySecurityGroupResource) DependenciesConfig() (resp testsacc.D
 
 func (r *EdgeGatewaySecurityGroupResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.SecurityGroup)),
@@ -103,22 +103,22 @@ func (r *EdgeGatewaySecurityGroupResource) Tests(_ context.Context) map[testsacc
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -236,22 +236,22 @@ func (r *EdgeGatewaySecurityGroupResource) Tests(_ context.Context) map[testsacc
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_id", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "id"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"edge_gateway_name", "name"},
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayName, testAttrName},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

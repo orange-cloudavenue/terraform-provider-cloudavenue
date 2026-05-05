@@ -43,6 +43,12 @@ import (
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
+const (
+	aclReadOnly    = "ReadOnly"
+	aclChange      = "Change"
+	aclFullControl = "FullControl"
+)
+
 func aclSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
@@ -61,29 +67,29 @@ func aclSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"catalog_id": superschema.SuperStringAttribute{
+			catalogID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the catalog.",
+					MarkdownDescription: catalogIDDescription,
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("catalog_name"), path.MatchRoot("catalog_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(catalogName), path.MatchRoot(catalogID)),
 						fstringvalidator.IsURN(),
 						fstringvalidator.PrefixContains(urn.Catalog.String()),
 					},
 				},
 			},
-			"catalog_name": superschema.SuperStringAttribute{
+			catalogName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The Name of the catalog.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("catalog_name"), path.MatchRoot("catalog_id")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(catalogName), path.MatchRoot(catalogID)),
 					},
 				},
 			},
-			"shared_with_everyone": superschema.SuperBoolAttribute{
+			sharedWithEveryone: superschema.SuperBoolAttribute{
 				Common: &schemaR.BoolAttribute{
 					MarkdownDescription: "Whether the Catalog is shared with everyone in your organization with right `ReadOnly`.",
 					Computed:            true,
@@ -100,9 +106,9 @@ func aclSchema(_ context.Context) superschema.Schema {
 				Resource: &schemaR.StringAttribute{
 					Optional: true,
 					Validators: []validator.String{
-						stringvalidator.OneOf("ReadOnly", "Change", "FullControl"),
-						fstringvalidator.RequireIfAttributeIsOneOf(path.MatchRoot("shared_with_everyone"), []attr.Value{types.BoolValue(true)}),
-						fstringvalidator.NullIfAttributeIsOneOf(path.MatchRoot("shared_with_everyone"), []attr.Value{types.BoolValue(false)}),
+						stringvalidator.OneOf(aclReadOnly, aclChange, aclFullControl),
+						fstringvalidator.RequireIfAttributeIsOneOf(path.MatchRoot(sharedWithEveryone), []attr.Value{types.BoolValue(true)}),
+						fstringvalidator.NullIfAttributeIsOneOf(path.MatchRoot(sharedWithEveryone), []attr.Value{types.BoolValue(false)}),
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
@@ -117,7 +123,7 @@ func aclSchema(_ context.Context) superschema.Schema {
 				Resource: &schemaR.SetNestedAttribute{
 					Optional: true,
 					Validators: []validator.Set{
-						fsetvalidator.NullIfAttributeIsOneOf(path.MatchRoot("shared_with_everyone"), []attr.Value{types.BoolValue(true)}),
+						fsetvalidator.NullIfAttributeIsOneOf(path.MatchRoot(sharedWithEveryone), []attr.Value{types.BoolValue(true)}),
 					},
 				},
 				Attributes: superschema.Attributes{
@@ -143,9 +149,9 @@ func aclSchema(_ context.Context) superschema.Schema {
 						},
 						Resource: &schemaR.StringAttribute{
 							Optional: true,
-							Default:  stringdefault.StaticString("ReadOnly"),
+							Default:  stringdefault.StaticString(aclReadOnly),
 							Validators: []validator.String{
-								stringvalidator.OneOf("ReadOnly", "Change", "FullControl"),
+								stringvalidator.OneOf(aclReadOnly, aclChange, aclFullControl),
 							},
 						},
 					},

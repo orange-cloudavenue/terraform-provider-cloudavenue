@@ -52,7 +52,7 @@ func (r *S3BucketPolicyResource) DependenciesConfig() (deps testsacc.Dependencie
 func (r *S3BucketPolicyResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * First test named "example"
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
@@ -139,7 +139,7 @@ func (r *S3BucketPolicyResource) Tests(_ context.Context) map[testsacc.TestName]
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"bucket"},
+						ImportStateIDBuilder: []string{testAttrBucket},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},

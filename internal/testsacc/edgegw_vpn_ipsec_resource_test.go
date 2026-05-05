@@ -50,7 +50,7 @@ func (r *VPNIPSecResource) DependenciesConfig() (resp testsacc.DependenciesConfi
 
 func (r *VPNIPSecResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{ // vpnIPSecTestCheckCommon(resourceName)},
 					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
@@ -115,8 +115,8 @@ func (r *VPNIPSecResource) Tests(_ context.Context) map[testsacc.TestName]func(c
 					},
 				},
 				Imports: []testsacc.TFImport{
-					{ImportStateIDBuilder: []string{"edge_gateway_id", "name"}, ImportState: true, ImportStateVerify: true},
-					{ImportStateIDBuilder: []string{"edge_gateway_name", "id"}, ImportState: true, ImportStateVerify: true},
+					{ImportStateIDBuilder: []string{testAttrEdgeGatewayID, testAttrName}, ImportState: true, ImportStateVerify: true},
+					{ImportStateIDBuilder: []string{testAttrEdgeGatewayName, "id"}, ImportState: true, ImportStateVerify: true},
 				},
 			}
 		},

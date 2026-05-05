@@ -65,10 +65,10 @@ func DiskSuperSchema() superschema.Schema {
 					},
 				},
 			},
-			"vdc":       vdc.SuperSchema(),
-			"vapp_id":   vapp.SuperSchema()["vapp_id"],
-			"vapp_name": vapp.SuperSchema()["vapp_name"],
-			"vm_name": superschema.StringAttribute{
+			attrVDC:      vdc.SuperSchema(),
+			attrVappID:   vapp.SuperSchema()[attrVappID],
+			attrVappName: vapp.SuperSchema()[attrVappName],
+			attrVMName: superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the VM where the disk will be attached. If `is_detachable` is set to `false`, `vm_id` or `vm_name` must be set and force the replacement if this attribute is changed.",
 				},
@@ -108,7 +108,7 @@ func DiskSuperSchema() superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.StringAttribute{
+			attrName: superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the disk.",
 				},
@@ -131,7 +131,7 @@ func DiskSuperSchema() superschema.Schema {
 					},
 				},
 			},
-			"storage_profile": superschema.StringAttribute{
+			attrStorageProfile: superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the storage profile. If not set, the default storage profile will be used.",
 					Computed:            true,

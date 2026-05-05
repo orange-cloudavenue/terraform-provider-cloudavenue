@@ -48,7 +48,7 @@ func s3BucketSchema(_ context.Context) superschema.Schema {
 			},
 			"name": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the bucket.",
+					MarkdownDescription: bucketNameDescription,
 					Required:            true,
 				},
 				Resource: &schemaR.StringAttribute{

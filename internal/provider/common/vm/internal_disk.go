@@ -103,12 +103,12 @@ type InternalDisk struct {
 // InternalDiskAttrType returns the type map for the internal disk.
 func InternalDiskAttrType() map[string]attr.Type {
 	return map[string]attr.Type{
-		"id":              types.StringType,
-		"bus_type":        types.StringType,
-		"bus_number":      types.Int64Type,
-		"size_in_mb":      types.Int64Type,
-		"unit_number":     types.Int64Type,
-		"storage_profile": types.StringType,
+		"id":               types.StringType,
+		attrBusType:        types.StringType,
+		attrBusNumber:      types.Int64Type,
+		attrSizeInMB:       types.Int64Type,
+		attrUnitNumber:     types.Int64Type,
+		attrStorageProfile: types.StringType,
 	}
 }
 
@@ -118,11 +118,11 @@ func InternalDiskSchema() map[string]schema.Attribute {
 			MarkdownDescription: "The ID of the internal disk.",
 			Computed:            true,
 		},
-		"bus_type":        diskparams.BusTypeAttribute(),
-		"size_in_mb":      diskparams.SizeInMBAttribute(),
-		"bus_number":      diskparams.BusNumberAttribute(),
-		"unit_number":     diskparams.UnitNumberAttribute(),
-		"storage_profile": diskparams.StorageProfileAttribute(),
+		attrBusType:        diskparams.BusTypeAttribute(),
+		attrSizeInMB:       diskparams.SizeInMBAttribute(),
+		attrBusNumber:      diskparams.BusNumberAttribute(),
+		attrUnitNumber:     diskparams.UnitNumberAttribute(),
+		attrStorageProfile: diskparams.StorageProfileAttribute(),
 	}
 }
 
@@ -132,11 +132,11 @@ func InternalDiskSchemaComputed() map[string]schema.Attribute {
 			MarkdownDescription: "The ID of the internal disk.",
 			Computed:            true,
 		},
-		"bus_type":        diskparams.BusTypeAttributeComputed(),
-		"size_in_mb":      diskparams.SizeInMBAttributeComputed(),
-		"bus_number":      diskparams.BusNumberAttributeComputed(),
-		"unit_number":     diskparams.UnitNumberAttributeComputed(),
-		"storage_profile": diskparams.StorageProfileAttributeComputed(),
+		attrBusType:        diskparams.BusTypeAttributeComputed(),
+		attrSizeInMB:       diskparams.SizeInMBAttributeComputed(),
+		attrBusNumber:      diskparams.BusNumberAttributeComputed(),
+		attrUnitNumber:     diskparams.UnitNumberAttributeComputed(),
+		attrStorageProfile: diskparams.StorageProfileAttributeComputed(),
 	}
 }
 

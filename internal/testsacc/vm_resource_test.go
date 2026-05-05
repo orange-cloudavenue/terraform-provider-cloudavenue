@@ -91,12 +91,12 @@ func (r *VMResource) DependenciesConfig() (resp testsacc.DependenciesConfigRespo
 func (r *VMResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * First test named "example"
-		"example": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VM)),
-					resource.TestCheckResourceAttrSet(resourceName, "vdc"),
-					resource.TestCheckResourceAttrSet(resourceName, "vapp_name"),
+					resource.TestCheckResourceAttrSet(resourceName, testAttrVDC),
+					resource.TestCheckResourceAttrSet(resourceName, testAttrVAppName),
 					resource.TestCheckResourceAttrSet(resourceName, "vapp_id"),
 				},
 				// ! Create testing
@@ -256,25 +256,25 @@ func (r *VMResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx con
 
 							// * networks
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "resource.networks.*", map[string]string{
-								"ip_allocation_mode": "MANUAL",
-								"is_primary":         "true",
-								"type":               "org",
-								"ip":                 "192.168.1.111",
+								testAttrIPAllocationMode: "MANUAL",
+								testAttrIsPrimary:        testValueTrue,
+								testAttrType:             testAttrOrg,
+								"ip":                     "192.168.1.111",
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "resource.networks.*", map[string]string{
-								"ip_allocation_mode": "DHCP",
-								"is_primary":         "false",
-								"type":               "org",
+								testAttrIPAllocationMode: "DHCP",
+								testAttrIsPrimary:        testValueFalse,
+								testAttrType:             testAttrOrg,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "resource.networks.*", map[string]string{
-								"ip_allocation_mode": "POOL",
-								"is_primary":         "false",
-								"type":               "org",
+								testAttrIPAllocationMode: "POOL",
+								testAttrIsPrimary:        testValueFalse,
+								testAttrType:             testAttrOrg,
 							}),
 							resource.TestCheckTypeSetElemNestedAttrs(resourceName, "resource.networks.*", map[string]string{
-								"ip_allocation_mode": "NONE",
-								"is_primary":         "false",
-								"type":               "org",
+								testAttrIPAllocationMode: "NONE",
+								testAttrIsPrimary:        testValueFalse,
+								testAttrType:             testAttrOrg,
 							}),
 						},
 					},
@@ -282,7 +282,7 @@ func (r *VMResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx con
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
 					{
-						ImportStateIDBuilder: []string{"vdc", "vapp_name", "id"},
+						ImportStateIDBuilder: []string{testAttrVDC, testAttrVAppName, "id"},
 						ImportState:          true,
 						ImportStateVerify:    false,
 					},
@@ -293,8 +293,8 @@ func (r *VMResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx con
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VM)),
-					resource.TestCheckResourceAttrSet(resourceName, "vdc"),
-					resource.TestCheckResourceAttrSet(resourceName, "vapp_name"),
+					resource.TestCheckResourceAttrSet(resourceName, testAttrVDC),
+					resource.TestCheckResourceAttrSet(resourceName, testAttrVAppName),
 					resource.TestCheckResourceAttrSet(resourceName, "vapp_id"),
 				},
 				// ! Create testing

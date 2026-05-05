@@ -63,7 +63,7 @@ func networkRoutedSchema(_ context.Context) superschema.Schema {
 					Optional: true,
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			name: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the network routed.",
 				},
@@ -75,7 +75,7 @@ func networkRoutedSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"description": superschema.SuperStringAttribute{
+			description: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "A description of the network.",
 				},
@@ -86,13 +86,13 @@ func networkRoutedSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 			},
-			"edge_gateway_id": superschema.SuperStringAttribute{
+			edgeGatewayID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the edge gateway in which the routed network should be connected.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayID), path.MatchRoot(edgeGatewayName)),
 					},
 				},
 				Resource: &schemaR.StringAttribute{
@@ -102,13 +102,13 @@ func networkRoutedSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"edge_gateway_name": superschema.SuperStringAttribute{
+			edgeGatewayName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the edge gateway in which the routed network should be connected.",
 					Computed:            true,
 					Optional:            true,
 					Validators: []validator.String{
-						stringvalidator.ExactlyOneOf(path.MatchRoot("edge_gateway_id"), path.MatchRoot("edge_gateway_name")),
+						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayID), path.MatchRoot(edgeGatewayName)),
 					},
 				},
 				Resource: &schemaR.StringAttribute{

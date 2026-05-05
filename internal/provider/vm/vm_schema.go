@@ -83,7 +83,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.StringAttribute{
+			attrName: superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the VM. Unique within the vApp.",
 					Validators: []validator.String{
@@ -104,7 +104,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"vapp_name": superschema.StringAttribute{
+			attrVappName: superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The vApp this VM belongs to.",
 					Optional:            true,
@@ -120,7 +120,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"vapp_id": superschema.StringAttribute{
+			attrVappID: superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The vApp this VM belongs to.",
 					Computed:            true,
@@ -136,7 +136,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"vdc": vdc.SuperSchema(),
+			attrVDC: vdc.SuperSchema(),
 			"description": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The description of the VM",
@@ -400,7 +400,7 @@ func vmSuperSchema(_ context.Context) superschema.Schema {
 									},
 								},
 							},
-							"name": superschema.StringAttribute{
+							attrName: superschema.StringAttribute{
 								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "The name of the network to attach to the VM.",
 								},

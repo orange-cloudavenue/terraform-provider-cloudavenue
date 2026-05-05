@@ -30,14 +30,14 @@ func TestToValidate(t *testing.T) {
 		wantErr   bool
 	}{
 		// uuid4
-		{"valid uuid v4", uuid.New().String(), "uuid4", false},
-		{"empty string", "", "uuid4", true},
+		{"valid uuid v4", uuid.New().String(), testValidatorUUID4, false},
+		{"empty string", "", testValidatorUUID4, true},
 		{"invalid uuid (wrong version)", func() string {
 			v, _ := uuid.NewV7()
 			return v.String()
-		}(), "uuid4", true},
-		{"invalid uuid (not uuid)", "not-a-uuid", "uuid4", true},
-		{"invalid uuid (v4 but wrong chars)", "zzzzzzzz-zzzz-4zzz-8zzz-zzzzzzzzzzzz", "uuid4", true},
+		}(), testValidatorUUID4, true},
+		{"invalid uuid (not uuid)", "not-a-uuid", testValidatorUUID4, true},
+		{"invalid uuid (v4 but wrong chars)", "zzzzzzzz-zzzz-4zzz-8zzz-zzzzzzzzzzzz", testValidatorUUID4, true},
 		// email
 		{"valid email", "test@example.com", "email", false},
 		{"invalid email", "not-an-email", "email", true},

@@ -73,7 +73,7 @@ func vdcSchema() superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			attrName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the vDC.",
 					Required:            true,

@@ -57,26 +57,26 @@ func firewallSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "The ID of the firewall. The firewall does not have an ID. It is identified by the VDC Group ID.",
 				},
 			},
-			"vdc_group_name": superschema.SuperStringAttribute{
+			vdcGroupName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the VDC Group to which the firewall belongs.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
+						stringvalidator.AtLeastOneOf(path.MatchRoot(vdcGroupName), path.MatchRoot(vdcGroupID)),
 					},
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
 					},
 				},
 			},
-			"vdc_group_id": superschema.SuperStringAttribute{
+			vdcGroupID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the VDC Group to which the firewall belongs.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
+						stringvalidator.AtLeastOneOf(path.MatchRoot(vdcGroupName), path.MatchRoot(vdcGroupID)),
 						fstringvalidator.PrefixContains(urn.VDCGroup.String()),
 					},
 					PlanModifiers: []planmodifier.String{
@@ -114,7 +114,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 							MarkdownDescription: "The ID of the rule.",
 						},
 					},
-					"name": superschema.SuperStringAttribute{
+					name: superschema.SuperStringAttribute{
 						Common: &schemaR.StringAttribute{
 							MarkdownDescription: "The name of the rule.",
 						},

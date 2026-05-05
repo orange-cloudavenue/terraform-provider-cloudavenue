@@ -55,7 +55,7 @@ func edgegwSchema() superschema.Schema {
 			},
 			"id": &superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The ID of the Edge Gateway.",
+					MarkdownDescription: edgeGatewayIDDescription,
 					Computed:            true,
 				},
 				Resource: &schemaR.StringAttribute{
@@ -64,9 +64,9 @@ func edgegwSchema() superschema.Schema {
 					},
 				},
 			},
-			"name": &superschema.SuperStringAttribute{
+			name: &superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
-					MarkdownDescription: "The name of the Edge Gateway.",
+					MarkdownDescription: edgeGatewayNameDescription,
 				},
 				Resource: &schemaR.StringAttribute{
 					Computed: true,
@@ -105,7 +105,7 @@ func edgegwSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
-			"description": &superschema.SuperStringAttribute{
+			description: &superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The description of the Edge Gateway.",
 					Computed:            true,

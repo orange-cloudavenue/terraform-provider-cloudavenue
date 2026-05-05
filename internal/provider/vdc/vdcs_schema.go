@@ -42,7 +42,7 @@ func vdcsSchema() superschema.Schema {
 					Computed:            true,
 				},
 				Attributes: superschema.Attributes{
-					"name": superschema.SuperStringAttribute{
+					attrName: superschema.SuperStringAttribute{
 						DataSource: &schemaD.StringAttribute{
 							MarkdownDescription: "The name of the vDC.",
 							Computed:            true,

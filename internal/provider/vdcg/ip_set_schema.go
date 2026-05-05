@@ -58,32 +58,32 @@ func ipSetSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"name": superschema.SuperStringAttribute{
+			name: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name of the IP Set.",
 					Required:            true,
 				},
 			},
-			"vdc_group_name": superschema.SuperStringAttribute{
+			vdcGroupName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The name VDC Group to which the ip set belongs.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
+						stringvalidator.AtLeastOneOf(path.MatchRoot(vdcGroupName), path.MatchRoot(vdcGroupID)),
 					},
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
 					},
 				},
 			},
-			"vdc_group_id": superschema.SuperStringAttribute{
+			vdcGroupID: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The ID of the VDC Group to which the ip set belongs.",
 					Optional:            true,
 					Computed:            true,
 					Validators: []validator.String{
-						stringvalidator.AtLeastOneOf(path.MatchRoot("vdc_group_name"), path.MatchRoot("vdc_group_id")),
+						stringvalidator.AtLeastOneOf(path.MatchRoot(vdcGroupName), path.MatchRoot(vdcGroupID)),
 						fstringvalidator.PrefixContains(urn.VDCGroup.String()),
 					},
 					PlanModifiers: []planmodifier.String{
@@ -91,7 +91,7 @@ func ipSetSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"description": superschema.SuperStringAttribute{
+			description: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The description of the IP Set.",
 				},

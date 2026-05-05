@@ -177,7 +177,7 @@ func (r *CredentialResource) Create(ctx context.Context, req resource.CreateRequ
 
 	if plan.SaveInFile.Get() {
 		type credentialFile struct {
-			AK string `json:"accesskey"` //nolint:gosec // G117: AK (access key) is intentionally part of the S3 credential resource schema
+			AK string `json:"accesskey"`
 			SK string `json:"secretkey"`
 		}
 

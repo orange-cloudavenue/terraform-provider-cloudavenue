@@ -53,7 +53,7 @@ func (r *VAppIsolatedNetworkDataSource) DependenciesConfig() (resp testsacc.Depe
 func (r *VAppIsolatedNetworkDataSource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
 		// * Test One (with vapp_name)
-		"example": func(_ context.Context, _ string) testsacc.Test {
+		testNameExample: func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{
 				Create: testsacc.TFConfig{
 					TFConfig: `
@@ -67,7 +67,7 @@ func (r *VAppIsolatedNetworkDataSource) Tests(_ context.Context) map[testsacc.Te
 			}
 		},
 		// * Test Two (with vapp_id)
-		"example_2": func(_ context.Context, _ string) testsacc.Test {
+		testNameExample2: func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{
 				Create: testsacc.TFConfig{
 					TFConfig: `

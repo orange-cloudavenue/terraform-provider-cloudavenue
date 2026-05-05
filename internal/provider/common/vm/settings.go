@@ -57,7 +57,7 @@ func (s *VMResourceModelSettings) attrTypes(customization *VMResourceModelSettin
 	return map[string]attr.Type{
 		"expose_hardware_virtualization": types.BoolType,
 		"os_type":                        types.StringType,
-		"storage_profile":                types.StringType,
+		attrStorageProfile:               types.StringType,
 		"guest_properties":               types.MapType{ElemType: guestProperties.AttrType()},
 		"affinity_rule_id":               types.StringType,
 		"customization":                  types.ObjectType{AttrTypes: customization.AttrTypes()},
@@ -69,7 +69,7 @@ func (s *VMResourceModelSettings) toAttrValues(_ context.Context) map[string]att
 	return map[string]attr.Value{
 		"expose_hardware_virtualization": s.ExposeHardwareVirtualization,
 		"os_type":                        s.OsType,
-		"storage_profile":                s.StorageProfile,
+		attrStorageProfile:               s.StorageProfile,
 		"guest_properties":               s.GuestProperties,
 		"affinity_rule_id":               s.AffinityRuleID,
 		"customization":                  s.Customization,
