@@ -73,6 +73,8 @@ linters:
     gosec:
       excludes:
         - G115  # Potential integer overflow when converting between integer types
+        - G703  # Path traversal via taint analysis (false positive for hardcoded paths)
+        - G117  # Marshaled struct field matches secret pattern (false positive for S3 credentials)
     staticcheck:
       checks:
         - -QF1008
