@@ -26,8 +26,8 @@ data "cloudavenue_edgegateway_app_port_profile" "example" {
 
 ### Optional
 
-- `edge_gateway_id` (String) ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`. This value must start with `urn:vcloud:gateway:`.
-- `edge_gateway_name` (String) Name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
+- `edge_gateway_id` (String) The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`. This value must start with `urn:vcloud:gateway:`.
+- `edge_gateway_name` (String) The name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
 - `id` (String) The ID of the App Port profile. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 - `name` (String) Application Port Profile name. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 - `scope` (String) The scope of the application port profile. This attribute is required only if the terraform apply return an error with the message `Multiple App Port Profiles found with the same name`. In this case, you must specify the scope of the application port profile. Value must be one of : `TENANT`, `PROVIDER`, `SYSTEM`.
