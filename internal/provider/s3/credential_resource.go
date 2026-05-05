@@ -186,7 +186,7 @@ func (r *CredentialResource) Create(ctx context.Context, req resource.CreateRequ
 			SK: cred.GetSecretKey(),
 		}
 
-		b, err := json.Marshal(credFile)
+		b, err := json.Marshal(credFile) //nolint:gosec // G117: intentionally marshaling S3 credentials to write to config file
 		if err != nil {
 			resp.Diagnostics.AddError("Error marshalling credential", err.Error())
 			return

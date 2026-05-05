@@ -66,7 +66,7 @@ func main() {
 	newContent := before + bandwidthMarker + "\n" + strings.Join(rules, "") + "\n" + after
 
 	// Write the content to the file
-	err = os.WriteFile(filePath, []byte(newContent), 0o600)
+	err = os.WriteFile(filePath, []byte(newContent), 0o600) //nolint:gosec // G703: filePath comes from CLI args, path traversal is intentional for doc generation
 	if err != nil {
 		log.Default().Printf("Failed to write file: %v", err)
 		os.Exit(1)
