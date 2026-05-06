@@ -1,0 +1,3 @@
+```release-note:dependency
+deps: bumps github.com/orange-cloudavenue/common-go/utils, github.com/orange-cloudavenue/common-go/validators from  to 
+```
