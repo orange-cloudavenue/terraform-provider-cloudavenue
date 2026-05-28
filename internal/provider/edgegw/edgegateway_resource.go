@@ -37,6 +37,7 @@ import (
 	commoncloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/common/cloudavenue"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
@@ -79,6 +80,167 @@ type edgeGatewayResource struct {
 	EdgeGatewayConfig
 }
 
+// modifyPlanHelper holds shared state for ModifyPlan sub-operations.
+type modifyPlanHelper struct {
+	r    *edgeGatewayResource
+	plan *edgeGatewayResourceModel
+	diag *diag.Diagnostics
+}
+
+// loadRemainingBandwidth returns the remaining bandwidth capacity for the T0.
+func (h *modifyPlanHelper) loadRemainingBandwidth() (int, error) {
+	edgegws, err := h.r.client.CAVSDK.V1.EdgeGateway.List()
+	if err != nil {
+		return 0, err
+	}
+
+	return edgegws.GetBandwidthCapacityRemaining(h.plan.Tier0VRFName.Get())
+}
+
+// validateAllowedBandwidth checks that the plan bandwidth is an allowed value.
+func (h *modifyPlanHelper) validateAllowedBandwidth() {
+	allowedValues, err := h.r.client.CAVSDK.V1.EdgeGateway.GetAllowedBandwidthValues(h.plan.Tier0VRFName.Get())
+	if err != nil {
+		h.diag.AddError("Error on calculating allowed Bandwidth values", err.Error())
+		return
+	}
+
+	if !slices.Contains(allowedValues, h.plan.Bandwidth.GetInt()) {
+		h.diag.AddError("Invalid Bandwidth value", fmt.Sprintf("Bandwidth value must be one of %v", allowedValues))
+	}
+}
+
+// bestValueAtMost returns the largest value in allowedValues that is <= value.
+func bestValueAtMost(value int, allowedValues []int) int {
+	var best int
+	for _, v := range allowedValues {
+		if v <= value && v > best {
+			best = v
+		}
+	}
+
+	return best
+}
+
+// modifyPlanCreateKnown handles the create case when bandwidth is already known.
+func (h *modifyPlanHelper) modifyPlanCreateKnown() bool {
+	h.validateAllowedBandwidth()
+	if h.diag.HasError() {
+		return false
+	}
+
+	remaining, err := h.loadRemainingBandwidth()
+	if err != nil {
+		if errors.Is(err, v1.ErrDedicatedT0BandwidthNotComputable) {
+			// API returns rateLimit=0 for dedicated T0s — capacity check is unreliable, skip it.
+			// Bandwidth will be validated by GetAllowedBandwidthValues only.
+			// See: https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1229
+			return true
+		}
+		if errors.Is(err, v1.ErrNoBandwidthCapacityRemaining) {
+			h.diag.AddError("Error on calculating remaining bandwidth", "Not enough bandwidth available")
+			return false
+		}
+		h.diag.AddError("Error on calculating remaining bandwidth", err.Error())
+
+		return false
+	}
+
+	if h.plan.Bandwidth.GetInt() > remaining {
+		h.diag.AddAttributeError(path.Root("bandwidth"), "Overcommitting bandwidth", fmt.Sprintf("Not enough bandwidth available, requested: %dMbps, available: %dMbps", h.plan.Bandwidth.GetInt(), remaining))
+	}
+
+	return true
+}
+
+// modifyPlanCreateUnknown handles the create case when bandwidth is not yet known.
+func (h *modifyPlanHelper) modifyPlanCreateUnknown() bool {
+	remaining, err := h.loadRemainingBandwidth()
+
+	allowedValues, errAllowed := h.r.client.CAVSDK.V1.EdgeGateway.GetAllowedBandwidthValues(h.plan.Tier0VRFName.Get())
+	if errAllowed != nil {
+		h.diag.AddError("Error on calculating allowed Bandwidth values", errAllowed.Error())
+		return false
+	}
+
+	if err != nil {
+		return h.modifyPlanCreateUnknownWithError(err, allowedValues)
+	}
+
+	remaining = bestValueAtMost(remaining, allowedValues)
+	h.diag.AddAttributeWarning(path.Root("bandwidth"), "Bandwidth value is unknown, will be set to remaining bandwidth", fmt.Sprintf("Bandwidth defined to %dMbps", remaining))
+	h.plan.Bandwidth.SetInt(remaining)
+
+	return true
+}
+
+// modifyPlanCreateUnknownWithError handles the dedicated-T0 and other error paths for the unknown-bandwidth create case.
+func (h *modifyPlanHelper) modifyPlanCreateUnknownWithError(err error, allowedValues []int) bool {
+	if errors.Is(err, v1.ErrDedicatedT0BandwidthNotComputable) {
+		// API returns rateLimit=0 for dedicated T0s — use the max allowed value as best effort.
+		// See: https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1229
+		if len(allowedValues) == 0 {
+			h.diag.AddError("Error on calculating allowed Bandwidth values", "No allowed bandwidth values returned for dedicated T0")
+			return false
+		}
+
+		maxAllowed := allowedValues[len(allowedValues)-1]
+		h.plan.Bandwidth.SetInt(maxAllowed)
+		h.diag.AddAttributeWarning(path.Root("bandwidth"), "Bandwidth value is unknown, will be set to max allowed value (dedicated T0)", fmt.Sprintf("Bandwidth defined to %dMbps", maxAllowed))
+
+		return true
+	}
+
+	if errors.Is(err, v1.ErrNoBandwidthCapacityRemaining) {
+		h.diag.AddError("Error on calculating remaining bandwidth", "Not enough bandwidth available")
+		return false
+	}
+
+	h.diag.AddError("Error on calculating remaining bandwidth", err.Error())
+
+	return false
+}
+
+// modifyPlanUpdate handles the bandwidth-update case.
+func (h *modifyPlanHelper) modifyPlanUpdate(state *edgeGatewayResourceModel) bool {
+	allowedValues, err := h.r.client.CAVSDK.V1.EdgeGateway.GetAllowedBandwidthValues(h.plan.Tier0VRFName.Get())
+	if err != nil {
+		h.diag.AddError("Error on calculating allowed Bandwidth values", err.Error())
+		return false
+	}
+
+	remaining, remainingErr := h.loadRemainingBandwidth()
+	if remainingErr != nil {
+		if errors.Is(remainingErr, v1.ErrDedicatedT0BandwidthNotComputable) {
+			// API returns rateLimit=0 for dedicated T0s — skip overcommit check.
+			// See: https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1229
+			h.validateAllowedBandwidth()
+			return true
+		}
+		if errors.Is(remainingErr, v1.ErrNoBandwidthCapacityRemaining) {
+			h.diag.AddError("Error on calculating remaining bandwidth", "Not enough bandwidth available")
+			return false
+		}
+		h.diag.AddError("Error on calculating remaining bandwidth", remainingErr.Error())
+
+		return false
+	}
+
+	remainingOnUpdate := bestValueAtMost(remaining+state.Bandwidth.GetInt(), allowedValues)
+
+	if h.plan.Bandwidth.IsUnknown() && remainingOnUpdate > 0 {
+		h.plan.Bandwidth.SetInt(remainingOnUpdate)
+	} else if h.plan.Bandwidth.GetInt() > remainingOnUpdate {
+		h.diag.AddAttributeError(path.Root("bandwidth"), "Overcommitting bandwidth", fmt.Sprintf("Not enough bandwidth available, requested: %dMbps, available: %dMbps", h.plan.Bandwidth.GetInt(), remainingOnUpdate))
+		return false
+	}
+
+	// Only reached for non-dedicated T0s (dedicated T0s return early above).
+	h.validateAllowedBandwidth()
+
+	return true
+}
+
 // ModifyPlan modifies the plan to add the default values.
 func (r *edgeGatewayResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	var (
@@ -92,46 +254,13 @@ func (r *edgeGatewayResource) ModifyPlan(ctx context.Context, req resource.Modif
 		return
 	}
 
-	loadRemainingBandwidth := func() (int, error) {
-		edgegws, err := r.client.CAVSDK.V1.EdgeGateway.List()
-		if err != nil {
-			return 0, err
-		}
-
-		return edgegws.GetBandwidthCapacityRemaining(plan.Tier0VRFName.Get())
-	}
-
-	allowedValuesFunc := func() {
-		allowedValues, err := r.client.CAVSDK.V1.EdgeGateway.GetAllowedBandwidthValues(plan.Tier0VRFName.Get())
-		if err != nil {
-			resp.Diagnostics.AddError("Error on calculating allowed Bandwidth values", err.Error())
-			return
-		}
-
-		if !slices.Contains(allowedValues, plan.Bandwidth.GetInt()) { //nolint:govet
-			resp.Diagnostics.AddError("Invalid Bandwidth value", fmt.Sprintf("Bandwidth value must be one of %v", allowedValues))
-			return
-		}
-	}
-
-	// determine la valeur autorisé la plus proche de la valeur demandé
-	calculBestValue := func(value int, allowedValues []int) int {
-		var bestValue int
-		for _, v := range allowedValues {
-			if v <= value && v > bestValue {
-				bestValue = v
-			}
-		}
-		return bestValue
-	}
-
 	// If the plan is nil, then this is a delete operation.
 	if plan == nil {
 		return
 	}
 
-	// If Tier0VRFName is not known, we need to find the T0
-	// IF multiple T0s are available, return an error
+	// If Tier0VRFName is not known, we need to find the T0.
+	// If multiple T0s are available, return an error.
 	if !plan.Tier0VRFName.IsKnown() {
 		t0s, err := r.client.CAVSDK.V1.T0.GetT0s()
 		if err != nil {
@@ -139,86 +268,32 @@ func (r *edgeGatewayResource) ModifyPlan(ctx context.Context, req resource.Modif
 			return
 		}
 
-		if len(*t0s) == 0 {
+		switch len(*t0s) {
+		case 0:
 			resp.Diagnostics.AddError("Error listing T0s", "No T0s found")
 			return
-		}
-
-		if len(*t0s) > 1 {
+		case 1:
+			plan.Tier0VRFName.Set((*t0s)[0].GetName())
+		default:
 			resp.Diagnostics.AddError("Error listing T0s", "Multiple T0s found, please specify the T0 name")
 			return
 		}
-
-		plan.Tier0VRFName.Set((*t0s)[0].GetName())
 	}
+
+	h := &modifyPlanHelper{r: r, plan: plan, diag: &resp.Diagnostics}
 
 	switch {
-	// Create case with value is known
 	case plan.Bandwidth.IsKnown() && (state == nil || !state.Bandwidth.IsKnown()):
-		allowedValuesFunc()
-		remaining, err := loadRemainingBandwidth()
-		if err != nil {
-			if errors.Is(err, fmt.Errorf("no bandwidth capacity remaining")) {
-				resp.Diagnostics.AddError("Error on calculating remaining bandwidth", "Not enough bandwidth available")
-				return
-			}
-			resp.Diagnostics.AddError("Error on calculating remaining bandwidth", err.Error())
-			return
-		}
-
-		if plan.Bandwidth.GetInt() > remaining {
-			resp.Diagnostics.AddAttributeError(path.Root("bandwidth"), "Overcommitting bandwidth", fmt.Sprintf("Not enough bandwidth available, requested: %dMbps, available: %dMbps", plan.Bandwidth.GetInt(), remaining))
-		}
-		goto END
-
-	// Create case with value is unknown
+		// Create case: bandwidth value is already known.
+		h.modifyPlanCreateKnown()
 	case !plan.Bandwidth.IsKnown():
-		remaining, err := loadRemainingBandwidth()
-		if err != nil {
-			if errors.Is(err, fmt.Errorf("no bandwidth capacity remaining")) {
-				resp.Diagnostics.AddError("Error on calculating remaining bandwidth", "Not enough bandwidth available")
-				return
-			}
-			resp.Diagnostics.AddError("Error on calculating remaining bandwidth", err.Error())
-			return
-		}
-
-		allowedValues, err := r.client.CAVSDK.V1.EdgeGateway.GetAllowedBandwidthValues(plan.Tier0VRFName.Get())
-		if err != nil {
-			resp.Diagnostics.AddError("Error on calculating allowed Bandwidth values", err.Error())
-			return
-		}
-
-		remaining = calculBestValue(remaining, allowedValues)
-
-		resp.Diagnostics.AddAttributeWarning(path.Root("bandwidth"), "Bandwidth value is unknown, will be set to remaining bandwidth", fmt.Sprintf("Bandwidth defined to %dMbps", remaining))
-		plan.Bandwidth.SetInt(remaining)
-		goto END
-
-	// Update case
+		// Create case: bandwidth value is not yet known (computed).
+		h.modifyPlanCreateUnknown()
 	case !plan.Bandwidth.Equal(state.Bandwidth):
-		allowedValues, err := r.client.CAVSDK.V1.EdgeGateway.GetAllowedBandwidthValues(plan.Tier0VRFName.Get())
-		if err != nil {
-			resp.Diagnostics.AddError("Error on calculating allowed Bandwidth values", err.Error())
-			return
-		}
-
-		// Ignore error because recalculating remaining bandwidth with bandwidth released by the update
-		remaining, _ := loadRemainingBandwidth()
-		remainingOnUpdate := calculBestValue(remaining+state.Bandwidth.GetInt(), allowedValues)
-
-		if plan.Bandwidth.IsUnknown() && remainingOnUpdate > 0 {
-			plan.Bandwidth.SetInt(remainingOnUpdate)
-		} else if plan.Bandwidth.GetInt() > remainingOnUpdate {
-			resp.Diagnostics.AddAttributeError(path.Root("bandwidth"), "Overcommitting bandwidth", fmt.Sprintf("Not enough bandwidth available, requested: %dMbps, available: %dMbps", plan.Bandwidth.GetInt(), remainingOnUpdate))
-			return
-		}
-
-		allowedValuesFunc()
-		goto END
+		// Update case: bandwidth value changed.
+		h.modifyPlanUpdate(state)
 	}
 
-END:
 	resp.Diagnostics.Append(resp.Plan.Set(ctx, plan)...)
 }
 
@@ -344,25 +419,17 @@ func (r *edgeGatewayResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	// Related in issue #1069 if the T0 is dedicated, the bandwidth is not mandatory.
-	// BUG: Currently the API does not allow to set the bandwidth if the T0 is dedicated.
-	t0, err := r.client.CAVSDK.V1.T0.GetT0(plan.Tier0VRFName.Get())
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving T0", err.Error())
-		return
-	}
-
-	// Workaround for the API not allowing to set the bandwidth if the T0 is dedicated.
-	// If the T0 is dedicated, the bandwidth is ignored.
-	if !(t0.ClassService.IsVRFDedicatedLarge() || t0.ClassService.IsVRFDedicatedMedium()) && edgegwNew.GetBandwidth() != plan.Bandwidth.GetInt() {
+	if edgegwNew.GetBandwidth() != plan.Bandwidth.GetInt() {
 		job, err = edgegwNew.UpdateBandwidth(plan.Bandwidth.GetInt())
 		if err != nil {
 			resp.Diagnostics.AddError("Error setting Bandwidth", err.Error())
+			return
 		}
 
 		if job != nil {
 			if err := job.Wait(1, int(createTimeout.Seconds())); err != nil {
 				resp.Diagnostics.AddError("Error waiting for Bandwidth update", err.Error())
+				return
 			}
 		}
 	}
