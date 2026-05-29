@@ -352,6 +352,11 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
+	if vdc == nil {
+		resp.Diagnostics.AddError("Error updating VDC", fmt.Sprintf("VDC %q was returned as nil by the API without an error, this is likely a transient issue, please retry", plan.Name.Get()))
+		return
+	}
+
 	vdc.SetDescription(plan.Description.Get())
 	vdc.SetVCPUInMhz(plan.VCPUInMhz.GetInt())
 	vdc.SetCPUAllocated(plan.CPUAllocated.GetInt())
@@ -384,7 +389,12 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		state.Timeouts = plan.Timeouts
 	}
 
-	stateRefreshed, _, d := r.read(ctx, state)
+	stateRefreshed, found, d := r.read(ctx, state)
+	if !found {
+		resp.State.RemoveResource(ctx)
+		resp.Diagnostics.AddWarning("Resource not found after update", fmt.Sprintf("Unable to find VDC %s after update", state.Name.Get()))
+		return
+	}
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -408,7 +418,7 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
 
-	// Update() is passed a default timeout to use if no value
+	// Delete() is passed a default timeout to use if no value
 	// has been supplied in the Terraform configuration.
 	deleteTimeout, errTO := state.Timeouts.Delete(ctx, 5*time.Minute)
 	if errTO != nil {
@@ -424,7 +434,15 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	vdc, err := r.client.CAVSDK.V1.VDC().GetVDC(state.Name.Get())
 	if err != nil {
+		if govcd.IsNotFound(err) {
+			return // VDC already deleted, nothing to do
+		}
 		resp.Diagnostics.AddError("Error reading VDC", err.Error())
+		return
+	}
+
+	if vdc == nil {
+		resp.Diagnostics.AddError("Error deleting VDC", fmt.Sprintf("VDC %q was returned as nil by the API without an error, this is likely a transient issue, please retry", state.Name.Get()))
 		return
 	}
 
@@ -455,6 +473,11 @@ func (r *vdcResource) read(ctx context.Context, planOrState *vdcResourceModel) (
 		return nil, true, diags
 	}
 
+	if vdc == nil {
+		diags.AddError("Error reading VDC", fmt.Sprintf("VDC %q was returned as nil by the API without an error, this is likely a transient issue, please retry", planOrState.Name.Get()))
+		return nil, true, diags
+	}
+
 	stateRefreshed.ID.Set(vdc.GetID())
 	stateRefreshed.Name.Set(vdc.GetName())
 	stateRefreshed.Description.Set(vdc.GetDescription())
@@ -477,7 +500,7 @@ func (r *vdcResource) read(ctx context.Context, planOrState *vdcResourceModel) (
 
 	diags.Append(stateRefreshed.StorageProfiles.Set(ctx, storageProfiles)...)
 	if diags.HasError() {
-		return stateRefreshed, found, diags
+		return nil, true, diags
 	}
 
 	return stateRefreshed, true, diags
