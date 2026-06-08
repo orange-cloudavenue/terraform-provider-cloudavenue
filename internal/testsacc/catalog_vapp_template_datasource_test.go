@@ -60,7 +60,7 @@ func (r *CatalogVAppTemplateDataSource) Tests(_ context.Context) map[testsacc.Te
 					TFConfig: `
 					data "cloudavenue_catalog_vapp_template" "example" {
 						catalog_name  	= "Orange-Linux"
-						template_name 	= "UBUNTU_20.04"
+						template_name 	= "UBUNTU_22.04"
 					}`,
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VAPPTemplate)),
@@ -68,7 +68,7 @@ func (r *CatalogVAppTemplateDataSource) Tests(_ context.Context) map[testsacc.Te
 						resource.TestCheckResourceAttr(resourceName, "catalog_name", "Orange-Linux"),
 						resource.TestCheckResourceAttrWith(resourceName, "catalog_id", urn.TestIsType(urn.Catalog)),
 
-						resource.TestCheckResourceAttr(resourceName, "template_name", "UBUNTU_20.04"),
+						resource.TestCheckResourceAttr(resourceName, "template_name", "UBUNTU_22.04"),
 						resource.TestCheckResourceAttrWith(resourceName, "template_id", urn.TestIsType(urn.VAPPTemplate)),
 						// Other
 						resource.TestCheckResourceAttrSet(resourceName, "created_at"),
