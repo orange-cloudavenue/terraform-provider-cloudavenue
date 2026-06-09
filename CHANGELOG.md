@@ -1,4 +1,9 @@
 ## 0.36.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_publicip` - Fixed public IP creation failing with `Edge not found` (err-0009) when `edge_gateway_id` references a `cloudavenue_edgegateway` resource. The edge gateway URN was incorrectly passed directly to the CloudAvenue API instead of the bare UUID. (GH-1233)
+
 ## 0.35.3 (May  5, 2026)
 
 ### :tada: **Improvements**
