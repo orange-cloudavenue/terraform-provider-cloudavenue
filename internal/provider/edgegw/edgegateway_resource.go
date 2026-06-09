@@ -108,7 +108,7 @@ func (r *edgeGatewayResource) ModifyPlan(ctx context.Context, req resource.Modif
 			return
 		}
 
-		if !slices.Contains(allowedValues, plan.Bandwidth.GetInt()) {
+		if !slices.Contains(allowedValues, plan.Bandwidth.GetInt()) { //nolint:govet
 			resp.Diagnostics.AddError("Invalid Bandwidth value", fmt.Sprintf("Bandwidth value must be one of %v", allowedValues))
 			return
 		}

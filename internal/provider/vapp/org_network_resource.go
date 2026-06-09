@@ -291,7 +291,7 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 
 	// if vapp not contains VMs, is not possible to PowerOff or Undeploy vApp (error 400)
-	if !slices.Contains(vAppRequiredStatuses, r.vapp.VApp.VApp.Status) {
+	if !slices.Contains(vAppRequiredStatuses, r.vapp.VApp.VApp.Status) { //nolint:govet
 		if r.vapp.VApp.VApp.Children == nil || len(r.vapp.VApp.VApp.Children.VM) == 0 {
 			task, err := r.vapp.Undeploy()
 			if err != nil {
@@ -326,7 +326,7 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 	// 19: "VAPP_PARTIALLY_DEPLOYED"
 	// 20: "PARTIALLY_POWERED_OFF"
 	// 21: "PARTIALLY_SUSPENDED"
-	if slices.Contains([]int{4, 19, 20, 21}, vAppStatusBeforeAction) {
+	if slices.Contains([]int{4, 19, 20, 21}, vAppStatusBeforeAction) { //nolint:govet
 		// Power On vApp
 		task, err := r.vapp.PowerOn()
 		if err != nil {
