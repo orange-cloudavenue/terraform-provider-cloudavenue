@@ -1,4 +1,9 @@
 ## 0.36.0 (Unreleased)
+
+### :page_facing_up: **Documentation**
+
+* `resource/cloudavenue_network_routed` - Fixed migration guide for `cloudavenue_edgegateway_network_routed`: added Terraform >= 1.8 requirement for cross-type `moved` block support, fixed single resource example, and added `for_each` migration instructions. (GH-1231)
+
 ## 0.35.3 (May  5, 2026)
 
 ### :tada: **Improvements**
