@@ -142,7 +142,9 @@ func (r *publicIPResource) Create(ctx context.Context, req resource.CreateReques
 	defer cloudavenue.Unlock(ctx)
 
 	// * Create the public IP
-	job, err := r.client.CAVSDK.V1.PublicIP.New(r.edgegw.GetID())
+	// GetID() returns the VCD URN (urn:vcloud:gateway:...) from the OpenAPI response.
+	// The CloudAvenue API endpoint /v2.0/services expects a bare UUID, so we strip the URN prefix.
+	job, err := r.client.CAVSDK.V1.PublicIP.New(urn.ExtractUUID(r.edgegw.GetID()))
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating Public IP",

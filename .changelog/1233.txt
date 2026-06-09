@@ -1,0 +1,3 @@
+```release-note:bug
+`resource/cloudavenue_publicip` - Fixed public IP creation failing with `Edge not found` (err-0009) when `edge_gateway_id` references a `cloudavenue_edgegateway` resource. The edge gateway URN was incorrectly passed directly to the CloudAvenue API instead of the bare UUID.
+```

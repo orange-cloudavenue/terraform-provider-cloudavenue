@@ -20,6 +20,8 @@ package testsacc
 
 import (
 	"context"
+	"fmt"
+	"net"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -33,6 +35,15 @@ var _ testsacc.TestACC = &PublicIPResource{}
 const (
 	PublicIPResourceName = testsacc.ResourceName("cloudavenue_publicip")
 )
+
+// isIPv4 checks that the given value is a valid IPv4 address using net.ParseIP.
+func isIPv4(value string) error {
+	ip := net.ParseIP(value)
+	if ip == nil || ip.To4() == nil {
+		return fmt.Errorf("expected a valid IPv4 address, got: %s", value)
+	}
+	return nil
+}
 
 type PublicIPResource struct{}
 
@@ -56,7 +67,7 @@ func (r *PublicIPResource) Tests(_ context.Context) map[testsacc.TestName]func(c
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "public_ip"),
+					resource.TestCheckResourceAttrWith(resourceName, "public_ip", isIPv4),
 					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
 				},
@@ -92,18 +103,19 @@ func (r *PublicIPResource) Tests(_ context.Context) map[testsacc.TestName]func(c
 				},
 			}
 		},
+
 		"example_with_edge_name": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{},
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
-						resource "cloudavenue_publicip" "example_with_edge_name" {
-							edge_gateway_name = cloudavenue_edgegateway.example.name
-						}`,
+					resource "cloudavenue_publicip" "example_with_edge_name" {
+						edge_gateway_name = cloudavenue_edgegateway.example.name
+					}`,
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
-						resource.TestCheckResourceAttrSet(resourceName, "public_ip"),
+						resource.TestCheckResourceAttrWith(resourceName, "public_ip", isIPv4),
 						resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 						resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
 					},
