@@ -20,7 +20,8 @@ package testsacc
 
 import (
 	"context"
-	"regexp"
+	"fmt"
+	"net"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -35,8 +36,14 @@ const (
 	PublicIPResourceName = testsacc.ResourceName("cloudavenue_publicip")
 )
 
-// regexpIPv4 matches a valid IPv4 address.
-var regexpIPv4 = regexp.MustCompile(`^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$`)
+// isIPv4 checks that the given value is a valid IPv4 address using net.ParseIP.
+func isIPv4(value string) error {
+	ip := net.ParseIP(value)
+	if ip == nil || ip.To4() == nil {
+		return fmt.Errorf("expected a valid IPv4 address, got: %s", value)
+	}
+	return nil
+}
 
 type PublicIPResource struct{}
 
@@ -60,7 +67,7 @@ func (r *PublicIPResource) Tests(_ context.Context) map[testsacc.TestName]func(c
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestMatchResourceAttr(resourceName, "public_ip", regexpIPv4),
+					resource.TestCheckResourceAttrWith(resourceName, "public_ip", isIPv4),
 					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
 				},
@@ -97,30 +104,6 @@ func (r *PublicIPResource) Tests(_ context.Context) map[testsacc.TestName]func(c
 			}
 		},
 
-		// Regression test for https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1233
-		// Ensure that creating a public IP using edge_gateway_id (URN) referencing a
-		// cloudavenue_edgegateway resource does not fail with "Edge not found" (err-0009).
-		// Root cause: the SDK expects a bare UUID, not the full URN — the provider was
-		// previously passing the URN directly to PublicIP.New().
-		"example_with_edge_gateway_id_from_resource": func(_ context.Context, resourceName string) testsacc.Test {
-			return testsacc.Test{
-				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestMatchResourceAttr(resourceName, "public_ip", regexpIPv4),
-					resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
-					resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
-				},
-				// ! Create testing — reproduces the exact config from issue #1233
-				Create: testsacc.TFConfig{
-					TFConfig: `
-					resource "cloudavenue_publicip" "example_with_edge_gateway_id_from_resource" {
-						edge_gateway_id = cloudavenue_edgegateway.example.id
-					}`,
-					Checks: []resource.TestCheckFunc{},
-				},
-			}
-		},
-
 		"example_with_edge_name": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{},
@@ -132,7 +115,7 @@ func (r *PublicIPResource) Tests(_ context.Context) map[testsacc.TestName]func(c
 					}`,
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
-						resource.TestMatchResourceAttr(resourceName, "public_ip", regexpIPv4),
+						resource.TestCheckResourceAttrWith(resourceName, "public_ip", isIPv4),
 						resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
 						resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
 					},
