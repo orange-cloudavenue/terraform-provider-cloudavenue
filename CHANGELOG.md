@@ -1,4 +1,13 @@
 ## 0.36.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vdc` - Fixed nil pointer panics caused by VDC objects or their underlying objects being nil when handling partial API responses. (GH-1225)
+
+### :dependabot: **Dependencies**
+
+* deps: bump `cloudavenue-sdk-go` to v0.27.4, `terraform-plugin-framework` to v1.19.0, `terraform-plugin-go` to v0.31.0, `terraform-plugin-sdk/v2` to v2.40.1. (GH-1225)
+
 ## 0.35.3 (May  5, 2026)
 
 ### :tada: **Improvements**
