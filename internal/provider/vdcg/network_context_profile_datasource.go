@@ -120,7 +120,8 @@ func (d *networkContextProfileDataSource) Read(ctx context.Context, req datasour
 	stateRefreshed.VDCGroupID.Set(d.vdcGroup.GetID())
 	stateRefreshed.VDCGroupName.Set(d.vdcGroup.GetName())
 
-	attrBlocks := attributeBlocksFromSDKProfile(ctx, profile, &resp.Diagnostics)
+	attrBlocks, diags := attributesFromSDKProfile(ctx, profile)
+	resp.Diagnostics.Append(diags...)
 	resp.Diagnostics.Append(stateRefreshed.Attribute.Set(ctx, attrBlocks)...)
 	if resp.Diagnostics.HasError() {
 		return

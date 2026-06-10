@@ -11,10 +11,13 @@ package vdcg
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+
+	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
@@ -33,6 +36,7 @@ var (
 	_ resource.ResourceWithImportState = &networkContextProfileResource{}
 )
 
+// NewNetworkContextProfileResource returns a new network context profile resource.
 func NewNetworkContextProfileResource() resource.Resource {
 	return &networkContextProfileResource{}
 }
@@ -42,6 +46,7 @@ type networkContextProfileResource struct {
 	vdcGroup *sdkv1.VDCGroup
 }
 
+// Init initializes the resource by retrieving the VDC Group.
 func (r *networkContextProfileResource) Init(_ context.Context, rm *networkContextProfileModel) (diags diag.Diagnostics) {
 	var err error
 
@@ -248,7 +253,7 @@ func (r *networkContextProfileResource) ImportState(ctx context.Context, req res
 		x.VDCGroupName.Set(vdcgIDOrName)
 	}
 
-	if strings.HasPrefix(profileIDOrName, string(urn.NetworkContextProfile)) {
+	if urn.IsNetworkContextProfile(profileIDOrName) {
 		x.ID.Set(profileIDOrName)
 	} else {
 		x.Name.Set(profileIDOrName)
@@ -287,7 +292,7 @@ func (r *networkContextProfileResource) read(ctx context.Context, planOrState *n
 	}
 
 	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
+		if errors.Is(err, govcd.ErrorEntityNotFound) {
 			return stateRefreshed, false, nil
 		}
 		diags.AddError("Error reading Network Context Profile", err.Error())

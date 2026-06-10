@@ -115,12 +115,17 @@ func (rm *networkContextProfileModel) fromSDKProfile(ctx context.Context, p *sdk
 	rm.Description.Set(p.Description)
 	rm.Scope.Set(string(p.Scope))
 
-	diags.Append(rm.Attribute.Set(ctx, attributeBlocksFromSDKProfile(ctx, p, &diags))...)
+	attrBlocks, d := attributesFromSDKProfile(ctx, p)
+	diags.Append(d...)
+	diags.Append(rm.Attribute.Set(ctx, attrBlocks)...)
 	return diags
 }
 
-// attributeBlocksFromSDKProfile is shared between resource and datasource read paths.
-func attributeBlocksFromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextProfile, diags *diag.Diagnostics) []*networkContextProfileModelAttribute {
+// attributesFromSDKProfile is shared between resource and datasource read paths.
+// It converts a SDK NetworkContextProfile to a list of attribute blocks.
+func attributesFromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextProfile) ([]*networkContextProfileModelAttribute, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
 	attrBlocks := make([]*networkContextProfileModelAttribute, 0)
 	for _, attr := range p.Attributes {
 		if attr.Type != sdkv1.NetworkContextProfileAttributeTypeAppID {
@@ -147,5 +152,6 @@ func attributeBlocksFromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextP
 			attrBlocks = append(attrBlocks, block)
 		}
 	}
-	return attrBlocks
+
+	return attrBlocks, diags
 }
