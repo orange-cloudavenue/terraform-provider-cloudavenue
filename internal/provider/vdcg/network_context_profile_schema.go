@@ -125,8 +125,9 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 			},
 			"attribute": superschema.SuperListNestedAttributeOf[networkContextProfileModelAttribute]{
 				Common: &schemaR.ListNestedAttribute{
-					MarkdownDescription: "List of App ID attributes. Each block defines one Layer 7 application identifier with optional sub-attributes.\n\n" +
-						"  ~> **Note:** Sub-attributes (`sub_attribute`) are only supported when the profile contains exactly **one** `attribute` block.",
+					MarkdownDescription: "List of App ID attributes. Each entry defines one Layer 7 application identifier.\n\n" +
+						"  ~> **Note:** Sub-attributes (`sub_attribute`) are only supported when the profile contains exactly **one** `attribute` block. " +
+						"If multiple `attribute` blocks are defined, `sub_attribute` must be omitted.",
 				},
 				Resource: &schemaR.ListNestedAttribute{
 					Required: true,
@@ -180,13 +181,19 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 							},
 							"values": superschema.SuperSetAttributeOf[string]{
 								Common: &schemaR.SetAttribute{
-									MarkdownDescription: "The set of allowed values for this sub-attribute type.",
-									ElementType:         supertypes.StringType{},
+									MarkdownDescription: "The set of allowed values for this sub-attribute type.\n\n" +
+										"  - `TLS_VERSION`: `TLS_V10`, `TLS_V11`, `TLS_V12`, `TLS_V13`\n" +
+										"  - `TLS_CIPHER_SUITE`: standard cipher suite identifiers (e.g. `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`)\n" +
+										"  - `CIFS_SMB_VERSION`: `CIFS_SMB_V1`, `CIFS_SMB_V2`, `CIFS_SMB_V3`",
+									ElementType: supertypes.StringType{},
 								},
 								Resource: &schemaR.SetAttribute{
 									Required: true,
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
+										setvalidator.ValueStringsAre(
+											stringvalidator.OneOf(sdkv1.NetworkContextProfileKnownSubAttributeValues...),
+										),
 									},
 								},
 								DataSource: &schemaD.SetAttribute{
