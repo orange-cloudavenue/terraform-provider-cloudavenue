@@ -1,0 +1,50 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Edge Gateway (Tier-1)"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+Network Context Profiles are available in three scopes:
+- **SYSTEM** — predefined by VMware/NSX-T (e.g. `SSL`, `CIFS`, `HTTP`, `DNS`, `SSH`). Read-only.
+- **PROVIDER** — defined by Orange at platform level. Read-only.
+- **TENANT** — created by the customer via `cloudavenue_edgegateway_network_context_profile`. Fully manageable.
+
+Use this data source to reference a SYSTEM or PROVIDER profile by name in a Firewall Rule via `context_profile_ids`.
+
+{{ if .HasExample -}}
+## Example Usage
+
+{{ tffile .ExampleFile }}
+{{- end }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Advanced Usage
+
+Use the profile ID in a Firewall Rule:
+
+```terraform
+data "cloudavenue_edgegateway_network_context_profile" "ssl" {
+  edge_gateway_name = cloudavenue_edgegateway.example.name
+  name              = "SSL"
+}
+
+resource "cloudavenue_edgegateway_firewall" "example" {
+  edge_gateway_name = cloudavenue_edgegateway.example.name
+  rules = [
+    {
+      name        = "allow outbound SSL"
+      action      = "ALLOW"
+      direction   = "OUT"
+      ip_protocol = "IPV4"
+
+      context_profile_ids = [data.cloudavenue_edgegateway_network_context_profile.ssl.id]
+    }
+  ]
+}
+```

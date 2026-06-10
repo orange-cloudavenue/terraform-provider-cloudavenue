@@ -376,6 +376,120 @@ func (r *EdgeGatewayFirewallResource) Tests(_ context.Context) map[testsacc.Test
 				},
 			}
 		},
+		// example_with_context_profile validates that network_context_profile_ids can be used
+		// in firewall rules for Layer 7 filtering (issue #1211).
+		"example_with_context_profile": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
+				},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetDataSourceConfig()[EdgeGatewayNetworkContextProfileDatasourceName]().GetDefaultConfig)
+					return resp
+				},
+				// ! Create testing — firewall rule using a system context profile (SSL)
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					resource "cloudavenue_edgegateway_firewall" "example_with_context_profile" {
+					  edge_gateway_id = cloudavenue_edgegateway.example.id
+					  rules = [
+					    {
+					      action      = "ALLOW"
+					      name        = "allow outbound SSL traffic"
+					      direction   = "OUT"
+					      ip_protocol = "IPV4"
+
+					      network_context_profile_ids = [data.cloudavenue_edgegateway_network_context_profile.example.id]
+					    },
+					    {
+					      action      = "DROP"
+					      name        = "block all inbound"
+					      direction   = "IN"
+					      ip_protocol = "IPV4_IPV6"
+					    }
+					  ]
+					}`,
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "rules.#", "2"),
+
+						resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow outbound SSL traffic"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.action", "ALLOW"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.direction", "OUT"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.network_context_profile_ids.#", "1"),
+						resource.TestCheckResourceAttrSet(resourceName, "rules.0.network_context_profile_ids.0"),
+
+						resource.TestCheckResourceAttr(resourceName, "rules.1.name", "block all inbound"),
+						resource.TestCheckResourceAttr(resourceName, "rules.1.action", "DROP"),
+						resource.TestCheckResourceAttr(resourceName, "rules.1.direction", "IN"),
+						resource.TestCheckResourceAttr(resourceName, "rules.1.network_context_profile_ids.#", "0"),
+					},
+				},
+				// ! Update testing — add a second context profile (CIFS)
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: `
+						data "cloudavenue_edgegateway_network_context_profile" "cifs" {
+							edge_gateway_name = cloudavenue_edgegateway.example.name
+							name              = "CIFS"
+						}
+
+						resource "cloudavenue_edgegateway_firewall" "example_with_context_profile" {
+						  edge_gateway_id = cloudavenue_edgegateway.example.id
+						  rules = [
+						    {
+						      action      = "ALLOW"
+						      name        = "allow outbound SSL and CIFS"
+						      direction   = "OUT"
+						      ip_protocol = "IPV4"
+
+						      network_context_profile_ids = [
+						        data.cloudavenue_edgegateway_network_context_profile.example.id,
+						        data.cloudavenue_edgegateway_network_context_profile.cifs.id,
+						      ]
+						    },
+						    {
+						      action      = "DROP"
+						      name        = "block all inbound"
+						      direction   = "IN"
+						      ip_protocol = "IPV4_IPV6"
+						    }
+						  ]
+						}`,
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow outbound SSL and CIFS"),
+							resource.TestCheckResourceAttr(resourceName, "rules.0.network_context_profile_ids.#", "2"),
+						},
+					},
+					// Remove context profiles — verify no drift
+					{
+						TFConfig: `
+						resource "cloudavenue_edgegateway_firewall" "example_with_context_profile" {
+						  edge_gateway_id = cloudavenue_edgegateway.example.id
+						  rules = [
+						    {
+						      action      = "ALLOW"
+						      name        = "allow all outbound"
+						      direction   = "OUT"
+						      ip_protocol = "IPV4"
+						    }
+						  ]
+						}`,
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
+							resource.TestCheckResourceAttr(resourceName, "rules.0.network_context_profile_ids.#", "0"),
+						},
+					},
+				},
+				// ! Import testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{testAttrEdgeGatewayID},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
+			}
+		},
 	}
 }
 

@@ -22,6 +22,7 @@ import (
 	"context"
 
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -232,6 +233,18 @@ func firewallSchema(_ context.Context) superschema.Schema {
 					"app_port_profile_ids": superschema.SuperSetAttributeOf[string]{
 						Common: &schemaR.SetAttribute{
 							MarkdownDescription: "A set of [Application Port Profile](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_app_port_profile) IDs. Leaving it empty means `Any` (all).",
+						},
+						Resource: &schemaR.SetAttribute{
+							Optional: true,
+						},
+						DataSource: &schemaD.SetAttribute{
+							Computed: true,
+						},
+					},
+					"network_context_profile_ids": superschema.SuperSetAttributeOf[string]{
+						Common: &schemaR.SetAttribute{
+							MarkdownDescription: "A set of Network Context Profile IDs (Layer 7). Use `data.cloudavenue_vdcg_network_context_profile` to look up a SYSTEM/PROVIDER profile by name, or reference a `cloudavenue_vdcg_network_context_profile` resource directly. Leaving it empty means `Any` (all).",
+							ElementType:         supertypes.StringType{},
 						},
 						Resource: &schemaR.SetAttribute{
 							Optional: true,

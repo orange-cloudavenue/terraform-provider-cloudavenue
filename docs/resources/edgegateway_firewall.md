@@ -81,6 +81,7 @@ Optional:
 - `enabled` (Boolean) Defines if the rule is enabled or not. Value defaults to `true`.
 - `ip_protocol` (String) The IP protocol of the rule. Value defaults to `IPV4`. Value must be one of : `IPV4`, `IPV6`, `IPV4_IPV6`.
 - `logging` (Boolean) Defines if the rule should log matching traffic. Value defaults to `false`.
+- `network_context_profile_ids` (Set of String) A set of Network Context Profile IDs (Layer 7). Use `data.cloudavenue_edgegateway_network_context_profile` to look up a SYSTEM/PROVIDER profile by name, or reference a `cloudavenue_edgegateway_network_context_profile` resource directly. Leaving it empty means `Any` (all).
 - `source_ids` (Set of String) A set of Source Firewall Group IDs (`IP Sets` or `Security Groups`). Leaving it empty means `Any` (all).
 
 Read-Only:
