@@ -7,5 +7,17 @@ data.cloudavenue_edgegateway_network_context_profile
 ```
 
 ```release-note:enhancement
-`cloudavenue_edgegateway_firewall` - Add `context_profile_ids` attribute to firewall rules for Layer 7 Network Context Profile filtering.
+`cloudavenue_edgegateway_firewall` - Add `network_context_profile_ids` attribute to firewall rules for Layer 7 Network Context Profile filtering.
+```
+
+```release-note:new-resource
+cloudavenue_vdcg_network_context_profile
+```
+
+```release-note:new-datasource
+data.cloudavenue_vdcg_network_context_profile
+```
+
+```release-note:enhancement
+`cloudavenue_vdcg_firewall` - Add `network_context_profile_ids` attribute to firewall rules for Layer 7 Network Context Profile filtering.
 ```
