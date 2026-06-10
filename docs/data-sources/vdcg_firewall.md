@@ -46,5 +46,6 @@ Read-Only:
 - `ip_protocol` (String) The IP protocol of the rule.
 - `logging` (Boolean) Defines if the rule should log matching traffic.
 - `name` (String) The name of the rule.
+- `network_context_profile_ids` (Set of String) A set of Network Context Profile IDs (Layer 7). Use `data.cloudavenue_vdcg_network_context_profile` to look up a SYSTEM/PROVIDER profile by name, or reference a `cloudavenue_vdcg_network_context_profile` resource directly. Leaving it empty means `Any` (all).
 - `source_groups_excluded` (Boolean) Reverses value of `source_ids` for the rule to match everything except specified IDs.
 - `source_ids` (Set of String) A set of Source Firewall Group IDs ([`IP Sets`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_ip_set), [`Security Groups`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_security_group) or [`Dynamic Security Group`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_dynamic_security_group)). Leaving it empty means `Any` (all).
