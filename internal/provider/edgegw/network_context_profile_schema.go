@@ -181,11 +181,8 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 							},
 							"values": superschema.SuperSetAttributeOf[string]{
 								Common: &schemaR.SetAttribute{
-									MarkdownDescription: "The set of allowed values for this sub-attribute type.\n\n" +
-										"  - `TLS_VERSION`: `TLS_V10`, `TLS_V11`, `TLS_V12`, `TLS_V13`\n" +
-										"  - `TLS_CIPHER_SUITE`: standard cipher suite identifiers (e.g. `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`)\n" +
-										"  - `CIFS_SMB_VERSION`: `CIFS_SMB_V1`, `CIFS_SMB_V2`, `CIFS_SMB_V3`",
-									ElementType: supertypes.StringType{},
+									MarkdownDescription: "The set of allowed values for this sub-attribute type. Valid values depend on the `type` field and are enforced by the provider.",
+									ElementType:         supertypes.StringType{},
 								},
 								Resource: &schemaR.SetAttribute{
 									Required: true,

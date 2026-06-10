@@ -53,9 +53,9 @@ resource "cloudavenue_vdcg_network_context_profile" "ssl_strict" {
 
 ### Required
 
-- `attribute` (Attributes List) List of App ID attributes. Each block defines one Layer 7 application identifier with optional sub-attributes.
+- `attribute` (Attributes List) List of App ID attributes. Each entry defines one Layer 7 application identifier.
 
-  ~> **Note:** Sub-attributes (`sub_attribute`) are only supported when the profile contains exactly **one** `attribute` block. List must contain at least 1 elements. (see [below for nested schema](#nestedatt--attribute))
+  ~> **Note:** Sub-attributes (`sub_attribute`) are only supported when the profile contains exactly **one** `attribute` block. If multiple `attribute` blocks are defined, `sub_attribute` must be omitted. List must contain at least 1 elements. (see [below for nested schema](#nestedatt--attribute))
 - `name` (String) The name of the Network Context Profile.
 
 ### Optional
@@ -88,7 +88,7 @@ Optional:
 Required:
 
 - `type` (String) The sub-attribute type. Allowed values: `TLS_VERSION`, `TLS_CIPHER_SUITE`, `CIFS_SMB_VERSION`. Value must be one of : `TLS_VERSION`, `TLS_CIPHER_SUITE`, `CIFS_SMB_VERSION`.
-- `values` (Set of String) The set of allowed values for this sub-attribute type. Set must contain at least 1 elements.
+- `values` (Set of String) The set of allowed values for this sub-attribute type. Valid values depend on the `type` field and are enforced by the provider. Set must contain at least 1 elements. Element value must satisfy all validations: value must be one of: ["TLS_V10" "TLS_V11" "TLS_V12" "TLS_V13" "TLS_DHE_RSA_WITH_AES_128_CBC_SHA" "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256" "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256" "TLS_DHE_RSA_WITH_AES_256_CBC_SHA" "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256" "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384" "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA" "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256" "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256" "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA" "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384" "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384" "TLS_RSA_WITH_3DES_EDE_CBC_SHA" "TLS_RSA_WITH_AES_128_CBC_SHA" "TLS_RSA_WITH_AES_128_CBC_SHA256" "TLS_RSA_WITH_AES_128_GCM_SHA256" "TLS_RSA_WITH_AES_256_CBC_SHA" "TLS_RSA_WITH_AES_256_CBC_SHA256" "TLS_RSA_WITH_AES_256_GCM_SHA384" "CIFS_SMB_V1" "CIFS_SMB_V2" "CIFS_SMB_V3"].
 
 ## Advanced Usage
 
