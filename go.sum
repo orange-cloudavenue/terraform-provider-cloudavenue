@@ -227,8 +227,8 @@ github.com/mitchellh/reflectwalk v1.0.2 h1:G2LzWKi524PWgd3mLHV8Y5k7s6XUvT0Gef6zx
 github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
 github.com/oklog/run v1.2.0 h1:O8x3yXwah4A73hJdlrwo/2X6J62gE5qTMusH0dvz60E=
 github.com/oklog/run v1.2.0/go.mod h1:mgDbKRSwPhJfesJ4PntqFUbKQRZ50NgmZTSPlFA0YFk=
-github.com/orange-cloudavenue/cloudavenue-sdk-go v0.27.4 h1:ONBBr5aPO3YSHeHB+8jwcwEo5UXKh/oPmsAaIAahrIo=
-github.com/orange-cloudavenue/cloudavenue-sdk-go v0.27.4/go.mod h1:3VkaxlYXgG5h8JkROp7o0xl8NPNCIwN2KljNva8sMa0=
+github.com/orange-cloudavenue/cloudavenue-sdk-go v0.27.5-0.20260610162025-6fe4417d2e56 h1:vl0uiz/hri5JsXnU5PDvhNF790oBpMY5bDYbJjA5Bd0=
+github.com/orange-cloudavenue/cloudavenue-sdk-go v0.27.5-0.20260610162025-6fe4417d2e56/go.mod h1:3VkaxlYXgG5h8JkROp7o0xl8NPNCIwN2KljNva8sMa0=
 github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac h1:f1Fd70+PMDTK6FE4gHdNfoHSQHLn5pfJMTjZPzOWZtc=
 github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac/go.mod h1:IYtCusqpEGS0dhC6F8X9GHrrt1gp1zHaNhSKGYV59Xg=
 github.com/orange-cloudavenue/common-go/regex v1.2.0 h1:mJLWYPL1wEllGx9h4YEvsV7Q3X+igSWOzt6NIiYLxV8=

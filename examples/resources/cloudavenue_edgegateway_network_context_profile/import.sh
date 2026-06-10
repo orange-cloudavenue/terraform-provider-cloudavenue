@@ -1,0 +1,1 @@
+terraform import cloudavenue_edgegateway_network_context_profile.example edgegatewayIDOrName.profileIDOrName
