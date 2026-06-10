@@ -35,9 +35,9 @@ data "cloudavenue_vdcg_network_context_profile" "example" {
 
 ### Read-Only
 
-- `attribute` (Attributes List) List of App ID attributes. Each block defines one Layer 7 application identifier with optional sub-attributes.
+- `attribute` (Attributes List) List of App ID attributes. Each entry defines one Layer 7 application identifier.
 
-  ~> **Note:** Sub-attributes (`sub_attribute`) are only supported when the profile contains exactly **one** `attribute` block. (see [below for nested schema](#nestedatt--attribute))
+  ~> **Note:** Sub-attributes (`sub_attribute`) are only supported when the profile contains exactly **one** `attribute` block. If multiple `attribute` blocks are defined, `sub_attribute` must be omitted. (see [below for nested schema](#nestedatt--attribute))
 - `description` (String) A human-readable description of the Network Context Profile.
 - `scope` (String) The scope of the Network Context Profile (`SYSTEM`, `PROVIDER` or `TENANT`). Resources are always created as `TENANT`.
 
@@ -57,4 +57,4 @@ Read-Only:
 Read-Only:
 
 - `type` (String) The sub-attribute type. Allowed values: `TLS_VERSION`, `TLS_CIPHER_SUITE`, `CIFS_SMB_VERSION`.
-- `values` (Set of String) The set of allowed values for this sub-attribute type.
+- `values` (Set of String) The set of allowed values for this sub-attribute type. Valid values depend on the `type` field and are enforced by the provider.
