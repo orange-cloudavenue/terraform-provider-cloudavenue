@@ -2,49 +2,35 @@
 page_title: "cloudavenue_edgegateway_network_context_profile Resource - cloudavenue"
 subcategory: "Edge Gateway (Tier-1)"
 description: |-
-  The cloudavenue_edgegateway_network_context_profile resource allows you to manage a custom (TENANT-scoped) Network Context Profile on an Edge Gateway. Context profiles define Layer 7 application identifiers that can be referenced in firewall rules via network_context_profile_ids.
+  The cloudavenue_edgegateway_network_context_profile resource allows you to manage a custom (TENANT-scoped) Network Context Profile on an Edge Gateway. Context profiles define Layer 7 traffic criteria (application identifiers and/or domain names) that can be referenced in firewall rules via network_context_profile_ids.
 ---
 
 # cloudavenue_edgegateway_network_context_profile (Resource)
 
-The `cloudavenue_edgegateway_network_context_profile` resource allows you to manage a custom (TENANT-scoped) Network Context Profile on an Edge Gateway. Context profiles define Layer 7 application identifiers that can be referenced in firewall rules via `network_context_profile_ids`.
+The `cloudavenue_edgegateway_network_context_profile` resource allows you to manage a custom (TENANT-scoped) Network Context Profile on an Edge Gateway. Context profiles define Layer 7 traffic criteria (application identifiers and/or domain names) that can be referenced in firewall rules via `network_context_profile_ids`.
 
 ~> **Note** Network Context Profiles are TENANT-scoped and tied to the Edge Gateway's owning VDC. The profile `name` must be unique within the organisation.
 
-~> **Sub-attribute constraint** The `sub_attribute` field is only supported when the profile contains exactly **one** `attribute` block. When multiple `attribute` blocks are defined, `sub_attribute` must be omitted or set to `[]`.
+~> **Sub-attribute constraint** The `sub_attribute` field inside `app_id` is only supported when `app_id.values` contains exactly **one** entry.
 
 ## Example Usage
 
 ```terraform
-# Simple profile with multiple App IDs (no sub-attributes)
-resource "cloudavenue_edgegateway_network_context_profile" "example" {
-  edge_gateway_name = cloudavenue_edgegateway.example.name
-  name              = "my-custom-profile"
-  description       = "Custom Layer 7 profile matching SSH and DNS traffic"
-
-  attribute = [
-    { app_id = "SSH", sub_attribute = [] },
-    { app_id = "DNS", sub_attribute = [] },
-  ]
-}
-
-# Profile with a single App ID and sub-attributes (TLS constraints)
+# Profile matching SSL traffic restricted to TLS 1.2 and 1.3
 resource "cloudavenue_edgegateway_network_context_profile" "ssl_strict" {
   edge_gateway_name = cloudavenue_edgegateway.example.name
   name              = "ssl-tls12-only"
-  description       = "SSL restricted to TLS 1.2 and 1.3"
+  description       = "Allow only TLS 1.2 and 1.3"
 
-  attribute = [
-    {
-      app_id = "SSL"
-      sub_attribute = [
-        {
-          type   = "TLS_VERSION"
-          values = ["TLS_V12", "TLS_V13"]
-        }
-      ]
-    }
-  ]
+  app_id = {
+    values = ["SSL"]
+    sub_attribute = [
+      {
+        type   = "TLS_VERSION"
+        values = ["TLS_V12", "TLS_V13"]
+      }
+    ]
+  }
 }
 ```
 
@@ -53,13 +39,13 @@ resource "cloudavenue_edgegateway_network_context_profile" "ssl_strict" {
 
 ### Required
 
-- `attribute` (Attributes List) List of App ID attributes. Each entry defines one Layer 7 application identifier.
-
-  ~> **Note:** Sub-attributes (`sub_attribute`) are only supported when the profile contains exactly **one** `attribute` block. If multiple `attribute` blocks are defined, `sub_attribute` must be omitted. List must contain at least 1 elements. (see [below for nested schema](#nestedatt--attribute))
 - `name` (String) The name of the Network Context Profile.
 
 ### Optional
 
+- `app_id` (Attributes) Layer 7 App ID attribute. Defines a set of application identifiers to match (e.g. `SSL`, `CIFS`, `HTTP`).
+
+  ~> **Note:** Sub-attributes (`sub_attribute`) are only supported when `app_id.values` contains exactly **one** entry. (see [below for nested schema](#nestedatt--app_id))
 - `description` (String) A human-readable description of the Network Context Profile.
 - `edge_gateway_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
 - `edge_gateway_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of the Edge Gateway. Ensure that one and only one attribute from this collection is set : `edge_gateway_id`, `edge_gateway_name`.
@@ -69,26 +55,26 @@ resource "cloudavenue_edgegateway_network_context_profile" "ssl_strict" {
 - `id` (String) The ID of the Network Context Profile.
 - `scope` (String) The scope of the Network Context Profile (`SYSTEM`, `PROVIDER` or `TENANT`). Resources are always created as `TENANT`.
 
-<a id="nestedatt--attribute"></a>
-### Nested Schema for `attribute`
+<a id="nestedatt--app_id"></a>
+### Nested Schema for `app_id`
 
 Required:
 
-- `app_id` (String) The App ID value identifying the Layer 7 application (e.g. `SSL`, `CIFS`, `HTTP`, `DNS`, `SSH`). Value must be one of : `360ANTIV`, `ACTIVDIR`, `AMQP`, `AVAST`, `AVG`, `AVIRA`, `BDEFNDER`, `BLAST`, `CA_CERT`, `CIFS`, `CLDAP`, `CTRXCGP`, `CTRXGOTO`, `CTRXICA`, `DCERPC`, `DHCP`, `DIAMETER`, `DNS`, `EPIC`, `ESET`, `FPROT`, `FTP`, `GITHUB`, `HTTP`, `HTTP2`, `IMAP`, `KASPRSKY`, `KERBEROS`, `LDAP`, `MAXDB`, `MCAFEE`, `MSSQL`, `MYSQL`, `NFS`, `NNTP`, `NTBIOSNS`, `NTP`, `OCSP`, `ORACLE`, `PANDA`, `PCOIP`, `POP3`, `RADIUS`, `RDP`, `RTCP`, `RTP`, `RTSP`, `SIP`, `SMTP`, `SNMP`, `SSH`, `SSL`, `SYMUPDAT`, `SYSLOG`, `TELNET`, `TFTP`, `VNC`, `WINS`.
+- `values` (Set of String) The set of App ID values to match (e.g. `["SSL", "CIFS"]`). Set must contain at least 1 elements. Element value must satisfy all validations: value must be one of: ["360ANTIV" "ACTIVDIR" "AMQP" "AVAST" "AVG" "AVIRA" "BDEFNDER" "BLAST" "CA_CERT" "CIFS" "CLDAP" "CTRXCGP" "CTRXGOTO" "CTRXICA" "DCERPC" "DHCP" "DIAMETER" "DNS" "EPIC" "ESET" "FPROT" "FTP" "GITHUB" "HTTP" "HTTP2" "IMAP" "KASPRSKY" "KERBEROS" "LDAP" "MAXDB" "MCAFEE" "MSSQL" "MYSQL" "NFS" "NNTP" "NTBIOSNS" "NTP" "OCSP" "ORACLE" "PANDA" "PCOIP" "POP3" "RADIUS" "RDP" "RTCP" "RTP" "RTSP" "SIP" "SMTP" "SNMP" "SSH" "SSL" "SYMUPDAT" "SYSLOG" "TELNET" "TFTP" "VNC" "WINS"].
 
 Optional:
 
 - `sub_attribute` (Attributes List) Optional sub-attributes to refine the App ID match (e.g. TLS version, cipher suites, SMB version).
 
-  ~> **Note:** Only supported when the profile has exactly one `attribute` block. (see [below for nested schema](#nestedatt--attribute--sub_attribute))
+  ~> **Note:** Only supported when `app_id.values` contains exactly one entry. (see [below for nested schema](#nestedatt--app_id--sub_attribute))
 
-<a id="nestedatt--attribute--sub_attribute"></a>
-### Nested Schema for `attribute.sub_attribute`
+<a id="nestedatt--app_id--sub_attribute"></a>
+### Nested Schema for `app_id.sub_attribute`
 
 Required:
 
 - `type` (String) The sub-attribute type. Allowed values: `TLS_VERSION`, `TLS_CIPHER_SUITE`, `CIFS_SMB_VERSION`. Value must be one of : `TLS_VERSION`, `TLS_CIPHER_SUITE`, `CIFS_SMB_VERSION`.
-- `values` (Set of String) The set of allowed values for this sub-attribute type. Valid values depend on the `type` field and are enforced by the provider. Set must contain at least 1 elements. Element value must satisfy all validations: value must be one of: ["TLS_V10" "TLS_V11" "TLS_V12" "TLS_V13" "TLS_DHE_RSA_WITH_AES_128_CBC_SHA" "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256" "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256" "TLS_DHE_RSA_WITH_AES_256_CBC_SHA" "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256" "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384" "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA" "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256" "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256" "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA" "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384" "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384" "TLS_RSA_WITH_3DES_EDE_CBC_SHA" "TLS_RSA_WITH_AES_128_CBC_SHA" "TLS_RSA_WITH_AES_128_CBC_SHA256" "TLS_RSA_WITH_AES_128_GCM_SHA256" "TLS_RSA_WITH_AES_256_CBC_SHA" "TLS_RSA_WITH_AES_256_CBC_SHA256" "TLS_RSA_WITH_AES_256_GCM_SHA384" "CIFS_SMB_V1" "CIFS_SMB_V2" "CIFS_SMB_V3"].
+- `values` (Set of String) The set of allowed values for this sub-attribute type. Set must contain at least 1 elements. Element value must satisfy all validations: value must be one of: ["TLS_V10" "TLS_V11" "TLS_V12" "TLS_V13" "TLS_DHE_RSA_WITH_AES_128_CBC_SHA" "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256" "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256" "TLS_DHE_RSA_WITH_AES_256_CBC_SHA" "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256" "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384" "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA" "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256" "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256" "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA" "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384" "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384" "TLS_RSA_WITH_3DES_EDE_CBC_SHA" "TLS_RSA_WITH_AES_128_CBC_SHA" "TLS_RSA_WITH_AES_128_CBC_SHA256" "TLS_RSA_WITH_AES_128_GCM_SHA256" "TLS_RSA_WITH_AES_256_CBC_SHA" "TLS_RSA_WITH_AES_256_CBC_SHA256" "TLS_RSA_WITH_AES_256_GCM_SHA384" "CIFS_SMB_V1" "CIFS_SMB_V2" "CIFS_SMB_V3"].
 
 ## Advanced Usage
 
@@ -100,17 +86,15 @@ resource "cloudavenue_edgegateway_network_context_profile" "ssl_strict" {
   name              = "ssl-tls12-only"
   description       = "Allow only TLS 1.2 and 1.3"
 
-  attribute = [
-    {
-      app_id = "SSL"
-      sub_attribute = [
-        {
-          type   = "TLS_VERSION"
-          values = ["TLS_V12", "TLS_V13"]
-        }
-      ]
-    }
-  ]
+  app_id = {
+    values = ["SSL"]
+    sub_attribute = [
+      {
+        type   = "TLS_VERSION"
+        values = ["TLS_V12", "TLS_V13"]
+      }
+    ]
+  }
 }
 
 resource "cloudavenue_edgegateway_firewall" "example" {
@@ -122,10 +106,11 @@ resource "cloudavenue_edgegateway_firewall" "example" {
       direction   = "OUT"
       ip_protocol = "IPV4"
 
-      context_profile_ids = [cloudavenue_edgegateway_network_context_profile.ssl_strict.id]
+      network_context_profile_ids = [cloudavenue_edgegateway_network_context_profile.ssl_strict.id]
     }
   ]
 }
+
 ```
 
 ## Import

@@ -14,7 +14,8 @@ Network Context Profiles are available in three scopes:
 - **PROVIDER** — defined by Orange at platform level. Read-only.
 - **TENANT** — created by the customer via `cloudavenue_edgegateway_network_context_profile`. Fully manageable.
 
-Use this data source to reference a SYSTEM or PROVIDER profile by name in a Firewall Rule via `context_profile_ids`.
+Use this data source to reference a SYSTEM or PROVIDER profile by name in a Firewall Rule via `network_context_profile_ids`.
+
 
 ## Example Usage
 
@@ -37,29 +38,39 @@ data "cloudavenue_edgegateway_network_context_profile" "example" {
 
 ### Read-Only
 
-- `attribute` (Attributes List) List of App ID attributes. Each entry defines one Layer 7 application identifier.
+- `app_id` (Attributes) Layer 7 App ID attribute. Defines a set of application identifiers to match (e.g. `SSL`, `CIFS`, `HTTP`).
 
-  ~> **Note:** Sub-attributes (`sub_attribute`) are only supported when the profile contains exactly **one** `attribute` block. If multiple `attribute` blocks are defined, `sub_attribute` must be omitted. (see [below for nested schema](#nestedatt--attribute))
+  ~> **Note:** Sub-attributes (`sub_attribute`) are only supported when `app_id.values` contains exactly **one** entry. (see [below for nested schema](#nestedatt--app_id))
 - `description` (String) A human-readable description of the Network Context Profile.
+- `domain_name` (Attributes) Domain Name (FQDN) attribute. Present on SYSTEM profiles that match traffic by fully-qualified domain name. (see [below for nested schema](#nestedatt--domain_name))
 - `scope` (String) The scope of the Network Context Profile (`SYSTEM`, `PROVIDER` or `TENANT`). Resources are always created as `TENANT`.
 
-<a id="nestedatt--attribute"></a>
-### Nested Schema for `attribute`
+<a id="nestedatt--app_id"></a>
+### Nested Schema for `app_id`
 
 Read-Only:
 
-- `app_id` (String) The App ID value identifying the Layer 7 application (e.g. `SSL`, `CIFS`, `HTTP`, `DNS`, `SSH`).
 - `sub_attribute` (Attributes List) Optional sub-attributes to refine the App ID match (e.g. TLS version, cipher suites, SMB version).
 
-  ~> **Note:** Only supported when the profile has exactly one `attribute` block. (see [below for nested schema](#nestedatt--attribute--sub_attribute))
+  ~> **Note:** Only supported when `app_id.values` contains exactly one entry. (see [below for nested schema](#nestedatt--app_id--sub_attribute))
+- `values` (Set of String) The set of App ID values to match (e.g. `["SSL", "CIFS"]`).
 
-<a id="nestedatt--attribute--sub_attribute"></a>
-### Nested Schema for `attribute.sub_attribute`
+<a id="nestedatt--app_id--sub_attribute"></a>
+### Nested Schema for `app_id.sub_attribute`
 
 Read-Only:
 
 - `type` (String) The sub-attribute type. Allowed values: `TLS_VERSION`, `TLS_CIPHER_SUITE`, `CIFS_SMB_VERSION`.
-- `values` (Set of String) The set of allowed values for this sub-attribute type. Valid values depend on the `type` field and are enforced by the provider.
+- `values` (Set of String) The set of allowed values for this sub-attribute type.
+
+
+
+<a id="nestedatt--domain_name"></a>
+### Nested Schema for `domain_name`
+
+Read-Only:
+
+- `values` (Set of String) The set of domain name values for this profile.
 
 ## Advanced Usage
 
@@ -80,7 +91,7 @@ resource "cloudavenue_edgegateway_firewall" "example" {
       direction   = "OUT"
       ip_protocol = "IPV4"
 
-      context_profile_ids = [data.cloudavenue_edgegateway_network_context_profile.ssl.id]
+      network_context_profile_ids = [data.cloudavenue_edgegateway_network_context_profile.ssl.id]
     }
   ]
 }

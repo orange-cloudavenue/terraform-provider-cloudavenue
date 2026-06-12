@@ -8,7 +8,7 @@ description: |-
 # cloudavenue_vdcg_firewall (Resource)
 
 The `cloudavenue_vdcg_firewall` resource allows you to manage a firewall in a VDC Group. The firewall is a set of rules that are applied to the VDC Group networks to control the traffic.
- 
+
 ## Example Usage
 
 ```terraform
@@ -59,7 +59,7 @@ Optional:
 - `enabled` (Boolean) Defines if the rule is enabled or not. Value defaults to `true`.
 - `ip_protocol` (String) The IP protocol of the rule. Value defaults to `IPV4`. Value must be one of : `IPV4`, `IPV6`, `IPV4_IPV6`.
 - `logging` (Boolean) Defines if the rule should log matching traffic. Value defaults to `false`.
-- `network_context_profile_ids` (Set of String) A set of Network Context Profile IDs (Layer 7). Use `data.cloudavenue_vdcg_network_context_profile` to look up a SYSTEM/PROVIDER profile by name, or reference a `cloudavenue_vdcg_network_context_profile` resource directly. Leaving it empty means `Any` (all).
+- `network_context_profile_ids` (Set of String) A set of Network Context Profile IDs (Layer 7). Use `data.cloudavenue_vdcg_network_context_profile` to look up a SYSTEM/PROVIDER profile by name, or reference a `cloudavenue_vdcg_network_context_profile` resource directly. Leaving it empty means `Any` (all). Element value must satisfy all validations: must start with "urn:vcloud:networkContextProfile:".
 - `source_groups_excluded` (Boolean) Reverses value of `source_ids` for the rule to match everything except specified IDs. Value defaults to `false`.
 - `source_ids` (Set of String) A set of Source Firewall Group IDs ([`IP Sets`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_ip_set), [`Security Groups`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_security_group) or [`Dynamic Security Group`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_dynamic_security_group)). Leaving it empty means `Any` (all).
 
@@ -67,11 +67,12 @@ Read-Only:
 
 - `id` (String) The ID of the rule.
 
-## Advanced usages 
+## Advanced usages
 
-### With Application Port Profile 
+### With Application Port Profile
 
 This example shows how to create a firewall with an application port profile.
+
 ```terraform
 resource "cloudavenue_vdcg_firewall" "example_with_app_port_profile" {
   vdc_group_name = cloudavenue_vdcg.example.name
@@ -91,6 +92,7 @@ resource "cloudavenue_vdcg_firewall" "example_with_app_port_profile" {
 ### With Source IDS
 
 This example shows how to create a firewall with a source IDS. The default value of the destination IDS is `any`.
+
 ```terraform
 resource "cloudavenue_vdcg_firewall" "example_with_source_ids" {
   vdc_group_name = cloudavenue_vdcg.example.name
@@ -130,7 +132,33 @@ resource "cloudavenue_vdcg_firewall" "example_with_destination_ids" {
 }
 ```
 
-### Full 
+### With Network Context Profile (Layer 7)
+
+This example shows how to use a Network Context Profile for Layer 7 filtering.
+
+```terraform
+# Use a built-in SYSTEM profile (e.g. SSL) referenced by name via data source
+data "cloudavenue_vdcg_network_context_profile" "ssl" {
+  vdc_group_name = cloudavenue_vdcg.example.name
+  name           = "SSL"
+}
+
+resource "cloudavenue_vdcg_firewall" "example_with_system_profile" {
+  vdc_group_name = cloudavenue_vdcg.example.name
+  rules = [
+    {
+      action      = "ALLOW"
+      name        = "allow outbound SSL"
+      direction   = "OUT"
+      ip_protocol = "IPV4"
+
+      network_context_profile_ids = [data.cloudavenue_vdcg_network_context_profile.ssl.id]
+    }
+  ]
+}
+```
+
+### Full
 
 This example shows how to create a firewall with all the possible attributes.
 ```terraform
@@ -150,6 +178,9 @@ resource "cloudavenue_vdcg_firewall" "example_full" {
       ],
       app_port_profile_ids = [
         data.cloudavenue_edgegateway_app_port_profile.example_provider_scope.id,
+      ]
+      network_context_profile_ids = [
+        cloudavenue_vdcg_network_context_profile.example.id,
       ]
       source_groups_excluded      = true
       destination_groups_excluded = true
