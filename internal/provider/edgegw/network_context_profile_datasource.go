@@ -132,12 +132,13 @@ func (d *networkContextProfileDataSource) Read(ctx context.Context, req datasour
 	stateRefreshed.EdgeGatewayID.Set(d.edgegw.GetID())
 	stateRefreshed.EdgeGatewayName.Set(d.edgegw.GetName())
 
-	attrBlocks, diags := attributesFromSDKProfile(ctx, profile)
+	appIDBlock, domainBlock, diags := attributesFromSDKProfile(ctx, profile)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(stateRefreshed.Attribute.Set(ctx, attrBlocks)...)
+	resp.Diagnostics.Append(stateRefreshed.AppID.Set(ctx, appIDBlock)...)
+	resp.Diagnostics.Append(stateRefreshed.DomainName.Set(ctx, domainBlock)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
