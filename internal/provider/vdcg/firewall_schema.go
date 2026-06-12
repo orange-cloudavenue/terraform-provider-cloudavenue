@@ -37,6 +37,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
@@ -248,6 +249,11 @@ func firewallSchema(_ context.Context) superschema.Schema {
 						},
 						Resource: &schemaR.SetAttribute{
 							Optional: true,
+							Validators: []validator.Set{
+								setvalidator.ValueStringsAre(
+									fstringvalidator.PrefixContains(urn.NetworkContextProfile.String()),
+								),
+							},
 						},
 						DataSource: &schemaD.SetAttribute{
 							Computed: true,
