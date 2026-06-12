@@ -11,7 +11,7 @@ description: |-
 
 ~> **Note** Network Context Profiles are TENANT-scoped and tied to the VDC Group. The profile `name` must be unique within the organisation.
 
-~> **Sub-attribute constraint** The `sub_attribute` field is only supported when the profile contains exactly **one** `attribute` block. When multiple `attribute` blocks are defined, `sub_attribute` must be omitted or set to `[]`.
+~> **Sub-attribute constraint** The `sub_attribute` field inside `app_id` is only supported when `app_id.values` contains exactly **one** entry.
 
 {{ if .HasExample -}}
 ## Example Usage
@@ -29,15 +29,17 @@ Reference a Network Context Profile in a VDC Group Firewall Rule for Layer 7 fil
 resource "cloudavenue_vdcg_network_context_profile" "ssl_strict" {
   vdc_group_name = cloudavenue_vdcg.example.name
   name           = "ssl-tls12-only"
+  description    = "Allow only TLS 1.2 and 1.3"
 
-  attribute = [
-    {
-      app_id = "SSL"
-      sub_attribute = [
-        { type = "TLS_VERSION", values = ["TLS_V12", "TLS_V13"] }
-      ]
-    }
-  ]
+  app_id = {
+    values = ["SSL"]
+    sub_attribute = [
+      {
+        type   = "TLS_VERSION"
+        values = ["TLS_V12", "TLS_V13"]
+      }
+    ]
+  }
 }
 
 resource "cloudavenue_vdcg_firewall" "example" {
@@ -53,6 +55,7 @@ resource "cloudavenue_vdcg_firewall" "example" {
     }
   ]
 }
+
 ```
 
 {{ if .HasImport -}}
