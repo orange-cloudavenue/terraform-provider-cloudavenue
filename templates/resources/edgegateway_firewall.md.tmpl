@@ -9,9 +9,9 @@ description: |-
 
 {{ .Description | trimspace }}
 
-## Examples Usage
+## Example Usage
 
-### Basic Example
+### Basic
 
 ```hcl
 resource "cloudavenue_edgegateway_firewall" "example" {
@@ -27,26 +27,79 @@ resource "cloudavenue_edgegateway_firewall" "example" {
 }
 ```
 
-### Advanced Example
+### With App Port Profile
 
 ```hcl
 resource "cloudavenue_edgegateway_firewall" "example" {
   edge_gateway_id = cloudavenue_edgegateway.example.id
   rules = [
     {
-  	  action      = "ALLOW"
-  	  name        = "allow all IPv4 traffic"
-  	  direction   = "IN_OUT"
-  	  ip_protocol = "IPV4"
-    },
-    {
-  	  action      = "ALLOW"
-  	  name        = "allow OUT IPv4 traffic"
-  	  direction   = "OUT"
-  	  ip_protocol = "IPV4"
+      action               = "ALLOW"
+      name                 = "allow HTTPS inbound"
+      direction            = "IN"
+      ip_protocol          = "IPV4"
+      app_port_profile_ids = [data.cloudavenue_edgegateway_app_port_profile.https.id]
     }
   ]
 }
+```
+
+### With Network Context Profile (Layer 7)
+
+Use a SYSTEM profile by name via data source, or reference a custom TENANT profile:
+
+```hcl
+# Use a built-in SYSTEM profile (e.g. SSL)
+data "cloudavenue_edgegateway_network_context_profile" "ssl" {
+  edge_gateway_name = cloudavenue_edgegateway.example.name
+  name              = "SSL"
+}
+
+resource "cloudavenue_edgegateway_firewall" "allow_ssl" {
+  edge_gateway_name = cloudavenue_edgegateway.example.name
+  rules = [
+    {
+      name        = "allow outbound SSL"
+      action      = "ALLOW"
+      direction   = "OUT"
+      ip_protocol = "IPV4"
+
+      network_context_profile_ids = [data.cloudavenue_edgegateway_network_context_profile.ssl.id]
+    }
+  ]
+}
+
+# Use a custom TENANT profile with TLS version restriction
+resource "cloudavenue_edgegateway_network_context_profile" "ssl_strict" {
+  edge_gateway_name = cloudavenue_edgegateway.example.name
+  name              = "ssl-tls12-only"
+  description       = "SSL restricted to TLS 1.2 and 1.3"
+
+  app_id = {
+    values = ["SSL"]
+    sub_attribute = [
+      {
+        type   = "TLS_VERSION"
+        values = ["TLS_V12", "TLS_V13"]
+      }
+    ]
+  }
+}
+
+resource "cloudavenue_edgegateway_firewall" "allow_ssl_strict" {
+  edge_gateway_name = cloudavenue_edgegateway.example.name
+  rules = [
+    {
+      name        = "allow outbound TLS 1.2+ only"
+      action      = "ALLOW"
+      direction   = "OUT"
+      ip_protocol = "IPV4"
+
+      network_context_profile_ids = [cloudavenue_edgegateway_network_context_profile.ssl_strict.id]
+    }
+  ]
+}
+
 ```
 
 {{ .SchemaMarkdown | trimspace }}
