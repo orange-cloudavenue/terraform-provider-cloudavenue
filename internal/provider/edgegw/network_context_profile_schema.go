@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
@@ -34,7 +33,7 @@ import (
 func networkContextProfileSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_edgegateway_network_context_profile` resource allows you to manage a custom (TENANT-scoped) Network Context Profile on an Edge Gateway. Context profiles define Layer 7 application identifiers that can be referenced in firewall rules via `network_context_profile_ids`.",
+			MarkdownDescription: "The `cloudavenue_edgegateway_network_context_profile` resource allows you to manage a custom (TENANT-scoped) Network Context Profile on an Edge Gateway. Context profiles define Layer 7 traffic criteria (application identifiers and/or domain names) that can be referenced in firewall rules via `network_context_profile_ids`.",
 		},
 		DataSource: superschema.SchemaDetails{
 			MarkdownDescription: "The `cloudavenue_edgegateway_network_context_profile` data source allows you to retrieve information about a Network Context Profile (Layer 7) available on an Edge Gateway. Use this to reference SYSTEM or PROVIDER profiles by name in firewall rules.",
@@ -123,40 +122,40 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 				},
 			},
-			"attribute": superschema.SuperListNestedAttributeOf[networkContextProfileModelAttribute]{
-				Common: &schemaR.ListNestedAttribute{
-					MarkdownDescription: "List of App ID attributes. Each entry defines one Layer 7 application identifier.\n\n" +
-						"  ~> **Note:** Sub-attributes (`sub_attribute`) are only supported when the profile contains exactly **one** `attribute` block. " +
-						"If multiple `attribute` blocks are defined, `sub_attribute` must be omitted.",
+			"app_id": superschema.SuperSingleNestedAttributeOf[networkContextProfileModelAppID]{
+				Common: &schemaR.SingleNestedAttribute{
+					MarkdownDescription: "Layer 7 App ID attribute. Defines a set of application identifiers to match (e.g. `SSL`, `CIFS`, `HTTP`).\n\n" +
+						"  ~> **Note:** Sub-attributes (`sub_attribute`) are only supported when `app_id.values` contains exactly **one** entry.",
 				},
-				Resource: &schemaR.ListNestedAttribute{
-					Required: true,
-					Validators: []validator.List{
-						listvalidator.SizeAtLeast(1),
-					},
+				Resource: &schemaR.SingleNestedAttribute{
+					Optional: true,
 				},
-				DataSource: &schemaD.ListNestedAttribute{
+				DataSource: &schemaD.SingleNestedAttribute{
 					Computed: true,
 				},
 				Attributes: superschema.Attributes{
-					"app_id": superschema.SuperStringAttribute{
-						Common: &schemaR.StringAttribute{
-							MarkdownDescription: "The App ID value identifying the Layer 7 application (e.g. `SSL`, `CIFS`, `HTTP`, `DNS`, `SSH`).",
+					"values": superschema.SuperSetAttributeOf[string]{
+						Common: &schemaR.SetAttribute{
+							MarkdownDescription: "The set of App ID values to match (e.g. `[\"SSL\", \"CIFS\"]`).",
+							ElementType:         supertypes.StringType{},
 						},
-						Resource: &schemaR.StringAttribute{
+						Resource: &schemaR.SetAttribute{
 							Required: true,
-							Validators: []validator.String{
-								stringvalidator.OneOf(sdkv1.NetworkContextProfileKnownAppIDs...),
+							Validators: []validator.Set{
+								setvalidator.SizeAtLeast(1),
+								setvalidator.ValueStringsAre(
+									stringvalidator.OneOf(sdkv1.NetworkContextProfileKnownAppIDs...),
+								),
 							},
 						},
-						DataSource: &schemaD.StringAttribute{
+						DataSource: &schemaD.SetAttribute{
 							Computed: true,
 						},
 					},
 					"sub_attribute": superschema.SuperListNestedAttributeOf[networkContextProfileModelSubAttribute]{
 						Common: &schemaR.ListNestedAttribute{
 							MarkdownDescription: "Optional sub-attributes to refine the App ID match (e.g. TLS version, cipher suites, SMB version).\n\n" +
-								"  ~> **Note:** Only supported when the profile has exactly one `attribute` block.",
+								"  ~> **Note:** Only supported when `app_id.values` contains exactly one entry.",
 						},
 						Resource: &schemaR.ListNestedAttribute{
 							Optional: true,
@@ -181,7 +180,7 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 							},
 							"values": superschema.SuperSetAttributeOf[string]{
 								Common: &schemaR.SetAttribute{
-									MarkdownDescription: "The set of allowed values for this sub-attribute type. Valid values depend on the `type` field and are enforced by the provider.",
+									MarkdownDescription: "The set of allowed values for this sub-attribute type.",
 									ElementType:         supertypes.StringType{},
 								},
 								Resource: &schemaR.SetAttribute{
@@ -197,6 +196,21 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 									Computed: true,
 								},
 							},
+						},
+					},
+				},
+			},
+			"domain_name": superschema.SuperSingleNestedAttributeOf[networkContextProfileModelDomainName]{
+				DataSource: &schemaD.SingleNestedAttribute{
+					MarkdownDescription: "Domain Name (FQDN) attribute. Present on SYSTEM profiles that match traffic by fully-qualified domain name.",
+					Computed:            true,
+				},
+				Attributes: superschema.Attributes{
+					"values": superschema.SuperSetAttributeOf[string]{
+						DataSource: &schemaD.SetAttribute{
+							MarkdownDescription: "The set of domain name values for this profile.",
+							Computed:            true,
+							ElementType:         supertypes.StringType{},
 						},
 					},
 				},

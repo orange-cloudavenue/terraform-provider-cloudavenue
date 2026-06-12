@@ -19,10 +19,15 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
 )
 
-// networkContextProfileSchemaRequiredAttrs are the top-level attributes expected in both
-// the resource and datasource schemas for cloudavenue_edgegateway_network_context_profile.
-var networkContextProfileSchemaRequiredAttrs = []string{
-	"id", "name", "description", "scope", "attribute", "edge_gateway_id", "edge_gateway_name",
+// networkContextProfileResourceSchemaAttrs are the top-level attributes expected in the resource schema.
+var networkContextProfileResourceSchemaAttrs = []string{
+	"id", "name", "description", "scope", "app_id", "edge_gateway_id", "edge_gateway_name",
+}
+
+// networkContextProfileDatasourceSchemaAttrs are the top-level attributes expected in the datasource schema.
+// domain_name is Computed-only in the datasource (read from existing SYSTEM profiles).
+var networkContextProfileDatasourceSchemaAttrs = []string{
+	"id", "name", "description", "scope", "app_id", "domain_name", "edge_gateway_id", "edge_gateway_name",
 }
 
 // TestNetworkContextProfileSchemas validates that resource and datasource schemas for
@@ -47,7 +52,7 @@ func TestNetworkContextProfileSchemas(t *testing.T) {
 				if diags := resp.Schema.ValidateImplementation(ctx); diags.HasError() {
 					t.Fatalf("ValidateImplementation() diagnostics: %+v", diags)
 				}
-				for _, attr := range networkContextProfileSchemaRequiredAttrs {
+				for _, attr := range networkContextProfileResourceSchemaAttrs {
 					if _, ok := resp.Schema.Attributes[attr]; !ok {
 						t.Errorf("expected attribute %q in resource schema", attr)
 					}
@@ -65,7 +70,7 @@ func TestNetworkContextProfileSchemas(t *testing.T) {
 				if diags := resp.Schema.ValidateImplementation(ctx); diags.HasError() {
 					t.Fatalf("ValidateImplementation() diagnostics: %+v", diags)
 				}
-				for _, attr := range networkContextProfileSchemaRequiredAttrs {
+				for _, attr := range networkContextProfileDatasourceSchemaAttrs {
 					if _, ok := resp.Schema.Attributes[attr]; !ok {
 						t.Errorf("expected attribute %q in datasource schema", attr)
 					}
