@@ -385,6 +385,7 @@ func (r *EdgeGatewayFirewallResource) Tests(_ context.Context) map[testsacc.Test
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetDataSourceConfig()[EdgeGatewayNetworkContextProfileDatasourceName]().GetDefaultConfig)
+					resp.Append(GetDataSourceConfig()[EdgeGatewayNetworkContextProfileDatasourceName]().GetSpecificConfig("example_by_edge_gateway_id"))
 					return resp
 				},
 				// ! Create testing — firewall rule using a system context profile (SSL)
@@ -428,11 +429,6 @@ func (r *EdgeGatewayFirewallResource) Tests(_ context.Context) map[testsacc.Test
 				Updates: []testsacc.TFConfig{
 					{
 						TFConfig: `
-						data "cloudavenue_edgegateway_network_context_profile" "cifs" {
-							edge_gateway_name = cloudavenue_edgegateway.example.name
-							name              = "CIFS"
-						}
-
 						resource "cloudavenue_edgegateway_firewall" "example_with_context_profile" {
 						  edge_gateway_id = cloudavenue_edgegateway.example.id
 						  rules = [
@@ -444,7 +440,7 @@ func (r *EdgeGatewayFirewallResource) Tests(_ context.Context) map[testsacc.Test
 
 						      network_context_profile_ids = [
 						        data.cloudavenue_edgegateway_network_context_profile.example.id,
-						        data.cloudavenue_edgegateway_network_context_profile.cifs.id,
+						        data.cloudavenue_edgegateway_network_context_profile.example_by_edge_gateway_id.id,
 						      ]
 						    },
 						    {
