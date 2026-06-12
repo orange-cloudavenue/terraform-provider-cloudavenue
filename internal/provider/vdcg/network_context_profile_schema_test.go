@@ -19,8 +19,15 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/vdcg"
 )
 
-var networkContextProfileVDCGSchemaRequiredAttrs = []string{
-	"id", "name", "description", "scope", "attribute", "vdc_group_id", "vdc_group_name",
+// networkContextProfileVDCGResourceSchemaAttrs are the top-level attributes expected in the resource schema.
+var networkContextProfileVDCGResourceSchemaAttrs = []string{
+	"id", "name", "description", "scope", "app_id", "vdc_group_id", "vdc_group_name",
+}
+
+// networkContextProfileVDCGDatasourceSchemaAttrs are the top-level attributes expected in the datasource schema.
+// domain_name is Computed-only in the datasource (read from existing SYSTEM profiles).
+var networkContextProfileVDCGDatasourceSchemaAttrs = []string{
+	"id", "name", "description", "scope", "app_id", "domain_name", "vdc_group_id", "vdc_group_name",
 }
 
 func TestNetworkContextProfileVdcgSchemas(t *testing.T) {
@@ -42,7 +49,7 @@ func TestNetworkContextProfileVdcgSchemas(t *testing.T) {
 				if diags := resp.Schema.ValidateImplementation(ctx); diags.HasError() {
 					t.Fatalf("ValidateImplementation() diagnostics: %+v", diags)
 				}
-				for _, attr := range networkContextProfileVDCGSchemaRequiredAttrs {
+				for _, attr := range networkContextProfileVDCGResourceSchemaAttrs {
 					if _, ok := resp.Schema.Attributes[attr]; !ok {
 						t.Errorf("expected attribute %q in resource schema", attr)
 					}
@@ -60,7 +67,7 @@ func TestNetworkContextProfileVdcgSchemas(t *testing.T) {
 				if diags := resp.Schema.ValidateImplementation(ctx); diags.HasError() {
 					t.Fatalf("ValidateImplementation() diagnostics: %+v", diags)
 				}
-				for _, attr := range networkContextProfileVDCGSchemaRequiredAttrs {
+				for _, attr := range networkContextProfileVDCGDatasourceSchemaAttrs {
 					if _, ok := resp.Schema.Attributes[attr]; !ok {
 						t.Errorf("expected attribute %q in datasource schema", attr)
 					}

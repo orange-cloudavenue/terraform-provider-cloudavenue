@@ -20,34 +20,44 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
+// networkContextProfileModelSubAttribute is a single sub-attribute block within app_id.
 type networkContextProfileModelSubAttribute struct {
 	Type   supertypes.StringValue        `tfsdk:"type"`
 	Values supertypes.SetValueOf[string] `tfsdk:"values"`
 }
 
-type networkContextProfileModelAttribute struct {
-	AppID        supertypes.StringValue                                                     `tfsdk:"app_id"`
+// networkContextProfileModelAppID holds the APP_ID attribute block.
+type networkContextProfileModelAppID struct {
+	Values       supertypes.SetValueOf[string]                                              `tfsdk:"values"`
 	SubAttribute supertypes.ListNestedObjectValueOf[networkContextProfileModelSubAttribute] `tfsdk:"sub_attribute"`
 }
 
-type networkContextProfileModel struct {
-	ID           supertypes.StringValue                                                  `tfsdk:"id"`
-	Name         supertypes.StringValue                                                  `tfsdk:"name"`
-	Description  supertypes.StringValue                                                  `tfsdk:"description"`
-	VDCGroupID   supertypes.StringValue                                                  `tfsdk:"vdc_group_id"`
-	VDCGroupName supertypes.StringValue                                                  `tfsdk:"vdc_group_name"`
-	Scope        supertypes.StringValue                                                  `tfsdk:"scope"`
-	Attribute    supertypes.ListNestedObjectValueOf[networkContextProfileModelAttribute] `tfsdk:"attribute"`
+// networkContextProfileModelDomainName holds the DOMAIN_NAME attribute block.
+type networkContextProfileModelDomainName struct {
+	Values supertypes.SetValueOf[string] `tfsdk:"values"`
 }
 
+// networkContextProfileModel is the resource model.
+type networkContextProfileModel struct {
+	ID           supertypes.StringValue                                                `tfsdk:"id"`
+	Name         supertypes.StringValue                                                `tfsdk:"name"`
+	Description  supertypes.StringValue                                                `tfsdk:"description"`
+	VDCGroupID   supertypes.StringValue                                                `tfsdk:"vdc_group_id"`
+	VDCGroupName supertypes.StringValue                                                `tfsdk:"vdc_group_name"`
+	Scope        supertypes.StringValue                                                `tfsdk:"scope"`
+	AppID        supertypes.SingleNestedObjectValueOf[networkContextProfileModelAppID] `tfsdk:"app_id"`
+}
+
+// networkContextProfileModelDatasource is the datasource model.
 type networkContextProfileModelDatasource struct {
-	ID           supertypes.StringValue                                                  `tfsdk:"id"`
-	Name         supertypes.StringValue                                                  `tfsdk:"name"`
-	Description  supertypes.StringValue                                                  `tfsdk:"description"`
-	VDCGroupID   supertypes.StringValue                                                  `tfsdk:"vdc_group_id"`
-	VDCGroupName supertypes.StringValue                                                  `tfsdk:"vdc_group_name"`
-	Scope        supertypes.StringValue                                                  `tfsdk:"scope"`
-	Attribute    supertypes.ListNestedObjectValueOf[networkContextProfileModelAttribute] `tfsdk:"attribute"`
+	ID           supertypes.StringValue                                                     `tfsdk:"id"`
+	Name         supertypes.StringValue                                                     `tfsdk:"name"`
+	Description  supertypes.StringValue                                                     `tfsdk:"description"`
+	VDCGroupID   supertypes.StringValue                                                     `tfsdk:"vdc_group_id"`
+	VDCGroupName supertypes.StringValue                                                     `tfsdk:"vdc_group_name"`
+	Scope        supertypes.StringValue                                                     `tfsdk:"scope"`
+	AppID        supertypes.SingleNestedObjectValueOf[networkContextProfileModelAppID]      `tfsdk:"app_id"`
+	DomainName   supertypes.SingleNestedObjectValueOf[networkContextProfileModelDomainName] `tfsdk:"domain_name"`
 }
 
 func (rm *networkContextProfileModel) Copy() *networkContextProfileModel {
@@ -62,18 +72,27 @@ func (rm *networkContextProfileModelDatasource) Copy() *networkContextProfileMod
 	return x
 }
 
+// toSDKProfile converts the resource model to the SDK NetworkContextProfile.
 func (rm *networkContextProfileModel) toSDKProfile(ctx context.Context) (*sdkv1.NetworkContextProfile, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	attrBlocks, d := rm.Attribute.Get(ctx)
-	diags.Append(d...)
-	if diags.HasError() {
-		return nil, diags
-	}
+	attrs := make([]sdkv1.NetworkContextProfileAttribute, 0, 2)
 
-	attrs := make([]sdkv1.NetworkContextProfileAttribute, 0, len(attrBlocks))
-	for _, block := range attrBlocks {
-		subAttrBlocks, d := block.SubAttribute.Get(ctx)
+	// APP_ID block
+	if !rm.AppID.IsNull() && !rm.AppID.IsUnknown() {
+		appIDBlock, d := rm.AppID.Get(ctx)
+		diags.Append(d...)
+		if diags.HasError() {
+			return nil, diags
+		}
+
+		values, d := appIDBlock.Values.Get(ctx)
+		diags.Append(d...)
+		if diags.HasError() {
+			return nil, diags
+		}
+
+		subAttrBlocks, d := appIDBlock.SubAttribute.Get(ctx)
 		diags.Append(d...)
 		if diags.HasError() {
 			return nil, diags
@@ -81,23 +100,30 @@ func (rm *networkContextProfileModel) toSDKProfile(ctx context.Context) (*sdkv1.
 
 		subAttrs := make([]sdkv1.NetworkContextProfileSubAttribute, 0, len(subAttrBlocks))
 		for _, sub := range subAttrBlocks {
-			values, d := sub.Values.Get(ctx)
+			subValues, d := sub.Values.Get(ctx)
 			diags.Append(d...)
 			if diags.HasError() {
 				return nil, diags
 			}
 			subAttrs = append(subAttrs, sdkv1.NetworkContextProfileSubAttribute{
 				Type:   sdkv1.NetworkContextProfileSubAttributeType(sub.Type.Get()),
-				Values: values,
+				Values: subValues,
 			})
 		}
 
 		attrs = append(attrs, sdkv1.NetworkContextProfileAttribute{
 			Type:          sdkv1.NetworkContextProfileAttributeTypeAppID,
-			Values:        []string{block.AppID.Get()},
+			Values:        values,
 			SubAttributes: subAttrs,
 		})
 	}
+
+	// TODO: DOMAIN_NAME attribute support is not yet implemented.
+	// Adding or editing DOMAIN_NAME values requires elevated permissions that are not available through
+	// the VCD API directly. The Cerberus middleware (Cloud Avenue platform API) is expected to act as
+	// the intermediary for these operations, but this has not been implemented on their side yet.
+	// Once Cerberus exposes DOMAIN_NAME management, this block should be wired up.
+	// The read path (attributesFromSDKProfile) already handles DOMAIN_NAME for existing SYSTEM profiles.
 
 	return &sdkv1.NetworkContextProfile{
 		ID:          rm.ID.Get(),
@@ -107,6 +133,7 @@ func (rm *networkContextProfileModel) toSDKProfile(ctx context.Context) (*sdkv1.
 	}, diags
 }
 
+// fromSDKProfile populates the resource model from the SDK NetworkContextProfile.
 func (rm *networkContextProfileModel) fromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -115,23 +142,27 @@ func (rm *networkContextProfileModel) fromSDKProfile(ctx context.Context, p *sdk
 	rm.Description.Set(p.Description)
 	rm.Scope.Set(string(p.Scope))
 
-	attrBlocks, d := attributesFromSDKProfile(ctx, p)
+	appIDBlock, _, d := attributesFromSDKProfile(ctx, p)
 	diags.Append(d...)
-	diags.Append(rm.Attribute.Set(ctx, attrBlocks)...)
+	if diags.HasError() {
+		return diags
+	}
+
+	diags.Append(rm.AppID.Set(ctx, appIDBlock)...)
 	return diags
 }
 
-// attributesFromSDKProfile is shared between resource and datasource read paths.
-// It converts a SDK NetworkContextProfile to a list of attribute blocks.
-func attributesFromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextProfile) ([]*networkContextProfileModelAttribute, diag.Diagnostics) {
+// attributesFromSDKProfile converts SDK profile attributes into the two optional model blocks.
+// Returns nil for a block if that attribute type is not present in the profile.
+func attributesFromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextProfile) (*networkContextProfileModelAppID, *networkContextProfileModelDomainName, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	attrBlocks := make([]*networkContextProfileModelAttribute, 0)
+	var appIDResult *networkContextProfileModelAppID
+	var domainResult *networkContextProfileModelDomainName
+
 	for _, attr := range p.Attributes {
-		if attr.Type != sdkv1.NetworkContextProfileAttributeTypeAppID {
-			continue
-		}
-		for _, appID := range attr.Values {
+		switch attr.Type {
+		case sdkv1.NetworkContextProfileAttributeTypeAppID:
 			subAttrBlocks := make([]*networkContextProfileModelSubAttribute, 0, len(attr.SubAttributes))
 			for _, s := range attr.SubAttributes {
 				sub := &networkContextProfileModelSubAttribute{
@@ -143,15 +174,24 @@ func attributesFromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextProfil
 				subAttrBlocks = append(subAttrBlocks, sub)
 			}
 
-			block := &networkContextProfileModelAttribute{
-				AppID:        supertypes.NewStringNull(),
+			block := &networkContextProfileModelAppID{
+				Values:       supertypes.NewSetValueOfNull[string](ctx),
 				SubAttribute: supertypes.NewListNestedObjectValueOfNull[networkContextProfileModelSubAttribute](ctx),
 			}
-			block.AppID.Set(appID)
+			diags.Append(block.Values.Set(ctx, attr.Values)...)
 			diags.Append(block.SubAttribute.Set(ctx, subAttrBlocks)...)
-			attrBlocks = append(attrBlocks, block)
+			appIDResult = block
+
+		case sdkv1.NetworkContextProfileAttributeTypeDomainName:
+			block := &networkContextProfileModelDomainName{
+				Values: supertypes.NewSetValueOfNull[string](ctx),
+			}
+			diags.Append(block.Values.Set(ctx, attr.Values)...)
+			domainResult = block
+
+			// Unknown attribute types silently skipped for forward compatibility.
 		}
 	}
 
-	return attrBlocks, diags
+	return appIDResult, domainResult, diags
 }
