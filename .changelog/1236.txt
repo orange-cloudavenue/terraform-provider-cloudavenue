@@ -1,9 +1,9 @@
 ```release-note:new-resource
-cloudavenue_edgegateway_network_context_profile
+`cloudavenue_edgegateway_network_context_profile` - Add Network Context Profile resource for Layer 7 traffic filtering on Edge Gateways.
 ```
 
 ```release-note:new-datasource
-data.cloudavenue_edgegateway_network_context_profile
+`data.cloudavenue_edgegateway_network_context_profile` - Add Network Context Profile data source to look up SYSTEM, PROVIDER and TENANT profiles by name or ID on Edge Gateways.
 ```
 
 ```release-note:enhancement
@@ -11,11 +11,11 @@ data.cloudavenue_edgegateway_network_context_profile
 ```
 
 ```release-note:new-resource
-cloudavenue_vdcg_network_context_profile
+`cloudavenue_vdcg_network_context_profile` - Add Network Context Profile resource for Layer 7 traffic filtering on VDC Groups.
 ```
 
 ```release-note:new-datasource
-data.cloudavenue_vdcg_network_context_profile
+`data.cloudavenue_vdcg_network_context_profile` - Add Network Context Profile data source to look up SYSTEM, PROVIDER and TENANT profiles by name or ID on VDC Groups.
 ```
 
 ```release-note:enhancement
