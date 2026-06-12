@@ -15,6 +15,9 @@ resource "cloudavenue_vdcg_firewall" "example_full" {
       app_port_profile_ids = [
         data.cloudavenue_edgegateway_app_port_profile.example_provider_scope.id,
       ]
+      network_context_profile_ids = [
+        cloudavenue_vdcg_network_context_profile.example.id,
+      ]
       source_groups_excluded      = true
       destination_groups_excluded = true
     },
