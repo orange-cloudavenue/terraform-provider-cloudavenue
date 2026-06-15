@@ -14,7 +14,6 @@ Network Context Profiles are available in three scopes:
 - **PROVIDER** — defined by Orange at platform level. Read-only.
 - **TENANT** — created by the customer via `cloudavenue_vdcg_network_context_profile`. Fully manageable.
 
-
 ## Example Usage
 
 ```terraform

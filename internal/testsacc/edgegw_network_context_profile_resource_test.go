@@ -54,7 +54,7 @@ func (r *EdgeGatewayNetworkContextProfileResource) Tests(_ context.Context) map[
 				Create: testsacc.TFConfig{
 					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 					resource "cloudavenue_edgegateway_network_context_profile" "example" {
-						edge_gateway_name = data.cloudavenue_edgegateway.example.name
+						edge_gateway_name = cloudavenue_edgegateway.example.name
 						name              = {{ generate . "name" }}
 						description       = {{ generate . "description" }}
 						app_id = {
@@ -74,7 +74,7 @@ func (r *EdgeGatewayNetworkContextProfileResource) Tests(_ context.Context) map[
 					{
 						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
 						resource "cloudavenue_edgegateway_network_context_profile" "example" {
-							edge_gateway_name = data.cloudavenue_edgegateway.example.name
+							edge_gateway_name = cloudavenue_edgegateway.example.name
 							name              = {{ get . "name" }}
 							description       = {{ generate . "description" }}
 							app_id = {

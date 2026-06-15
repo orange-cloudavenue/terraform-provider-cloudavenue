@@ -8,7 +8,7 @@ description: |-
 # cloudavenue_vdcg_firewall (Resource)
 
 The `cloudavenue_vdcg_firewall` resource allows you to manage a firewall in a VDC Group. The firewall is a set of rules that are applied to the VDC Group networks to control the traffic.
-
+ 
 ## Example Usage
 
 ```terraform
@@ -67,12 +67,11 @@ Read-Only:
 
 - `id` (String) The ID of the rule.
 
-## Advanced usages
+## Advanced usages 
 
-### With Application Port Profile
+### With Application Port Profile 
 
 This example shows how to create a firewall with an application port profile.
-
 ```terraform
 resource "cloudavenue_vdcg_firewall" "example_with_app_port_profile" {
   vdc_group_name = cloudavenue_vdcg.example.name
@@ -92,7 +91,6 @@ resource "cloudavenue_vdcg_firewall" "example_with_app_port_profile" {
 ### With Source IDS
 
 This example shows how to create a firewall with a source IDS. The default value of the destination IDS is `any`.
-
 ```terraform
 resource "cloudavenue_vdcg_firewall" "example_with_source_ids" {
   vdc_group_name = cloudavenue_vdcg.example.name
@@ -135,7 +133,6 @@ resource "cloudavenue_vdcg_firewall" "example_with_destination_ids" {
 ### With Network Context Profile (Layer 7)
 
 This example shows how to use a Network Context Profile for Layer 7 filtering.
-
 ```terraform
 # Use a built-in SYSTEM profile (e.g. SSL) referenced by name via data source
 data "cloudavenue_vdcg_network_context_profile" "ssl" {

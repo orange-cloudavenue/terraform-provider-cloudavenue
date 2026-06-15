@@ -114,7 +114,7 @@ func (r *VDCGNetworkContextProfileDatasource) Tests(_ context.Context) map[tests
 						ExpectError: regexp.MustCompile(`Network Context Profile not found`),
 					},
 				},
-				Destroy: true,
+				Destroy: false,
 			}
 		},
 	}
