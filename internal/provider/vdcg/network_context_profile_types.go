@@ -179,7 +179,9 @@ func attributesFromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextProfil
 				SubAttribute: supertypes.NewListNestedObjectValueOfNull[networkContextProfileModelSubAttribute](ctx),
 			}
 			diags.Append(block.Values.Set(ctx, attr.Values)...)
-			diags.Append(block.SubAttribute.Set(ctx, subAttrBlocks)...)
+			if len(subAttrBlocks) > 0 {
+				diags.Append(block.SubAttribute.Set(ctx, subAttrBlocks)...)
+			}
 			appIDResult = block
 
 		case sdkv1.NetworkContextProfileAttributeTypeDomainName:

@@ -115,7 +115,7 @@ func (r *EdgeGatewayNetworkContextProfileDatasource) Tests(_ context.Context) ma
 						ExpectError: regexp.MustCompile(`Network Context Profile not found`),
 					},
 				},
-				Destroy: true,
+				Destroy: false,
 			}
 		},
 	}
