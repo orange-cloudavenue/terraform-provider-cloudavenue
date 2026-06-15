@@ -63,7 +63,7 @@ func (r *VDCGFirewallDataSource) Tests(_ context.Context) map[testsacc.TestName]
 				},
 			}
 		},
-		"example_with_context_profile": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExampleWithContextProfile: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetDataSourceConfig()[VDCGNetworkContextProfileDatasourceName]().GetDefaultConfig)

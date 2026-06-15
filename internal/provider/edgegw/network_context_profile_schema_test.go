@@ -21,13 +21,13 @@ import (
 
 // networkContextProfileResourceSchemaAttrs are the top-level attributes expected in the resource schema.
 var networkContextProfileResourceSchemaAttrs = []string{
-	"id", "name", "description", "scope", "app_id", "edge_gateway_id", "edge_gateway_name",
+	"id", "name", "description", "scope", "app_id", edgeGatewayIDAttr, edgeGatewayNameAttr,
 }
 
 // networkContextProfileDatasourceSchemaAttrs are the top-level attributes expected in the datasource schema.
 // domain_name is Computed-only in the datasource (read from existing SYSTEM profiles).
 var networkContextProfileDatasourceSchemaAttrs = []string{
-	"id", "name", "description", "scope", "app_id", "domain_name", "edge_gateway_id", "edge_gateway_name",
+	"id", "name", "description", "scope", "app_id", "domain_name", edgeGatewayIDAttr, edgeGatewayNameAttr,
 }
 
 // TestNetworkContextProfileSchemas validates that resource and datasource schemas for

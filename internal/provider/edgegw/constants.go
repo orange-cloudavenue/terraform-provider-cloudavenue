@@ -24,4 +24,6 @@ const (
 	name = "name"
 	// description is the attribute name for the description field.
 	description = "description"
+	// attrValues is the attribute name for values fields.
+	attrValues = "values"
 )

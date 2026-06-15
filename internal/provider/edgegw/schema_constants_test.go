@@ -7,13 +7,8 @@
  * or see the "LICENSE" file for more details.
  */
 
-package vdcg
+package edgegw_test
 
-const (
-	name         = "name"
-	description  = "description"
-	vdcGroupID   = "vdc_group_id"
-	vdcGroupName = "vdc_group_name"
-	attrType     = "type"
-	attrValues   = "values"
-)
+const edgeGatewayIDAttr = "edge_gateway_id"
+
+const edgeGatewayNameAttr = "edge_gateway_name"

@@ -7,13 +7,6 @@
  * or see the "LICENSE" file for more details.
  */
 
-package vdcg
+package testsacc
 
-const (
-	name         = "name"
-	description  = "description"
-	vdcGroupID   = "vdc_group_id"
-	vdcGroupName = "vdc_group_name"
-	attrType     = "type"
-	attrValues   = "values"
-)
+const testNameExampleWithContextProfile = "example_with_context_profile"

@@ -698,7 +698,7 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 			}
 		},
 
-		"example_with_context_profile": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExampleWithContextProfile: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDCGroup)),

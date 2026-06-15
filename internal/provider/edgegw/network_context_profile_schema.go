@@ -134,7 +134,7 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 					Computed: true,
 				},
 				Attributes: superschema.Attributes{
-					"values": superschema.SuperSetAttributeOf[string]{
+					attrValues: superschema.SuperSetAttributeOf[string]{
 						Common: &schemaR.SetAttribute{
 							MarkdownDescription: "The set of App ID values to match (e.g. `[\"SSL\", \"CIFS\"]`).",
 							ElementType:         supertypes.StringType{},
@@ -178,7 +178,7 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 									Computed: true,
 								},
 							},
-							"values": superschema.SuperSetAttributeOf[string]{
+							attrValues: superschema.SuperSetAttributeOf[string]{
 								Common: &schemaR.SetAttribute{
 									MarkdownDescription: "The set of allowed values for this sub-attribute type.",
 									ElementType:         supertypes.StringType{},
@@ -206,7 +206,7 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 				},
 				Attributes: superschema.Attributes{
-					"values": superschema.SuperSetAttributeOf[string]{
+					attrValues: superschema.SuperSetAttributeOf[string]{
 						DataSource: &schemaD.SetAttribute{
 							MarkdownDescription: "The set of domain name values for this profile.",
 							Computed:            true,

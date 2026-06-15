@@ -53,7 +53,7 @@ type Type int
 
 const (
 	ISOLATED   Type = iota
-	NAT_ROUTED      //nolint:revive,stylecheck
+	NAT_ROUTED      //nolint:revive
 	ISOLATEDVAPP
 	ROUTEDVAPP
 )

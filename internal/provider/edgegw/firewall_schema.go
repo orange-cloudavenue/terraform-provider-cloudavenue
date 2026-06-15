@@ -213,19 +213,19 @@ func firewallSchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 					},
-				"network_context_profile_ids": superschema.SuperSetAttributeOf[string]{
-					Common: &schemaR.SetAttribute{
-						MarkdownDescription: "A set of Network Context Profile IDs (Layer 7). Use `data.cloudavenue_edgegateway_network_context_profile` to look up a SYSTEM/PROVIDER profile by name, or reference a `cloudavenue_edgegateway_network_context_profile` resource directly. Leaving it empty means `Any` (all).",
-						ElementType:         types.StringType,
-					},
-					Resource: &schemaR.SetAttribute{
-						Optional: true,
-						Validators: []validator.Set{
-							setvalidator.ValueStringsAre(
-								fstringvalidator.PrefixContains(urn.NetworkContextProfile.String()),
-							),
+					"network_context_profile_ids": superschema.SuperSetAttributeOf[string]{
+						Common: &schemaR.SetAttribute{
+							MarkdownDescription: "A set of Network Context Profile IDs (Layer 7). Use `data.cloudavenue_edgegateway_network_context_profile` to look up a SYSTEM/PROVIDER profile by name, or reference a `cloudavenue_edgegateway_network_context_profile` resource directly. Leaving it empty means `Any` (all).",
+							ElementType:         types.StringType,
 						},
-					},
+						Resource: &schemaR.SetAttribute{
+							Optional: true,
+							Validators: []validator.Set{
+								setvalidator.ValueStringsAre(
+									fstringvalidator.PrefixContains(urn.NetworkContextProfile.String()),
+								),
+							},
+						},
 						DataSource: &schemaD.SetAttribute{
 							Computed: true,
 						},
