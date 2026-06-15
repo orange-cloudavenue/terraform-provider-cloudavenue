@@ -104,7 +104,7 @@ func vdcgSchema(_ context.Context) superschema.Schema {
 					},
 				},
 			},
-			"type": superschema.SuperStringAttribute{
+			attrType: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "The type of the VDC Group.",
 					Computed:            true,

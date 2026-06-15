@@ -21,7 +21,7 @@ import (
 
 // firewallSchemaRequiredAttrs are the top-level attributes expected in both
 // the resource and datasource schemas for cloudavenue_edgegateway_firewall.
-var firewallSchemaRequiredAttrs = []string{"rules", "edge_gateway_id", "edge_gateway_name", "id"}
+var firewallSchemaRequiredAttrs = []string{"rules", edgeGatewayIDAttr, edgeGatewayNameAttr, "id"}
 
 // TestFirewallSchemas validates that resource and datasource schemas for
 // cloudavenue_edgegateway_firewall are well-formed and contain required attributes.

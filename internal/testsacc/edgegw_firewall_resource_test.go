@@ -378,7 +378,7 @@ func (r *EdgeGatewayFirewallResource) Tests(_ context.Context) map[testsacc.Test
 		},
 		// example_with_context_profile validates that network_context_profile_ids can be used
 		// in firewall rules for Layer 7 filtering (issue #1211).
-		"example_with_context_profile": func(_ context.Context, resourceName string) testsacc.Test {
+		testNameExampleWithContextProfile: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
