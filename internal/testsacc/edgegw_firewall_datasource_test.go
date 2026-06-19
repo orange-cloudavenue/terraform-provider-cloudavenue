@@ -67,27 +67,31 @@ func (r *EdgeGatewayFirewallDataSource) Tests(_ context.Context) map[testsacc.Te
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					resp.Append(GetDataSourceConfig()[EdgeGatewayNetworkContextProfileDatasourceName]().GetDefaultConfig)
+					resp.Append(func() map[string]testsacc.TFData {
+						return map[string]testsacc.TFData{
+							"cloudavenue_edgegateway_firewall.example_with_context_profile": `
+							resource "cloudavenue_edgegateway_firewall" "example_with_context_profile" {
+							  edge_gateway_id = cloudavenue_edgegateway.example.id
+							  rules = [
+							    {
+							      action      = "ALLOW"
+							      name        = "allow outbound SSL"
+							      direction   = "OUT"
+							      ip_protocol = "IPV4"
+							      network_context_profile_ids = [data.cloudavenue_edgegateway_network_context_profile.example.id]
+							    }
+							  ]
+							}`,
+						}
+					})
 					return resp
 				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
-            resource "cloudavenue_edgegateway_firewall" "example_with_context_profile" {
-              edge_gateway_id = cloudavenue_edgegateway.example.id
-              rules = [
-                {
-                  action      = "ALLOW"
-                  name        = "allow outbound SSL"
-                  direction   = "OUT"
-                  ip_protocol = "IPV4"
-                  network_context_profile_ids = [data.cloudavenue_edgegateway_network_context_profile.example.id]
-                }
-              ]
-            }
-
-            data "cloudavenue_edgegateway_firewall" "example_with_context_profile" {
-              edge_gateway_id = cloudavenue_edgegateway.example.id
-              depends_on      = [cloudavenue_edgegateway_firewall.example_with_context_profile]
-            }`,
+					data "cloudavenue_edgegateway_firewall" "example_with_context_profile" {
+					  edge_gateway_id = cloudavenue_edgegateway.example.id
+					  depends_on      = [cloudavenue_edgegateway_firewall.example_with_context_profile]
+					}`,
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
 						resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow outbound SSL"),

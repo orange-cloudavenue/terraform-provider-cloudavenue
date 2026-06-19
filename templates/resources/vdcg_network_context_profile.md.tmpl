@@ -11,7 +11,7 @@ description: |-
 
 ~> **Note** Network Context Profiles are TENANT-scoped and tied to the VDC Group. The profile `name` must be unique within the organisation.
 
-~> **Sub-attribute constraint** The `sub_attribute` field inside `app_id` is only supported when `app_id.values` contains exactly **one** entry.
+~> **Sub-attribute constraint** The `sub_attributes` field inside `app_id` is only supported when `app_id.values` contains exactly **one** entry.
 
 {{ if .HasExample -}}
 ## Example Usage
@@ -33,7 +33,7 @@ resource "cloudavenue_vdcg_network_context_profile" "ssl_strict" {
 
   app_id = {
     values = ["SSL"]
-    sub_attribute = [
+    sub_attributes = [
       {
         type   = "TLS_VERSION"
         values = ["TLS_V12", "TLS_V13"]

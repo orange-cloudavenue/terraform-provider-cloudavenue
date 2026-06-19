@@ -11,6 +11,7 @@ package testsacc
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"testing"
 
@@ -31,7 +32,6 @@ func NewEdgeGatewayNetworkContextProfileDatasourceTest() testsacc.TestACC {
 	return &EdgeGatewayNetworkContextProfileDatasource{}
 }
 
-// GetResourceName returns the name of the resource.
 func (r *EdgeGatewayNetworkContextProfileDatasource) GetResourceName() string {
 	return EdgeGatewayNetworkContextProfileDatasourceName.String()
 }
@@ -43,15 +43,14 @@ func (r *EdgeGatewayNetworkContextProfileDatasource) DependenciesConfig() (resp 
 
 func (r *EdgeGatewayNetworkContextProfileDatasource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
-		// Lookup a well-known SYSTEM profile by name.
-		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
+		"system_profile_by_edge_gateway_name": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				Create: testsacc.TFConfig{
-					TFConfig: `
-					data "cloudavenue_edgegateway_network_context_profile" "example" {
+					TFConfig: testsacc.TFData(`
+					data "cloudavenue_edgegateway_network_context_profile" "system_profile_by_edge_gateway_name" {
 						edge_gateway_name = cloudavenue_edgegateway.example.name
 						name              = "SSL"
-					}`,
+					}`),
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
 						resource.TestCheckResourceAttr(resourceName, "name", "SSL"),
@@ -64,15 +63,14 @@ func (r *EdgeGatewayNetworkContextProfileDatasource) Tests(_ context.Context) ma
 				Destroy: true,
 			}
 		},
-		// Lookup by edge gateway ID instead of name.
-		"example_by_edge_gateway_id": func(_ context.Context, resourceName string) testsacc.Test {
+		"system_profile_by_edge_gateway_id": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				Create: testsacc.TFConfig{
-					TFConfig: `
-					data "cloudavenue_edgegateway_network_context_profile" "example_by_edge_gateway_id" {
+					TFConfig: testsacc.TFData(`
+					data "cloudavenue_edgegateway_network_context_profile" "system_profile_by_edge_gateway_id" {
 						edge_gateway_id = cloudavenue_edgegateway.example.id
 						name            = "CIFS"
-					}`,
+					}`),
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
 						resource.TestCheckResourceAttr(resourceName, "name", "CIFS"),
@@ -84,33 +82,58 @@ func (r *EdgeGatewayNetworkContextProfileDatasource) Tests(_ context.Context) ma
 				Destroy: true,
 			}
 		},
-		// Lookup by the profile ID directly.
-		"example_by_profile_id": func(_ context.Context, resourceName string) testsacc.Test {
+		"custom_erp_application": func(_ context.Context, resourceName string) testsacc.Test {
+			const (
+				depResourceLabel = "existing_erp"
+				description      = "Test profile for lookup by ID"
+			)
+
 			return testsacc.Test{
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetDefaultConfig)
+					resp.Append(func() map[string]testsacc.TFData {
+						return map[string]testsacc.TFData{
+							"cloudavenue_edgegateway_network_context_profile." + depResourceLabel: testsacc.TFData(`
+							resource "cloudavenue_edgegateway_network_context_profile" "existing_erp" {
+							  edge_gateway_name = cloudavenue_edgegateway.example.name
+							  name              = {{ generate . "name" }}
+							  description       = "Test profile for lookup by ID"
+
+							  app_id = {
+								values = ["SSL"]
+							  }
+							}
+							`),
+						}
+					})
+					return resp
+				},
 				Create: testsacc.TFConfig{
-					TFConfig: `
-					data "cloudavenue_edgegateway_network_context_profile" "example_by_profile_id" {
+					TFConfig: testsacc.TFData(fmt.Sprintf(`
+					data "cloudavenue_edgegateway_network_context_profile" "custom_erp_application" {
 						edge_gateway_name = cloudavenue_edgegateway.example.name
-						id                = "urn:vcloud:networkContextProfile:45b67f48-0e35-3e97-98c7-ace4276a17dc"
+						id                = cloudavenue_edgegateway_network_context_profile.%s.id
 					}`,
+						depResourceLabel,
+					)),
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "id", "urn:vcloud:networkContextProfile:45b67f48-0e35-3e97-98c7-ace4276a17dc"),
-						resource.TestCheckResourceAttr(resourceName, "name", "AMQP"),
-						resource.TestCheckResourceAttr(resourceName, "scope", "SYSTEM"),
+						resource.TestCheckResourceAttrSet(resourceName, "id"),
+						resource.TestCheckResourceAttrSet(resourceName, "name"),
+						resource.TestCheckResourceAttr(resourceName, "scope", "TENANT"),
+						resource.TestCheckResourceAttr(resourceName, "description", description),
 					},
 				},
 				Destroy: true,
 			}
 		},
-		// Verify that a non-existent profile returns a proper error.
-		"example_not_found": func(_ context.Context, _ string) testsacc.Test {
+		"not_found_typo": func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{
 				Create: testsacc.TFConfig{
-					TFConfig: `
-					data "cloudavenue_edgegateway_network_context_profile" "example_not_found" {
+					TFConfig: testsacc.TFData(`
+					data "cloudavenue_edgegateway_network_context_profile" "not_found_typo" {
 						edge_gateway_name = cloudavenue_edgegateway.example.name
 						name              = "THIS_PROFILE_DOES_NOT_EXIST"
-					}`,
+					}`),
 					TFAdvanced: testsacc.TFAdvanced{
 						ExpectError: regexp.MustCompile(`Network Context Profile not found`),
 					},

@@ -13,10 +13,12 @@ import (
 	"context"
 
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
-	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -27,6 +29,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 )
 
@@ -93,6 +96,7 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.AtLeastOneOf(path.MatchRoot(vdcGroupID), path.MatchRoot(vdcGroupName)),
+						fstringvalidator.PrefixContains(urn.VDCGroup.String()),
 					},
 				},
 				Resource: &schemaR.StringAttribute{
@@ -124,8 +128,8 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 			},
 			"app_id": superschema.SuperSingleNestedAttributeOf[networkContextProfileModelAppID]{
 				Common: &schemaR.SingleNestedAttribute{
-					MarkdownDescription: "Layer 7 App ID attribute. Defines a set of application identifiers to match (e.g. `SSL`, `CIFS`, `HTTP`).\n\n" +
-						"  ~> **Note:** Sub-attributes (`sub_attribute`) are only supported when `app_id.values` contains exactly **one** entry.",
+					MarkdownDescription: "Layer 7 App ID attribute. Defines a set of application identifiers to match.\n\n" +
+						"  ~> **Note:** Sub-attributes (`sub_attributes`) are only supported when `app_id.values` contains exactly **one** entry.",
 				},
 				Resource: &schemaR.SingleNestedAttribute{
 					Optional: true,
@@ -136,15 +140,22 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 				Attributes: superschema.Attributes{
 					attrValues: superschema.SuperSetAttributeOf[string]{
 						Common: &schemaR.SetAttribute{
-							MarkdownDescription: "The set of App ID values to match (e.g. `[\"SSL\", \"CIFS\"]`).",
-							ElementType:         supertypes.StringType{},
+							MarkdownDescription: "The set of App ID values to match.",
 						},
 						Resource: &schemaR.SetAttribute{
 							Required: true,
 							Validators: []validator.Set{
 								setvalidator.SizeAtLeast(1),
 								setvalidator.ValueStringsAre(
-									stringvalidator.OneOf(sdkv1.NetworkContextProfileKnownAppIDs...),
+									fstringvalidator.OneOfWithDescription(func() (resp []fstringvalidator.OneOfWithDescriptionValues) {
+										for _, e := range sdkv1.NetworkContextProfileAppIDDefinition.Values {
+											resp = append(resp, fstringvalidator.OneOfWithDescriptionValues{
+												Value:       e.Value,
+												Description: e.Description,
+											})
+										}
+										return resp
+									}()...),
 								),
 							},
 						},
@@ -152,9 +163,9 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 					},
-					"sub_attribute": superschema.SuperListNestedAttributeOf[networkContextProfileModelSubAttribute]{
+					"sub_attributes": superschema.SuperListNestedAttributeOf[networkContextProfileModelSubAttribute]{
 						Common: &schemaR.ListNestedAttribute{
-							MarkdownDescription: "Optional sub-attributes to refine the App ID match (e.g. TLS version, cipher suites, SMB version).\n\n" +
+							MarkdownDescription: "Optional sub-attributes to refine the App ID match.\n\n" +
 								"  ~> **Note:** Only supported when `app_id.values` contains exactly one entry.",
 						},
 						Resource: &schemaR.ListNestedAttribute{
@@ -166,12 +177,20 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 						Attributes: superschema.Attributes{
 							attrType: superschema.SuperStringAttribute{
 								Common: &schemaR.StringAttribute{
-									MarkdownDescription: "The sub-attribute type. Allowed values: `TLS_VERSION`, `TLS_CIPHER_SUITE`, `CIFS_SMB_VERSION`.",
+									MarkdownDescription: "The sub-attribute type.",
 								},
 								Resource: &schemaR.StringAttribute{
 									Required: true,
 									Validators: []validator.String{
-										stringvalidator.OneOf(sdkv1.NetworkContextProfileKnownSubAttributeTypes...),
+										fstringvalidator.OneOfWithDescription(func() (resp []fstringvalidator.OneOfWithDescriptionValues) {
+											for _, e := range sdkv1.NetworkContextProfileAppIDSubAttributeDefinition.Values {
+												resp = append(resp, fstringvalidator.OneOfWithDescriptionValues{
+													Value:       e.Value,
+													Description: e.Description,
+												})
+											}
+											return resp
+										}()...),
 									},
 								},
 								DataSource: &schemaD.StringAttribute{
@@ -180,15 +199,49 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 							},
 							attrValues: superschema.SuperSetAttributeOf[string]{
 								Common: &schemaR.SetAttribute{
-									MarkdownDescription: "The set of allowed values for this sub-attribute type.",
-									ElementType:         supertypes.StringType{},
+									MarkdownDescription: "The set of allowed values for the selected sub-attribute type.",
 								},
 								Resource: &schemaR.SetAttribute{
 									Required: true,
 									Validators: []validator.Set{
 										setvalidator.SizeAtLeast(1),
 										setvalidator.ValueStringsAre(
-											stringvalidator.OneOf(sdkv1.NetworkContextProfileKnownSubAttributeValues...),
+											fstringvalidator.OneOfWithDescriptionIfAttributeIsOneOf(
+												path.MatchRelative().AtParent().AtParent().AtName(attrType),
+												[]attr.Value{types.StringValue(string(sdkv1.NetworkContextProfileSubAttributeTypeTLSVersion))},
+												func() (resp []fstringvalidator.OneOfWithDescriptionIfAttributeIsOneOfValues) {
+													for _, e := range sdkv1.NetworkContextProfileTLSVersionDefinition.Values {
+														resp = append(resp, fstringvalidator.OneOfWithDescriptionIfAttributeIsOneOfValues{
+															Value:       e.Value,
+															Description: e.Description,
+														})
+													}
+													return resp
+												}()...),
+											fstringvalidator.OneOfWithDescriptionIfAttributeIsOneOf(
+												path.MatchRelative().AtParent().AtParent().AtName(attrType),
+												[]attr.Value{types.StringValue(string(sdkv1.NetworkContextProfileSubAttributeTypeTLSCipherSuite))},
+												func() (resp []fstringvalidator.OneOfWithDescriptionIfAttributeIsOneOfValues) {
+													for _, v := range sdkv1.NetworkContextProfileTLSCipherSuiteDefinition.Values {
+														resp = append(resp, fstringvalidator.OneOfWithDescriptionIfAttributeIsOneOfValues{
+															Value:       v.Value,
+															Description: v.Description,
+														})
+													}
+													return resp
+												}()...),
+											fstringvalidator.OneOfWithDescriptionIfAttributeIsOneOf(
+												path.MatchRelative().AtParent().AtParent().AtName(attrType),
+												[]attr.Value{types.StringValue(string(sdkv1.NetworkContextProfileSubAttributeTypeCIFSSMBVersion))},
+												func() (resp []fstringvalidator.OneOfWithDescriptionIfAttributeIsOneOfValues) {
+													for _, e := range sdkv1.NetworkContextProfileCIFSSMBVersionDefinition.Values {
+														resp = append(resp, fstringvalidator.OneOfWithDescriptionIfAttributeIsOneOfValues{
+															Value:       e.Value,
+															Description: e.Description,
+														})
+													}
+													return resp
+												}()...),
 										),
 									},
 								},
@@ -210,7 +263,6 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 						DataSource: &schemaD.SetAttribute{
 							MarkdownDescription: "The set of domain name values for this profile.",
 							Computed:            true,
-							ElementType:         supertypes.StringType{},
 						},
 					},
 				},
