@@ -33,7 +33,7 @@ func TestAttributesFromSDKProfileAppIDSubAttributeNullWhenEmpty(t *testing.T) {
 		t.Fatal("expected app_id block, got nil")
 	}
 	if !appID.SubAttribute.IsNull() {
-		t.Fatal("expected app_id.sub_attribute to be null when API sub-attributes are absent")
+		t.Fatal("expected app_id.sub_attributes to be null when API sub-attributes are absent")
 	}
 }
 
@@ -61,6 +61,6 @@ func TestAttributesFromSDKProfileAppIDSubAttributeSetWhenPresent(t *testing.T) {
 		t.Fatal("expected app_id block, got nil")
 	}
 	if appID.SubAttribute.IsNull() {
-		t.Fatal("expected app_id.sub_attribute to be set when API sub-attributes are present")
+		t.Fatal("expected app_id.sub_attributes to be set when API sub-attributes are present")
 	}
 }

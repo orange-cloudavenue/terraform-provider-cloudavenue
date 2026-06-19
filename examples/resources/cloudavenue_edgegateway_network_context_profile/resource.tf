@@ -1,12 +1,12 @@
 # Profile matching SSL traffic restricted to TLS 1.2 and 1.3
-resource "cloudavenue_edgegateway_network_context_profile" "ssl_strict" {
+resource "cloudavenue_edgegateway_network_context_profile" "example" {
   edge_gateway_name = cloudavenue_edgegateway.example.name
   name              = "ssl-tls12-only"
   description       = "Allow only TLS 1.2 and 1.3"
 
   app_id = {
     values = ["SSL"]
-    sub_attribute = [
+    sub_attributes = [
       {
         type   = "TLS_VERSION"
         values = ["TLS_V12", "TLS_V13"]

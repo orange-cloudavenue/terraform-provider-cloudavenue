@@ -77,7 +77,7 @@ resource "cloudavenue_edgegateway_network_context_profile" "ssl_strict" {
 
   app_id = {
     values = ["SSL"]
-    sub_attribute = [
+    sub_attributes = [
       {
         type   = "TLS_VERSION"
         values = ["TLS_V12", "TLS_V13"]

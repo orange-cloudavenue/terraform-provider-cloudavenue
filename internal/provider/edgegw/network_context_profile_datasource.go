@@ -102,21 +102,20 @@ func (d *networkContextProfileDataSource) Read(ctx context.Context, req datasour
 	}
 
 	var (
-		profile *sdkv1.NetworkContextProfile
-		err     error
+		profile  *sdkv1.NetworkContextProfile
+		err      error
+		nameOrID string
 	)
 
-	if config.ID.IsKnown() && config.ID.Get() != "" {
-		profile, err = d.edgegw.EdgeClient.GetNetworkContextProfileByID(config.ID.Get())
+	if config.ID.IsKnown() {
+		nameOrID = config.ID.Get()
+		profile, err = d.edgegw.GetNetworkContextProfileByID(nameOrID)
 	} else {
-		profile, err = d.edgegw.EdgeClient.GetNetworkContextProfileByName(config.Name.Get())
+		nameOrID = config.Name.Get()
+		profile, err = d.edgegw.GetNetworkContextProfileByName(nameOrID)
 	}
 
 	if err != nil {
-		nameOrID := config.Name.Get()
-		if config.ID.Get() != "" {
-			nameOrID = config.ID.Get()
-		}
 		resp.Diagnostics.AddError(
 			"Network Context Profile not found",
 			fmt.Sprintf("No Network Context Profile found with name or ID %q on Edge Gateway %q: %s", nameOrID, d.edgegw.GetName(), err),
@@ -125,6 +124,10 @@ func (d *networkContextProfileDataSource) Read(ctx context.Context, req datasour
 	}
 
 	stateRefreshed := config.Copy()
+	// Populate scalar fields directly — the datasource model includes DomainName
+	// (computed from SYSTEM profiles) which the resource model does not carry, so we
+	// cannot reuse the resource's fromSDKProfile helper here and call attributesFromSDKProfile
+	// directly to get both blocks in one pass.
 	stateRefreshed.ID.Set(profile.ID)
 	stateRefreshed.Name.Set(profile.Name)
 	stateRefreshed.Description.Set(profile.Description)
@@ -134,9 +137,6 @@ func (d *networkContextProfileDataSource) Read(ctx context.Context, req datasour
 
 	appIDBlock, domainBlock, diags := attributesFromSDKProfile(ctx, profile)
 	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 	resp.Diagnostics.Append(stateRefreshed.AppID.Set(ctx, appIDBlock)...)
 	resp.Diagnostics.Append(stateRefreshed.DomainName.Set(ctx, domainBlock)...)
 	if resp.Diagnostics.HasError() {

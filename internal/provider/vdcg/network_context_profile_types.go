@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -29,7 +30,7 @@ type networkContextProfileModelSubAttribute struct {
 // networkContextProfileModelAppID holds the APP_ID attribute block.
 type networkContextProfileModelAppID struct {
 	Values       supertypes.SetValueOf[string]                                              `tfsdk:"values"`
-	SubAttribute supertypes.ListNestedObjectValueOf[networkContextProfileModelSubAttribute] `tfsdk:"sub_attribute"`
+	SubAttribute supertypes.ListNestedObjectValueOf[networkContextProfileModelSubAttribute] `tfsdk:"sub_attributes"`
 }
 
 // networkContextProfileModelDomainName holds the DOMAIN_NAME attribute block.
@@ -79,7 +80,7 @@ func (rm *networkContextProfileModel) toSDKProfile(ctx context.Context) (*sdkv1.
 	attrs := make([]sdkv1.NetworkContextProfileAttribute, 0, 2)
 
 	// APP_ID block
-	if !rm.AppID.IsNull() && !rm.AppID.IsUnknown() {
+	if rm.AppID.IsKnown() {
 		appIDBlock, d := rm.AppID.Get(ctx)
 		diags.Append(d...)
 		if diags.HasError() {

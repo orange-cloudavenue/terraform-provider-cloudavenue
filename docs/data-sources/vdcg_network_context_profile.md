@@ -10,7 +10,7 @@ description: |-
 The `cloudavenue_vdcg_network_context_profile` data source allows you to retrieve information about a Network Context Profile (Layer 7) available on a VDC Group. Use this to reference SYSTEM or PROVIDER profiles by name in firewall rules.
 
 Network Context Profiles are available in three scopes:
-- **SYSTEM** — predefined by VMware/NSX-T (e.g. `SSL`, `CIFS`, `HTTP`, `DNS`, `SSH`). Read-only.
+- **SYSTEM** — predefined by VMware (e.g. `SSL`, `CIFS`, `HTTP`, `DNS`, `SSH`). Read-only.
 - **PROVIDER** — defined by Orange at platform level. Read-only.
 - **TENANT** — created by the customer via `cloudavenue_vdcg_network_context_profile`. Fully manageable.
 
@@ -30,14 +30,14 @@ data "cloudavenue_vdcg_network_context_profile" "example" {
 
 - `id` (String) The ID of the Network Context Profile. Ensure that one and only one attribute from this collection is set : `name`, `id`.
 - `name` (String) The name of the Network Context Profile. Ensure that one and only one attribute from this collection is set : `name`, `id`.
-- `vdc_group_id` (String) The ID of the VDC Group. Ensure that at least one attribute from this collection is set: [vdc_group_id,vdc_group_name].
+- `vdc_group_id` (String) The ID of the VDC Group. Ensure that at least one attribute from this collection is set: [vdc_group_id,vdc_group_name]. This value must start with `urn:vcloud:vdcGroup:`.
 - `vdc_group_name` (String) The name of the VDC Group. Ensure that at least one attribute from this collection is set: [vdc_group_id,vdc_group_name].
 
 ### Read-Only
 
-- `app_id` (Attributes) Layer 7 App ID attribute. Defines a set of application identifiers to match (e.g. `SSL`, `CIFS`, `HTTP`).
+- `app_id` (Attributes) Layer 7 App ID attribute. Defines a set of application identifiers to match.
 
-  ~> **Note:** Sub-attributes (`sub_attribute`) are only supported when `app_id.values` contains exactly **one** entry. (see [below for nested schema](#nestedatt--app_id))
+  ~> **Note:** Sub-attributes (`sub_attributes`) are only supported when `app_id.values` contains exactly **one** entry. (see [below for nested schema](#nestedatt--app_id))
 - `description` (String) A human-readable description of the Network Context Profile.
 - `domain_name` (Attributes) Domain Name (FQDN) attribute. Present on SYSTEM profiles that match traffic by fully-qualified domain name. (see [below for nested schema](#nestedatt--domain_name))
 - `scope` (String) The scope of the Network Context Profile (`SYSTEM`, `PROVIDER` or `TENANT`). Resources are always created as `TENANT`.
@@ -47,18 +47,18 @@ data "cloudavenue_vdcg_network_context_profile" "example" {
 
 Read-Only:
 
-- `sub_attribute` (Attributes List) Optional sub-attributes to refine the App ID match (e.g. TLS version, cipher suites, SMB version).
+- `sub_attributes` (Attributes List) Optional sub-attributes to refine the App ID match.
 
-  ~> **Note:** Only supported when `app_id.values` contains exactly one entry. (see [below for nested schema](#nestedatt--app_id--sub_attribute))
-- `values` (Set of String) The set of App ID values to match (e.g. `["SSL", "CIFS"]`).
+  ~> **Note:** Only supported when `app_id.values` contains exactly one entry. (see [below for nested schema](#nestedatt--app_id--sub_attributes))
+- `values` (Set of String) The set of App ID values to match.
 
-<a id="nestedatt--app_id--sub_attribute"></a>
-### Nested Schema for `app_id.sub_attribute`
+<a id="nestedatt--app_id--sub_attributes"></a>
+### Nested Schema for `app_id.sub_attributes`
 
 Read-Only:
 
-- `type` (String) The sub-attribute type. Allowed values: `TLS_VERSION`, `TLS_CIPHER_SUITE`, `CIFS_SMB_VERSION`.
-- `values` (Set of String) The set of allowed values for this sub-attribute type.
+- `type` (String) The sub-attribute type.
+- `values` (Set of String) The set of allowed values for the selected sub-attribute type.
 
 
 

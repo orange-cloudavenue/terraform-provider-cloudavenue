@@ -3,7 +3,7 @@
 ```
 
 ```release-note:new-datasource
-`data.cloudavenue_edgegateway_network_context_profile` - Add Network Context Profile data source to look up SYSTEM, PROVIDER and TENANT profiles by name or ID on Edge Gateways.
+`cloudavenue_edgegateway_network_context_profile` - Add Network Context Profile data source to look up SYSTEM, PROVIDER and TENANT profiles by name or ID on Edge Gateways.
 ```
 
 ```release-note:enhancement
@@ -15,7 +15,7 @@
 ```
 
 ```release-note:new-datasource
-`data.cloudavenue_vdcg_network_context_profile` - Add Network Context Profile data source to look up SYSTEM, PROVIDER and TENANT profiles by name or ID on VDC Groups.
+`cloudavenue_vdcg_network_context_profile` - Add Network Context Profile data source to look up SYSTEM, PROVIDER and TENANT profiles by name or ID on VDC Groups.
 ```
 
 ```release-note:enhancement

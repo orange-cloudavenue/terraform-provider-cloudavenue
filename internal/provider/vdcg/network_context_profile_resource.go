@@ -51,7 +51,7 @@ func (r *networkContextProfileResource) Init(_ context.Context, rm *networkConte
 	var err error
 
 	idOrName := rm.VDCGroupName.Get()
-	if rm.VDCGroupID.IsKnown() && rm.VDCGroupID.Get() != "" {
+	if rm.VDCGroupID.IsKnown() {
 		idOrName = rm.VDCGroupID.Get()
 	}
 
@@ -285,7 +285,7 @@ func (r *networkContextProfileResource) read(ctx context.Context, planOrState *n
 		err     error
 	)
 
-	if planOrState.ID.IsKnown() && planOrState.ID.Get() != "" {
+	if planOrState.ID.IsKnown() {
 		profile, err = r.vdcGroup.GetNetworkContextProfileByID(planOrState.ID.Get())
 	} else {
 		profile, err = r.vdcGroup.GetNetworkContextProfileByName(planOrState.Name.Get())
