@@ -170,7 +170,13 @@ func (r *aclResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	plan.SharedWith = types.SetNull(types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes})
 	if controlAccessParams.AccessSettings != nil {
-		accessControlListSet, err := acl.AccessControlListToSharedSet(controlAccessParams.AccessSettings.AccessSetting)
+		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving Org", err.Error())
+			return
+		}
+
+		accessControlListSet, err := acl.AccessControlListToSharedSet(adminOrg, controlAccessParams.AccessSettings.AccessSetting)
 		if err != nil {
 			resp.Diagnostics.AddError("Error converting slice AccessSetting into set", err.Error())
 			return

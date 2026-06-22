@@ -191,20 +191,41 @@ func SharedSetToAccessControl(_ *govcd.VCDClient, org *govcd.AdminOrg, input []S
 	return output, outputModel, nil
 }
 
-func AccessControlListToSharedSet(input []*govcdtypes.AccessSetting) ([]SharedWithModel, error) {
+func AccessControlListToSharedSet(org *govcd.AdminOrg, input []*govcdtypes.AccessSetting) ([]SharedWithModel, error) {
+	if org == nil {
+		return nil, fmt.Errorf("admin organization is required to resolve ACL subjects")
+	}
+
 	var output []SharedWithModel
 
 	for _, item := range input {
+		if item == nil || item.Subject == nil {
+			return nil, fmt.Errorf("access setting subject is missing")
+		}
+		if item.ExternalSubject != nil {
+			return nil, fmt.Errorf("external subject '%s' is not supported", item.ExternalSubject.SubjectId)
+		}
+
 		o := SharedWithModel{}
 
-		switch item.Subject.Type {
-		case govcdtypes.MimeAdminUser:
+		subjectUUID := urn.ExtractUUID(item.Subject.HREF)
+		if subjectUUID == "" {
+			return nil, fmt.Errorf("cannot extract subject UUID from href '%s' for item %s", item.Subject.HREF, item.Subject.Name)
+		}
 
-			o.UserID = types.StringValue(urn.Normalize(urn.User, urn.ExtractUUID(item.Subject.HREF)).String())
-		case govcdtypes.MimeAdminGroup:
-			o.GroupID = types.StringValue(urn.Normalize(urn.Group, urn.ExtractUUID(item.Subject.HREF)).String())
-		default:
-			return nil, fmt.Errorf("unhandled type '%s' for item %s", item.Subject.Type, item.Subject.Name)
+		if _, err := org.GetUserById(subjectUUID, false); err == nil {
+			o.UserID = types.StringValue(urn.Normalize(urn.User, subjectUUID).String())
+		} else if _, err := org.GetGroupById(subjectUUID, false); err == nil {
+			o.GroupID = types.StringValue(urn.Normalize(urn.Group, subjectUUID).String())
+		} else {
+			switch item.Subject.Type {
+			case govcdtypes.MimeAdminUser:
+				o.UserID = types.StringValue(urn.Normalize(urn.User, subjectUUID).String())
+			case govcdtypes.MimeAdminGroup:
+				o.GroupID = types.StringValue(urn.Normalize(urn.Group, subjectUUID).String())
+			default:
+				return nil, fmt.Errorf("cannot resolve ACL subject '%s' (%s)", item.Subject.Name, item.Subject.HREF)
+			}
 		}
 		o.AccessLevel = types.StringValue(item.AccessLevel)
 		o.SubjectName = types.StringValue(item.Subject.Name)
