@@ -58,6 +58,11 @@ func firewallSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					MarkdownDescription: "The ID of the Firewall Edge Gateway Service.",
 				},
+				Resource: &schemaR.StringAttribute{
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
 			},
 			edgeGatewayName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
@@ -66,6 +71,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
+						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
@@ -79,6 +85,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
+						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),

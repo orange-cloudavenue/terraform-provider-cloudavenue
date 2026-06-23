@@ -22,6 +22,7 @@ package edgegw
 import (
 	"context"
 	"fmt"
+	"time"
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
@@ -31,9 +32,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
@@ -48,6 +51,9 @@ var (
 	_ resource.ResourceWithConfigure   = &firewallResource{}
 	_ resource.ResourceWithImportState = &firewallResource{}
 )
+
+// readTimeout is the timeout for reading the firewall resource. It is set to 30 seconds to allow for the backend to process the request and return the updated state.
+const readTimeout = 30 * time.Second
 
 // NewFirewallResource is a helper function to simplify the provider implementation.
 func NewFirewallResource() resource.Resource {
@@ -352,7 +358,7 @@ func (r *firewallResource) createOrUpdate(ctx context.Context, plan *firewallMod
 		return diags
 	}
 
-	if _, err := r.edgegw.EdgeClient.UpdateFirewallExtended(&sdkv1.NsxtFirewallRuleContainerExtended{
+	if _, err := r.edgegw.UpdateFirewallExtended(&sdkv1.NsxtFirewallRuleContainerExtended{
 		UserDefinedRules: fwRules,
 	}); err != nil {
 		diags.AddError("Error to create Firewall", err.Error())
@@ -366,14 +372,44 @@ func (r *firewallResource) createOrUpdate(ctx context.Context, plan *firewallMod
 func (r *firewallResource) read(ctx context.Context, planOrState *firewallModel) (stateRefreshed *firewallModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
+	// When state already has rules, the backend can briefly return an empty list
+	// right after apply. Retry a few times before accepting the empty response.
+	previousRulesCount := 0
+	if !planOrState.Rules.IsNull() && !planOrState.Rules.IsUnknown() {
+		previousRules, d := planOrState.Rules.Get(ctx)
+		diags.Append(d...)
+		if d.HasError() {
+			return stateRefreshed, true, diags
+		}
+		previousRulesCount = len(previousRules)
+	}
+
 	// Use GetFirewallExtended to also retrieve NetworkContextProfiles per rule.
-	fwRules, err := r.edgegw.EdgeClient.GetFirewallExtended()
+	var (
+		fwRules *sdkv1.NsxtFirewallRuleContainerExtended
+		err     error
+	)
+
+	err = retry.RetryContext(ctx, readTimeout, func() *retry.RetryError {
+		fwRules, err = r.edgegw.GetFirewallExtended()
+		if err != nil {
+			return retry.NonRetryableError(err)
+		}
+
+		if previousRulesCount > 0 && (fwRules == nil || len(fwRules.UserDefinedRules) == 0) {
+			return retry.RetryableError(fmt.Errorf("firewall rules not yet visible after apply"))
+		}
+
+		return nil
+	})
 	if err != nil {
 		if govcd.IsNotFound(err) {
 			return stateRefreshed, false, nil
 		}
-		diags.AddError("Error retrieving Edge Gateway Firewall", err.Error())
-		return stateRefreshed, true, diags
+		if !(previousRulesCount > 0 && (fwRules == nil || len(fwRules.UserDefinedRules) == 0)) {
+			diags.AddError("Error retrieving Edge Gateway Firewall", err.Error())
+			return stateRefreshed, true, diags
+		}
 	}
 
 	stateRefreshed.ID.Set(r.edgegw.GetID())

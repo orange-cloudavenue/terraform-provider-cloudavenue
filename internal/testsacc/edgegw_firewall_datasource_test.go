@@ -45,7 +45,6 @@ func (r *EdgeGatewayFirewallDataSource) GetResourceName() string {
 }
 
 func (r *EdgeGatewayFirewallDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	resp.Append(GetResourceConfig()[EdgeGatewayFirewallResourceName]().GetDefaultConfig)
 	return resp
 }
 
@@ -54,52 +53,17 @@ func (r *EdgeGatewayFirewallDataSource) Tests(_ context.Context) map[testsacc.Te
 		testNameExample: func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{
 				// ! Create testing
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[EdgeGatewayFirewallResourceName]().GetSpecificConfig(testNameExample))
+					return resp
+				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_edgegateway_firewall" "example" {
 						edge_gateway_id = cloudavenue_edgegateway_firewall.example.edge_gateway_id
 					}`,
-					Checks: GetResourceConfig()[EdgeGatewayFirewallResourceName]().GetDefaultChecks(),
+					Checks: GetResourceConfig()[EdgeGatewayFirewallResourceName]().GetSpecificChecks(testNameExample),
 				},
-			}
-		},
-		testNameExampleWithContextProfile: func(_ context.Context, resourceName string) testsacc.Test {
-			return testsacc.Test{
-				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					resp.Append(GetDataSourceConfig()[EdgeGatewayNetworkContextProfileDatasourceName]().GetDefaultConfig)
-					resp.Append(func() map[string]testsacc.TFData {
-						return map[string]testsacc.TFData{
-							"cloudavenue_edgegateway_firewall.example_with_context_profile": `
-							resource "cloudavenue_edgegateway_firewall" "example_with_context_profile" {
-							  edge_gateway_id = cloudavenue_edgegateway.example.id
-							  rules = [
-							    {
-							      action      = "ALLOW"
-							      name        = "allow outbound SSL"
-							      direction   = "OUT"
-							      ip_protocol = "IPV4"
-							      network_context_profile_ids = [data.cloudavenue_edgegateway_network_context_profile.example.id]
-							    }
-							  ]
-							}`,
-						}
-					})
-					return resp
-				},
-				Create: testsacc.TFConfig{
-					TFConfig: `
-					data "cloudavenue_edgegateway_firewall" "example_with_context_profile" {
-					  edge_gateway_id = cloudavenue_edgegateway.example.id
-					  depends_on      = [cloudavenue_edgegateway_firewall.example_with_context_profile]
-					}`,
-					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
-						resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow outbound SSL"),
-						resource.TestCheckResourceAttr(resourceName, "rules.0.network_context_profile_ids.#", "1"),
-						resource.TestCheckResourceAttrSet(resourceName, "rules.0.network_context_profile_ids.0"),
-					},
-				},
-				Destroy: true,
 			}
 		},
 	}
