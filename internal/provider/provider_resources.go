@@ -46,6 +46,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		edgegw.NewEdgeGatewayResource,
 		edgegw.NewFirewallResource,
 		edgegw.NewAppPortProfileResource,
+		edgegw.NewNetworkContextProfileResource,
 		edgegw.NewSecurityGroupResource,
 		edgegw.NewIPSetResource,
 		edgegw.NewDhcpForwardingResource,
@@ -74,6 +75,7 @@ func (p *cloudavenueProvider) Resources(_ context.Context) []func() resource.Res
 		vdcg.NewDynamicSecurityGroupResource,
 		vdcg.NewSecurityGroupResource,
 		vdcg.NewAppPortProfileResource,
+		vdcg.NewNetworkContextProfileResource,
 		vdcg.NewFirewallResource,
 		vdcg.NewNetworkRoutedResource,
 

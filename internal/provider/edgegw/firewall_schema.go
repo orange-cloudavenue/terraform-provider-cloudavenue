@@ -23,6 +23,7 @@ import (
 
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -37,7 +38,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 func firewallSchema(_ context.Context) superschema.Schema {
@@ -54,6 +58,11 @@ func firewallSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					MarkdownDescription: "The ID of the Firewall Edge Gateway Service.",
 				},
+				Resource: &schemaR.StringAttribute{
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
 			},
 			edgeGatewayName: superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
@@ -62,6 +71,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
+						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
@@ -75,6 +85,7 @@ func firewallSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplaceIfConfigured(),
+						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayName), path.MatchRoot(edgeGatewayID)),
@@ -204,6 +215,23 @@ func firewallSchema(_ context.Context) superschema.Schema {
 						},
 						Resource: &schemaR.SetAttribute{
 							Optional: true,
+						},
+						DataSource: &schemaD.SetAttribute{
+							Computed: true,
+						},
+					},
+					"network_context_profile_ids": superschema.SuperSetAttributeOf[string]{
+						Common: &schemaR.SetAttribute{
+							MarkdownDescription: "A set of Network Context Profile IDs (Layer 7). Use `data.cloudavenue_edgegateway_network_context_profile` to look up a SYSTEM/PROVIDER profile by name, or reference a `cloudavenue_edgegateway_network_context_profile` resource directly. Leaving it empty means `Any` (all).",
+							ElementType:         types.StringType,
+						},
+						Resource: &schemaR.SetAttribute{
+							Optional: true,
+							Validators: []validator.Set{
+								setvalidator.ValueStringsAre(
+									fstringvalidator.PrefixContains(urn.NetworkContextProfile.String()),
+								),
+							},
 						},
 						DataSource: &schemaD.SetAttribute{
 							Computed: true,

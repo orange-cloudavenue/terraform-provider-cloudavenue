@@ -38,5 +38,6 @@ Read-Only:
 - `ip_protocol` (String) The IP protocol of the rule.
 - `logging` (Boolean) Defines if the rule should log matching traffic.
 - `name` (String) The name of the rule.
+- `network_context_profile_ids` (Set of String) A set of Network Context Profile IDs (Layer 7). Use `data.cloudavenue_edgegateway_network_context_profile` to look up a SYSTEM/PROVIDER profile by name, or reference a `cloudavenue_edgegateway_network_context_profile` resource directly. Leaving it empty means `Any` (all).
 - `source_ids` (Set of String) A set of Source Firewall Group IDs (`IP Sets` or `Security Groups`). Leaving it empty means `Any` (all).
 

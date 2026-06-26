@@ -41,18 +41,19 @@ type (
 	}
 
 	FirewallModelRule struct {
-		ID                  supertypes.StringValue        `tfsdk:"id"`
-		Name                supertypes.StringValue        `tfsdk:"name"`
-		Enabled             supertypes.BoolValue          `tfsdk:"enabled"`
-		Direction           supertypes.StringValue        `tfsdk:"direction"`
-		IPProtocol          supertypes.StringValue        `tfsdk:"ip_protocol"`
-		Action              supertypes.StringValue        `tfsdk:"action"`
-		Logging             supertypes.BoolValue          `tfsdk:"logging"`
-		SourceIDs           supertypes.SetValueOf[string] `tfsdk:"source_ids"`
-		DestinationIDs      supertypes.SetValueOf[string] `tfsdk:"destination_ids"`
-		AppPortProfileIDs   supertypes.SetValueOf[string] `tfsdk:"app_port_profile_ids"`
-		SourcesExcluded     supertypes.BoolValue          `tfsdk:"source_groups_excluded"`
-		DestinationExcluded supertypes.BoolValue          `tfsdk:"destination_groups_excluded"`
+		ID                       supertypes.StringValue        `tfsdk:"id"`
+		Name                     supertypes.StringValue        `tfsdk:"name"`
+		Enabled                  supertypes.BoolValue          `tfsdk:"enabled"`
+		Direction                supertypes.StringValue        `tfsdk:"direction"`
+		IPProtocol               supertypes.StringValue        `tfsdk:"ip_protocol"`
+		Action                   supertypes.StringValue        `tfsdk:"action"`
+		Logging                  supertypes.BoolValue          `tfsdk:"logging"`
+		SourceIDs                supertypes.SetValueOf[string] `tfsdk:"source_ids"`
+		DestinationIDs           supertypes.SetValueOf[string] `tfsdk:"destination_ids"`
+		AppPortProfileIDs        supertypes.SetValueOf[string] `tfsdk:"app_port_profile_ids"`
+		NetworkContextProfileIDs supertypes.SetValueOf[string] `tfsdk:"network_context_profile_ids"`
+		SourcesExcluded          supertypes.BoolValue          `tfsdk:"source_groups_excluded"`
+		DestinationExcluded      supertypes.BoolValue          `tfsdk:"destination_groups_excluded"`
 	}
 )
 
@@ -109,6 +110,8 @@ func (rm *FirewallModel) rulesToSDKRules(ctx context.Context) (sdkrules v1.VDCGr
 		diags.Append(d...)
 		sdkrules.Rules[i].ApplicationPortProfiles, d = common.ToOpenAPIReferenceID(ctx, r.AppPortProfileIDs)
 		diags.Append(d...)
+		sdkrules.Rules[i].NetworkContextProfiles, d = common.ToOpenAPIReferenceID(ctx, r.NetworkContextProfileIDs)
+		diags.Append(d...)
 
 		if diags.HasError() {
 			return sdkrules, diags
@@ -123,18 +126,19 @@ func (rm *FirewallModel) sdkRulesToRules(ctx context.Context, rules v1.VDCGroupF
 	terraformRules = make([]*FirewallModelRule, len(rules))
 	for i, r := range rules {
 		terraformRules[i] = &FirewallModelRule{
-			ID:                  supertypes.NewStringNull(),
-			Name:                supertypes.NewStringNull(),
-			Enabled:             supertypes.NewBoolNull(),
-			Direction:           supertypes.NewStringNull(),
-			IPProtocol:          supertypes.NewStringNull(),
-			Action:              supertypes.NewStringNull(),
-			Logging:             supertypes.NewBoolNull(),
-			SourceIDs:           supertypes.NewSetValueOfNull[string](ctx),
-			DestinationIDs:      supertypes.NewSetValueOfNull[string](ctx),
-			AppPortProfileIDs:   supertypes.NewSetValueOfNull[string](ctx),
-			SourcesExcluded:     supertypes.NewBoolNull(),
-			DestinationExcluded: supertypes.NewBoolNull(),
+			ID:                       supertypes.NewStringNull(),
+			Name:                     supertypes.NewStringNull(),
+			Enabled:                  supertypes.NewBoolNull(),
+			Direction:                supertypes.NewStringNull(),
+			IPProtocol:               supertypes.NewStringNull(),
+			Action:                   supertypes.NewStringNull(),
+			Logging:                  supertypes.NewBoolNull(),
+			SourceIDs:                supertypes.NewSetValueOfNull[string](ctx),
+			DestinationIDs:           supertypes.NewSetValueOfNull[string](ctx),
+			AppPortProfileIDs:        supertypes.NewSetValueOfNull[string](ctx),
+			NetworkContextProfileIDs: supertypes.NewSetValueOfNull[string](ctx),
+			SourcesExcluded:          supertypes.NewBoolNull(),
+			DestinationExcluded:      supertypes.NewBoolNull(),
 		}
 
 		terraformRules[i].ID.Set(r.ID)
@@ -149,6 +153,7 @@ func (rm *FirewallModel) sdkRulesToRules(ctx context.Context, rules v1.VDCGroupF
 		diags.Append(terraformRules[i].SourceIDs.Set(ctx, common.FromOpenAPIReferenceID(ctx, r.SourceFirewallGroups))...)
 		diags.Append(terraformRules[i].DestinationIDs.Set(ctx, common.FromOpenAPIReferenceID(ctx, r.DestinationFirewallGroups))...)
 		diags.Append(terraformRules[i].AppPortProfileIDs.Set(ctx, common.FromOpenAPIReferenceID(ctx, r.ApplicationPortProfiles))...)
+		diags.Append(terraformRules[i].NetworkContextProfileIDs.Set(ctx, common.FromOpenAPIReferenceID(ctx, r.NetworkContextProfiles))...)
 	}
 	return terraformRules, diags
 }

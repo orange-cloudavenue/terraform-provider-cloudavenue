@@ -1,0 +1,66 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Edge Gateway (Tier-1)"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+~> **Note** Network Context Profiles are TENANT-scoped and tied to the Edge Gateway's owning VDC. The profile `name` must be unique within the organisation.
+
+~> **Sub-attribute constraint** The `sub_attributes` field inside `app_id` is only supported when `app_id.values` contains exactly **one** entry.
+
+{{ if .HasExample -}}
+## Example Usage
+
+{{ tffile .ExampleFile }}
+{{- end }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Advanced Usage
+
+Reference a Network Context Profile in a Firewall Rule for Layer 7 filtering:
+
+```terraform
+resource "cloudavenue_edgegateway_network_context_profile" "ssl_strict" {
+  edge_gateway_name = cloudavenue_edgegateway.example.name
+  name              = "ssl-tls12-only"
+  description       = "Allow only TLS 1.2 and 1.3"
+
+  app_id = {
+    values = ["SSL"]
+    sub_attributes = [
+      {
+        type   = "TLS_VERSION"
+        values = ["TLS_V12", "TLS_V13"]
+      }
+    ]
+  }
+}
+
+resource "cloudavenue_edgegateway_firewall" "example" {
+  edge_gateway_name = cloudavenue_edgegateway.example.name
+  rules = [
+    {
+      name        = "allow outbound strict SSL"
+      action      = "ALLOW"
+      direction   = "OUT"
+      ip_protocol = "IPV4"
+
+      network_context_profile_ids = [cloudavenue_edgegateway_network_context_profile.ssl_strict.id]
+    }
+  ]
+}
+
+```
+
+{{ if .HasImport -}}
+## Import
+
+Import is supported using the following syntax:
+{{ codefile "shell" .ImportFile }}
+{{- end }}

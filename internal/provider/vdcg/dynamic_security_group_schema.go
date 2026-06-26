@@ -143,7 +143,7 @@ func dynamicSecurityGroupSchema(_ context.Context) superschema.Schema {
 							Computed: true,
 						},
 						Attributes: superschema.Attributes{
-							"type": superschema.SuperStringAttribute{
+							attrType: superschema.SuperStringAttribute{
 								Common: &schemaR.StringAttribute{
 									MarkdownDescription: "The type of the rule.",
 								},

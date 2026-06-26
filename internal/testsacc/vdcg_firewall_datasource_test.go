@@ -63,6 +63,41 @@ func (r *VDCGFirewallDataSource) Tests(_ context.Context) map[testsacc.TestName]
 				},
 			}
 		},
+		testNameExampleWithContextProfile: func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetDataSourceConfig()[VDCGNetworkContextProfileDatasourceName]().GetDefaultConfig)
+					return resp
+				},
+				Create: testsacc.TFConfig{
+					TFConfig: `
+            resource "cloudavenue_vdcg_firewall" "example_with_context_profile" {
+              vdc_group_name = cloudavenue_vdcg.example.name
+              rules = [
+                {
+                  action      = "ALLOW"
+                  name        = "allow outbound SSL"
+                  direction   = "OUT"
+                  ip_protocol = "IPV4"
+                  network_context_profile_ids = [data.cloudavenue_vdcg_network_context_profile.example.id]
+                }
+              ]
+            }
+
+            data "cloudavenue_vdcg_firewall" "example_with_context_profile" {
+              vdc_group_name = cloudavenue_vdcg.example.name
+              depends_on     = [cloudavenue_vdcg_firewall.example_with_context_profile]
+            }`,
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow outbound SSL"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.network_context_profile_ids.#", "1"),
+						resource.TestCheckResourceAttrSet(resourceName, "rules.0.network_context_profile_ids.0"),
+					},
+				},
+				Destroy: true,
+			}
+		},
 	}
 }
 

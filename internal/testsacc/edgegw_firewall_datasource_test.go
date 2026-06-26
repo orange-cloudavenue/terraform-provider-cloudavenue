@@ -45,7 +45,6 @@ func (r *EdgeGatewayFirewallDataSource) GetResourceName() string {
 }
 
 func (r *EdgeGatewayFirewallDataSource) DependenciesConfig() (resp testsacc.DependenciesConfigResponse) {
-	resp.Append(GetResourceConfig()[EdgeGatewayFirewallResourceName]().GetDefaultConfig)
 	return resp
 }
 
@@ -54,12 +53,16 @@ func (r *EdgeGatewayFirewallDataSource) Tests(_ context.Context) map[testsacc.Te
 		testNameExample: func(_ context.Context, _ string) testsacc.Test {
 			return testsacc.Test{
 				// ! Create testing
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[EdgeGatewayFirewallResourceName]().GetSpecificConfig(testNameExample))
+					return resp
+				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
 					data "cloudavenue_edgegateway_firewall" "example" {
 						edge_gateway_id = cloudavenue_edgegateway_firewall.example.edge_gateway_id
 					}`,
-					Checks: GetResourceConfig()[EdgeGatewayFirewallResourceName]().GetDefaultChecks(),
+					Checks: GetResourceConfig()[EdgeGatewayFirewallResourceName]().GetSpecificChecks(testNameExample),
 				},
 			}
 		},

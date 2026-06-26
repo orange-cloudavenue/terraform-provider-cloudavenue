@@ -62,6 +62,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		edgegw.NewNATRuleDataSource,
 		edgegw.NewVPNIPSecDataSource,
 		edgegw.NewAppPortProfileDataSource,
+		edgegw.NewNetworkContextProfileDataSource,
 		edgegw.NewNetworkRoutedDataSource,
 		edgegw.NewServicesDataSource,
 
@@ -87,6 +88,7 @@ func (p *cloudavenueProvider) DataSources(_ context.Context) []func() datasource
 		vdcg.NewFirewallDataSource,
 		vdcg.NewDynamicSecurityGroupDataSource,
 		vdcg.NewAppPortProfileDataSource,
+		vdcg.NewNetworkContextProfileDataSource,
 		vdcg.NewNetworkRoutedDataSource,
 
 		// * VAPP

@@ -1,0 +1,23 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "VDC Group"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+Network Context Profiles are available in three scopes:
+- **SYSTEM** — predefined by VMware (e.g. `SSL`, `CIFS`, `HTTP`, `DNS`, `SSH`). Read-only.
+- **PROVIDER** — defined by Orange at platform level. Read-only.
+- **TENANT** — created by the customer via `cloudavenue_vdcg_network_context_profile`. Fully manageable.
+
+{{ if .HasExample -}}
+## Example Usage
+
+{{ tffile .ExampleFile }}
+{{- end }}
+
+{{ .SchemaMarkdown | trimspace }}

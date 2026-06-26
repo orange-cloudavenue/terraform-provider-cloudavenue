@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
@@ -153,6 +154,7 @@ func (r *EdgeGatewayFirewallResource) Tests(_ context.Context) map[testsacc.Test
 					    {
 					      action      = "ALLOW"
 					      name        = "allow all IPv4 traffic with logging"
+					      enabled = true
 					      direction   = "IN_OUT"
 					      ip_protocol = "IPV4"
 					      logging     = true
@@ -179,6 +181,7 @@ func (r *EdgeGatewayFirewallResource) Tests(_ context.Context) map[testsacc.Test
 						    {
 						      action      = "ALLOW"
 						      name        = "allow all IPv4 traffic with logging"
+						      enabled = true
 						      direction   = "IN_OUT"
 						      ip_protocol = "IPV4"
 						      logging     = false
@@ -199,6 +202,7 @@ func (r *EdgeGatewayFirewallResource) Tests(_ context.Context) map[testsacc.Test
 						    {
 						      action      = "ALLOW"
 						      name        = "allow all IPv4 traffic with logging"
+						      enabled = true
 						      direction   = "IN_OUT"
 						      ip_protocol = "IPV4"
 						      logging     = true
@@ -221,152 +225,107 @@ func (r *EdgeGatewayFirewallResource) Tests(_ context.Context) map[testsacc.Test
 				},
 			}
 		},
-		"example_with_ids": func(_ context.Context, resourceName string) testsacc.Test {
+		// example_with_context_profile validates that network_context_profile_ids can be used
+		// in firewall rules for Layer 7 filtering (issue #1211).
+		testNameExampleWithContextProfile: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
 					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
 				},
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					resp.Append(GetResourceConfig()[EdgeGatewaySecurityGroupResourceName]().GetDefaultConfig)
+					resp.Append(GetDataSourceConfig()[EdgeGatewayNetworkContextProfileDatasourceName]().GetSpecificConfig("system_profile_by_edge_gateway_name"))
+					resp.Append(GetDataSourceConfig()[EdgeGatewayNetworkContextProfileDatasourceName]().GetSpecificConfig("system_profile_by_edge_gateway_id"))
 					return resp
 				},
-				// ! Create testing
+				// ! Create testing — firewall rule using a system context profile (SSL)
 				Create: testsacc.TFConfig{
 					TFConfig: `
-						resource "cloudavenue_edgegateway_firewall" "example_with_ids" {
-							edge_gateway_id = cloudavenue_edgegateway.example.id
-							rules = [{
-								action      = "ALLOW"
-								name        = "To Internet"
-								direction   = "OUT"
-								ip_protocol = "IPV4"
-							},
-							{
-								action      = "ALLOW"
-								name        = "From Internet to HTTP"
-								direction   = "IN"
-								ip_protocol = "IPV4"
+					resource "cloudavenue_edgegateway_firewall" "example_with_context_profile" {
+					  edge_gateway_id = cloudavenue_edgegateway.example.id
+					  rules = [
+					    {
+					      action      = "ALLOW"
+					      name        = "allow outbound SSL traffic"
+					      direction   = "OUT"
+					      ip_protocol = "IPV4"
 
-								destination_ids = [cloudavenue_edgegateway_security_group.example.id]
-								app_port_profile_ids = ["urn:vcloud:applicationPortProfile:4d8cc407-fe83-3a9f-af20-95dfe3a1e9a2"]
-							},
-							{
-								action      = "ALLOW"
-								name        = "From Internet to HTTPS"
-								direction   = "IN"
-								ip_protocol = "IPV4"
-
-								destination_ids = [cloudavenue_edgegateway_security_group.example.id]
-								app_port_profile_ids = ["urn:vcloud:applicationPortProfile:9c8049b5-9820-36f9-b90c-ab8f462df3c6"]
-							}]
-						}`,
+					      network_context_profile_ids = [data.cloudavenue_edgegateway_network_context_profile.system_profile_by_edge_gateway_name.id]
+					    },
+					    {
+					      action      = "DROP"
+					      name        = "block all inbound"
+					      direction   = "IN"
+					      ip_protocol = "IPV4_IPV6"
+					    }
+					  ]
+					}`,
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
+						resource.TestCheckResourceAttr(resourceName, "rules.#", "2"),
 
-						resource.TestCheckResourceAttr(resourceName, "rules.#", "3"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow outbound SSL traffic"),
 						resource.TestCheckResourceAttr(resourceName, "rules.0.action", "ALLOW"),
-						resource.TestCheckResourceAttr(resourceName, "rules.0.name", "To Internet"),
 						resource.TestCheckResourceAttr(resourceName, "rules.0.direction", "OUT"),
-						resource.TestCheckResourceAttr(resourceName, "rules.0.ip_protocol", "IPV4"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.network_context_profile_ids.#", "1"),
+						resource.TestCheckResourceAttrSet(resourceName, "rules.0.network_context_profile_ids.0"),
 
-						resource.TestCheckResourceAttr(resourceName, "rules.1.action", "ALLOW"),
-						resource.TestCheckResourceAttr(resourceName, "rules.1.name", "From Internet to HTTP"),
+						resource.TestCheckResourceAttr(resourceName, "rules.1.name", "block all inbound"),
+						resource.TestCheckResourceAttr(resourceName, "rules.1.action", "DROP"),
 						resource.TestCheckResourceAttr(resourceName, "rules.1.direction", "IN"),
-						resource.TestCheckResourceAttr(resourceName, "rules.1.ip_protocol", "IPV4"),
-						resource.TestCheckResourceAttr(resourceName, "rules.1.destination_ids.#", "1"),
-						resource.TestCheckResourceAttrWith(resourceName, "rules.1.destination_ids.0", urn.TestIsType(urn.SecurityGroup)),
-						resource.TestCheckResourceAttr(resourceName, "rules.1.app_port_profile_ids.#", "1"),
-						resource.TestCheckResourceAttr(resourceName, "rules.1.app_port_profile_ids.0", "urn:vcloud:applicationPortProfile:4d8cc407-fe83-3a9f-af20-95dfe3a1e9a2"),
-
-						resource.TestCheckResourceAttr(resourceName, "rules.2.action", "ALLOW"),
-						resource.TestCheckResourceAttr(resourceName, "rules.2.name", "From Internet to HTTPS"),
-						resource.TestCheckResourceAttr(resourceName, "rules.2.direction", "IN"),
-						resource.TestCheckResourceAttr(resourceName, "rules.2.ip_protocol", "IPV4"),
-						resource.TestCheckResourceAttr(resourceName, "rules.2.destination_ids.#", "1"),
-						resource.TestCheckResourceAttrWith(resourceName, "rules.2.destination_ids.0", urn.TestIsType(urn.SecurityGroup)),
-						resource.TestCheckResourceAttr(resourceName, "rules.2.app_port_profile_ids.#", "1"),
-						resource.TestCheckResourceAttr(resourceName, "rules.2.app_port_profile_ids.0", "urn:vcloud:applicationPortProfile:9c8049b5-9820-36f9-b90c-ab8f462df3c6"),
+						resource.TestCheckResourceAttr(resourceName, "rules.1.network_context_profile_ids.#", "0"),
 					},
 				},
-				// ! Updates testing
+				// ! Update testing — add a second context profile (CIFS)
 				Updates: []testsacc.TFConfig{
 					{
 						TFConfig: `
-						resource "cloudavenue_edgegateway_firewall" "example_with_ids" {
-							edge_gateway_id = cloudavenue_edgegateway.example.id
-							rules = [{
-								action      = "ALLOW"
-								name        = "To Internet"
-								direction   = "OUT"
-								ip_protocol = "IPV4"
-							},
-							{
-								action      = "ALLOW"
-								name        = "From Internet to HTTP"
-								direction   = "IN"
-								ip_protocol = "IPV4"
+						resource "cloudavenue_edgegateway_firewall" "example_with_context_profile" {
+						  edge_gateway_id = cloudavenue_edgegateway.example.id
+						  rules = [
+						    {
+						      action      = "ALLOW"
+						      name        = "allow outbound SSL and CIFS"
+						      direction   = "OUT"
+						      ip_protocol = "IPV4"
 
-								destination_ids = [cloudavenue_edgegateway_security_group.example.id]
-								app_port_profile_ids = ["urn:vcloud:applicationPortProfile:4d8cc407-fe83-3a9f-af20-95dfe3a1e9a2"]
-							},
-							{
-								action      = "ALLOW"
-								name        = "From Internet to HTTPS"
-								direction   = "IN"
-								ip_protocol = "IPV4"
-
-								destination_ids = [cloudavenue_edgegateway_security_group.example.id]
-								app_port_profile_ids = ["urn:vcloud:applicationPortProfile:9c8049b5-9820-36f9-b90c-ab8f462df3c6"]
-							},
-							{
-								action      = "ALLOW"
-								name        = "Allow local traffic"
-								direction   = "IN_OUT"
-								ip_protocol = "IPV4"
-
-								source_ids = [cloudavenue_edgegateway_security_group.example.id]
-								destination_ids = [cloudavenue_edgegateway_security_group.example.id]
-							}]
+						      network_context_profile_ids = [
+						        data.cloudavenue_edgegateway_network_context_profile.system_profile_by_edge_gateway_name.id,
+						        data.cloudavenue_edgegateway_network_context_profile.system_profile_by_edge_gateway_id.id,
+						      ]
+						    },
+						    {
+						      action      = "DROP"
+						      name        = "block all inbound"
+						      direction   = "IN"
+						      ip_protocol = "IPV4_IPV6"
+						    }
+						  ]
 						}`,
 						Checks: []resource.TestCheckFunc{
-							resource.TestCheckResourceAttrWith(resourceName, "edge_gateway_id", urn.TestIsType(urn.Gateway)),
-
-							resource.TestCheckResourceAttr(resourceName, "rules.#", "4"),
-							resource.TestCheckResourceAttr(resourceName, "rules.0.action", "ALLOW"),
-							resource.TestCheckResourceAttr(resourceName, "rules.0.name", "To Internet"),
-							resource.TestCheckResourceAttr(resourceName, "rules.0.direction", "OUT"),
-							resource.TestCheckResourceAttr(resourceName, "rules.0.ip_protocol", "IPV4"),
-
-							resource.TestCheckResourceAttr(resourceName, "rules.1.action", "ALLOW"),
-							resource.TestCheckResourceAttr(resourceName, "rules.1.name", "From Internet to HTTP"),
-							resource.TestCheckResourceAttr(resourceName, "rules.1.direction", "IN"),
-							resource.TestCheckResourceAttr(resourceName, "rules.1.ip_protocol", "IPV4"),
-							resource.TestCheckResourceAttr(resourceName, "rules.1.destination_ids.#", "1"),
-							resource.TestCheckResourceAttrWith(resourceName, "rules.1.destination_ids.0", urn.TestIsType(urn.SecurityGroup)),
-							resource.TestCheckResourceAttr(resourceName, "rules.1.app_port_profile_ids.#", "1"),
-							resource.TestCheckResourceAttr(resourceName, "rules.1.app_port_profile_ids.0", "urn:vcloud:applicationPortProfile:4d8cc407-fe83-3a9f-af20-95dfe3a1e9a2"),
-
-							resource.TestCheckResourceAttr(resourceName, "rules.2.action", "ALLOW"),
-							resource.TestCheckResourceAttr(resourceName, "rules.2.name", "From Internet to HTTPS"),
-							resource.TestCheckResourceAttr(resourceName, "rules.2.direction", "IN"),
-							resource.TestCheckResourceAttr(resourceName, "rules.2.ip_protocol", "IPV4"),
-							resource.TestCheckResourceAttr(resourceName, "rules.2.destination_ids.#", "1"),
-							resource.TestCheckResourceAttrWith(resourceName, "rules.2.destination_ids.0", urn.TestIsType(urn.SecurityGroup)),
-							resource.TestCheckResourceAttr(resourceName, "rules.2.app_port_profile_ids.#", "1"),
-							resource.TestCheckResourceAttr(resourceName, "rules.2.app_port_profile_ids.0", "urn:vcloud:applicationPortProfile:9c8049b5-9820-36f9-b90c-ab8f462df3c6"),
-
-							resource.TestCheckResourceAttr(resourceName, "rules.3.action", "ALLOW"),
-							resource.TestCheckResourceAttr(resourceName, "rules.3.name", "Allow local traffic"),
-							resource.TestCheckResourceAttr(resourceName, "rules.3.direction", "IN_OUT"),
-							resource.TestCheckResourceAttr(resourceName, "rules.3.ip_protocol", "IPV4"),
-							resource.TestCheckResourceAttr(resourceName, "rules.3.source_ids.#", "1"),
-							resource.TestCheckResourceAttrWith(resourceName, "rules.3.source_ids.0", urn.TestIsType(urn.SecurityGroup)),
-							resource.TestCheckResourceAttr(resourceName, "rules.3.destination_ids.#", "1"),
-							resource.TestCheckResourceAttrWith(resourceName, "rules.3.destination_ids.0", urn.TestIsType(urn.SecurityGroup)),
+							resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow outbound SSL and CIFS"),
+							resource.TestCheckResourceAttr(resourceName, "rules.0.network_context_profile_ids.#", "2"),
+						},
+					},
+					// Remove context profiles — verify no drift
+					{
+						TFConfig: `
+						resource "cloudavenue_edgegateway_firewall" "example_with_context_profile" {
+						  edge_gateway_id = cloudavenue_edgegateway.example.id
+						  rules = [
+						    {
+						      action      = "ALLOW"
+						      name        = "allow all outbound"
+						      direction   = "OUT"
+						      ip_protocol = "IPV4"
+						    }
+						  ]
+						}`,
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
+							resource.TestCheckResourceAttr(resourceName, "rules.0.network_context_profile_ids.#", "0"),
 						},
 					},
 				},
-				// ! Imports testing
+				// ! Import testing
 				Imports: []testsacc.TFImport{
 					{
 						ImportStateIDBuilder: []string{testAttrEdgeGatewayID},
