@@ -213,19 +213,32 @@ func AccessControlListToSharedSet(org *govcd.AdminOrg, input []*govcdtypes.Acces
 			return nil, fmt.Errorf("cannot extract subject UUID from href '%s' for item %s", item.Subject.HREF, item.Subject.Name)
 		}
 
-		if _, err := org.GetUserById(subjectUUID, false); err == nil {
-			o.UserID = types.StringValue(urn.Normalize(urn.User, subjectUUID).String())
-		} else if _, err := org.GetGroupById(subjectUUID, false); err == nil {
-			o.GroupID = types.StringValue(urn.Normalize(urn.Group, subjectUUID).String())
-		} else {
-			switch item.Subject.Type {
-			case govcdtypes.MimeAdminUser:
-				o.UserID = types.StringValue(urn.Normalize(urn.User, subjectUUID).String())
-			case govcdtypes.MimeAdminGroup:
-				o.GroupID = types.StringValue(urn.Normalize(urn.Group, subjectUUID).String())
-			default:
-				return nil, fmt.Errorf("cannot resolve ACL subject '%s' (%s)", item.Subject.Name, item.Subject.HREF)
+		switch item.Subject.Type {
+		case govcdtypes.MimeAdminUser:
+			if _, err := org.GetUserById(subjectUUID, false); err != nil {
+				return nil, fmt.Errorf("cannot resolve ACL subject '%s' (%s): %w", item.Subject.Name, item.Subject.HREF, err)
 			}
+			o.UserID = types.StringValue(urn.Normalize(urn.User, subjectUUID).String())
+		case govcdtypes.MimeAdminGroup:
+			if _, err := org.GetGroupById(subjectUUID, false); err != nil {
+				return nil, fmt.Errorf("cannot resolve ACL subject '%s' (%s): %w", item.Subject.Name, item.Subject.HREF, err)
+			}
+			o.GroupID = types.StringValue(urn.Normalize(urn.Group, subjectUUID).String())
+		default:
+			if _, err := org.GetUserById(subjectUUID, false); err == nil {
+				o.UserID = types.StringValue(urn.Normalize(urn.User, subjectUUID).String())
+				break
+			} else if !govcd.ContainsNotFound(err) {
+				return nil, fmt.Errorf("error retrieving ACL user %s: %w", subjectUUID, err)
+			}
+
+			if _, err := org.GetGroupById(subjectUUID, false); err == nil {
+				o.GroupID = types.StringValue(urn.Normalize(urn.Group, subjectUUID).String())
+				break
+			} else if !govcd.ContainsNotFound(err) {
+				return nil, fmt.Errorf("error retrieving ACL group %s: %w", subjectUUID, err)
+			}
+			return nil, fmt.Errorf("cannot resolve ACL subject '%s' (%s)", item.Subject.Name, item.Subject.HREF)
 		}
 		o.AccessLevel = types.StringValue(item.AccessLevel)
 		o.SubjectName = types.StringValue(item.Subject.Name)

@@ -172,7 +172,11 @@ func (r *aclResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	if controlAccessParams.AccessSettings != nil {
 		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 		if err != nil {
-			resp.Diagnostics.AddError("Error retrieving Org", err.Error())
+			wrappedErr := fmt.Errorf("failed to resolve admin organization for current org %q: %w", r.client.GetOrgName(), err)
+			resp.Diagnostics.AddError(
+				fmt.Sprintf("Error resolving admin organization for current org %q", r.client.GetOrgName()),
+				wrappedErr.Error(),
+			)
 			return
 		}
 
@@ -222,6 +226,7 @@ func (r *aclResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	// Update resource
 	plan, diags := r.createOrUpdateACL(ctx, plan)
+	resp.Diagnostics.Append(diags...)
 	if diags.HasError() {
 		return
 	}
@@ -286,7 +291,11 @@ func (r *aclResource) createOrUpdateACL(ctx context.Context, plan *aclResourceMo
 		// Get admin Org
 		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
 		if err != nil {
-			diags.AddError("Error retrieving Org", err.Error())
+			wrappedErr := fmt.Errorf("failed to resolve admin organization for current org %q: %w", r.client.GetOrgName(), err)
+			diags.AddError(
+				fmt.Sprintf("Error resolving admin organization for current org %q", r.client.GetOrgName()),
+				wrappedErr.Error(),
+			)
 			return nil, diags
 		}
 
