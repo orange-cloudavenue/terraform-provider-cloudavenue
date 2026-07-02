@@ -86,6 +86,35 @@ type modifyPlanHelper struct {
 	diag *diag.Diagnostics
 }
 
+type modifyPlanBandwidthAction int
+
+const (
+	modifyPlanBandwidthActionNone modifyPlanBandwidthAction = iota
+	modifyPlanBandwidthActionCreateKnown
+	modifyPlanBandwidthActionCreateUnknown
+	modifyPlanBandwidthActionUpdate
+)
+
+func determineModifyPlanBandwidthAction(plan, state *edgeGatewayResourceModel) modifyPlanBandwidthAction {
+	if plan.Bandwidth.IsKnown() && !state.Bandwidth.IsKnown() {
+		return modifyPlanBandwidthActionCreateKnown
+	}
+
+	if !plan.Bandwidth.IsKnown() {
+		if state.Bandwidth.IsKnown() {
+			return modifyPlanBandwidthActionUpdate
+		}
+
+		return modifyPlanBandwidthActionCreateUnknown
+	}
+
+	if !plan.Bandwidth.Equal(state.Bandwidth) {
+		return modifyPlanBandwidthActionUpdate
+	}
+
+	return modifyPlanBandwidthActionNone
+}
+
 // loadRemainingBandwidth returns the remaining bandwidth capacity for the T0.
 func (h *modifyPlanHelper) loadRemainingBandwidth() (int, error) {
 	edgegws, err := h.r.client.CAVSDK.V1.EdgeGateway.List()
@@ -109,6 +138,22 @@ func (h *modifyPlanHelper) validateAllowedBandwidth() {
 	}
 }
 
+// maxAllowedBandwidth returns highest bandwidth from allowedValues.
+func maxAllowedBandwidth(allowedValues []int) (int, bool) {
+	if len(allowedValues) == 0 {
+		return 0, false
+	}
+
+	maxVal := allowedValues[0]
+	for _, value := range allowedValues[1:] {
+		if value > maxVal {
+			maxVal = value
+		}
+	}
+
+	return maxVal, true
+}
+
 // bestValueAtMost returns the largest value in allowedValues that is <= value.
 func bestValueAtMost(value int, allowedValues []int) int {
 	var best int
@@ -119,6 +164,33 @@ func bestValueAtMost(value int, allowedValues []int) int {
 	}
 
 	return best
+}
+
+func bestValueAtMostOrError(value int, allowedValues []int) (int, error) {
+	best := bestValueAtMost(value, allowedValues)
+	if best == 0 {
+		return 0, fmt.Errorf("no allowed bandwidth value fits current available capacity")
+	}
+
+	return best, nil
+}
+
+func dedicatedT0UpdateBandwidth(stateBandwidth int, allowedValues []int) (int, error) {
+	if stateBandwidth > 0 && slices.Contains(allowedValues, stateBandwidth) {
+		return stateBandwidth, nil
+	}
+
+	maxAllowed, ok := maxAllowedBandwidth(allowedValues)
+	if !ok {
+		return 0, fmt.Errorf("no allowed bandwidth values returned for dedicated T0")
+	}
+
+	return maxAllowed, nil
+}
+
+// allowedBandwidthAtMostUpdate returns best allowed bandwidth for current availability on update.
+func allowedBandwidthAtMostUpdate(remaining, currentBandwidth int, allowedValues []int) int {
+	return bestValueAtMost(remaining+currentBandwidth, allowedValues)
 }
 
 // modifyPlanCreateKnown handles the create case when bandwidth is already known.
@@ -166,7 +238,11 @@ func (h *modifyPlanHelper) modifyPlanCreateUnknown() bool {
 		return h.modifyPlanCreateUnknownWithError(err, allowedValues)
 	}
 
-	remaining = bestValueAtMost(remaining, allowedValues)
+	remaining, err = bestValueAtMostOrError(remaining, allowedValues)
+	if err != nil {
+		h.diag.AddError("Error on calculating remaining bandwidth", err.Error())
+		return false
+	}
 	h.diag.AddAttributeWarning(path.Root("bandwidth"), "Bandwidth value is unknown, will be set to remaining bandwidth", fmt.Sprintf("Bandwidth defined to %dMbps", remaining))
 	h.plan.Bandwidth.SetInt(remaining)
 
@@ -178,12 +254,12 @@ func (h *modifyPlanHelper) modifyPlanCreateUnknownWithError(err error, allowedVa
 	if errors.Is(err, v1.ErrDedicatedT0BandwidthNotComputable) {
 		// API returns rateLimit=0 for dedicated T0s — use the max allowed value as best effort.
 		// See: https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1229
-		if len(allowedValues) == 0 {
+		maxAllowed, ok := maxAllowedBandwidth(allowedValues)
+		if !ok {
 			h.diag.AddError("Error on calculating allowed Bandwidth values", "No allowed bandwidth values returned for dedicated T0")
 			return false
 		}
 
-		maxAllowed := allowedValues[len(allowedValues)-1]
 		h.plan.Bandwidth.SetInt(maxAllowed)
 		h.diag.AddAttributeWarning(path.Root("bandwidth"), "Bandwidth value is unknown, will be set to max allowed value (dedicated T0)", fmt.Sprintf("Bandwidth defined to %dMbps", maxAllowed))
 
@@ -213,8 +289,15 @@ func (h *modifyPlanHelper) modifyPlanUpdate(state *edgeGatewayResourceModel) boo
 		if errors.Is(remainingErr, v1.ErrDedicatedT0BandwidthNotComputable) {
 			// API returns rateLimit=0 for dedicated T0s — skip overcommit check.
 			// See: https://github.com/orange-cloudavenue/terraform-provider-cloudavenue/issues/1229
+			selectedBandwidth, bwErr := dedicatedT0UpdateBandwidth(state.Bandwidth.GetInt(), allowedValues)
+			if bwErr != nil {
+				h.diag.AddError("Error on calculating allowed Bandwidth values", bwErr.Error())
+				return false
+			}
+
+			h.plan.Bandwidth.SetInt(selectedBandwidth)
 			h.validateAllowedBandwidth()
-			return true
+			return !h.diag.HasError()
 		}
 		if errors.Is(remainingErr, v1.ErrNoBandwidthCapacityRemaining) {
 			h.diag.AddError("Error on calculating remaining bandwidth", "Not enough bandwidth available")
@@ -225,16 +308,23 @@ func (h *modifyPlanHelper) modifyPlanUpdate(state *edgeGatewayResourceModel) boo
 		return false
 	}
 
-	remainingOnUpdate := bestValueAtMost(remaining+state.Bandwidth.GetInt(), allowedValues)
+	remainingOnUpdate := allowedBandwidthAtMostUpdate(remaining, state.Bandwidth.GetInt(), allowedValues)
 
-	if h.plan.Bandwidth.IsUnknown() && remainingOnUpdate > 0 {
+	if h.plan.Bandwidth.IsUnknown() {
+		if remainingOnUpdate == 0 {
+			h.diag.AddError("Error on calculating remaining bandwidth", "No allowed bandwidth value fits current available capacity")
+			return false
+		}
+
 		h.plan.Bandwidth.SetInt(remainingOnUpdate)
-	} else if h.plan.Bandwidth.GetInt() > remainingOnUpdate {
+		return true
+	}
+
+	if h.plan.Bandwidth.GetInt() > remainingOnUpdate {
 		h.diag.AddAttributeError(path.Root("bandwidth"), "Overcommitting bandwidth", fmt.Sprintf("Not enough bandwidth available, requested: %dMbps, available: %dMbps", h.plan.Bandwidth.GetInt(), remainingOnUpdate))
 		return false
 	}
 
-	// Only reached for non-dedicated T0s (dedicated T0s return early above).
 	h.validateAllowedBandwidth()
 
 	return true
@@ -281,14 +371,14 @@ func (r *edgeGatewayResource) ModifyPlan(ctx context.Context, req resource.Modif
 
 	h := &modifyPlanHelper{r: r, plan: plan, diag: &resp.Diagnostics}
 
-	switch {
-	case plan.Bandwidth.IsKnown() && (state == nil || !state.Bandwidth.IsKnown()):
+	switch determineModifyPlanBandwidthAction(plan, state) {
+	case modifyPlanBandwidthActionCreateKnown:
 		// Create case: bandwidth value is already known.
 		h.modifyPlanCreateKnown()
-	case !plan.Bandwidth.IsKnown():
+	case modifyPlanBandwidthActionCreateUnknown:
 		// Create case: bandwidth value is not yet known (computed).
 		h.modifyPlanCreateUnknown()
-	case !plan.Bandwidth.Equal(state.Bandwidth):
+	case modifyPlanBandwidthActionUpdate:
 		// Update case: bandwidth value changed.
 		h.modifyPlanUpdate(state)
 	}
