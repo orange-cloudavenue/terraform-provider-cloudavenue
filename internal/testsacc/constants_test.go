@@ -128,6 +128,9 @@ const (
 	// Additional test name constants.
 	testNameExample2 = "example_2"
 
+	// testNameMoveState is the test name for MoveState migration tests.
+	testNameMoveState = "example_move_state"
+
 	// Common attribute keys used in check functions (additional).
 	testAttrProtocol         = "protocol"
 	testAttrCriteria         = "criteria"

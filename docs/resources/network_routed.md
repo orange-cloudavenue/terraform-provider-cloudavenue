@@ -15,10 +15,6 @@ Provides a Cloud Avenue vDC routed Network. This can be used to create, modify, 
 
 ## How to migrate existing resources
 
-~> **Terraform >= 1.8 required** Cross-type resource migration via the [`moved` block](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#move-a-resource-or-module) was introduced in [Terraform 1.8.0](https://github.com/hashicorp/terraform/blob/v1.8/CHANGELOG.md#180-april-10-2024): *"Providers can now transfer the ownership of a remote object between resources of different types"*. See the [Terraform plugin framework state move documentation](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move) for details. If you are using an older version, upgrade Terraform before following this procedure.
-
-### Single resource
-
 Original configuration:
 
 ```terraform
@@ -44,11 +40,41 @@ resource "cloudavenue_network_routed" "example" {
 }
 ```
 
-Rename the resource block to `cloudavenue_edgegateway_network_routed` and add a `moved` block:
+Migrated configuration:
+
+Rename the resource to `cloudavenue_edgegateway_network_routed` and add the `moved` block to the configuration:
 
 ```hcl
 resource "cloudavenue_edgegateway_network_routed" "example" {
+  name               = "my-isolated-network"
+  edge_gateway_name  = cloudavenue_edgegateway.example.name
+
+  gateway       = "192.168.0.1"
+  prefix_length = 24
+
+  dns1       = "192.168.0.2"
+  dns2       = "192.168.0.3"
+  dns_suffix = "example.local"
+}
+
+moved {
+  from = cloudavenue_network_routed.example
+  to   = cloudavenue_edgegateway_network_routed.example
+}
+```
+
+Run `terraform plan` and `terraform apply` to migrate the resource.
+
+### Migrate to `cloudavenue_vdcg_network_routed` (Edge Gateway in VDC Group)
+
+~> If your Edge Gateway is connected to a **VDC Group**, you must migrate to [`cloudavenue_vdcg_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_network_routed) instead of `cloudavenue_edgegateway_network_routed`.
+
+#### Single resource
+
+```hcl
+resource "cloudavenue_vdcg_network_routed" "example" {
   name            = "example"
+  vdc_group_id    = cloudavenue_vdcg.example.id
   edge_gateway_id = cloudavenue_edgegateway.example.id
 
   gateway       = "192.168.1.254"
@@ -69,35 +95,19 @@ resource "cloudavenue_edgegateway_network_routed" "example" {
 
 moved {
   from = cloudavenue_network_routed.example
-  to   = cloudavenue_edgegateway_network_routed.example
+  to   = cloudavenue_vdcg_network_routed.example
 }
 ```
 
-Run `terraform plan` and `terraform apply` to migrate the resource.
-
-Example of terraform plan output:
-
-```shell
-Terraform will perform the following actions:
-
-  # cloudavenue_network_routed.example has moved to cloudavenue_edgegateway_network_routed.example
-    resource "cloudavenue_edgegateway_network_routed" "example" {
-        id                 = "urn:vcloud:network:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-        name               = "example"
-        # (10 unchanged attributes hidden)
-    }
-
-Plan: 0 to add, 0 to change, 0 to destroy.
-```
-
-### Resource with `for_each`
+#### Resource with `for_each`
 
 When using `for_each`, each instance must have its own `moved` block using the instance key:
 
 ```hcl
-resource "cloudavenue_edgegateway_network_routed" "this" {
+resource "cloudavenue_vdcg_network_routed" "this" {
   for_each        = local.networks_info
   name            = each.value.name
+  vdc_group_id    = each.value.vdc_group_id
   edge_gateway_id = each.value.edge_gateway_id
 
   gateway       = each.value.gateway
@@ -112,11 +122,28 @@ resource "cloudavenue_edgegateway_network_routed" "this" {
 
 moved {
   from = cloudavenue_network_routed.this["my-network"]
-  to   = cloudavenue_edgegateway_network_routed.this["my-network"]
+  to   = cloudavenue_vdcg_network_routed.this["my-network"]
 }
 ```
 
 Add one `moved` block per instance key. Once `terraform apply` has completed successfully, the `moved` blocks can be removed.
+
+---
+
+Example of terraform plan output:
+
+```shell
+Terraform will perform the following actions:
+
+  # cloudavenue_network_routed.example has moved to cloudavenue_edgegateway_network_routed.example
+    resource "cloudavenue_edgegateway_network_routed" "example" {
+        id                 = "urn:vcloud:network:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        name               = "rsx-example-isolated-network"
+        # (10 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 0 to change, 0 to destroy.
+```
 
 ## Example Usage
 
