@@ -1,4 +1,9 @@
 ## 0.36.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vdc_acl` - Fixed read failing with unhandled type `application/json` for external SAML users. The ACL subject resolution now handles external subject types by correctly parsing the `JSONMime` type and extracting the subject identifier. (GH-1241.md)
+
 ## 0.35.4 (June 12, 2026)
 
 ### :bug: **Bug Fixes**
