@@ -96,23 +96,32 @@ const (
 )
 
 func determineModifyPlanBandwidthAction(plan, state *edgeGatewayResourceModel) modifyPlanBandwidthAction {
-	if plan.Bandwidth.IsKnown() && !state.Bandwidth.IsKnown() {
-		return modifyPlanBandwidthActionCreateKnown
-	}
-
-	if !plan.Bandwidth.IsKnown() {
-		if state.Bandwidth.IsKnown() {
-			return modifyPlanBandwidthActionUpdate
+	if state == nil {
+		if plan.Bandwidth.IsKnown() {
+			return modifyPlanBandwidthActionCreateKnown
 		}
-
 		return modifyPlanBandwidthActionCreateUnknown
 	}
 
-	if !plan.Bandwidth.Equal(state.Bandwidth) {
-		return modifyPlanBandwidthActionUpdate
-	}
+	planKnown := plan.Bandwidth.IsKnown()
+	stateKnown := state.Bandwidth.IsKnown()
 
-	return modifyPlanBandwidthActionNone
+	switch {
+	case planKnown && !stateKnown:
+		return modifyPlanBandwidthActionCreateKnown
+
+	case !planKnown && stateKnown:
+		return modifyPlanBandwidthActionUpdate
+
+	case !planKnown && !stateKnown:
+		return modifyPlanBandwidthActionCreateUnknown
+
+	case !plan.Bandwidth.Equal(state.Bandwidth):
+		return modifyPlanBandwidthActionUpdate
+
+	default:
+		return modifyPlanBandwidthActionNone
+	}
 }
 
 // loadRemainingBandwidth returns the remaining bandwidth capacity for the T0.

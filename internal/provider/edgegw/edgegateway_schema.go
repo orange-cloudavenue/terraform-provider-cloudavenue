@@ -21,11 +21,16 @@ package edgegw
 import (
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 )
 
 /*
@@ -63,6 +68,12 @@ func edgegwSchema() superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 				},
+				DataSource: &schemaD.StringAttribute{
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("id"), path.MatchRoot(name)),
+					},
+				},
 			},
 			name: &superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
@@ -75,7 +86,11 @@ func edgegwSchema() superschema.Schema {
 					},
 				},
 				DataSource: &schemaD.StringAttribute{
-					Required: true,
+					Optional: true,
+					Computed: true,
+					Validators: []validator.String{
+						stringvalidator.ExactlyOneOf(path.MatchRoot("id"), path.MatchRoot(name)),
+					},
 				},
 			},
 			"tier0_vrf_name": &superschema.SuperStringAttribute{

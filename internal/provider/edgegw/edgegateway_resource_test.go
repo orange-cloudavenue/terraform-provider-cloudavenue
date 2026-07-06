@@ -76,6 +76,21 @@ func TestDetermineModifyPlanBandwidthAction(t *testing.T) {
 	}
 }
 
+func TestDetermineModifyPlanBandwidthActionNilState(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("determineModifyPlanBandwidthAction() panicked: %v", r)
+		}
+	}()
+
+	got := determineModifyPlanBandwidthAction(&edgeGatewayResourceModel{Bandwidth: newInt64Value(100)}, nil)
+	if got != modifyPlanBandwidthActionCreateKnown {
+		t.Fatalf("determineModifyPlanBandwidthAction() = %v, want %v", got, modifyPlanBandwidthActionCreateKnown)
+	}
+}
+
 func TestModifyPlanUpdateUsesStateBandwidthWhenPlanUnknown(t *testing.T) {
 	t.Parallel()
 
@@ -149,8 +164,8 @@ func TestBestValueAtMostOrErrorNoFit(t *testing.T) {
 		t.Fatalf("bestValueAtMostOrError() = %d, want 0", got)
 	}
 
-	if err.Error() != "No allowed bandwidth value fits current available capacity" {
-		t.Fatalf("bestValueAtMostOrError() err = %q, want %q", err.Error(), "No allowed bandwidth value fits current available capacity")
+	if err.Error() != "no allowed bandwidth value fits current available capacity" {
+		t.Fatalf("bestValueAtMostOrError() err = %q, want %q", err.Error(), "no allowed bandwidth value fits current available capacity")
 	}
 }
 
