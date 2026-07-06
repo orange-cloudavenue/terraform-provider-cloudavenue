@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
