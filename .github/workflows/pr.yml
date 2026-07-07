@@ -25,9 +25,6 @@ jobs:
     secrets:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  
-      
-
   pr-size:
     if: github.event.action != 'edited'
     name: "PR Size"
