@@ -13,10 +13,3 @@ jobs:
       repository: ${{ github.repository }}
     secrets:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  test-doc-publish-ref:
-    name: Test doc_publish checkout ref
-    uses: orange-cloudavenue/workflows/.github/workflows/doc_publish.yml@fix/issue-16-checkout-ref
-    with:
-      ref: ${{ github.ref }}
-      repository: ${{ github.repository }}
