@@ -237,8 +237,8 @@ github.com/orange-cloudavenue/common-go/strcase v1.0.0 h1:96+dUHYq91/hiXY/DKO9HG
 github.com/orange-cloudavenue/common-go/strcase v1.0.0/go.mod h1:WGZdlDEE39Yar+OU9pgjMGXMlQWgJrgOOc4q72qNVGE=
 github.com/orange-cloudavenue/common-go/urn v1.4.0 h1:7z0yZuvxoZbebtk0U7WlbDlkBGh5Dj1mDyfxPP1klCA=
 github.com/orange-cloudavenue/common-go/urn v1.4.0/go.mod h1:yXpk5u8KLhpCxmR6uugaKZB/YgsrGg08TZ5XQdybHKs=
-github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339 h1:DEKcWLGbEhu/I6kn9NAXhVCFrbPhR+Ef7oLmpLVnnPM=
-github.com/orange-cloudavenue/common-go/utils v0.0.0-20240119163616-66b473d92339/go.mod h1:11JAFfGWVmhoT4AAORKsIC5M6nI+uDGSEOScMzavgPA=
+github.com/orange-cloudavenue/common-go/utils v1.0.0 h1:9dUiS72eRXTrOFpomF3IexjfUF5USH9J49w7cUos+rI=
+github.com/orange-cloudavenue/common-go/utils v1.0.0/go.mod h1:LhE0UATOSRLoazdYuxvDAwKvTUuyVg4Ny+3XXdETU+0=
 github.com/orange-cloudavenue/common-go/validators v1.2.0 h1:Pn/X9lwC5mqn2LjeK+uBq+9RiO1BEvVXtCZlKTf+JK4=
 github.com/orange-cloudavenue/common-go/validators v1.2.0/go.mod h1:b0xGqWm8VnuXFxO77lbBzcUEMIWtJXaflsvHNKWoSAU=
 github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1 h1:eU6rJu+6Nrjd5h/swpeaZOk5ndKdlhRUhb4czwiBq9Q=
