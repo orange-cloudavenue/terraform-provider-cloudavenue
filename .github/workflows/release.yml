@@ -22,6 +22,8 @@ jobs:
     uses: orange-cloudavenue/workflows/.github/workflows/tag_check-tag.yml@main
     with:
       tag: ${{ github.event.inputs.tag }}
+      ref: ${{ github.ref }}
+      repository: ${{ github.repository }}
     secrets:
       TOKEN: ${{ secrets.CHANGELOG_PAT }}
 
@@ -48,20 +50,22 @@ jobs:
 
   tag:
     needs: [golang-ci-lint, tests]
-
     name: Tag
     uses: orange-cloudavenue/workflows/.github/workflows/tag_create-tag.yml@main
     with:
       tag: ${{ github.event.inputs.tag }}
+      ref: ${{ github.ref }}
+      repository: ${{ github.repository }}
     secrets:
       TOKEN: ${{ secrets.CHANGELOG_PAT }}
 
   release-notes:
-    needs: [tag]
+    needs: [pre-check]
     name: Release Notes
     uses: orange-cloudavenue/workflows/.github/workflows/release_generate-release-note.yml@main
     with:
       tag: ${{ github.event.inputs.tag }}
+      repository: ${{ github.repository }}
     secrets:
       TOKEN: ${{ secrets.CHANGELOG_PAT }}
 
@@ -71,12 +75,13 @@ jobs:
     with:
       tag: ${{ github.event.inputs.tag }}
       artifact-name: ${{ needs.release-notes.outputs.artifact-name }}
+      repository: ${{ github.repository }}
     secrets:
       TOKEN: ${{ secrets.CHANGELOG_PAT }}
       GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
       PASSPHRASE: ${{ secrets.PASSPHRASE }}
       METRICS_TARGET: ${{ secrets.METRICS_TARGET }}
-      METRICS_TOKEN: ${{ secrets.METRICS_TOKEN }} 
+      METRICS_TOKEN: ${{ secrets.METRICS_TOKEN }}
 
   changelog-newversion:
     needs: [make-release]
@@ -85,8 +90,11 @@ jobs:
       tag: ${{ github.event.inputs.tag }}
     secrets:
       TOKEN: ${{ secrets.CHANGELOG_PAT }}
-  
+
   publish-doc:
     needs: [make-release]
     name: "Publish Documentation"
     uses: orange-cloudavenue/workflows/.github/workflows/doc_publish.yml@main
+    with:
+      ref: ${{ github.ref }}
+      repository: ${{ github.repository }}
