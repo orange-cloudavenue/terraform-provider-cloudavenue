@@ -1,0 +1,22 @@
+name: Test Issue #16 Fix
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-tag-check-ref:
+    name: Test checkout ref in workflow_call
+    uses: orange-cloudavenue/workflows/.github/workflows/tag_check-tag.yml@fix/issue-16-checkout-ref
+    with:
+      tag: v999.999.999
+      ref: ${{ github.ref }}
+      repository: ${{ github.repository }}
+    secrets:
+      TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test-doc-publish-ref:
+    name: Test doc_publish checkout ref
+    uses: orange-cloudavenue/workflows/.github/workflows/doc_publish.yml@fix/issue-16-checkout-ref
+    with:
+      ref: ${{ github.ref }}
+      repository: ${{ github.repository }}
