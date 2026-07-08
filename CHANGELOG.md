@@ -4,6 +4,10 @@
 
 * `resource/cloudavenue_vdc_acl` - Fixed read failing with unhandled type `application/json` for external SAML users. The ACL subject resolution now handles external subject types by correctly parsing the `JSONMime` type and extracting the subject identifier. (GH-1241.md)
 
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/orange-cloudavenue/common-go/utils from 0.0.0-20240119163616-66b473d92339 to 1.0.0 (GH-1249)
+
 ## 0.35.4 (June 12, 2026)
 
 ### :bug: **Bug Fixes**
