@@ -113,17 +113,8 @@ func (d *networkContextProfileDataSource) Read(ctx context.Context, req datasour
 	}
 
 	stateRefreshed := config.Copy()
-	stateRefreshed.ID.Set(profile.ID)
-	stateRefreshed.Name.Set(profile.Name)
-	stateRefreshed.Description.Set(profile.Description)
-	stateRefreshed.Scope.Set(string(profile.Scope))
-	stateRefreshed.VDCGroupID.Set(d.vdcGroup.GetID())
-	stateRefreshed.VDCGroupName.Set(d.vdcGroup.GetName())
 
-	appIDBlock, domainBlock, diags := attributesFromSDKProfile(ctx, profile)
-	resp.Diagnostics.Append(diags...)
-	resp.Diagnostics.Append(stateRefreshed.AppID.Set(ctx, appIDBlock)...)
-	resp.Diagnostics.Append(stateRefreshed.DomainName.Set(ctx, domainBlock)...)
+	resp.Diagnostics.Append(stateRefreshed.fromSDKProfile(ctx, profile, d.vdcGroup.GetID(), d.vdcGroup.GetName())...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

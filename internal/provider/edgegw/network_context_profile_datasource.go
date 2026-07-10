@@ -124,21 +124,8 @@ func (d *networkContextProfileDataSource) Read(ctx context.Context, req datasour
 	}
 
 	stateRefreshed := config.Copy()
-	// Populate scalar fields directly — the datasource model includes DomainName
-	// (computed from SYSTEM profiles) which the resource model does not carry, so we
-	// cannot reuse the resource's fromSDKProfile helper here and call attributesFromSDKProfile
-	// directly to get both blocks in one pass.
-	stateRefreshed.ID.Set(profile.ID)
-	stateRefreshed.Name.Set(profile.Name)
-	stateRefreshed.Description.Set(profile.Description)
-	stateRefreshed.Scope.Set(string(profile.Scope))
-	stateRefreshed.EdgeGatewayID.Set(d.edgegw.GetID())
-	stateRefreshed.EdgeGatewayName.Set(d.edgegw.GetName())
 
-	appIDBlock, domainBlock, diags := attributesFromSDKProfile(ctx, profile)
-	resp.Diagnostics.Append(diags...)
-	resp.Diagnostics.Append(stateRefreshed.AppID.Set(ctx, appIDBlock)...)
-	resp.Diagnostics.Append(stateRefreshed.DomainName.Set(ctx, domainBlock)...)
+	resp.Diagnostics.Append(stateRefreshed.fromSDKProfile(ctx, profile, d.edgegw.GetID(), d.edgegw.GetName())...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

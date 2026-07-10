@@ -152,6 +152,28 @@ func (rm *networkContextProfileModel) fromSDKProfile(ctx context.Context, p *sdk
 	return diags
 }
 
+// fromSDKProfile populates the datasource model from the SDK NetworkContextProfile.
+func (dm *networkContextProfileModelDatasource) fromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextProfile, vdcgID, vdcgName string) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	dm.ID.Set(p.ID)
+	dm.Name.Set(p.Name)
+	dm.Description.Set(p.Description)
+	dm.Scope.Set(string(p.Scope))
+	dm.VDCGroupID.Set(vdcgID)
+	dm.VDCGroupName.Set(vdcgName)
+
+	appIDBlock, domainBlock, d := attributesFromSDKProfile(ctx, p)
+	diags.Append(d...)
+	if diags.HasError() {
+		return diags
+	}
+
+	diags.Append(dm.AppID.Set(ctx, appIDBlock)...)
+	diags.Append(dm.DomainName.Set(ctx, domainBlock)...)
+	return diags
+}
+
 // attributesFromSDKProfile converts SDK profile attributes into the two optional model blocks.
 // Returns nil for a block if that attribute type is not present in the profile.
 func attributesFromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextProfile) (*networkContextProfileModelAppID, *networkContextProfileModelDomainName, diag.Diagnostics) {
