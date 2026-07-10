@@ -52,7 +52,8 @@ func (r *VDCGNetworkContextProfileResource) Tests(_ context.Context) map[testsac
 					resource.TestCheckResourceAttrSet(resourceName, "vdc_group_name"),
 				},
 				Create: testsacc.TFConfig{
-					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					TFConfig: testsacc.GenerateFromTemplate(
+						resourceName, `
 						resource "cloudavenue_vdcg_network_context_profile" "tenant_profile_with_app_id_values" {
 							vdc_group_name = cloudavenue_vdcg.example.name
 							name           = {{ generate . "name" }}
@@ -72,7 +73,8 @@ func (r *VDCGNetworkContextProfileResource) Tests(_ context.Context) map[testsac
 				},
 				Updates: []testsacc.TFConfig{
 					{
-						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						TFConfig: testsacc.GenerateFromTemplate(
+							resourceName, `
 							resource "cloudavenue_vdcg_network_context_profile" "tenant_profile_with_app_id_values" {
 								vdc_group_name = cloudavenue_vdcg.example.name
 								name           = {{ get . "name" }}
@@ -106,10 +108,49 @@ func (r *VDCGNetworkContextProfileResource) Tests(_ context.Context) map[testsac
 				Destroy: true,
 			}
 		},
+		"custom_erp": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.NetworkContextProfile)),
+					resource.TestCheckResourceAttr(resourceName, "scope", "TENANT"),
+					resource.TestCheckResourceAttrSet(resourceName, "vdc_group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "vdc_group_name"),
+				},
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(
+						resourceName, `
+						resource "cloudavenue_vdcg_network_context_profile" "custom_erp" {
+							vdc_group_name = cloudavenue_vdcg.example.name
+							name           = {{ generate . "name" }}
+							description    = "Internal ERP system (HTTP front end, MSSQL back end)"
+							app_id = {
+								values = ["HTTP", "MSSQL"]
+							}
+						}`,
+					),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "description", "Internal ERP system (HTTP front end, MSSQL back end)"),
+						resource.TestCheckResourceAttr(resourceName, "app_id.values.#", "2"),
+						resource.TestCheckTypeSetElemAttr(resourceName, "app_id.values.*", "HTTP"),
+						resource.TestCheckTypeSetElemAttr(resourceName, "app_id.values.*", "MSSQL"),
+					},
+				},
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{testAttrVDCGroupName, testAttrName},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
+				Destroy: true,
+			}
+		},
 		"invalid_app_id_value": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				Create: testsacc.TFConfig{
-					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					TFConfig: testsacc.GenerateFromTemplate(
+						resourceName, `
 						resource "cloudavenue_vdcg_network_context_profile" "example_schema_validation" {
 							vdc_group_name = cloudavenue_vdcg.example.name
 							name           = {{ generate . "name" }}
@@ -128,7 +169,8 @@ func (r *VDCGNetworkContextProfileResource) Tests(_ context.Context) map[testsac
 		"invalid_sub_attribute_type": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				Create: testsacc.TFConfig{
-					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					TFConfig: testsacc.GenerateFromTemplate(
+						resourceName, `
 						resource "cloudavenue_vdcg_network_context_profile" "example_schema_validation_invalid_sub_attribute_type" {
 							vdc_group_name = cloudavenue_vdcg.example.name
 							name           = {{ generate . "name" }}
@@ -153,7 +195,8 @@ func (r *VDCGNetworkContextProfileResource) Tests(_ context.Context) map[testsac
 		"invalid_sub_attribute_value": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				Create: testsacc.TFConfig{
-					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					TFConfig: testsacc.GenerateFromTemplate(
+						resourceName, `
 						resource "cloudavenue_vdcg_network_context_profile" "example_schema_validation_invalid_sub_attribute_values" {
 							vdc_group_name = cloudavenue_vdcg.example.name
 							name           = {{ generate . "name" }}
@@ -171,7 +214,8 @@ func (r *VDCGNetworkContextProfileResource) Tests(_ context.Context) map[testsac
 				},
 				Updates: []testsacc.TFConfig{
 					{
-						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						TFConfig: testsacc.GenerateFromTemplate(
+							resourceName, `
 							resource "cloudavenue_vdcg_network_context_profile" "example_schema_validation_invalid_sub_attribute_values" {
 								vdc_group_name = cloudavenue_vdcg.example.name
 								name           = {{ get . "name" }}
@@ -191,7 +235,8 @@ func (r *VDCGNetworkContextProfileResource) Tests(_ context.Context) map[testsac
 						},
 					},
 					{
-						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						TFConfig: testsacc.GenerateFromTemplate(
+							resourceName, `
 							resource "cloudavenue_vdcg_network_context_profile" "example_schema_validation_invalid_sub_attribute_values" {
 								vdc_group_name = cloudavenue_vdcg.example.name
 								name           = {{ get . "name" }}

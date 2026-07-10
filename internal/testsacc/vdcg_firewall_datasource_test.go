@@ -7,15 +7,6 @@
  * or see the "LICENSE" file for more details.
  */
 
-/*
- * SPDX-FileCopyrightText: Copyright (c) 2025 Orange
- * SPDX-License-Identifier: Mozilla Public License 2.0
- *
- * This software is distributed under the MPL-2.0 license.
- * the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
- * or see the "LICENSE" file for more details.
- */
-
 package testsacc
 
 import (
@@ -66,33 +57,23 @@ func (r *VDCGFirewallDataSource) Tests(_ context.Context) map[testsacc.TestName]
 		testNameExampleWithContextProfile: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					resp.Append(GetDataSourceConfig()[VDCGNetworkContextProfileDatasourceName]().GetDefaultConfig)
+					resp.Append(GetResourceConfig()[VDCGFirewallResourceName]().GetSpecificConfig(testNameExampleWithContextProfile))
 					return resp
 				},
 				Create: testsacc.TFConfig{
 					TFConfig: `
-            resource "cloudavenue_vdcg_firewall" "example_with_context_profile" {
-              vdc_group_name = cloudavenue_vdcg.example.name
-              rules = [
-                {
-                  action      = "ALLOW"
-                  name        = "allow outbound SSL"
-                  direction   = "OUT"
-                  ip_protocol = "IPV4"
-                  network_context_profile_ids = [data.cloudavenue_vdcg_network_context_profile.example.id]
-                }
-              ]
-            }
-
-            data "cloudavenue_vdcg_firewall" "example_with_context_profile" {
-              vdc_group_name = cloudavenue_vdcg.example.name
-              depends_on     = [cloudavenue_vdcg_firewall.example_with_context_profile]
-            }`,
+					data "cloudavenue_vdcg_firewall" "example_with_context_profile" {
+					  vdc_group_name = cloudavenue_vdcg_firewall.example_with_context_profile.vdc_group_name
+					}`,
 					Checks: []resource.TestCheckFunc{
-						resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
-						resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow outbound SSL"),
+						resource.TestCheckResourceAttr(resourceName, "rules.#", "2"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow outbound SSL traffic"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.action", "ALLOW"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.direction", "OUT"),
 						resource.TestCheckResourceAttr(resourceName, "rules.0.network_context_profile_ids.#", "1"),
 						resource.TestCheckResourceAttrSet(resourceName, "rules.0.network_context_profile_ids.0"),
+						resource.TestCheckResourceAttr(resourceName, "rules.1.name", "block all inbound"),
+						resource.TestCheckResourceAttr(resourceName, "rules.1.network_context_profile_ids.#", "0"),
 					},
 				},
 				Destroy: true,

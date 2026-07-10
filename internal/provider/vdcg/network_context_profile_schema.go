@@ -128,8 +128,7 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 			},
 			"app_id": superschema.SuperSingleNestedAttributeOf[networkContextProfileModelAppID]{
 				Common: &schemaR.SingleNestedAttribute{
-					MarkdownDescription: "Layer 7 App ID attribute. Defines a set of application identifiers to match.\n\n" +
-						"  ~> **Note:** Sub-attributes (`sub_attributes`) are only supported when `app_id.values` contains exactly **one** entry.",
+					MarkdownDescription: "Layer 7 App ID attribute. Defines a set of application identifiers to match.",
 				},
 				Resource: &schemaR.SingleNestedAttribute{
 					Optional: true,
@@ -140,7 +139,7 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 				Attributes: superschema.Attributes{
 					attrValues: superschema.SuperSetAttributeOf[string]{
 						Common: &schemaR.SetAttribute{
-							MarkdownDescription: "The set of App ID values to match.",
+							MarkdownDescription: "Set of application protocol identifiers for Layer 7 traffic matching.",
 						},
 						Resource: &schemaR.SetAttribute{
 							Required: true,
@@ -165,11 +164,11 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 					},
 					"sub_attributes": superschema.SuperListNestedAttributeOf[networkContextProfileModelSubAttribute]{
 						Common: &schemaR.ListNestedAttribute{
-							MarkdownDescription: "Optional sub-attributes to refine the App ID match.\n\n" +
-								"  ~> **Note:** Only supported when `app_id.values` contains exactly one entry.",
+							MarkdownDescription: "Optional sub-attributes to refine the App ID match.",
 						},
 						Resource: &schemaR.ListNestedAttribute{
-							Optional: true,
+							Optional:   true,
+							Validators: []validator.List{},
 						},
 						DataSource: &schemaD.ListNestedAttribute{
 							Computed: true,
@@ -177,7 +176,7 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 						Attributes: superschema.Attributes{
 							attrType: superschema.SuperStringAttribute{
 								Common: &schemaR.StringAttribute{
-									MarkdownDescription: "The sub-attribute type.",
+									MarkdownDescription: "The sub-attribute type used to refine the application match.",
 								},
 								Resource: &schemaR.StringAttribute{
 									Required: true,
@@ -199,7 +198,7 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 							},
 							attrValues: superschema.SuperSetAttributeOf[string]{
 								Common: &schemaR.SetAttribute{
-									MarkdownDescription: "The set of allowed values for the selected sub-attribute type.",
+									MarkdownDescription: "Allowed values for the selected sub-attribute type.",
 								},
 								Resource: &schemaR.SetAttribute{
 									Required: true,
@@ -217,7 +216,8 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 														})
 													}
 													return resp
-												}()...),
+												}()...,
+											),
 											fstringvalidator.OneOfWithDescriptionIfAttributeIsOneOf(
 												path.MatchRelative().AtParent().AtParent().AtName(attrType),
 												[]attr.Value{types.StringValue(string(sdkv1.NetworkContextProfileSubAttributeTypeTLSCipherSuite))},
@@ -229,7 +229,8 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 														})
 													}
 													return resp
-												}()...),
+												}()...,
+											),
 											fstringvalidator.OneOfWithDescriptionIfAttributeIsOneOf(
 												path.MatchRelative().AtParent().AtParent().AtName(attrType),
 												[]attr.Value{types.StringValue(string(sdkv1.NetworkContextProfileSubAttributeTypeCIFSSMBVersion))},
@@ -241,7 +242,8 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 														})
 													}
 													return resp
-												}()...),
+												}()...,
+											),
 										),
 									},
 								},

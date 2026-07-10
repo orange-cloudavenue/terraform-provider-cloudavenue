@@ -35,9 +35,7 @@ data "cloudavenue_vdcg_network_context_profile" "example" {
 
 ### Read-Only
 
-- `app_id` (Attributes) Layer 7 App ID attribute. Defines a set of application identifiers to match.
-
-  ~> **Note:** Sub-attributes (`sub_attributes`) are only supported when `app_id.values` contains exactly **one** entry. (see [below for nested schema](#nestedatt--app_id))
+- `app_id` (Attributes) Layer 7 App ID attribute. Defines a set of application identifiers to match. (see [below for nested schema](#nestedatt--app_id))
 - `description` (String) A human-readable description of the Network Context Profile.
 - `domain_name` (Attributes) Domain Name (FQDN) attribute. Present on SYSTEM profiles that match traffic by fully-qualified domain name. (see [below for nested schema](#nestedatt--domain_name))
 - `scope` (String) The scope of the Network Context Profile (`SYSTEM`, `PROVIDER` or `TENANT`). Resources are always created as `TENANT`.
@@ -47,18 +45,16 @@ data "cloudavenue_vdcg_network_context_profile" "example" {
 
 Read-Only:
 
-- `sub_attributes` (Attributes List) Optional sub-attributes to refine the App ID match.
-
-  ~> **Note:** Only supported when `app_id.values` contains exactly one entry. (see [below for nested schema](#nestedatt--app_id--sub_attributes))
-- `values` (Set of String) The set of App ID values to match.
+- `sub_attributes` (Attributes List) Optional sub-attributes to refine the App ID match. (see [below for nested schema](#nestedatt--app_id--sub_attributes))
+- `values` (Set of String) Set of application protocol identifiers for Layer 7 traffic matching.
 
 <a id="nestedatt--app_id--sub_attributes"></a>
 ### Nested Schema for `app_id.sub_attributes`
 
 Read-Only:
 
-- `type` (String) The sub-attribute type.
-- `values` (Set of String) The set of allowed values for the selected sub-attribute type.
+- `type` (String) The sub-attribute type used to refine the application match.
+- `values` (Set of String) Allowed values for the selected sub-attribute type.
 
 
 
@@ -68,3 +64,28 @@ Read-Only:
 Read-Only:
 
 - `values` (Set of String) The set of domain name values for this profile.
+
+## Advanced Usage
+
+Use the profile ID in a VDC Group Firewall Rule:
+
+```terraform
+data "cloudavenue_vdcg_network_context_profile" "ssl" {
+  vdc_group_name = cloudavenue_vdcg.example.name
+  name           = "SSL"
+}
+
+resource "cloudavenue_vdcg_firewall" "example" {
+  vdc_group_name = cloudavenue_vdcg.example.name
+  rules = [
+    {
+      name        = "allow outbound SSL"
+      action      = "ALLOW"
+      direction   = "OUT"
+      ip_protocol = "IPV4"
+
+      network_context_profile_ids = [data.cloudavenue_vdcg_network_context_profile.ssl.id]
+    }
+  ]
+}
+```

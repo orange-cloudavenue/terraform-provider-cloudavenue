@@ -41,6 +41,44 @@ func (r *VDCGNetworkContextProfileDatasource) DependenciesConfig() (resp testsac
 
 func (r *VDCGNetworkContextProfileDatasource) Tests(_ context.Context) map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test {
 	return map[testsacc.TestName]func(ctx context.Context, resourceName string) testsacc.Test{
+		"example": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.TFData(`
+					data "cloudavenue_vdcg_network_context_profile" "example" {
+						vdc_group_name = cloudavenue_vdcg.example.name
+						name           = "SSL"
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrSet(resourceName, "id"),
+						resource.TestCheckResourceAttr(resourceName, "name", "SSL"),
+						resource.TestCheckResourceAttr(resourceName, "scope", "SYSTEM"),
+						resource.TestCheckResourceAttrSet(resourceName, "description"),
+						resource.TestCheckResourceAttrPair(resourceName, "vdc_group_name", VDCGResourceName.String()+".example", "name"),
+					},
+				},
+				Destroy: true,
+			}
+		},
+		"example_by_vdc_group_id": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.TFData(`
+					data "cloudavenue_vdcg_network_context_profile" "example_by_vdc_group_id" {
+						vdc_group_id = cloudavenue_vdcg.example.id
+						name         = "CIFS"
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrSet(resourceName, "id"),
+						resource.TestCheckResourceAttr(resourceName, "name", "CIFS"),
+						resource.TestCheckResourceAttr(resourceName, "scope", "SYSTEM"),
+						resource.TestCheckResourceAttrSet(resourceName, "description"),
+						resource.TestCheckResourceAttrPair(resourceName, "vdc_group_id", VDCGResourceName.String()+".example", "id"),
+					},
+				},
+				Destroy: true,
+			}
+		},
 		"web_tier_http": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				Create: testsacc.TFConfig{
@@ -101,33 +139,18 @@ func (r *VDCGNetworkContextProfileDatasource) Tests(_ context.Context) map[tests
 		"custom_erp_application": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
-					resp.Append(GetResourceConfig()[VDCGResourceName]().GetDefaultConfig)
-					resp.Append(func() map[string]testsacc.TFData {
-						return map[string]testsacc.TFData{
-							"cloudavenue_vdcg_network_context_profile.existing_erp": testsacc.TFData(`
-							resource "cloudavenue_vdcg_network_context_profile" "existing_erp" {
-							  vdc_group_name = cloudavenue_vdcg.example.name
-							  name           = "erp"
-							  description    = "Internal ERP system (HTTP front end, MSSQL back end)"
-
-							  app_id = {
-								values = ["HTTP", "MSSQL"]
-							  }
-							}`,
-							),
-						}
-					})
+					resp.Append(GetResourceConfig()[VDCGNetworkContextProfileResourceName]().GetSpecificConfig("custom_erp"))
 					return resp
 				},
 				Create: testsacc.TFConfig{
 					TFConfig: testsacc.TFData(`
 					data "cloudavenue_vdcg_network_context_profile" "custom_erp_application" {
 						vdc_group_name = cloudavenue_vdcg.example.name
-						id             = cloudavenue_vdcg_network_context_profile.existing_erp.id
+						id             = cloudavenue_vdcg_network_context_profile.custom_erp.id
 					}`),
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
-						resource.TestCheckResourceAttr(resourceName, "name", "erp"),
+						resource.TestCheckResourceAttrSet(resourceName, "name"),
 						resource.TestCheckResourceAttr(resourceName, "scope", "TENANT"),
 						resource.TestCheckResourceAttr(resourceName, "description", "Internal ERP system (HTTP front end, MSSQL back end)"),
 					},

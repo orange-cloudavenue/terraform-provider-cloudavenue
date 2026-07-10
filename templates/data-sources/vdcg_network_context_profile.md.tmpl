@@ -21,3 +21,28 @@ Network Context Profiles are available in three scopes:
 {{- end }}
 
 {{ .SchemaMarkdown | trimspace }}
+
+## Advanced Usage
+
+Use the profile ID in a VDC Group Firewall Rule:
+
+```terraform
+data "cloudavenue_vdcg_network_context_profile" "ssl" {
+  vdc_group_name = cloudavenue_vdcg.example.name
+  name           = "SSL"
+}
+
+resource "cloudavenue_vdcg_firewall" "example" {
+  vdc_group_name = cloudavenue_vdcg.example.name
+  rules = [
+    {
+      name        = "allow outbound SSL"
+      action      = "ALLOW"
+      direction   = "OUT"
+      ip_protocol = "IPV4"
+
+      network_context_profile_ids = [data.cloudavenue_vdcg_network_context_profile.ssl.id]
+    }
+  ]
+}
+```
