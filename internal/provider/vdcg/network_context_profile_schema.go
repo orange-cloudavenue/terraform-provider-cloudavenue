@@ -31,6 +31,7 @@ import (
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/validators"
 )
 
 func networkContextProfileSchema(_ context.Context) superschema.Schema {
@@ -168,7 +169,7 @@ func networkContextProfileSchema(_ context.Context) superschema.Schema {
 						},
 						Resource: &schemaR.ListNestedAttribute{
 							Optional:   true,
-							Validators: []validator.List{},
+							Validators: []validator.List{validators.SubAttributesNullIfAppIDValuesIsNotOne()},
 						},
 						DataSource: &schemaD.ListNestedAttribute{
 							Computed: true,

@@ -62,7 +62,7 @@ Required:
 
 Optional:
 
-- `sub_attributes` (Attributes List) Optional sub-attributes to refine the App ID match. (see [below for nested schema](#nestedatt--app_id--sub_attributes))
+- `sub_attributes` (Attributes List) Optional sub-attributes to refine the App ID match. `app_id.sub_attributes` is only allowed if `app_id.values` contains exactly one value. (see [below for nested schema](#nestedatt--app_id--sub_attributes))
 
 <a id="nestedatt--app_id--sub_attributes"></a>
 ### Nested Schema for `app_id.sub_attributes`
