@@ -151,6 +151,10 @@ linters:
       - third_party$
       - builtin$
       - examples$
+    rules:
+      - linters:
+          - goconst
+        path: _test\.go$
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
