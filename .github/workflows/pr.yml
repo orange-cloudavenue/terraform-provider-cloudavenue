@@ -33,13 +33,13 @@ jobs:
       ref: ${{ github.ref }}
       repository: ${{ github.repository }}
     secrets:
-      TOKEN: ${{ secrets.CHANGELOG_PAT }}
+      TOKEN: ${{ secrets.PR_CI_PAT }}
 
   pr-conventional-commits:
     name: "Conventional Commits"
     uses: orange-cloudavenue/workflows/.github/workflows/pr_conventional_commits.yml@main
     secrets:
-      TOKEN: ${{ secrets.CHANGELOG_PAT }}
+      TOKEN: ${{ secrets.PR_CI_PAT }}
 
   pr-license:
     if: github.event.action != 'edited' && github.event.pull_request.draft == false

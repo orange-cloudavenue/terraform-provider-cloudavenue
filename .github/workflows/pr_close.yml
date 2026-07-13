@@ -23,4 +23,4 @@ jobs:
     name: "Generate CHANGELOG"
     uses: orange-cloudavenue/workflows/.github/workflows/changelog_generate-changelog.yml@main
     secrets:
-      TOKEN: ${{ secrets.CHANGELOG_PAT }}
+      TOKEN: ${{ secrets.RELEASE_CI_PAT }}

@@ -20,4 +20,4 @@ jobs:
     name: "Add issue/PR to project"
     uses: orange-cloudavenue/workflows/.github/workflows/project.yml@main
     secrets:
-      TOKEN: ${{ secrets.CHANGELOG_PAT }}
+      TOKEN: ${{ secrets.PR_CI_PAT }}
