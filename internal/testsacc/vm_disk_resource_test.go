@@ -92,44 +92,47 @@ func (r *VMDiskResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 					},
 				},
 				// ! Updates testing
-				// Updates: []testsacc.TFConfig{
-				// 	// * Update size
-				// 	{
-				// 		TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-				// 		 resource "cloudavenue_vm_disk" "example" {
-				// 		 	vdc = cloudavenue_vdc.example.name
-				// 			vapp_id = cloudavenue_vapp.example.id
-				// 			name = {{ get . "name" }}
-				// 			bus_type = "SATA"
-				// 			size_in_mb = 4096
-				// 			is_detachable = true
-				// 			vm_id = cloudavenue_vm.example.id
+				Updates: []testsacc.TFConfig{
+					// * Update size (non-bus attribute) and assert bus_number/unit_number are preserved.
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						 resource "cloudavenue_vm_disk" "example" {
+						 	vdc = cloudavenue_vdc.example.name
+							vapp_id = cloudavenue_vapp.example.id
+							name = {{ get . "name" }}
+							bus_type = "SATA"
+							size_in_mb = 4096
+							is_detachable = true
+							vm_id = cloudavenue_vm.example.id
 
-				// 			# Bus number and unit number is set because the actual disk
-				// 			# in the VM (bus_number 0) is incompatible with the new disk SCSI
-				// 			bus_number = 2
-				// 			unit_number = 0
-				// 		}`),
-				// 		Checks: []resource.TestCheckFunc{
-				// 			resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
-				// 			resource.TestCheckResourceAttr(resourceName, "bus_type", "SATA"),
-				// 			resource.TestCheckResourceAttr(resourceName, "size_in_mb", "4096"),
-				// 		},
-				// 	},
-				// },
+							# Bus number and unit number is set because the actual disk
+							# in the VM (bus_number 0) is incompatible with the new disk SCSI
+							bus_number = 2
+							unit_number = 0
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "bus_type", "SATA"),
+							resource.TestCheckResourceAttr(resourceName, "size_in_mb", "4096"),
+							// bus_number/unit_number must survive the update without a detach/reattach permadiff.
+							resource.TestCheckResourceAttr(resourceName, "bus_number", "2"),
+							resource.TestCheckResourceAttr(resourceName, "unit_number", "0"),
+						},
+					},
+				},
 				// ! Imports testing
-				// Imports: []testsacc.TFImport{
-				// 	{
-				// 		ImportStateIDBuilder: []string{"vdc", "vapp_id", "id"},
-				// 		ImportState:          true,
-				// 		ImportStateVerify:    true,
-				// 	},
-				// 	{
-				// 		ImportStateIDBuilder: []string{"vdc", "vapp_name", "id"},
-				// 		ImportState:          true,
-				// 		ImportStateVerify:    true,
-				// 	},
-				// },
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"vdc", "vapp_id", "id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"vdc", "vapp_name", "id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
 			}
 		},
 		"example_detachable_scsi": func(_ context.Context, resourceName string) testsacc.Test {
@@ -172,47 +175,53 @@ func (r *VMDiskResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 					},
 				},
 				// ! Updates testing
-				// Updates: []testsacc.TFConfig{
-				// 	// * Update size
-				// 	{
-				// 		TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-				// 		 resource "cloudavenue_vm_disk" "example_detachable_scsi" {
-				// 		 	vdc = cloudavenue_vdc.example.name
-				// 			vapp_id = cloudavenue_vapp.example.id
-				// 			name = {{ get . "name" }}
-				// 			bus_type = "SCSI"
-				// 			size_in_mb = 4096
-				// 			is_detachable = true
-				// 			vm_id = cloudavenue_vm.example.id
+				Updates: []testsacc.TFConfig{
+					// * Update size (non-bus attribute) and assert bus_number/unit_number are preserved.
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					 resource "cloudavenue_vm_disk" "example_detachable_scsi" {
+					 	vdc = cloudavenue_vdc.example.name
+						vapp_id = cloudavenue_vapp.example.id
+						name = {{ get . "name" }}
+						bus_type = "SCSI"
+						size_in_mb = 4096
+						is_detachable = true
+						vm_id = cloudavenue_vm.example.id
 
-				// 			# Bus number and unit number is set because the actual disk
-				// 			# in the VM (bus_number 0) is incompatible with the new disk SCSI
-				// 			bus_number = 2
-				// 			unit_number = 0
-				// 		}`),
-				// 		Checks: []resource.TestCheckFunc{
-				// 			resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
-				// 			resource.TestCheckResourceAttr(resourceName, "bus_type", "SCSI"),
-				// 			resource.TestCheckResourceAttr(resourceName, "size_in_mb", "4096"),
-				// 		},
-				// 	},
-				// },
+						# Bus number and unit number is set because the actual disk
+						# in the VM (bus_number 0) is incompatible with the new disk SCSI
+						bus_number = 2
+						unit_number = 0
+					}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "bus_type", "SCSI"),
+							resource.TestCheckResourceAttr(resourceName, "size_in_mb", "4096"),
+							// bus_number/unit_number must survive the update without a detach/reattach permadiff.
+							resource.TestCheckResourceAttr(resourceName, "bus_number", "2"),
+							resource.TestCheckResourceAttr(resourceName, "unit_number", "0"),
+						},
+					},
+				},
 				// ! Imports testing
-				// Imports: []testsacc.TFImport{
-				// 	{
-				// 		ImportStateIDBuilder: []string{"vdc", "vapp_id", "id"},
-				// 		ImportState:          true,
-				// 		ImportStateVerify:    true,
-				// 	},
-				// 	{
-				// 		ImportStateIDBuilder: []string{"vdc", "vapp_name", "id"},
-				// 		ImportState:          true,
-				// 		ImportStateVerify:    true,
-				// 	},
-				// },
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"vdc", "vapp_id", "id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"vdc", "vapp_name", "id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
 			}
 		},
-		"example_internal_nvme": func(_ context.Context, resourceName string) testsacc.Test {
+		"example_detachable_computed_bus": func(_ context.Context, resourceName string) testsacc.Test {
+			// This variant omits bus_number/unit_number so the provider computes them.
+			// Expected computed behavior: after apply, bus_number and unit_number are
+			// populated by the API (not a permadiff), as they are now Optional + Computed.
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
 					return resp
@@ -225,13 +234,94 @@ func (r *VMDiskResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 					resource.TestCheckResourceAttrWith(resourceName, "vm_id", urn.TestIsType(urn.VM)),
 					resource.TestCheckNoResourceAttr(resourceName, "vapp_name"),
 					resource.TestCheckResourceAttrWith(resourceName, "vapp_id", urn.TestIsType(urn.VAPP)),
+					// bus_number/unit_number are computed by the provider
+					resource.TestCheckResourceAttrSet(resourceName, "bus_number"),
+					resource.TestCheckResourceAttrSet(resourceName, "unit_number"),
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+				  resource "cloudavenue_vm_disk" "example_detachable_computed_bus" {
+					vdc = cloudavenue_vdc.example.name
+				  	vapp_id = cloudavenue_vapp.example.id
+				  	name = {{ generate . "name" }}
+				  	bus_type = "SATA"
+				  	size_in_mb = 2048
+					  	is_detachable = true
+					  	vm_id = cloudavenue_vm.example.id
+
+						# bus_number and unit_number omitted on purpose so the
+						# provider computes them (first available bus/unit).
+					  }`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "bus_type", "SATA"),
+						resource.TestCheckResourceAttr(resourceName, "size_in_mb", "2048"),
+					},
+				},
+				// ! Updates testing
+				Updates: []testsacc.TFConfig{
+					// * Update size (non-bus attribute) and assert the computed
+					// bus_number/unit_number survive the update.
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						 resource "cloudavenue_vm_disk" "example_detachable_computed_bus" {
+							vdc = cloudavenue_vdc.example.name
+						  	vapp_id = cloudavenue_vapp.example.id
+						  	name = {{ get . "name" }}
+						  	bus_type = "SATA"
+						  	size_in_mb = 4096
+						  	is_detachable = true
+						  	vm_id = cloudavenue_vm.example.id
+
+							# bus_number and unit_number omitted on purpose so the
+							# provider computes them (first available bus/unit).
+						  }`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+							resource.TestCheckResourceAttr(resourceName, "bus_type", "SATA"),
+							resource.TestCheckResourceAttr(resourceName, "size_in_mb", "4096"),
+							// Computed bus_number/unit_number must still be set after the update.
+							resource.TestCheckResourceAttrSet(resourceName, "bus_number"),
+							resource.TestCheckResourceAttrSet(resourceName, "unit_number"),
+						},
+					},
+				},
+				// ! Imports testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{"vdc", "vapp_id", "id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+					{
+						ImportStateIDBuilder: []string{"vdc", "vapp_name", "id"},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
+			}
+		},
+		"example_internal_nvme": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					return resp
+				},
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Disk)),
+					resource.TestCheckResourceAttr(resourceName, "is_detachable", "false"),
+					resource.TestCheckResourceAttrSet(resourceName, "vdc"),
+					resource.TestCheckNoResourceAttr(resourceName, "vm_name"),
+					resource.TestCheckResourceAttrWith(resourceName, "vm_id", urn.TestIsType(urn.VM)),
+					resource.TestCheckNoResourceAttr(resourceName, "vapp_name"),
+					resource.TestCheckResourceAttrWith(resourceName, "vapp_id", urn.TestIsType(urn.VAPP)),
 					resource.TestCheckResourceAttr(resourceName, "bus_number", "2"),
 					resource.TestCheckResourceAttr(resourceName, "unit_number", "0"),
 				},
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
-					  resource "cloudavenue_vm_disk" "example_internal_nvme" {
+				  resource "cloudavenue_vm_disk" "example_internal_nvme" {
 						vdc = cloudavenue_vdc.example.name
 					  	vapp_id = cloudavenue_vapp.example.id
 					  	bus_type = "NVME"
