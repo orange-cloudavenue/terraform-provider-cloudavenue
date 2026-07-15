@@ -60,7 +60,7 @@ jobs:
       TOKEN: ${{ secrets.RELEASE_CI_PAT }}
 
   release-notes:
-    needs: [pre-check]
+    needs: [tag]
     name: Release Notes
     uses: orange-cloudavenue/workflows/.github/workflows/release_generate-release-note.yml@main
     with:
