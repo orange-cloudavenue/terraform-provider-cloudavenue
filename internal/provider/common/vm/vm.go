@@ -163,10 +163,24 @@ func (v VM) IsCPUHotAddEnabled() bool {
 func (v VM) AttachDiskSettings(busNumber, unitNumber types.Int64, diskHREF string) *govcdtypes.DiskAttachOrDetachParams {
 	var b, u int
 
-	if busNumber.IsNull() || unitNumber.IsNull() {
-		b, u = diskparams.ComputeBusAndUnitNumber(v.GetDiskSettings())
+	var computedBus, computedUnit int
+	if busNumber.IsNull() || busNumber.IsUnknown() || unitNumber.IsNull() || unitNumber.IsUnknown() {
+		var diskSettings []*govcdtypes.DiskSettings
+		if v.VM != nil && v.VM.VM != nil && v.VM.VM.VM != nil && v.VM.VM.VM.VmSpecSection != nil && v.VM.VM.VM.VmSpecSection.DiskSection != nil {
+			diskSettings = v.VM.VM.VM.VmSpecSection.DiskSection.DiskSettings
+		}
+		computedBus, computedUnit = diskparams.ComputeBusAndUnitNumber(diskSettings)
+	}
+
+	if busNumber.IsNull() || busNumber.IsUnknown() {
+		b = computedBus
 	} else {
 		b = int(busNumber.ValueInt64())
+	}
+
+	if unitNumber.IsNull() || unitNumber.IsUnknown() {
+		u = computedUnit
+	} else {
 		u = int(unitNumber.ValueInt64())
 	}
 
