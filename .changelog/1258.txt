@@ -1,3 +1,3 @@
 ```release-note:bug
-`resource/cloudavenue_vm_disk` - Respect `bus_number` and `unit_number` (previously ignored due to swapped DiskSettings field mapping)
+`resource/cloudavenue_vm_disk` - Fix `bus_number` and `unit_number` being ignored (values were assigned to the wrong disk settings fields)
 ```
