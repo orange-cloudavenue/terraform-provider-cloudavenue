@@ -15,12 +15,12 @@ jobs:
     name: Generate
     runs-on: arc-runners
     steps:
-      - uses: actions/checkout@v6 # v3.5.0
+      - uses: actions/checkout@v7 # v3.5.0
       - uses: actions/setup-go@v6 # v4.0.0
         with:
           go-version-file: 'go.mod'
       - name: Install Task
-        uses: arduino/setup-task@v2
+        uses: arduino/setup-task@v3
       - run: task go:run
       - name: git diff
         run: |
