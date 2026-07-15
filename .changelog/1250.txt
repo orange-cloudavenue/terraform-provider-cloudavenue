@@ -1,0 +1,3 @@
+```release-note:dependency
+deps: bumps actions/checkout, actions/github-script, arduino/setup-task, hashicorp/setup-terraform from 6 to 7
+```
