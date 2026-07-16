@@ -41,6 +41,71 @@ moved {
 
 Run `terraform plan` and `terraform apply` to migrate the resource.
 
+### Migrate to `cloudavenue_vdcg_network_routed` (Edge Gateway in VDC Group)
+
+~> If your Edge Gateway is connected to a **VDC Group**, you must migrate to [`cloudavenue_vdcg_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/vdcg_network_routed) instead of `cloudavenue_edgegateway_network_routed`.
+
+#### Single resource
+
+```hcl
+resource "cloudavenue_vdcg_network_routed" "example" {
+  name            = "example"
+  vdc_group_id    = cloudavenue_vdcg.example.id
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+
+  gateway       = "192.168.1.254"
+  prefix_length = 24
+
+  dns1 = "1.1.1.1"
+  dns2 = "8.8.8.8"
+
+  dns_suffix = "example"
+
+  static_ip_pool = [
+    {
+      start_address = "192.168.1.10"
+      end_address   = "192.168.1.20"
+    }
+  ]
+}
+
+moved {
+  from = cloudavenue_network_routed.example
+  to   = cloudavenue_vdcg_network_routed.example
+}
+```
+
+#### Resource with `for_each`
+
+When using `for_each`, each instance must have its own `moved` block using the instance key:
+
+```hcl
+resource "cloudavenue_vdcg_network_routed" "this" {
+  for_each        = local.networks_info
+  name            = each.value.name
+  vdc_group_id    = each.value.vdc_group_id
+  edge_gateway_id = each.value.edge_gateway_id
+
+  gateway       = each.value.gateway
+  prefix_length = each.value.prefix_length
+
+  dns1       = each.value.dns1
+  dns2       = each.value.dns2
+  dns_suffix = each.value.dns_suffix
+
+  static_ip_pool = each.value.static_ip_pool
+}
+
+moved {
+  from = cloudavenue_network_routed.this["my-network"]
+  to   = cloudavenue_vdcg_network_routed.this["my-network"]
+}
+```
+
+Add one `moved` block per instance key. Once `terraform apply` has completed successfully, the `moved` blocks can be removed.
+
+---
+
 Example of terraform plan output:
 
 ```shell

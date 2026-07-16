@@ -9,6 +9,86 @@ description: |-
 
 The `cloudavenue_vdcg_network_routed` resource allows you to manage a routed network within the VDC Group scope. If you want to manage a routed network in the vdc scope, please use the [`cloudavenue_edgegateway_network_routed`](https://registry.terraform.io/providers/orange-cloudavenue/cloudavenue/latest/docs/resources/edgegateway_network_routed) resource.
 
+## How to migrate from `cloudavenue_network_routed`
+
+~> **Terraform >= 1.8 required** Cross-type resource migration via the [`moved` block](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#move-a-resource-or-module) was introduced in [Terraform 1.8.0](https://github.com/hashicorp/terraform/blob/v1.8/CHANGELOG.md#180-april-10-2024): *"Providers can now transfer the ownership of a remote object between resources of different types"*.
+
+If you are migrating from the deprecated `cloudavenue_network_routed` resource and your Edge Gateway is connected to a **VDC Group**, use this migration path:
+
+```hcl
+resource "cloudavenue_vdcg_network_routed" "example" {
+  name            = "example"
+  vdc_group_id    = cloudavenue_vdcg.example.id
+  edge_gateway_id = cloudavenue_edgegateway.example.id
+
+  gateway       = "192.168.1.254"
+  prefix_length = 24
+
+  dns1 = "1.1.1.1"
+  dns2 = "8.8.8.8"
+
+  dns_suffix = "example"
+
+  static_ip_pool = [
+    {
+      start_address = "192.168.1.10"
+      end_address   = "192.168.1.20"
+    }
+  ]
+}
+
+moved {
+  from = cloudavenue_network_routed.example
+  to   = cloudavenue_vdcg_network_routed.example
+}
+```
+
+### Resource with `for_each`
+
+When using `for_each`, each instance must have its own `moved` block using the instance key:
+
+```hcl
+resource "cloudavenue_vdcg_network_routed" "this" {
+  for_each        = local.networks_info
+  name            = each.value.name
+  vdc_group_id    = each.value.vdc_group_id
+  edge_gateway_id = each.value.edge_gateway_id
+
+  gateway       = each.value.gateway
+  prefix_length = each.value.prefix_length
+
+  dns1       = each.value.dns1
+  dns2       = each.value.dns2
+  dns_suffix = each.value.dns_suffix
+
+  static_ip_pool = each.value.static_ip_pool
+}
+
+moved {
+  from = cloudavenue_network_routed.this["my-network"]
+  to   = cloudavenue_vdcg_network_routed.this["my-network"]
+}
+```
+
+Add one `moved` block per instance key. Once `terraform apply` has completed successfully, the `moved` blocks can be removed.
+
+Run `terraform plan` and `terraform apply` to migrate the resource.
+
+Example of terraform plan output:
+
+```shell
+Terraform will perform the following actions:
+
+  # cloudavenue_network_routed.example has moved to cloudavenue_vdcg_network_routed.example
+    resource "cloudavenue_vdcg_network_routed" "example" {
+        id                 = "urn:vcloud:network:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        name               = "example"
+        # (11 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 0 to change, 0 to destroy.
+```
+
 ## Example Usage
 
 ```terraform

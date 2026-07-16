@@ -30,12 +30,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/network"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -43,6 +45,7 @@ var (
 	_ resource.Resource                = &NetworkRoutedResource{}
 	_ resource.ResourceWithConfigure   = &NetworkRoutedResource{}
 	_ resource.ResourceWithImportState = &NetworkRoutedResource{}
+	_ resource.ResourceWithMoveState   = &NetworkRoutedResource{}
 )
 
 // NewNetworkRoutedResource is a helper function to simplify the provider implementation.
@@ -63,6 +66,22 @@ func (r *NetworkRoutedResource) Init(_ context.Context, rm *NetworkRoutedModel) 
 	idOrName := rm.VDCGroupID.Get()
 	if idOrName == "" {
 		idOrName = rm.VDCGroupName.Get()
+	}
+
+	// Fallback: resolve VDC Group from edge gateway when VDC Group fields are empty.
+	// This happens after a MoveState migration where the deprecated
+	// cloudavenue_network_routed resource has no VDC Group fields.
+	if idOrName == "" {
+		edgeIDOrName := rm.EdgeGatewayID.Get()
+		if edgeIDOrName == "" {
+			edgeIDOrName = rm.EdgeGatewayName.Get()
+		}
+		if edgeIDOrName != "" {
+			if edgeGW, err := r.client.CAVSDK.V1.EdgeGateway.Get(edgeIDOrName); err == nil && edgeGW.OwnerName != "" {
+				idOrName = edgeGW.OwnerName
+				rm.VDCGroupName.Set(edgeGW.OwnerName)
+			}
+		}
 	}
 
 	r.vdcg, err = r.client.CAVSDK.V1.VDC().GetVDCGroup(idOrName)
@@ -105,6 +124,94 @@ func (r *NetworkRoutedResource) Configure(_ context.Context, req resource.Config
 		return
 	}
 	r.client = client
+}
+
+// MoveState implements resource.ResourceWithMoveState.
+//
+// This enables state migration from the deprecated cloudavenue_network_routed
+// resource via Terraform's `moved` block.
+//
+// VDCGroupID/VDCGroupName are left null — they are resolved during Read()
+// via Init(), which falls back to resolving the VDC Group from the edge
+// gateway's OwnerName when these fields are empty.
+//
+// Source schema: cloudavenue_network_routed (deprecated)
+// Target schema: cloudavenue_vdcg_network_routed
+func (r *NetworkRoutedResource) MoveState(_ context.Context) []resource.StateMover {
+	return []resource.StateMover{
+		{
+			SourceSchema: func() *schema.Schema {
+				ctx := context.Background()
+				schemaRequest := resource.SchemaRequest{}
+				schemaResponse := &resource.SchemaResponse{}
+
+				network.NewNetworkRoutedResource().Schema(ctx, schemaRequest, schemaResponse)
+				if schemaResponse.Diagnostics.HasError() {
+					return nil
+				}
+
+				return &schemaResponse.Schema
+			}(),
+			StateMover: func(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+				if req.SourceTypeName != "cloudavenue_network_routed" {
+					return
+				}
+
+				if req.SourceSchemaVersion != 0 {
+					return
+				}
+
+				if !strings.HasSuffix(req.SourceProviderAddress, "cloudavenue") {
+					return
+				}
+
+				source := &network.RoutedModel{}
+				resp.Diagnostics.Append(req.SourceState.Get(ctx, source)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
+				dest := &NetworkRoutedModel{
+					ID:               source.ID,
+					Name:             source.Name,
+					Description:      source.Description,
+					EdgeGatewayID:    source.EdgeGatewayID,
+					EdgeGatewayName:  source.EdgeGatewayName,
+					Gateway:          source.Gateway,
+					PrefixLength:     source.PrefixLength,
+					DNS1:             source.DNS1,
+					DNS2:             source.DNS2,
+					DNSSuffix:        source.DNSSuffix,
+					StaticIPPool:     supertypes.NewSetNestedObjectValueOfNull[NetworkRoutedModelStaticIPPool](ctx),
+					GuestVLANAllowed: supertypes.NewBoolNull(),
+					VDCGroupID:       supertypes.NewStringNull(),
+					VDCGroupName:     supertypes.NewStringNull(),
+				}
+
+				// Map StaticIPPool
+				sIPPools, d := source.StaticIPPool.Get(ctx)
+				if d.HasError() {
+					resp.Diagnostics.Append(d...)
+					return
+				}
+
+				dIPPools := []*NetworkRoutedModelStaticIPPool{}
+				for _, ipPool := range sIPPools {
+					dIPPools = append(dIPPools, &NetworkRoutedModelStaticIPPool{
+						StartAddress: ipPool.StartAddress,
+						EndAddress:   ipPool.EndAddress,
+					})
+				}
+
+				resp.Diagnostics.Append(dest.StaticIPPool.Set(ctx, dIPPools)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
+				resp.Diagnostics.Append(resp.TargetState.Set(ctx, &dest)...)
+			},
+		},
+	}
 }
 
 // Create creates the resource and sets the initial Terraform state.
