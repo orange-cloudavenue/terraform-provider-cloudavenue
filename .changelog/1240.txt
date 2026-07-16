@@ -1,0 +1,3 @@
+```release-note:bug
+cloudavenue_edgegateway: Fix dedicated-T0 Edge Gateway bandwidth update validation and capacity calculations.
+```

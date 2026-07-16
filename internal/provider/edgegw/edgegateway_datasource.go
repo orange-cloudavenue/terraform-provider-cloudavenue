@@ -86,13 +86,29 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 	data := config.Copy()
 
 	// Read data from the API
-	edgegw, err := d.client.CAVSDK.V1.EdgeGateway.Get(config.Name.Get())
+	nameOrID := config.Name.Get()
+	if nameOrID == "" {
+		nameOrID = config.ID.Get()
+	}
+
+	if nameOrID == "" {
+		resp.Diagnostics.AddError("Missing selector", "Either 'name' or 'id' must be specified.")
+		return
+	}
+
+	edgegw, err := d.client.CAVSDK.V1.EdgeGateway.Get(nameOrID)
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving edge gateway", err.Error())
+		resp.Diagnostics.AddError("Error getting edge gateway", err.Error())
+		return
+	}
+
+	if edgegw == nil {
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The edge gateway '%s' was not found.", nameOrID))
 		return
 	}
 
 	data.ID.Set(urn.Normalize(urn.Gateway, edgegw.GetID()).String())
+	data.Name.Set(edgegw.GetName())
 	data.Tier0VrfID.Set(edgegw.GetTier0VrfID())
 	data.OwnerName.Set(edgegw.GetOwnerName())
 	data.Description.Set(edgegw.GetDescription())
