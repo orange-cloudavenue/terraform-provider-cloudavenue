@@ -185,7 +185,7 @@ func bestValueAtMostOrError(value int, allowedValues []int) (int, error) {
 }
 
 func dedicatedT0UpdateBandwidth(stateBandwidth int, allowedValues []int) (int, error) {
-	if stateBandwidth > 0 && slices.Contains(allowedValues, stateBandwidth) {
+	if stateBandwidth > 0 && slices.Contains(allowedValues, stateBandwidth) { //nolint: govet
 		return stateBandwidth, nil
 	}
 
