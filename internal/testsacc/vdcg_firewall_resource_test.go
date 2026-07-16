@@ -697,6 +697,111 @@ func (r *VDCGFirewallResource) Tests(_ context.Context) map[testsacc.TestName]fu
 				},
 			}
 		},
+
+		testNameExampleWithContextProfile: func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonChecks: []resource.TestCheckFunc{
+					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VDCGroup)),
+				},
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetDataSourceConfig()[VDCGNetworkContextProfileDatasourceName]().GetDefaultConfig)
+					resp.Append(GetDataSourceConfig()[VDCGNetworkContextProfileDatasourceName]().GetSpecificConfig("example_by_vdc_group_id"))
+					return resp
+				},
+				// ! Create testing — firewall rule using a system context profile (SSL)
+				Create: testsacc.TFConfig{
+					TFConfig: `
+					resource "cloudavenue_vdcg_firewall" "example_with_context_profile" {
+					  vdc_group_name = cloudavenue_vdcg.example.name
+					  rules = [
+					    {
+					      action      = "ALLOW"
+					      name        = "allow outbound SSL traffic"
+					      direction   = "OUT"
+					      ip_protocol = "IPV4"
+
+					      network_context_profile_ids = [data.cloudavenue_vdcg_network_context_profile.example.id]
+					    },
+					    {
+					      action      = "DROP"
+					      name        = "block all inbound"
+					      direction   = "IN"
+					      ip_protocol = "IPV4_IPV6"
+					    }
+					  ]
+					}`,
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "rules.#", "2"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow outbound SSL traffic"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.action", "ALLOW"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.direction", "OUT"),
+						resource.TestCheckResourceAttr(resourceName, "rules.0.network_context_profile_ids.#", "1"),
+						resource.TestCheckResourceAttrSet(resourceName, "rules.0.network_context_profile_ids.0"),
+						resource.TestCheckResourceAttr(resourceName, "rules.1.name", "block all inbound"),
+						resource.TestCheckResourceAttr(resourceName, "rules.1.network_context_profile_ids.#", "0"),
+					},
+				},
+				// ! Update testing — add a second context profile (CIFS)
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: `
+						resource "cloudavenue_vdcg_firewall" "example_with_context_profile" {
+						  vdc_group_name = cloudavenue_vdcg.example.name
+						  rules = [
+						    {
+						      action      = "ALLOW"
+						      name        = "allow outbound SSL and CIFS"
+						      direction   = "OUT"
+						      ip_protocol = "IPV4"
+
+						      network_context_profile_ids = [
+						        data.cloudavenue_vdcg_network_context_profile.example.id,
+						        data.cloudavenue_vdcg_network_context_profile.example_by_vdc_group_id.id,
+						      ]
+						    },
+						    {
+						      action      = "DROP"
+						      name        = "block all inbound"
+						      direction   = "IN"
+						      ip_protocol = "IPV4_IPV6"
+						    }
+						  ]
+						}`,
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "rules.0.name", "allow outbound SSL and CIFS"),
+							resource.TestCheckResourceAttr(resourceName, "rules.0.network_context_profile_ids.#", "2"),
+						},
+					},
+					// Remove context profiles — verify no drift
+					{
+						TFConfig: `
+						resource "cloudavenue_vdcg_firewall" "example_with_context_profile" {
+						  vdc_group_name = cloudavenue_vdcg.example.name
+						  rules = [
+						    {
+						      action      = "ALLOW"
+						      name        = "allow all outbound"
+						      direction   = "OUT"
+						      ip_protocol = "IPV4"
+						    }
+						  ]
+						}`,
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "rules.#", "1"),
+							resource.TestCheckResourceAttr(resourceName, "rules.0.network_context_profile_ids.#", "0"),
+						},
+					},
+				},
+				// ! Import testing
+				Imports: []testsacc.TFImport{
+					{
+						ImportStateIDBuilder: []string{testAttrVDCGroupName},
+						ImportState:          true,
+						ImportStateVerify:    true,
+					},
+				},
+			}
+		},
 	}
 }
 

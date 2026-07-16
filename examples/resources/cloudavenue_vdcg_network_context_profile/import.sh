@@ -1,0 +1,1 @@
+terraform import cloudavenue_vdcg_network_context_profile.example vdcGroupIDOrName.profileIDOrName

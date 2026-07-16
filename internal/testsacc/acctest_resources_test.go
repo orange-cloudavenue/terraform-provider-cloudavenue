@@ -32,14 +32,15 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		VDCNetworkIsolatedResourceName: testsacc.NewResourceConfig(NewVDCNetworkIsolatedResourceTest()),
 
 		// * VDC Group
-		VDCGResourceName:                     testsacc.NewResourceConfig(NewVDCGResourceTest()),
-		VDCGIPSetResourceName:                testsacc.NewResourceConfig(NewVDCGIPSetResourceTest()),
-		VDCGNetworkIsolatedResourceName:      testsacc.NewResourceConfig(NewVDCGNetworkIsolatedResourceTest()),
-		VDCGSecurityGroupResourceName:        testsacc.NewResourceConfig(NewVDCGSecurityGroupResourceTest()),
-		VDCGFirewallResourceName:             testsacc.NewResourceConfig(NewVDCGFirewallResourceTest()),
-		VDCGDynamicSecurityGroupResourceName: testsacc.NewResourceConfig(NewVDCGDynamicSecurityGroupResourceTest()),
-		VDCGAppPortProfileResourceName:       testsacc.NewResourceConfig(NewVDCGAppPortProfileResourceTest()),
-		VDCGNetworkRoutedResourceName:        testsacc.NewResourceConfig(NewVDCGNetworkRoutedResourceTest()),
+		VDCGResourceName:                      testsacc.NewResourceConfig(NewVDCGResourceTest()),
+		VDCGIPSetResourceName:                 testsacc.NewResourceConfig(NewVDCGIPSetResourceTest()),
+		VDCGNetworkIsolatedResourceName:       testsacc.NewResourceConfig(NewVDCGNetworkIsolatedResourceTest()),
+		VDCGSecurityGroupResourceName:         testsacc.NewResourceConfig(NewVDCGSecurityGroupResourceTest()),
+		VDCGFirewallResourceName:              testsacc.NewResourceConfig(NewVDCGFirewallResourceTest()),
+		VDCGDynamicSecurityGroupResourceName:  testsacc.NewResourceConfig(NewVDCGDynamicSecurityGroupResourceTest()),
+		VDCGAppPortProfileResourceName:        testsacc.NewResourceConfig(NewVDCGAppPortProfileResourceTest()),
+		VDCGNetworkContextProfileResourceName: testsacc.NewResourceConfig(NewVDCGNetworkContextProfileResourceTest()),
+		VDCGNetworkRoutedResourceName:         testsacc.NewResourceConfig(NewVDCGNetworkRoutedResourceTest()),
 
 		// * VAPP
 		VAppResourceName:                testsacc.NewResourceConfig(NewVAppResourceTest()),
@@ -50,17 +51,18 @@ func GetResourceConfig() map[testsacc.ResourceName]func() *testsacc.ResourceConf
 		NetworkRoutedResourceName: testsacc.NewResourceConfig(NewNetworkRoutedResourceTest()),
 
 		// * Edge Gateway
-		EdgeGatewayResourceName:               testsacc.NewResourceConfig(NewEdgeGatewayResourceTest()),
-		EdgeGatewayAppPortProfileResourceName: testsacc.NewResourceConfig(NewEdgeGatewayAppPortProfileResourceTest()),
-		EdgeGatewayFirewallResourceName:       testsacc.NewResourceConfig(NewEdgeGatewayFirewallResourceTest()),
-		EdgeGatewaySecurityGroupResourceName:  testsacc.NewResourceConfig(NewEdgeGatewaySecurityGroupResourceTest()),
-		EdgeGatewayDhcpForwardingResourceName: testsacc.NewResourceConfig(NewEdgeGatewayDhcpForwardingResourceTest()),
-		EdgeGatewayNATRuleResourceName:        testsacc.NewResourceConfig(NewEdgeGatewayNATRuleResourceTest()),
-		EdgeGatewayIPSetResourceName:          testsacc.NewResourceConfig(NewEdgeGatewayIPSetResourceTest()),
-		EdgeGatewayNetworkRoutedResourceName:  testsacc.NewResourceConfig(NewEdgeGatewayNetworkRoutedResourceTest()),
-		EdgeGatewayServicesResourceName:       testsacc.NewResourceConfig(NewEdgeGatewayServicesResourceTest()),
-		EdgeGatewayVPNIPSecResourceName:       testsacc.NewResourceConfig(NewEdgeGatewayVPNIPSecResourceTest()),
-		EdgeGatewayStaticRouteResourceName:    testsacc.NewResourceConfig(NewEdgeGatewayStaticRouteResourceTest()),
+		EdgeGatewayResourceName:                      testsacc.NewResourceConfig(NewEdgeGatewayResourceTest()),
+		EdgeGatewayAppPortProfileResourceName:        testsacc.NewResourceConfig(NewEdgeGatewayAppPortProfileResourceTest()),
+		EdgeGatewayNetworkContextProfileResourceName: testsacc.NewResourceConfig(NewEdgeGatewayNetworkContextProfileResourceTest()),
+		EdgeGatewayFirewallResourceName:              testsacc.NewResourceConfig(NewEdgeGatewayFirewallResourceTest()),
+		EdgeGatewaySecurityGroupResourceName:         testsacc.NewResourceConfig(NewEdgeGatewaySecurityGroupResourceTest()),
+		EdgeGatewayDhcpForwardingResourceName:        testsacc.NewResourceConfig(NewEdgeGatewayDhcpForwardingResourceTest()),
+		EdgeGatewayNATRuleResourceName:               testsacc.NewResourceConfig(NewEdgeGatewayNATRuleResourceTest()),
+		EdgeGatewayIPSetResourceName:                 testsacc.NewResourceConfig(NewEdgeGatewayIPSetResourceTest()),
+		EdgeGatewayNetworkRoutedResourceName:         testsacc.NewResourceConfig(NewEdgeGatewayNetworkRoutedResourceTest()),
+		EdgeGatewayServicesResourceName:              testsacc.NewResourceConfig(NewEdgeGatewayServicesResourceTest()),
+		EdgeGatewayVPNIPSecResourceName:              testsacc.NewResourceConfig(NewEdgeGatewayVPNIPSecResourceTest()),
+		EdgeGatewayStaticRouteResourceName:           testsacc.NewResourceConfig(NewEdgeGatewayStaticRouteResourceTest()),
 
 		// * EdgeGateway LoadBalancer (elb)
 		ELBPoolResourceName:                 testsacc.NewResourceConfig(NewELBPoolResourceTest()),

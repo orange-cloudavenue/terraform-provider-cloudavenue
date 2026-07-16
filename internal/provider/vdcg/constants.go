@@ -14,4 +14,6 @@ const (
 	description  = "description"
 	vdcGroupID   = "vdc_group_id"
 	vdcGroupName = "vdc_group_name"
+	attrType     = "type"
+	attrValues   = "values"
 )
