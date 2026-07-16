@@ -1,9 +1,16 @@
 ## 0.36.0 (Unreleased)
 
+### :rocket: **New Features**
+
+* `resource/cloudavenue_vdcg_network_routed` - Added `MoveState` support to enable migration from `cloudavenue_network_routed` via `moved` block. This fixes migration for users whose edge gateway is connected to a VDC Group. (GH-1244)
+
 ### :bug: **Bug Fixes**
 
 * `resource/cloudavenue_vdc_acl` - Fixed read failing with unhandled type `application/json` for external SAML users. The ACL subject resolution now handles external subject types by correctly parsing the `JSONMime` type and extracting the subject identifier. (GH-1241.md)
 * cloudavenue_edgegateway: Fix dedicated-T0 Edge Gateway bandwidth update validation and capacity calculations. (GH-1240)
+### :information_source: **Notes**
+
+* `resource/cloudavenue_network_routed` - Fixed migration guide for `cloudavenue_edgegateway_network_routed`: added Terraform >= 1.8 requirement for cross-type `moved` block support, fixed single resource example, and added `for_each` migration instructions. (GH-1244)
 
 ### :dependabot: **Dependencies**
 
