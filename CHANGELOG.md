@@ -3,6 +3,13 @@
 ### :rocket: **New Features**
 
 * `resource/cloudavenue_vdcg_network_routed` - Added `MoveState` support to enable migration from `cloudavenue_network_routed` via `moved` block. This fixes migration for users whose edge gateway is connected to a VDC Group. (GH-1244)
+* **New Resource:** `cloudavenue_edgegateway_network_context_profile` - Add Network Context Profile resource for Layer 7 traffic filtering on Edge Gateways. (GH-1236)
+* **New Resource:** `cloudavenue_vdcg_network_context_profile` - Add Network Context Profile resource for Layer 7 traffic filtering on VDC Groups. (GH-1236)
+
+### :tada: **Improvements**
+
+* `cloudavenue_edgegateway_firewall` - Add `network_context_profile_ids` attribute to firewall rules for Layer 7 Network Context Profile filtering. (GH-1236)
+* `cloudavenue_vdcg_firewall` - Add `network_context_profile_ids` attribute to firewall rules for Layer 7 Network Context Profile filtering. (GH-1236)
 
 ### :bug: **Bug Fixes**
 
