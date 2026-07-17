@@ -1,4 +1,9 @@
 ## 0.37.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/hashicorp/terraform-plugin-docs, github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.24.0 to 0.25.0 (GH-1261)
+
 ## 0.36.0 (July 16, 2026)
 
 ### :rocket: **New Features**
