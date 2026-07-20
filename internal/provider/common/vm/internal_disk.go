@@ -204,19 +204,31 @@ func InternalDiskCreate(_ context.Context, c *client.CloudAvenue, disk InternalD
 
 	var busNumber, unitNumber types.Int64
 
+	var computedBus, computedUnit int
+	if disk.BusNumber.IsNull() || disk.BusNumber.IsUnknown() || disk.UnitNumber.IsNull() || disk.UnitNumber.IsUnknown() {
+		var diskSettings []*govcdtypes.DiskSettings
+		if myVM.VM != nil && myVM.VM.VmSpecSection != nil && myVM.VM.VmSpecSection.DiskSection != nil {
+			diskSettings = myVM.VM.VmSpecSection.DiskSection.DiskSettings
+		}
+		computedBus, computedUnit = diskparams.ComputeBusAndUnitNumber(diskSettings)
+	}
+
 	if disk.BusNumber.IsNull() || disk.BusNumber.IsUnknown() {
-		b, u := diskparams.ComputeBusAndUnitNumber(myVM.VM.VmSpecSection.DiskSection.DiskSettings)
-		busNumber = types.Int64Value(int64(b))
-		unitNumber = types.Int64Value(int64(u))
+		busNumber = types.Int64Value(int64(computedBus))
 	} else {
 		busNumber = disk.BusNumber
+	}
+
+	if disk.UnitNumber.IsNull() || disk.UnitNumber.IsUnknown() {
+		unitNumber = types.Int64Value(int64(computedUnit))
+	} else {
 		unitNumber = disk.UnitNumber
 	}
 
 	diskSetting := &govcdtypes.DiskSettings{
 		SizeMb:              disk.SizeInMb.ValueInt64(),
-		UnitNumber:          int(busNumber.ValueInt64()),
-		BusNumber:           int(unitNumber.ValueInt64()),
+		UnitNumber:          int(unitNumber.ValueInt64()),
+		BusNumber:           int(busNumber.ValueInt64()),
 		AdapterType:         GetBusTypeByKey(disk.BusType.ValueString()).Code(),
 		ThinProvisioned:     &isThinProvisioned,
 		StorageProfile:      storageProfilePrt,
@@ -235,15 +247,14 @@ func InternalDiskCreate(_ context.Context, c *client.CloudAvenue, disk InternalD
 	newDisk.BusType = types.StringValue(GetBusTypeByCode(diskSetting.AdapterType).Name())
 	newDisk.SizeInMb = types.Int64Value(diskSetting.SizeMb)
 	newDisk.StorageProfile = types.StringValue(storageProfilePrt.Name)
+	newDisk.BusNumber = types.Int64Value(int64(diskSetting.BusNumber))
+	newDisk.UnitNumber = types.Int64Value(int64(diskSetting.UnitNumber))
 
 	return newDisk, d
 }
 
-/*
-InternalDiskRead
-
-Reads an internal disk associated with a VM.
-*/
+// InternalDiskRead Reads an internal disk associated with a VM.
+// TODO: currently unused; kept for potential future use.
 func InternalDiskRead(_ context.Context, _ *client.CloudAvenue, disk *InternalDisk, vm *govcd.VM) (readDisk *InternalDisk, d diag.Diagnostics) {
 	diskSettings, err := vm.GetInternalDiskById(disk.ID.ValueString(), true)
 	if err != nil {
@@ -260,6 +271,8 @@ func InternalDiskRead(_ context.Context, _ *client.CloudAvenue, disk *InternalDi
 	readDisk.BusType = types.StringValue(GetBusTypeByCode(diskSettings.AdapterType).Name())
 	readDisk.SizeInMb = types.Int64Value(diskSettings.SizeMb)
 	readDisk.StorageProfile = types.StringValue(diskSettings.StorageProfile.Name)
+	readDisk.BusNumber = types.Int64Value(int64(diskSettings.BusNumber))
+	readDisk.UnitNumber = types.Int64Value(int64(diskSettings.UnitNumber))
 
 	return readDisk, d
 }

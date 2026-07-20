@@ -24,6 +24,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 type orgNetworkModel struct {
@@ -51,7 +53,7 @@ func (s *orgNetworkModel) findOrgNetwork(vAppNetworkConfig *govcdtypes.NetworkCo
 			continue
 		}
 
-		if (networkConfig.ID == s.ID.ValueString() && !s.ID.IsNull()) || (networkConfig.NetworkName == s.NetworkName.ValueString() && !s.NetworkName.IsNull()) {
+		if (!s.ID.IsNull() && networkConfig.ID == urn.ExtractUUID(s.ID.ValueString())) || (!s.NetworkName.IsNull() && networkConfig.NetworkName == s.NetworkName.ValueString()) {
 			return &networkConfig, &networkConfig.ID, nil
 		}
 	}
