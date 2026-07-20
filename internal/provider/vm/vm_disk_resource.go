@@ -338,7 +338,7 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 			found := false
 			for _, diskSetting := range diskSettings {
-				if diskSetting.DiskId == disk.Disk.Id {
+				if urn.ExtractUUID(diskSetting.DiskId) == urn.ExtractUUID(disk.Disk.Id) {
 					newPlan.BusNumber = types.Int64Value(int64(diskSetting.BusNumber))
 					newPlan.UnitNumber = types.Int64Value(int64(diskSetting.UnitNumber))
 					found = true
@@ -510,7 +510,7 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 			var found bool
 			if govcdVM != nil && govcdVM.VM != nil && govcdVM.VM.VmSpecSection != nil && govcdVM.VM.VmSpecSection.DiskSection != nil {
 				for _, diskSetting := range govcdVM.VM.VmSpecSection.DiskSection.DiskSettings {
-					if diskSetting.DiskId == state.ID.ValueString() {
+					if urn.ExtractUUID(diskSetting.DiskId) == urn.ExtractUUID(state.ID.ValueString()) {
 						updatedState.BusNumber = types.Int64Value(int64(diskSetting.BusNumber))
 						updatedState.UnitNumber = types.Int64Value(int64(diskSetting.UnitNumber))
 						found = true
@@ -743,7 +743,7 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 				found := false
 				for _, x := range diskSettings {
-					if x.DiskId == disk.Disk.Id {
+					if urn.ExtractUUID(x.DiskId) == urn.ExtractUUID(disk.Disk.Id) {
 						updatedState.BusNumber = types.Int64Value(int64(x.BusNumber))
 						updatedState.UnitNumber = types.Int64Value(int64(x.UnitNumber))
 						found = true
