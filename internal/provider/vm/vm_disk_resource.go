@@ -344,7 +344,11 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 			found := false
 			for _, diskSetting := range diskSettings {
-				if urn.ExtractUUID(diskSetting.DiskId) == urn.ExtractUUID(disk.Disk.Id) {
+				diskIDToMatch := diskSetting.DiskId
+				if diskSetting.Disk != nil && diskSetting.Disk.HREF != "" {
+					diskIDToMatch = diskSetting.Disk.HREF
+				}
+				if urn.ExtractUUID(diskIDToMatch) == urn.ExtractUUID(disk.Disk.Id) {
 					newPlan.BusNumber = types.Int64Value(int64(diskSetting.BusNumber))
 					newPlan.UnitNumber = types.Int64Value(int64(diskSetting.UnitNumber))
 					found = true
@@ -513,10 +517,18 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 				return
 			}
 
+			if govcdVM != nil && govcdVM.VM != nil {
+				updatedState.VMID = types.StringValue(govcdVM.VM.ID)
+			}
+
 			var found bool
 			if govcdVM != nil && govcdVM.VM != nil && govcdVM.VM.VmSpecSection != nil && govcdVM.VM.VmSpecSection.DiskSection != nil {
 				for _, diskSetting := range govcdVM.VM.VmSpecSection.DiskSection.DiskSettings {
-					if urn.ExtractUUID(diskSetting.DiskId) == urn.ExtractUUID(state.ID.ValueString()) {
+					diskIDToMatch := diskSetting.DiskId
+					if diskSetting.Disk != nil && diskSetting.Disk.HREF != "" {
+						diskIDToMatch = diskSetting.Disk.HREF
+					}
+					if urn.ExtractUUID(diskIDToMatch) == urn.ExtractUUID(state.ID.ValueString()) {
 						updatedState.BusNumber = types.Int64Value(int64(diskSetting.BusNumber))
 						updatedState.UnitNumber = types.Int64Value(int64(diskSetting.UnitNumber))
 						found = true
@@ -745,7 +757,11 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 				found := false
 				for _, x := range diskSettings {
-					if urn.ExtractUUID(x.DiskId) == urn.ExtractUUID(disk.Disk.Id) {
+					diskIDToMatch := x.DiskId
+					if x.Disk != nil && x.Disk.HREF != "" {
+						diskIDToMatch = x.Disk.HREF
+					}
+					if urn.ExtractUUID(diskIDToMatch) == urn.ExtractUUID(disk.Disk.Id) {
 						updatedState.BusNumber = types.Int64Value(int64(x.BusNumber))
 						updatedState.UnitNumber = types.Int64Value(int64(x.UnitNumber))
 						found = true
