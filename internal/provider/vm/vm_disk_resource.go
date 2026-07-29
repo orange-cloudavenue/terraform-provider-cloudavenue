@@ -69,6 +69,23 @@ type diskResource struct {
 
 type diskResourceModel vm.Disk
 
+func validateDetachDiskVMStatus(vmName, diskName, status string) error {
+	if !strings.EqualFold(status, suspended) {
+		return nil
+	}
+
+	return fmt.Errorf("cannot detach disk %s from VM %s while VM is in %s state; resume or discard suspended state before retrying", diskName, vmName, status)
+}
+
+func ensureVMCanDetachDisk(targetVM vm.VM, diskName string) error {
+	status, err := targetVM.GetStatus()
+	if err != nil {
+		return fmt.Errorf("error getting VM status before detaching disk %s from VM %s: %w", diskName, targetVM.GetName(), err)
+	}
+
+	return validateDetachDiskVMStatus(targetVM.GetName(), diskName, status)
+}
+
 // Metadata returns the resource type name.
 func (r *diskResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "disk"
@@ -295,7 +312,7 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 				select {
 				case <-diskRefreshTicker.C:
 					if err := r.vm.Refresh(); err != nil {
-						resp.Diagnostics.AddError("error refreshing vm", fmt.Errorf("error refreshing vm: %w", err).Error())
+						resp.Diagnostics.AddError("error refreshing vm", fmt.Sprintf("error refreshing vm: %s", err))
 						return
 					}
 					if r.vm.VM == nil || r.vm.VM.VM == nil || r.vm.VM.VM.VM == nil || r.vm.VM.VM.VM.Link == nil {
@@ -318,23 +335,23 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 			// Attach disk
 			task, err = r.vm.AttachDisk(r.vm.AttachDiskSettings(plan.BusNumber, plan.UnitNumber, task.Task.Owner.HREF))
 			if err != nil {
-				resp.Diagnostics.AddError("error attaching disk", fmt.Errorf("error attaching disk %s: %w", plan.Name.ValueString(), err).Error())
+				resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 
 			if err = task.WaitTaskCompletion(); err != nil {
-				resp.Diagnostics.AddError("error attaching disk", fmt.Errorf("error attaching disk %s: %w", plan.Name.ValueString(), err).Error())
+				resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 
 			if err = disk.Refresh(); err != nil {
-				resp.Diagnostics.AddError("error refreshing disk", fmt.Errorf("error refreshing disk %s: %w", plan.Name.ValueString(), err).Error())
+				resp.Diagnostics.AddError("error refreshing disk", fmt.Sprintf("error refreshing disk %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 			newPlan.BusType = types.StringValue(diskparams.GetBusTypeByCode(disk.Disk.BusType, disk.Disk.BusSubType).Name())
 
 			if err := r.vm.Refresh(); err != nil {
-				resp.Diagnostics.AddError("error refreshing vm", fmt.Errorf("error refreshing vm: %w", err).Error())
+				resp.Diagnostics.AddError("error refreshing vm", fmt.Sprintf("error refreshing vm: %s", err))
 				return
 			}
 			var diskSettings []*govcdtypes.DiskSettings
@@ -493,7 +510,7 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 		attachedVmsHrefs, err := x.GetAttachedVmsHrefs()
 		if err != nil {
-			resp.Diagnostics.AddError("unable to find attached VM", fmt.Errorf("unable to find attached VM for disk %s: %w", state.Name.ValueString(), err).Error())
+			resp.Diagnostics.AddError("unable to find attached VM", fmt.Sprintf("unable to find attached VM for disk %s: %s", state.Name.ValueString(), err))
 			return
 		}
 
@@ -513,7 +530,7 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		if len(attachedVmsHrefs) == 1 {
 			govcdVM, err := r.client.Vmware.Client.GetVMByHref(attachedVmsHrefs[0])
 			if err != nil {
-				resp.Diagnostics.AddError("unable to find attached VM", fmt.Errorf("unable to find attached VM for disk %s: %w", state.Name.ValueString(), err).Error())
+				resp.Diagnostics.AddError("unable to find attached VM", fmt.Sprintf("unable to find attached VM for disk %s: %s", state.Name.ValueString(), err))
 				return
 			}
 
@@ -634,6 +651,12 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 					return
 				}
 
+				if err := ensureVMCanDetachDisk(vmOld, state.Name.ValueString()); err != nil {
+					vmOld.UnlockVM(ctx)
+					resp.Diagnostics.AddError("error detaching disk", err.Error())
+					return
+				}
+
 				// Detach disk
 				task, err := vmOld.DetachDisk(&govcdtypes.DiskAttachOrDetachParams{
 					Disk: &govcdtypes.Reference{HREF: disk.Disk.HREF},
@@ -736,18 +759,18 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 					UnitNumber: utils.TakeIntPointer(int(unitNumber.ValueInt64())),
 				})
 				if err != nil {
-					resp.Diagnostics.AddError("error attaching disk", fmt.Errorf("error attaching disk %s: %w", plan.Name.ValueString(), err).Error())
+					resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %s", plan.Name.ValueString(), err))
 					return
 				}
 
 				if err = task.WaitTaskCompletion(); err != nil {
-					resp.Diagnostics.AddError("error attaching disk", fmt.Errorf("error attaching disk %s: %w", plan.Name.ValueString(), err).Error())
+					resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %s", plan.Name.ValueString(), err))
 					return
 				}
 
 				// Read actual bus_number and unit_number from the VM
 				if err := vmNew.Refresh(); err != nil {
-					resp.Diagnostics.AddError("error refreshing vm", fmt.Errorf("error refreshing vm: %w", err).Error())
+					resp.Diagnostics.AddError("error refreshing vm", fmt.Sprintf("error refreshing vm: %s", err))
 					return
 				}
 				var diskSettings []*govcdtypes.DiskSettings
@@ -837,7 +860,7 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 		internalDisk, err = r.vm.GetInternalDiskById(state.ID.ValueString(), true)
 		if err != nil {
-			resp.Diagnostics.AddError("unable to find disk", fmt.Errorf("unable to find disk with id %s: %w", state.ID.ValueString(), err).Error())
+			resp.Diagnostics.AddError("unable to find disk", fmt.Sprintf("unable to find disk with id %s: %s", state.ID.ValueString(), err))
 			return
 		}
 
@@ -899,18 +922,23 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 			defer r.vm.UnlockVM(ctx)
 
+			if err := ensureVMCanDetachDisk(r.vm, state.Name.ValueString()); err != nil {
+				resp.Diagnostics.AddError("error detaching disk", err.Error())
+				return
+			}
+
 			task, err := r.vm.DetachDisk(&govcdtypes.DiskAttachOrDetachParams{
 				Disk: &govcdtypes.Reference{
 					HREF: x.Disk.HREF,
 				},
 			})
 			if err != nil {
-				resp.Diagnostics.AddError("error detaching disk", fmt.Errorf("error detaching disk %s: %w", state.Name.ValueString(), err).Error())
+				resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %s", state.Name.ValueString(), err))
 				return
 			}
 
 			if err = task.WaitTaskCompletion(); err != nil {
-				resp.Diagnostics.AddError("error detaching disk", fmt.Errorf("error detaching disk %s: %w", state.Name.ValueString(), err).Error())
+				resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %s", state.Name.ValueString(), err))
 				return
 			}
 		}
