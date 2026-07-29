@@ -2,6 +2,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps actions/checkout, actions/setup-go, arduino/setup-task, hashicorp/setup-terraform, actions/github-script from 6 to 7 (GH-1262)
 * deps: bumps github.com/hashicorp/terraform-plugin-docs, github.com/orange-cloudavenue/cloudavenue-sdk-go from 0.24.0 to 0.25.0 (GH-1261)
 
 ## 0.36.0 (July 16, 2026)
