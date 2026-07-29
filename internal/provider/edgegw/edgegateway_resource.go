@@ -460,7 +460,7 @@ func (r *edgeGatewayResource) Create(ctx context.Context, req resource.CreateReq
 	// List all edge gateways for determining the ID of the new edge gateway
 	edgegws, err := r.client.CAVSDK.V1.EdgeGateway.List()
 	if err != nil {
-		resp.Diagnostics.AddError("Error listing edge gateways", err.Error())
+		resp.Diagnostics.AddError("Error listing edge gateways", fmt.Sprintf("error creating edge gateway %s: %s", plan.Name.Get(), err.Error()))
 		return
 	}
 
@@ -468,7 +468,7 @@ func (r *edgeGatewayResource) Create(ctx context.Context, req resource.CreateReq
 
 	vdcOrVDCGroup, err := r.client.CAVSDK.V1.VDC().GetVDCOrVDCGroup(plan.OwnerName.Get())
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VDC or VDC Group", err.Error())
+		resp.Diagnostics.AddError("Error retrieving VDC or VDC Group", fmt.Sprintf("error creating edge gateway %s: %s", plan.Name.Get(), err.Error()))
 		return
 	}
 
@@ -479,18 +479,18 @@ func (r *edgeGatewayResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating edge gateway", err.Error())
+		resp.Diagnostics.AddError("Error creating edge gateway", fmt.Sprintf("error creating edge gateway %s: %s", plan.Name.Get(), err.Error()))
 		return
 	}
 	if err := job.Wait(1, int(createTimeout.Seconds())); err != nil {
-		resp.Diagnostics.AddError("Error waiting for edge gateway creation", err.Error())
+		resp.Diagnostics.AddError("Error waiting for edge gateway creation", fmt.Sprintf("error creating edge gateway %s: %s", plan.Name.Get(), err.Error()))
 		return
 	}
 
 	// Find the new edge gateway
 	edgegwsRefreshed, err := r.client.CAVSDK.V1.EdgeGateway.List()
 	if err != nil {
-		resp.Diagnostics.AddError("Error listing edge gateways", err.Error())
+		resp.Diagnostics.AddError("Error listing edge gateways", fmt.Sprintf("error creating edge gateway %s: %s", plan.Name.Get(), err.Error()))
 		return
 	}
 
@@ -520,13 +520,13 @@ func (r *edgeGatewayResource) Create(ctx context.Context, req resource.CreateReq
 	if edgegwNew.GetBandwidth() != plan.Bandwidth.GetInt() {
 		job, err = edgegwNew.UpdateBandwidth(plan.Bandwidth.GetInt())
 		if err != nil {
-			resp.Diagnostics.AddError("Error setting Bandwidth", err.Error())
+			resp.Diagnostics.AddError("Error setting Bandwidth", fmt.Sprintf("error creating edge gateway %s: %s", plan.Name.Get(), err.Error()))
 			return
 		}
 
 		if job != nil {
 			if err := job.Wait(1, int(createTimeout.Seconds())); err != nil {
-				resp.Diagnostics.AddError("Error waiting for Bandwidth update", err.Error())
+				resp.Diagnostics.AddError("Error waiting for Bandwidth update", fmt.Sprintf("error creating edge gateway %s: %s", plan.Name.Get(), err.Error()))
 				return
 			}
 		}
@@ -619,18 +619,18 @@ func (r *edgeGatewayResource) Update(ctx context.Context, req resource.UpdateReq
 	if !plan.Bandwidth.Equal(state.Bandwidth) {
 		edgegw, err := r.client.CAVSDK.V1.EdgeGateway.Get(urn.ExtractUUID(plan.ID.Get()))
 		if err != nil {
-			resp.Diagnostics.AddError("Error retrieving edge gateway", err.Error())
+			resp.Diagnostics.AddError("Error retrieving edge gateway", fmt.Sprintf("error updating edge gateway %s: %s", plan.Name.Get(), err.Error()))
 			return
 		}
 
 		job, err := edgegw.UpdateBandwidth(plan.Bandwidth.GetInt())
 		if err != nil {
-			resp.Diagnostics.AddError("Error setting Bandwidth", err.Error())
+			resp.Diagnostics.AddError("Error setting Bandwidth", fmt.Sprintf("error updating edge gateway %s: %s", plan.Name.Get(), err.Error()))
 			return
 		}
 
 		if err := job.Wait(1, int(updateTimeout.Seconds())); err != nil {
-			resp.Diagnostics.AddError("Error waiting for Bandwidth update", err.Error())
+			resp.Diagnostics.AddError("Error waiting for Bandwidth update", fmt.Sprintf("error updating edge gateway %s: %s", plan.Name.Get(), err.Error()))
 			return
 		}
 	}
@@ -676,18 +676,18 @@ func (r *edgeGatewayResource) Delete(ctx context.Context, req resource.DeleteReq
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving edge gateway", err.Error())
+		resp.Diagnostics.AddError("Error retrieving edge gateway", fmt.Sprintf("error deleting edge gateway %s: %s", state.Name.Get(), err.Error()))
 		return
 	}
 
 	job, err := edgegw.Delete()
 	if err != nil {
-		resp.Diagnostics.AddError("Error deleting edge gateway", err.Error())
+		resp.Diagnostics.AddError("Error deleting edge gateway", fmt.Sprintf("error deleting edge gateway %s: %s", state.Name.Get(), err.Error()))
 		return
 	}
 
 	if err := job.Wait(1, int(deleteTimeout.Seconds())); err != nil {
-		resp.Diagnostics.AddError("Error waiting for edge gateway deletion", err.Error())
+		resp.Diagnostics.AddError("Error waiting for edge gateway deletion", fmt.Sprintf("error deleting edge gateway %s: %s", state.Name.Get(), err.Error()))
 		return
 	}
 }
@@ -713,7 +713,7 @@ func (r *edgeGatewayResource) read(_ context.Context, planOrState *edgeGatewayRe
 		if commoncloudavenue.IsNotFound(err) || govcd.IsNotFound(err) {
 			return nil, false, nil
 		}
-		diags.AddError("Error retrieving edge gateway", err.Error())
+		diags.AddError("Error retrieving edge gateway", fmt.Sprintf("error reading edge gateway %s: %s", planOrState.Name.Get(), err.Error()))
 		return nil, true, diags
 	}
 

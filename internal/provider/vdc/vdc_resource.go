@@ -246,7 +246,7 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	_, err := r.client.CAVSDK.V1.VDC().New(ctx, body)
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating VDC", err.Error())
+		resp.Diagnostics.AddError("Error creating VDC", fmt.Sprintf("error creating VDC %s: %s", plan.Name.Get(), err.Error()))
 		return
 	}
 
@@ -348,7 +348,7 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	vdc, err := r.client.CAVSDK.V1.VDC().GetVDC(plan.Name.Get())
 	if err != nil {
-		resp.Diagnostics.AddError("Error reading VDC", err.Error())
+		resp.Diagnostics.AddError("Error reading VDC", fmt.Sprintf("error reading VDC %s: %s", plan.Name.Get(), err.Error()))
 		return
 	}
 
@@ -381,7 +381,7 @@ func (r *vdcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	vdc.SetStorageProfiles(vdcStorageProfiles)
 
 	if err := vdc.Update(ctx); err != nil {
-		resp.Diagnostics.AddError("Error updating VDC", err.Error())
+		resp.Diagnostics.AddError("Error updating VDC", fmt.Sprintf("error updating VDC %s: %s", plan.Name.Get(), err.Error()))
 		return
 	}
 
@@ -437,7 +437,7 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		if govcd.IsNotFound(err) {
 			return // VDC already deleted, nothing to do
 		}
-		resp.Diagnostics.AddError("Error reading VDC", err.Error())
+		resp.Diagnostics.AddError("Error reading VDC", fmt.Sprintf("error reading VDC %s: %s", state.Name.Get(), err.Error()))
 		return
 	}
 
@@ -447,7 +447,7 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 
 	if err := vdc.Delete(ctx); err != nil {
-		resp.Diagnostics.AddError("Error deleting VDC", err.Error())
+		resp.Diagnostics.AddError("Error deleting VDC", fmt.Sprintf("error deleting VDC %s: %s", state.Name.Get(), err.Error()))
 		return
 	}
 }
@@ -469,7 +469,7 @@ func (r *vdcResource) read(ctx context.Context, planOrState *vdcResourceModel) (
 		if govcd.IsNotFound(err) {
 			return nil, false, nil
 		}
-		diags.AddError("Error reading VDC", err.Error())
+		diags.AddError("Error reading VDC", fmt.Sprintf("error reading VDC %s: %s", planOrState.Name.Get(), err.Error()))
 		return nil, true, diags
 	}
 
