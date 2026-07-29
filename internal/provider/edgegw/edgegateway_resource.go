@@ -23,9 +23,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
-
-	"golang.org/x/exp/slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -142,7 +141,7 @@ func (h *modifyPlanHelper) validateAllowedBandwidth() {
 		return
 	}
 
-	if !slices.Contains(allowedValues, h.plan.Bandwidth.GetInt()) { //nolint:govet
+	if !slices.Contains(allowedValues, h.plan.Bandwidth.GetInt()) {
 		h.diag.AddError("Invalid Bandwidth value", fmt.Sprintf("Bandwidth value must be one of %v", allowedValues))
 	}
 }
@@ -185,7 +184,7 @@ func bestValueAtMostOrError(value int, allowedValues []int) (int, error) {
 }
 
 func dedicatedT0UpdateBandwidth(stateBandwidth int, allowedValues []int) (int, error) {
-	if stateBandwidth > 0 && slices.Contains(allowedValues, stateBandwidth) { //nolint: govet
+	if stateBandwidth > 0 && slices.Contains(allowedValues, stateBandwidth) {
 		return stateBandwidth, nil
 	}
 
