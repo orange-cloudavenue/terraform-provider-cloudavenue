@@ -34,6 +34,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminvdc"
@@ -466,7 +467,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			}
 			networkConfig, err := r.vm.ConstructNetworksConnection(networkConnection)
 			if err != nil {
-				resp.Diagnostics.AddError("Error updating network config", fmt.Sprintf("error retrieving network config VM %s: %s", plan.Name.ValueString(), err))
+				resp.Diagnostics.AddError("Error retrieving network config", fmt.Sprintf("error retrieving network config VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 			if err = r.vm.UpdateNetworkConnectionSection(&networkConfig); err != nil {
@@ -559,7 +560,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	// ! Cold Update
 	vmStatusBeforeUpdate, err := r.vm.GetStatus()
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting VM status", fmt.Sprintf("getting VM status %s failed: %s", plan.Name.ValueString(), err))
+		resp.Diagnostics.AddError("Error retrieving VM status", fmt.Sprintf("error retrieving VM status %s: %s", plan.Name.ValueString(), err))
 		return
 	}
 
@@ -676,7 +677,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			}
 			networkConfig, err := r.vm.ConstructNetworksConnection(networkConnection)
 			if err != nil {
-				resp.Diagnostics.AddError("Error updating network config", fmt.Sprintf("error retrieving network config VM %s: %s", plan.Name.ValueString(), err))
+				resp.Diagnostics.AddError("Error retrieving network config", fmt.Sprintf("error retrieving network config VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 			if err := r.vm.UpdateNetworkConnectionSection(&networkConfig); err != nil {
@@ -688,7 +689,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 
 	vmStatus, err := r.vm.GetStatus()
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting VM status", fmt.Sprintf("getting VM status %s failed: %s", plan.Name.ValueString(), err))
+		resp.Diagnostics.AddError("Error retrieving VM status", fmt.Sprintf("error retrieving VM status %s: %s", plan.Name.ValueString(), err))
 		return
 	}
 
