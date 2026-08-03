@@ -31,6 +31,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 var (
@@ -139,7 +140,7 @@ func (d *vAppTemplateDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 			// This checks that the vApp Template is synchronized in the catalog
 			if _, err = d.client.Vmware.QuerySynchronizedVAppTemplateById(stateUpdated.TemplateID.Get()); err != nil {
-				resp.Diagnostics.AddError("Error check vApp Template synchronization", err.Error())
+				cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "vApp Template synchronization", err)
 				return
 			}
 

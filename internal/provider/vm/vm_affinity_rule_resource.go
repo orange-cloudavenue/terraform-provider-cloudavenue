@@ -39,6 +39,7 @@ import (
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
@@ -160,7 +161,7 @@ func (r *vmAffinityRuleResource) Read(ctx context.Context, req resource.ReadRequ
 
 	vmAffinityRule, err := getVMAffinityRule(r.vdc, state.Name.ValueString(), state.ID.ValueString())
 	if err != nil {
-		if govcd.IsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			tflog.Debug(ctx, fmt.Sprintf("Affinity rule not found with id %s and name %s", state.ID.ValueString(), state.Name.ValueString()))
 			resp.State.RemoveResource(ctx)
 			return

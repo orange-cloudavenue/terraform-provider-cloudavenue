@@ -38,6 +38,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -289,7 +290,7 @@ func (r *vpnIPSecResource) Update(ctx context.Context, req resource.UpdateReques
 	// Get VPN from API
 	existingIPSecVPNConfiguration, err := r.edgegw.NsxtEdgeGateway.GetIpSecVpnTunnelById(state.ID.Get())
 	if err != nil {
-		resp.Diagnostics.AddError("Error Retrieving IPsec VPN Tunnel: %s", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, "IPsec VPN Tunnel", err)
 		return
 	}
 
@@ -361,13 +362,13 @@ func (r *vpnIPSecResource) Delete(ctx context.Context, req resource.DeleteReques
 	// Get VPN
 	ipSecVPNConfig, err := r.edgegw.NsxtEdgeGateway.GetIpSecVpnTunnelById(state.ID.Get())
 	if err != nil {
-		resp.Diagnostics.AddError("Error Retrieving IPsec VPN Tunnel: %s", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "IPsec VPN Tunnel", err)
 		return
 	}
 
 	// Delete VPN
 	if err = ipSecVPNConfig.Delete(); err != nil {
-		resp.Diagnostics.AddError("Error Deleting IPsec VPN Tunnel configuration: %s", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "IPsec VPN Tunnel configuration", err)
 		return
 	}
 }
@@ -415,7 +416,7 @@ func (r *vpnIPSecResource) ImportState(ctx context.Context, req resource.ImportS
 
 	// Get VPN IPSec
 	vpnIPSec, err = r.edgegw.GetIpSecVpnTunnelByName(idParts[1])
-	if govcd.ContainsNotFound(err) {
+	if cerrs.IsNotFound(err) {
 		vpnIPSec, err = r.edgegw.GetIpSecVpnTunnelById(idParts[1])
 	}
 
@@ -451,10 +452,10 @@ func (r *vpnIPSecResource) read(ctx context.Context, planOrState *VPNIPSecModel)
 		vpnTunnel, err = r.edgegw.NsxtEdgeGateway.GetIpSecVpnTunnelByName(stateRefreshed.Name.Get())
 	}
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return nil, false, diags
 		}
-		diags.AddError("Error retrieving VPN Tunnel", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "VPN Tunnel", err)
 		return nil, true, diags
 	}
 

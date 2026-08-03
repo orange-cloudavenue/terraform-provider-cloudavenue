@@ -26,8 +26,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
@@ -38,6 +36,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -434,7 +433,7 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	vdc, err := r.client.CAVSDK.V1.VDC().GetVDC(state.Name.Get())
 	if err != nil {
-		if govcd.IsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return // VDC already deleted, nothing to do
 		}
 		resp.Diagnostics.AddError("Error reading VDC", fmt.Sprintf("error reading VDC %s: %s", state.Name.Get(), err.Error()))
@@ -466,7 +465,7 @@ func (r *vdcResource) read(ctx context.Context, planOrState *vdcResourceModel) (
 
 	vdc, err := r.client.CAVSDK.V1.VDC().GetVDC(planOrState.Name.Get())
 	if err != nil {
-		if govcd.IsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return nil, false, nil
 		}
 		diags.AddError("Error reading VDC", fmt.Sprintf("error reading VDC %s: %s", planOrState.Name.Get(), err.Error()))

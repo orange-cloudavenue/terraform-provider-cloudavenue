@@ -27,8 +27,6 @@ import (
 
 	"golang.org/x/exp/slices"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
@@ -40,6 +38,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 const (
@@ -672,11 +671,11 @@ func (r *edgeGatewayResource) Delete(ctx context.Context, req resource.DeleteReq
 
 	edgegw, err := r.client.CAVSDK.V1.EdgeGateway.Get(urn.ExtractUUID(state.ID.Get()))
 	if err != nil {
-		if commoncloudavenue.IsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving edge gateway", fmt.Sprintf("error deleting edge gateway %s: %s", state.Name.Get(), err.Error()))
+		resp.Diagnostics.AddError("Error deleting edge gateway", fmt.Sprintf("error deleting edge gateway %s: %s", state.Name.Get(), err.Error()))
 		return
 	}
 
@@ -710,10 +709,10 @@ func (r *edgeGatewayResource) read(_ context.Context, planOrState *edgeGatewayRe
 
 	edgegw, err := r.client.CAVSDK.V1.EdgeGateway.Get(nameOrID)
 	if err != nil {
-		if commoncloudavenue.IsNotFound(err) || govcd.IsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return nil, false, nil
 		}
-		diags.AddError("Error retrieving edge gateway", fmt.Sprintf("error reading edge gateway %s: %s", planOrState.Name.Get(), err.Error()))
+		diags.AddError("Error reading edge gateway", fmt.Sprintf("error reading edge gateway %s: %s", planOrState.Name.Get(), err.Error()))
 		return nil, true, diags
 	}
 

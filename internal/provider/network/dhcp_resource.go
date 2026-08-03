@@ -23,7 +23,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -34,6 +33,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -315,11 +315,11 @@ func (r *dhcpResource) read(ctx context.Context, plan *dhcpModel) (state *dhcpMo
 
 	orgNetworkDhcp, err := r.org.GetNetworkDHCP(plan.OrgNetworkID.ValueString())
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			found = false
 			return state, found, diags
 		}
-		diags.AddError("Error getting org network dhcp", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "org network dhcp", err)
 		return state, found, diags
 	}
 

@@ -32,6 +32,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 var (
@@ -108,11 +109,11 @@ func (d *roleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	// Get Role
 	role, err := d.GetRole()
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving role", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "role", err)
 		return
 	}
 

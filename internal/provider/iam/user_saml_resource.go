@@ -22,8 +22,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -31,6 +29,7 @@ import (
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/iam"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -118,7 +117,7 @@ func (r *UserSAMLResource) Create(ctx context.Context, req resource.CreateReques
 		},
 	})
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.Diagnostics.AddError("User not found after create", fmt.Sprintf("User with name %s not found after create", plan.UserName.Get()))
 			return
 		}
@@ -200,7 +199,7 @@ func (r *UserSAMLResource) Update(ctx context.Context, req resource.UpdateReques
 
 	user, err := r.iamClient.GetUser(state.ID.Get())
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving user", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, "user", err)
 		return
 	}
 
@@ -254,11 +253,11 @@ func (r *UserSAMLResource) Delete(ctx context.Context, req resource.DeleteReques
 
 	user, err := r.iamClient.GetUser(state.ID.Get())
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving user", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "user", err)
 		return
 	}
 
@@ -281,11 +280,11 @@ func (r *UserSAMLResource) ImportState(ctx context.Context, req resource.ImportS
 	// req.ID is the user name
 	user, err := r.iamClient.GetUser(req.ID)
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s not found", req.ID))
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving user", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "user", err)
 		return
 	}
 
@@ -329,10 +328,10 @@ func (r *UserSAMLResource) read(_ context.Context, planOrState *UserSAMLModel) (
 		user, err = r.iamClient.GetUser(stateRefreshed.UserName.Get())
 	}
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return nil, false, nil
 		}
-		diags.AddError("Error retrieving user", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "user", err)
 		return nil, true, diags
 	}
 
