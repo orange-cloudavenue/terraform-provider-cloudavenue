@@ -37,6 +37,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -428,10 +429,10 @@ func (r *ipSetResource) read(ctx context.Context, planOrState *IPSetModel) (stat
 		ipSetConfig, err = r.edgegw.GetIPSetByNameOrID(nameOrID)
 	}
 	if err != nil {
-		if govcd.IsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return stateRefreshed, false, nil
 		}
-		diags.AddError("Error retrieving IP Set", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "IP Set", err)
 		return stateRefreshed, found, diags
 	}
 

@@ -21,7 +21,6 @@ package vapp
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -43,6 +42,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
@@ -139,7 +139,7 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 	errRetry := retry.RetryContext(ctx, 90*time.Second, func() *retry.RetryError {
 		currentStatus, errGetStatus := r.vapp.GetStatus()
 		if errGetStatus != nil {
-			retry.NonRetryableError(errGetStatus)
+			return retry.NonRetryableError(errGetStatus)
 		}
 		tflog.Debug(ctx, fmt.Sprintf("Creating Vapp status: %s", currentStatus))
 		if currentStatus == "UNRESOLVED" {
@@ -150,7 +150,7 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 	})
 
 	if errRetry != nil {
-		resp.Diagnostics.AddError("Error waiting vapp to complete", errRetry.Error())
+		resp.Diagnostics.AddError("Error waiting for vApp to complete", errRetry.Error())
 		return
 	}
 
@@ -283,37 +283,37 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	// Request vApp
 	vapp, err := r.vdc.GetVAppByNameOrId(state.VAppID.Get(), true)
 	if err != nil {
-		if errors.Is(err, govcd.ErrorEntityNotFound) {
+		if cerrs.IsNotFound(err) {
 			resp.Diagnostics.AddError("vApp not found", err.Error())
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving vApp", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
 		return
 	}
 	// to avoid network destroy issues - detach networks from vApp
 	task, err := vapp.RemoveAllNetworks()
 	if err != nil {
-		resp.Diagnostics.AddError("Error delete VAPP", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
 		return
 	}
 	if err := task.WaitTaskCompletion(); err != nil {
-		resp.Diagnostics.AddError("Error delete VAPP", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
 		return
 	}
 
 	if err := tryUndeploy(*vapp); err != nil {
-		resp.Diagnostics.AddError("Error delete VAPP", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
 		return
 	}
 
 	task, err = vapp.Delete()
 	if err != nil {
-		resp.Diagnostics.AddError("Error delete VAPP", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
 		return
 	}
 
 	if err := task.WaitTaskCompletion(); err != nil {
-		resp.Diagnostics.AddError("Error delete VAPP", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
 		return
 	}
 }
@@ -347,11 +347,11 @@ func (r *vappResource) ImportState(ctx context.Context, req resource.ImportState
 
 	vapp, err := r.vdc.GetVAppByNameOrId(vAppIDOrName, true)
 	if err != nil {
-		if errors.Is(err, govcd.ErrorEntityNotFound) {
+		if cerrs.IsNotFound(err) {
 			resp.Diagnostics.AddError("vApp not found", err.Error())
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving vApp", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "vApp", err)
 		return
 	}
 

@@ -33,6 +33,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -308,7 +309,7 @@ func (r *dhcpBindingResource) read(ctx context.Context, planOrState *DHCPBinding
 		dhcpBinding, err = orgNetwork.GetOpenApiOrgVdcNetworkDhcpBindingByName(refreshed.Name.Get())
 	}
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return nil, false, nil
 		}
 		diags.AddError("Failed to get DHCP binding", err.Error())

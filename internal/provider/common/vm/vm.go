@@ -20,7 +20,6 @@ package vm
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 
@@ -31,6 +30,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm/diskparams"
@@ -41,6 +41,12 @@ type VM struct {
 	*client.VM
 	vApp vapp.VAPP
 }
+
+const (
+	ErrVMNotFound = "VM not found"
+)
+
+var DiagVMNotFound = diag.NewErrorDiagnostic(ErrVMNotFound, govcd.ErrorEntityNotFound.Error())
 
 type GetVMOpts struct {
 	ID   types.String
@@ -68,8 +74,8 @@ Initializes a VM struct with a VM and a vApp.
 func Init(_ *client.CloudAvenue, vApp vapp.VAPP, vmInfo GetVMOpts) (vm VM, d diag.Diagnostics) {
 	vmOut, err := vApp.GetVMByNameOrId(vmInfo.vmIDOrName(), true)
 	if err != nil {
-		if errors.Is(err, govcd.ErrorEntityNotFound) {
-			d.AddError("VM not found", err.Error())
+		if cerrs.IsNotFound(err) {
+			d.Append(diag.Diagnostics{DiagVMNotFound}...)
 			return VM{}, d
 		}
 		d.AddError("Error retrieving VM", err.Error())

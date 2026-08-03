@@ -25,7 +25,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -37,6 +36,7 @@ import (
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
@@ -415,7 +415,7 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		// Get the disk by the ID
 		x, err := r.vdc.GetDiskById(state.ID.ValueString(), true)
 		if err != nil {
-			if govcd.IsNotFound(err) {
+			if cerrs.IsNotFound(err) {
 				// Disk not found, remove from state
 				resp.State.RemoveResource(ctx)
 				return
@@ -445,7 +445,7 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		// * Internal disk
 		internalDisk, err := r.vm.GetInternalDiskById(state.ID.ValueString(), true)
 		if err != nil {
-			if govcd.IsNotFound(err) {
+			if cerrs.IsNotFound(err) {
 				// Disk not found, remove from state
 				resp.State.RemoveResource(ctx)
 				return
@@ -704,7 +704,7 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		// Get the disk by the ID
 		x, err := r.vdc.GetDiskById(state.ID.ValueString(), true)
 		if err != nil {
-			if govcd.IsNotFound(err) {
+			if cerrs.IsNotFound(err) {
 				// Disk not found, remove from state
 				resp.State.RemoveResource(ctx)
 				return

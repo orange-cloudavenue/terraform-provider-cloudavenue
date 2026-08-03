@@ -33,6 +33,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 var (
@@ -109,21 +110,21 @@ func (d *catalogMediaDataSource) Read(ctx context.Context, req datasource.ReadRe
 	// Get catalog
 	catalog, err := d.GetCatalog()
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to find catalog", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "catalog", err)
 		return
 	}
 
 	// Get media by name (This is use only for getting the media Description)
 	media, err := catalog.GetMediaByNameOrId(state.Name.ValueString(), false)
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to find media", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "media", err)
 		return
 	}
 
 	// Query media
 	mediaRecord, err := catalog.QueryMedia(state.Name.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to query media", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "media", err)
 		return
 	}
 

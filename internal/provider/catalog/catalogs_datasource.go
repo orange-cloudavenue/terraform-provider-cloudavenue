@@ -25,8 +25,6 @@ import (
 	"net/url"
 	"sort"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -37,6 +35,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -102,10 +101,10 @@ func (d *catalogsDataSource) Read(ctx context.Context, _ datasource.ReadRequest,
 	for _, x := range d.adminOrg.ListCatalogs().Catalog {
 		catalog, err := d.adminOrg.GetAdminCatalogByNameOrId(x.Name, false)
 		if err != nil {
-			if govcd.ContainsNotFound(err) {
+			if cerrs.IsNotFound(err) {
 				return
 			}
-			resp.Diagnostics.AddError("Unable to get catalog", err.Error())
+			resp.Diagnostics.AddError("Error reading catalog", err.Error())
 			continue
 		}
 

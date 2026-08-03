@@ -11,13 +11,10 @@ package edgegw
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
-
-	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -29,6 +26,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -304,7 +302,7 @@ func (r *networkContextProfileResource) read(ctx context.Context, planOrState *n
 	}
 
 	if err != nil {
-		if errors.Is(err, govcd.ErrorEntityNotFound) {
+		if cerrs.IsNotFound(err) {
 			return stateRefreshed, false, nil
 		}
 		diags.AddError("Error reading Network Context Profile", err.Error())

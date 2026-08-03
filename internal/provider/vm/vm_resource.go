@@ -300,7 +300,7 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 	})
 
 	if d.HasError() {
-		if d.Contains(diag.NewErrorDiagnostic("VM not found", govcd.ErrorEntityNotFound.Error())) {
+		if d.Contains(vm.DiagVMNotFound) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
@@ -460,7 +460,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			}
 			networkConfig, err := r.vm.ConstructNetworksConnection(networkConnection)
 			if err != nil {
-				resp.Diagnostics.AddError("Error retrieving network config", fmt.Sprintf("error retrieving network config VM %s: %s", plan.Name.ValueString(), err))
+				resp.Diagnostics.AddError("Error updating network config", fmt.Sprintf("error retrieving network config VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 			if err = r.vm.UpdateNetworkConnectionSection(&networkConfig); err != nil {
@@ -670,7 +670,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			}
 			networkConfig, err := r.vm.ConstructNetworksConnection(networkConnection)
 			if err != nil {
-				resp.Diagnostics.AddError("Error retrieving network config", fmt.Sprintf("error retrieving network config VM %s: %s", plan.Name.ValueString(), err))
+				resp.Diagnostics.AddError("Error updating network config", fmt.Sprintf("error retrieving network config VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 			if err := r.vm.UpdateNetworkConnectionSection(&networkConfig); err != nil {
@@ -781,7 +781,7 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 		Name: types.StringNull(),
 	})
 	if d.HasError() {
-		if d.Contains(diag.NewErrorDiagnostic("VM not found", govcd.ErrorEntityNotFound.Error())) {
+		if d.Contains(vm.DiagVMNotFound) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

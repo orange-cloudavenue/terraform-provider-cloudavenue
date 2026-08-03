@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -33,6 +32,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
@@ -161,7 +161,7 @@ func (r *securityTagResource) Read(ctx context.Context, req resource.ReadRequest
 	// Get all VM tagged in struct taggedEntities
 	taggedEntities, err := r.org.GetAllSecurityTaggedEntitiesByName(state.Name.ValueString())
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			// Tag not found, so remove from state
 			resp.State.RemoveResource(ctx)
 			return

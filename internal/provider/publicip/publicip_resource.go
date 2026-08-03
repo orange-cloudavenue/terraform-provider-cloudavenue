@@ -37,6 +37,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
@@ -362,7 +363,7 @@ func (r *publicIPResource) read(_ context.Context, planOrState *publicIPResource
 		if errors.Is(err, caverrors.ErrNotFound) {
 			return stateRefreshed, false, nil
 		}
-		diags.AddError("Error getting Public IP", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "Public IP", err)
 		return stateRefreshed, true, diags
 	}
 

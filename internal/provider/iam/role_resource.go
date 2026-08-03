@@ -36,6 +36,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -196,11 +197,11 @@ func (r *roleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	// Get Role
 	role, err := r.GetRole()
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving role", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "role", err)
 		return
 	}
 
@@ -254,12 +255,12 @@ func (r *roleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	// Get the role
 	role, err = r.GetRole()
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			tflog.Debug(ctx, "Unable to find role. Removing from tfstate")
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving role", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "role", err)
 		return
 	}
 	err = role.Delete()
@@ -293,7 +294,7 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// Get the role
 	role, err = r.GetRole()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving role", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, "role", err)
 		return
 	}
 

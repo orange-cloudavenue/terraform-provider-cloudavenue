@@ -23,7 +23,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -36,6 +35,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -341,10 +341,10 @@ func (r *dhcpForwardingResource) read(ctx context.Context, planOrState *DhcpForw
 
 	dhcpForwardConfig, err := r.edgegw.GetDhcpForwarder()
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return nil, false, nil
 		}
-		diags.AddError("Error retrieving NSX-T Edge Gateway DHCP forwarding", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "NSX-T Edge Gateway DHCP forwarding", err)
 		return nil, true, diags
 	}
 

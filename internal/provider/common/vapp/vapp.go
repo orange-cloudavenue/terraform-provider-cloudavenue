@@ -43,6 +43,7 @@ import (
 
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
@@ -157,7 +158,7 @@ func Init(_ *client.CloudAvenue, vdc vdc.VDC, vappID, vappName types.String) (va
 	// Request vApp
 	vappOut, err := vdc.GetVAPP(vappNameID, true)
 	if err != nil {
-		if errors.Is(err, govcd.ErrorEntityNotFound) {
+		if cerrs.IsNotFound(err) {
 			d.Append(diag.Diagnostics{DiagVAppNotFound}...)
 			return vapp, d
 		}
