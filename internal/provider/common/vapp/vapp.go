@@ -137,7 +137,7 @@ func Init(_ *client.CloudAvenue, vdc vdc.VDC, vappID, vappName types.String) (va
 	// Request vApp
 	vappOut, err := vdc.GetVAPP(vappNameID, true)
 	if err != nil {
-		return vapp, fmt.Errorf("getting vApp %q: %w", vappNameID, err)
+		return vapp, fmt.Errorf("retrieving vApp %q: %w", vappNameID, err)
 	}
 	return VAPP{VAPP: vappOut, vdc: vdc}, nil
 }

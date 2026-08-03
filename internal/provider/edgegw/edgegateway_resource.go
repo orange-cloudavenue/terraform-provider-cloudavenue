@@ -686,7 +686,7 @@ func (r *edgeGatewayResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 
 	if err := job.Wait(1, int(deleteTimeout.Seconds())); err != nil {
-		resp.Diagnostics.AddError("Error waiting for edge gateway deletion", fmt.Sprintf("error deleting edge gateway %s: %s", state.Name.Get(), err.Error()))
+		resp.Diagnostics.AddError("Error waiting for edge gateway deletion", fmt.Sprintf("error waiting for edge gateway %s deletion: %s", state.Name.Get(), err.Error()))
 		return
 	}
 }

@@ -63,7 +63,7 @@ func ConstructObject(vApp vapp.VAPP, vm *govcd.VM) VM {
 func Init(_ *client.CloudAvenue, vApp vapp.VAPP, vmInfo GetVMOpts) (vm VM, err error) {
 	vmOut, err := vApp.GetVMByNameOrId(vmInfo.vmIDOrName(), true)
 	if err != nil {
-		return VM{}, fmt.Errorf("getting VM %q: %w", vmInfo.vmIDOrName(), err)
+		return VM{}, fmt.Errorf("retrieving VM %q: %w", vmInfo.vmIDOrName(), err)
 	}
 	return VM{VM: &client.VM{VM: vmOut}, vApp: vApp}, nil
 }
