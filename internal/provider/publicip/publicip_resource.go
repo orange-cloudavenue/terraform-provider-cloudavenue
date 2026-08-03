@@ -31,8 +31,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	caverrors "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/errors"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/cloudavenue"
@@ -359,7 +359,7 @@ func (r *publicIPResource) read(_ context.Context, planOrState *publicIPResource
 
 	pubIP, err := r.client.CAVSDK.V1.PublicIP.GetIP(planOrState.ID.Get())
 	if err != nil {
-		if errors.Is(err, fmt.Errorf("not found")) {
+		if errors.Is(err, caverrors.ErrNotFound) {
 			return stateRefreshed, false, nil
 		}
 		diags.AddError("Error getting Public IP", err.Error())
