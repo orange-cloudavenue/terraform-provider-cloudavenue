@@ -43,6 +43,8 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
+const vmAffinityRuleSubsystem = "vm.affinity_rule"
+
 // Ensure the implementation satisfies the expected interfaces.
 var (
 	_ resource.Resource                = &vmAffinityRuleResource{}
@@ -87,8 +89,8 @@ func (r *vmAffinityRuleResource) Configure(_ context.Context, req resource.Confi
 
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected resource configure type",
+			fmt.Sprintf("Expected *client.CloudAvenue, got %T. Report this to provider maintainers.", req.ProviderData),
 		)
 
 		return
@@ -116,6 +118,9 @@ func (r *vmAffinityRuleResource) Create(ctx context.Context, req resource.Create
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	if tflog.IsDebug(ctx) {
+		tflog.SubsystemDebug(ctx, vmAffinityRuleSubsystem, "Creating VM affinity rule", map[string]interface{}{attrName: plan.Name.ValueString(), attrVDC: plan.VDC.ValueString()})
+	}
 
 	vmAffinityRuleDef, err := resourceToAffinityRule(r, plan)
 	if err != nil {
@@ -125,6 +130,7 @@ func (r *vmAffinityRuleResource) Create(ctx context.Context, req resource.Create
 
 	vmAffinityRule, err := r.vdc.CreateVmAffinityRule(vmAffinityRuleDef)
 	if err != nil {
+		tflog.SubsystemError(ctx, vmAffinityRuleSubsystem, "VM affinity rule create failed", map[string]interface{}{attrName: plan.Name.ValueString(), attrVDC: plan.VDC.ValueString()})
 		resp.Diagnostics.AddError("Failed to create affinity rule", err.Error())
 		return
 	}
@@ -156,16 +162,20 @@ func (r *vmAffinityRuleResource) Read(ctx context.Context, req resource.ReadRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	if tflog.IsDebug(ctx) {
+		tflog.SubsystemDebug(ctx, vmAffinityRuleSubsystem, "Reading VM affinity rule", map[string]interface{}{attrName: state.Name.ValueString(), attrVDC: state.VDC.ValueString()})
+	}
 
 	plan := &vmAffinityRuleResourceModel{}
 
 	vmAffinityRule, err := getVMAffinityRule(r.vdc, state.Name.ValueString(), state.ID.ValueString())
 	if err != nil {
 		if cerrs.IsNotFound(err) {
-			tflog.Debug(ctx, fmt.Sprintf("Affinity rule not found with id %s and name %s", state.ID.ValueString(), state.Name.ValueString()))
+			tflog.SubsystemDebug(ctx, vmAffinityRuleSubsystem, "Affinity rule not found", map[string]interface{}{"id": state.ID.ValueString(), attrName: state.Name.ValueString()})
 			resp.State.RemoveResource(ctx)
 			return
 		}
+		tflog.SubsystemError(ctx, vmAffinityRuleSubsystem, "VM affinity rule read failed", map[string]interface{}{attrName: state.Name.ValueString(), attrVDC: state.VDC.ValueString()})
 		resp.Diagnostics.AddError("Failed to read affinity rule", err.Error())
 		return
 	}
@@ -206,15 +216,20 @@ func (r *vmAffinityRuleResource) Update(ctx context.Context, req resource.Update
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	if tflog.IsDebug(ctx) {
+		tflog.SubsystemDebug(ctx, vmAffinityRuleSubsystem, "Updating VM affinity rule", map[string]interface{}{attrName: plan.Name.ValueString(), attrVDC: plan.VDC.ValueString()})
+	}
 
 	vmAffinityRuleDef, err := resourceToAffinityRule(r, plan)
 	if err != nil {
+		tflog.SubsystemError(ctx, vmAffinityRuleSubsystem, "VM affinity rule conversion failed", map[string]interface{}{attrName: plan.Name.ValueString(), attrVDC: plan.VDC.ValueString()})
 		resp.Diagnostics.AddError("Failed to create affinity rule : resourceToAffinityRule() error", err.Error())
 		return
 	}
 
 	vmAffinityRule, err := getVMAffinityRule(r.vdc, plan.Name.ValueString(), plan.ID.ValueString())
 	if err != nil {
+		tflog.SubsystemError(ctx, vmAffinityRuleSubsystem, "VM affinity rule update lookup failed", map[string]interface{}{attrName: plan.Name.ValueString(), attrVDC: plan.VDC.ValueString()})
 		resp.Diagnostics.AddError("Failed to read affinity rule", err.Error())
 		return
 	}
@@ -226,6 +241,7 @@ func (r *vmAffinityRuleResource) Update(ctx context.Context, req resource.Update
 
 	err = vmAffinityRule.Update()
 	if err != nil {
+		tflog.SubsystemError(ctx, vmAffinityRuleSubsystem, "VM affinity rule update failed", map[string]interface{}{attrName: plan.Name.ValueString(), attrVDC: plan.VDC.ValueString()})
 		resp.Diagnostics.AddError("Failed to update affinity rule", err.Error())
 		return
 	}
@@ -266,15 +282,20 @@ func (r *vmAffinityRuleResource) Delete(ctx context.Context, req resource.Delete
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	if tflog.IsDebug(ctx) {
+		tflog.SubsystemDebug(ctx, vmAffinityRuleSubsystem, "Deleting VM affinity rule", map[string]interface{}{attrName: state.Name.ValueString(), attrVDC: state.VDC.ValueString()})
+	}
 
 	vmAffinityRule, err := getVMAffinityRule(r.vdc, state.Name.ValueString(), state.ID.ValueString())
 	if err != nil {
+		tflog.SubsystemError(ctx, vmAffinityRuleSubsystem, "VM affinity rule delete lookup failed", map[string]interface{}{attrName: state.Name.ValueString(), attrVDC: state.VDC.ValueString()})
 		resp.Diagnostics.AddError("Failed to read affinity rule", err.Error())
 		return
 	}
 
 	err = vmAffinityRule.Delete()
 	if err != nil {
+		tflog.SubsystemError(ctx, vmAffinityRuleSubsystem, "VM affinity rule delete failed", map[string]interface{}{attrName: state.Name.ValueString(), attrVDC: state.VDC.ValueString()})
 		resp.Diagnostics.AddError("Failed to delete affinity rule", err.Error())
 	}
 }

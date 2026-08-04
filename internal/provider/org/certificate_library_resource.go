@@ -133,7 +133,7 @@ func (r *CertificateLibraryResource) Create(ctx context.Context, req resource.Cr
 	// Use generic read function to refresh the state
 	state, found, d := r.read(ctx, plan)
 	if !found {
-		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The certificate '%s' was not found after creation.", plan.Name.Get()))
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The certificate %s(%s) was not found after creation.", plan.Name.Get(), plan.ID.Get()))
 		return
 	}
 	if d.HasError() {

@@ -36,3 +36,4 @@ website/vendor
 *.winfile eol=crlf
 tests/*env
 .opencode/
+docs/exec-plans/

@@ -90,16 +90,22 @@ func (r *diskResource) Init(_ context.Context, rm *vm.Disk) (diags diag.Diagnost
 		return diags
 	}
 
-	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
-	if diags.HasError() {
+	vappModel, err := vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
+	if err != nil {
+		diags.AddError("Error getting vApp", err.Error())
 		return diags
 	}
+	r.vapp = vappModel
 
 	if rm.VMName.ValueString() != "" || rm.VMID.ValueString() != "" {
-		r.vm, diags = vm.Get(r.vapp, vm.GetVMOpts{
+		r.vm, err = vm.Get(r.vapp, vm.GetVMOpts{
 			ID:   rm.VMID,
 			Name: rm.VMName,
 		})
+		if err != nil {
+			diags.AddError("Error getting VM", err.Error())
+			return diags
+		}
 	}
 	return diags
 }
@@ -114,8 +120,8 @@ func (r *diskResource) Configure(_ context.Context, req resource.ConfigureReques
 
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected resource configure type",
+			fmt.Sprintf("Expected *client.CloudAvenue, got %T. Report this to provider maintainers.", req.ProviderData),
 		)
 
 		return
@@ -515,12 +521,12 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			if !(state.VMID.IsNull() && state.VMName.IsNull()) {
 				// Detach disk from VM
 
-				vmOld, diag := vm.Get(r.vapp, vm.GetVMOpts{
+				vmOld, err := vm.Get(r.vapp, vm.GetVMOpts{
 					ID:   state.VMID,
 					Name: state.VMName,
 				})
-				resp.Diagnostics.Append(diag...)
-				if resp.Diagnostics.HasError() {
+				if err != nil {
+					resp.Diagnostics.AddError("Error getting VM", err.Error())
 					return
 				}
 
@@ -535,12 +541,12 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 				})
 				if err != nil {
 					vmOld.UnlockVM(ctx)
-					resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %v", state.Name.ValueString(), err))
+					resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s(%s): %v", state.Name.ValueString(), state.ID.ValueString(), err))
 					return
 				}
 				if err = task.WaitTaskCompletion(); err != nil {
 					vmOld.UnlockVM(ctx)
-					resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %v", state.Name.ValueString(), err))
+					resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s(%s): %v", state.Name.ValueString(), state.ID.ValueString(), err))
 					return
 				}
 				vmDiskDetached = vmOld
@@ -549,7 +555,7 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			}
 
 			if err = disk.Refresh(); err != nil {
-				resp.Diagnostics.AddError("unable to refresh disk", fmt.Sprintf("unable to refresh disk %s (id:%s): %s", state.Name.ValueString(), state.ID.ValueString(), err))
+				resp.Diagnostics.AddError("unable to refresh disk", fmt.Sprintf("unable to refresh disk %s(%s): %s", state.Name.ValueString(), state.ID.ValueString(), err))
 				return
 			}
 
@@ -570,24 +576,24 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 				// Updating the disk
 				task, err := disk.Update(disk.Disk)
 				if err != nil {
-					resp.Diagnostics.AddError("unable to update disk", fmt.Sprintf("unable to update disk %s (id:%s): %s", plan.Name.ValueString(), plan.ID.ValueString(), err))
+					resp.Diagnostics.AddError("unable to update disk", fmt.Sprintf("unable to update disk %s(%s): %s", plan.Name.ValueString(), plan.ID.ValueString(), err))
 					return
 				}
 
 				if err = task.WaitTaskCompletion(); err != nil {
-					resp.Diagnostics.AddError("unable to update disk", fmt.Sprintf("unable to update disk %s (id:%s): %s", plan.Name.ValueString(), plan.ID.ValueString(), err))
+					resp.Diagnostics.AddError("unable to update disk", fmt.Sprintf("unable to update disk %s(%s): %s", plan.Name.ValueString(), plan.ID.ValueString(), err))
 					return
 				}
 			}
 
 			if plan.VMName.ValueString() != "" ||
 				plan.VMID.ValueString() != "" {
-				vmNew, diag := vm.Get(r.vapp, vm.GetVMOpts{
+				vmNew, err := vm.Get(r.vapp, vm.GetVMOpts{
 					ID:   plan.VMID,
 					Name: plan.VMName,
 				})
-				if diag.HasError() {
-					resp.Diagnostics.Append(diag...)
+				if err != nil {
+					resp.Diagnostics.AddError("Error getting VM", err.Error())
 					return
 				}
 
@@ -872,19 +878,20 @@ next:
 		return
 	}
 
-	r.vapp, diags = vapp.Init(r.client, r.vdc, utils.StringValueOrNull(vAppID), utils.StringValueOrNull(vAppName))
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	vappModel, err := vapp.Init(r.client, r.vdc, utils.StringValueOrNull(vAppID), utils.StringValueOrNull(vAppName))
+	if err != nil {
+		resp.Diagnostics.AddError("Error getting vApp", err.Error())
 		return
 	}
+	r.vapp = vappModel
 
 	if vmID != "" || vmName != "" {
-		r.vm, diags = vm.Get(r.vapp, vm.GetVMOpts{
+		r.vm, err = vm.Get(r.vapp, vm.GetVMOpts{
 			ID:   utils.StringValueOrNull(vmID),
 			Name: utils.StringValueOrNull(vmName),
 		})
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
+		if err != nil {
+			resp.Diagnostics.AddError("Error getting VM", err.Error())
 			return
 		}
 	}

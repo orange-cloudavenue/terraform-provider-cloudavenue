@@ -24,7 +24,10 @@ import (
 	"errors"
 
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	casdk "github.com/orange-cloudavenue/cloudavenue-sdk-go"
 	clientcloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/clients/cloudavenue"
@@ -45,6 +48,8 @@ type cloudavenueProvider struct {
 	// testing.
 	version string
 }
+
+const providerSubsystem = "provider"
 
 // New is a helper function to simplify provider server and testing implementation.
 func New(version string) func() provider.Provider {
@@ -74,6 +79,11 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
+	ctx = providerLogContext(ctx, config)
+	if tflog.IsDebug(ctx) {
+		tflog.SubsystemDebug(ctx, providerSubsystem, "Configuring provider")
+	}
+
 	cloudAvenue := client.CloudAvenue{
 		// This is a new SDK Cloudavenue
 		CAVSDKOpts: providerClientOpts(config),
@@ -85,19 +95,21 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 
 	const (
 		summaryErrorAPICAV = "Unable to Create Cloud Avenue API Client"
-		summaryErrorVCD    = "Unable to Create VMWare VCD Client"
 	)
 
 	cA, err := cloudAvenue.New()
 	if err != nil {
 		switch {
 		case errors.Is(err, caverrors.ErrEmpty):
+			tflog.SubsystemError(ctx, providerSubsystem, "Provider configuration has empty attribute")
 			resp.Diagnostics.AddError("Attribute is empty", err.Error())
 			return
 		case errors.Is(err, caverrors.ErrInvalidFormat):
+			tflog.SubsystemError(ctx, providerSubsystem, "Provider configuration has invalid attribute format")
 			resp.Diagnostics.AddError("Attribute has invalid format", err.Error())
 			return
 		default:
+			tflog.SubsystemError(ctx, providerSubsystem, "Unable to create Cloud Avenue API client")
 			resp.Diagnostics.AddError(summaryErrorAPICAV, "unknown error: "+err.Error())
 			return
 		}
@@ -105,6 +117,10 @@ func (p *cloudavenueProvider) Configure(ctx context.Context, req provider.Config
 
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	if tflog.IsDebug(ctx) {
+		tflog.SubsystemDebug(ctx, providerSubsystem, "Provider client configured")
 	}
 
 	// Make the CloudAvenue client available during DataSource and Resource
@@ -118,6 +134,22 @@ func emptyOrValue(value basetypes.StringValue) string {
 		return ""
 	}
 	return value.ValueString()
+}
+
+func loggableString(value types.String) string {
+	if value.IsNull() || value.IsUnknown() {
+		return ""
+	}
+	return value.ValueString()
+}
+
+func providerLogContext(ctx context.Context, config cloudavenueProviderModel) context.Context {
+	ctx = tflog.SetField(ctx, "url", loggableString(config.URL))
+	ctx = tflog.SetField(ctx, "core_api", loggableString(config.CoreAPI))
+	ctx = tflog.SetField(ctx, "org", loggableString(config.Org))
+	ctx = tflog.SetField(ctx, "vdc", loggableString(config.VDC))
+
+	return tflog.NewSubsystem(ctx, providerSubsystem, tflog.WithRootFields())
 }
 
 func providerClientOpts(config cloudavenueProviderModel) *casdk.ClientOpts {

@@ -57,7 +57,7 @@ type orgNetworkDataSource struct {
 	vapp vapp.VAPP
 }
 
-// Init Initializes the data source.
+// Init initializes the data source.
 func (d *orgNetworkDataSource) Init(_ context.Context, dm *orgNetworkModel) (diags diag.Diagnostics) {
 	d.org, diags = org.Init(d.client)
 	if diags.HasError() {
@@ -69,7 +69,12 @@ func (d *orgNetworkDataSource) Init(_ context.Context, dm *orgNetworkModel) (dia
 		return diags
 	}
 
-	d.vapp, diags = vapp.Init(d.client, d.vdc, dm.VAppID, dm.VAppName)
+	vappModel, err := vapp.Init(d.client, d.vdc, dm.VAppID, dm.VAppName)
+	if err != nil {
+		diags.AddError("Error getting parent vApp", err.Error())
+		return diags
+	}
+	d.vapp = vappModel
 
 	return diags
 }
@@ -92,8 +97,8 @@ func (d *orgNetworkDataSource) Configure(_ context.Context, req datasource.Confi
 
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected data source configure type",
+			fmt.Sprintf("Expected *client.CloudAvenue, got %T. Report this to provider maintainers.", req.ProviderData),
 		)
 
 		return
@@ -122,7 +127,7 @@ func (d *orgNetworkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	// Get vApp Network information
 	vAppNetworkConfig, err := d.vapp.GetNetworkConfig()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving vApp network config", err.Error())
+		resp.Diagnostics.AddError("Error getting vApp network config", err.Error())
 		return
 	}
 

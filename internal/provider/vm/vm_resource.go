@@ -37,6 +37,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminvdc"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
@@ -50,7 +51,7 @@ var (
 	_ resource.ResourceWithImportState = &vmResource{}
 )
 
-// NewVmResource is a helper function to simplify the provider implementation.
+// NewVMResource is a helper function to simplify the provider implementation.
 func NewVMResource() resource.Resource {
 	return &vmResource{}
 }
@@ -83,14 +84,15 @@ func (r *vmResource) Init(_ context.Context, rm *vm.VMResourceModel) (diags diag
 		return diags
 	}
 
-	r.vapp, d = vapp.Init(r.client, r.vdc, rm.VappID, rm.VappName)
-	diags.Append(d...)
-	if diags.HasError() {
+	vappModel, err := vapp.Init(r.client, r.vdc, rm.VappID, rm.VappName)
+	if err != nil {
+		diags.AddError("Error getting vApp", err.Error())
 		return diags
 	}
+	r.vapp = vappModel
 
 	if r.vapp.VAPP == nil {
-		diags.AddError("Vapp not found", fmt.Sprintf("Vapp %s not found in VDC %s", rm.VappName, rm.VDC))
+		diags.AddError("vApp not found", fmt.Sprintf("vApp %q not found in vDC %q", rm.VappName, rm.VDC))
 		return diags
 	}
 
@@ -118,8 +120,8 @@ func (r *vmResource) Configure(_ context.Context, req resource.ConfigureRequest,
 	client, ok := req.ProviderData.(*client.CloudAvenue)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected resource configure type",
+			fmt.Sprintf("Expected *client.CloudAvenue, got %T. Report this to provider maintainers.", req.ProviderData),
 		)
 		return
 	}
@@ -136,6 +138,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 	var (
 		vmCreated vm.VM
 		d         diag.Diagnostics
+		err       error
 	)
 
 	// Retrieve values from plan
@@ -292,19 +295,18 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 		return
 	}
 
-	var d diag.Diagnostics
+	var err error
 
-	r.vm, d = vm.Init(r.client, r.vapp, vm.GetVMOpts{
+	r.vm, err = vm.Init(r.client, r.vapp, vm.GetVMOpts{
 		ID:   state.ID,
 		Name: types.StringNull(),
 	})
-
-	if d.HasError() {
-		if d.Contains(vm.DiagVMNotFound) {
+	if err != nil {
+		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.Append(d...)
+		resp.Diagnostics.AddError("Error getting VM", err.Error())
 		return
 	}
 
@@ -332,6 +334,8 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		return
 	}
 
+	var err error
+
 	// Init the resource
 	resp.Diagnostics.Append(r.Init(ctx, state)...)
 	if resp.Diagnostics.HasError() {
@@ -349,14 +353,16 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		Implement the resource update here
 	*/
 
-	var d diag.Diagnostics
-
-	r.vm, d = vm.Init(r.client, r.vapp, vm.GetVMOpts{
+	r.vm, err = vm.Init(r.client, r.vapp, vm.GetVMOpts{
 		ID:   state.ID,
 		Name: types.StringNull(),
 	})
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	if err != nil {
+		if cerrs.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError("Error getting VM", err.Error())
 		return
 	}
 
@@ -553,7 +559,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	// ! Cold Update
 	vmStatusBeforeUpdate, err := r.vm.GetStatus()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VM status", fmt.Sprintf("error retrieving VM status %s: %s", plan.Name.ValueString(), err))
+		resp.Diagnostics.AddError("Error getting VM status", fmt.Sprintf("getting VM status %s failed: %s", plan.Name.ValueString(), err))
 		return
 	}
 
@@ -682,7 +688,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 
 	vmStatus, err := r.vm.GetStatus()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VM status", fmt.Sprintf("error retrieving VM status %s: %s", plan.Name.ValueString(), err))
+		resp.Diagnostics.AddError("Error getting VM status", fmt.Sprintf("getting VM status %s failed: %s", plan.Name.ValueString(), err))
 		return
 	}
 
@@ -774,18 +780,18 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 
 	defer r.vapp.UnlockVAPP(ctx)
 
-	var d diag.Diagnostics
+	var err error
 
-	r.vm, d = vm.Init(r.client, r.vapp, vm.GetVMOpts{
+	r.vm, err = vm.Init(r.client, r.vapp, vm.GetVMOpts{
 		ID:   state.ID,
 		Name: types.StringNull(),
 	})
-	if d.HasError() {
-		if d.Contains(vm.DiagVMNotFound) {
+	if err != nil {
+		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.Append(d...)
+		resp.Diagnostics.AddError("Error getting VM", err.Error())
 		return
 	}
 
@@ -897,13 +903,13 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 	if !deployOS.VMNameInTemplate.IsNull() {
 		vappTemplate, err = r.client.GetTemplateWithVMName(deployOS.VappTemplateID.ValueString(), deployOS.VMNameInTemplate.ValueString())
 		if err != nil {
-			diags.AddError("Error retrieving vAppTemplate", fmt.Sprintf("error retrieving vAppTemplate VM %s: %s", rm.Name.ValueString(), err))
+			diags.AddError("Error getting vApp template", fmt.Sprintf("getting vApp template for VM %s failed: %s", rm.Name.ValueString(), err))
 			return vm.VM{}, diags
 		}
 	} else {
 		vappTemplate, err = r.client.GetTemplate(deployOS.VappTemplateID.ValueString())
 		if err != nil {
-			diags.AddError("Error retrieving vAppTemplate", fmt.Sprintf("error retrieving vAppTemplate VM %s: %s", rm.Name.ValueString(), err))
+			diags.AddError("Error getting vApp template", fmt.Sprintf("getting vApp template for VM %s failed: %s", rm.Name.ValueString(), err))
 			return vm.VM{}, diags
 		}
 	}
@@ -924,7 +930,9 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 		}
 
 		if affinityRule != nil {
-			vmComputePolicy.VmPlacementPolicy = &govcdtypes.Reference{HREF: affinityRule.Href}
+			vmComputePolicy = &govcdtypes.ComputePolicy{
+				VmPlacementPolicy: &govcdtypes.Reference{HREF: affinityRule.Href},
+			}
 		}
 	}
 
@@ -1013,7 +1021,9 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 		}
 
 		if affinityRule != nil {
-			vmComputePolicy.VmPlacementPolicy = &govcdtypes.Reference{HREF: affinityRule.Href}
+			vmComputePolicy = &govcdtypes.ComputePolicy{
+				VmPlacementPolicy: &govcdtypes.Reference{HREF: affinityRule.Href},
+			}
 		}
 	}
 
@@ -1094,10 +1104,15 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 	}
 
 	// * Get VM
-	return vm.Get(r.vapp, vm.GetVMOpts{
+	vmCreated, err = vm.Get(r.vapp, vm.GetVMOpts{
 		Name: rm.Name,
 		ID:   types.StringValue(x.VM.ID),
 	})
+	if err != nil {
+		diags.AddError("Error getting VM", err.Error())
+		return vm.VM{}, diags
+	}
+	return vmCreated, nil
 }
 
 // processAfterCreate is a common function for VM creation. It is called after VM is created and

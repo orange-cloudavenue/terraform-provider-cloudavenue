@@ -84,8 +84,8 @@ func (r *securityTagResource) Configure(_ context.Context, req resource.Configur
 
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected resource configure type",
+			fmt.Sprintf("Expected *client.CloudAvenue, got %T. Report this to provider maintainers.", req.ProviderData),
 		)
 		return
 	}

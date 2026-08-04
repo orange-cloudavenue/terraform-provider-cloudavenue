@@ -74,8 +74,12 @@ func (r *aclResource) Init(_ context.Context, rm *aclResourceModel) (diags diag.
 		return diags
 	}
 
-	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
-
+	vappModel, err := vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
+	if err != nil {
+		diags.AddError("Error getting parent vApp", err.Error())
+		return diags
+	}
+	r.vapp = vappModel
 	return diags
 }
 
@@ -89,8 +93,8 @@ func (r *aclResource) Configure(_ context.Context, req resource.ConfigureRequest
 
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected resource configure type",
+			fmt.Sprintf("Expected *client.CloudAvenue, got %T. Report this to provider maintainers.", req.ProviderData),
 		)
 
 		return
@@ -153,7 +157,7 @@ func (r *aclResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	// Request acl
 	accessControl, err := r.vapp.GetAccessControl(false)
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving access control properties", err.Error())
+		resp.Diagnostics.AddError("Error getting access control properties", err.Error())
 		return
 	}
 
@@ -272,7 +276,10 @@ func (r *aclResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	// Delete vApp access control
 	if err := r.vapp.RemoveAccessControl(false); err != nil {
-		resp.Diagnostics.AddError("Error removing vApp", err.Error())
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Error removing access control from vApp %s(%s)", r.vapp.GetName(), r.vapp.GetID()),
+			err.Error(),
+		)
 		return
 	}
 }

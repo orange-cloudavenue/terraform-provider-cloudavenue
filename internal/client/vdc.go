@@ -24,8 +24,7 @@ import (
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 )
 
-// GetVDC
-// return the vdc using the name provided in the argument.
+// GetVDC returns the vdc using the name provided in the argument.
 // If the name is empty, it will try to use the default vdc provided in the provider.
 func (c *CloudAvenue) GetVDC(vdcName string) (vdc *v1.VDC, err error) {
 	if vdcName == "" {
