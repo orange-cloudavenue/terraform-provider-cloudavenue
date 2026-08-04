@@ -106,6 +106,36 @@ func (r *EdgeGatewayIPSetResource) Tests(_ context.Context) map[testsacc.TestNam
 				Destroy: true,
 			}
 		},
+		testNameExampleWithVDCGroup: func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {
+					resp.Append(GetResourceConfig()[EdgeGatewayResourceName]().GetSpecificConfig(testNameExampleWithVDCGroup))
+					return resp
+				},
+				// ! Create testing
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_edgegateway_ip_set" "example_with_vdc_group" {
+						name = {{ generate . "name" }}
+						description = {{ generate . "description" }}
+						ip_addresses = [
+							"192.168.1.1",
+							"192.168.1.2",
+						]
+						edge_gateway_id = cloudavenue_edgegateway.example_with_vdc_group.id
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttrSet(resourceName, "id"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_name"),
+						resource.TestCheckResourceAttrSet(resourceName, "edge_gateway_id"),
+						resource.TestCheckResourceAttr(resourceName, "name", testsacc.GetValueFromTemplate(resourceName, "name")),
+						resource.TestCheckResourceAttr(resourceName, "description", testsacc.GetValueFromTemplate(resourceName, "description")),
+						resource.TestCheckResourceAttr(resourceName, "ip_addresses.#", "2"),
+					},
+				},
+				Destroy: true,
+			}
+		},
 		"example_for_elb": func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonDependencies: func() (resp testsacc.DependenciesConfigResponse) {

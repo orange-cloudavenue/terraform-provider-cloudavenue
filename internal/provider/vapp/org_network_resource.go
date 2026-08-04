@@ -78,8 +78,12 @@ func (r *orgNetworkResource) Init(_ context.Context, rm *orgNetworkModel) (diags
 		return diags
 	}
 
-	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
-
+	vappModel, err := vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
+	if err != nil {
+		diags.AddError("Error getting parent vApp", err.Error())
+		return diags
+	}
+	r.vapp = vappModel
 	return diags
 }
 
@@ -93,8 +97,8 @@ func (r *orgNetworkResource) Configure(_ context.Context, req resource.Configure
 
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected resource configure type",
+			fmt.Sprintf("Expected *client.CloudAvenue, got %T. Report this to provider maintainers.", req.ProviderData),
 		)
 
 		return
@@ -131,13 +135,13 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 	defer r.vapp.UnlockVAPP(ctx)
 
 	if err := r.vapp.Refresh(); err != nil {
-		resp.Diagnostics.AddError("Error refreshing vApp", err.Error())
+		resp.Diagnostics.AddError("Error refreshing parent vApp", err.Error())
 	}
 
 	orgNetworkName := plan.NetworkName.ValueString()
 	orgNetwork, err := r.vdc.GetOrgVdcNetworkByNameOrId(orgNetworkName, true)
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving org network", err.Error())
+		resp.Diagnostics.AddError("Error getting org network", err.Error())
 		return
 	}
 
@@ -164,7 +168,7 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 
 	networkID, err := govcd.GetUuidFromHref(vAppNetwork.Link.HREF, false)
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating vApp network uuid", err.Error())
+		resp.Diagnostics.AddError("Error creating vApp network ID", err.Error())
 		return
 	}
 
@@ -207,12 +211,12 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 	defer r.vapp.UnlockVAPP(ctx)
 
 	if err := r.vapp.Refresh(); err != nil {
-		resp.Diagnostics.AddError("Error refreshing vApp", err.Error())
+		resp.Diagnostics.AddError("Error refreshing parent vApp", err.Error())
 	}
 
 	vAppNetworkConfig, err := r.vapp.GetNetworkConfig()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving vApp network config", err.Error())
+		resp.Diagnostics.AddError("Error getting vApp network config", err.Error())
 		return
 	}
 
@@ -271,7 +275,7 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 	defer r.vapp.UnlockVAPP(ctx)
 
 	if err := r.vapp.Refresh(); err != nil {
-		resp.Diagnostics.AddError("Error refreshing vApp", err.Error())
+		resp.Diagnostics.AddError("Error refreshing parent vApp", err.Error())
 	}
 
 	// Vapp Statuses
@@ -286,7 +290,7 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 	// Suspended vApp
 	if err := r.vapp.Refresh(); err != nil {
-		resp.Diagnostics.AddError("Error retrieving vApp status", err.Error())
+		resp.Diagnostics.AddError("Error getting vApp status", err.Error())
 		return
 	}
 
@@ -318,7 +322,10 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 
 	if _, err := r.vapp.RemoveNetwork(state.ID.ValueString()); err != nil {
-		resp.Diagnostics.AddError("Error deleting vApp network", err.Error())
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Error deleting vApp network from vApp %s(%s)", state.VAppName.ValueString(), state.VAppID.ValueString()),
+			err.Error(),
+		)
 	}
 
 	// Vapp Statuses

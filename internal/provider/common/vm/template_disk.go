@@ -41,7 +41,7 @@ type TemplateDiskModel struct {
 	UnitNumber     types.Int64  `tfsdk:"unit_number"`
 }
 
-// TemplateDiskSchema returns the schema for the template disk.
+// TemplateDiskSchema returns schema for template disk.
 func TemplateDiskSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		attrBusType:        diskparams.BusTypeAttributeRequired(),

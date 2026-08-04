@@ -28,7 +28,10 @@ import (
 // CloudAvenue is the main struct for the CloudAvenue client.
 type CloudAvenue struct {
 	// API VMWARE
-	Vmware *govcd.VCDClient // Deprecated
+	//
+	// Deprecated: use CAVSDK and CloudAvenue SDK accessors instead.
+	// Vmware is kept only for compatibility with older callers.
+	Vmware *govcd.VCDClient
 
 	// SDK CLOUDAVENUE
 	CAVSDK     *clientca.Client
@@ -78,7 +81,7 @@ func (c *CloudAvenue) GetURL() string {
 	return v
 }
 
-// GetOrgName() returns the name of the organization.
+// GetOrgName returns the name of the organization.
 func (c *CloudAvenue) GetOrgName() string {
 	// Error is not returned for maintein compatibility with the previous version
 	v, e := c.CAVSDK.Config().GetOrganization()
@@ -89,7 +92,7 @@ func (c *CloudAvenue) GetOrgName() string {
 	return v
 }
 
-// GetUserName() returns the name of the user.
+// GetUserName returns the name of the user.
 func (c *CloudAvenue) GetUserName() string {
 	// Error is not returned for maintein compatibility with the previous version
 	v, e := c.CAVSDK.Config().GetUsername()

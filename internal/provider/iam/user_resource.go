@@ -168,7 +168,7 @@ func (r *userResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	stateRefreshed, found, d := r.read(ctx, state)
 	if !found {
 		resp.State.RemoveResource(ctx)
-		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s(%s) not found.", state.Name.Get(), state.ID.Get()))
+		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User %s(%s) not found.", state.Name.Get(), state.ID.Get()))
 		return
 	}
 	if d.HasError() {
@@ -233,7 +233,7 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// Use generic read function to refresh the state
 	stateRefreshed, found, d := r.read(ctx, plan)
 	if !found {
-		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s not found", plan.Name.Get()))
+		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User %s(%s) not found after update.", state.Name.Get(), state.ID.Get()))
 		return
 	}
 	if d.HasError() {

@@ -35,8 +35,6 @@ type orgNetworkModel struct {
 }
 
 func (s *orgNetworkModel) findOrgNetwork(vAppNetworkConfig *govcdtypes.NetworkConfigSection) (*govcdtypes.VAppNetworkConfiguration, *string, diag.Diagnostics) {
-	// vAppNetwork govcdtypes.VAppNetworkConfiguration
-	// networkID   string
 	var diags diag.Diagnostics
 
 	for _, networkConfig := range vAppNetworkConfig.NetworkConfig {
@@ -56,6 +54,6 @@ func (s *orgNetworkModel) findOrgNetwork(vAppNetworkConfig *govcdtypes.NetworkCo
 		}
 	}
 
-	diags.AddError("Unable to find network in the VApp", "The network was not found in the VApp")
+	diags.AddError("Network not found in vApp", "No vApp network matched ID or name")
 	return nil, nil, diags
 }

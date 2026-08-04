@@ -47,6 +47,8 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
+const vappSubsystem = "vapp"
+
 // Ensure the implementation satisfies the expected interfaces.
 var (
 	_ resource.Resource                = &vappResource{}
@@ -97,8 +99,8 @@ func (r *vappResource) Configure(_ context.Context, req resource.ConfigureReques
 
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected resource configure type",
+			fmt.Sprintf("Expected *client.CloudAvenue, got %T. Report this to provider maintainers.", req.ProviderData),
 		)
 
 		return
@@ -134,14 +136,20 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	if tflog.IsDebug(ctx) {
+		tflog.SubsystemDebug(ctx, vappSubsystem, "Creating vApp", map[string]interface{}{attrVappName: plan.VAppName.ValueString(), attrVDC: plan.VDC.ValueString()})
+	}
 
 	// Wait for job to complete
 	errRetry := retry.RetryContext(ctx, 90*time.Second, func() *retry.RetryError {
 		currentStatus, errGetStatus := r.vapp.GetStatus()
 		if errGetStatus != nil {
+			tflog.SubsystemError(ctx, vappSubsystem, "vApp status read failed", map[string]interface{}{attrVappName: plan.VAppName.ValueString()})
 			return retry.NonRetryableError(errGetStatus)
 		}
-		tflog.Debug(ctx, fmt.Sprintf("Creating Vapp status: %s", currentStatus))
+		if tflog.IsDebug(ctx) {
+			tflog.SubsystemDebug(ctx, vappSubsystem, "vApp status", map[string]interface{}{attrVappName: plan.VAppName.ValueString(), "status": currentStatus})
+		}
 		if currentStatus == "UNRESOLVED" {
 			return retry.RetryableError(fmt.Errorf("expected vapp status != UNRESOLVED"))
 		}
@@ -219,7 +227,6 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	var (
 		plan  = new(vappResourceModel)
 		state = new(vappResourceModel)
-		diags diag.Diagnostics
 	)
 
 	// Get current state
@@ -234,13 +241,17 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	if tflog.IsDebug(ctx) {
+		tflog.SubsystemDebug(ctx, vappSubsystem, "Updating vApp", map[string]interface{}{attrVappName: plan.VAppName.ValueString(), attrVDC: plan.VDC.ValueString()})
+	}
 
 	// Request vApp
-	r.vapp, diags = vapp.Init(r.client, r.vdc, plan.VAppID.StringValue, plan.VAppName.StringValue)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	vappModel, err := vapp.Init(r.client, r.vdc, plan.VAppID.StringValue, plan.VAppName.StringValue)
+	if err != nil {
+		resp.Diagnostics.AddError("Error getting vApp", err.Error())
 		return
 	}
+	r.vapp = vappModel
 
 	// Update vApp
 	resp.Diagnostics.Append(r.updateVapp(ctx, plan, state)...)
@@ -293,27 +304,27 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	// to avoid network destroy issues - detach networks from vApp
 	task, err := vapp.RemoveAllNetworks()
 	if err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
 		return
 	}
 	if err := task.WaitTaskCompletion(); err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
 		return
 	}
 
 	if err := tryUndeploy(*vapp); err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
 		return
 	}
 
 	task, err = vapp.Delete()
 	if err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
 		return
 	}
 
 	if err := task.WaitTaskCompletion(); err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
 		return
 	}
 }
@@ -371,12 +382,12 @@ func tryUndeploy(vapp govcd.VApp) error {
 		// ignore - can't be undeployed
 		return nil
 	} else if err != nil {
-		return fmt.Errorf("error undeploying vApp: %w", err)
+		return fmt.Errorf("error undeploying vApp %s(%s): %w", vapp.VApp.Name, vapp.VApp.ID, err)
 	}
 
 	err = task.WaitTaskCompletion()
 	if err != nil {
-		return fmt.Errorf("error undeploying vApp: %w", err)
+		return fmt.Errorf("error undeploying vApp %s(%s): %w", vapp.VApp.Name, vapp.VApp.ID, err)
 	}
 	return nil
 }
@@ -413,7 +424,7 @@ func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResource
 	// Update description if needed
 	if !plan.Description.Equal(state.Description) {
 		if err := r.vapp.UpdateDescription(plan.Description.ValueString()); err != nil {
-			diags.AddError("Error updating VApp description", err.Error())
+			diags.AddError("Error updating vApp description", err.Error())
 			return diags
 		}
 	}
@@ -448,7 +459,7 @@ func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResource
 			}
 		}
 		if _, err := r.vapp.SetProductSectionList(x); err != nil {
-			diags.AddError("Error updating VApp guest properties", err.Error())
+			diags.AddError("Error updating vApp guest properties", err.Error())
 			return diags
 		}
 	}
@@ -464,21 +475,23 @@ func (r *vappResource) read(ctx context.Context, planOrState *vappResourceModel)
 		Implement the resource read here
 	*/
 
-	var d diag.Diagnostics
-
-	r.vapp, d = vapp.Init(r.client, r.vdc, planOrState.VAppID.StringValue, planOrState.VAppName.StringValue)
-	diags.Append(d...)
-	if diags.HasError() {
-		if diags.Contains(vapp.DiagVAppNotFound) {
+	vappModel, err := vapp.Init(r.client, r.vdc, planOrState.VAppID.StringValue, planOrState.VAppName.StringValue)
+	if err != nil {
+		if cerrs.IsNotFound(err) {
+			tflog.SubsystemDebug(ctx, vappSubsystem, "vApp not found, removing from state", map[string]interface{}{attrVappName: planOrState.VAppName.ValueString(), attrVDC: planOrState.VDC.ValueString()})
 			return nil, false, diags
 		}
+		tflog.SubsystemError(ctx, vappSubsystem, "vApp init failed", map[string]interface{}{attrVappName: planOrState.VAppName.ValueString(), attrVDC: planOrState.VDC.ValueString()})
+		diags.AddError("Error getting vApp", err.Error())
 		return nil, true, diags
 	}
+	r.vapp = vappModel
 
 	// * Guest properties
 	guestProperties, err := r.vapp.GetProductSectionList()
 	if err != nil {
-		diags.AddError("Error retrieving guest properties", err.Error())
+		tflog.SubsystemError(ctx, vappSubsystem, "vApp guest properties read failed", map[string]interface{}{attrVappName: planOrState.VAppName.ValueString()})
+		diags.AddError("Error getting guest properties", err.Error())
 		return stateRefreshed, found, diags
 	}
 
@@ -501,7 +514,8 @@ func (r *vappResource) read(ctx context.Context, planOrState *vappResourceModel)
 	// * Lease
 	leaseInfo, err := r.vapp.GetLease()
 	if err != nil {
-		diags.AddError("Error retrieving lease info", err.Error())
+		tflog.SubsystemError(ctx, vappSubsystem, "vApp lease read failed", map[string]interface{}{attrVappName: planOrState.VAppName.ValueString()})
+		diags.AddError("Error getting lease info", err.Error())
 		return stateRefreshed, found, diags
 	}
 
