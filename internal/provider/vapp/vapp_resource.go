@@ -304,27 +304,27 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	// to avoid network destroy issues - detach networks from vApp
 	task, err := vapp.RemoveAllNetworks()
 	if err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
 		return
 	}
 	if err := task.WaitTaskCompletion(); err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
 		return
 	}
 
 	if err := tryUndeploy(*vapp); err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
 		return
 	}
 
 	task, err = vapp.Delete()
 	if err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
 		return
 	}
 
 	if err := task.WaitTaskCompletion(); err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
 		return
 	}
 }

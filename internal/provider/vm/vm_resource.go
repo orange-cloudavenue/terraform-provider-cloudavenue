@@ -559,7 +559,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	// ! Cold Update
 	vmStatusBeforeUpdate, err := r.vm.GetStatus()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VM status", fmt.Sprintf("error retrieving VM status %s: %s", plan.Name.ValueString(), err))
+		resp.Diagnostics.AddError("Error getting VM status", fmt.Sprintf("getting VM status %s failed: %s", plan.Name.ValueString(), err))
 		return
 	}
 
@@ -688,7 +688,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 
 	vmStatus, err := r.vm.GetStatus()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VM status", fmt.Sprintf("error retrieving VM status %s: %s", plan.Name.ValueString(), err))
+		resp.Diagnostics.AddError("Error getting VM status", fmt.Sprintf("getting VM status %s failed: %s", plan.Name.ValueString(), err))
 		return
 	}
 
