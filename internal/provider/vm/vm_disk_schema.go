@@ -185,6 +185,7 @@ func DiskSuperSchema() superschema.Schema {
 				Resource: &schemaR.Int64Attribute{
 					MarkdownDescription: "If the disk is attached to a VM and this attribute is not set, the disk will be attached to the first available bus.",
 					Optional:            true,
+					Computed:            true,
 					PlanModifiers: []planmodifier.Int64{
 						int64planmodifier.UseStateForUnknown(),
 						// Note can't change bus type as vmware changes diskId
@@ -202,6 +203,7 @@ func DiskSuperSchema() superschema.Schema {
 				Resource: &schemaR.Int64Attribute{
 					MarkdownDescription: "If the disk is attached to a VM and this attribute is not set, the disk will be attached to the first available unit.",
 					Optional:            true,
+					Computed:            true,
 					PlanModifiers: []planmodifier.Int64{
 						int64planmodifier.UseStateForUnknown(),
 						// Note can't change bus type as vmware changes diskId
