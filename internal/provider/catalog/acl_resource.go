@@ -34,6 +34,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -231,12 +232,12 @@ func (r *aclResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	catalog, err := r.adminOrg.GetCatalogByNameOrId(r.catalog.GetIDOrName(), false)
 	if err != nil {
-		resp.Diagnostics.AddError("error when getting catalog", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "catalog", err)
 		return
 	}
 
 	if err := catalog.RemoveAccessControl(true); err != nil {
-		resp.Diagnostics.AddError("error when removing ACL", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "ACL", err)
 	}
 }
 
@@ -254,7 +255,7 @@ func (r *aclResource) ImportState(ctx context.Context, req resource.ImportStateR
 
 	catalog, err := r.adminOrg.GetCatalogByNameOrId(req.ID, true)
 	if err != nil {
-		resp.Diagnostics.AddError("error when retrieving catalog", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "catalog", err)
 		return
 	}
 
@@ -271,19 +272,19 @@ func (r *aclResource) read(ctx context.Context, planOrState *ACLModel) (stateRef
 
 	catalog, err := r.adminOrg.GetCatalogByNameOrId(r.catalog.GetIDOrName(), true)
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return stateRefreshed, false, diags
 		}
-		diags.AddError("error when retrieving catalog", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "catalog", err)
 		return stateRefreshed, true, diags
 	}
 
 	acl, err := catalog.GetAccessControl(true)
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return stateRefreshed, false, diags
 		}
-		diags.AddError("error when retrieving access control", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "access control", err)
 		return stateRefreshed, true, diags
 	}
 

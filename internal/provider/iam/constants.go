@@ -12,4 +12,5 @@ package iam
 const (
 	attrName        = "name"
 	attrDescription = "description"
+	attrRights      = "rights"
 )

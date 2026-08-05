@@ -68,15 +68,20 @@ func (d *disksDataSource) Init(_ context.Context, dm *DisksModel) (diags diag.Di
 		return diags
 	}
 
-	d.vapp, diags = vapp.Init(d.client, d.vdc, dm.VAppID.StringValue, dm.VAppName.StringValue)
-	if diags.HasError() {
+	vappModel, err := vapp.Init(d.client, d.vdc, dm.VAppID.StringValue, dm.VAppName.StringValue)
+	if err != nil {
+		diags.AddError("Error getting vApp", err.Error())
 		return diags
 	}
+	d.vapp = vappModel
 
-	d.vm, diags = vm.Get(d.vapp, vm.GetVMOpts{
+	d.vm, err = vm.Get(d.vapp, vm.GetVMOpts{
 		ID:   dm.VMID.StringValue,
 		Name: dm.VMName.StringValue,
 	})
+	if err != nil {
+		diags.AddError("Error getting VM", err.Error())
+	}
 	return diags
 }
 
@@ -97,8 +102,8 @@ func (d *disksDataSource) Configure(_ context.Context, req datasource.ConfigureR
 	client, ok := req.ProviderData.(*client.CloudAvenue)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected data source configure type",
+			fmt.Sprintf("Expected *client.CloudAvenue, got %T. Report this to provider maintainers.", req.ProviderData),
 		)
 		return
 	}
@@ -126,7 +131,7 @@ func (d *disksDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 	detachableDisks, err := d.vdc.QueryDisks("*")
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to query disks", err.Error())
+		resp.Diagnostics.AddError("Unable to query detachable disks", err.Error())
 		return
 	}
 
@@ -134,7 +139,7 @@ func (d *disksDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		dDisk := DisksModelDisk{}
 		id, err := govcd.GetUuidFromHref(disk.HREF, true)
 		if err != nil {
-			resp.Diagnostics.AddError("Unable to get disk ID", err.Error())
+			resp.Diagnostics.AddError("Unable to get disk ID from HREF", err.Error())
 			return
 		}
 		dDisk.ID.Set(urn.Normalize(urn.Disk, id).String())
@@ -147,7 +152,7 @@ func (d *disksDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 	}
 
 	if err := d.vm.Refresh(); err != nil {
-		resp.Diagnostics.AddError("Unable to refresh VM", err.Error())
+		resp.Diagnostics.AddError("Unable to refresh VM state", err.Error())
 		return
 	}
 

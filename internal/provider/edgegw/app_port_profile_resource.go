@@ -25,8 +25,6 @@ import (
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -37,6 +35,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -363,7 +362,7 @@ func (r *appPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 
 	appPortProfile, err = r.edgegw.GetFirewallAppPortProfile(nameOrID)
 	if err != nil {
-		if govcd.IsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return nil, false, nil
 		}
 		diags.AddError("Error reading App Port Profile", err.Error())

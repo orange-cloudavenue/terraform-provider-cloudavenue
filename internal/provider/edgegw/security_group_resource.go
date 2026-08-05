@@ -26,8 +26,6 @@ import (
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -37,6 +35,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -386,11 +385,11 @@ func (r *securityGroupResource) read(ctx context.Context, planOrState *SecurityG
 	}
 
 	fwsg, err := r.edgegw.GetFirewallSecurityGroup(idOrName)
-	if govcd.ContainsNotFound(err) {
+	if cerrs.IsNotFound(err) {
 		return nil, false, nil
 	}
 	if err != nil {
-		diags.AddError("Error retrieving security group", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "security group", err)
 		return nil, true, diags
 	}
 

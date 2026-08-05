@@ -48,14 +48,19 @@ type isolatedNetworkDataSource struct {
 	vapp   vapp.VAPP
 }
 
-// Init Initializes the data source.
+// Init initializes the data source.
 func (d *isolatedNetworkDataSource) Init(_ context.Context, dm *isolatedNetworkModel) (diags diag.Diagnostics) {
 	d.vdc, diags = vdc.Init(d.client, dm.VDC.StringValue)
 	if diags.HasError() {
 		return diags
 	}
 
-	d.vapp, diags = vapp.Init(d.client, d.vdc, dm.VAppID.StringValue, dm.VAppName.StringValue)
+	vappModel, err := vapp.Init(d.client, d.vdc, dm.VAppID.StringValue, dm.VAppName.StringValue)
+	if err != nil {
+		diags.AddError("Error getting parent vApp", err.Error())
+		return diags
+	}
+	d.vapp = vappModel
 
 	return diags
 }
@@ -78,8 +83,8 @@ func (d *isolatedNetworkDataSource) Configure(_ context.Context, req datasource.
 
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected data source configure type",
+			fmt.Sprintf("Expected *client.CloudAvenue, got %T. Report this to provider maintainers.", req.ProviderData),
 		)
 
 		return

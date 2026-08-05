@@ -21,7 +21,6 @@ package mutex
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -50,16 +49,24 @@ func NewKV() *KV {
 // KvLock locks the mutex for the given key. Caller is responsible for calling kvUnlock
 // for the same key.
 func (m *KV) KvLock(ctx context.Context, key string) {
-	tflog.Debug(ctx, fmt.Sprintf("Locking %q", key))
+	if tflog.IsDebug(ctx) {
+		tflog.Debug(ctx, "Locking mutex")
+	}
 	m.get(key).Lock()
-	tflog.Debug(ctx, fmt.Sprintf("Locked %q", key))
+	if tflog.IsDebug(ctx) {
+		tflog.Debug(ctx, "Locked mutex")
+	}
 }
 
 // KvUnlock unlocks the mutex for the given key. Caller must have called kvLock for the same key first.
 func (m *KV) KvUnlock(ctx context.Context, key string) {
-	tflog.Debug(ctx, fmt.Sprintf("Unlocking %q", key))
+	if tflog.IsDebug(ctx) {
+		tflog.Debug(ctx, "Unlocking mutex")
+	}
 	m.get(key).Unlock()
-	tflog.Debug(ctx, fmt.Sprintf("Unlocked %q", key))
+	if tflog.IsDebug(ctx) {
+		tflog.Debug(ctx, "Unlocked mutex")
+	}
 }
 
 // Returns a mutex for the given key, no guarantee of its lock status.

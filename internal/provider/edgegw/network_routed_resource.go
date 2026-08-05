@@ -25,8 +25,6 @@ import (
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -36,6 +34,7 @@ import (
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/network"
 )
@@ -449,10 +448,10 @@ func (r *NetworkRoutedResource) read(ctx context.Context, planOrState *NetworkRo
 
 	net, err := r.vdc.GetNetworkRouted(idOrName)
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return nil, false, nil
 		}
-		diags.AddError("Error getting routed network", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "routed network", err)
 		return nil, true, diags
 	}
 

@@ -11,6 +11,8 @@ package vapp
 
 const (
 	attrVDC               = "vdc"
+	attrName              = "name"
+	attrVappName          = attrName
 	attrRuntimeLeaseInSec = "runtime_lease_in_sec"
 	attrStorageLeaseInSec = "storage_lease_in_sec"
 )

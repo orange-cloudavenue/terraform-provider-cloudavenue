@@ -36,6 +36,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -394,10 +395,10 @@ func (r *staticRouteResource) read(ctx context.Context, planOrState *StaticRoute
 		staticRoute, err = r.edgegw.GetStaticRouteByName(planOrState.Name.Get())
 	}
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return nil, false, nil
 		}
-		diags.AddError("Error retrieving static route", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "static route", err)
 		return nil, true, diags
 	}
 

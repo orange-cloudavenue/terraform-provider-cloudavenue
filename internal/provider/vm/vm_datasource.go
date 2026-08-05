@@ -69,22 +69,21 @@ func (d *vmDataSource) Init(_ context.Context, dm *VMDataSourceModel) (diags dia
 		return diags
 	}
 
-	d.vapp, mydiag = vapp.Init(d.client, d.vdc, dm.VappID, dm.VappName)
-	diags.Append(mydiag...)
-	if diags.HasError() {
+	vappModel, err := vapp.Init(d.client, d.vdc, dm.VappID, dm.VappName)
+	if err != nil {
+		diags.AddError("Error getting vApp", err.Error())
 		return diags
 	}
+	d.vapp = vappModel
 
-	if d.vapp.VAPP == nil {
-		diags.AddError("Vapp not found", fmt.Sprintf("Vapp %s not found in VDC %s", dm.VappName, dm.VDC))
-		return diags
-	}
-
-	d.vm, mydiag = vm.Init(d.client, d.vapp, vm.GetVMOpts{
+	d.vm, err = vm.Init(d.client, d.vapp, vm.GetVMOpts{
 		ID:   dm.ID,
 		Name: dm.Name,
 	})
-	diags.Append(mydiag...)
+	if err != nil {
+		diags.AddError("Error getting VM", err.Error())
+		return diags
+	}
 
 	return diags
 }
@@ -107,8 +106,8 @@ func (d *vmDataSource) Configure(_ context.Context, req datasource.ConfigureRequ
 
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected data source configure type",
+			fmt.Sprintf("Expected *client.CloudAvenue, got %T. Report this to provider maintainers.", req.ProviderData),
 		)
 
 		return
@@ -156,7 +155,7 @@ func (d *vmDataSource) read(ctx context.Context, dm, dmPlan *VMDataSourceModel) 
 	if err != nil {
 		diags.AddError(
 			"Unable to get VM state",
-			fmt.Sprintf("Error: %s", err),
+			fmt.Sprintf("Getting VM state failed: %s", err),
 		)
 		return plan, diags
 	}
@@ -166,7 +165,7 @@ func (d *vmDataSource) read(ctx context.Context, dm, dmPlan *VMDataSourceModel) 
 	if err != nil {
 		diags.AddError(
 			"Unable to get VM networks",
-			fmt.Sprintf("Error: %s", err),
+			fmt.Sprintf("Getting VM networks failed: %s", err),
 		)
 		return plan, diags
 	}
@@ -176,7 +175,7 @@ func (d *vmDataSource) read(ctx context.Context, dm, dmPlan *VMDataSourceModel) 
 	if err != nil {
 		diags.AddError(
 			"Unable to get VM settings",
-			fmt.Sprintf("Error: %s", err),
+			fmt.Sprintf("Getting VM settings failed: %s", err),
 		)
 		return plan, diags
 	}

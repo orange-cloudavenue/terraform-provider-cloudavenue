@@ -61,14 +61,14 @@ type StaticIPPool struct {
 	EndAddress   types.String `tfsdk:"end_address"`
 }
 
-// SetNetowrkAPIObject set the network object.
-func (k Kind) SetNetworkAPIObject(_ context.Context, data GlobalResourceModel) (*govcdtypes.OpenApiOrgVdcNetwork, diag.Diagnostics) {
-	apiObject, d := data.setBaseNetworkAPIObject(context.Background())
+// SetNetworkAPIObject sets network object.
+func (k Kind) SetNetworkAPIObject(ctx context.Context, data GlobalResourceModel) (*govcdtypes.OpenApiOrgVdcNetwork, diag.Diagnostics) {
+	apiObject, d := data.setBaseNetworkAPIObject(ctx)
 	if d.HasError() {
 		return nil, d
 	}
 
-	// Define the particular attributes according to the type of network
+	// Set type-specific attributes.
 	switch k.TypeOfNetwork {
 	case ISOLATED:
 		apiObject.NetworkType = govcdtypes.OrgVdcNetworkTypeIsolated

@@ -47,7 +47,7 @@ type VMResourceModelResourceNetwork struct { //nolint:revive
 	Connected        types.Bool   `tfsdk:"connected"`
 }
 
-// attrTypes() returns the types of the attributes of the Networks attribute.
+// AttrTypes returns attribute types for Networks.
 func (n *VMResourceModelResourceNetworks) AttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"type":               types.StringType,
@@ -61,14 +61,14 @@ func (n *VMResourceModelResourceNetworks) AttrTypes() map[string]attr.Type {
 	}
 }
 
-// ObjectType() returns the type of the Networks attribute.
+// ObjectType returns object type for Networks.
 func (n *VMResourceModelResourceNetworks) ObjectType() types.ObjectType {
 	return types.ObjectType{
 		AttrTypes: n.AttrTypes(),
 	}
 }
 
-// toAttrValues() returns the values of the attributes of the Networks attribute.
+// toAttrValues returns attribute values for a network entry.
 func (n *VMResourceModelResourceNetwork) toAttrValues() map[string]attr.Value { //nolint:unused
 	return map[string]attr.Value{
 		"type":               n.Type,
@@ -82,15 +82,15 @@ func (n *VMResourceModelResourceNetwork) toAttrValues() map[string]attr.Value { 
 	}
 }
 
-// ToPlan returns the value of the Networks attribute, if set, as a types.Object.
-func (n *VMResourceModelResourceNetworks) ToPlan(_ context.Context) (basetypes.ListValue, diag.Diagnostics) {
+// ToPlan returns Networks as a list value.
+func (n *VMResourceModelResourceNetworks) ToPlan(ctx context.Context) (basetypes.ListValue, diag.Diagnostics) {
 	if n == nil {
 		return types.ListNull(n.ObjectType()), diag.Diagnostics{}
 	}
-	return types.ListValueFrom(context.Background(), n.ObjectType(), n)
+	return types.ListValueFrom(ctx, n.ObjectType(), n)
 }
 
-// Equal returns true if the two VMResourceModelResourceNetwork are equal.
+// Equal reports whether two VMResourceModelResourceNetwork values are equal.
 func (n *VMResourceModelResourceNetwork) Equal(other VMResourceModelResourceNetwork) bool {
 	return n.Type.Equal(other.Type) &&
 		n.IPAllocationMode.Equal(other.IPAllocationMode) &&
@@ -102,7 +102,7 @@ func (n *VMResourceModelResourceNetwork) Equal(other VMResourceModelResourceNetw
 		n.Connected.Equal(other.Connected)
 }
 
-// ConvertToNetworkConnection converts a VMResourceModelResourceNetworks to a NetworkConnection.
+// ConvertToNetworkConnection converts network model to NetworkConnection.
 func (n *VMResourceModelResourceNetwork) ConvertToNetworkConnection() NetworkConnection {
 	return NetworkConnection{
 		Name:             n.Name,
@@ -116,17 +116,17 @@ func (n *VMResourceModelResourceNetwork) ConvertToNetworkConnection() NetworkCon
 	}
 }
 
-// NetworksRead returns network configuration for saving into statefile.
+// NetworksRead returns network configuration for state.
 func (v VM) NetworksRead() (*VMResourceModelResourceNetworks, error) {
 	vapp, err := v.GetParentVApp()
 	if err != nil {
-		return nil, fmt.Errorf("error getting vApp: %w", err)
+		return nil, fmt.Errorf("getting parent vApp: %w", err)
 	}
 
 	// Determine type for all networks in vApp
 	vAppNetworkConfig, err := vapp.GetNetworkConfig()
 	if err != nil {
-		return nil, fmt.Errorf("error getting vApp networks: %w", err)
+		return nil, fmt.Errorf("getting vApp network config: %w", err)
 	}
 	// If vApp network is "isolated" and has no ParentNetwork - it is a vApp network.
 	// https://code.vmware.com/apis/72/vcloud/doc/doc/types/NetworkConfigurationType.html
