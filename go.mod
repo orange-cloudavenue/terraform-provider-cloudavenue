@@ -14,11 +14,11 @@ require (
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.7.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
 	github.com/hashicorp/terraform-plugin-go v0.31.0
-	github.com/hashicorp/terraform-plugin-log v0.10.0
+	github.com/hashicorp/terraform-plugin-log v0.11.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 	github.com/iancoleman/strcase v0.3.0
 	github.com/madflojo/testcerts v1.5.0
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.29.0
+	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.30.0
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20250109171729-2be550d5d3ac
 	github.com/orange-cloudavenue/common-go/utils v1.0.0
 	github.com/orange-cloudavenue/common-go/validators v1.2.0
