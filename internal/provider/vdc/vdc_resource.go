@@ -24,12 +24,15 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/infrapi"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/infrapi/rules"
@@ -431,7 +434,9 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
 	defer cancel()
 
-	vdc, err := r.client.CAVSDK.V1.VDC().GetVDC(state.Name.Get())
+	name := strings.TrimSpace(state.Name.Get())
+
+	vdc, err := r.client.CAVSDK.V1.VDC().GetVDC(name)
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			return // VDC already deleted, nothing to do
@@ -445,10 +450,55 @@ func (r *vdcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	if err := vdc.Delete(ctx); err != nil {
-		resp.Diagnostics.AddError("Error deleting VDC", fmt.Sprintf("error deleting VDC %s: %s", state.Name.Get(), err.Error()))
+	errRetry := retry.RetryContext(ctx, deleteTimeout, func() *retry.RetryError {
+		if !r.vdcStillExists(name) {
+			return nil // VDC is gone, deletion is complete
+		}
+
+		job, err := vdc.Delete(ctx)
+		if err != nil {
+			if !r.vdcStillExists(name) {
+				return nil // VDC actually deleted despite the error
+			}
+			if errors.Is(err, infrapi.ErrVDCDeleteNotAccepted) {
+				return retry.RetryableError(fmt.Errorf("error deleting vdc %s: %w", state.Name.Get(), err))
+			}
+			return retry.NonRetryableError(fmt.Errorf("error deleting vdc %s: %w", state.Name.Get(), err))
+		}
+
+		jobStatus, err := job.GetJobStatus()
+		if err != nil {
+			if !r.vdcStillExists(name) {
+				return nil // VDC actually deleted despite the error
+			}
+			return retry.RetryableError(fmt.Errorf("error getting job status: %w", err))
+		}
+
+		if err := jobStatus.Wait(5, int(deleteTimeout.Seconds())); err != nil {
+			if !r.vdcStillExists(name) {
+				return nil // VDC actually deleted despite the error
+			}
+			return retry.RetryableError(fmt.Errorf("error waiting for vdc deletion: %w", err))
+		}
+
+		return nil
+	})
+
+	if errRetry != nil {
+		resp.Diagnostics.AddError("Error deleting vdc", fmt.Sprintf("error deleting vdc %s: %s", state.Name.Get(), errRetry.Error()))
 		return
 	}
+}
+
+// vdcStillExists reports whether the given VDC is still present. A read error
+// other than not-found is treated as "still exists" so the caller surfaces the
+// original deletion error rather than hiding it.
+func (r *vdcResource) vdcStillExists(name string) bool {
+	vdc, err := r.client.CAVSDK.V1.VDC().GetVDC(name)
+	if err != nil {
+		return !cerrs.IsNotFound(err)
+	}
+	return vdc != nil
 }
 
 func (r *vdcResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -478,7 +528,14 @@ func (r *vdcResource) read(ctx context.Context, planOrState *vdcResourceModel) (
 	}
 
 	stateRefreshed.ID.Set(vdc.GetID())
-	stateRefreshed.Name.Set(vdc.GetName())
+
+	// The SDK's GetName only returns a value when the VDC is resolved through
+	// its VMware lookup. When the VDC is resolved through the infrapi API (the
+	// default path), the name is empty. Keep the plan/state value in that case.
+	if name := vdc.GetName(); name != "" {
+		stateRefreshed.Name.Set(name)
+	}
+
 	stateRefreshed.Description.Set(vdc.GetDescription())
 	stateRefreshed.ServiceClass.Set(string(vdc.GetServiceClass()))
 	stateRefreshed.StorageBillingModel.Set(string(vdc.GetStorageBillingModel()))

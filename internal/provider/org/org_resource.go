@@ -204,6 +204,7 @@ func (r *OrgResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	jobStatus, err := job.GetJobStatus()
 	if err != nil {
 		resp.Diagnostics.AddError("Error getting job status", err.Error())
+		return
 	}
 
 	if err := jobStatus.WaitWithContext(ctx, 2); err != nil {
