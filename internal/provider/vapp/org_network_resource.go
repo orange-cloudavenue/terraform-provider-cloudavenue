@@ -277,15 +277,11 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 		resp.Diagnostics.AddError("Error refreshing parent vApp", err.Error())
 	}
 
-	// Vapp Statuses
-	// 1:  "RESOLVED",
-	// 3:  "SUSPENDED",
-	// 8:  "POWERED_OFF",
-
-	var (
-		vAppRequiredStatuses   = []int{1, 3, 8}
-		vAppStatusBeforeAction = r.vapp.VApp.VApp.Status
-	)
+	// A deployed vApp (poweredON, poweredOFF, suspended, partiallyDeployed, ...)
+	// cannot have a network detached (API error 409). Only an undeployed
+	// (resolved) vApp accepts network detach, so the vApp is undeployed first.
+	vAppRequiredStatuses := []int{resolved}
+	vAppStatusBeforeAction := r.vapp.VApp.VApp.Status
 
 	// Suspended vApp
 	if err := r.vapp.Refresh(); err != nil {
@@ -293,30 +289,24 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	// if vapp not contains VMs, is not possible to PowerOff or Undeploy vApp (error 400)
 	if !slices.Contains(vAppRequiredStatuses, r.vapp.VApp.VApp.Status) {
-		if r.vapp.VApp.VApp.Children == nil || len(r.vapp.VApp.VApp.Children.VM) == 0 {
-			task, err := r.vapp.Undeploy()
-			if err != nil {
-				resp.Diagnostics.AddError("Error undeploying vApp", err.Error())
+		// A suspended vApp cannot be undeployed directly: discard its state first.
+		if r.vapp.VApp.VApp.Status == suspended {
+			if err := r.vapp.VApp.DiscardSuspendedState(); err != nil {
+				resp.Diagnostics.AddError("Error discarding suspended state of vApp", err.Error())
 				return
 			}
+		}
 
-			if err = task.WaitTaskCompletion(); err != nil {
-				resp.Diagnostics.AddError("Error undeploying vApp", err.Error())
-				return
-			}
-		} else {
-			task, err := r.vapp.Suspend()
-			if err != nil {
-				resp.Diagnostics.AddError("Error suspending vApp", err.Error())
-				return
-			}
+		task, err := r.vapp.Undeploy()
+		if err != nil {
+			resp.Diagnostics.AddError("Error undeploying vApp", err.Error())
+			return
+		}
 
-			if err = task.WaitTaskCompletion(); err != nil {
-				resp.Diagnostics.AddError("Error suspending vApp", err.Error())
-				return
-			}
+		if err = task.WaitTaskCompletion(); err != nil {
+			resp.Diagnostics.AddError("Error undeploying vApp", err.Error())
+			return
 		}
 	}
 
@@ -327,12 +317,8 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 		)
 	}
 
-	// Vapp Statuses
-	// 4: "POWERED_ON"
-	// 19: "VAPP_PARTIALLY_DEPLOYED"
-	// 20: "PARTIALLY_POWERED_OFF"
-	// 21: "PARTIALLY_SUSPENDED"
-	if slices.Contains([]int{4, 19, 20, 21}, vAppStatusBeforeAction) {
+	// Restore power if the vApp was powered on before the network was detached.
+	if slices.Contains([]int{poweredON, partiallyDeployed, partiallyPoweredOff, partiallySuspended}, vAppStatusBeforeAction) {
 		// Power On vApp
 		task, err := r.vapp.PowerOn()
 		if err != nil {

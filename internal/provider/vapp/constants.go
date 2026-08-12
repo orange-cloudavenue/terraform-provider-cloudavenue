@@ -16,3 +16,13 @@ const (
 	attrRuntimeLeaseInSec = "runtime_lease_in_sec"
 	attrStorageLeaseInSec = "storage_lease_in_sec"
 )
+
+// vApp statuses, see govcd types.VAppStatuses.
+const (
+	resolved            = 1  // RESOLVED
+	suspended           = 3  // SUSPENDED
+	poweredON           = 4  // POWERED_ON
+	partiallyDeployed   = 19 // VAPP_PARTIALLY_DEPLOYED
+	partiallyPoweredOff = 20 // PARTIALLY_POWERED_OFF
+	partiallySuspended  = 21 // PARTIALLY_SUSPENDED
+)
