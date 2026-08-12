@@ -1,0 +1,3 @@
+```release-note:enhancement
+provider - Improved error messaging and logging consistency across the provider: error messages now include the resource name and ID, generic errors are replaced with more specific context, and structured logging using `tflog` subsystems has been added for better observability during debugging.
+```
