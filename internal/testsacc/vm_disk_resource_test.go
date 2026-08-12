@@ -128,7 +128,7 @@ func (r *VMDiskResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc", "vapp_name", "id"},
+						ImportStateIDBuilder: []string{"vdc", "vapp_id", "vm_id", "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -211,7 +211,7 @@ func (r *VMDiskResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc", "vapp_name", "id"},
+						ImportStateIDBuilder: []string{"vdc", "vapp_id", "vm_id", "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -295,7 +295,7 @@ func (r *VMDiskResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 						ImportStateVerify:    true,
 					},
 					{
-						ImportStateIDBuilder: []string{"vdc", "vapp_name", "id"},
+						ImportStateIDBuilder: []string{"vdc", "vapp_id", "vm_id", "id"},
 						ImportState:          true,
 						ImportStateVerify:    true,
 					},
@@ -308,7 +308,7 @@ func (r *VMDiskResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx
 					return resp
 				},
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Disk)),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "is_detachable", "false"),
 					resource.TestCheckResourceAttrSet(resourceName, "vdc"),
 					resource.TestCheckNoResourceAttr(resourceName, "vm_name"),
