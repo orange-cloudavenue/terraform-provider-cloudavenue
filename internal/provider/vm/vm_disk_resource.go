@@ -165,8 +165,11 @@ func (r *diskResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRe
 	}
 
 	// if disk is not detachable, vm_id or vm_name is required
+	// An unknown value means it is resolved from another resource in the same
+	// apply (e.g. vm_id = cloudavenue_vm.example.id) and will be known at apply
+	// time, so only a definitively null value triggers the error.
 	if diskPlan.IsDetachable.IsNull() || diskPlan.IsDetachable.IsUnknown() || !diskPlan.IsDetachable.ValueBool() {
-		if (diskPlan.VMID.IsNull() || diskPlan.VMID.IsUnknown()) && (diskPlan.VMName.IsNull() || diskPlan.VMName.IsUnknown()) {
+		if diskPlan.VMID.IsNull() && diskPlan.VMName.IsNull() {
 			resp.Diagnostics.AddError(
 				"VM is required",
 				"if \"is_detachable\" attribute is false \"vm_id\" or \"vm_name\" is required to attach disk to a VM",
