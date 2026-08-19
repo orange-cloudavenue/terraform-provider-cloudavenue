@@ -18,7 +18,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 	github.com/iancoleman/strcase v0.3.0
 	github.com/madflojo/testcerts v1.5.0
-	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.30.1-0.20260812131158-aff2f4092935
+	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.31.0
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20260722075754-a69ff15f4d0f
 	github.com/orange-cloudavenue/common-go/utils v1.0.0
 	github.com/orange-cloudavenue/common-go/validators v1.2.0
@@ -73,7 +73,7 @@ require (
 	github.com/hashicorp/hc-install v0.9.5 // indirect
 	github.com/hashicorp/hcl/v2 v2.24.0 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
-	github.com/hashicorp/terraform-exec v0.25.2 // indirect
+	github.com/hashicorp/terraform-exec v0.25.3 // indirect
 	github.com/hashicorp/terraform-json v0.28.0 // indirect
 	github.com/hashicorp/terraform-registry-address v0.5.0 // indirect
 	github.com/hashicorp/terraform-svchost v0.2.1 // indirect
@@ -112,16 +112,16 @@ require (
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	golang.org/x/crypto v0.55.0 // indirect
-	golang.org/x/exp v0.0.0-20260811152304-ee035b5b010f // indirect
-	golang.org/x/mod v0.39.0 // indirect
-	golang.org/x/net v0.57.0 // indirect
+	golang.org/x/exp v0.0.0-20260813180055-c1d0aacb2297 // indirect
+	golang.org/x/mod v0.40.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
-	golang.org/x/tools v0.48.0 // indirect
+	golang.org/x/tools v0.49.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260810153831-ec0a7760b754 // indirect
-	google.golang.org/grpc v1.83.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260818201246-1b0934165a6f // indirect
+	google.golang.org/grpc v1.83.1 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
