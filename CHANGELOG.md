@@ -1,5 +1,9 @@
 ## 0.37.0 (Unreleased)
 
+### :tada: **Improvements**
+
+* provider - Improved error messaging and logging consistency across the provider: error messages now include the resource name and ID, generic errors are replaced with more specific context, and structured logging using `tflog` subsystems has been added for better observability during debugging. (GH-1265)
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps actions/checkout, actions/setup-go, arduino/setup-task, hashicorp/setup-terraform, actions/github-script from 6 to 7 (GH-1262)
