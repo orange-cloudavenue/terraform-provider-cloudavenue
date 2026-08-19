@@ -35,6 +35,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -166,12 +167,12 @@ func (r *catalogResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	adminCatalog, err := r.GetCatalog()
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
 
-		resp.Diagnostics.AddError("Error retrieving Catalog", err.Error())
+		resp.Diagnostics.AddError("Error reading Catalog", err.Error())
 		return
 	}
 
@@ -277,12 +278,12 @@ func (r *catalogResource) Delete(ctx context.Context, req resource.DeleteRequest
 	// get catalog
 	adminCatalog, err := r.GetCatalog()
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			// Catalog not found, remove from state
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving Catalog", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "catalog", err)
 		return
 	}
 

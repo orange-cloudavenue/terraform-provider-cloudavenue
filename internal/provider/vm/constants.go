@@ -10,10 +10,12 @@
 package vm
 
 const (
-	attrVDC            = "vdc"
-	attrVappID         = "vapp_id"
-	attrVappName       = "vapp_name"
-	attrVMName         = "vm_name"
-	attrName           = "name"
-	attrStorageProfile = "storage_profile"
+	attrVDC              = "vdc"
+	attrVappID           = "vapp_id"
+	attrVappName         = "vapp_name"
+	attrVMName           = "vm_name"
+	attrName             = "name"
+	attrAffinityRuleName = attrName
+	attrVMIDs            = "vm_ids"
+	attrStorageProfile   = "storage_profile"
 )

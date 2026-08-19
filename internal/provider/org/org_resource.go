@@ -31,6 +31,7 @@ import (
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -289,7 +290,7 @@ func (r *OrgResource) read(ctx context.Context, planOrState *OrgModel) (stateRef
 
 	properties, err := r.org.GetProperties(ctx)
 	if err != nil {
-		diags.AddError("Error getting properties", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "properties", err)
 		// GetProperties never return not found error
 		return nil, true, diags
 	}

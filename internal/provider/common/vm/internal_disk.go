@@ -34,6 +34,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm/diskparams"
 )
 
@@ -247,7 +248,7 @@ Reads an internal disk associated with a VM.
 func InternalDiskRead(_ context.Context, _ *client.CloudAvenue, disk *InternalDisk, vm *govcd.VM) (readDisk *InternalDisk, d diag.Diagnostics) {
 	diskSettings, err := vm.GetInternalDiskById(disk.ID.ValueString(), true)
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			// If the disk is not found, then return nil so that we can show
 			return nil, nil
 		}

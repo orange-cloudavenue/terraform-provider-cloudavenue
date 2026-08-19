@@ -40,6 +40,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -150,14 +151,14 @@ func (r *natRuleResource) Create(ctx context.Context, req resource.CreateRequest
 	// Get data from plan
 	nsxtNATRule, err := plan.ToNsxtNATRule(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting NSX-T NAT rule: %s", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionCreate, "NSX-T NAT rule", err)
 		return
 	}
 
 	// Create NAT Rule
 	rule, err := r.edgegw.CreateNatRule(nsxtNATRule)
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating NSX-T NAT rule: ", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionCreate, "NSX-T NAT rule", err)
 		return
 	}
 
@@ -259,21 +260,21 @@ func (r *natRuleResource) Update(ctx context.Context, req resource.UpdateRequest
 	// Get data to plan
 	nsxtNATRule, err := plan.ToNsxtNATRule(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting NSX-T NAT rule: %s", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, "NSX-T NAT rule", err)
 		return
 	}
 
 	// Get Nat Rule
 	existingRule, err := r.edgegw.GetNatRuleById(plan.ID.Get())
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving NAT Rule ID", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, "NAT Rule", err)
 		return
 	}
 
 	// Inject ID for update
 	nsxtNATRule.ID = existingRule.NsxtNatRule.ID
 	if _, err = existingRule.Update(nsxtNATRule); err != nil {
-		resp.Diagnostics.AddError("Error updating NSX-T NAT rule: ", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, "NSX-T NAT rule", err)
 		return
 	}
 
@@ -331,12 +332,12 @@ func (r *natRuleResource) Delete(ctx context.Context, req resource.DeleteRequest
 	// Get NAT Rule
 	existingRule, err := r.edgegw.GetNatRuleById(state.ID.Get())
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving NAT Rule ID", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "NAT Rule", err)
 		return
 	}
 
 	if err = existingRule.Delete(); err != nil {
-		resp.Diagnostics.AddError("Error Deleting NAT Rule ID", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "NAT Rule", err)
 		return
 	}
 }
@@ -405,16 +406,16 @@ func (r *natRuleResource) read(_ context.Context, planOrState *NATRuleModel) (st
 	if stateRefreshed.ID.IsKnown() {
 		rule, err = r.edgegw.GetNatRuleById(stateRefreshed.ID.Get())
 		if err != nil {
-			if govcd.ContainsNotFound(err) {
+			if cerrs.IsNotFound(err) {
 				return stateRefreshed, false, nil
 			}
-			diags.AddError("Error retrieving NAT Rule ID", err.Error())
+			cerrs.AddError(&diags, cerrs.ActionRead, "NAT Rule", err)
 			return stateRefreshed, found, diags
 		}
 	} else {
 		rules, err := r.edgegw.GetAllNatRules(nil)
 		if err != nil {
-			diags.AddError("Error retrieving NAT Rules", err.Error())
+			cerrs.AddError(&diags, cerrs.ActionRead, "NAT Rules", err)
 			return stateRefreshed, found, diags
 		}
 

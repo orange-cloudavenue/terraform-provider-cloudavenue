@@ -26,8 +26,6 @@ import (
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -41,6 +39,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -403,11 +402,11 @@ func (r *firewallResource) read(ctx context.Context, planOrState *firewallModel)
 		return nil
 	})
 	if err != nil {
-		if govcd.IsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return stateRefreshed, false, nil
 		}
 		if !(previousRulesCount > 0 && (fwRules == nil || len(fwRules.UserDefinedRules) == 0)) {
-			diags.AddError("Error retrieving Edge Gateway Firewall", err.Error())
+			cerrs.AddError(&diags, cerrs.ActionRead, "Edge Gateway Firewall", err)
 			return stateRefreshed, true, diags
 		}
 	}

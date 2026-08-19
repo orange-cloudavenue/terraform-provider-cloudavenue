@@ -144,7 +144,7 @@ func (r *DynamicSecurityGroupResource) Create(ctx context.Context, req resource.
 	// Use generic read function to refresh the state
 	state, found, d := r.read(ctx, plan)
 	if !found {
-		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The dynamic security group '%s' was not found after creation.", plan.Name.Get()))
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The dynamic security group %s(%s) was not found after creation.", plan.Name.Get(), plan.ID.Get()))
 		return
 	}
 	if d.HasError() {
@@ -238,7 +238,7 @@ func (r *DynamicSecurityGroupResource) Update(ctx context.Context, req resource.
 	// Use generic read function to refresh the state
 	stateRefreshed, found, d := r.read(ctx, plan)
 	if !found {
-		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The dynamic security group '%s' was not found after update.", plan.Name.Get()))
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The dynamic security group %s(%s) was not found after update.", plan.Name.Get(), plan.ID.Get()))
 		return
 	}
 	if d.HasError() {

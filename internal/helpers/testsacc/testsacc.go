@@ -295,6 +295,8 @@ func GenerateTests(tacc TestACC) []resource.TestStep {
 		steps = make([]resource.TestStep, 0)
 	)
 
+	resetGeneratedTestCaches()
+
 	// For each test
 	for testName, step := range tacc.Tests(ctx) {
 		// resourceName is a concatenation of the resource name and the example name. For example, "cloudavenue_catalog.example".
@@ -308,6 +310,11 @@ func GenerateTests(tacc TestACC) []resource.TestStep {
 	}
 
 	return steps
+}
+
+func resetGeneratedTestCaches() {
+	localCache = make(map[string]Test)
+	*KeyValueStore = make(map[string]any)
 }
 
 // * Other

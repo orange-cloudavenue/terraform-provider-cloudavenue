@@ -118,7 +118,7 @@ func (d *CertificateLibraryDatasource) Read(ctx context.Context, req datasource.
 	// Read data from the API
 	data, found, diags := s.read(ctx, configResource)
 	if !found {
-		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The Certificate %s(%s) was not found", config.Name.Get(), config.ID.Get()))
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The certificate %s(%s) was not found", config.Name.Get(), config.ID.Get()))
 		return
 	}
 	resp.Diagnostics.Append(diags...)

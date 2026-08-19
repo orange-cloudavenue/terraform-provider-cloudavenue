@@ -23,8 +23,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -32,6 +30,7 @@ import (
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/iam"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -123,7 +122,7 @@ func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, r
 		Password: plan.Password.Get(),
 	})
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.Diagnostics.AddError("User not found after create", fmt.Sprintf("User with name %s not found after create", plan.Name.Get()))
 			return
 		}
@@ -169,7 +168,7 @@ func (r *userResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	stateRefreshed, found, d := r.read(ctx, state)
 	if !found {
 		resp.State.RemoveResource(ctx)
-		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s(%s) not found.", state.Name.Get(), state.ID.Get()))
+		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User %s(%s) not found.", state.Name.Get(), state.ID.Get()))
 		return
 	}
 	if d.HasError() {
@@ -205,7 +204,7 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	user, err := r.iamClient.GetUser(state.ID.Get())
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving user", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, "user", err)
 		return
 	}
 
@@ -234,7 +233,7 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// Use generic read function to refresh the state
 	stateRefreshed, found, d := r.read(ctx, plan)
 	if !found {
-		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s not found", plan.Name.Get()))
+		resp.Diagnostics.AddError("User not found", fmt.Sprintf("User %s(%s) not found after update.", state.Name.Get(), state.ID.Get()))
 		return
 	}
 	if d.HasError() {
@@ -265,11 +264,11 @@ func (r *userResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 	user, err := r.iamClient.GetUser(state.ID.Get())
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving user", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "user", err)
 		return
 	}
 
@@ -292,11 +291,11 @@ func (r *userResource) ImportState(ctx context.Context, req resource.ImportState
 	// req.ID is the user name
 	user, err := r.iamClient.GetUser(req.ID)
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s not found", req.ID))
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving user", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "user", err)
 		return
 	}
 
@@ -344,10 +343,10 @@ func (r *userResource) read(_ context.Context, planOrState *userResourceModel) (
 		user, err = r.iamClient.GetUser(stateRefreshed.Name.Get())
 	}
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return nil, false, nil
 		}
-		diags.AddError("Error retrieving user", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "user", err)
 		return nil, true, diags
 	}
 

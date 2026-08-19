@@ -37,6 +37,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminvdc"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
@@ -50,7 +51,7 @@ var (
 	_ resource.ResourceWithImportState = &vmResource{}
 )
 
-// NewVmResource is a helper function to simplify the provider implementation.
+// NewVMResource is a helper function to simplify the provider implementation.
 func NewVMResource() resource.Resource {
 	return &vmResource{}
 }
@@ -83,14 +84,15 @@ func (r *vmResource) Init(_ context.Context, rm *vm.VMResourceModel) (diags diag
 		return diags
 	}
 
-	r.vapp, d = vapp.Init(r.client, r.vdc, rm.VappID, rm.VappName)
-	diags.Append(d...)
-	if diags.HasError() {
+	vappModel, err := vapp.Init(r.client, r.vdc, rm.VappID, rm.VappName)
+	if err != nil {
+		diags.AddError("Error getting vApp", err.Error())
 		return diags
 	}
+	r.vapp = vappModel
 
 	if r.vapp.VAPP == nil {
-		diags.AddError("Vapp not found", fmt.Sprintf("Vapp %s not found in VDC %s", rm.VappName, rm.VDC))
+		diags.AddError("vApp not found", fmt.Sprintf("vApp %q not found in vDC %q", rm.VappName, rm.VDC))
 		return diags
 	}
 
@@ -118,8 +120,8 @@ func (r *vmResource) Configure(_ context.Context, req resource.ConfigureRequest,
 	client, ok := req.ProviderData.(*client.CloudAvenue)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected resource configure type",
+			fmt.Sprintf("Expected *client.CloudAvenue, got %T. Report this to provider maintainers.", req.ProviderData),
 		)
 		return
 	}
@@ -136,6 +138,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 	var (
 		vmCreated vm.VM
 		d         diag.Diagnostics
+		err       error
 	)
 
 	// Retrieve values from plan
@@ -193,7 +196,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 	if err := r.vapp.Refresh(); err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to refresh VApp",
-			fmt.Sprintf("Error: %s", err),
+			fmt.Sprintf("error refreshing VApp VM %s: %s", plan.Name.ValueString(), err),
 		)
 		return
 	}
@@ -228,7 +231,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 	if err := r.vm.Refresh(); err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to refresh VM",
-			fmt.Sprintf("Error: %s", err),
+			fmt.Sprintf("error refreshing VM %s: %s", plan.Name.ValueString(), err),
 		)
 		return
 	}
@@ -237,7 +240,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to get VM status",
-			fmt.Sprintf("Error: %s", err),
+			fmt.Sprintf("error getting VM status %s: %s", plan.Name.ValueString(), err),
 		)
 		return
 	}
@@ -247,7 +250,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to get VM settings",
-			fmt.Sprintf("Error: %s", err),
+			fmt.Sprintf("error getting VM settings %s: %s", plan.Name.ValueString(), err),
 		)
 		return
 	}
@@ -256,7 +259,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to get VM networks",
-			fmt.Sprintf("Error: %s", err),
+			fmt.Sprintf("error getting VM networks %s: %s", plan.Name.ValueString(), err),
 		)
 		return
 	}
@@ -292,19 +295,18 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 		return
 	}
 
-	var d diag.Diagnostics
+	var err error
 
-	r.vm, d = vm.Init(r.client, r.vapp, vm.GetVMOpts{
+	r.vm, err = vm.Init(r.client, r.vapp, vm.GetVMOpts{
 		ID:   state.ID,
 		Name: types.StringNull(),
 	})
-
-	if d.HasError() {
-		if d.Contains(diag.NewErrorDiagnostic("VM not found", govcd.ErrorEntityNotFound.Error())) {
+	if err != nil {
+		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.Append(d...)
+		resp.Diagnostics.AddError("Error getting VM", err.Error())
 		return
 	}
 
@@ -332,6 +334,8 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		return
 	}
 
+	var err error
+
 	// Init the resource
 	resp.Diagnostics.Append(r.Init(ctx, state)...)
 	if resp.Diagnostics.HasError() {
@@ -349,14 +353,16 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		Implement the resource update here
 	*/
 
-	var d diag.Diagnostics
-
-	r.vm, d = vm.Init(r.client, r.vapp, vm.GetVMOpts{
+	r.vm, err = vm.Init(r.client, r.vapp, vm.GetVMOpts{
 		ID:   state.ID,
 		Name: types.StringNull(),
 	})
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	if err != nil {
+		if cerrs.IsNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError("Error getting VM", err.Error())
 		return
 	}
 
@@ -404,7 +410,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 				if err := r.vm.ChangeCPUAndCoreCount(utils.TakeIntPointer(int(allStructsPlan.Resource.CPUs.ValueInt64())), utils.TakeIntPointer(int(allStructsPlan.Resource.CPUsCores.ValueInt64()))); err != nil {
 					resp.Diagnostics.AddError(
 						"Unable to change CPU and CPU Cores",
-						fmt.Sprintf("Error: %s", err),
+						fmt.Sprintf("error changing CPU and CPU Cores VM %s: %s", plan.Name.ValueString(), err),
 					)
 					return
 				}
@@ -421,7 +427,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 				if err := r.vm.ChangeMemory(allStructsPlan.Resource.Memory.ValueInt64()); err != nil {
 					resp.Diagnostics.AddError(
 						"Unable to change memory size",
-						fmt.Sprintf("Error: %s", err),
+						fmt.Sprintf("error changing memory size VM %s: %s", plan.Name.ValueString(), err),
 					)
 					return
 				}
@@ -460,11 +466,11 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			}
 			networkConfig, err := r.vm.ConstructNetworksConnection(networkConnection)
 			if err != nil {
-				resp.Diagnostics.AddError("Error retrieving network config", err.Error())
+				resp.Diagnostics.AddError("Error updating network config", fmt.Sprintf("error retrieving network config VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 			if err = r.vm.UpdateNetworkConnectionSection(&networkConfig); err != nil {
-				resp.Diagnostics.AddError("Error updating network config", err.Error())
+				resp.Diagnostics.AddError("Error updating network config", fmt.Sprintf("error updating network config VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 		}
@@ -480,7 +486,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 				guestProperties[key] = strings.Trim(value.String(), "\"")
 			}
 			if err := r.vm.SetGuestProperties(guestProperties); err != nil {
-				resp.Diagnostics.AddError("Error updating guest properties", err.Error())
+				resp.Diagnostics.AddError("Error updating guest properties", fmt.Sprintf("error updating guest properties VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 		}
@@ -498,7 +504,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			}
 
 			if _, err := r.vm.UpdateComputePolicyV2("", affinityRuleID, ""); err != nil {
-				resp.Diagnostics.AddError("Error updating affinity rule", err.Error())
+				resp.Diagnostics.AddError("Error updating affinity rule", fmt.Sprintf("error updating affinity rule VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 		}
@@ -514,19 +520,19 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 				// If storage profile is empty, we use the default one
 				storageProfile, err = r.adminVDC.GetDefaultStorageProfileReference()
 				if err != nil {
-					resp.Diagnostics.AddError("Error retrieving default storage profile", err.Error())
+					resp.Diagnostics.AddError("Error retrieving default storage profile", fmt.Sprintf("error retrieving default storage profile VM %s: %s", plan.Name.ValueString(), err))
 					return
 				}
 			} else {
 				storageProfile, err = r.vdc.GetStorageProfileReference(allStructsPlan.Settings.StorageProfile.ValueString(), false)
 				if err != nil {
-					resp.Diagnostics.AddError("Error retrieving storage profile", err.Error())
+					resp.Diagnostics.AddError("Error retrieving storage profile", fmt.Sprintf("error retrieving storage profile VM %s: %s", plan.Name.ValueString(), err))
 					return
 				}
 			}
 
 			if _, err := r.vm.UpdateStorageProfile(storageProfile.HREF); err != nil {
-				resp.Diagnostics.AddError("Error updating storage profile", err.Error())
+				resp.Diagnostics.AddError("Error updating storage profile", fmt.Sprintf("error updating storage profile VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 		}
@@ -543,7 +549,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 
 		customization := customizationFromPlan.GetCustomizationSection(plan.Name.ValueString())
 		if err := r.vm.SetCustomization(customization); err != nil {
-			resp.Diagnostics.AddError("Error updating customization", err.Error())
+			resp.Diagnostics.AddError("Error updating customization", fmt.Sprintf("error updating customization VM %s: %s", plan.Name.ValueString(), err))
 			return
 		}
 	}
@@ -553,7 +559,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	// ! Cold Update
 	vmStatusBeforeUpdate, err := r.vm.GetStatus()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VM status", err.Error())
+		resp.Diagnostics.AddError("Error getting VM status", fmt.Sprintf("getting VM status %s failed: %s", plan.Name.ValueString(), err))
 		return
 	}
 
@@ -569,13 +575,13 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		if vmStatusBeforeUpdate != poweredOFF {
 			task, err := r.vm.Undeploy()
 			if err != nil {
-				resp.Diagnostics.AddError("Error undeploying VM", err.Error())
+				resp.Diagnostics.AddError("Error undeploying VM", fmt.Sprintf("error undeploying VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 
 			err = task.WaitTaskCompletion()
 			if err != nil {
-				resp.Diagnostics.AddError("Error waiting undeploying VM", err.Error())
+				resp.Diagnostics.AddError("Error waiting undeploying VM", fmt.Sprintf("error waiting for undeploy VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 		}
@@ -584,12 +590,12 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		if !allStructsPlan.Settings.ExposeHardwareVirtualization.Equal(allStructsState.Settings.ExposeHardwareVirtualization) {
 			task, err := r.vm.ToggleHardwareVirtualization(allStructsPlan.Settings.ExposeHardwareVirtualization.ValueBool())
 			if err != nil {
-				resp.Diagnostics.AddError("Error updating ExposeHardwareVirtualization", err.Error())
+				resp.Diagnostics.AddError("Error updating ExposeHardwareVirtualization", fmt.Sprintf("error updating ExposeHardwareVirtualization VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 
 			if err = task.WaitTaskCompletion(); err != nil {
-				resp.Diagnostics.AddError("Error waiting ExposeHardwareVirtualization", err.Error())
+				resp.Diagnostics.AddError("Error waiting ExposeHardwareVirtualization", fmt.Sprintf("error waiting for ExposeHardwareVirtualization VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 		}
@@ -614,13 +620,13 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		if vmSpecSectionUpdate {
 			task, err := r.vm.UpdateVmSpecSectionAsync(vmSpecSection, description)
 			if err != nil {
-				resp.Diagnostics.AddError("Error updating VM spec section", err.Error())
+				resp.Diagnostics.AddError("Error updating VM spec section", fmt.Sprintf("error updating VM spec section VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 
 			err = task.WaitTaskCompletion()
 			if err != nil {
-				resp.Diagnostics.AddError("Error waiting VM spec section", err.Error())
+				resp.Diagnostics.AddError("Error waiting VM spec section", fmt.Sprintf("error waiting for VM spec section VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 		}
@@ -629,7 +635,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		if !allStructsPlan.Resource.CPUHotAddEnabled.Equal(allStructsState.Resource.CPUHotAddEnabled) ||
 			!allStructsPlan.Resource.MemoryHotAddEnabled.Equal(allStructsState.Resource.MemoryHotAddEnabled) {
 			if _, err := r.vm.UpdateVmCpuAndMemoryHotAdd(allStructsPlan.Resource.CPUHotAddEnabled.ValueBool(), allStructsState.Resource.MemoryHotAddEnabled.ValueBool()); err != nil {
-				resp.Diagnostics.AddError("Error updating CPUHotAddEnabled", err.Error())
+				resp.Diagnostics.AddError("Error updating CPUHotAddEnabled", fmt.Sprintf("error updating CPUHotAddEnabled VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 		}
@@ -638,7 +644,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			if err := r.vm.ChangeCPUAndCoreCount(utils.TakeIntPointer(int(allStructsPlan.Resource.CPUs.ValueInt64())), utils.TakeIntPointer(int(allStructsPlan.Resource.CPUsCores.ValueInt64()))); err != nil {
 				resp.Diagnostics.AddError(
 					"Unable to change CPU and CPU Cores",
-					fmt.Sprintf("Error: %s", err),
+					fmt.Sprintf("error changing CPU and CPU Cores VM %s: %s", plan.Name.ValueString(), err),
 				)
 				return
 			}
@@ -649,7 +655,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			if err := r.vm.ChangeMemory(allStructsPlan.Resource.Memory.ValueInt64()); err != nil {
 				resp.Diagnostics.AddError(
 					"Unable to change memory size",
-					fmt.Sprintf("Error: %s", err),
+					fmt.Sprintf("error changing memory size VM %s: %s", plan.Name.ValueString(), err),
 				)
 				return
 			}
@@ -670,11 +676,11 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			}
 			networkConfig, err := r.vm.ConstructNetworksConnection(networkConnection)
 			if err != nil {
-				resp.Diagnostics.AddError("Error retrieving network config", err.Error())
+				resp.Diagnostics.AddError("Error updating network config", fmt.Sprintf("error retrieving network config VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 			if err := r.vm.UpdateNetworkConnectionSection(&networkConfig); err != nil {
-				resp.Diagnostics.AddError("Error updating network config", err.Error())
+				resp.Diagnostics.AddError("Error updating network config", fmt.Sprintf("error updating network config VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 		}
@@ -682,7 +688,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 
 	vmStatus, err := r.vm.GetStatus()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VM status", err.Error())
+		resp.Diagnostics.AddError("Error getting VM status", fmt.Sprintf("getting VM status %s failed: %s", plan.Name.ValueString(), err))
 		return
 	}
 
@@ -690,13 +696,13 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		if !allStructsPlan.Settings.Customization.Attributes()["force"].(types.Bool).ValueBool() && vmStatus != poweredON {
 			task, err := r.vm.PowerOn()
 			if err != nil {
-				resp.Diagnostics.AddError("Error powering on VM", err.Error())
+				resp.Diagnostics.AddError("Error powering on VM", fmt.Sprintf("error powering on VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 
 			err = task.WaitTaskCompletion()
 			if err != nil {
-				resp.Diagnostics.AddError("Error waiting powering on VM", err.Error())
+				resp.Diagnostics.AddError("Error waiting powering on VM", fmt.Sprintf("error waiting for power on VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 		}
@@ -705,32 +711,32 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			if vmStatus != poweredOFF {
 				task, err := r.vm.Undeploy()
 				if err != nil {
-					resp.Diagnostics.AddError("Error undeploying VM", err.Error())
+					resp.Diagnostics.AddError("Error undeploying VM", fmt.Sprintf("error undeploying VM %s: %s", plan.Name.ValueString(), err))
 					return
 				}
 
 				err = task.WaitTaskCompletion()
 				if err != nil {
-					resp.Diagnostics.AddError("Error waiting undeploying VM", err.Error())
+					resp.Diagnostics.AddError("Error waiting undeploying VM", fmt.Sprintf("error waiting for undeploy VM %s: %s", plan.Name.ValueString(), err))
 					return
 				}
 			}
 
 			if err := r.vm.PowerOnAndForceCustomization(); err != nil {
-				resp.Diagnostics.AddError("Error powering on VM", err.Error())
+				resp.Diagnostics.AddError("Error powering on VM", fmt.Sprintf("error powering on VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 		}
 	} else if !allStructsPlan.State.PowerON.ValueBool() && vmStatus != poweredOFF {
 		task, err := r.vm.Undeploy()
 		if err != nil {
-			resp.Diagnostics.AddError("Error undeploying VM", err.Error())
+			resp.Diagnostics.AddError("Error undeploying VM", fmt.Sprintf("error undeploying VM %s: %s", plan.Name.ValueString(), err))
 			return
 		}
 
 		err = task.WaitTaskCompletion()
 		if err != nil {
-			resp.Diagnostics.AddError("Error waiting undeploying VM", err.Error())
+			resp.Diagnostics.AddError("Error waiting undeploying VM", fmt.Sprintf("error waiting for undeploy VM %s: %s", plan.Name.ValueString(), err))
 			return
 		}
 	}
@@ -774,18 +780,18 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 
 	defer r.vapp.UnlockVAPP(ctx)
 
-	var d diag.Diagnostics
+	var err error
 
-	r.vm, d = vm.Init(r.client, r.vapp, vm.GetVMOpts{
+	r.vm, err = vm.Init(r.client, r.vapp, vm.GetVMOpts{
 		ID:   state.ID,
 		Name: types.StringNull(),
 	})
-	if d.HasError() {
-		if d.Contains(diag.NewErrorDiagnostic("VM not found", govcd.ErrorEntityNotFound.Error())) {
+	if err != nil {
+		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.Append(d...)
+		resp.Diagnostics.AddError("Error getting VM", err.Error())
 		return
 	}
 
@@ -800,27 +806,27 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 
 	deployed, err := r.vm.IsDeployed()
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting VM deploy status", err.Error())
+		resp.Diagnostics.AddError("Error getting VM deploy status", fmt.Sprintf("error getting VM deploy status %s: %s", state.Name.ValueString(), err))
 		return
 	}
 
 	if deployed {
 		task, err := r.vm.Undeploy()
 		if err != nil {
-			resp.Diagnostics.AddError("Error undeploying VM", err.Error())
+			resp.Diagnostics.AddError("Error undeploying VM", fmt.Sprintf("error undeploying VM %s: %s", state.Name.ValueString(), err))
 			return
 		}
 
 		err = task.WaitTaskCompletion()
 		if err != nil {
-			resp.Diagnostics.AddError("Error waiting for undeploy", err.Error())
+			resp.Diagnostics.AddError("Error waiting for undeploy", fmt.Sprintf("error waiting for undeploy VM %s: %s", state.Name.ValueString(), err))
 			return
 		}
 	}
 
 	err = r.vapp.RemoveVM(*r.vm.VM.VM)
 	if err != nil {
-		resp.Diagnostics.AddError("Error removing VM", err.Error())
+		resp.Diagnostics.AddError("Error removing VM", fmt.Sprintf("error removing VM %s: %s", state.Name.ValueString(), err))
 	}
 }
 
@@ -878,7 +884,7 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 
 	networkConfig, err := vm.ConstructNetworksConnectionWithoutVM(r.vapp, networkConnection)
 	if err != nil {
-		diags.AddError("Error retrieving network config", err.Error())
+		diags.AddError("Error retrieving network config", fmt.Sprintf("error retrieving network config VM %s: %s", rm.Name.ValueString(), err))
 		return vm.VM{}, diags
 	}
 
@@ -897,13 +903,13 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 	if !deployOS.VMNameInTemplate.IsNull() {
 		vappTemplate, err = r.client.GetTemplateWithVMName(deployOS.VappTemplateID.ValueString(), deployOS.VMNameInTemplate.ValueString())
 		if err != nil {
-			diags.AddError("Error retrieving vAppTemplate", err.Error())
+			diags.AddError("Error getting vApp template", fmt.Sprintf("getting vApp template for VM %s failed: %s", rm.Name.ValueString(), err))
 			return vm.VM{}, diags
 		}
 	} else {
 		vappTemplate, err = r.client.GetTemplate(deployOS.VappTemplateID.ValueString())
 		if err != nil {
-			diags.AddError("Error retrieving vAppTemplate", err.Error())
+			diags.AddError("Error getting vApp template", fmt.Sprintf("getting vApp template for VM %s failed: %s", rm.Name.ValueString(), err))
 			return vm.VM{}, diags
 		}
 	}
@@ -919,12 +925,14 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 	if !settings.AffinityRuleID.IsUnknown() && !settings.AffinityRuleID.IsNull() {
 		affinityRule, err := r.client.GetAffinityRule(settings.AffinityRuleID.ValueString())
 		if err != nil {
-			diags.AddError("Error retrieving affinity rule", err.Error())
+			diags.AddError("Error retrieving affinity rule", fmt.Sprintf("error retrieving affinity rule VM %s: %s", rm.Name.ValueString(), err))
 			return vm.VM{}, diags
 		}
 
 		if affinityRule != nil {
-			vmComputePolicy.VmPlacementPolicy = &govcdtypes.Reference{HREF: affinityRule.Href}
+			vmComputePolicy = &govcdtypes.ComputePolicy{
+				VmPlacementPolicy: &govcdtypes.Reference{HREF: affinityRule.Href},
+			}
 		}
 	}
 
@@ -932,7 +940,7 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 	if !settings.StorageProfile.IsUnknown() && !settings.StorageProfile.IsNull() {
 		storageProfile, err = r.vdc.GetStorageProfileReference(settings.StorageProfile.ValueString(), false)
 		if err != nil {
-			diags.AddError("Error retrieving storage profile", err.Error())
+			diags.AddError("Error retrieving storage profile", fmt.Sprintf("error retrieving storage profile VM %s: %s", rm.Name.ValueString(), err))
 			return vm.VM{}, diags
 		}
 	}
@@ -966,7 +974,7 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 	// * Create VM
 	x, err := r.vapp.AddRawVM(vmFromTemplateParams)
 	if err != nil {
-		diags.AddError("Error creating VM", err.Error())
+		diags.AddError("Error creating VM", fmt.Sprintf("error creating VM %s: %s", rm.Name.ValueString(), err))
 		return vm.VM{}, diags
 	}
 
@@ -1008,12 +1016,14 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 	if !settings.AffinityRuleID.IsUnknown() && !settings.AffinityRuleID.IsNull() {
 		affinityRule, err := r.client.GetAffinityRule(settings.AffinityRuleID.ValueString())
 		if err != nil {
-			diags.AddError("Error retrieving affinity rule", err.Error())
+			diags.AddError("Error retrieving affinity rule", fmt.Sprintf("error retrieving affinity rule VM %s: %s", rm.Name.ValueString(), err))
 			return vm.VM{}, diags
 		}
 
 		if affinityRule != nil {
-			vmComputePolicy.VmPlacementPolicy = &govcdtypes.Reference{HREF: affinityRule.Href}
+			vmComputePolicy = &govcdtypes.ComputePolicy{
+				VmPlacementPolicy: &govcdtypes.Reference{HREF: affinityRule.Href},
+			}
 		}
 	}
 
@@ -1021,7 +1031,7 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 	if !settings.StorageProfile.IsUnknown() && !settings.StorageProfile.IsNull() {
 		storageProfile, err = r.vdc.GetStorageProfileReference(settings.StorageProfile.ValueString(), false)
 		if err != nil {
-			diags.AddError("Error retrieving storage profile", err.Error())
+			diags.AddError("Error retrieving storage profile", fmt.Sprintf("error retrieving storage profile VM %s: %s", rm.Name.ValueString(), err))
 			return vm.VM{}, diags
 		}
 	}
@@ -1034,7 +1044,7 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 
 	bootImage, err := r.client.GetBootImage(deployOS.BootImageID.ValueString())
 	if err != nil {
-		diags.AddError("Error retrieving boot image", err.Error())
+		diags.AddError("Error retrieving boot image", fmt.Sprintf("error retrieving boot image VM %s: %s", rm.Name.ValueString(), err))
 		return vm.VM{}, diags
 	}
 
@@ -1089,15 +1099,20 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 
 	x, err := r.vapp.AddEmptyVm(vmParams)
 	if err != nil {
-		diags.AddError("Error creating VM", err.Error())
+		diags.AddError("Error creating VM", fmt.Sprintf("error creating VM %s: %s", rm.Name.ValueString(), err))
 		return vm.VM{}, diags
 	}
 
 	// * Get VM
-	return vm.Get(r.vapp, vm.GetVMOpts{
+	vmCreated, err = vm.Get(r.vapp, vm.GetVMOpts{
 		Name: rm.Name,
 		ID:   types.StringValue(x.VM.ID),
 	})
+	if err != nil {
+		diags.AddError("Error getting VM", err.Error())
+		return vm.VM{}, diags
+	}
+	return vmCreated, nil
 }
 
 // processAfterCreate is a common function for VM creation. It is called after VM is created and
@@ -1132,7 +1147,7 @@ func (r *vmResource) processAfterCreate(ctx context.Context, vmCreated vm.VM, rm
 
 	networkConfig, err := vm.ConstructNetworksConnectionWithoutVM(r.vapp, networkConnection)
 	if err != nil {
-		diags.AddError("Error retrieving network config", err.Error())
+		diags.AddError("Error retrieving network config", fmt.Sprintf("error retrieving network config VM %s: %s", rm.Name.ValueString(), err))
 		return vmUpdated, diags
 	}
 
@@ -1146,7 +1161,7 @@ func (r *vmResource) processAfterCreate(ctx context.Context, vmCreated vm.VM, rm
 	// * Expose Hardware Virtualization
 	err = vmCreated.SetExposeHardwareVirtualization(settings.ExposeHardwareVirtualization.ValueBool())
 	if err != nil {
-		diags.AddError("Error updating expose hardware virtualization", err.Error())
+		diags.AddError("Error updating expose hardware virtualization", fmt.Sprintf("error updating expose hardware virtualization VM %s: %s", rm.Name.ValueString(), err))
 		return vmUpdated, diags
 	}
 
@@ -1157,13 +1172,13 @@ func (r *vmResource) processAfterCreate(ctx context.Context, vmCreated vm.VM, rm
 	}
 
 	if err = vmCreated.SetGuestProperties(guestProperties); err != nil {
-		diags.AddError("Error updating guest properties", err.Error())
+		diags.AddError("Error updating guest properties", fmt.Sprintf("error updating guest properties VM %s: %s", rm.Name.ValueString(), err))
 		return vmUpdated, diags
 	}
 
 	// * Os Type
 	if err = vmCreated.SetOSType(settings.OsType.ValueString()); err != nil {
-		diags.AddError("Error updating OS Type", err.Error())
+		diags.AddError("Error updating OS Type", fmt.Sprintf("error updating OS Type VM %s: %s", rm.Name.ValueString(), err))
 		return vmUpdated, diags
 	}
 
@@ -1174,7 +1189,7 @@ func (r *vmResource) processAfterCreate(ctx context.Context, vmCreated vm.VM, rm
 			utils.TakeIntPointer(int(resource.CPUs.ValueInt64())),
 			utils.TakeIntPointer(int(resource.CPUsCores.ValueInt64())),
 		); err != nil {
-			diags.AddError("Error updating CPU and Memory", err.Error())
+			diags.AddError("Error updating CPU and Memory", fmt.Sprintf("error updating CPU and Memory VM %s: %s", rm.Name.ValueString(), err))
 			return vmUpdated, diags
 		}
 	}
@@ -1182,14 +1197,14 @@ func (r *vmResource) processAfterCreate(ctx context.Context, vmCreated vm.VM, rm
 	// ? Memory
 	if !resource.Memory.IsNull() {
 		if err = vmCreated.ChangeMemory(resource.Memory.ValueInt64()); err != nil {
-			diags.AddError("Error updating Memory", err.Error())
+			diags.AddError("Error updating Memory", fmt.Sprintf("error updating Memory VM %s: %s", rm.Name.ValueString(), err))
 			return vmUpdated, diags
 		}
 	}
 
 	// * Network
 	if err = vmCreated.UpdateNetworkConnectionSection(&networkConfig); err != nil {
-		diags.AddError("Error updating network config", err.Error())
+		diags.AddError("Error updating network config", fmt.Sprintf("error updating network config VM %s: %s", rm.Name.ValueString(), err))
 		return vmUpdated, diags
 	}
 
@@ -1201,19 +1216,19 @@ func (r *vmResource) processAfterCreate(ctx context.Context, vmCreated vm.VM, rm
 	}
 
 	if err = vmCreated.SetCustomization(customization.GetCustomizationSection(rm.Name.ValueString())); err != nil {
-		diags.AddError("Error updating customization", err.Error())
+		diags.AddError("Error updating customization", fmt.Sprintf("error updating customization VM %s: %s", rm.Name.ValueString(), err))
 		return vmUpdated, diags
 	}
 
 	// * CPU/Memory Hot Add
 	if _, err = vmCreated.UpdateVmCpuAndMemoryHotAdd(resource.CPUHotAddEnabled.ValueBool(), resource.MemoryHotAddEnabled.ValueBool()); err != nil {
-		diags.AddError("Error updating CPU/Memory Hot Add", err.Error())
+		diags.AddError("Error updating CPU/Memory Hot Add", fmt.Sprintf("error updating CPU/Memory Hot Add VM %s: %s", rm.Name.ValueString(), err))
 		return vmUpdated, diags
 	}
 
 	err = vmCreated.Refresh()
 	if err != nil {
-		diags.AddError("Error refreshing VM", err.Error())
+		diags.AddError("Error refreshing VM", fmt.Sprintf("error refreshing VM %s: %s", rm.Name.ValueString(), err))
 		return vmUpdated, diags
 	}
 
@@ -1247,17 +1262,17 @@ func (r *vmResource) vmPowerOn(ctx context.Context, rm vm.VMResourceModel) (diag
 	if state.PowerON.ValueBool() {
 		if customization.Force.ValueBool() {
 			if err := r.vm.PowerOnAndForceCustomization(); err != nil {
-				diags.AddError("Error powering on VM", err.Error())
+				diags.AddError("Error powering on VM", fmt.Sprintf("error powering on VM %s: %s", rm.Name.ValueString(), err))
 				return diags
 			}
 		} else {
 			task, err := r.vm.PowerOn()
 			if err != nil {
-				diags.AddError("Error powering on VM", err.Error())
+				diags.AddError("Error powering on VM", fmt.Sprintf("error powering on VM %s: %s", rm.Name.ValueString(), err))
 				return diags
 			}
 			if err = task.WaitTaskCompletion(); err != nil {
-				diags.AddError("error waiting for power on", err.Error())
+				diags.AddError("error waiting for power on", fmt.Sprintf("error waiting for power on VM %s: %s", rm.Name.ValueString(), err))
 				return diags
 			}
 		}
@@ -1269,7 +1284,7 @@ func (r *vmResource) vmPowerOn(ctx context.Context, rm vm.VMResourceModel) (diag
 // read is a common function for VM read. It is called in Update and Read.
 func (r *vmResource) read(ctx context.Context, rm, rmPlan *vm.VMResourceModel) (plan *vm.VMResourceModel, diags diag.Diagnostics) {
 	if err := r.vm.Refresh(); err != nil {
-		diags.AddError("Error refreshing VM", err.Error())
+		diags.AddError("Error refreshing VM", fmt.Sprintf("error refreshing VM %s: %s", r.vm.GetName(), err))
 		return plan, diags
 	}
 
@@ -1280,7 +1295,7 @@ func (r *vmResource) read(ctx context.Context, rm, rmPlan *vm.VMResourceModel) (
 	if err != nil {
 		diags.AddError(
 			"Unable to get VM state",
-			fmt.Sprintf("Error: %s", err),
+			fmt.Sprintf("error getting VM state %s: %s", r.vm.GetName(), err),
 		)
 		return plan, diags
 	}
@@ -1290,7 +1305,7 @@ func (r *vmResource) read(ctx context.Context, rm, rmPlan *vm.VMResourceModel) (
 	if err != nil {
 		diags.AddError(
 			"Unable to get VM networks",
-			fmt.Sprintf("Error: %s", err),
+			fmt.Sprintf("error getting VM networks %s: %s", r.vm.GetName(), err),
 		)
 		return plan, diags
 	}
@@ -1300,7 +1315,7 @@ func (r *vmResource) read(ctx context.Context, rm, rmPlan *vm.VMResourceModel) (
 	if err != nil {
 		diags.AddError(
 			"Unable to get VM settings",
-			fmt.Sprintf("Error: %s", err),
+			fmt.Sprintf("error getting VM settings %s: %s", r.vm.GetName(), err),
 		)
 		return plan, diags
 	}

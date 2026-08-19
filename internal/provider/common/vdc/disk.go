@@ -24,11 +24,15 @@ import (
 	"github.com/vmware/go-vcloud-director/v2/govcd"
 )
 
-// DiskExist checks if a disk exists in a VDC.
+func isDiskQueryNoResults(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "found results ")
+}
+
+// DiskExist reports whether disk exists in VDC.
 func (v VDC) DiskExist(diskName string) (bool, error) {
 	existingDisk, err := v.QueryDisk(diskName)
 	if err != nil {
-		if strings.Contains(err.Error(), "found results ") {
+		if isDiskQueryNoResults(err) {
 			return false, nil
 		}
 	}

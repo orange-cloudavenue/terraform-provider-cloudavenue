@@ -22,8 +22,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -32,6 +30,7 @@ import (
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -125,7 +124,7 @@ func (r *CertificateLibraryResource) Create(ctx context.Context, req resource.Cr
 		Passphrase:  plan.Passphrase.Get(),
 	})
 	if err != nil {
-		resp.Diagnostics.AddError("error while creating certificate %s in library", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionCreate, "certificate in library", err)
 		return
 	}
 
@@ -134,7 +133,7 @@ func (r *CertificateLibraryResource) Create(ctx context.Context, req resource.Cr
 	// Use generic read function to refresh the state
 	state, found, d := r.read(ctx, plan)
 	if !found {
-		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The certificate '%s' was not found after creation.", plan.Name.Get()))
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The certificate %s(%s) was not found after creation.", plan.Name.Get(), plan.ID.Get()))
 		return
 	}
 	if d.HasError() {
@@ -210,7 +209,7 @@ func (r *CertificateLibraryResource) Update(ctx context.Context, req resource.Up
 		Description: plan.Description.Get(),
 	})
 	if err != nil {
-		resp.Diagnostics.AddError("error while updating certificate : %s", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, "certificate", err)
 		return
 	}
 
@@ -248,7 +247,7 @@ func (r *CertificateLibraryResource) Delete(ctx context.Context, req resource.De
 	*/
 
 	if err := r.orgClient.DeleteCertificateFromLibrary(ctx, state.ID.Get()); err != nil {
-		resp.Diagnostics.AddError("error while deleting certificate : %s", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "certificate", err)
 		return
 	}
 }
@@ -304,10 +303,10 @@ func (r *CertificateLibraryResource) read(ctx context.Context, planOrState *Cert
 		certificate, err = r.orgClient.GetCertificateFromLibrary(ctx, planOrState.Name.Get())
 	}
 	if err != nil {
-		if govcd.IsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return nil, false, diags
 		}
-		diags.AddError("error while fetching certificate library: %s", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "certificate library", err)
 		return nil, false, diags
 	}
 

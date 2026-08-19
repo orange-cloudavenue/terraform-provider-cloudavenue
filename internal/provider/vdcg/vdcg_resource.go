@@ -213,7 +213,7 @@ func (r *vdcgResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// Use generic read function to refresh the state
 	stateRefreshed, found, d := r.read(ctx, plan)
 	if !found {
-		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("Resource with name %s(%s) not found after update.", plan.Name.Get(), plan.ID.Get()))
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The VDC Group %s(%s) was not found after update.", plan.Name.Get(), plan.ID.Get()))
 		return
 	}
 	if d.HasError() {

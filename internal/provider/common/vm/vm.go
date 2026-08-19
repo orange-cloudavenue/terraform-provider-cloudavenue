@@ -20,7 +20,6 @@ package vm
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 
@@ -47,7 +46,7 @@ type GetVMOpts struct {
 	Name types.String
 }
 
-// vmIDOrName returns the ID or name of the VM.
+// vmIDOrName returns VM ID or name.
 func (v GetVMOpts) vmIDOrName() string {
 	if v.ID.IsNull() || v.ID.IsUnknown() {
 		return v.Name.ValueString()
@@ -55,30 +54,21 @@ func (v GetVMOpts) vmIDOrName() string {
 	return v.ID.ValueString()
 }
 
-// ConstructObject is a special function that is used to construct the VM object from the govcd.VM.
+// ConstructObject constructs VM wrapper from govcd.VM.
 func ConstructObject(vApp vapp.VAPP, vm *govcd.VM) VM {
 	return VM{VM: &client.VM{VM: vm}, vApp: vApp}
 }
 
-/*
-Init
-
-Initializes a VM struct with a VM and a vApp.
-*/
-func Init(_ *client.CloudAvenue, vApp vapp.VAPP, vmInfo GetVMOpts) (vm VM, d diag.Diagnostics) {
+// Init resolves VM by ID or name and binds parent vApp.
+func Init(_ *client.CloudAvenue, vApp vapp.VAPP, vmInfo GetVMOpts) (vm VM, err error) {
 	vmOut, err := vApp.GetVMByNameOrId(vmInfo.vmIDOrName(), true)
 	if err != nil {
-		if errors.Is(err, govcd.ErrorEntityNotFound) {
-			d.AddError("VM not found", err.Error())
-			return VM{}, d
-		}
-		d.AddError("Error retrieving VM", err.Error())
-		return VM{}, d
+		return VM{}, fmt.Errorf("getting VM %q: %w", vmInfo.vmIDOrName(), err)
 	}
 	return VM{VM: &client.VM{VM: vmOut}, vApp: vApp}, nil
 }
 
-func Get(vApp vapp.VAPP, vmInfo GetVMOpts) (vm VM, d diag.Diagnostics) {
+func Get(vApp vapp.VAPP, vmInfo GetVMOpts) (vm VM, err error) {
 	return Init(nil, vApp, vmInfo)
 }
 
@@ -89,7 +79,7 @@ func (v VM) constructLockKey() string {
 // LockVM locks VM.
 func (v VM) LockVM(ctx context.Context) (d diag.Diagnostics) {
 	if v.GetID() == "" || ctx == nil {
-		d.AddError("Incorrect lock args", "VM: "+v.GetID())
+		d.AddError("Invalid lock arguments", "VM: "+v.GetID())
 		return d
 	}
 
@@ -100,7 +90,7 @@ func (v VM) LockVM(ctx context.Context) (d diag.Diagnostics) {
 // UnlockVM unlocks VM.
 func (v VM) UnlockVM(ctx context.Context) (d diag.Diagnostics) {
 	if v.GetID() == "" || ctx == nil {
-		d.AddError("Incorrect Unlock args", "VM: "+v.GetID())
+		d.AddError("Invalid unlock arguments", "VM: "+v.GetID())
 		return d
 	}
 
@@ -207,7 +197,7 @@ func (v VM) ConstructNetworksConnection(networks []NetworkConnection) (networkCo
 		}
 
 		if v.vApp.VAPP == nil {
-			return govcdtypes.NetworkConnectionSection{}, fmt.Errorf("vApp is not initialized")
+			return govcdtypes.NetworkConnectionSection{}, fmt.Errorf("parent vApp is not initialized")
 		}
 
 		switch network.Type.ValueString() {
@@ -215,13 +205,13 @@ func (v VM) ConstructNetworksConnection(networks []NetworkConnection) (networkCo
 			if ok, err := v.vApp.IsVAPPNetwork(network.Name.ValueString()); err != nil {
 				return govcdtypes.NetworkConnectionSection{}, err
 			} else if !ok {
-				return govcdtypes.NetworkConnectionSection{}, fmt.Errorf("vApp network : %s is not found", network.Name.ValueString())
+				return govcdtypes.NetworkConnectionSection{}, fmt.Errorf("vApp network %q not found", network.Name.ValueString())
 			}
 		case "org":
 			if ok, err := v.vApp.IsVAPPOrgNetwork(network.Name.ValueString()); err != nil {
 				return govcdtypes.NetworkConnectionSection{}, err
 			} else if !ok {
-				return govcdtypes.NetworkConnectionSection{}, fmt.Errorf("org network : %s is not found", network.Name.ValueString())
+				return govcdtypes.NetworkConnectionSection{}, fmt.Errorf("org network %q not found", network.Name.ValueString())
 			}
 		}
 

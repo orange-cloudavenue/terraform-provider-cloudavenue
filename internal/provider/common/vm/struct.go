@@ -78,7 +78,9 @@ func (rm *VMResourceModel) AllStructsFromPlan(ctx context.Context) (allStructs *
 // * DeployOS
 // DeployOSFromPlan returns the value of the DeployOS attribute, if set, as a VMResourceModelDeployOS.
 func (rm *VMResourceModel) DeployOSFromPlan(ctx context.Context) (deployOS *VMResourceModelDeployOS, diags diag.Diagnostics) {
-	tflog.Info(ctx, "DeployOSFromPlan")
+	if tflog.IsDebug(ctx) {
+		tflog.Debug(ctx, "DeployOSFromPlan")
+	}
 
 	if rm.DeployOS.IsNull() {
 		return &VMResourceModelDeployOS{
@@ -102,7 +104,9 @@ func (rm *VMResourceModel) DeployOSFromPlan(ctx context.Context) (deployOS *VMRe
 // * State
 // StateFromPlan returns the value of the State attribute, if set, as a VMResourceModelState.
 func (rm *VMResourceModel) StateFromPlan(ctx context.Context) (state *VMResourceModelState, diags diag.Diagnostics) {
-	tflog.Info(ctx, "StateFromPlan")
+	if tflog.IsDebug(ctx) {
+		tflog.Debug(ctx, "StateFromPlan")
+	}
 
 	if rm.State.IsNull() || rm.State.IsUnknown() {
 		return &VMResourceModelState{
@@ -124,7 +128,9 @@ func (rm *VMResourceModel) StateFromPlan(ctx context.Context) (state *VMResource
 // * Resource
 // ResourceFromPlan returns the value of the Resource attribute, if set, as a VMResourceModelResource.
 func (rm *VMResourceModel) ResourceFromPlan(ctx context.Context) (resource *VMResourceModelResource, diags diag.Diagnostics) {
-	tflog.Info(ctx, "ResourceFromPlan")
+	if tflog.IsDebug(ctx) {
+		tflog.Debug(ctx, "ResourceFromPlan")
+	}
 
 	networks := VMResourceModelResourceNetworks{}
 
@@ -152,7 +158,9 @@ func (rm *VMResourceModel) ResourceFromPlan(ctx context.Context) (resource *VMRe
 // * Networks
 // NetworksFromPlan returns the value of the Networks attribute, if set, as a VMResourceModelResourceNetworks.
 func (r *VMResourceModelResource) NetworksFromPlan(ctx context.Context) (networks *VMResourceModelResourceNetworks, diags diag.Diagnostics) {
-	tflog.Info(ctx, "NetworksFromPlan")
+	if tflog.IsDebug(ctx) {
+		tflog.Debug(ctx, "NetworksFromPlan")
+	}
 
 	networks = &VMResourceModelResourceNetworks{}
 
@@ -168,7 +176,9 @@ func (r *VMResourceModelResource) NetworksFromPlan(ctx context.Context) (network
 // * Settings
 // SettingsFromPlan returns the value of the Settings attribute, if set, as a VMResourceModelSettings.
 func (rm *VMResourceModel) SettingsFromPlan(ctx context.Context) (settings *VMResourceModelSettings, diags diag.Diagnostics) {
-	tflog.Info(ctx, "SettingsFromPlan")
+	if tflog.IsDebug(ctx) {
+		tflog.Debug(ctx, "SettingsFromPlan")
+	}
 
 	gP := VMResourceModelSettingsGuestProperties{}
 	custom := VMResourceModelSettingsCustomization{}
@@ -197,7 +207,9 @@ func (rm *VMResourceModel) SettingsFromPlan(ctx context.Context) (settings *VMRe
 // * SettingsCustomization
 // CustomizationFromPlan returns the value of the SettingsCustomization attribute, if set, as a VMResourceModelSettingsCustomization.
 func (s *VMResourceModelSettings) CustomizationFromPlan(ctx context.Context) (customization *VMResourceModelSettingsCustomization, diags diag.Diagnostics) {
-	tflog.Info(ctx, "CustomizationFromPlan")
+	if tflog.IsDebug(ctx) {
+		tflog.Debug(ctx, "CustomizationFromPlan")
+	}
 
 	customization = &VMResourceModelSettingsCustomization{}
 
@@ -216,7 +228,9 @@ func (s *VMResourceModelSettings) CustomizationFromPlan(ctx context.Context) (cu
 // * SettingsGuestProperties
 // GuestPropertiesFromPlan returns the value of the SettingsGuestProperties attribute, if set, as a VMResourceModelSettingsGuestProperties.
 func (s *VMResourceModelSettings) GuestPropertiesFromPlan(ctx context.Context, x types.Map) (guestProperties *VMResourceModelSettingsGuestProperties, diags diag.Diagnostics) {
-	tflog.Info(ctx, "GuestPropertiesFromPlan")
+	if tflog.IsDebug(ctx) {
+		tflog.Debug(ctx, "GuestPropertiesFromPlan")
+	}
 
 	if s.GuestProperties.IsNull() || s.GuestProperties.IsUnknown() {
 		return guestProperties, diags

@@ -41,15 +41,11 @@ func TestCloudAvenueClient(t *testing.T) {
 		"CLOUDAVENUE_VDC",
 	}
 
+	unsetEnvs(listOfEnvUnset)
+
 	for _, env := range listOfEnvSet {
 		if os.Getenv(env) == "" {
 			t.Fatalf("the environment variable %s is not set", env)
-		}
-	}
-
-	for _, env := range listOfEnvUnset {
-		if os.Getenv(env) != "" {
-			t.Fatalf("the environment variable %s is set", env)
 		}
 	}
 
@@ -197,4 +193,10 @@ func TestCloudAvenueClient(t *testing.T) {
 			})
 		}
 	})
+}
+
+func unsetEnvs(vars []string) {
+	for _, env := range vars {
+		_ = os.Unsetenv(env)
+	}
 }

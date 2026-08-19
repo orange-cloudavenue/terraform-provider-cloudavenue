@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
 	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -37,6 +36,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
@@ -243,11 +243,11 @@ func (r *networkRoutedResource) Update(ctx context.Context, req resource.UpdateR
 	// Get current network
 	orgNetwork, err := r.org.GetOpenApiOrgVdcNetworkById(plan.ID.Get())
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving routing network", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, "routing network", err)
 		return
 	}
 
@@ -314,11 +314,11 @@ func (r *networkRoutedResource) Delete(ctx context.Context, req resource.DeleteR
 	// Get current network
 	orgNetwork, err := r.org.GetOpenApiOrgVdcNetworkById(state.ID.Get())
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving routing network", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "routing network", err)
 		return
 	}
 
@@ -368,8 +368,8 @@ func (r *networkRoutedResource) ImportState(ctx context.Context, req resource.Im
 	}
 
 	orgNetwork, err := v.GetOpenApiOrgVdcNetworkByName(networkName)
-	if err != nil && !govcd.ContainsNotFound(err) || orgNetwork == nil {
-		resp.Diagnostics.AddError("Error retrieving org vdc network by name", err.Error())
+	if err != nil && !cerrs.IsNotFound(err) || orgNetwork == nil {
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "org vdc network by name", err)
 		return
 	}
 
@@ -389,10 +389,10 @@ func (r *networkRoutedResource) read(ctx context.Context, planOrState *RoutedMod
 	// Get Parent Edge Gateway ID to define the owner (VDC or VDC Group)
 	orgNetwork, err := r.org.GetOpenApiOrgVdcNetworkById(stateRefreshed.ID.Get())
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return nil, false, nil
 		}
-		diags.AddError("Error retrieving routing network", err.Error())
+		cerrs.AddError(&diags, cerrs.ActionRead, "routing network", err)
 		return stateRefreshed, found, diags
 	}
 

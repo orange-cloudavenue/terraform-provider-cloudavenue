@@ -49,12 +49,12 @@ var (
 	_ resource.ResourceWithImportState = &isolatedNetworkResource{}
 )
 
-// NewIsolatedNetworkResource is a helper function to simplify the provider implementation.
+// NewIsolatedNetworkResource returns isolated network resource.
 func NewIsolatedNetworkResource() resource.Resource {
 	return &isolatedNetworkResource{}
 }
 
-// isolatedNetworkResource is the resource implementation.
+// isolatedNetworkResource is isolated network resource implementation.
 type isolatedNetworkResource struct {
 	client *client.CloudAvenue
 	vdc    vdc.VDC
@@ -77,8 +77,12 @@ func (r *isolatedNetworkResource) Init(_ context.Context, rm *isolatedNetworkMod
 		return diags
 	}
 
-	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID.StringValue, rm.VAppName.StringValue)
-
+	vappModel, err := vapp.Init(r.client, r.vdc, rm.VAppID.StringValue, rm.VAppName.StringValue)
+	if err != nil {
+		diags.AddError("Error getting parent vApp", err.Error())
+		return diags
+	}
+	r.vapp = vappModel
 	return diags
 }
 
@@ -92,8 +96,8 @@ func (r *isolatedNetworkResource) Configure(_ context.Context, req resource.Conf
 
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected resource configure type",
+			fmt.Sprintf("Expected *client.CloudAvenue, got %T. Report this to provider maintainers.", req.ProviderData),
 		)
 
 		return
@@ -136,7 +140,7 @@ func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.Creat
 	// Create network
 	_, err := r.vapp.CreateVappNetwork(vappNetworkSettings, nil)
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating VApp isolated network", err.Error())
+		resp.Diagnostics.AddError("Error creating vApp isolated network", err.Error())
 		return
 	}
 
@@ -225,7 +229,7 @@ func (r *isolatedNetworkResource) Update(ctx context.Context, req resource.Updat
 	// Update network
 	_, err := r.vapp.UpdateNetwork(vappNetworkSettings, nil)
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating vApp network", err.Error())
+		resp.Diagnostics.AddError("Error updating vApp isolated network", err.Error())
 		return
 	}
 
@@ -267,7 +271,10 @@ func (r *isolatedNetworkResource) Delete(ctx context.Context, req resource.Delet
 
 	_, err := r.vapp.RemoveNetwork(state.ID.String())
 	if err != nil {
-		resp.Diagnostics.AddError("Error deleting vApp network", err.Error())
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("Error deleting vApp network from vApp %s(%s)", state.VAppName.ValueString(), state.VAppID.ValueString()),
+			err.Error(),
+		)
 		return
 	}
 }
@@ -310,7 +317,7 @@ func (r *isolatedNetworkResource) read(ctx context.Context, planOrState *isolate
 	// Get UUID.
 	networkID, err := govcd.GetUuidFromHref(net.Link.HREF, false)
 	if err != nil {
-		diags.AddError("Error creating vApp network uuid", err.Error())
+		diags.AddError("Error creating vApp network ID", err.Error())
 		return stateRefreshed, found, diags
 	}
 

@@ -34,7 +34,7 @@ type AdminOrg struct {
 func Init(c *client.CloudAvenue) (adminOrg AdminOrg, diags diag.Diagnostics) {
 	o, err := c.CAVSDK.V1.AdminOrg()
 	if err != nil {
-		diags.AddError("Unable to get ORG", err.Error())
+		diags.AddError("Error reading Org", err.Error())
 		return adminOrg, diags
 	}
 

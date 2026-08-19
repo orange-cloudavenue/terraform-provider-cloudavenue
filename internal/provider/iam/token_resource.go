@@ -31,6 +31,7 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
@@ -173,11 +174,11 @@ func (r *tokenResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 	token, err := r.client.Vmware.GetTokenById(state.ID.Get())
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error getting token", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "token", err)
 		return
 	}
 
@@ -216,11 +217,11 @@ func (r *tokenResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 
 	token, err := r.client.Vmware.GetTokenById(state.ID.Get())
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error getting token", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "token", err)
 		return
 	}
 

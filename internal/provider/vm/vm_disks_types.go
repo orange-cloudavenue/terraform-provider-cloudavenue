@@ -38,10 +38,10 @@ type DisksModel struct {
 	VMName   supertypes.StringValue     `tfsdk:"vm_name"`
 }
 
-// * Disks.
+// DisksModelDisks is a slice of DisksModelDisk
 type DisksModelDisks []DisksModelDisk
 
-// * Disks.
+// DisksModelDisk represent a Disk
 type DisksModelDisk struct {
 	ID             supertypes.StringValue `tfsdk:"id"`
 	IsDetachable   supertypes.BoolValue   `tfsdk:"is_detachable"`

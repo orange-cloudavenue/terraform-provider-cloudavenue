@@ -29,11 +29,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/errors"
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
@@ -128,7 +128,7 @@ func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.Read
 
 	appPortProfiles, err := d.edgegw.FindFirewallAppPortProfile(nameOrID)
 	if err != nil {
-		if errors.IsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			resp.Diagnostics.AddError("App Port Profile not found", err.Error())
 			return
 		}

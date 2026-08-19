@@ -68,15 +68,20 @@ func (r *insertedMediaResource) Init(_ context.Context, rm *insertedMediaResourc
 		return diags
 	}
 
-	r.vapp, diags = vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
-	if diags.HasError() {
+	vappModel, err := vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
+	if err != nil {
+		diags.AddError("Error getting parent vApp", err.Error())
 		return diags
 	}
+	r.vapp = vappModel
 
-	r.vm, diags = vm.Get(r.vapp, vm.GetVMOpts{
+	r.vm, err = vm.Get(r.vapp, vm.GetVMOpts{
 		ID:   types.StringNull(),
 		Name: rm.VMName,
 	})
+	if err != nil {
+		diags.AddError("Error getting VM", err.Error())
+	}
 
 	return diags
 }
@@ -91,8 +96,8 @@ func (r *insertedMediaResource) Configure(_ context.Context, req resource.Config
 
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *client.CloudAvenue, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected resource configure type",
+			fmt.Sprintf("Expected *client.CloudAvenue, got %T. Report this to provider maintainers.", req.ProviderData),
 		)
 
 		return
@@ -229,7 +234,7 @@ func (r *insertedMediaResource) Update(_ context.Context, _ resource.UpdateReque
 	// Check if VM exists
 	vm, err := r.vapp.GetVMByName(state.VMName.ValueString(), true)
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving VM", err.Error())
+		resp.Diagnostics.AddError("Error getting VM", err.Error())
 		return
 	}
 

@@ -26,8 +26,6 @@ import (
 
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -48,10 +46,6 @@ import (
 )
 
 const (
-	ErrVAppNotFound = "vApp not found"
-)
-
-const (
 	SchemaVappID   = "vapp_id"
 	SchemaVappName = "vapp_name"
 )
@@ -62,17 +56,12 @@ type VAPP struct {
 }
 
 var (
-	// ErrVAppRefEmpty is returned when a vApp reference is missing information.
-	ErrVAppRefEmpty  = errors.New("missing information in vapp ref")
-	vcdMutexKV       = mutex.NewKV()
-	DiagVAppNotFound = diag.NewErrorDiagnostic(ErrVAppNotFound, govcd.ErrorEntityNotFound.Error())
+	// ErrVAppRefEmpty indicates vApp reference is missing required fields.
+	ErrVAppRefEmpty = errors.New("missing information in vApp reference")
+	vcdMutexKV      = mutex.NewKV()
 )
 
-/*
-Schema
-
-Return the schema for vapp_id and vapp_name with MarkdownDescription, Validators and PlanModifiers.
-*/
+// Schema returns schema for `vapp_id` and `vapp_name`.
 func Schema() map[string]schemaR.Attribute {
 	return map[string]schemaR.Attribute{
 		"vapp_id": schemaR.StringAttribute{
@@ -98,11 +87,7 @@ func Schema() map[string]schemaR.Attribute {
 	}
 }
 
-/*
-SuperSchema
-
-Return the superschema for vapp_id and vapp_name with MarkdownDescription, Validators and PlanModifiers.
-*/
+// SuperSchema returns superschema for `vapp_id` and `vapp_name`.
 func SuperSchema() map[string]superschema.Attribute {
 	return map[string]superschema.Attribute{
 		"vapp_id": superschema.StringAttribute{
@@ -142,13 +127,8 @@ func SuperSchema() map[string]superschema.Attribute {
 	}
 }
 
-/*
-Init
-
-Get vApp name or vApp ID.
-If mustExist is false, returns a warning for non existent vApp.
-*/
-func Init(_ *client.CloudAvenue, vdc vdc.VDC, vappID, vappName types.String) (vapp VAPP, d diag.Diagnostics) {
+// Init resolves vApp by ID or name.
+func Init(_ *client.CloudAvenue, vdc vdc.VDC, vappID, vappName types.String) (vapp VAPP, err error) {
 	vappNameID := vappID.ValueString()
 	if vappID.IsNull() || vappID.IsUnknown() {
 		vappNameID = vappName.ValueString()
@@ -157,21 +137,12 @@ func Init(_ *client.CloudAvenue, vdc vdc.VDC, vappID, vappName types.String) (va
 	// Request vApp
 	vappOut, err := vdc.GetVAPP(vappNameID, true)
 	if err != nil {
-		if errors.Is(err, govcd.ErrorEntityNotFound) {
-			d.Append(diag.Diagnostics{DiagVAppNotFound}...)
-			return vapp, d
-		}
-		d.AddError("Error retrieving vApp", err.Error())
-		return vapp, d
+		return vapp, fmt.Errorf("getting vApp %q: %w", vappNameID, err)
 	}
 	return VAPP{VAPP: vappOut, vdc: vdc}, nil
 }
 
-/*
-Create
-
-Create vApp and return VAPP struct.
-*/
+// Create creates vApp and returns wrapper.
 func Create(vdc vdc.VDC, vappName, description string) (vapp VAPP, d diag.Diagnostics) {
 	vappOut, err := vdc.CreateVAPP(vappName, description)
 	if err != nil {
@@ -184,7 +155,7 @@ func Create(vdc vdc.VDC, vappName, description string) (vapp VAPP, d diag.Diagno
 // LockVAPP locks the parent vApp.
 func (v VAPP) LockVAPP(ctx context.Context) (d diag.Diagnostics) {
 	if v.vdc.GetName() == "" || v.GetName() == "" || ctx == nil {
-		d.AddError("Incorrect lock args", "vDC: "+v.vdc.GetName()+" vApp: "+v.GetName())
+		d.AddError("Invalid lock arguments", "vDC: "+v.vdc.GetName()+" vApp: "+v.GetName())
 		return d
 	}
 	key := fmt.Sprintf("vdc:%s|vapp:%s", v.vdc.GetName(), v.GetName())
@@ -195,7 +166,7 @@ func (v VAPP) LockVAPP(ctx context.Context) (d diag.Diagnostics) {
 // UnlockVAPP unlocks the parent vApp.
 func (v VAPP) UnlockVAPP(ctx context.Context) (d diag.Diagnostics) {
 	if v.vdc.GetName() == "" || v.GetName() == "" || ctx == nil {
-		d.AddError("Incorrect lock args", "vDC: "+v.vdc.GetName()+" vApp: "+v.GetName())
+		d.AddError("Invalid lock arguments", "vDC: "+v.vdc.GetName()+" vApp: "+v.GetName())
 		return d
 	}
 	key := fmt.Sprintf("vdc:%s|vapp:%s", v.vdc.GetName(), v.GetName())

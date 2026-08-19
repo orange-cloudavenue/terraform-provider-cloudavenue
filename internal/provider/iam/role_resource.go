@@ -36,7 +36,10 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
+
+const roleSubsystem = "iam.role"
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
@@ -116,6 +119,10 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
+	if tflog.IsDebug(ctx) {
+		tflog.SubsystemDebug(ctx, roleSubsystem, "Creating role", map[string]interface{}{attrName: plan.Name.ValueString()})
+	}
+
 	// Check rights are valid
 	rights := make([]govcdtypes.OpenApiReference, 0)
 	for _, right := range plan.Rights.Elements() {
@@ -153,12 +160,14 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 		BundleKey:   govcdtypes.VcloudUndefinedKey,
 	})
 	if err != nil {
+		tflog.SubsystemError(ctx, roleSubsystem, "Role create failed", map[string]interface{}{attrName: plan.Name.ValueString()})
 		resp.Diagnostics.AddError("Error creating role", err.Error())
 		return
 	}
 	if len(rights) > 0 {
 		err = role.AddRights(rights)
 		if err != nil {
+			tflog.SubsystemError(ctx, roleSubsystem, "Role rights update failed", map[string]interface{}{attrName: plan.Name.ValueString(), attrRights: len(rights)})
 			resp.Diagnostics.AddError("Error adding rights to role", err.Error())
 			return
 		}
@@ -193,14 +202,20 @@ func (r *roleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
+	if tflog.IsDebug(ctx) {
+		tflog.SubsystemDebug(ctx, roleSubsystem, "Reading role", map[string]interface{}{attrName: state.Name.ValueString()})
+	}
+
 	// Get Role
 	role, err := r.GetRole()
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
+			tflog.SubsystemDebug(ctx, roleSubsystem, "Role not found, removing from state", map[string]interface{}{attrName: state.Name.ValueString()})
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving role", err.Error())
+		tflog.SubsystemError(ctx, roleSubsystem, "Role read failed", map[string]interface{}{attrName: state.Name.ValueString()})
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "role", err)
 		return
 	}
 
@@ -251,19 +266,25 @@ func (r *roleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
+	if tflog.IsDebug(ctx) {
+		tflog.SubsystemDebug(ctx, roleSubsystem, "Deleting role", map[string]interface{}{attrName: state.Name.ValueString()})
+	}
+
 	// Get the role
 	role, err = r.GetRole()
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
-			tflog.Debug(ctx, "Unable to find role. Removing from tfstate")
+		if cerrs.IsNotFound(err) {
+			tflog.SubsystemDebug(ctx, roleSubsystem, "Role not found, removing from state", map[string]interface{}{attrName: state.Name.ValueString()})
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error retrieving role", err.Error())
+		tflog.SubsystemError(ctx, roleSubsystem, "Role delete lookup failed", map[string]interface{}{attrName: state.Name.ValueString()})
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "role", err)
 		return
 	}
 	err = role.Delete()
 	if err != nil {
+		tflog.SubsystemError(ctx, roleSubsystem, "Role delete failed", map[string]interface{}{attrName: state.Name.ValueString()})
 		resp.Diagnostics.AddError("Error deleting role", err.Error())
 		return
 	}
@@ -290,18 +311,24 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
+	if tflog.IsDebug(ctx) {
+		tflog.SubsystemDebug(ctx, roleSubsystem, "Updating role", map[string]interface{}{attrName: state.Name.ValueString()})
+	}
+
 	// Get the role
 	role, err = r.GetRole()
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving role", err.Error())
+		tflog.SubsystemError(ctx, roleSubsystem, "Role update lookup failed", map[string]interface{}{attrName: state.Name.ValueString()})
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, "role", err)
 		return
 	}
 
 	// Update the role Name or Description
-	if (plan.Name.Equal(state.Name)) || (plan.Description.Equal(state.Description)) {
+	if (!plan.Name.Equal(state.Name)) || (!plan.Description.Equal(state.Description)) {
 		role.Role.Name = plan.Name.Get()
 		role.Role.Description = plan.Description.Get()
 		if _, err := role.Update(); err != nil {
+			tflog.SubsystemError(ctx, roleSubsystem, "Role attribute update failed", map[string]interface{}{attrName: plan.Name.ValueString()})
 			resp.Diagnostics.AddError("Error updating role", err.Error())
 			return
 		}
