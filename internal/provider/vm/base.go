@@ -23,4 +23,5 @@ const (
 
 	poweredON  = "POWERED_ON"
 	poweredOFF = "POWERED_OFF"
+	suspended  = "SUSPENDED"
 )

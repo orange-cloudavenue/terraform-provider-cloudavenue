@@ -86,7 +86,7 @@ func (r *vmResource) Init(_ context.Context, rm *vm.VMResourceModel) (diags diag
 
 	vappModel, err := vapp.Init(r.client, r.vdc, rm.VappID, rm.VappName)
 	if err != nil {
-		diags.AddError("Error getting vApp", err.Error())
+		diags.AddError("Error retrieving vApp", fmt.Sprintf("error retrieving vApp %q for VM %q in vDC %q: %s", rm.VappName.ValueString(), rm.Name.ValueString(), rm.VDC.ValueString(), err))
 		return diags
 	}
 	r.vapp = vappModel
@@ -306,7 +306,7 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error getting VM", err.Error())
+		resp.Diagnostics.AddError("Error retrieving VM", fmt.Sprintf("error retrieving VM %s during read: %s", state.Name.ValueString(), err))
 		return
 	}
 
@@ -362,7 +362,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error getting VM", err.Error())
+		resp.Diagnostics.AddError("Error retrieving VM", fmt.Sprintf("error retrieving VM %s during update: %s", state.Name.ValueString(), err))
 		return
 	}
 
@@ -466,7 +466,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			}
 			networkConfig, err := r.vm.ConstructNetworksConnection(networkConnection)
 			if err != nil {
-				resp.Diagnostics.AddError("Error updating network config", fmt.Sprintf("error retrieving network config VM %s: %s", plan.Name.ValueString(), err))
+				resp.Diagnostics.AddError("Error retrieving network config", fmt.Sprintf("error retrieving network config VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 			if err = r.vm.UpdateNetworkConnectionSection(&networkConfig); err != nil {
@@ -559,7 +559,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	// ! Cold Update
 	vmStatusBeforeUpdate, err := r.vm.GetStatus()
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting VM status", fmt.Sprintf("getting VM status %s failed: %s", plan.Name.ValueString(), err))
+		resp.Diagnostics.AddError("Error retrieving VM status", fmt.Sprintf("error retrieving VM status %s: %s", plan.Name.ValueString(), err))
 		return
 	}
 
@@ -635,7 +635,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		if !allStructsPlan.Resource.CPUHotAddEnabled.Equal(allStructsState.Resource.CPUHotAddEnabled) ||
 			!allStructsPlan.Resource.MemoryHotAddEnabled.Equal(allStructsState.Resource.MemoryHotAddEnabled) {
 			if _, err := r.vm.UpdateVmCpuAndMemoryHotAdd(allStructsPlan.Resource.CPUHotAddEnabled.ValueBool(), allStructsState.Resource.MemoryHotAddEnabled.ValueBool()); err != nil {
-				resp.Diagnostics.AddError("Error updating CPUHotAddEnabled", fmt.Sprintf("error updating CPUHotAddEnabled VM %s: %s", plan.Name.ValueString(), err))
+				resp.Diagnostics.AddError("Error updating CPU/Memory hot add", fmt.Sprintf("error updating CPU/Memory hot add for VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 		}
@@ -676,7 +676,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			}
 			networkConfig, err := r.vm.ConstructNetworksConnection(networkConnection)
 			if err != nil {
-				resp.Diagnostics.AddError("Error updating network config", fmt.Sprintf("error retrieving network config VM %s: %s", plan.Name.ValueString(), err))
+				resp.Diagnostics.AddError("Error retrieving network config", fmt.Sprintf("error retrieving network config VM %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 			if err := r.vm.UpdateNetworkConnectionSection(&networkConfig); err != nil {
@@ -688,7 +688,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 
 	vmStatus, err := r.vm.GetStatus()
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting VM status", fmt.Sprintf("getting VM status %s failed: %s", plan.Name.ValueString(), err))
+		resp.Diagnostics.AddError("Error retrieving VM status", fmt.Sprintf("error retrieving VM status %s: %s", plan.Name.ValueString(), err))
 		return
 	}
 
@@ -791,7 +791,7 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Error getting VM", err.Error())
+		resp.Diagnostics.AddError("Error retrieving VM", fmt.Sprintf("error retrieving VM %s during delete: %s", state.Name.ValueString(), err))
 		return
 	}
 
@@ -806,7 +806,7 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 
 	deployed, err := r.vm.IsDeployed()
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting VM deploy status", fmt.Sprintf("error getting VM deploy status %s: %s", state.Name.ValueString(), err))
+		resp.Diagnostics.AddError("Error retrieving VM deploy status", fmt.Sprintf("error retrieving VM deploy status for %s: %s", state.Name.ValueString(), err))
 		return
 	}
 
@@ -903,13 +903,13 @@ func (r *vmResource) createVMWithTemplate(ctx context.Context, rm vm.VMResourceM
 	if !deployOS.VMNameInTemplate.IsNull() {
 		vappTemplate, err = r.client.GetTemplateWithVMName(deployOS.VappTemplateID.ValueString(), deployOS.VMNameInTemplate.ValueString())
 		if err != nil {
-			diags.AddError("Error getting vApp template", fmt.Sprintf("getting vApp template for VM %s failed: %s", rm.Name.ValueString(), err))
+			diags.AddError("Error retrieving vApp template", fmt.Sprintf("error retrieving vApp template for VM %s: %s", rm.Name.ValueString(), err))
 			return vm.VM{}, diags
 		}
 	} else {
 		vappTemplate, err = r.client.GetTemplate(deployOS.VappTemplateID.ValueString())
 		if err != nil {
-			diags.AddError("Error getting vApp template", fmt.Sprintf("getting vApp template for VM %s failed: %s", rm.Name.ValueString(), err))
+			diags.AddError("Error retrieving vApp template", fmt.Sprintf("error retrieving vApp template for VM %s: %s", rm.Name.ValueString(), err))
 			return vm.VM{}, diags
 		}
 	}
@@ -1109,7 +1109,7 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 		ID:   types.StringValue(x.VM.ID),
 	})
 	if err != nil {
-		diags.AddError("Error getting VM", err.Error())
+		diags.AddError("Error retrieving created VM", fmt.Sprintf("error retrieving created VM %s: %s", rm.Name.ValueString(), err))
 		return vm.VM{}, diags
 	}
 	return vmCreated, nil
@@ -1272,7 +1272,7 @@ func (r *vmResource) vmPowerOn(ctx context.Context, rm vm.VMResourceModel) (diag
 				return diags
 			}
 			if err = task.WaitTaskCompletion(); err != nil {
-				diags.AddError("error waiting for power on", fmt.Sprintf("error waiting for power on VM %s: %s", rm.Name.ValueString(), err))
+				diags.AddError("Error waiting for VM power on", fmt.Sprintf("error waiting for power on VM %s: %s", rm.Name.ValueString(), err))
 				return diags
 			}
 		}

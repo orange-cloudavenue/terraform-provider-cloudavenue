@@ -69,6 +69,23 @@ type diskResource struct {
 
 type diskResourceModel vm.Disk
 
+func validateDetachDiskVMStatus(vmName, diskName, status string) error {
+	if !strings.EqualFold(status, suspended) {
+		return nil
+	}
+
+	return fmt.Errorf("cannot detach disk %s from VM %s while VM is in %s state; resume or discard suspended state before retrying", diskName, vmName, status)
+}
+
+func ensureVMCanDetachDisk(targetVM vm.VM, diskName string) error {
+	status, err := targetVM.GetStatus()
+	if err != nil {
+		return fmt.Errorf("error getting VM status before detaching disk %s from VM %s: %w", diskName, targetVM.GetName(), err)
+	}
+
+	return validateDetachDiskVMStatus(targetVM.GetName(), diskName, status)
+}
+
 // Metadata returns the resource type name.
 func (r *diskResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName + "_" + "disk"
@@ -132,20 +149,38 @@ func (r *diskResource) Configure(_ context.Context, req resource.ConfigureReques
 
 // ModifyPlan is called before Create, Update, and Delete to modify the plan.
 func (r *diskResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
 	var d diag.Diagnostics
 
 	diskPlan := &diskResourceModel{}
 	diskState := &diskResourceModel{}
 
-	d = req.State.Get(ctx, diskState)
-	if d.HasError() {
-		// State is not available, so we can't validate the plan.
-		return
-	}
-
 	d = req.Plan.Get(ctx, diskPlan)
 	if d.HasError() {
 		// Plan is not available, so we can't validate the plan.
+		return
+	}
+
+	// if disk is not detachable, vm_id or vm_name is required
+	// An unknown value means it is resolved from another resource in the same
+	// apply (e.g. vm_id = cloudavenue_vm.example.id) and will be known at apply
+	// time, so only a definitively null value triggers the error.
+	if diskPlan.IsDetachable.IsNull() || diskPlan.IsDetachable.IsUnknown() || !diskPlan.IsDetachable.ValueBool() {
+		if diskPlan.VMID.IsNull() && diskPlan.VMName.IsNull() {
+			resp.Diagnostics.AddError(
+				"VM is required",
+				"if \"is_detachable\" attribute is false \"vm_id\" or \"vm_name\" is required to attach disk to a VM",
+			)
+			return
+		}
+	}
+
+	d = req.State.Get(ctx, diskState)
+	if d.HasError() {
+		// State is not available, so we can't validate the plan.
 		return
 	}
 
@@ -164,14 +199,6 @@ func (r *diskResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRe
 				"Warning IDE bus type require VM power off to be applied",
 				"IDE bus type require VM power off to be applied. \n"+
 					"If you apply this change, power off before apply and power on after apply will be required.",
-			)
-		}
-
-		// if disk is not detachable, vm_id or vm_name is required
-		if diskPlan.VMID.IsNull() && diskPlan.VMName.IsNull() {
-			resp.Diagnostics.AddError(
-				"VM is required",
-				"if \"is_detachable\" attribute is false \"vm_id\" or \"vm_name\" is required to attach disk to a VM",
 			)
 		}
 
@@ -280,19 +307,24 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 			// loop with Timeout
 			diskRefreshTimeout := 20 * time.Second
 			diskRefreshTicker := time.NewTicker(2 * time.Second)
+			defer diskRefreshTicker.Stop()
+			timeout := time.After(diskRefreshTimeout)
 			refreshEnded := false
 
-			for refreshEnded {
+			for !refreshEnded {
 				select {
 				case <-diskRefreshTicker.C:
 					if err := r.vm.Refresh(); err != nil {
-						resp.Diagnostics.AddError("error refreshing disk", err.Error())
+						resp.Diagnostics.AddError("error refreshing vm", fmt.Sprintf("error refreshing vm: %s", err))
 						return
+					}
+					if r.vm.VM == nil || r.vm.VM.VM == nil || r.vm.VM.VM.VM == nil || r.vm.VM.VM.VM.Link == nil {
+						continue
 					}
 					if len(r.vm.VM.VM.VM.Link) > 0 {
 						refreshEnded = true
 					}
-				case <-time.After(diskRefreshTimeout):
+				case <-timeout:
 					resp.Diagnostics.AddError("error refreshing disk", "timeout refreshing disk")
 					return
 				}
@@ -306,22 +338,57 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 			// Attach disk
 			task, err = r.vm.AttachDisk(r.vm.AttachDiskSettings(plan.BusNumber, plan.UnitNumber, task.Task.Owner.HREF))
 			if err != nil {
-				resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %v", plan.Name.ValueString(), err))
+				resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 
 			if err = task.WaitTaskCompletion(); err != nil {
-				resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %v", plan.Name.ValueString(), err))
+				resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 
 			if err = disk.Refresh(); err != nil {
-				resp.Diagnostics.AddError("error refreshing disk", fmt.Sprintf("error refreshing disk %s: %v", plan.Name.ValueString(), err))
+				resp.Diagnostics.AddError("error refreshing disk", fmt.Sprintf("error refreshing disk %s: %s", plan.Name.ValueString(), err))
 				return
 			}
 			newPlan.BusType = types.StringValue(diskparams.GetBusTypeByCode(disk.Disk.BusType, disk.Disk.BusSubType).Name())
+
+			if err := r.vm.Refresh(); err != nil {
+				resp.Diagnostics.AddError("error refreshing vm", fmt.Sprintf("error refreshing vm: %s", err))
+				return
+			}
+			var diskSettings []*govcdtypes.DiskSettings
+			if r.vm.VM != nil && r.vm.VM.VM != nil && r.vm.VM.VM.VM != nil && r.vm.VM.VM.VM.VmSpecSection != nil && r.vm.VM.VM.VM.VmSpecSection.DiskSection != nil {
+				diskSettings = r.vm.VM.VM.VM.VmSpecSection.DiskSection.DiskSettings
+			}
+
+			found := false
+			for _, diskSetting := range diskSettings {
+				diskIDToMatch := diskSetting.DiskId
+				if diskSetting.Disk != nil && diskSetting.Disk.HREF != "" {
+					diskIDToMatch = diskSetting.Disk.HREF
+				}
+				if urn.ExtractUUID(diskIDToMatch) == urn.ExtractUUID(disk.Disk.Id) {
+					newPlan.BusNumber = types.Int64Value(int64(diskSetting.BusNumber))
+					newPlan.UnitNumber = types.Int64Value(int64(diskSetting.UnitNumber))
+					found = true
+					break
+				}
+			}
+			if !found {
+				resp.Diagnostics.AddError("error reading disk settings", fmt.Sprintf("unable to find disk %s in VM disk settings", disk.Disk.Id))
+				return
+			}
+		} else {
+			newPlan.BusNumber = types.Int64Null()
+			newPlan.UnitNumber = types.Int64Null()
 		} // End if r.vm != (vm.VM{})
 	} else { // Disk not detachable it's an internal disk
+		if r.vm.VM == nil || r.vm.VM.VM == nil || r.vm.VM.VM.VM == nil {
+			resp.Diagnostics.AddError("VM not found", "VM is not available to create internal disk")
+			return
+		}
+
 		// storage profile
 		var (
 			storageProfilePrt *govcdtypes.Reference
@@ -346,12 +413,24 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 		var busNumber, unitNumber types.Int64
 
+		var computedBus, computedUnit int
+		if plan.BusNumber.IsNull() || plan.BusNumber.IsUnknown() || plan.UnitNumber.IsNull() || plan.UnitNumber.IsUnknown() {
+			var diskSettings []*govcdtypes.DiskSettings
+			if r.vm.VM != nil && r.vm.VM.VM != nil && r.vm.VM.VM.VM != nil && r.vm.VM.VM.VM.VmSpecSection != nil && r.vm.VM.VM.VM.VmSpecSection.DiskSection != nil {
+				diskSettings = r.vm.VM.VM.VM.VmSpecSection.DiskSection.DiskSettings
+			}
+			computedBus, computedUnit = diskparams.ComputeBusAndUnitNumber(diskSettings)
+		}
+
 		if plan.BusNumber.IsNull() || plan.BusNumber.IsUnknown() {
-			b, u := diskparams.ComputeBusAndUnitNumber(r.vm.GetDiskSettings())
-			busNumber = types.Int64Value(int64(b))
-			unitNumber = types.Int64Value(int64(u))
+			busNumber = types.Int64Value(int64(computedBus))
 		} else {
 			busNumber = plan.BusNumber
+		}
+
+		if plan.UnitNumber.IsNull() || plan.UnitNumber.IsUnknown() {
+			unitNumber = types.Int64Value(int64(computedUnit))
+		} else {
 			unitNumber = plan.UnitNumber
 		}
 
@@ -383,6 +462,8 @@ func (r *diskResource) Create(ctx context.Context, req resource.CreateRequest, r
 		newPlan.BusType = types.StringValue(strings.ToUpper(vm.GetBusTypeByCode(diskSetting.AdapterType).Name()))
 		newPlan.SizeInMb = types.Int64Value(diskSetting.SizeMb)
 		newPlan.StorageProfile = types.StringValue(storageProfilePrt.Name)
+		newPlan.BusNumber = types.Int64Value(int64(diskSetting.BusNumber))
+		newPlan.UnitNumber = types.Int64Value(int64(diskSetting.UnitNumber))
 	}
 
 	// Set state to fully populated data
@@ -432,7 +513,7 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 		attachedVmsHrefs, err := x.GetAttachedVmsHrefs()
 		if err != nil {
-			resp.Diagnostics.AddError("unable to find attached VM", fmt.Sprintf("unable to find attached VM for disk %s: %v", state.Name.ValueString(), err))
+			resp.Diagnostics.AddError("unable to find attached VM", fmt.Sprintf("unable to find attached VM for disk %s: %s", state.Name.ValueString(), err))
 			return
 		}
 
@@ -447,6 +528,43 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		updatedState.SizeInMb = types.Int64Value(x.Disk.SizeMb)
 		updatedState.BusType = types.StringValue(strings.ToUpper(diskparams.GetBusTypeByCode(x.Disk.BusType, x.Disk.BusSubType).Name()))
 		updatedState.StorageProfile = types.StringValue(x.Disk.StorageProfile.Name)
+
+		// Normally a disk can be attached to only one VM
+		if len(attachedVmsHrefs) == 1 {
+			govcdVM, err := r.client.Vmware.Client.GetVMByHref(attachedVmsHrefs[0])
+			if err != nil {
+				resp.Diagnostics.AddError("unable to find attached VM", fmt.Sprintf("unable to find attached VM for disk %s: %s", state.Name.ValueString(), err))
+				return
+			}
+
+			if govcdVM != nil && govcdVM.VM != nil {
+				updatedState.VMID = types.StringValue(govcdVM.VM.ID)
+			}
+
+			var found bool
+			if govcdVM != nil && govcdVM.VM != nil && govcdVM.VM.VmSpecSection != nil && govcdVM.VM.VmSpecSection.DiskSection != nil {
+				for _, diskSetting := range govcdVM.VM.VmSpecSection.DiskSection.DiskSettings {
+					diskIDToMatch := diskSetting.DiskId
+					if diskSetting.Disk != nil && diskSetting.Disk.HREF != "" {
+						diskIDToMatch = diskSetting.Disk.HREF
+					}
+					if urn.ExtractUUID(diskIDToMatch) == urn.ExtractUUID(state.ID.ValueString()) {
+						updatedState.BusNumber = types.Int64Value(int64(diskSetting.BusNumber))
+						updatedState.UnitNumber = types.Int64Value(int64(diskSetting.UnitNumber))
+						found = true
+						break
+					}
+				}
+			}
+			if !found {
+				updatedState.BusNumber = types.Int64Null()
+				updatedState.UnitNumber = types.Int64Null()
+				resp.Diagnostics.AddWarning("disk bus information not found", fmt.Sprintf("could not find bus_number/unit_number for disk %s in VM disk settings", state.ID.ValueString()))
+			}
+		} else if len(attachedVmsHrefs) == 0 {
+			updatedState.BusNumber = types.Int64Null()
+			updatedState.UnitNumber = types.Int64Null()
+		}
 	} else {
 		// * Internal disk
 		internalDisk, err := r.vm.GetInternalDiskById(state.ID.ValueString(), true)
@@ -465,6 +583,8 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		updatedState.SizeInMb = types.Int64Value(internalDisk.SizeMb)
 		updatedState.StorageProfile = types.StringValue(internalDisk.StorageProfile.Name)
 		updatedState.BusType = types.StringValue(strings.ToUpper(vm.GetBusTypeByCode(internalDisk.AdapterType).Name()))
+		updatedState.BusNumber = types.Int64Value(int64(internalDisk.BusNumber))
+		updatedState.UnitNumber = types.Int64Value(int64(internalDisk.UnitNumber))
 	}
 
 	// Set state to fully populated data
@@ -499,6 +619,8 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	defer r.vapp.UnlockVAPP(ctx)
 
+	updatedState := *plan
+
 	if state.IsDetachable.ValueBool() {
 		// Get the disk by the ID
 		disk, err := r.vdc.GetDiskById(state.ID.ValueString(), true)
@@ -507,16 +629,13 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			return
 		}
 
-		var (
-			diskIsDetached bool
-			vmDiskDetached vm.VM
-		)
-
-		// Check if size, storage profile, vm id or vm name has changed
+		// Check if size, storage profile, vm id, vm name, bus number or unit number has changed
 		if !plan.SizeInMb.Equal(state.SizeInMb) ||
 			!plan.StorageProfile.Equal(state.StorageProfile) ||
 			!plan.VMID.Equal(state.VMID) ||
-			!plan.VMName.Equal(state.VMName) {
+			!plan.VMName.Equal(state.VMName) ||
+			(!plan.BusNumber.IsUnknown() && !plan.BusNumber.Equal(state.BusNumber)) ||
+			(!plan.UnitNumber.IsUnknown() && !plan.UnitNumber.Equal(state.UnitNumber)) {
 			// Check if disk is attached to a VM
 			if !(state.VMID.IsNull() && state.VMName.IsNull()) {
 				// Detach disk from VM
@@ -535,6 +654,12 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 					return
 				}
 
+				if err := ensureVMCanDetachDisk(vmOld, state.Name.ValueString()); err != nil {
+					vmOld.UnlockVM(ctx)
+					resp.Diagnostics.AddError("error detaching disk", err.Error())
+					return
+				}
+
 				// Detach disk
 				task, err := vmOld.DetachDisk(&govcdtypes.DiskAttachOrDetachParams{
 					Disk: &govcdtypes.Reference{HREF: disk.Disk.HREF},
@@ -549,8 +674,6 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 					resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s(%s): %v", state.Name.ValueString(), state.ID.ValueString(), err))
 					return
 				}
-				vmDiskDetached = vmOld
-				diskIsDetached = true
 				vmOld.UnlockVM(ctx)
 			}
 
@@ -611,18 +734,25 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 					return
 				}
 
-				if diskIsDetached {
-					for _, x := range vmDiskDetached.VM.VM.VM.VmSpecSection.DiskSection.DiskSettings {
-						if x.DiskId == disk.Disk.Id {
-							busNumber = types.Int64Value(int64(x.BusNumber))
-							unitNumber = types.Int64Value(int64(x.UnitNumber))
-							break
-						}
+				var computedBus, computedUnit int
+				if plan.BusNumber.IsNull() || plan.BusNumber.IsUnknown() || plan.UnitNumber.IsNull() || plan.UnitNumber.IsUnknown() {
+					var diskSettings []*govcdtypes.DiskSettings
+					if vmNew.VM != nil && vmNew.VM.VM != nil && vmNew.VM.VM.VM != nil && vmNew.VM.VM.VM.VmSpecSection != nil && vmNew.VM.VM.VM.VmSpecSection.DiskSection != nil {
+						diskSettings = vmNew.VM.VM.VM.VmSpecSection.DiskSection.DiskSettings
 					}
-				} else if plan.BusNumber.IsNull() || plan.UnitNumber.IsNull() {
-					b, u := diskparams.ComputeBusAndUnitNumber(vmNew.VM.VM.VM.VmSpecSection.DiskSection.DiskSettings)
-					busNumber = types.Int64Value(int64(b))
-					unitNumber = types.Int64Value(int64(u))
+					computedBus, computedUnit = diskparams.ComputeBusAndUnitNumber(diskSettings)
+				}
+
+				if plan.BusNumber.IsNull() || plan.BusNumber.IsUnknown() {
+					busNumber = types.Int64Value(int64(computedBus))
+				} else {
+					busNumber = plan.BusNumber
+				}
+
+				if plan.UnitNumber.IsNull() || plan.UnitNumber.IsUnknown() {
+					unitNumber = types.Int64Value(int64(computedUnit))
+				} else {
+					unitNumber = plan.UnitNumber
 				}
 
 				// Attach disk
@@ -632,21 +762,74 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 					UnitNumber: utils.TakeIntPointer(int(unitNumber.ValueInt64())),
 				})
 				if err != nil {
-					resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %v", plan.Name.ValueString(), err))
+					resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %s", plan.Name.ValueString(), err))
 					return
 				}
 
 				if err = task.WaitTaskCompletion(); err != nil {
-					resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %v", plan.Name.ValueString(), err))
+					resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %s", plan.Name.ValueString(), err))
 					return
 				}
+
+				// Read actual bus_number and unit_number from the VM
+				if err := vmNew.Refresh(); err != nil {
+					resp.Diagnostics.AddError("error refreshing vm", fmt.Sprintf("error refreshing vm: %s", err))
+					return
+				}
+				var diskSettings []*govcdtypes.DiskSettings
+				if vmNew.VM != nil && vmNew.VM.VM != nil && vmNew.VM.VM.VM != nil && vmNew.VM.VM.VM.VmSpecSection != nil && vmNew.VM.VM.VM.VmSpecSection.DiskSection != nil {
+					diskSettings = vmNew.VM.VM.VM.VmSpecSection.DiskSection.DiskSettings
+				}
+
+				found := false
+				for _, x := range diskSettings {
+					diskIDToMatch := x.DiskId
+					if x.Disk != nil && x.Disk.HREF != "" {
+						diskIDToMatch = x.Disk.HREF
+					}
+					if urn.ExtractUUID(diskIDToMatch) == urn.ExtractUUID(disk.Disk.Id) {
+						updatedState.BusNumber = types.Int64Value(int64(x.BusNumber))
+						updatedState.UnitNumber = types.Int64Value(int64(x.UnitNumber))
+						found = true
+						break
+					}
+				}
+				if !found {
+					resp.Diagnostics.AddError("error reading disk settings", fmt.Sprintf("unable to find disk %s in VM disk settings", disk.Disk.Id))
+					return
+				}
+			} else {
+				updatedState.BusNumber = types.Int64Null()
+				updatedState.UnitNumber = types.Int64Null()
 			}
+		}
+
+		// If the detachable disk is not attached to any VM and is not being
+		// attached to one, bus_number and unit_number must be null. Otherwise a
+		// change to bus/unit in config while the disk is detached would leave
+		// stale non-null plan values that a subsequent Read resets to null,
+		// causing a permadiff.
+		if state.VMID.IsNull() && state.VMName.IsNull() && plan.VMID.IsNull() && plan.VMName.IsNull() {
+			updatedState.BusNumber = types.Int64Null()
+			updatedState.UnitNumber = types.Int64Null()
 		}
 	} else {
 		// * Internal disk
 		internalDisk, err := r.vm.GetInternalDiskById(state.ID.ValueString(), true)
 		if err != nil {
 			resp.Diagnostics.AddError("unable to find disk", fmt.Sprintf("unable to find disk with id %s: %v", state.ID.ValueString(), err))
+			return
+		}
+
+		resp.Diagnostics.Append(r.vm.LockVM(ctx)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		defer r.vm.UnlockVM(ctx)
+
+		if r.vm.VM == nil || r.vm.VM.VM == nil || r.vm.VM.VM.VM == nil {
+			resp.Diagnostics.AddError("VM not found", "VM is not available to update internal disk")
 			return
 		}
 
@@ -677,9 +860,18 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			resp.Diagnostics.AddError("error updating internal disk", err.Error())
 			return
 		}
+
+		internalDisk, err = r.vm.GetInternalDiskById(state.ID.ValueString(), true)
+		if err != nil {
+			resp.Diagnostics.AddError("unable to find disk", fmt.Sprintf("unable to find disk with id %s: %s", state.ID.ValueString(), err))
+			return
+		}
+
+		updatedState.BusNumber = types.Int64Value(int64(internalDisk.BusNumber))
+		updatedState.UnitNumber = types.Int64Value(int64(internalDisk.UnitNumber))
 	}
 	// Set state to fully populated data
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, updatedState)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -733,18 +925,23 @@ func (r *diskResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 			defer r.vm.UnlockVM(ctx)
 
+			if err := ensureVMCanDetachDisk(r.vm, state.Name.ValueString()); err != nil {
+				resp.Diagnostics.AddError("error detaching disk", err.Error())
+				return
+			}
+
 			task, err := r.vm.DetachDisk(&govcdtypes.DiskAttachOrDetachParams{
 				Disk: &govcdtypes.Reference{
 					HREF: x.Disk.HREF,
 				},
 			})
 			if err != nil {
-				resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %v", state.Name.ValueString(), err))
+				resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %s", state.Name.ValueString(), err))
 				return
 			}
 
 			if err = task.WaitTaskCompletion(); err != nil {
-				resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %v", state.Name.ValueString(), err))
+				resp.Diagnostics.AddError("error detaching disk", fmt.Sprintf("error detaching disk %s: %s", state.Name.ValueString(), err))
 				return
 			}
 		}

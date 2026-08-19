@@ -248,7 +248,7 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// Request vApp
 	vappModel, err := vapp.Init(r.client, r.vdc, plan.VAppID.StringValue, plan.VAppName.StringValue)
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting vApp", err.Error())
+		resp.Diagnostics.AddError("Error retrieving vApp", fmt.Sprintf("error retrieving vApp %q during update: %s", plan.VAppName.ValueString(), err))
 		return
 	}
 	r.vapp = vappModel
@@ -482,7 +482,7 @@ func (r *vappResource) read(ctx context.Context, planOrState *vappResourceModel)
 			return nil, false, diags
 		}
 		tflog.SubsystemError(ctx, vappSubsystem, "vApp init failed", map[string]interface{}{attrVappName: planOrState.VAppName.ValueString(), attrVDC: planOrState.VDC.ValueString()})
-		diags.AddError("Error getting vApp", err.Error())
+		diags.AddError("Error retrieving vApp", fmt.Sprintf("error retrieving vApp %q during read: %s", planOrState.VAppName.ValueString(), err))
 		return nil, true, diags
 	}
 	r.vapp = vappModel
@@ -491,7 +491,7 @@ func (r *vappResource) read(ctx context.Context, planOrState *vappResourceModel)
 	guestProperties, err := r.vapp.GetProductSectionList()
 	if err != nil {
 		tflog.SubsystemError(ctx, vappSubsystem, "vApp guest properties read failed", map[string]interface{}{attrVappName: planOrState.VAppName.ValueString()})
-		diags.AddError("Error getting guest properties", err.Error())
+		diags.AddError("Error retrieving guest properties", fmt.Sprintf("error retrieving guest properties for vApp %q: %s", planOrState.VAppName.ValueString(), err))
 		return stateRefreshed, found, diags
 	}
 
@@ -515,7 +515,7 @@ func (r *vappResource) read(ctx context.Context, planOrState *vappResourceModel)
 	leaseInfo, err := r.vapp.GetLease()
 	if err != nil {
 		tflog.SubsystemError(ctx, vappSubsystem, "vApp lease read failed", map[string]interface{}{attrVappName: planOrState.VAppName.ValueString()})
-		diags.AddError("Error getting lease info", err.Error())
+		diags.AddError("Error retrieving lease info", fmt.Sprintf("error retrieving lease info for vApp %q: %s", planOrState.VAppName.ValueString(), err))
 		return stateRefreshed, found, diags
 	}
 

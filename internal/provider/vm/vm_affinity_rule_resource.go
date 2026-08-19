@@ -176,7 +176,7 @@ func (r *vmAffinityRuleResource) Read(ctx context.Context, req resource.ReadRequ
 			return
 		}
 		tflog.SubsystemError(ctx, vmAffinityRuleSubsystem, "VM affinity rule read failed", map[string]interface{}{attrName: state.Name.ValueString(), attrVDC: state.VDC.ValueString()})
-		resp.Diagnostics.AddError("Failed to read affinity rule", err.Error())
+		resp.Diagnostics.AddError("Error retrieving VM affinity rule", fmt.Sprintf("error retrieving VM affinity rule %q in vDC %q: %s", state.Name.ValueString(), state.VDC.ValueString(), err))
 		return
 	}
 
@@ -230,7 +230,7 @@ func (r *vmAffinityRuleResource) Update(ctx context.Context, req resource.Update
 	vmAffinityRule, err := getVMAffinityRule(r.vdc, plan.Name.ValueString(), plan.ID.ValueString())
 	if err != nil {
 		tflog.SubsystemError(ctx, vmAffinityRuleSubsystem, "VM affinity rule update lookup failed", map[string]interface{}{attrName: plan.Name.ValueString(), attrVDC: plan.VDC.ValueString()})
-		resp.Diagnostics.AddError("Failed to read affinity rule", err.Error())
+		resp.Diagnostics.AddError("Error retrieving VM affinity rule", fmt.Sprintf("error retrieving VM affinity rule %q for update in vDC %q: %s", plan.Name.ValueString(), plan.VDC.ValueString(), err))
 		return
 	}
 
@@ -289,7 +289,7 @@ func (r *vmAffinityRuleResource) Delete(ctx context.Context, req resource.Delete
 	vmAffinityRule, err := getVMAffinityRule(r.vdc, state.Name.ValueString(), state.ID.ValueString())
 	if err != nil {
 		tflog.SubsystemError(ctx, vmAffinityRuleSubsystem, "VM affinity rule delete lookup failed", map[string]interface{}{attrName: state.Name.ValueString(), attrVDC: state.VDC.ValueString()})
-		resp.Diagnostics.AddError("Failed to read affinity rule", err.Error())
+		resp.Diagnostics.AddError("Error retrieving VM affinity rule", fmt.Sprintf("error retrieving VM affinity rule %q for delete in vDC %q: %s", state.Name.ValueString(), state.VDC.ValueString(), err))
 		return
 	}
 
