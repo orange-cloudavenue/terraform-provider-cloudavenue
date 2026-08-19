@@ -4,6 +4,10 @@
 
 * provider - Improved error messaging and logging consistency across the provider: error messages now include the resource name and ID, generic errors are replaced with more specific context, and structured logging using `tflog` subsystems has been added for better observability during debugging. (GH-1265)
 
+### :bug: **Bug Fixes**
+
+* `resource/cloudavenue_vm_disk` - Fix `bus_number` and `unit_number` being ignored (values were assigned to the wrong disk settings fields) (GH-1258)
+
 ### :dependabot: **Dependencies**
 
 * deps: bumps actions/checkout, actions/setup-go, arduino/setup-task, hashicorp/setup-terraform, actions/github-script from 6 to 7 (GH-1262)
