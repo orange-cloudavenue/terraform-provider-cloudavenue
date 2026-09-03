@@ -9,19 +9,11 @@ header: # `header` section is configurations for source codes license header.
     spdx-id: MPL-2.0
     content: |
       SPDX-FileCopyrightText: Copyright (c) [year] [owner]
-      SPDX-License-Identifier: Mozilla Public License 2.0
-
-      This software is distributed under the MPL-2.0 license.
-      the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
-      or see the "LICENSE" file for more details.
+      SPDX-License-Identifier: MPL-2.0
 
     pattern: |
-      SPDX-FileCopyrightText: Copyright (c) \d{4} Orange
-      SPDX-License-Identifier: Mozilla Public License 2.0
-
-      This software is distributed under the MPL-2.0 license.
-      the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
-      or see the "LICENSE" file for more details.
+      # Matches /* */ block style headers with both old and new license identifiers
+      /\*[\s\S]*?SPDX-FileCopyrightText: Copyright \(c\) \d{4}(-\d{4})? Orange[\s\S]*?SPDX-License-Identifier: (MPL-2\.0|Mozilla Public License 2\.0)[\s\S]*?\*/
 
   paths: # `paths` are the path list that will be checked (and fixed) by license-eye, default is ['**'].
     - '**'
@@ -82,7 +74,7 @@ header: # `header` section is configurations for source codes license header.
     Go:
       extensions:
         - ".go"
-      comment_style_id: SlashAsterisk
+      comment_style_id: DoubleSlash
     YAML:
       extensions:
         - ".yml"
