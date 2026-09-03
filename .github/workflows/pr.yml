@@ -49,6 +49,14 @@ jobs:
       ref: ${{ github.ref }}
       repository: ${{ github.repository }}
 
+  go-license-check:
+    if: github.event.action != 'edited' && github.event.pull_request.draft == false
+    name: "Go Dependency License Check"
+    uses: orange-cloudavenue/workflows/.github/workflows/go_license-check.yml@main
+    with:
+      ref: ${{ github.ref }}
+      repository: ${{ github.repository }}
+
   golang-ci-lint:
     if: github.event.action != 'edited' && github.event.pull_request.draft == false
     name: "Lint"

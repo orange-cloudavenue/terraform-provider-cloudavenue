@@ -1,0 +1,6 @@
+version = 1
+
+[[annotations]]
+path = ["*"]
+SPDX-FileCopyrightText = "Copyright (c) Orange"
+SPDX-License-Identifier = "MPL-2.0"
