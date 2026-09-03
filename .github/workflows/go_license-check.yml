@@ -48,4 +48,4 @@ jobs:
 
       - name: Check dependency licenses
         run: |
-          go list -m -json all | go-licence-detector -includeIndirect -rules .go-licence-detector-rules.json
+          go list -m -json all | go-licence-detector -includeIndirect -rules .go-license-rules.json
