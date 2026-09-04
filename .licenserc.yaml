@@ -12,8 +12,8 @@ header: # `header` section is configurations for source codes license header.
       SPDX-License-Identifier: MPL-2.0
 
     pattern: |
-      # Matches /* */ block style headers with both old and new license identifiers
-      /\*[\s\S]*?SPDX-FileCopyrightText: Copyright \(c\) \d{4}(-\d{4})? Orange[\s\S]*?SPDX-License-Identifier: (MPL-2\.0|Mozilla Public License 2\.0)[\s\S]*?\*/
+      # Matches normalized text content of old headers (comment markers stripped by license-eye)
+      SPDX-FileCopyrightText: Copyright \(c\) \d{4}(-\d{4})? Orange[\s\S]*?SPDX-License-Identifier: (MPL-2\.0|Mozilla Public License 2\.0)
 
   paths: # `paths` are the path list that will be checked (and fixed) by license-eye, default is ['**'].
     - '**'
