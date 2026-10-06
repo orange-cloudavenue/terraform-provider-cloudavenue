@@ -12,12 +12,6 @@
 // the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
 // or see the "LICENSE" file for more details.
 
-
-
-
-
-
-
 package s3
 
 import (
@@ -58,7 +52,7 @@ type BucketCorsConfigurationResource struct {
 
 // Init Initializes the resource.
 func (r *BucketCorsConfigurationResource) Init(_ context.Context, _ *BucketCorsConfigurationModel) (diags diag.Diagnostics) {
-	r.s3Client = r.client.CAVSDK.V1.S3()
+	r.s3Client, diags = initS3Client(r.client)
 	return diags
 }
 
