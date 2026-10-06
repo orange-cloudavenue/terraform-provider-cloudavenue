@@ -12,12 +12,6 @@
 // the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
 // or see the "LICENSE" file for more details.
 
-
-
-
-
-
-
 package s3
 
 import (
@@ -26,7 +20,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
+	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 )
 
 const (
@@ -155,4 +153,18 @@ func retryWhenAWSErrCodeNotEquals[T any](ctx context.Context, codes []string, co
 // RetryWhenNotFound retries the specified function when it returns a retry.NotFoundError.
 func retryWhenNotFound(ctx context.Context, timeout time.Duration, f func() (interface{}, error)) (interface{}, error) { //nolint: ireturn
 	return retryWhen(ctx, &RetryWhenConfig[interface{}]{Timeout: timeout, Function: f}, NotFound)
+}
+
+func initS3Client(client *client.CloudAvenue) (s3Client v1.S3Client, diags diag.Diagnostics) {
+	s3Client, err := client.CAVSDK.V1.S3()
+	if err != nil {
+		diags.AddError(
+			"Error initializing S3 client",
+			err.Error(),
+		)
+
+		return v1.S3Client{}, diags
+	}
+
+	return s3Client, diags
 }

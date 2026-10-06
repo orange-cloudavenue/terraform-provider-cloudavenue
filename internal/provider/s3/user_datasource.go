@@ -12,12 +12,6 @@
 // the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
 // or see the "LICENSE" file for more details.
 
-
-
-
-
-
-
 // Package s3 provides a Terraform datasource.
 package s3
 
@@ -51,7 +45,7 @@ type UserDataSource struct {
 
 // Init Initializes the data source.
 func (d *UserDataSource) Init(_ context.Context, _ *UserDataSourceModel) (diags diag.Diagnostics) {
-	d.s3Client = d.client.CAVSDK.V1.S3()
+	d.s3Client, diags = initS3Client(d.client)
 	return diags
 }
 
@@ -117,9 +111,11 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	config.ID.Set(urn.Normalize(
-		urn.User,
-		user.GetID()).String(),
+	config.ID.Set(
+		urn.Normalize(
+			urn.User,
+			user.GetID(),
+		).String(),
 	)
 	config.CanonicalID.Set(canonicalID)
 	config.FullName.Set(user.GetFullName())

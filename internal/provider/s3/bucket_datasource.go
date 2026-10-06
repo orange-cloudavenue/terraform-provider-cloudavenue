@@ -50,7 +50,7 @@ type BucketDataSource struct {
 
 // Init Initializes the data source.
 func (d *BucketDataSource) Init(_ context.Context, _ *BucketModel) (diags diag.Diagnostics) {
-	d.s3Client = d.client.CAVSDK.V1.S3()
+	d.s3Client, diags = initS3Client(d.client)
 	return diags
 }
 

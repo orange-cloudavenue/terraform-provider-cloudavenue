@@ -13,11 +13,6 @@
 // or see the "LICENSE" file for more details.
 
 
-
-
-
-
-
 package testsacc
 
 import (
@@ -60,9 +55,10 @@ func (r *S3BucketCorsConfigurationDataSource) Tests(_ context.Context) map[tests
 				// ! Create testing
 				Create: testsacc.TFConfig{
 					TFConfig: `
-					data "cloudavenue_s3_bucket_cors_configuration" "example" {
-						bucket = cloudavenue_s3_bucket_cors_configuration.example.id
-					}`,
+						data "cloudavenue_s3_bucket_cors_configuration" "example" {
+							bucket     = cloudavenue_s3_bucket.example.name
+							depends_on = [cloudavenue_s3_bucket_cors_configuration.example]
+						}`,
 					// Here use resource config test to test the data source
 					// the field example is the name of the test
 					Checks: GetResourceConfig()[S3BucketCorsConfigurationResourceName]().GetDefaultChecks(),

@@ -54,7 +54,7 @@ type BucketCorsConfigurationDatasource struct {
 
 // Init Initializes the data source.
 func (d *BucketCorsConfigurationDatasource) Init(_ context.Context, _ *BucketCorsConfigurationModelDatasource) (diags diag.Diagnostics) {
-	d.s3Client = d.client.CAVSDK.V1.S3()
+	d.s3Client, diags = initS3Client(d.client)
 	return diags
 }
 

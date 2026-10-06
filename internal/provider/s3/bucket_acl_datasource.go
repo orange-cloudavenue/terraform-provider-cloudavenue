@@ -12,12 +12,6 @@
 // the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
 // or see the "LICENSE" file for more details.
 
-
-
-
-
-
-
 // Package s3 provides a Terraform datasource.
 package s3
 
@@ -50,7 +44,7 @@ type BucketACLDataSource struct {
 
 // Init Initializes the data source.
 func (d *BucketACLDataSource) Init(_ context.Context, _ *BucketACLModelDatasource) (diags diag.Diagnostics) {
-	d.s3Client = d.client.CAVSDK.V1.S3()
+	d.s3Client, diags = initS3Client(d.client)
 	return diags
 }
 
