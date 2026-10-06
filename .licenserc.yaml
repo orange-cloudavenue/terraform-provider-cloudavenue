@@ -45,6 +45,7 @@ header: # `header` section is configurations for source codes license header.
     - "Makefile"
     - "**/*.json"
     - ".gitignore"
+    - ".envrc"
     - "**/.gitkeep"
     - "**/*.tmpl"
     - "**/*.tf"
@@ -57,6 +58,7 @@ header: # `header` section is configurations for source codes license header.
     - ".github"
     - ".pre-commit"
     - ".licenserc.yaml"
+    - "REUSE.toml"
     - ".golangci.yml"
     - ".pre-commit-config.yaml"
     - "mkdocs.yml"
@@ -82,10 +84,9 @@ header: # `header` section is configurations for source codes license header.
     Go:
       extensions:
         - ".go"
-      comment_style_id: SlashAsterisk
+      comment_style_id: DoubleSlash
     YAML:
       extensions:
         - ".yml"
         - ".yaml"
       comment_style_id: Hashtag
-
