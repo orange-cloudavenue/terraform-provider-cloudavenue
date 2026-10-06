@@ -9,37 +9,37 @@ header: # `header` section is configurations for source codes license header.
     spdx-id: MPL-2.0
     content: |
       SPDX-FileCopyrightText: Copyright (c) [year] [owner]
-      SPDX-License-Identifier: Mozilla Public License 2.0
+      SPDX-License-Identifier: MPL-2.0
 
       This software is distributed under the MPL-2.0 license.
       the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
       or see the "LICENSE" file for more details.
 
     pattern: |
-      SPDX-FileCopyrightText: Copyright \(c\) \d{4} Orange
-      SPDX-License-Identifier: Mozilla Public License 2.0
+      SPDX-FileCopyrightText: Copyright \(c\) \d{4}(?:-\d{4})? Orange
+      SPDX-License-Identifier: (?:Mozilla Public License 2\.0|MPL-2\.0)
 
       This software is distributed under the MPL-2.0 license.
       the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
       or see the "LICENSE" file for more details.
 
   paths: # `paths` are the path list that will be checked (and fixed) by license-eye, default is ['**'].
-    - '**'
+    - "**"
 
   paths-ignore: # `paths-ignore` are the path list that will be ignored by license-eye.
-    - 'dist'
-    - 'licenses'
-    - '**/*.md'
-    - '**/testdata/**'
-    - '**/go.mod'
-    - '**/go.sum'
-    - '**/go.work'
-    - '**/go.work.sum'
-    - 'LICENSE'
-    - 'LICENCE'
-    - 'NOTICE'
+    - "dist"
+    - "licenses"
+    - "**/*.md"
+    - "**/testdata/**"
+    - "**/go.mod"
+    - "**/go.sum"
+    - "**/go.work"
+    - "**/go.work.sum"
+    - "LICENSE"
+    - "LICENCE"
+    - "NOTICE"
     - "**/CODEOWNERS"
-    - '**/**.svg'
+    - "**/**.svg"
     - "**/zz_generated*.go"
     - "GNUmakefile"
     - "Makefile"
@@ -72,7 +72,6 @@ header: # `header` section is configurations for source codes license header.
     - "go.work"
     - "go.work.sum"
     - "**/*.txt"
-
 
   comment: on-failure # on what condition license-eye will comment on the pull request, `on-failure`, `always`, `never`.
 

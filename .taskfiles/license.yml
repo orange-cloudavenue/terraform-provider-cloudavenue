@@ -18,6 +18,8 @@ tasks:
     cmds:
       - for: [
           license-header,
+          license-header-dedupe,
+          license-years,
         ]
         task: lint:{{.ITEM}}
 
@@ -31,6 +33,18 @@ tasks:
         msg: "No .licenserc.yaml file found.`"
     cmds:
       - license-eye header check
+
+  lint:license-years:
+    desc: Check license years
+    internal: true
+    cmds:
+      - python3 scripts/fix_license_years.py . --recursive --check
+
+  lint:license-header-dedupe:
+    desc: Check duplicate license headers
+    internal: true
+    cmds:
+      - python3 scripts/dedupe_license_headers.py . --recursive --check
 
   # * Init
   init:
@@ -56,6 +70,8 @@ tasks:
     cmds:
       - for: [
           license-header-fix,
+          license-years-fix,
+          license-header-dedupe-fix,
         ]
         task: actions:{{.ITEM}}
 
@@ -70,3 +86,15 @@ tasks:
         msg: "No .licenserc.yaml file found.`"
     cmds:
       - license-eye header fix
+
+  actions:license-years-fix:
+    desc: Rewrite license years from git history
+    internal: true
+    cmds:
+      - python3 scripts/fix_license_years.py . --recursive
+
+  actions:license-header-dedupe-fix:
+    desc: Remove duplicate license headers
+    internal: true
+    cmds:
+      - python3 scripts/dedupe_license_headers.py . --recursive
