@@ -8,7 +8,7 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
 version: "3"
 
-includes: 
+includes:
   internal: internal.yml
 
 tasks:
@@ -16,11 +16,7 @@ tasks:
   lint:
     desc: Run license linters
     cmds:
-      - for: [
-          license-header,
-          license-header-dedupe,
-          license-years,
-        ]
+      - for: [license-header]
         task: lint:{{.ITEM}}
 
   lint:license-header:
@@ -34,18 +30,6 @@ tasks:
     cmds:
       - license-eye header check
 
-  lint:license-years:
-    desc: Check license years
-    internal: true
-    cmds:
-      - python3 scripts/fix_license_years.py . --recursive --check
-
-  lint:license-header-dedupe:
-    desc: Check duplicate license headers
-    internal: true
-    cmds:
-      - python3 scripts/dedupe_license_headers.py . --recursive --check
-
   # * Init
   init:
     desc: Initialize the license
@@ -57,22 +41,16 @@ tasks:
   install:
     desc: Install required tools
     cmds:
-      - for: [
-          license-eye,
-        ]
+      - for: [license-eye]
         task: internal:tools:brew
         vars:
-          APP: '{{.ITEM}}'
+          APP: "{{.ITEM}}"
 
-  # * Actions 
-  run: 
+  # * Actions
+  run:
     desc: Run license actions
     cmds:
-      - for: [
-          license-header-fix,
-          license-years-fix,
-          license-header-dedupe-fix,
-        ]
+      - for: [license-header-fix]
         task: actions:{{.ITEM}}
 
   # ? Generate
@@ -86,15 +64,3 @@ tasks:
         msg: "No .licenserc.yaml file found.`"
     cmds:
       - license-eye header fix
-
-  actions:license-years-fix:
-    desc: Rewrite license years from git history
-    internal: true
-    cmds:
-      - python3 scripts/fix_license_years.py . --recursive
-
-  actions:license-header-dedupe-fix:
-    desc: Remove duplicate license headers
-    internal: true
-    cmds:
-      - python3 scripts/dedupe_license_headers.py . --recursive
