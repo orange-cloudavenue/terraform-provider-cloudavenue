@@ -12,12 +12,6 @@
 // the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
 // or see the "LICENSE" file for more details.
 
-
-
-
-
-
-
 package vapp
 
 import (
@@ -133,7 +127,8 @@ func vappSchema() superschema.Schema {
 						map[string]attr.Value{
 							attrRuntimeLeaseInSec: types.Int64Value(0),
 							attrStorageLeaseInSec: types.Int64Value(0),
-						})),
+						},
+					)),
 				},
 				DataSource: &schemaD.SingleNestedAttribute{
 					Computed: true,

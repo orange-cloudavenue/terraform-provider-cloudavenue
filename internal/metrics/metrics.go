@@ -12,12 +12,6 @@
 // the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
 // or see the "LICENSE" file for more details.
 
-
-
-
-
-
-
 package metrics
 
 import (
@@ -80,7 +74,8 @@ func New(resourceName, organizationID string, action Action) func() {
 					OrganizationID: organizationID,
 					Action:         action.String(),
 					ExecutionTime:  timeElapsed.Milliseconds(),
-				})
+				},
+			)
 		}
 	}
 	return func() {}

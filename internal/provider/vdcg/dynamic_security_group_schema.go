@@ -12,12 +12,6 @@
 // the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
 // or see the "LICENSE" file for more details.
 
-
-
-
-
-
-
 package vdcg
 
 import (
@@ -207,7 +201,8 @@ func dynamicSecurityGroupSchema(_ context.Context) superschema.Schema {
 												}
 
 												return values
-											}()...),
+											}()...,
+										),
 										fstringvalidator.OneOfWithDescriptionIfAttributeIsOneOf(
 											path.MatchRelative().AtParent().AtName("type"),
 											[]attr.Value{types.StringValue("VM_TAG")},
@@ -223,7 +218,8 @@ func dynamicSecurityGroupSchema(_ context.Context) superschema.Schema {
 												}
 
 												return values
-											}()...),
+											}()...,
+										),
 									},
 								},
 							},
