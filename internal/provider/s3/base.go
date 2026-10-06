@@ -19,8 +19,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"

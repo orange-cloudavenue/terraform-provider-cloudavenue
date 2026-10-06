@@ -12,12 +12,6 @@
 // the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
 // or see the "LICENSE" file for more details.
 
-
-
-
-
-
-
 package testsacc
 
 import "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"

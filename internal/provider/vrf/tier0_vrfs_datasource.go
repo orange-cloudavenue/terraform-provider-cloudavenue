@@ -12,12 +12,6 @@
 // the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
 // or see the "LICENSE" file for more details.
 
-
-
-
-
-
-
 // Package tier0 provides a Terraform resource to manage Tier-0 VRFs.
 package vrf
 
