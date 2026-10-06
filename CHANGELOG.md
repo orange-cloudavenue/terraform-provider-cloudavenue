@@ -1,4 +1,5 @@
 ## 0.37.0 (Unreleased)
+## 0.36.2 (October  6, 2026)
 
 ### :bug: **Bug Fixes**
 
