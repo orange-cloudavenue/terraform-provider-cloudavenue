@@ -36,4 +36,6 @@ website/vendor
 *.winfile eol=crlf
 tests/*env
 .opencode/
+.kilo
 docs/exec-plans/
+__pycache__
