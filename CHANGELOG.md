@@ -1,4 +1,9 @@
 ## 0.37.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* provider/s3 - Bump `cloudavenue-sdk-go` to v0.31.1. This version includes the S3 bootstrap fix that resolves provider-side S3 initialization issues, addressing `cloudavenue_s3_*` failures tracked in GH-1277. (GH-1291) (GH-1291)
+
 ## 0.36.1 (August 19, 2026)
 
 ### :tada: **Improvements**
