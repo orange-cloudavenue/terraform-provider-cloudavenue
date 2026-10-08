@@ -29,6 +29,7 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -308,7 +309,7 @@ func (r *vdcgResource) read(ctx context.Context, planOrState *vdcgModel) (stateR
 		vdcGroup, err = r.adminOrg.GetVdcGroupByName(planOrState.Name.Get())
 	}
 	if err != nil {
-		if govcd.ContainsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return nil, false, nil
 		}
 		diags.AddError("Error reading VDC Group", err.Error())
