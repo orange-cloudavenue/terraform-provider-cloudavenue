@@ -19,17 +19,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	commoncloudavenue "github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/common/cloudavenue"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgeloadbalancer"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 var (
@@ -144,7 +142,7 @@ func (d *serviceEngineGroupDataSource) read(ctx context.Context, dm *serviceEngi
 		albSEG, err = d.edgegwlb.GetServiceEngineGroup(ctx, dm.EdgeGatewayID.Get(), dm.Name.Get())
 	}
 	if err != nil {
-		if commoncloudavenue.IsNotFound(err) || govcd.IsNotFound(err) {
+		if cerrs.IsNotFound(err) {
 			return nil, false, diags
 		}
 		diags.AddError("Error retrieving Service Engine Group", err.Error())
