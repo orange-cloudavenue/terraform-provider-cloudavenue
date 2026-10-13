@@ -17,7 +17,7 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.11.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 	github.com/iancoleman/strcase v0.3.0
-	github.com/madflojo/testcerts v1.5.0
+	github.com/madflojo/testcerts v1.5.1
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.31.1
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20260722075754-a69ff15f4d0f
 	github.com/orange-cloudavenue/common-go/utils v1.0.0
@@ -27,7 +27,7 @@ require (
 	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.2.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-validators v1.17.0
 	github.com/rs/zerolog v1.35.1
-	github.com/thanhpk/randstr v1.0.6
+	github.com/thanhpk/randstr v1.0.7
 	github.com/vmware/go-vcloud-director/v2 v2.26.2
 	gopkg.in/yaml.v3 v3.0.1
 )
