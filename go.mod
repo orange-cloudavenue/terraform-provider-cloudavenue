@@ -19,6 +19,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/madflojo/testcerts v1.5.0
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.31.1
+	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20261005153350-c554ef3bd111
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20260722075754-a69ff15f4d0f
 	github.com/orange-cloudavenue/common-go/utils v1.0.0
 	github.com/orange-cloudavenue/common-go/validators v1.2.0
@@ -48,6 +49,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.47.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
+	github.com/brianvoe/gofakeit/v7 v7.15.0 // indirect
 	github.com/cloudflare/circl v1.6.5 // indirect
 	github.com/creasty/defaults v1.11.0 // indirect
 	github.com/fatih/color v1.19.0 // indirect
@@ -93,6 +95,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.2.0 // indirect
+	github.com/orange-cloudavenue/common-go/generator v1.4.0 // indirect
 	github.com/orange-cloudavenue/common-go/regex v1.2.0 // indirect
 	github.com/orange-cloudavenue/common-go/strcase v1.0.0 // indirect
 	github.com/orange-cloudavenue/common-go/urn v1.4.0 // indirect
@@ -124,5 +127,6 @@ require (
 	google.golang.org/grpc v1.86.0-dev // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	resty.dev/v3 v3.0.0-rc.3 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
