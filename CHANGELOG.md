@@ -1,4 +1,9 @@
 ## 0.37.0 (Unreleased)
+
+### :dependabot: **Dependencies**
+
+* deps: fix gci and gofumpt lint issues, and bump Go to 1.26.6 to remediate standard-library govulncheck findings (GO-2026-6218, GO-2026-6090, GO-2026-6088, GO-2026-5972, GO-2026-5856, GO-2026-5026) (GH-1293)
+
 ## 0.36.2 (October  6, 2026)
 
 ### :bug: **Bug Fixes**
