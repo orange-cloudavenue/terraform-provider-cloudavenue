@@ -14,10 +14,12 @@ import (
 	"strings"
 	"testing"
 
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+
 	tfdiag "github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/infrapi/rules"
-	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 )
 
 func TestValidateStorageProfilesDisponibilityCompatibility(t *testing.T) {

@@ -34,7 +34,7 @@ const (
 
 type VDCResource struct{}
 
-func vdcTFConfig(resourceLocalName, nameExpr, descriptionExpr, disponibilityClass string, storageProfiles string) string {
+func vdcTFConfig(resourceLocalName, nameExpr, descriptionExpr, disponibilityClass, storageProfiles string) string {
 	return fmt.Sprintf(`
 		resource "cloudavenue_vdc" %q {
 			name                  = %s
