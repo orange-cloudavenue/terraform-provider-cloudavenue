@@ -16,6 +16,7 @@ package testsacc
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"testing"
 
@@ -32,6 +33,24 @@ const (
 )
 
 type VDCResource struct{}
+
+func vdcTFConfig(resourceLocalName, nameExpr, descriptionExpr, disponibilityClass, storageProfiles string) string {
+	return fmt.Sprintf(`
+		resource "cloudavenue_vdc" %q {
+			name                  = %s
+			description           = %s
+			cpu_allocated         = 22000
+			memory_allocated      = 30
+			cpu_speed_in_mhz      = 2200
+			billing_model         = "PAYG"
+			disponibility_class   = %q
+			service_class         = "STD"
+			storage_billing_model = "PAYG"
+
+			storage_profiles = %s
+		}
+	`, resourceLocalName, nameExpr, descriptionExpr, disponibilityClass, storageProfiles)
+}
 
 func NewVDCResourceTest() testsacc.TestACC {
 	return &VDCResource{}
@@ -578,6 +597,81 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 								testAttrLimit:   "800",
 								testAttrDefault: testValueTrue,
 							}),
+						},
+					},
+				},
+			}
+		},
+		"example_storage_profile_disponibility_validation": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, vdcTFConfig(
+						"example_storage_profile_disponibility_validation",
+						`{{ generate . "name" }}`,
+						`{{ generate . "description" "longString"}}`,
+						"DUAL-ROOM",
+						`[
+							{
+								class   = "gold_r1"
+								default = true
+								limit   = 500
+							},
+							{
+								class   = "gold_r2"
+								default = false
+								limit   = 500
+							},
+						]`,
+					)),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "disponibility_class", "DUAL-ROOM"),
+						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "storage_profiles.*", map[string]string{
+							testAttrClass:   "gold_r1",
+							testAttrDefault: testValueTrue,
+							testAttrLimit:   "500",
+						}),
+						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "storage_profiles.*", map[string]string{
+							testAttrClass:   "gold_r2",
+							testAttrDefault: testValueFalse,
+							testAttrLimit:   "500",
+						}),
+					},
+				},
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, vdcTFConfig(
+							"example_storage_profile_disponibility_validation",
+							`{{ get . "name" }}`,
+							`{{ get . "description" }}`,
+							"DUAL-ROOM",
+							`[{
+								class   = "gold"
+								default = true
+								limit   = 500
+							}]`,
+						)),
+						TFAdvanced: testsacc.TFAdvanced{
+							PlanOnly:           true,
+							ExpectNonEmptyPlan: true,
+							ExpectError:        regexp.MustCompile(`Storage profile class is not compatible with disponibility class`),
+						},
+					},
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, vdcTFConfig(
+							"example_storage_profile_disponibility_validation",
+							`{{ get . "name" }}`,
+							`{{ get . "description" }}`,
+							"DUAL-ROOM",
+							`[{
+								class   = "custom"
+								default = true
+								limit   = 500
+							}]`,
+						)),
+						TFAdvanced: testsacc.TFAdvanced{
+							PlanOnly:           true,
+							ExpectNonEmptyPlan: true,
+							ExpectError:        regexp.MustCompile(`Storage profile class is not compatible with disponibility class`),
 						},
 					},
 				},

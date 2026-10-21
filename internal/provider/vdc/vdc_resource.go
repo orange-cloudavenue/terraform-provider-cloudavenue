@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -103,15 +104,22 @@ func (r *vdcResource) Configure(_ context.Context, req resource.ConfigureRequest
 }
 
 func (r *vdcResource) validateConfig(ctx context.Context, config *vdcResourceModel) (diags diag.Diagnostics) {
-	StorageProfiles, d := config.StorageProfiles.Get(ctx)
+	storageProfiles, d := config.StorageProfiles.Get(ctx)
 	diags.Append(d...)
 	if diags.HasError() {
 		return diags
 	}
 
+	serviceClass := rules.ServiceClass(config.ServiceClass.Get())
+	disponibilityClass := rules.DisponibilityClass(config.DisponibilityClass.Get())
+
+	if compatDiags := validateStorageProfilesDisponibilityCompatibility(serviceClass, disponibilityClass, storageProfiles); compatDiags.HasError() {
+		diags.Append(compatDiags...)
+	}
+
 	if err := rules.Validate(rules.ValidateData{
-		ServiceClass:        rules.ServiceClass(config.ServiceClass.Get()),
-		DisponibilityClass:  rules.DisponibilityClass(config.DisponibilityClass.Get()),
+		ServiceClass:        serviceClass,
+		DisponibilityClass:  disponibilityClass,
 		BillingModel:        rules.BillingModel(config.BillingModel.Get()),
 		VCPUInMhz:           config.VCPUInMhz.GetInt(),
 		CPUAllocated:        config.CPUAllocated.GetInt(),
@@ -121,17 +129,17 @@ func (r *vdcResource) validateConfig(ctx context.Context, config *vdcResourceMod
 			Limit   int
 			Default bool
 		} {
-			storageProfiles := make(map[rules.StorageProfileClass]struct {
+			storageProfilesMap := make(map[rules.StorageProfileClass]struct {
 				Limit   int
 				Default bool
 			})
-			for _, sP := range StorageProfiles {
-				storageProfiles[rules.StorageProfileClass(sP.Class.Get())] = struct {
+			for _, sP := range storageProfiles {
+				storageProfilesMap[rules.StorageProfileClass(sP.Class.Get())] = struct {
 					Limit   int
 					Default bool
 				}{Limit: sP.Limit.GetInt(), Default: sP.Default.Get()}
 			}
-			return storageProfiles
+			return storageProfilesMap
 		}(),
 	}, false); err != nil {
 		switch {
@@ -161,6 +169,72 @@ func (r *vdcResource) validateConfig(ctx context.Context, config *vdcResourceMod
 	}
 
 	return diags
+}
+
+func validateStorageProfilesDisponibilityCompatibility(serviceClass rules.ServiceClass, disponibilityClass rules.DisponibilityClass, storageProfiles []*vdcResourceModelVDCStorageProfile) (diags diag.Diagnostics) {
+	rule, err := rules.GetRuleByServiceClass(serviceClass)
+	if err != nil {
+		return diags
+	}
+
+	for index, storageProfile := range storageProfiles {
+		storageClass := rules.StorageProfileClass(storageProfile.Class.Get())
+		storageProfileRule, ok := rule.StorageProfiles[storageClass]
+		if !ok {
+			allowedDisponibilityClasses := allowedDisponibilityClassesForCustomStorageProfile(storageClass)
+			if len(allowedDisponibilityClasses) == 0 {
+				continue
+			}
+
+			if slices.Contains(allowedDisponibilityClasses, disponibilityClass) {
+				continue
+			}
+
+			diags.AddAttributeError(
+				path.Root("storage_profiles").AtListIndex(index).AtName("class"),
+				"Storage profile class is not compatible with disponibility class",
+				fmt.Sprintf("Custom storage profile class %q is not compatible with disponibility class %q for service class %q. Expected suffix mapping: no suffix -> ONE-ROOM, _r1/_r2 -> DUAL-ROOM, _hm -> HA-DUAL-ROOM.", storageClass, disponibilityClass, serviceClass),
+			)
+			continue
+		}
+
+		if slices.Contains(storageProfileRule.DisponibilityClasses, disponibilityClass) {
+			continue
+		}
+
+		availableDisponibilityClasses := append([]rules.DisponibilityClass(nil), storageProfileRule.DisponibilityClasses...)
+		slices.Sort(availableDisponibilityClasses)
+
+		diags.AddAttributeError(
+			path.Root("storage_profiles").AtListIndex(index).AtName("class"),
+			"Storage profile class is not compatible with disponibility class",
+			fmt.Sprintf("Storage profile class %q is not compatible with disponibility class %q for service class %q. Allowed disponibility classes for %q: %s.", storageClass, disponibilityClass, serviceClass, storageClass, strings.Join(stringSlice(availableDisponibilityClasses), ", ")),
+		)
+	}
+
+	return diags
+}
+
+func allowedDisponibilityClassesForCustomStorageProfile(storageClass rules.StorageProfileClass) []rules.DisponibilityClass {
+	storageClassName := string(storageClass)
+
+	switch {
+	case strings.HasSuffix(storageClassName, "_r1"), strings.HasSuffix(storageClassName, "_r2"):
+		return []rules.DisponibilityClass{rules.DisponibilityClass("DUAL-ROOM")}
+	case strings.HasSuffix(storageClassName, "_hm"):
+		return []rules.DisponibilityClass{rules.DisponibilityClass("HA-DUAL-ROOM")}
+	default:
+		return []rules.DisponibilityClass{rules.DisponibilityClass("ONE-ROOM")}
+	}
+}
+
+func stringSlice[T ~string](values []T) []string {
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		result = append(result, string(value))
+	}
+
+	return result
 }
 
 func (r *vdcResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
