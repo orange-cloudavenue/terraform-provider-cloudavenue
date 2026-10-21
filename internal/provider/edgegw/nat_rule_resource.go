@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/orange-cloudavenue/common-go/print"
+	commonprint "github.com/orange-cloudavenue/common-go/print"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/vmware/go-vcloud-director/v2/govcd"
@@ -432,7 +432,7 @@ func (r *natRuleResource) read(_ context.Context, planOrState *NATRuleModel) (st
 				"Multiple NAT Rules found with the same name",
 				func() string {
 					w := new(bytes.Buffer)
-					p := print.New(print.WithOutput(w))
+					p := commonprint.New(commonprint.WithOutput(w))
 					p.SetHeader("ID", "Name", "Type")
 					for _, r := range foundRules {
 						p.AddFields(r.NsxtNatRule.ID, r.NsxtNatRule.Name, r.NsxtNatRule.RuleType)
