@@ -159,7 +159,7 @@ func vdcSchema() superschema.Schema {
 				},
 				Resource: &schemaR.StringAttribute{
 					Required:            true,
-					MarkdownDescription: "The disponibility class available are different depending on the service class. " + seeVDCRules,
+					MarkdownDescription: "The disponibility class available are different depending on the service class. It must also be compatible with each `storage_profiles[*].class` value: `ONE-ROOM` expects storage classes without room suffix, `DUAL-ROOM` expects `_r1` / `_r2`, and `HA-DUAL-ROOM` expects `_hm`. Custom storage profile classes follow the same suffix mapping rules. " + seeVDCRules,
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.RequiresReplace(),
 					},
@@ -245,7 +245,7 @@ func vdcSchema() superschema.Schema {
 						},
 						Resource: &schemaR.StringAttribute{
 							Required: true,
-							MarkdownDescription: "The storage class available are different depending on the service class. " + seeVDCRules + " Value must be one of " + func() string {
+							MarkdownDescription: "The storage class available are different depending on the service class. It must also match the selected `disponibility_class`: use no suffix for `ONE-ROOM`, `_r1` / `_r2` for `DUAL-ROOM`, and `_hm` for `HA-DUAL-ROOM`. Custom storage profile classes follow the same suffix mapping rules. " + seeVDCRules + " Value must be one of " + func() string {
 								var storageClasses string
 								for i, sC := range rules.ALLStorageProfilesClass {
 									if i == len(rules.ALLStorageProfilesClass)-1 {
