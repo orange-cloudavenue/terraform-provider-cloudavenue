@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/cloudavenue_vdc: Validate compatibility between disponibility_class and storage_profiles[*].class during plan, including custom storage class suffix mapping
+```
