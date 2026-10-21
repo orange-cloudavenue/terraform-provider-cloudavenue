@@ -583,6 +583,102 @@ func (r *VDCResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx co
 				},
 			}
 		},
+		"example_storage_profile_disponibility_validation": func(_ context.Context, resourceName string) testsacc.Test {
+			return testsacc.Test{
+				Create: testsacc.TFConfig{
+					TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+					resource "cloudavenue_vdc" "example_storage_profile_disponibility_validation" {
+						name                  = {{ generate . "name" }}
+						description           = {{ generate . "description" "longString"}}
+						cpu_allocated         = 22000
+						memory_allocated      = 30
+						cpu_speed_in_mhz      = 2200
+						billing_model         = "PAYG"
+						disponibility_class   = "DUAL-ROOM"
+						service_class         = "STD"
+						storage_billing_model = "PAYG"
+
+						storage_profiles = [
+							{
+								class   = "gold_r1"
+								default = true
+								limit   = 500
+							},
+							{
+								class   = "gold_r2"
+								default = false
+								limit   = 500
+							},
+						]
+					}`),
+					Checks: []resource.TestCheckFunc{
+						resource.TestCheckResourceAttr(resourceName, "disponibility_class", "DUAL-ROOM"),
+						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "storage_profiles.*", map[string]string{
+							testAttrClass:   "gold_r1",
+							testAttrDefault: testValueTrue,
+							testAttrLimit:   "500",
+						}),
+						resource.TestCheckTypeSetElemNestedAttrs(resourceName, "storage_profiles.*", map[string]string{
+							testAttrClass:   "gold_r2",
+							testAttrDefault: testValueFalse,
+							testAttrLimit:   "500",
+						}),
+					},
+				},
+				Updates: []testsacc.TFConfig{
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdc" "example_storage_profile_disponibility_validation" {
+							name                  = {{ get . "name" }}
+							description           = {{ get . "description" }}
+							cpu_allocated         = 22000
+							memory_allocated      = 30
+							cpu_speed_in_mhz      = 2200
+							billing_model         = "PAYG"
+							disponibility_class   = "DUAL-ROOM"
+							service_class         = "STD"
+							storage_billing_model = "PAYG"
+
+							storage_profiles = [{
+								class   = "gold"
+								default = true
+								limit   = 500
+							}]
+						}`),
+						TFAdvanced: testsacc.TFAdvanced{
+							PlanOnly:           true,
+							ExpectNonEmptyPlan: true,
+							ExpectError:        regexp.MustCompile(`Storage profile class is not compatible with disponibility class`),
+						},
+					},
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_vdc" "example_storage_profile_disponibility_validation" {
+							name                  = {{ get . "name" }}
+							description           = {{ get . "description" }}
+							cpu_allocated         = 22000
+							memory_allocated      = 30
+							cpu_speed_in_mhz      = 2200
+							billing_model         = "PAYG"
+							disponibility_class   = "DUAL-ROOM"
+							service_class         = "STD"
+							storage_billing_model = "PAYG"
+
+							storage_profiles = [{
+								class   = "custom"
+								default = true
+								limit   = 500
+							}]
+						}`),
+						TFAdvanced: testsacc.TFAdvanced{
+							PlanOnly:           true,
+							ExpectNonEmptyPlan: true,
+							ExpectError:        regexp.MustCompile(`Storage profile class is not compatible with disponibility class`),
+						},
+					},
+				},
+			}
+		},
 	}
 }
 
