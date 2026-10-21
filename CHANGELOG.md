@@ -1,5 +1,9 @@
 ## 0.37.0 (Unreleased)
 
+### :bug: **Bug Fixes**
+
+* resource/cloudavenue_vdc: Clarify create failure when the API returns no job ID (GH-1302)
+
 ### :dependabot: **Dependencies**
 
 * deps: fix gci and gofumpt lint issues, and bump Go to 1.26.6 to remediate standard-library govulncheck findings (GO-2026-6218, GO-2026-6090, GO-2026-6088, GO-2026-5972, GO-2026-5856, GO-2026-5026) (GH-1293)
