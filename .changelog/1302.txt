@@ -1,0 +1,3 @@
+```release-note:bug
+resource/cloudavenue_vdc: Clarify create failure when the API returns no job ID
+```

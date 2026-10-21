@@ -63,6 +63,14 @@ type vdcResource struct {
 	client *client.CloudAvenue
 }
 
+func isMissingJobIDCreateError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	return strings.Contains(strings.ToLower(err.Error()), "job id is empty")
+}
+
 // Metadata returns the resource type name.
 func (r *vdcResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_" + categoryName
@@ -244,6 +252,14 @@ func (r *vdcResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	_, err := r.client.CAVSDK.V1.VDC().New(ctx, body)
 	if err != nil {
+		if isMissingJobIDCreateError(err) {
+			resp.Diagnostics.AddError(
+				"Error creating VDC",
+				fmt.Sprintf("error creating VDC %s: creation did not start because the API returned no job ID", plan.Name.Get()),
+			)
+			return
+		}
+
 		resp.Diagnostics.AddError("Error creating VDC", fmt.Sprintf("error creating VDC %s: %s", plan.Name.Get(), err.Error()))
 		return
 	}
