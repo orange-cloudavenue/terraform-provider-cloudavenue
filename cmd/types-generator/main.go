@@ -12,12 +12,6 @@
 // the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
 // or see the "LICENSE" file for more details.
 
-
-
-
-
-
-
 package main
 
 import (
@@ -191,9 +185,7 @@ type golangCI struct {
 	} `yaml:"linters-settings"`
 }
 
-var (
-	KeyValueStore = &map[string]any{}
-)
+var KeyValueStore = &map[string]any{}
 
 var templateFuncs = template.FuncMap{
 	"toLowerCamel": func(s string) string {
@@ -380,7 +372,7 @@ func main() {
 
 				file := strings.TrimSuffix(*filePath, "_schema.go") + "_types.go"
 
-				if err := os.WriteFile(file, tplTypes.Bytes(), 0600); err != nil {
+				if err := os.WriteFile(file, tplTypes.Bytes(), 0o600); err != nil {
 					log.Fatal().Err(err).Msg("Failed to write file")
 					return
 				}
@@ -430,7 +422,7 @@ func main() {
 
 				file := strings.TrimSuffix(*filePath, ".go") + "_types.go"
 
-				if err := os.WriteFile(file, tplTypes.Bytes(), 0600); err != nil {
+				if err := os.WriteFile(file, tplTypes.Bytes(), 0o600); err != nil {
 					log.Fatal().Err(err).Msg("Failed to write file")
 					return
 				}

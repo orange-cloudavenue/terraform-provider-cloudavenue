@@ -12,12 +12,6 @@
 // the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
 // or see the "LICENSE" file for more details.
 
-
-
-
-
-
-
 package main
 
 import (
@@ -197,7 +191,6 @@ var (
 
 //nolint:all
 func main() {
-
 	var mess string
 	file, err := os.Create("./resource-ca.md")
 	if err != nil {
@@ -262,7 +255,6 @@ func main() {
 
 	findResourcesFromVCD(vcdTFSchemaR, caTFSchemaR, ppCA, file, "Resources")
 	findResourcesFromVCD(vcdTFSchemaD, caTFSchemaD, ppCA, file, "Datasources")
-
 }
 
 // Find and print Resources from Orange Cloud Avenue Provider.
