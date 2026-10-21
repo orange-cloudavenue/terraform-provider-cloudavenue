@@ -1,5 +1,9 @@
 ## 0.37.0 (Unreleased)
 
+### :tada: **Improvements**
+
+* resource/cloudavenue_vdc: Validate compatibility between disponibility_class and storage_profiles[*].class during plan, including custom storage class suffix mapping (GH-1301)
+
 ### :bug: **Bug Fixes**
 
 * resource/cloudavenue_vdc: Clarify create failure when the API returns no job ID (GH-1302)
