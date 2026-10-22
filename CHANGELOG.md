@@ -10,6 +10,7 @@
 
 ### :dependabot: **Dependencies**
 
+* deps: bumps github.com/madflojo/testcerts, github.com/thanhpk/randstr from 1.5.0 to 1.5.1 (GH-1297)
 * deps: fix gci and gofumpt lint issues, and bump Go to 1.26.6 to remediate standard-library govulncheck findings (GO-2026-6218, GO-2026-6090, GO-2026-6088, GO-2026-5972, GO-2026-5856, GO-2026-5026) (GH-1293)
 
 ## 0.36.2 (October  6, 2026)
