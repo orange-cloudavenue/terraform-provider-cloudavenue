@@ -8,6 +8,10 @@ name: PR All events
 on:
   pull_request:
     types: [ opened, reopened, synchronize, edited ]
+  # Trusted triggers required by the tests job below.
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 
 concurrency:
@@ -20,26 +24,24 @@ permissions:
 
 jobs:
   changelog-dependabot:
+    if: github.event_name == 'pull_request'
     name: "Changelog Dependabot"
     uses: orange-cloudavenue/workflows/.github/workflows/changelog_dependabot.yml@main
     secrets:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   pr-size:
-    if: github.event.action != 'edited'
+    if: github.event.action != 'edited' && github.event_name == 'pull_request'
     name: "PR Size"
     uses: orange-cloudavenue/workflows/.github/workflows/pr_label_size.yml@main
     with:
       ref: ${{ github.ref }}
       repository: ${{ github.repository }}
-    secrets:
-      TOKEN: ${{ secrets.PR_CI_PAT }}
 
   pr-conventional-commits:
+    if: github.event_name == 'pull_request'
     name: "Conventional Commits"
     uses: orange-cloudavenue/workflows/.github/workflows/pr_conventional_commits.yml@main
-    secrets:
-      TOKEN: ${{ secrets.PR_CI_PAT }}
 
   pr-license:
     if: github.event.action != 'edited' && github.event.pull_request.draft == false
@@ -49,6 +51,15 @@ jobs:
       ref: ${{ github.ref }}
       repository: ${{ github.repository }}
 
+  changelog-validation:
+    if: github.event.action != 'edited' && github.event.pull_request.draft == false && !contains(github.event.pull_request.labels.*.name, 'skip-changelog')
+    name: "Changelog Validation"
+    uses: orange-cloudavenue/workflows/.github/workflows/changelog_validation.yml@main
+    with:
+      ref: ${{ github.ref }}
+      repository: ${{ github.repository }}
+    secrets:
+      TOKEN: ${{ secrets.PR_CI_PAT }}
   go-license-check:
     if: github.event.action != 'edited' && github.event.pull_request.draft == false
     name: "Go Dependency License Check"
@@ -66,7 +77,8 @@ jobs:
       repository: ${{ github.repository }}
 
   tests:
-    if: github.event.action != 'edited' && github.event.pull_request.draft == false
+    # Privileged integration tests: trusted-trigger runs only.
+    if: github.event_name != 'pull_request'
     name: "Unit Tests"
     uses: orange-cloudavenue/workflows/.github/workflows/go_unit-test-tf-provider.yml@main
     with:
