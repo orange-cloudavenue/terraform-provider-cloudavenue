@@ -44,7 +44,7 @@ jobs:
     uses: orange-cloudavenue/workflows/.github/workflows/pr_conventional_commits.yml@main
 
   pr-license:
-    if: github.event.action != 'edited' && github.event.pull_request.draft == false
+    if: github.event.action != 'edited' && github.event.pull_request.draft == false && github.event_name == 'pull_request'
     name: "License Check"
     uses: orange-cloudavenue/workflows/.github/workflows/pr_license.yml@main
     with:
@@ -52,7 +52,7 @@ jobs:
       repository: ${{ github.repository }}
 
   changelog-validation:
-    if: github.event.action != 'edited' && github.event.pull_request.draft == false && !contains(github.event.pull_request.labels.*.name, 'skip-changelog')
+    if: github.event.action != 'edited' && github.event.pull_request.draft == false && !contains(github.event.pull_request.labels.*.name, 'skip-changelog') && github.event_name == 'pull_request' && !startsWith(github.event.pull_request.head.ref, 'repo-sync/')
     name: "Changelog Validation"
     uses: orange-cloudavenue/workflows/.github/workflows/changelog_validation.yml@main
     with:
@@ -61,7 +61,7 @@ jobs:
     secrets:
       TOKEN: ${{ secrets.PR_CI_PAT }}
   go-license-check:
-    if: github.event.action != 'edited' && github.event.pull_request.draft == false
+    if: github.event.action != 'edited' && github.event.pull_request.draft == false && github.event_name == 'pull_request'
     name: "Go Dependency License Check"
     uses: orange-cloudavenue/workflows/.github/workflows/go_license-check.yml@main
     with:
@@ -69,7 +69,7 @@ jobs:
       repository: ${{ github.repository }}
 
   golang-ci-lint:
-    if: github.event.action != 'edited' && github.event.pull_request.draft == false
+    if: github.event.action != 'edited' && github.event.pull_request.draft == false && github.event_name == 'pull_request'
     name: "Lint"
     uses: orange-cloudavenue/workflows/.github/workflows/go_golangci-lint.yml@main
     with:
