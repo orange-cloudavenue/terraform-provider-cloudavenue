@@ -49,8 +49,18 @@ jobs:
         CLOUDAVENUE_PASSWORD: ${{ secrets.CLOUDAVENUE_PASSWORD }}
         CLOUDAVENUE_VDC: ${{ secrets.CLOUDAVENUE_VDC }}
 
+  changelog-validation:
+    needs: [pre-check]
+    name: "Changelog Validation"
+    uses: orange-cloudavenue/workflows/.github/workflows/changelog_validation.yml@main
+    with:
+      ref: ${{ github.ref }}
+      repository: ${{ github.repository }}
+    secrets:
+      TOKEN: ${{ secrets.RELEASE_CI_PAT }}
+
   tag:
-    needs: [golang-ci-lint, tests]
+    needs: [golang-ci-lint, tests, changelog-validation]
     name: Tag
     uses: orange-cloudavenue/workflows/.github/workflows/tag_create-tag.yml@main
     with:
