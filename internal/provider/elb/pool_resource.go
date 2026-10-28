@@ -236,6 +236,29 @@ func (r *PoolResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
+	// An explicit empty list is not carried by the pool payload, the assignments
+	// are removed through the health monitor assignment API.
+	if !plan.Health.IsNull() {
+		health, d := plan.Health.Get(ctx)
+		if d.HasError() {
+			resp.Diagnostics.Append(d...)
+			return
+		}
+		if health != nil && health.Monitors.IsKnown() && !health.Monitors.IsNull() {
+			monitors, d := health.Monitors.Get(ctx)
+			if d.HasError() {
+				resp.Diagnostics.Append(d...)
+				return
+			}
+			if len(monitors) == 0 {
+				if err := r.elb.ReconcilePoolHealthMonitors(ctx, plan.EdgeGatewayID.Get(), state.ID.Get(), nil); err != nil {
+					resp.Diagnostics.AddError("Error removing pool health monitors", err.Error())
+					return
+				}
+			}
+		}
+	}
+
 	// Use generic read function to refresh the state
 	stateRefreshed, found, d := r.read(ctx, plan)
 	if !found {
@@ -426,17 +449,13 @@ func (r *PoolResource) read(ctx context.Context, planOrState *PoolModel) (stateR
 
 	health.PassiveMonitoringEnabled.SetPtr(data.PassiveMonitoringEnabled)
 
-	// prevent unexpected new value: .health.monitors: was null, but now cty.ListValEmpty(cty.String).
-	if len(data.HealthMonitors) != 0 {
-		monitors := []string{}
-		for _, m := range data.HealthMonitors {
-			monitors = append(monitors, string(m.Type))
-		}
-
-		diags.Append(health.Monitors.Set(ctx, monitors)...)
-		if diags.HasError() {
-			return nil, true, diags
-		}
+	monitors := []string{}
+	for _, m := range data.HealthMonitors {
+		monitors = append(monitors, string(m.Type))
+	}
+	diags.Append(health.Monitors.Set(ctx, monitors)...)
+	if diags.HasError() {
+		return nil, true, diags
 	}
 
 	diags.Append(stateRefreshed.Health.Set(ctx, health)...)
