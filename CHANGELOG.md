@@ -1,4 +1,9 @@
 ## 0.38.0 (Unreleased)
+
+### :bug: **Bug Fixes**
+
+* resource/cloudavenue_elb_pool: Fix `health.monitors` failing with `Load Balancer Health Monitor Assignment is not supported with legacy API` on VCD 10.6 (API 39.0 and later). The monitors are now assigned through the dedicated health monitor assignment API by the SDK, `health.monitors` is Optional and Computed, and setting it to an empty list removes all the assigned monitors. (GH-1308)
+
 ## 0.37.0 (October 22, 2026)
 
 ### :tada: **Improvements**
