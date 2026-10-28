@@ -32,6 +32,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -271,7 +272,7 @@ func poolSchema(ctx context.Context) superschema.Schema {
 					Optional: true,
 					Default: objectdefault.StaticValue(supertypes.NewObjectValueOf[PoolModelHealth](ctx, &PoolModelHealth{
 						PassiveMonitoringEnabled: supertypes.NewBoolValue(true),
-						Monitors:                 supertypes.NewListValueOfNull[string](ctx),
+						Monitors:                 supertypes.NewListValueOfSlice[string](ctx, []string{}),
 					}).ObjectValue),
 				},
 				Attributes: superschema.Attributes{
@@ -291,6 +292,8 @@ func poolSchema(ctx context.Context) superschema.Schema {
 						},
 						Resource: &schemaR.ListAttribute{
 							Optional: true,
+							Computed: true,
+							Default:  listdefault.StaticValue(supertypes.NewListValueOfSlice[string](ctx, []string{}).ListValue),
 							Validators: []validator.List{
 								listvalidator.ValueStringsAre(
 									stringvalidator.OneOf(func() (resp []string) {

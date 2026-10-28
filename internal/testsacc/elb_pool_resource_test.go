@@ -206,6 +206,32 @@ func (r *ELBPoolResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 							resource.TestCheckResourceAttr(resourceName, "persistence.type", "CLIENT_IP"),
 						},
 					},
+					// * Update remove all the health monitors
+					{
+						TFConfig: testsacc.GenerateFromTemplate(resourceName, `
+						resource "cloudavenue_elb_pool" "example" {
+							name = {{ generate . "name" }}
+							description = {{ get . "description" }}
+							edge_gateway_id = data.cloudavenue_edgegateway.example_for_elb.id
+							enabled = true
+							default_port = 80
+							algorithm = "ROUND_ROBIN"
+							members = {
+								targets = [
+									{
+										ip_address = "192.168.0.1"
+										port = 80
+									}
+								]
+							}
+							health = {
+								monitors = []
+							}
+						}`),
+						Checks: []resource.TestCheckFunc{
+							resource.TestCheckResourceAttr(resourceName, "health.monitors.#", "0"),
+						},
+					},
 				},
 				// ! Imports testing
 				Imports: []testsacc.TFImport{
