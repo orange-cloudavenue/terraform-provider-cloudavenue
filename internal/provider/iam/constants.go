@@ -19,3 +19,15 @@ const (
 	attrDescription = "description"
 	attrRights      = "rights"
 )
+
+// sdkUserProviderTypeLocal is the SDK v2 CloudAPI provider type reported for
+// local users.
+const sdkUserProviderTypeLocal = "LOCAL"
+
+// quotaValue dereferences a quota pointer, treating unset as zero.
+func quotaValue(quota *int) int {
+	if quota == nil {
+		return 0
+	}
+	return *quota
+}

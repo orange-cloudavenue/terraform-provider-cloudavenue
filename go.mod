@@ -95,7 +95,9 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.2.0 // indirect
+	github.com/orange-cloudavenue/common-go/extractor v1.0.1 // indirect
 	github.com/orange-cloudavenue/common-go/generator v1.4.0 // indirect
+	github.com/orange-cloudavenue/common-go/internal/regex v0.0.0-20250812202800-bd0d5bbb6c4a // indirect
 	github.com/orange-cloudavenue/common-go/regex v1.2.0 // indirect
 	github.com/orange-cloudavenue/common-go/strcase v1.0.0 // indirect
 	github.com/orange-cloudavenue/common-go/urn v1.4.0 // indirect
