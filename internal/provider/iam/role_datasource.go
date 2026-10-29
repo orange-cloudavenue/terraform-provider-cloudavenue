@@ -19,11 +19,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+
+	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
@@ -42,15 +42,21 @@ func NewRoleDataSource() datasource.DataSource {
 }
 
 type roleDataSource struct {
-	client   *client.CloudAvenue
-	adminOrg adminorg.AdminOrg
-	role     commonRole
+	client     *client.CloudAvenue
+	adminOrg   adminorg.AdminOrg
+	roleClient roleClientV2
+	role       commonRole
 }
 
 func (d *roleDataSource) Init(_ context.Context, rm *RoleDataSourceModel) (diags diag.Diagnostics) {
 	d.role = commonRole{
-		ID:   rm.ID.StringValue,
-		Name: rm.Name.StringValue,
+		ID:   rm.ID,
+		Name: rm.Name,
+	}
+
+	d.roleClient, diags = InitRoleClientV2(d.client)
+	if diags.HasError() {
+		return diags
 	}
 
 	d.adminOrg, diags = adminorg.Init(d.client)
@@ -102,8 +108,14 @@ func (d *roleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
+	// Determine lookup key: prefer ID if set, otherwise use Name
+	lookupKey := data.ID.ValueString()
+	if lookupKey == "" {
+		lookupKey = data.Name.ValueString()
+	}
+
 	// Get Role
-	role, err := d.GetRole()
+	role, err := d.roleClient.GetOrgRole(ctx, lookupKey)
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -114,8 +126,9 @@ func (d *roleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	}
 
 	// Get rights
-	rights, err := role.GetRights(nil)
+	rights, err := d.roleClient.ListOrgRoleRights(ctx, role.ID)
 	if err != nil {
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "role", err)
 		return
 	}
 	assignedRights := []string{}
@@ -128,10 +141,10 @@ func (d *roleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	data.ID.Set(role.Role.ID)
-	data.Name.Set(role.Role.Name)
-	data.ReadOnly.Set(role.Role.ReadOnly)
-	data.Description.Set(role.Role.Description)
+	data.ID.Set(role.ID)
+	data.Name.Set(role.Name)
+	data.ReadOnly.Set(role.ReadOnly)
+	data.Description.Set(role.Description)
 
 	// Save data into Terraform data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

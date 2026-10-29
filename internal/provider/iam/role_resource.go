@@ -59,8 +59,8 @@ type roleResource struct {
 
 func (r *roleResource) Init(_ context.Context, rm *RoleResourceModel) (diags diag.Diagnostics) {
 	r.role = commonRole{
-		ID:   rm.ID.StringValue,
-		Name: rm.Name.StringValue,
+		ID:   rm.ID,
+		Name: rm.Name,
 	}
 	r.adminOrg, diags = adminorg.Init(r.client)
 
