@@ -22,7 +22,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/iam"
+	iam "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/iam/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
@@ -50,7 +50,7 @@ type UserSAMLResource struct {
 func (r *UserSAMLResource) Init(_ context.Context, _ *UserSAMLModel) (diags diag.Diagnostics) {
 	var err error
 
-	r.iamClient, err = r.client.CAVSDK.V1.IAM()
+	r.iamClient, err = iam.New(r.client.CAVSDKV2)
 	if err != nil {
 		diags.AddError("Error initializing IAM client", err.Error())
 	}
@@ -103,14 +103,10 @@ func (r *UserSAMLResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	userCreated, err := r.iamClient.CreateSAMLUser(iam.SAMLUser{
-		User: iam.User{
-			Name:            plan.UserName.Get(),
-			RoleName:        plan.RoleName.Get(),
-			Enabled:         plan.Enabled.Get(),
-			DeployedVMQuota: plan.DeployedVMQuota.GetInt(),
-			StoredVMQuota:   plan.StoredVMQuota.GetInt(),
-		},
+	userCreated, err := r.iamClient.CreateSAMLUser(ctx, iam.ParamsCreateSAMLUser{
+		Name:      plan.UserName.Get(),
+		RoleName:  plan.RoleName.Get(),
+		IsEnabled: plan.Enabled.Get(),
 	})
 	if err != nil {
 		if cerrs.IsNotFound(err) {
@@ -121,7 +117,16 @@ func (r *UserSAMLResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	plan.ID.Set(userCreated.User.ID)
+	if _, err := r.iamClient.UpdateUser(ctx, iam.ParamsUpdateUser{
+		ID:              userCreated.ID,
+		DeployedVMQuota: new(plan.DeployedVMQuota.GetInt()),
+		StoredVMQuota:   new(plan.StoredVMQuota.GetInt()),
+	}); err != nil {
+		resp.Diagnostics.AddError("Error updating user quotas after create", err.Error())
+		return
+	}
+
+	plan.ID.Set(userCreated.ID)
 
 	// Use generic read function to refresh the state
 	stateRefreshed, found, d := r.read(ctx, plan)
@@ -193,20 +198,14 @@ func (r *UserSAMLResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	user, err := r.iamClient.GetUser(state.ID.Get())
-	if err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, "user", err)
-		return
-	}
-
-	user.User.ID = plan.ID.Get()
-	user.User.Name = plan.UserName.Get()
-	user.User.RoleName = plan.RoleName.Get()
-	user.User.Enabled = plan.Enabled.Get()
-	user.User.DeployedVMQuota = plan.DeployedVMQuota.GetInt()
-	user.User.StoredVMQuota = plan.StoredVMQuota.GetInt()
-
-	if err := user.Update(); err != nil {
+	if _, err := r.iamClient.UpdateUser(ctx, iam.ParamsUpdateUser{
+		ID:              state.ID.Get(),
+		Name:            plan.UserName.Get(),
+		RoleName:        plan.RoleName.Get(),
+		IsEnabled:       new(plan.Enabled.Get()),
+		DeployedVMQuota: new(plan.DeployedVMQuota.GetInt()),
+		StoredVMQuota:   new(plan.StoredVMQuota.GetInt()),
+	}); err != nil {
 		resp.Diagnostics.AddError("Error updating user", err.Error())
 		return
 	}
@@ -247,8 +246,7 @@ func (r *UserSAMLResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	user, err := r.iamClient.GetUser(state.ID.Get())
-	if err != nil {
+	if _, err := r.iamClient.GetUser(ctx, iam.ParamsGetUser{ID: state.ID.Get()}); err != nil {
 		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
@@ -257,7 +255,10 @@ func (r *UserSAMLResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	if err = user.Delete(state.TakeOwnership.Get()); err != nil {
+	if err := r.iamClient.DeleteUser(ctx, iam.ParamsDeleteUser{
+		ID:            state.ID.Get(),
+		TakeOwnership: state.TakeOwnership.Get(),
+	}); err != nil {
 		resp.Diagnostics.AddError("Error deleting user", err.Error())
 	}
 }
@@ -274,7 +275,7 @@ func (r *UserSAMLResource) ImportState(ctx context.Context, req resource.ImportS
 	}
 
 	// req.ID is the user name
-	user, err := r.iamClient.GetUser(req.ID)
+	user, err := r.iamClient.GetUser(ctx, iam.ParamsGetUser{Name: req.ID})
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s not found", req.ID))
@@ -284,13 +285,13 @@ func (r *UserSAMLResource) ImportState(ctx context.Context, req resource.ImportS
 		return
 	}
 
-	if user.User.Type != iam.UserTypeSAML {
+	if user.ProviderType != sdkUserProviderTypeSAML {
 		resp.Diagnostics.AddError("User is not SAML user", fmt.Sprintf("User with name %s is not a SAML user.", req.ID))
 		return
 	}
 
-	userData.ID.Set(user.User.ID)
-	userData.UserName.Set(user.User.Name)
+	userData.ID.Set(user.ID)
+	userData.UserName.Set(user.Name)
 
 	// Use generic read function to refresh the state
 	stateRefreshed, found, d := r.read(ctx, userData)
@@ -309,19 +310,19 @@ func (r *UserSAMLResource) ImportState(ctx context.Context, req resource.ImportS
 // * CustomFuncs
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
-func (r *UserSAMLResource) read(_ context.Context, planOrState *UserSAMLModel) (stateRefreshed *UserSAMLModel, found bool, diags diag.Diagnostics) {
+func (r *UserSAMLResource) read(ctx context.Context, planOrState *UserSAMLModel) (stateRefreshed *UserSAMLModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
 	var (
-		user *iam.UserClient
+		user *iam.ModelUser
 		err  error
 	)
 
 	// Get user by ID is more efficient
 	if stateRefreshed.ID.IsKnown() {
-		user, err = r.iamClient.GetUser(stateRefreshed.ID.Get())
+		user, err = r.iamClient.GetUser(ctx, iam.ParamsGetUser{ID: stateRefreshed.ID.Get()})
 	} else {
-		user, err = r.iamClient.GetUser(stateRefreshed.UserName.Get())
+		user, err = r.iamClient.GetUser(ctx, iam.ParamsGetUser{Name: stateRefreshed.UserName.Get()})
 	}
 	if err != nil {
 		if cerrs.IsNotFound(err) {
@@ -331,12 +332,12 @@ func (r *UserSAMLResource) read(_ context.Context, planOrState *UserSAMLModel) (
 		return nil, true, diags
 	}
 
-	stateRefreshed.ID.Set(user.User.ID)
-	stateRefreshed.UserName.Set(user.User.Name)
-	stateRefreshed.RoleName.Set(user.User.RoleName)
-	stateRefreshed.Enabled.Set(user.User.Enabled)
-	stateRefreshed.DeployedVMQuota.SetInt(user.User.DeployedVMQuota)
-	stateRefreshed.StoredVMQuota.SetInt(user.User.StoredVMQuota)
+	stateRefreshed.ID.Set(user.ID)
+	stateRefreshed.UserName.Set(user.Name)
+	stateRefreshed.RoleName.Set(user.RoleName)
+	stateRefreshed.Enabled.Set(user.IsEnabled)
+	stateRefreshed.DeployedVMQuota.SetInt(quotaValue(user.DeployedVMQuota))
+	stateRefreshed.StoredVMQuota.SetInt(quotaValue(user.StoredVMQuota))
 
 	return stateRefreshed, true, nil
 }
