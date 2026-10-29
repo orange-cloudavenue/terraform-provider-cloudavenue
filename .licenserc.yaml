@@ -42,7 +42,8 @@ header: # `header` section is configurations for source codes license header.
     - 'NOTICE'
     - "**/CODEOWNERS"
     - '**/**.svg'
-    - "**/zz_generated*.go"
+    - "**/*.excalidraw"
+    - "**/zz_*.go"
     - "GNUmakefile"
     - "Makefile"
     - "**/*.json"
