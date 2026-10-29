@@ -22,7 +22,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/iam"
+	iam "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/iam/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
@@ -48,7 +48,7 @@ type userDataSource struct {
 func (d *userDataSource) Init(_ context.Context, _ *userDataSourceModel) (diags diag.Diagnostics) {
 	var err error
 
-	d.iamClient, err = d.client.CAVSDK.V1.IAM()
+	d.iamClient, err = iam.New(d.client.CAVSDKV2)
 	if err != nil {
 		diags.AddError("Error initializing IAM client", err.Error())
 	}
@@ -104,15 +104,15 @@ func (d *userDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	}
 
 	var (
-		user *iam.UserClient
+		user *iam.ModelUser
 		err  error
 	)
 
 	// Get the user by name or ID and return an error if it doesn't exist or there is another error
 	if config.ID.IsKnown() {
-		user, err = d.iamClient.GetUser(config.ID.Get())
+		user, err = d.iamClient.GetUser(ctx, iam.ParamsGetUser{ID: config.ID.Get()})
 	} else {
-		user, err = d.iamClient.GetUser(config.Name.Get())
+		user, err = d.iamClient.GetUser(ctx, iam.ParamsGetUser{Name: config.Name.Get()})
 	}
 	if err != nil {
 		if cerrs.IsNotFound(err) {
@@ -123,16 +123,16 @@ func (d *userDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	config.ID.Set(user.User.ID)
-	config.Name.Set(user.User.Name)
-	config.RoleName.Set(user.User.RoleName)
-	config.FullName.Set(user.User.FullName)
-	config.Email.Set(user.User.Email)
-	config.Telephone.Set(user.User.Telephone)
-	config.Enabled.Set(user.User.Enabled)
-	config.ProviderType.Set(string(user.User.Type))
-	config.DeployedVMQuota.Set(int64(user.User.DeployedVMQuota))
-	config.StoredVMQuota.Set(int64(user.User.StoredVMQuota))
+	config.ID.Set(user.ID)
+	config.Name.Set(user.Name)
+	config.RoleName.Set(user.RoleName)
+	config.FullName.Set(user.FullName)
+	config.Email.Set(user.EmailAddress)
+	config.Telephone.Set(user.Telephone)
+	config.Enabled.Set(user.IsEnabled)
+	config.ProviderType.Set(legacyProviderType(user.ProviderType))
+	config.DeployedVMQuota.Set(int64(quotaValue(user.DeployedVMQuota)))
+	config.StoredVMQuota.Set(int64(quotaValue(user.StoredVMQuota)))
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, config)...)
