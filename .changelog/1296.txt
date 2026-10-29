@@ -1,0 +1,3 @@
+```release-note:enhancement
+provider: centralize sdk v2 not-found error detection across provider resources and data sources to keep behavior consistent during the migration.
+```
