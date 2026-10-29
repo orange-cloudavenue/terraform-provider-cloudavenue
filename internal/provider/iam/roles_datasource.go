@@ -27,7 +27,6 @@ import (
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -41,13 +40,13 @@ func NewRolesDataSource() datasource.DataSource {
 }
 
 type RolesDataSource struct {
-	client   *client.CloudAvenue
-	adminOrg adminorg.AdminOrg
+	client     *client.CloudAvenue
+	roleClient roleClientV2
 }
 
 // Init Initializes the data source.
 func (d *RolesDataSource) Init(_ context.Context, _ *RolesModel) (diags diag.Diagnostics) {
-	d.adminOrg, diags = adminorg.Init(d.client)
+	d.roleClient, diags = InitRoleClientV2(d.client)
 	return diags
 }
 
@@ -93,7 +92,8 @@ func (d *RolesDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		return
 	}
 
-	vcdRoles, err := d.adminOrg.GetAllRoles(nil)
+	// Get all roles
+	rolesList, err := d.roleClient.ListOrgRoles(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Failed to get roles", err.Error())
 		return
@@ -107,26 +107,26 @@ func (d *RolesDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 	idOfRoles := make([]string, 0)
 
-	for _, role := range vcdRoles {
-		rights, err := role.GetRights(nil)
+	for _, role := range rolesList {
+		rights, err := d.roleClient.ListOrgRoleRights(ctx, role.ID)
 		if err != nil {
 			continue
 		}
 
-		idOfRoles = append(idOfRoles, role.Role.ID)
+		idOfRoles = append(idOfRoles, role.ID)
 
-		roles[role.Role.Name] = &RoleDataSourceModel{
+		roles[role.Name] = &RoleDataSourceModel{
 			ID:          supertypes.NewStringNull(),
 			Name:        supertypes.NewStringNull(),
 			Description: supertypes.NewStringNull(),
 			ReadOnly:    supertypes.NewBoolNull(),
 			Rights:      supertypes.NewSetValueOfNull[string](ctx),
 		}
-		roles[role.Role.Name].ID.Set(role.Role.ID)
-		roles[role.Role.Name].Name.Set(role.Role.Name)
-		roles[role.Role.Name].Description.Set(role.Role.Description)
-		roles[role.Role.Name].ReadOnly.Set(role.Role.ReadOnly)
-		roles[role.Role.Name].Rights.Set(ctx, func() []string {
+		roles[role.Name].ID.Set(role.ID)
+		roles[role.Name].Name.Set(role.Name)
+		roles[role.Name].Description.Set(role.Description)
+		roles[role.Name].ReadOnly.Set(role.ReadOnly)
+		roles[role.Name].Rights.Set(ctx, func() []string {
 			var r []string
 
 			for _, right := range rights {
