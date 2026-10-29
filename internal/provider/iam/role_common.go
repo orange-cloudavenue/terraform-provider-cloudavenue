@@ -19,45 +19,12 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/vmware/go-vcloud-director/v2/govcd"
 
 	iam "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/iam/v1"
 	v2errors "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/pkg/errors"
 	sdktypes "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
-
-	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 )
-
-type role interface {
-	GetRole() (*govcd.Role, error)
-}
-
-type commonRole struct {
-	ID   supertypes.StringValue
-	Name supertypes.StringValue
-}
-
-// GetRole retrieves a role using the v1 govcd path (for backward compatibility).
-func (c *commonRole) GetRole(a adminorg.AdminOrg) (*govcd.Role, error) {
-	var (
-		role *govcd.Role
-		err  error
-	)
-	// Get the role
-	if c.ID.IsNull() {
-		role, err = a.GetRoleByName(c.Name.ValueString())
-	} else {
-		role, err = a.GetRoleById(c.ID.ValueString())
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return role, nil
-}
 
 // roleClientV2 holds the SDK v2 IAM client for org role operations.
 type roleClientV2 struct {
