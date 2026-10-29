@@ -23,18 +23,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 var (
 	_ datasource.DataSource              = &roleDataSource{}
 	_ datasource.DataSourceWithConfigure = &roleDataSource{}
-	_ role                               = &roleDataSource{}
 )
 
 func NewRoleDataSource() datasource.DataSource {
@@ -43,24 +39,11 @@ func NewRoleDataSource() datasource.DataSource {
 
 type roleDataSource struct {
 	client     *client.CloudAvenue
-	adminOrg   adminorg.AdminOrg
 	roleClient roleClientV2
-	role       commonRole
 }
 
-func (d *roleDataSource) Init(_ context.Context, rm *RoleDataSourceModel) (diags diag.Diagnostics) {
-	d.role = commonRole{
-		ID:   rm.ID,
-		Name: rm.Name,
-	}
-
+func (d *roleDataSource) Init(_ context.Context, _ *RoleDataSourceModel) (diags diag.Diagnostics) {
 	d.roleClient, diags = InitRoleClientV2(d.client)
-	if diags.HasError() {
-		return diags
-	}
-
-	d.adminOrg, diags = adminorg.Init(d.client)
-
 	return diags
 }
 
@@ -151,8 +134,4 @@ func (d *roleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
-}
-
-func (d *roleDataSource) GetRole() (*govcd.Role, error) {
-	return d.role.GetRole(d.adminOrg)
 }
