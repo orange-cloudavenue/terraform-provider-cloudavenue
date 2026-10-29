@@ -19,8 +19,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	iam "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/iam/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -35,7 +39,8 @@ func NewIAMRightDataSource() datasource.DataSource {
 }
 
 type iamRightDataSource struct {
-	client *client.CloudAvenue
+	client    *client.CloudAvenue
+	iamClient *iam.Client
 }
 
 func (d *iamRightDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -68,6 +73,15 @@ func (d *iamRightDataSource) Configure(_ context.Context, req datasource.Configu
 	d.client = client
 }
 
+func (d *iamRightDataSource) Init(_ context.Context, _ *RightModel) (diags diag.Diagnostics) {
+	var err error
+	d.iamClient, err = iam.New(d.client.CAVSDKV2)
+	if err != nil {
+		diags.AddError("Error initializing IAM client", err.Error())
+	}
+	return diags
+}
+
 func (d *iamRightDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	defer metrics.New("data.cloudavenue_iam_right", d.client.GetOrgName(), metrics.Read)()
 
@@ -79,11 +93,18 @@ func (d *iamRightDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	right, err := d.client.Vmware.Client.GetRightByName(data.Name.Get())
-	if err != nil {
+	resp.Diagnostics.Append(d.Init(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	rights, err := d.iamClient.ListRights(ctx, types.ParamsListRights{Filter: "name==" + data.Name.Get()})
+	if err != nil || len(rights) == 0 {
 		resp.Diagnostics.AddError("This right does not exist", data.Name.Get())
 		return
 	}
+
+	right := rights[0]
 
 	// Set the data to be returned
 	data.ID.Set(right.ID)
