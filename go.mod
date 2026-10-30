@@ -19,7 +19,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/madflojo/testcerts v1.5.1
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.31.2
-	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20261030091923-2829862246e8
+	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20261030093943-576a57711f3a
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20260722075754-a69ff15f4d0f
 	github.com/orange-cloudavenue/common-go/utils v1.0.0
 	github.com/orange-cloudavenue/common-go/validators v1.2.0
