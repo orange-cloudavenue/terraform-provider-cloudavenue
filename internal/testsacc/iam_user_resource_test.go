@@ -85,7 +85,7 @@ func (r *IAMUserResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 							role_name        = "Organization Administrator"
 							enabled          = false
 							email            = "foo@bar.org"
-							telephone        = "1234567890"
+							telephone        = "+33123456789"
 							take_ownership   = false
 							deployed_vm_quota = 10
 							stored_vm_quota   = 5
@@ -96,7 +96,7 @@ func (r *IAMUserResource) Tests(_ context.Context) map[testsacc.TestName]func(ct
 							resource.TestCheckResourceAttr(resourceName, "role_name", "Organization Administrator"),
 							resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 							resource.TestCheckResourceAttr(resourceName, "email", "foo@bar.org"),
-							resource.TestCheckResourceAttr(resourceName, "telephone", "1234567890"),
+							resource.TestCheckResourceAttr(resourceName, "telephone", "+33123456789"),
 							resource.TestCheckResourceAttr(resourceName, testAttrTakeOwnership, "false"),
 							resource.TestCheckResourceAttr(resourceName, "deployed_vm_quota", "10"),
 							resource.TestCheckResourceAttr(resourceName, "stored_vm_quota", "5"),
