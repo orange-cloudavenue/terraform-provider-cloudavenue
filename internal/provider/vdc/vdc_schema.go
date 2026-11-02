@@ -250,9 +250,9 @@ func vdcSchema() superschema.Schema {
 								var storageClasses strings.Builder
 								for i, sC := range rules.ALLStorageProfilesClass {
 									if i == len(rules.ALLStorageProfilesClass)-1 {
-										storageClasses.WriteString(fmt.Sprintf("`%s`", string(sC)))
+										fmt.Fprintf(&storageClasses, "`%s`", string(sC))
 									} else {
-										storageClasses.WriteString(fmt.Sprintf("`%s`, ", string(sC)))
+										fmt.Fprintf(&storageClasses, "`%s`, ", string(sC))
 									}
 								}
 								return storageClasses.String()

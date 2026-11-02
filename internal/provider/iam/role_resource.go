@@ -143,7 +143,7 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 		message := "The rights set for this role require the following implied rights to be added:"
 		var rightsList strings.Builder
 		for _, right := range missingImpliedRights {
-			rightsList.WriteString(fmt.Sprintf("\"%s\",\n", right.Name))
+			fmt.Fprintf(&rightsList, "\"%s\",\n", right.Name)
 		}
 		resp.Diagnostics.AddError(message, rightsList.String())
 		return
@@ -359,7 +359,7 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		message := "The rights set for this role require the following implied rights to be added:"
 		var rightsList strings.Builder
 		for _, right := range missingImpliedRights {
-			rightsList.WriteString(fmt.Sprintf("\"%s\",\n", right.Name))
+			fmt.Fprintf(&rightsList, "\"%s\",\n", right.Name)
 		}
 		resp.Diagnostics.AddError(message, rightsList.String())
 		return
