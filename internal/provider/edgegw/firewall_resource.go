@@ -31,6 +31,7 @@ import (
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
@@ -401,7 +402,7 @@ func (r *firewallResource) read(ctx context.Context, planOrState *firewallModel)
 		if cerrs.IsNotFound(err) {
 			return stateRefreshed, false, nil
 		}
-		if previousRulesCount <= 0 || (fwRules != nil && len(fwRules.UserDefinedRules) != 0) {
+		if previousRulesCount == 0 || (fwRules != nil && len(fwRules.UserDefinedRules) != 0) {
 			cerrs.AddError(&diags, cerrs.ActionRead, "Edge Gateway Firewall", err)
 			return stateRefreshed, true, diags
 		}
