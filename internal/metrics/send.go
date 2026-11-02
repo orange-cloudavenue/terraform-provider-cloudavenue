@@ -37,7 +37,7 @@ func send(event analyticRequest) {
 	defer cancel()
 
 	// Compose request
-	req, err := http.NewRequestWithContext(ctx, "POST", target+"/api/v1/send", bytes.NewReader(eventPkg))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, target+"/api/v1/send", bytes.NewReader(eventPkg))
 	if err != nil {
 		return
 	}

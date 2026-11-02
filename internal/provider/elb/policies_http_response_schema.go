@@ -42,7 +42,7 @@ import (
 func policiesHTTPResponseSchema(_ context.Context) superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The `cloudavenue_elb_policies_http_response` resource allows you to manage HTTP response policies. HTTP response rules can be used to to evaluate and modify the response and response attributes that the application returns.",
+			MarkdownDescription: "The `cloudavenue_elb_policies_http_response` resource allows you to manage HTTP response policies. HTTP response rules can be used to evaluate and modify the response and response attributes that the application returns.",
 		},
 		DataSource: superschema.SchemaDetails{
 			MarkdownDescription: "The `cloudavenue_elb_policies_http_response` data source allows you to retrieve information about an existing HTTP response policies.",

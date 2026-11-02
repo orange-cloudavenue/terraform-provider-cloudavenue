@@ -61,7 +61,12 @@ func dhcpBindingSchema(_ context.Context) superschema.Schema {
 				},
 				Resource: &schemaR.StringAttribute{
 					Validators: []validator.String{
-						fstringvalidator.IsURN(),
+						fstringvalidator.Formats(
+							[]fstringvalidator.FormatsValidatorType{
+								fstringvalidator.FormatsIsURN,
+							},
+							false,
+						),
 					},
 					PlanModifiers: []planmodifier.String{
 						stringplanmodifier.UseStateForUnknown(),

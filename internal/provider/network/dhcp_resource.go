@@ -268,7 +268,7 @@ func (r *dhcpResource) createUpdateDHCP(ctx context.Context, rm *dhcpModel) (dia
 func (rm *dhcpModel) toNetworkDHCP(ctx context.Context) *govcdtypes.OpenApiOrgVdcNetworkDhcp {
 	object := &govcdtypes.OpenApiOrgVdcNetworkDhcp{
 		Mode:      rm.Mode.ValueString(),
-		LeaseTime: utils.TakeIntPointer(int(rm.LeaseTime.ValueInt64())),
+		LeaseTime: new(int(rm.LeaseTime.ValueInt64())),
 		IPAddress: rm.ListenerIPAddress.ValueString(),
 	}
 

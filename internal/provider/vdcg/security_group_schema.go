@@ -122,7 +122,12 @@ func securityGroupSchema(_ context.Context) superschema.Schema {
 					MarkdownDescription: "Only `cloudavenue_vdcg_network_routed` or `cloudavenue_vdcg_network_isolated` are allowed. If you want to add `cloudavenue_edgegateway_network_routed` to the security group, you need to use the `cloudavenue_edgegateway_security_group` resource.",
 					Optional:            true,
 					Validators: []validator.Set{
-						setvalidator.ValueStringsAre(fstringvalidator.IsURN(), fstringvalidator.PrefixContains(urn.Network.String())),
+						setvalidator.ValueStringsAre(fstringvalidator.Formats(
+							[]fstringvalidator.FormatsValidatorType{
+								fstringvalidator.FormatsIsURN,
+							},
+							false,
+						), fstringvalidator.PrefixContains(urn.Network.String())),
 					},
 				},
 				DataSource: &schemaD.SetAttribute{

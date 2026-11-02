@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/iancoleman/strcase"
 
@@ -328,7 +329,7 @@ func ImportStateIDBuilder(resourceName string, attributeNames []string) resource
 		}
 
 		// Build the ID
-		id := ""
+		var id strings.Builder
 		for _, attributeName := range attributeNames {
 			// Catch attribute not found
 			i, ok := rs.Primary.Attributes[attributeName]
@@ -336,16 +337,16 @@ func ImportStateIDBuilder(resourceName string, attributeNames []string) resource
 				return "", fmt.Errorf("ImportStateIDBuilder : Attribute %s not found", attributeName)
 			}
 
-			id += i
+			id.WriteString(i)
 			if attributeName != attributeNames[len(attributeNames)-1] {
-				id += "."
+				id.WriteString(".")
 			}
 		}
 
-		if id == "" {
+		if id.String() == "" {
 			return "", fmt.Errorf("ImportStateIDBuilder : ID is empty after building")
 		}
 
-		return id, nil
+		return id.String(), nil
 	}
 }

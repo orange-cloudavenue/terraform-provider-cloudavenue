@@ -16,6 +16,7 @@ package testsacc
 
 import (
 	"context"
+	"maps"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -39,9 +40,7 @@ func (r *ResourceConfig) GetSpecificConfig(testName string) func() map[string]TF
 
 		// Add the dependencies config (scope : Tests)
 		for _, v := range r.DependenciesConfig() {
-			for k, v := range v() {
-				x[k] = v
-			}
+			maps.Copy(x, v())
 		}
 
 		if _, ok := localCache[r.GetResourceName()+"."+testName]; !ok {
@@ -58,9 +57,7 @@ func (r *ResourceConfig) GetSpecificConfig(testName string) func() map[string]TF
 		if localCache[r.GetResourceName()+"."+testName].CommonDependencies != nil {
 			for _, v := range localCache[r.GetResourceName()+"."+testName].CommonDependencies() {
 				if v != nil {
-					for k, v := range v() {
-						x[k] = v
-					}
+					maps.Copy(x, v())
 				}
 			}
 		}

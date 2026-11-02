@@ -116,7 +116,7 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	if tflog.IsDebug(ctx) {
-		tflog.SubsystemDebug(ctx, roleSubsystem, "Creating role", map[string]interface{}{attrName: plan.Name.ValueString()})
+		tflog.SubsystemDebug(ctx, roleSubsystem, "Creating role", map[string]any{attrName: plan.Name.ValueString()})
 	}
 
 	// Check rights are valid
@@ -141,11 +141,11 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 	// Print missing implied rights
 	if len(missingImpliedRights) > 0 {
 		message := "The rights set for this role require the following implied rights to be added:"
-		rightsList := ""
+		var rightsList strings.Builder
 		for _, right := range missingImpliedRights {
-			rightsList += fmt.Sprintf("\"%s\",\n", right.Name)
+			rightsList.WriteString(fmt.Sprintf("\"%s\",\n", right.Name))
 		}
-		resp.Diagnostics.AddError(message, rightsList)
+		resp.Diagnostics.AddError(message, rightsList.String())
 		return
 	}
 
@@ -156,14 +156,14 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 		BundleKey:   govcdtypes.VcloudUndefinedKey,
 	})
 	if err != nil {
-		tflog.SubsystemError(ctx, roleSubsystem, "Role create failed", map[string]interface{}{attrName: plan.Name.ValueString()})
+		tflog.SubsystemError(ctx, roleSubsystem, "Role create failed", map[string]any{attrName: plan.Name.ValueString()})
 		resp.Diagnostics.AddError("Error creating role", err.Error())
 		return
 	}
 	if len(rights) > 0 {
 		err = role.AddRights(rights)
 		if err != nil {
-			tflog.SubsystemError(ctx, roleSubsystem, "Role rights update failed", map[string]interface{}{attrName: plan.Name.ValueString(), attrRights: len(rights)})
+			tflog.SubsystemError(ctx, roleSubsystem, "Role rights update failed", map[string]any{attrName: plan.Name.ValueString(), attrRights: len(rights)})
 			resp.Diagnostics.AddError("Error adding rights to role", err.Error())
 			return
 		}
@@ -199,18 +199,18 @@ func (r *roleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	}
 
 	if tflog.IsDebug(ctx) {
-		tflog.SubsystemDebug(ctx, roleSubsystem, "Reading role", map[string]interface{}{attrName: state.Name.ValueString()})
+		tflog.SubsystemDebug(ctx, roleSubsystem, "Reading role", map[string]any{attrName: state.Name.ValueString()})
 	}
 
 	// Get Role
 	role, err := r.GetRole()
 	if err != nil {
 		if cerrs.IsNotFound(err) {
-			tflog.SubsystemDebug(ctx, roleSubsystem, "Role not found, removing from state", map[string]interface{}{attrName: state.Name.ValueString()})
+			tflog.SubsystemDebug(ctx, roleSubsystem, "Role not found, removing from state", map[string]any{attrName: state.Name.ValueString()})
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		tflog.SubsystemError(ctx, roleSubsystem, "Role read failed", map[string]interface{}{attrName: state.Name.ValueString()})
+		tflog.SubsystemError(ctx, roleSubsystem, "Role read failed", map[string]any{attrName: state.Name.ValueString()})
 		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "role", err)
 		return
 	}
@@ -263,24 +263,24 @@ func (r *roleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	}
 
 	if tflog.IsDebug(ctx) {
-		tflog.SubsystemDebug(ctx, roleSubsystem, "Deleting role", map[string]interface{}{attrName: state.Name.ValueString()})
+		tflog.SubsystemDebug(ctx, roleSubsystem, "Deleting role", map[string]any{attrName: state.Name.ValueString()})
 	}
 
 	// Get the role
 	role, err = r.GetRole()
 	if err != nil {
 		if cerrs.IsNotFound(err) {
-			tflog.SubsystemDebug(ctx, roleSubsystem, "Role not found, removing from state", map[string]interface{}{attrName: state.Name.ValueString()})
+			tflog.SubsystemDebug(ctx, roleSubsystem, "Role not found, removing from state", map[string]any{attrName: state.Name.ValueString()})
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		tflog.SubsystemError(ctx, roleSubsystem, "Role delete lookup failed", map[string]interface{}{attrName: state.Name.ValueString()})
+		tflog.SubsystemError(ctx, roleSubsystem, "Role delete lookup failed", map[string]any{attrName: state.Name.ValueString()})
 		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "role", err)
 		return
 	}
 	err = role.Delete()
 	if err != nil {
-		tflog.SubsystemError(ctx, roleSubsystem, "Role delete failed", map[string]interface{}{attrName: state.Name.ValueString()})
+		tflog.SubsystemError(ctx, roleSubsystem, "Role delete failed", map[string]any{attrName: state.Name.ValueString()})
 		resp.Diagnostics.AddError("Error deleting role", err.Error())
 		return
 	}
@@ -308,13 +308,13 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	if tflog.IsDebug(ctx) {
-		tflog.SubsystemDebug(ctx, roleSubsystem, "Updating role", map[string]interface{}{attrName: state.Name.ValueString()})
+		tflog.SubsystemDebug(ctx, roleSubsystem, "Updating role", map[string]any{attrName: state.Name.ValueString()})
 	}
 
 	// Get the role
 	role, err = r.GetRole()
 	if err != nil {
-		tflog.SubsystemError(ctx, roleSubsystem, "Role update lookup failed", map[string]interface{}{attrName: state.Name.ValueString()})
+		tflog.SubsystemError(ctx, roleSubsystem, "Role update lookup failed", map[string]any{attrName: state.Name.ValueString()})
 		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, "role", err)
 		return
 	}
@@ -324,7 +324,7 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		role.Role.Name = plan.Name.Get()
 		role.Role.Description = plan.Description.Get()
 		if _, err := role.Update(); err != nil {
-			tflog.SubsystemError(ctx, roleSubsystem, "Role attribute update failed", map[string]interface{}{attrName: plan.Name.ValueString()})
+			tflog.SubsystemError(ctx, roleSubsystem, "Role attribute update failed", map[string]any{attrName: plan.Name.ValueString()})
 			resp.Diagnostics.AddError("Error updating role", err.Error())
 			return
 		}
@@ -357,11 +357,11 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	// Print missing implied rights
 	if len(missingImpliedRights) > 0 {
 		message := "The rights set for this role require the following implied rights to be added:"
-		rightsList := ""
+		var rightsList strings.Builder
 		for _, right := range missingImpliedRights {
-			rightsList += fmt.Sprintf("\"%s\",\n", right.Name)
+			rightsList.WriteString(fmt.Sprintf("\"%s\",\n", right.Name))
 		}
-		resp.Diagnostics.AddError(message, rightsList)
+		resp.Diagnostics.AddError(message, rightsList.String())
 		return
 	}
 

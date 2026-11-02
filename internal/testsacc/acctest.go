@@ -18,6 +18,7 @@ package testsacc
 import (
 	"log"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -68,9 +69,9 @@ func ConcatTests(tests ...string) string {
 
 // ContactConfigs concatenates the given configs into a single string.
 func ContactConfigs(configs ...string) string {
-	var result string
+	var result strings.Builder
 	for _, config := range configs {
-		result += config + "\n"
+		result.WriteString(config + "\n")
 	}
-	return result
+	return result.String()
 }

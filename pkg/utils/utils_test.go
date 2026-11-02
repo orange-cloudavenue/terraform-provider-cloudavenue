@@ -125,7 +125,7 @@ func TestTakeBoolPointer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := TakeBoolPointer(tt.args.value)
+			got := new(tt.args.value)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("TakeBoolPointer() = %v, want %v", got, tt.want)
 			}
@@ -152,7 +152,7 @@ func TestTakeIntPointer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := TakeIntPointer(tt.args.value)
+			got := new(tt.args.value)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("TakeIntPointer() = %v, want %v", got, tt.want)
 			}
@@ -179,7 +179,7 @@ func TestTakeInt64Pointer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := TakeInt64Pointer(tt.args.x)
+			got := new(tt.args.x)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("TakeInt64Pointer() = %v, want %v", got, tt.want)
 			}
@@ -222,17 +222,17 @@ func TestStringValueOrNull(t *testing.T) {
 
 func TestSortMapStringByKeys(t *testing.T) {
 	type args struct {
-		m map[string]interface{}
+		m map[string]any
 	}
 	tests := []struct {
 		name string
 		args args
-		want map[string]interface{}
+		want map[string]any
 	}{
 		{
 			name: "SortMapStringByKeys",
 			args: args{
-				m: map[string]interface{}{
+				m: map[string]any{
 					"e": "e",
 					"b": "b",
 					"c": "c",
@@ -240,7 +240,7 @@ func TestSortMapStringByKeys(t *testing.T) {
 					"d": "d",
 				},
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"a": "a",
 				"b": "b",
 				"c": "c",

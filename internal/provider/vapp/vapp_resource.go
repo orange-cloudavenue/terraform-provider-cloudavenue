@@ -133,18 +133,18 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 	if tflog.IsDebug(ctx) {
-		tflog.SubsystemDebug(ctx, vappSubsystem, "Creating vApp", map[string]interface{}{attrVappName: plan.VAppName.ValueString(), attrVDC: plan.VDC.ValueString()})
+		tflog.SubsystemDebug(ctx, vappSubsystem, "Creating vApp", map[string]any{attrVappName: plan.VAppName.ValueString(), attrVDC: plan.VDC.ValueString()})
 	}
 
 	// Wait for job to complete
 	errRetry := retry.RetryContext(ctx, 90*time.Second, func() *retry.RetryError {
 		currentStatus, errGetStatus := r.vapp.GetStatus()
 		if errGetStatus != nil {
-			tflog.SubsystemError(ctx, vappSubsystem, "vApp status read failed", map[string]interface{}{attrVappName: plan.VAppName.ValueString()})
+			tflog.SubsystemError(ctx, vappSubsystem, "vApp status read failed", map[string]any{attrVappName: plan.VAppName.ValueString()})
 			return retry.NonRetryableError(errGetStatus)
 		}
 		if tflog.IsDebug(ctx) {
-			tflog.SubsystemDebug(ctx, vappSubsystem, "vApp status", map[string]interface{}{attrVappName: plan.VAppName.ValueString(), "status": currentStatus})
+			tflog.SubsystemDebug(ctx, vappSubsystem, "vApp status", map[string]any{attrVappName: plan.VAppName.ValueString(), "status": currentStatus})
 		}
 		if currentStatus == "UNRESOLVED" {
 			return retry.RetryableError(fmt.Errorf("expected vapp status != UNRESOLVED"))
@@ -238,7 +238,7 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 	if tflog.IsDebug(ctx) {
-		tflog.SubsystemDebug(ctx, vappSubsystem, "Updating vApp", map[string]interface{}{attrVappName: plan.VAppName.ValueString(), attrVDC: plan.VDC.ValueString()})
+		tflog.SubsystemDebug(ctx, vappSubsystem, "Updating vApp", map[string]any{attrVappName: plan.VAppName.ValueString(), attrVDC: plan.VDC.ValueString()})
 	}
 
 	// Request vApp
@@ -474,10 +474,10 @@ func (r *vappResource) read(ctx context.Context, planOrState *vappResourceModel)
 	vappModel, err := vapp.Init(r.client, r.vdc, planOrState.VAppID.StringValue, planOrState.VAppName.StringValue)
 	if err != nil {
 		if cerrs.IsNotFound(err) {
-			tflog.SubsystemDebug(ctx, vappSubsystem, "vApp not found, removing from state", map[string]interface{}{attrVappName: planOrState.VAppName.ValueString(), attrVDC: planOrState.VDC.ValueString()})
+			tflog.SubsystemDebug(ctx, vappSubsystem, "vApp not found, removing from state", map[string]any{attrVappName: planOrState.VAppName.ValueString(), attrVDC: planOrState.VDC.ValueString()})
 			return nil, false, diags
 		}
-		tflog.SubsystemError(ctx, vappSubsystem, "vApp init failed", map[string]interface{}{attrVappName: planOrState.VAppName.ValueString(), attrVDC: planOrState.VDC.ValueString()})
+		tflog.SubsystemError(ctx, vappSubsystem, "vApp init failed", map[string]any{attrVappName: planOrState.VAppName.ValueString(), attrVDC: planOrState.VDC.ValueString()})
 		diags.AddError("Error retrieving vApp", fmt.Sprintf("error retrieving vApp %q during read: %s", planOrState.VAppName.ValueString(), err))
 		return nil, true, diags
 	}
@@ -486,7 +486,7 @@ func (r *vappResource) read(ctx context.Context, planOrState *vappResourceModel)
 	// * Guest properties
 	guestProperties, err := r.vapp.GetProductSectionList()
 	if err != nil {
-		tflog.SubsystemError(ctx, vappSubsystem, "vApp guest properties read failed", map[string]interface{}{attrVappName: planOrState.VAppName.ValueString()})
+		tflog.SubsystemError(ctx, vappSubsystem, "vApp guest properties read failed", map[string]any{attrVappName: planOrState.VAppName.ValueString()})
 		diags.AddError("Error retrieving guest properties", fmt.Sprintf("error retrieving guest properties for vApp %q: %s", planOrState.VAppName.ValueString(), err))
 		return stateRefreshed, found, diags
 	}
@@ -510,7 +510,7 @@ func (r *vappResource) read(ctx context.Context, planOrState *vappResourceModel)
 	// * Lease
 	leaseInfo, err := r.vapp.GetLease()
 	if err != nil {
-		tflog.SubsystemError(ctx, vappSubsystem, "vApp lease read failed", map[string]interface{}{attrVappName: planOrState.VAppName.ValueString()})
+		tflog.SubsystemError(ctx, vappSubsystem, "vApp lease read failed", map[string]any{attrVappName: planOrState.VAppName.ValueString()})
 		diags.AddError("Error retrieving lease info", fmt.Sprintf("error retrieving lease info for vApp %q: %s", planOrState.VAppName.ValueString(), err))
 		return stateRefreshed, found, diags
 	}

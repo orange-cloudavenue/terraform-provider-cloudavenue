@@ -140,7 +140,12 @@ func vmAffinityRuleSchema() superschema.Schema {
 					Required:            true,
 					Validators: []validator.Set{
 						setvalidator.SizeAtLeast(2),
-						setvalidator.ValueStringsAre(fstringvalidator.IsURN()),
+						setvalidator.ValueStringsAre(fstringvalidator.Formats(
+							[]fstringvalidator.FormatsValidatorType{
+								fstringvalidator.FormatsIsURN,
+							},
+							false,
+						)),
 					},
 				},
 				DataSource: &schemaD.SetAttribute{

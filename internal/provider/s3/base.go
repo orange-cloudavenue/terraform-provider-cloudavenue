@@ -152,8 +152,8 @@ func retryWhenAWSErrCodeNotEquals[T any](ctx context.Context, codes []string, co
 }
 
 // RetryWhenNotFound retries the specified function when it returns a retry.NotFoundError.
-func retryWhenNotFound(ctx context.Context, timeout time.Duration, f func() (interface{}, error)) (interface{}, error) { //nolint: ireturn
-	return retryWhen(ctx, &RetryWhenConfig[interface{}]{Timeout: timeout, Function: f}, NotFound)
+func retryWhenNotFound(ctx context.Context, timeout time.Duration, f func() (any, error)) (any, error) { //nolint: ireturn
+	return retryWhen(ctx, &RetryWhenConfig[any]{Timeout: timeout, Function: f}, NotFound)
 }
 
 func initS3Client(client *client.CloudAvenue) (s3Client v1.S3Client, diags diag.Diagnostics) {

@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -249,7 +248,7 @@ func (r *BucketPolicyResource) genericCreateOrUpdate(ctx context.Context, timeou
 	// Loop for object creation
 	input := &s3.PutBucketPolicyInput{
 		Bucket: stateRefreshed.Bucket.GetPtr(),
-		Policy: aws.String(policy),
+		Policy: new(policy),
 	}
 	_, err = retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket, ErrCodeMalformedPolicy}, &RetryWhenConfig[*s3.PutBucketPolicyOutput]{
 		Timeout:  timeout,

@@ -35,7 +35,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -142,7 +141,7 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 
 	// RetainIpMacEnabled and IsFenced are always false in CloudAvenue
 
-	vappNetworkSettings := &govcd.VappNetworkSettings{RetainIpMacEnabled: utils.TakeBoolPointer(false)}
+	vappNetworkSettings := &govcd.VappNetworkSettings{RetainIpMacEnabled: new(false)}
 	vAppNetworkConfig, err := r.vapp.AddOrgNetwork(vappNetworkSettings, orgNetwork.OrgVDCNetwork, false)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating vApp network", err.Error())

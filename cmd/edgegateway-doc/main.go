@@ -40,7 +40,7 @@ func main() {
 	}
 
 	// Get the content before and after the markers
-	before := strings.Split(string(content), bandwidthMarker)[0]
+	before, _, _ := strings.Cut(string(content), bandwidthMarker)
 	after := strings.Split(string(content), bandwidthMarker)[1]
 
 	// * Retrieve the rules for the edgegateway and construct a markdown table

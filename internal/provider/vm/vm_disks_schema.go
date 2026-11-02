@@ -54,7 +54,12 @@ func disksSchema(_ context.Context) superschema.Schema {
 					Optional: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("vapp_name"), path.MatchRoot("vapp_id")),
-						fstringvalidator.IsURN(),
+						fstringvalidator.Formats(
+							[]fstringvalidator.FormatsValidatorType{
+								fstringvalidator.FormatsIsURN,
+							},
+							false,
+						),
 						fstringvalidator.PrefixContains(urn.VAPP.String()),
 					},
 				},
@@ -72,7 +77,12 @@ func disksSchema(_ context.Context) superschema.Schema {
 					Optional: true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("vm_name"), path.MatchRoot("vm_id")),
-						fstringvalidator.IsURN(),
+						fstringvalidator.Formats(
+							[]fstringvalidator.FormatsValidatorType{
+								fstringvalidator.FormatsIsURN,
+							},
+							false,
+						),
 						fstringvalidator.PrefixContains(urn.VM.String()),
 					},
 				},

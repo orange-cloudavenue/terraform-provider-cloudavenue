@@ -28,7 +28,6 @@ import (
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -233,7 +232,7 @@ func (r *BucketVersioningConfigurationResource) Delete(ctx context.Context, req 
 		if _, err := r.s3Client.PutBucketVersioningWithContext(ctx, &s3.PutBucketVersioningInput{
 			Bucket: state.Bucket.GetPtr(),
 			VersioningConfiguration: &s3.VersioningConfiguration{
-				Status: utils.TakePointer(s3.BucketVersioningStatusSuspended),
+				Status: new(s3.BucketVersioningStatusSuspended),
 			},
 		}); err != nil {
 			resp.Diagnostics.AddError("Error suspending bucket versioning", err.Error())

@@ -188,7 +188,7 @@ func userSchema() superschema.Schema {
 			},
 			"provider_type": superschema.SuperStringAttribute{
 				DataSource: &schemaD.StringAttribute{
-					MarkdownDescription: "Identity provider type for this this user.",
+					MarkdownDescription: "Identity provider type for this user.",
 					Computed:            true,
 				},
 			},

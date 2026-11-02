@@ -142,7 +142,7 @@ func (s *VMResourceModelSettingsCustomization) GetCustomizationSection(vmName st
 
 		ResetPasswordRequired: s.MustChangePasswordOnFirstLogin.ValueBoolPointer(),
 
-		AdminAutoLogonEnabled: utils.TakeBoolPointer(s.NumberOfAutoLogons.ValueInt64() > 0),
+		AdminAutoLogonEnabled: new(s.NumberOfAutoLogons.ValueInt64() > 0),
 		AdminAutoLogonCount:   int(s.NumberOfAutoLogons.ValueInt64()),
 
 		JoinDomainEnabled:  s.JoinDomain.ValueBoolPointer(),

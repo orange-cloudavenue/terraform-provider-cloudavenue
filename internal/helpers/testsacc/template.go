@@ -17,6 +17,7 @@ package testsacc
 import (
 	"bytes"
 	"fmt"
+	"slices"
 	"strings"
 	"text/template"
 
@@ -123,12 +124,7 @@ func generateRandomString(format string) string {
 
 func withoutPrefix(format string) bool {
 	f := []string{"private-ipv4", "public-ipv4"}
-	for _, v := range f {
-		if v == format {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(f, format)
 }
 
 // returnWithQuotes returns the given string with quotes.

@@ -29,7 +29,6 @@ import (
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -107,7 +106,7 @@ func (r *BucketResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	if _, err := r.s3Client.CreateBucket(&s3.CreateBucketInput{
 		Bucket:                     plan.Name.GetPtr(),
-		ObjectLockEnabledForBucket: utils.TakeBoolPointer(plan.ObjectLock.Get()),
+		ObjectLockEnabledForBucket: new(plan.ObjectLock.Get()),
 	}); err != nil {
 		resp.Diagnostics.AddError("Error creating bucket", fmt.Sprintf("Error creating bucket (name=%s): %s", plan.Name.Get(), err.Error()))
 		return

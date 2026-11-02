@@ -39,7 +39,7 @@ func main() {
 	}
 
 	// Get the content before and after the markers
-	before := strings.Split(string(content), vdcMarker)[0]
+	before, _, _ := strings.Cut(string(content), vdcMarker)
 	after := strings.Split(string(content), storageMarker)[1]
 
 	// Generate the documentation for the VDC attributes

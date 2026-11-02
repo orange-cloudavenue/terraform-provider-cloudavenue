@@ -60,7 +60,12 @@ func securityTagSchema() superschema.Schema {
 					ElementType:         types.StringType,
 					Validators: []validator.Set{
 						setvalidator.SizeAtLeast(1),
-						setvalidator.ValueStringsAre(fstringvalidator.IsURN()),
+						setvalidator.ValueStringsAre(fstringvalidator.Formats(
+							[]fstringvalidator.FormatsValidatorType{
+								fstringvalidator.FormatsIsURN,
+							},
+							false,
+						)),
 					},
 				},
 			},

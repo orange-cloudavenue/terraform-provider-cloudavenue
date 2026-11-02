@@ -78,7 +78,12 @@ func backupSchema(_ context.Context) superschema.Schema {
 					Optional:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot("target_id"), path.MatchRoot("target_name")),
-						fstringvalidator.IsURN(),
+						fstringvalidator.Formats(
+							[]fstringvalidator.FormatsValidatorType{
+								fstringvalidator.FormatsIsURN,
+							},
+							false,
+						),
 					},
 				},
 				Resource: &schemaR.StringAttribute{

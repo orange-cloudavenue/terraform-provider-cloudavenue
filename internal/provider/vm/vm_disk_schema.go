@@ -85,7 +85,12 @@ func DiskSuperSchema() superschema.Schema {
 						stringplanmodifier.UseStateForUnknown(),
 					},
 					Validators: []validator.String{
-						fstringvalidator.IsURN(),
+						fstringvalidator.Formats(
+							[]fstringvalidator.FormatsValidatorType{
+								fstringvalidator.FormatsIsURN,
+							},
+							false,
+						),
 						fstringvalidator.PrefixContains(urn.VM.String()),
 					},
 				},

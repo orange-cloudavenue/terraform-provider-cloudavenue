@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -137,7 +136,7 @@ func (r *BucketWebsiteConfigurationResource) Create(ctx context.Context, req res
 		return
 	}
 
-	if _, err := retryWhenNotFound(ctx, s3BucketPropagationTimeout, func() (interface{}, error) {
+	if _, err := retryWhenNotFound(ctx, s3BucketPropagationTimeout, func() (any, error) {
 		return findBucketWebsite(ctx, r.s3Client.S3, plan.Bucket.Get())
 	}); err != nil {
 		resp.Diagnostics.AddError("Waiting for S3 Bucket Website Configuration", err.Error())
@@ -314,7 +313,7 @@ func (r *BucketWebsiteConfigurationResource) read(ctx context.Context, planOrSta
 
 func findBucketWebsite(ctx context.Context, conn *s3.S3, bucket string) (*s3.GetBucketWebsiteOutput, error) {
 	input := &s3.GetBucketWebsiteInput{
-		Bucket: aws.String(bucket),
+		Bucket: new(bucket),
 	}
 
 	output, err := conn.GetBucketWebsiteWithContext(ctx, input)

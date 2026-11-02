@@ -633,7 +633,7 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			(!plan.BusNumber.IsUnknown() && !plan.BusNumber.Equal(state.BusNumber)) ||
 			(!plan.UnitNumber.IsUnknown() && !plan.UnitNumber.Equal(state.UnitNumber)) {
 			// Check if disk is attached to a VM
-			if !(state.VMID.IsNull() && state.VMName.IsNull()) {
+			if !state.VMID.IsNull() || !state.VMName.IsNull() {
 				// Detach disk from VM
 
 				vmOld, err := vm.Get(r.vapp, vm.GetVMOpts{
@@ -754,8 +754,8 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 				// Attach disk
 				task, err := vmNew.AttachDisk(&govcdtypes.DiskAttachOrDetachParams{
 					Disk:       &govcdtypes.Reference{HREF: disk.Disk.HREF},
-					BusNumber:  utils.TakeIntPointer(int(busNumber.ValueInt64())),
-					UnitNumber: utils.TakeIntPointer(int(unitNumber.ValueInt64())),
+					BusNumber:  new(int(busNumber.ValueInt64())),
+					UnitNumber: new(int(unitNumber.ValueInt64())),
 				})
 				if err != nil {
 					resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %s", plan.Name.ValueString(), err))
