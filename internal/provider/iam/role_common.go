@@ -36,7 +36,12 @@ type roleClientV2 struct {
 // InitRoleClientV2 initializes the v2 IAM client for role operations.
 func InitRoleClientV2(c *client.CloudAvenue) (roleClientV2, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	iamClient, err := iam.New(c.CAVSDKV2)
+	v2, err := c.V2()
+	if err != nil {
+		diags.AddError("Error initializing IAM client", err.Error())
+		return roleClientV2{}, diags
+	}
+	iamClient, err := iam.New(v2)
 	if err != nil {
 		diags.AddError("Error initializing IAM client", err.Error())
 		return roleClientV2{}, diags

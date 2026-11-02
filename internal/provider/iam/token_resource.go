@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	iam "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/iam/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
 	sdktypes "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
@@ -57,7 +58,10 @@ func (r *tokenResource) Init(_ context.Context, _ *TokenModel) (diags diag.Diagn
 	}
 
 	var err error
-	r.iamClient, err = iam.New(r.client.CAVSDKV2)
+	var v2 cav.Client
+	if v2, err = r.client.V2(); err == nil {
+		r.iamClient, err = iam.New(v2)
+	}
 	if err != nil {
 		diags.AddError("Error initializing IAM client", err.Error())
 	}

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	iam "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/iam/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
@@ -74,7 +75,10 @@ func (r *userResource) Configure(_ context.Context, req resource.ConfigureReques
 func (r *userResource) Init(_ context.Context, _ *userResourceModel) (diags diag.Diagnostics) {
 	var err error
 
-	r.iamClient, err = iam.New(r.client.CAVSDKV2)
+	var v2 cav.Client
+	if v2, err = r.client.V2(); err == nil {
+		r.iamClient, err = iam.New(v2)
+	}
 	if err != nil {
 		diags.AddError("Error initializing IAM client", err.Error())
 	}
