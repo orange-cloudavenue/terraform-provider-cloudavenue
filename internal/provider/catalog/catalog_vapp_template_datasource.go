@@ -128,14 +128,14 @@ func (d *vAppTemplateDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 			stateUpdated.TemplateName.Set(vAppTemplate.Name)
 
-			vappTemplate, err := d.client.Vmware.GetVAppTemplateById(stateUpdated.TemplateID.Get())
+			vappTemplate, err := d.client.Vmware.GetVAppTemplateById(stateUpdated.TemplateID.Get()) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 			if err != nil {
 				resp.Diagnostics.AddError("Error retrieving vApp Template", err.Error())
 				return
 			}
 
 			// This checks that the vApp Template is synchronized in the catalog
-			if _, err = d.client.Vmware.QuerySynchronizedVAppTemplateById(stateUpdated.TemplateID.Get()); err != nil {
+			if _, err = d.client.Vmware.QuerySynchronizedVAppTemplateById(stateUpdated.TemplateID.Get()); err != nil { //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 				cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "vApp Template synchronization", err)
 				return
 			}

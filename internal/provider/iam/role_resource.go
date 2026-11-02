@@ -132,7 +132,7 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 
 	// Add implied rights
-	missingImpliedRights, err := govcd.FindMissingImpliedRights(&r.client.Vmware.Client, rights)
+	missingImpliedRights, err := govcd.FindMissingImpliedRights(&r.client.Vmware.Client, rights) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving implied rights", err.Error())
 		return
@@ -348,7 +348,7 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	// Add implied rights
-	missingImpliedRights, err := govcd.FindMissingImpliedRights(&r.client.Vmware.Client, rights)
+	missingImpliedRights, err := govcd.FindMissingImpliedRights(&r.client.Vmware.Client, rights) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving implied rights", err.Error())
 		return

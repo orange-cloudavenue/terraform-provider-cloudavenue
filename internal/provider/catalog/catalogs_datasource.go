@@ -143,7 +143,7 @@ func (d *catalogsDataSource) Read(ctx context.Context, _ datasource.ReadRequest,
 		)
 
 		filter := fmt.Sprintf("catalog==%s", url.QueryEscape(catalog.AdminCatalog.HREF))
-		mediaResults, err := d.client.Vmware.QueryWithNotEncodedParams(nil, map[string]string{"type": "media", "filter": filter, "filterEncoded": "true"})
+		mediaResults, err := d.client.Vmware.QueryWithNotEncodedParams(nil, map[string]string{"type": "media", "filter": filter, "filterEncoded": "true"}) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 		if err != nil {
 			resp.Diagnostics.AddWarning(
 				"Unable to get media records",

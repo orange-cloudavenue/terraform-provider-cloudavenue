@@ -17,7 +17,7 @@ package s3
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"

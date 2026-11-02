@@ -527,7 +527,7 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 		// Normally a disk can be attached to only one VM
 		if len(attachedVmsHrefs) == 1 {
-			govcdVM, err := r.client.Vmware.Client.GetVMByHref(attachedVmsHrefs[0])
+			govcdVM, err := r.client.Vmware.Client.GetVMByHref(attachedVmsHrefs[0]) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 			if err != nil {
 				resp.Diagnostics.AddError("unable to find attached VM", fmt.Sprintf("unable to find attached VM for disk %s: %s", state.Name.ValueString(), err))
 				return
