@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	iam "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/iam/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
@@ -51,7 +52,10 @@ type UserSAMLResource struct {
 func (r *UserSAMLResource) Init(_ context.Context, _ *UserSAMLModel) (diags diag.Diagnostics) {
 	var err error
 
-	r.iamClient, err = iam.New(r.client.CAVSDKV2)
+	var v2 cav.Client
+	if v2, err = r.client.V2(); err == nil {
+		r.iamClient, err = iam.New(v2)
+	}
 	if err != nil {
 		diags.AddError("Error initializing IAM client", err.Error())
 	}
@@ -118,6 +122,16 @@ func (r *UserSAMLResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
+	// Persist the planned values (including the new ID) before the quota
+	// update, so that a failing quota update does not orphan the user nor
+	// leave required attributes null in state. The resource stays tainted
+	// and Terraform will plan its destruction on the next run.
+	plan.ID.Set(userCreated.ID)
+	if d := resp.State.Set(ctx, plan); d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+
 	if _, err := r.iamClient.UpdateUser(ctx, iam.ParamsUpdateUser{
 		ID:              userCreated.ID,
 		DeployedVMQuota: new(plan.DeployedVMQuota.GetInt()),
@@ -126,8 +140,6 @@ func (r *UserSAMLResource) Create(ctx context.Context, req resource.CreateReques
 		resp.Diagnostics.AddError("Error updating user quotas after create", err.Error())
 		return
 	}
-
-	plan.ID.Set(userCreated.ID)
 
 	// Use generic read function to refresh the state
 	stateRefreshed, found, d := r.read(ctx, plan)
