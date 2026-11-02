@@ -24,16 +24,16 @@ const (
 // CloudAPI reports local users as LOCAL while the legacy VCD user API
 // (and the provider contract) exposes them as INTEGRATED.
 const (
-	sdkUserProviderTypeLocal  = "LOCAL"
-	sdkUserProviderTypeSAML   = "SAML"
-	legacyUserProviderTypeInt = "INTEGRATED"
+	sdkUserProviderTypeLocal    = "LOCAL"
+	sdkUserProviderTypeSAML     = "SAML"
+	legacyUserProviderTypeLocal = "INTEGRATED"
 )
 
 // mapLegacyProviderType maps an SDK v2 CloudAPI user provider type to the
-// legacy VCD user API value exposed by the provider (INTEGRATED -> LOCAL).
+// legacy VCD user API (sdk v1) value exposed by the provider (LOCAL -> INTEGRATED).
 func mapLegacyProviderType(providerType string) string {
-	if providerType == legacyUserProviderTypeInt {
-		return sdkUserProviderTypeLocal
+	if providerType == sdkUserProviderTypeLocal {
+		return legacyUserProviderTypeLocal
 	}
 	return providerType
 }
