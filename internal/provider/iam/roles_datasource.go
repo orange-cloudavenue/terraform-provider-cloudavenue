@@ -110,7 +110,8 @@ func (d *RolesDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 	for _, role := range rolesList {
 		rights, err := d.roleClient.ListOrgRoleRights(ctx, role.ID)
 		if err != nil {
-			continue
+			resp.Diagnostics.AddError("Failed to get rights of role "+role.Name, err.Error())
+			return
 		}
 
 		idOfRoles = append(idOfRoles, role.ID)
