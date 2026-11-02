@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	iam "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/iam/v1"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
@@ -130,9 +131,20 @@ func (d *userDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	config.Email.Set(user.EmailAddress)
 	config.Telephone.Set(user.Telephone)
 	config.Enabled.Set(user.IsEnabled)
-	config.ProviderType.Set(legacyProviderType(user.ProviderType))
-	config.DeployedVMQuota.Set(int64(quotaValue(user.DeployedVMQuota)))
-	config.StoredVMQuota.Set(int64(quotaValue(user.StoredVMQuota)))
+	config.ProviderType.Set(mapLegacyProviderType(user.ProviderType))
+
+	// CloudAPI never returns quotas on the user resource; read them back
+	// from the legacy admin user record (the XML API is deprecated but is
+	// still the only surface that echoes back the exact assigned values).
+	// TODO(entityQuotas): switch to the CloudAPI quotas read once validated
+	// against quota policies — see getUserQuotas.
+	deployedQuota, storedQuota, err := getUserQuotas(ctx, d.iamClient, user.ID)
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading user quotas", err.Error())
+		return
+	}
+	config.DeployedVMQuota.Set(int64(deployedQuota))
+	config.StoredVMQuota.Set(int64(storedQuota))
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, config)...)

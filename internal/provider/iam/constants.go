@@ -29,19 +29,11 @@ const (
 	legacyUserProviderTypeInt = "INTEGRATED"
 )
 
-// quotaValue dereferences a quota pointer, treating unset as zero.
-func quotaValue(quota *int) int {
-	if quota == nil {
-		return 0
-	}
-	return *quota
-}
-
-// legacyProviderType maps an SDK v2 CloudAPI user provider type to the
-// legacy VCD user API value exposed by the provider (LOCAL -> INTEGRATED).
-func legacyProviderType(providerType string) string {
-	if providerType == sdkUserProviderTypeLocal {
-		return legacyUserProviderTypeInt
+// mapLegacyProviderType maps an SDK v2 CloudAPI user provider type to the
+// legacy VCD user API value exposed by the provider (INTEGRATED -> LOCAL).
+func mapLegacyProviderType(providerType string) string {
+	if providerType == legacyUserProviderTypeInt {
+		return sdkUserProviderTypeLocal
 	}
 	return providerType
 }

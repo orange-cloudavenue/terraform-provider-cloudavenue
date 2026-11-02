@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	iam "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/iam/v1"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
@@ -336,8 +337,19 @@ func (r *UserSAMLResource) read(ctx context.Context, planOrState *UserSAMLModel)
 	stateRefreshed.UserName.Set(user.Name)
 	stateRefreshed.RoleName.Set(user.RoleName)
 	stateRefreshed.Enabled.Set(user.IsEnabled)
-	stateRefreshed.DeployedVMQuota.SetInt(quotaValue(user.DeployedVMQuota))
-	stateRefreshed.StoredVMQuota.SetInt(quotaValue(user.StoredVMQuota))
+
+	// CloudAPI never returns quotas on the user resource; read them back
+	// from the legacy admin user record (the XML API is deprecated but is
+	// still the only surface that echoes back the exact assigned values).
+	// TODO(entityQuotas): switch to the CloudAPI quotas read once validated
+	// against quota policies — see getUserQuotas.
+	deployedQuota, storedQuota, err := getUserQuotas(ctx, r.iamClient, user.ID)
+	if err != nil {
+		cerrs.AddError(&diags, cerrs.ActionRead, "user quotas", err)
+		return nil, true, diags
+	}
+	stateRefreshed.DeployedVMQuota.SetInt(deployedQuota)
+	stateRefreshed.StoredVMQuota.SetInt(storedQuota)
 
 	return stateRefreshed, true, nil
 }
