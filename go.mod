@@ -19,7 +19,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/madflojo/testcerts v1.5.1
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.31.2
-	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20261030093943-576a57711f3a
+	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20261102160951-3028a9bf5d86
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20260722075754-a69ff15f4d0f
 	github.com/orange-cloudavenue/common-go/utils v1.0.0
 	github.com/orange-cloudavenue/common-go/validators v1.2.0
@@ -47,7 +47,7 @@ require (
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/avast/retry-go/v4 v4.7.0 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.47.1 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.47.4 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/brianvoe/gofakeit/v7 v7.15.0 // indirect
