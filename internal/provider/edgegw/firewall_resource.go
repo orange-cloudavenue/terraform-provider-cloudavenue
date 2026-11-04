@@ -31,7 +31,6 @@ import (
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
