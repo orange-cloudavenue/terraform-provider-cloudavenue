@@ -57,23 +57,31 @@ func GenerateUUID[T tfValuesForUUID](values ...T) types.String {
 }
 
 // TakeBoolPointer accepts a boolean and returns a pointer to this value.
+//
+//go:fix inline
 func TakeBoolPointer(value bool) *bool {
-	return &value
+	return new(value)
 }
 
 // TakeIntPointer accepts an int and returns a pointer to this value.
+//
+//go:fix inline
 func TakeIntPointer(x int) *int {
-	return &x
+	return new(x)
 }
 
 // TakeInt64Pointer accepts an int64 and returns a pointer to this value.
+//
+//go:fix inline
 func TakeInt64Pointer(x int64) *int64 {
-	return &x
+	return new(x)
 }
 
 // TakePointer return a pointer to the value.
+//
+//go:fix inline
 func TakePointer[T any](value T) *T {
-	return &value
+	return new(value)
 }
 
 // BoolValueOrNull return a null BoolValue if value is false or return BoolValue(value) if not.
@@ -162,7 +170,6 @@ func SliceToSlicePointer[T any](slice []T) []*T {
 	slicePointer := make([]*T, len(slice))
 	for i, item := range slice {
 		// FIX variable into the local variable for bypassing the pointer aliasing (https://stackoverflow.com/a/64715804)
-		item := item //nolint:copyloopvar
 		slicePointer[i] = &item
 	}
 	return slicePointer
@@ -221,7 +228,7 @@ func (o OpenAPIValues) ToTerraformTypesStringSet(ctx context.Context) basetypes.
 	return x
 }
 
-func ModelCopy(source, dest interface{}) {
+func ModelCopy(source, dest any) {
 	x := reflect.ValueOf(source)
 	if x.Kind() == reflect.Pointer {
 		starX := x.Elem()

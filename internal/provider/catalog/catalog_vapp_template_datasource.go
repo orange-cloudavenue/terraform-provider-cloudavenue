@@ -120,7 +120,7 @@ func (d *vAppTemplateDataSource) Read(ctx context.Context, req datasource.ReadRe
 		// govcd.GetUuidFromHref not working here because the href contains vappTemplate- before the uuid
 		// field ID in vAppTemplate attribute is always empty. ID exist in HREF attribute.
 		// get last 36 characters of href
-		// href ex : http://url.com/xx/xx/xx/vappTemplate-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+		// ex : http://url.com/xx/xx/xx/vappTemplate-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 		vappTemplateID := urn.Normalize(urn.VAPPTemplate, vAppTemplate.HREF[len(vAppTemplate.HREF)-36:])
 		if (state.TemplateID.IsKnown() && vappTemplateID.String() == state.TemplateID.Get()) || (state.TemplateName.IsKnown() && vAppTemplate.Name == state.TemplateName.Get()) {
 			stateUpdated.TemplateID.Set(vappTemplateID.String())
@@ -128,14 +128,14 @@ func (d *vAppTemplateDataSource) Read(ctx context.Context, req datasource.ReadRe
 
 			stateUpdated.TemplateName.Set(vAppTemplate.Name)
 
-			vappTemplate, err := d.client.Vmware.GetVAppTemplateById(stateUpdated.TemplateID.Get())
+			vappTemplate, err := d.client.Vmware.GetVAppTemplateById(stateUpdated.TemplateID.Get()) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 			if err != nil {
 				resp.Diagnostics.AddError("Error retrieving vApp Template", err.Error())
 				return
 			}
 
 			// This checks that the vApp Template is synchronized in the catalog
-			if _, err = d.client.Vmware.QuerySynchronizedVAppTemplateById(stateUpdated.TemplateID.Get()); err != nil {
+			if _, err = d.client.Vmware.QuerySynchronizedVAppTemplateById(stateUpdated.TemplateID.Get()); err != nil { //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 				cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "vApp Template synchronization", err)
 				return
 			}

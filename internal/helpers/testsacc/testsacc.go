@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/iancoleman/strcase"
 
@@ -64,7 +65,7 @@ func (e TestName) ComputeResourceName(resourceName string) string {
 // *TFData
 
 // Get returns the Terraform configuration as a string.
-func (t TFData) Get() string {
+func (t *TFData) Get() string {
 	return t.String()
 }
 
@@ -74,8 +75,8 @@ func (t *TFData) Set(s string) {
 }
 
 // String returns the Terraform configuration as a string.
-func (t TFData) String() string {
-	return string(t)
+func (t *TFData) String() string {
+	return string(*t)
 }
 
 // Append appends the given Terraform configuration to the current one.
@@ -173,7 +174,7 @@ func (t *Test) ComputeDependenciesConfig(testACC TestACC) {
 }
 
 // GetChecks returns the checks for the test.
-func (t Test) GetChecks() []resource.TestCheckFunc {
+func (t *Test) GetChecks() []resource.TestCheckFunc {
 	checks := make([]resource.TestCheckFunc, 0)
 	checks = append(checks, t.CommonChecks...)
 	checks = append(checks, t.Create.Checks...)
@@ -181,7 +182,7 @@ func (t Test) GetChecks() []resource.TestCheckFunc {
 }
 
 // GenerateSteps generates the structure of the acceptance tests.
-func (t Test) GenerateSteps(ctx context.Context, testName TestName, testACC TestACC) (steps []resource.TestStep) {
+func (t *Test) GenerateSteps(ctx context.Context, testName TestName, testACC TestACC) (steps []resource.TestStep) {
 	// Init Slice
 	steps = make([]resource.TestStep, 0)
 
@@ -302,7 +303,8 @@ func GenerateTests(tacc TestACC) []resource.TestStep {
 				continue
 			}
 		}
-		steps = append(steps, step(ctx, resourceName).GenerateSteps(ctx, testName, tacc)...)
+		test := step(ctx, resourceName)
+		steps = append(steps, test.GenerateSteps(ctx, testName, tacc)...)
 	}
 
 	return steps
@@ -328,7 +330,7 @@ func ImportStateIDBuilder(resourceName string, attributeNames []string) resource
 		}
 
 		// Build the ID
-		id := ""
+		var id strings.Builder
 		for _, attributeName := range attributeNames {
 			// Catch attribute not found
 			i, ok := rs.Primary.Attributes[attributeName]
@@ -336,16 +338,16 @@ func ImportStateIDBuilder(resourceName string, attributeNames []string) resource
 				return "", fmt.Errorf("ImportStateIDBuilder : Attribute %s not found", attributeName)
 			}
 
-			id += i
+			id.WriteString(i)
 			if attributeName != attributeNames[len(attributeNames)-1] {
-				id += "."
+				id.WriteString(".")
 			}
 		}
 
-		if id == "" {
+		if id.String() == "" {
 			return "", fmt.Errorf("ImportStateIDBuilder : ID is empty after building")
 		}
 
-		return id, nil
+		return id.String(), nil
 	}
 }

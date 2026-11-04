@@ -70,7 +70,12 @@ func aclSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot(catalogName), path.MatchRoot(catalogID)),
-						fstringvalidator.IsURN(),
+						fstringvalidator.Formats(
+							[]fstringvalidator.FormatsValidatorType{
+								fstringvalidator.FormatsIsURN,
+							},
+							false,
+						),
 						fstringvalidator.PrefixContains(urn.Catalog.String()),
 					},
 				},
@@ -130,7 +135,12 @@ func aclSchema(_ context.Context) superschema.Schema {
 						Resource: &schemaR.StringAttribute{
 							Required: true,
 							Validators: []validator.String{
-								fstringvalidator.IsURN(),
+								fstringvalidator.Formats(
+									[]fstringvalidator.FormatsValidatorType{
+										fstringvalidator.FormatsIsURN,
+									},
+									false,
+								),
 								fstringvalidator.PrefixContains(urn.User.String()),
 							},
 						},

@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"

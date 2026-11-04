@@ -210,7 +210,7 @@ func (r *catalogResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	newAdminCatalog := govcd.NewAdminCatalogWithParent(&r.client.Vmware.Client, r.adminOrg)
+	newAdminCatalog := govcd.NewAdminCatalogWithParent(&r.client.Vmware.Client, r.adminOrg) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 	newAdminCatalog.AdminCatalog.ID = adminCatalog.AdminCatalog.ID
 	newAdminCatalog.AdminCatalog.HREF = adminCatalog.AdminCatalog.HREF
 	newAdminCatalog.AdminCatalog.Name = plan.Name.ValueString()

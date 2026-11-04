@@ -120,7 +120,7 @@ func (d *profileDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	storageProfile, err := d.client.Vmware.GetStorageProfileByHref(storageProfileRef.HREF)
+	storageProfile, err := d.client.Vmware.GetStorageProfileByHref(storageProfileRef.HREF) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Storage Profile (Reference) not found",

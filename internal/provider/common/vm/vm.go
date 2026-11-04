@@ -29,7 +29,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm/diskparams"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 type VM struct {
@@ -172,8 +171,8 @@ func (v VM) AttachDiskSettings(busNumber, unitNumber types.Int64, diskHREF strin
 
 	return &govcdtypes.DiskAttachOrDetachParams{
 		Disk:       &govcdtypes.Reference{HREF: diskHREF},
-		BusNumber:  utils.TakeIntPointer(b),
-		UnitNumber: utils.TakeIntPointer(u),
+		BusNumber:  new(b),
+		UnitNumber: new(u),
 	}
 }
 

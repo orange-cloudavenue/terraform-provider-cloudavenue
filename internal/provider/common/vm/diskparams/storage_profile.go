@@ -15,6 +15,8 @@
 package diskparams
 
 import (
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -69,16 +71,16 @@ var StorageProfileValues = []string{
 }
 
 var storageProfileValuesDescription = func() string {
-	var s string
+	var s strings.Builder
 	countItems := len(StorageProfileValues)
 	for i, v := range StorageProfileValues {
 		if i == countItems-1 {
-			s += "`" + v + "`"
+			s.WriteString("`" + v + "`")
 		} else {
-			s += "`" + v + "`, "
+			s.WriteString("`" + v + "`, ")
 		}
 	}
-	return s
+	return s.String()
 }()
 
 const descriptionStorageProfile = "Storage profile to override the VM default one."

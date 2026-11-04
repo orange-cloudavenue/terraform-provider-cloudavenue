@@ -1,6 +1,6 @@
 module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 
-go 1.26.8
+go 1.26.10
 
 require (
 	github.com/aws/aws-sdk-go v1.55.8

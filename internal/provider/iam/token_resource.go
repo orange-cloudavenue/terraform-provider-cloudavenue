@@ -103,7 +103,7 @@ func (r *tokenResource) Create(ctx context.Context, req resource.CreateRequest, 
 		Implement the resource creation logic here.
 	*/
 
-	token, err := r.client.Vmware.CreateToken(r.org.GetName(), plan.Name.Get())
+	token, err := r.client.Vmware.CreateToken(r.org.GetName(), plan.Name.Get()) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating token", err.Error())
 		return
@@ -130,7 +130,7 @@ func (r *tokenResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 
 	if plan.SaveInFile.Get() {
-		if err := govcd.SaveApiTokenToFile(plan.FileName.Get(), r.client.Vmware.Client.UserAgent, tokenString); err != nil {
+		if err := govcd.SaveApiTokenToFile(plan.FileName.Get(), r.client.Vmware.Client.UserAgent, tokenString); err != nil { //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 			resp.Diagnostics.AddError("Error saving token", err.Error())
 			return
 		}
@@ -168,7 +168,7 @@ func (r *tokenResource) Read(ctx context.Context, req resource.ReadRequest, resp
 		Implement the resource read here
 	*/
 
-	token, err := r.client.Vmware.GetTokenById(state.ID.Get())
+	token, err := r.client.Vmware.GetTokenById(state.ID.Get()) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -211,7 +211,7 @@ func (r *tokenResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 		Implement the resource deletion here
 	*/
 
-	token, err := r.client.Vmware.GetTokenById(state.ID.Get())
+	token, err := r.client.Vmware.GetTokenById(state.ID.Get()) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)

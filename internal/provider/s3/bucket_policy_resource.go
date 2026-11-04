@@ -19,8 +19,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -249,7 +248,7 @@ func (r *BucketPolicyResource) genericCreateOrUpdate(ctx context.Context, timeou
 	// Loop for object creation
 	input := &s3.PutBucketPolicyInput{
 		Bucket: stateRefreshed.Bucket.GetPtr(),
-		Policy: aws.String(policy),
+		Policy: new(policy),
 	}
 	_, err = retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket, ErrCodeMalformedPolicy}, &RetryWhenConfig[*s3.PutBucketPolicyOutput]{
 		Timeout:  timeout,

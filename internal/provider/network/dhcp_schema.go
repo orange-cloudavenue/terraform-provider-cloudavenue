@@ -63,7 +63,12 @@ func dhcpSchema(_ context.Context) superschema.Schema {
 					Required:            true,
 					MarkdownDescription: "The ID of the network.",
 					Validators: []validator.String{
-						fstringvalidator.IsURN(),
+						fstringvalidator.Formats(
+							[]fstringvalidator.FormatsValidatorType{
+								fstringvalidator.FormatsIsURN,
+							},
+							false,
+						),
 					},
 				},
 				Resource: &schemaR.StringAttribute{

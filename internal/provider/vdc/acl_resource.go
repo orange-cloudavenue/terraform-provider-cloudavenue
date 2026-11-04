@@ -166,7 +166,7 @@ func (r *aclResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	plan.SharedWith = types.SetNull(types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes})
 	if controlAccessParams.AccessSettings != nil {
-		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
+		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName()) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 		if err != nil {
 			wrappedErr := fmt.Errorf("failed to resolve admin organization for current org %q: %w", r.client.GetOrgName(), err)
 			resp.Diagnostics.AddError(
@@ -285,7 +285,7 @@ func (r *aclResource) createOrUpdateACL(ctx context.Context, plan *aclResourceMo
 		everyoneAccessLevel = ""
 
 		// Get admin Org
-		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName())
+		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName()) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 		if err != nil {
 			wrappedErr := fmt.Errorf("failed to resolve admin organization for current org %q: %w", r.client.GetOrgName(), err)
 			diags.AddError(
@@ -295,7 +295,7 @@ func (r *aclResource) createOrUpdateACL(ctx context.Context, plan *aclResourceMo
 			return nil, diags
 		}
 
-		accessSettings, sharedListOutput, err = acl.SharedSetToAccessControl(r.client.Vmware, adminOrg, sharedList)
+		accessSettings, sharedListOutput, err = acl.SharedSetToAccessControl(r.client.Vmware, adminOrg, sharedList) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 		if err != nil {
 			diags.AddError("Error when reading shared_with from schema.", err.Error())
 			return nil, diags

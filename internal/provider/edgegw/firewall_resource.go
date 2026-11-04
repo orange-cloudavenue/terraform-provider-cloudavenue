@@ -401,7 +401,7 @@ func (r *firewallResource) read(ctx context.Context, planOrState *firewallModel)
 		if cerrs.IsNotFound(err) {
 			return stateRefreshed, false, nil
 		}
-		if !(previousRulesCount > 0 && (fwRules == nil || len(fwRules.UserDefinedRules) == 0)) {
+		if previousRulesCount == 0 || (fwRules != nil && len(fwRules.UserDefinedRules) != 0) {
 			cerrs.AddError(&diags, cerrs.ActionRead, "Edge Gateway Firewall", err)
 			return stateRefreshed, true, diags
 		}

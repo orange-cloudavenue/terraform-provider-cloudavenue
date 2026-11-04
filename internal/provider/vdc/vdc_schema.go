@@ -16,6 +16,7 @@ package vdc
 
 import (
 	"fmt"
+	"strings"
 
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 
@@ -246,15 +247,15 @@ func vdcSchema() superschema.Schema {
 						Resource: &schemaR.StringAttribute{
 							Required: true,
 							MarkdownDescription: "The storage class available are different depending on the service class. It must also match the selected `disponibility_class`: use no suffix for `ONE-ROOM`, `_r1` / `_r2` for `DUAL-ROOM`, and `_hm` for `HA-DUAL-ROOM`. Custom storage profile classes follow the same suffix mapping rules. " + seeVDCRules + " Value must be one of " + func() string {
-								var storageClasses string
+								var storageClasses strings.Builder
 								for i, sC := range rules.ALLStorageProfilesClass {
 									if i == len(rules.ALLStorageProfilesClass)-1 {
-										storageClasses += fmt.Sprintf("`%s`", string(sC))
+										fmt.Fprintf(&storageClasses, "`%s`", string(sC))
 									} else {
-										storageClasses += fmt.Sprintf("`%s`, ", string(sC))
+										fmt.Fprintf(&storageClasses, "`%s`, ", string(sC))
 									}
 								}
-								return storageClasses
+								return storageClasses.String()
 							}() + " or custom storage profile class delivered by Cloud Avenue.",
 						},
 						DataSource: &schemaD.StringAttribute{

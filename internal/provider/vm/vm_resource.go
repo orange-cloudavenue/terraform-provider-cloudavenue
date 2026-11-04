@@ -37,7 +37,6 @@ import (
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vm"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -403,7 +402,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			// Detected change on CPU or CPU cores
 			if r.vm.GetCPUHotAddEnabled() {
 				// CPU hot update is enabled
-				if err := r.vm.ChangeCPUAndCoreCount(utils.TakeIntPointer(int(allStructsPlan.Resource.CPUs.ValueInt64())), utils.TakeIntPointer(int(allStructsPlan.Resource.CPUsCores.ValueInt64()))); err != nil {
+				if err := r.vm.ChangeCPUAndCoreCount(new(int(allStructsPlan.Resource.CPUs.ValueInt64())), new(int(allStructsPlan.Resource.CPUsCores.ValueInt64()))); err != nil {
 					resp.Diagnostics.AddError(
 						"Unable to change CPU and CPU Cores",
 						fmt.Sprintf("error changing CPU and CPU Cores VM %s: %s", plan.Name.ValueString(), err),
@@ -637,7 +636,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		}
 		// * Cold CPU Change
 		if needColdChange.cpu {
-			if err := r.vm.ChangeCPUAndCoreCount(utils.TakeIntPointer(int(allStructsPlan.Resource.CPUs.ValueInt64())), utils.TakeIntPointer(int(allStructsPlan.Resource.CPUsCores.ValueInt64()))); err != nil {
+			if err := r.vm.ChangeCPUAndCoreCount(new(int(allStructsPlan.Resource.CPUs.ValueInt64())), new(int(allStructsPlan.Resource.CPUsCores.ValueInt64()))); err != nil {
 				resp.Diagnostics.AddError(
 					"Unable to change CPU and CPU Cores",
 					fmt.Sprintf("error changing CPU and CPU Cores VM %s: %s", plan.Name.ValueString(), err),
@@ -1077,12 +1076,12 @@ func (r *vmResource) createVMWithBootImage(ctx context.Context, rm vm.VMResource
 			Description:               rm.Description.ValueString(),
 			GuestCustomizationSection: customization.GetCustomizationSection(rm.Name.ValueString()),
 			VmSpecSection: &govcdtypes.VmSpecSection{
-				Modified:          utils.TakeBoolPointer(true),
+				Modified:          new(true),
 				Info:              "Virtual Machine specification",
 				OsType:            settings.OsType.ValueString(),
 				CpuResourceMhz:    &govcdtypes.CpuResourceMhz{Configured: 0},
-				NumCpus:           utils.TakeIntPointer(int(resource.CPUs.ValueInt64())),
-				NumCoresPerSocket: utils.TakeIntPointer(int(resource.CPUsCores.ValueInt64())),
+				NumCpus:           new(int(resource.CPUs.ValueInt64())),
+				NumCoresPerSocket: new(int(resource.CPUsCores.ValueInt64())),
 				MemoryResourceMb:  &govcdtypes.MemoryResourceMb{Configured: resource.Memory.ValueInt64()},
 				// can be created with resource internal_disk
 				DiskSection:     &govcdtypes.DiskSection{DiskSettings: []*govcdtypes.DiskSettings{}},
@@ -1182,8 +1181,8 @@ func (r *vmResource) processAfterCreate(ctx context.Context, vmCreated vm.VM, rm
 	// ? CPU
 	if !resource.CPUs.IsNull() && !resource.Memory.IsNull() {
 		if err = vmCreated.ChangeCPUAndCoreCount(
-			utils.TakeIntPointer(int(resource.CPUs.ValueInt64())),
-			utils.TakeIntPointer(int(resource.CPUsCores.ValueInt64())),
+			new(int(resource.CPUs.ValueInt64())),
+			new(int(resource.CPUsCores.ValueInt64())),
 		); err != nil {
 			diags.AddError("Error updating CPU and Memory", fmt.Sprintf("error updating CPU and Memory VM %s: %s", rm.Name.ValueString(), err))
 			return vmUpdated, diags

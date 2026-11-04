@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/aws"        //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -33,7 +33,6 @@ import (
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -337,7 +336,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 					diags.AddError("Error parsing S3 Bucket Lifecycle Rule Expiration date", err.Error())
 					return diags
 				}
-				s3Rule.Expiration.Date = utils.TakePointer(t)
+				s3Rule.Expiration.Date = new(t)
 			}
 		}
 
@@ -475,9 +474,9 @@ func waitForLifecycleConfigurationRulesStatus(ctx context.Context, conn *s3.S3, 
 }
 
 func lifecycleConfigurationRulesStatus(ctx context.Context, conn *s3.S3, bucket string, rules []*s3.LifecycleRule) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		input := &s3.GetBucketLifecycleConfigurationInput{
-			Bucket: aws.String(bucket),
+			Bucket: new(bucket),
 		}
 
 		output, err := conn.GetBucketLifecycleConfigurationWithContext(ctx, input)

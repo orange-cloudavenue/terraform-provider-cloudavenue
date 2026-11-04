@@ -79,7 +79,7 @@ func (d *iamRightDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	right, err := d.client.Vmware.Client.GetRightByName(data.Name.Get())
+	right, err := d.client.Vmware.Client.GetRightByName(data.Name.Get()) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 	if err != nil {
 		resp.Diagnostics.AddError("This right does not exist", data.Name.Get())
 		return

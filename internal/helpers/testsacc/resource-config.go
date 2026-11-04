@@ -16,6 +16,7 @@ package testsacc
 
 import (
 	"context"
+	"maps"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -28,7 +29,7 @@ type ResourceConfig struct {
 }
 
 // GetDefaultConfig returns the create configuration for the test named "example".
-func (r ResourceConfig) GetDefaultConfig() map[string]TFData {
+func (r *ResourceConfig) GetDefaultConfig() map[string]TFData {
 	return r.GetSpecificConfig("example")()
 }
 
@@ -39,9 +40,7 @@ func (r *ResourceConfig) GetSpecificConfig(testName string) func() map[string]TF
 
 		// Add the dependencies config (scope : Tests)
 		for _, v := range r.DependenciesConfig() {
-			for k, v := range v() {
-				x[k] = v
-			}
+			maps.Copy(x, v())
 		}
 
 		if _, ok := localCache[r.GetResourceName()+"."+testName]; !ok {
@@ -58,9 +57,7 @@ func (r *ResourceConfig) GetSpecificConfig(testName string) func() map[string]TF
 		if localCache[r.GetResourceName()+"."+testName].CommonDependencies != nil {
 			for _, v := range localCache[r.GetResourceName()+"."+testName].CommonDependencies() {
 				if v != nil {
-					for k, v := range v() {
-						x[k] = v
-					}
+					maps.Copy(x, v())
 				}
 			}
 		}
@@ -70,7 +67,7 @@ func (r *ResourceConfig) GetSpecificConfig(testName string) func() map[string]TF
 }
 
 // GetDefaultChecks returns the checks for the test named "example".
-func (r ResourceConfig) GetDefaultChecks() []resource.TestCheckFunc {
+func (r *ResourceConfig) GetDefaultChecks() []resource.TestCheckFunc {
 	return r.GetSpecificChecks("example")
 }
 
@@ -82,7 +79,8 @@ func (r *ResourceConfig) GetSpecificChecks(testName string) []resource.TestCheck
 			r.GetResourceName()+"."+testName,
 		)
 	}
-	return localCache[r.GetResourceName()+"."+testName].GetChecks()
+	test := localCache[r.GetResourceName()+"."+testName]
+	return test.GetChecks()
 }
 
 func NewResourceConfig(data TestACC) func() *ResourceConfig {

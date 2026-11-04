@@ -25,7 +25,7 @@ func isDiskQueryNoResults(err error) bool {
 }
 
 // DiskExist reports whether disk exists in VDC.
-func (v VDC) DiskExist(diskName string) (bool, error) {
+func (v *VDC) DiskExist(diskName string) (bool, error) {
 	existingDisk, err := v.QueryDisk(diskName)
 	if err != nil {
 		if isDiskQueryNoResults(err) {

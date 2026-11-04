@@ -29,7 +29,7 @@ import (
 func vmInsertedMediaSuperSchema() superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "The inserted_media resource resource for inserting or ejecting media (ISO) file for the VM. Create this resource for inserting the media, and destroy it for ejecting.",
+			MarkdownDescription: "The inserted_media resource for inserting or ejecting media (ISO) file for the VM. Create this resource for inserting the media, and destroy it for ejecting.",
 		},
 		Attributes: map[string]superschema.Attribute{
 			"id": superschema.StringAttribute{

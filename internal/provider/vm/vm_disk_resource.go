@@ -527,7 +527,7 @@ func (r *diskResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 		// Normally a disk can be attached to only one VM
 		if len(attachedVmsHrefs) == 1 {
-			govcdVM, err := r.client.Vmware.Client.GetVMByHref(attachedVmsHrefs[0])
+			govcdVM, err := r.client.Vmware.Client.GetVMByHref(attachedVmsHrefs[0]) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 			if err != nil {
 				resp.Diagnostics.AddError("unable to find attached VM", fmt.Sprintf("unable to find attached VM for disk %s: %s", state.Name.ValueString(), err))
 				return
@@ -633,7 +633,7 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			(!plan.BusNumber.IsUnknown() && !plan.BusNumber.Equal(state.BusNumber)) ||
 			(!plan.UnitNumber.IsUnknown() && !plan.UnitNumber.Equal(state.UnitNumber)) {
 			// Check if disk is attached to a VM
-			if !(state.VMID.IsNull() && state.VMName.IsNull()) {
+			if !state.VMID.IsNull() || !state.VMName.IsNull() {
 				// Detach disk from VM
 
 				vmOld, err := vm.Get(r.vapp, vm.GetVMOpts{
@@ -754,8 +754,8 @@ func (r *diskResource) Update(ctx context.Context, req resource.UpdateRequest, r
 				// Attach disk
 				task, err := vmNew.AttachDisk(&govcdtypes.DiskAttachOrDetachParams{
 					Disk:       &govcdtypes.Reference{HREF: disk.Disk.HREF},
-					BusNumber:  utils.TakeIntPointer(int(busNumber.ValueInt64())),
-					UnitNumber: utils.TakeIntPointer(int(unitNumber.ValueInt64())),
+					BusNumber:  new(int(busNumber.ValueInt64())),
+					UnitNumber: new(int(unitNumber.ValueInt64())),
 				})
 				if err != nil {
 					resp.Diagnostics.AddError("error attaching disk", fmt.Sprintf("error attaching disk %s: %s", plan.Name.ValueString(), err))
