@@ -39,9 +39,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Get the content before and after the markers
-	before, _, _ := strings.Cut(string(content), bandwidthMarker)
-	after := strings.Split(string(content), bandwidthMarker)[1]
+	// Get the content before and after the marker
+	before, after, found := strings.Cut(string(content), bandwidthMarker)
+	if !found {
+		log.Default().Printf("Bandwidth marker %q not found in %s", bandwidthMarker, filePath)
+		os.Exit(1)
+	}
 
 	// * Retrieve the rules for the edgegateway and construct a markdown table
 
