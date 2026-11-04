@@ -4,6 +4,7 @@
 
 * provider: centralize sdk v2 not-found error detection across provider resources and data sources to keep behavior consistent during the migration. (GH-1296)
 * provider: initialize the provider client with cloudavenue-sdk-go-v2 while preserving existing VMware compatibility during the migration. (GH-1295)
+* provider: migrate the IAM domain to CloudAPI via cloudavenue-sdk-go-v2: `resource/cloudavenue_iam_user`, `resource/cloudavenue_iam_user_saml`, `resource/cloudavenue_iam_role`, `resource/cloudavenue_iam_token`, `data/cloudavenue_iam_user`, `data/cloudavenue_iam_right`, `data/cloudavenue_iam_role` and `data/cloudavenue_iam_roles` are now served by the CloudAPI-based SDK client. Behavior is preserved: `provider_type` keeps its legacy values, and `deployed_vm_quota`/`stored_vm_quota` are read back through a dedicated quota fetch because CloudAPI user resources accept quotas on create/update but never return them on read. (GH-1309)
 
 ## 0.37.1 (October 28, 2026)
 
