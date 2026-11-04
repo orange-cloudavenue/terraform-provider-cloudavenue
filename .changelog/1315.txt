@@ -1,0 +1,3 @@
+```release-note:enhancement
+provider/s3: Migrate S3 provider code from AWS SDK for Go v1 to AWS SDK for Go v2
+```
