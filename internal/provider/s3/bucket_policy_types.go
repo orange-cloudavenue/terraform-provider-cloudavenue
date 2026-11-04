@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -88,7 +88,7 @@ func (rm *BucketPolicyModelDatasource) SetPolicy(policy string) {
 
 type readPolicyConfig[T readPolicyResourceDatasource] struct {
 	Timeout    func() (time.Duration, diag.Diagnostics)
-	Client     *s3.S3
+	Client     Client
 	BucketName func() *string
 }
 
@@ -130,21 +130,21 @@ func SecondJSONUnlessEquivalent(existingPolicy, newPolicy string) (string, error
 // findBucketPolicy returns the bucket policy if found.
 func findBucketPolicy[T readPolicyResourceDatasource](ctx context.Context, config *readPolicyConfig[T]) (string, error) {
 	var (
-		output *s3.GetBucketPolicyOutput
+		output *awss3.GetBucketPolicyOutput
 		err    error
 	)
 
-	input := &s3.GetBucketPolicyInput{
+	input := &awss3.GetBucketPolicyInput{
 		Bucket: config.BucketName(),
 	}
 
 	timeout, _ := config.Timeout()
 
-	if _, err := retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket, ErrCodeNoSuchBucketPolicy}, &RetryWhenConfig[*s3.GetBucketPolicyOutput]{
+	if _, err := retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket, ErrCodeNoSuchBucketPolicy}, &RetryWhenConfig[*awss3.GetBucketPolicyOutput]{
 		Timeout:  timeout,
 		Interval: 15 * time.Second,
-		Function: func() (*s3.GetBucketPolicyOutput, error) {
-			output, err = config.Client.GetBucketPolicy(input)
+		Function: func() (*awss3.GetBucketPolicyOutput, error) {
+			output, err = config.Client.GetBucketPolicy(ctx, input)
 			return output, err
 		},
 	}); err != nil {

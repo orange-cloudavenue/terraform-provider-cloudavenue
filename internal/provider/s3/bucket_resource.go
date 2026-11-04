@@ -19,14 +19,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	awstypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -46,7 +46,7 @@ func NewBucketResource() resource.Resource {
 // BucketResource is the resource implementation.
 type BucketResource struct {
 	client   *client.CloudAvenue
-	s3Client v1.S3Client
+	s3Client Client
 }
 
 // Init Initializes the resource.
@@ -104,7 +104,7 @@ func (r *BucketResource) Create(ctx context.Context, req resource.CreateRequest,
 		Implement the resource creation logic here.
 	*/
 
-	if _, err := r.s3Client.CreateBucket(&s3.CreateBucketInput{
+	if _, err := r.s3Client.CreateBucket(ctx, &awss3.CreateBucketInput{
 		Bucket:                     plan.Name.GetPtr(),
 		ObjectLockEnabledForBucket: new(plan.ObjectLock.Get()),
 	}); err != nil {
@@ -189,7 +189,7 @@ func (r *BucketResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		Implement the resource deletion here
 	*/
 
-	_, err := r.s3Client.DeleteBucket(&s3.DeleteBucketInput{
+	_, err := r.s3Client.DeleteBucket(ctx, &awss3.DeleteBucketInput{
 		Bucket: state.Name.GetPtr(),
 	})
 	if err != nil {
@@ -214,25 +214,25 @@ func (r *BucketResource) read(ctx context.Context, planOrState *BucketModel) (st
 	*/
 
 	// Get object_lock_enabled
-	objectLockConfiguration, err := r.s3Client.GetObjectLockConfigurationWithContext(ctx, &s3.GetObjectLockConfigurationInput{
+	objectLockConfiguration, err := r.s3Client.GetObjectLockConfiguration(ctx, &awss3.GetObjectLockConfigurationInput{
 		Bucket: planOrState.Name.GetPtr(),
 	})
 	if err != nil {
 		switch {
 		case strings.Contains(err.Error(), ErrCodeObjectLockConfigurationNotFoundError):
 			stateRefreshed.ObjectLock.Set(false)
-		case strings.Contains(err.Error(), s3.ErrCodeNoSuchBucket):
+		case s3ErrCodeEquals(err, ErrCodeNoSuchBucket):
 			// Not Found
 			return nil, false, nil
 		default:
 			diags.AddError("Error retrieving bucket", fmt.Sprintf("Error retrieving bucket: %s", err.Error()))
 			return nil, true, diags
 		}
-	} else if objectLockConfiguration.ObjectLockConfiguration != nil {
+	} else if objectLockConfiguration.ObjectLockConfiguration != nil && objectLockConfiguration.ObjectLockConfiguration.ObjectLockEnabled == awstypes.ObjectLockEnabledEnabled {
 		stateRefreshed.ObjectLock.Set(true)
 	}
 
-	stateRefreshed.Endpoint.Set(fmt.Sprintf("https://%s.s3-region01.cloudavenue.orange-business.com", planOrState.Name.Get()))
+	stateRefreshed.Endpoint.Set(fmt.Sprintf(s3BucketEndpointFormat, planOrState.Name.Get()))
 
 	if !stateRefreshed.ID.IsKnown() {
 		stateRefreshed.ID.Set(stateRefreshed.Name.Get())

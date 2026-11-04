@@ -23,7 +23,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -39,7 +38,7 @@ func NewBucketWebsiteConfigurationDataSource() datasource.DataSource {
 
 type BucketWebsiteConfigurationDataSource struct {
 	client   *client.CloudAvenue
-	s3Client v1.S3Client
+	s3Client Client
 }
 
 // Init Initializes the data source.
@@ -95,7 +94,7 @@ func (d *BucketWebsiteConfigurationDataSource) Read(ctx context.Context, req dat
 	*/
 
 	data, _, diags := genericReadWebsiteConfiguration(ctx, &readWebsiteConfigurationConfig[*BucketWebsiteConfigurationDataSourceModel]{
-		Client:     d.s3Client.S3,
+		Client:     d.s3Client,
 		BucketName: config.Bucket.GetPtr(),
 	}, config)
 

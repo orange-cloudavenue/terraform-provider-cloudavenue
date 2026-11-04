@@ -19,13 +19,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -41,7 +40,7 @@ func NewBucketVersioningConfigurationDatasource() datasource.DataSource {
 
 type BucketVersioningConfigurationDatasource struct {
 	client   *client.CloudAvenue
-	s3Client v1.S3Client
+	s3Client Client
 }
 
 // Init Initializes the data source.
@@ -98,7 +97,7 @@ func (d *BucketVersioningConfigurationDatasource) Read(ctx context.Context, req 
 	*/
 
 	// Read the versioning configuration
-	versioningResponse, err := d.s3Client.GetBucketVersioningWithContext(ctx, &s3.GetBucketVersioningInput{
+	versioningResponse, err := d.s3Client.GetBucketVersioning(ctx, &awss3.GetBucketVersioningInput{
 		Bucket: data.Bucket.GetPtr(),
 	})
 	if err != nil {
@@ -106,7 +105,7 @@ func (d *BucketVersioningConfigurationDatasource) Read(ctx context.Context, req 
 		return
 	}
 
-	data.Status.SetPtr(versioningResponse.Status)
+	data.Status.Set(string(versioningResponse.Status))
 
 	if !data.ID.IsKnown() {
 		data.ID.Set(data.Bucket.Get())

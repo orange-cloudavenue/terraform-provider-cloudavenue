@@ -16,8 +16,9 @@ package s3
 
 import (
 	"context"
+	"slices"
 
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awstypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -157,7 +158,13 @@ func bucketWebsiteConfigurationSchema(_ context.Context) superschema.Schema {
 						Resource: &schemaR.StringAttribute{
 							Optional: true,
 							Validators: []validator.String{
-								stringvalidator.OneOf(s3.Protocol_Values()...),
+								stringvalidator.OneOf(slices.Collect(func(yield func(string) bool) {
+									for _, value := range awstypes.ProtocolHttp.Values() {
+										if !yield(string(value)) {
+											return
+										}
+									}
+								})...),
 							},
 						},
 						DataSource: &schemaD.StringAttribute{

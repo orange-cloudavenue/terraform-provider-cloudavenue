@@ -19,17 +19,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -49,7 +47,7 @@ func NewBucketWebsiteConfigurationResource() resource.Resource {
 // BucketWebsiteConfigurationResource is the resource implementation.
 type BucketWebsiteConfigurationResource struct {
 	client   *client.CloudAvenue
-	s3Client v1.S3Client
+	s3Client Client
 }
 
 // Init Initializes the resource.
@@ -114,7 +112,7 @@ func (r *BucketWebsiteConfigurationResource) Create(ctx context.Context, req res
 		return
 	}
 
-	input := &s3.PutBucketWebsiteInput{
+	input := &awss3.PutBucketWebsiteInput{
 		Bucket:               plan.Bucket.GetPtr(),
 		WebsiteConfiguration: websiteConfig,
 	}
@@ -125,11 +123,11 @@ func (r *BucketWebsiteConfigurationResource) Create(ctx context.Context, req res
 		return
 	}
 
-	if _, err := retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket}, &RetryWhenConfig[*s3.PutBucketWebsiteOutput]{
+	if _, err := retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket}, &RetryWhenConfig[*awss3.PutBucketWebsiteOutput]{
 		Timeout:  createTimeout,
 		Interval: 15 * time.Second,
-		Function: func() (*s3.PutBucketWebsiteOutput, error) {
-			return r.s3Client.PutBucketWebsite(input)
+		Function: func() (*awss3.PutBucketWebsiteOutput, error) {
+			return r.s3Client.PutBucketWebsite(ctx, input)
 		},
 	}); err != nil {
 		resp.Diagnostics.AddError("Error putting website configuration", err.Error())
@@ -137,7 +135,7 @@ func (r *BucketWebsiteConfigurationResource) Create(ctx context.Context, req res
 	}
 
 	if _, err := retryWhenNotFound(ctx, s3BucketPropagationTimeout, func() (any, error) {
-		return findBucketWebsite(ctx, r.s3Client.S3, plan.Bucket.Get())
+		return findBucketWebsite(ctx, r.s3Client, plan.Bucket.Get())
 	}); err != nil {
 		resp.Diagnostics.AddError("Waiting for S3 Bucket Website Configuration", err.Error())
 		return
@@ -219,7 +217,7 @@ func (r *BucketWebsiteConfigurationResource) Update(ctx context.Context, req res
 		return
 	}
 
-	input := &s3.PutBucketWebsiteInput{
+	input := &awss3.PutBucketWebsiteInput{
 		Bucket:               plan.Bucket.GetPtr(),
 		WebsiteConfiguration: websiteConfig,
 	}
@@ -233,7 +231,7 @@ func (r *BucketWebsiteConfigurationResource) Update(ctx context.Context, req res
 	ctx, cancel := context.WithTimeout(ctx, updateTimeout)
 	defer cancel()
 
-	if _, err := r.s3Client.PutBucketWebsiteWithContext(ctx, input); err != nil {
+	if _, err := r.s3Client.PutBucketWebsite(ctx, input); err != nil {
 		resp.Diagnostics.AddError("Error putting website configuration", err.Error())
 		return
 	}
@@ -280,12 +278,12 @@ func (r *BucketWebsiteConfigurationResource) Delete(ctx context.Context, req res
 	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
 	defer cancel()
 
-	input := &s3.DeleteBucketWebsiteInput{
+	input := &awss3.DeleteBucketWebsiteInput{
 		Bucket: state.Bucket.GetPtr(),
 	}
 
-	if _, err := r.s3Client.DeleteBucketWebsiteWithContext(ctx, input); err != nil {
-		if tfawserr.ErrCodeEquals(err, ErrCodeNoSuchBucket, ErrCodeNoSuchWebsiteConfiguration) {
+	if _, err := r.s3Client.DeleteBucketWebsite(ctx, input); err != nil {
+		if s3ErrCodeEquals(err, ErrCodeNoSuchBucket, ErrCodeNoSuchWebsiteConfiguration) {
 			return
 		}
 
@@ -306,19 +304,19 @@ func (r *BucketWebsiteConfigurationResource) ImportState(ctx context.Context, re
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
 func (r *BucketWebsiteConfigurationResource) read(ctx context.Context, planOrState *BucketWebsiteConfigurationModel) (stateRefreshed *BucketWebsiteConfigurationModel, found bool, diags diag.Diagnostics) {
 	return genericReadWebsiteConfiguration(ctx, &readWebsiteConfigurationConfig[*BucketWebsiteConfigurationModel]{
-		Client:     r.s3Client.S3,
+		Client:     r.s3Client,
 		BucketName: planOrState.Bucket.GetPtr(),
 	}, planOrState)
 }
 
-func findBucketWebsite(ctx context.Context, conn *s3.S3, bucket string) (*s3.GetBucketWebsiteOutput, error) {
-	input := &s3.GetBucketWebsiteInput{
-		Bucket: new(bucket),
+func findBucketWebsite(ctx context.Context, conn Client, bucket string) (*awss3.GetBucketWebsiteOutput, error) {
+	input := &awss3.GetBucketWebsiteInput{
+		Bucket: &bucket,
 	}
 
-	output, err := conn.GetBucketWebsiteWithContext(ctx, input)
+	output, err := conn.GetBucketWebsite(ctx, input)
 
-	if tfawserr.ErrCodeEquals(err, ErrCodeNoSuchBucket, ErrCodeNoSuchWebsiteConfiguration) {
+	if s3ErrCodeEquals(err, ErrCodeNoSuchBucket, ErrCodeNoSuchWebsiteConfiguration) {
 		return nil, &retry.NotFoundError{
 			LastError:   err,
 			LastRequest: input,

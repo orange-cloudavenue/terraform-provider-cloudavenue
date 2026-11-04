@@ -24,7 +24,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -40,7 +39,7 @@ func NewBucketLifecycleConfigurationDataSource() datasource.DataSource {
 
 type BucketLifecycleConfigurationDataSource struct {
 	client   *client.CloudAvenue
-	s3Client v1.S3Client
+	s3Client Client
 }
 
 // Init Initializes the data source.
@@ -96,7 +95,7 @@ func (d *BucketLifecycleConfigurationDataSource) Read(ctx context.Context, req d
 	*/
 
 	data, _, diags := genericReadLifeCycleConfiguration(ctx, &readLifeCycleConfigurationConfig[*BucketLifecycleConfigurationDatasourceModel]{
-		Client: d.s3Client.S3,
+		Client: d.s3Client,
 		Timeout: func() (time.Duration, diag.Diagnostics) {
 			return config.Timeouts.Read(ctx, defaultReadTimeout)
 		},

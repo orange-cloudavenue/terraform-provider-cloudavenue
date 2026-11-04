@@ -19,18 +19,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"        //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awsv2 "github.com/aws/aws-sdk-go-v2/aws"
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	awstypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -50,7 +49,7 @@ func NewBucketLifecycleConfigurationResource() resource.Resource {
 // BucketLifecycleConfigurationResource is the resource implementation.
 type BucketLifecycleConfigurationResource struct {
 	client   *client.CloudAvenue
-	s3Client v1.S3Client
+	s3Client Client
 }
 
 // Init Initializes the resource.
@@ -250,7 +249,7 @@ func (r *BucketLifecycleConfigurationResource) Delete(ctx context.Context, req r
 	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
 	defer cancel()
 
-	if _, err := r.s3Client.DeleteBucketLifecycleWithContext(ctx, &s3.DeleteBucketLifecycleInput{
+	if _, err := r.s3Client.DeleteBucketLifecycle(ctx, &awss3.DeleteBucketLifecycleInput{
 		Bucket: state.Bucket.GetPtr(),
 	}); err != nil {
 		resp.Diagnostics.AddError("Error deleting S3 Bucket Lifecycle Configuration", err.Error())
@@ -269,7 +268,7 @@ func (r *BucketLifecycleConfigurationResource) ImportState(ctx context.Context, 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
 func (r *BucketLifecycleConfigurationResource) read(ctx context.Context, planOrState *BucketLifecycleConfigurationModel) (stateRefreshed *BucketLifecycleConfigurationModel, found bool, diags diag.Diagnostics) {
 	return genericReadLifeCycleConfiguration(ctx, &readLifeCycleConfigurationConfig[*BucketLifecycleConfigurationModel]{
-		Client: r.s3Client.S3,
+		Client: r.s3Client,
 		Timeout: func() (time.Duration, diag.Diagnostics) {
 			return planOrState.Timeouts.Read(ctx, defaultReadTimeout)
 		},
@@ -291,12 +290,12 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 		return diags
 	}
 
-	rules := make([]*s3.LifecycleRule, 0)
+	rules := make([]awstypes.LifecycleRule, 0)
 
 	for _, rule := range lifeCycleRules {
-		s3Rule := &s3.LifecycleRule{
+		s3Rule := awstypes.LifecycleRule{
 			ID:     rule.ID.GetPtr(),
-			Status: rule.Status.GetPtr(),
+			Status: awstypes.ExpirationStatus(rule.Status.Get()),
 		}
 
 		// * AbortIncompleteMultipartUpload
@@ -307,8 +306,16 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 				return diags
 			}
 
-			s3Rule.AbortIncompleteMultipartUpload = &s3.AbortIncompleteMultipartUpload{
-				DaysAfterInitiation: abortIncompleteMultipartUpload.DaysAfterInitiation.GetPtr(),
+			daysAfterInitiation := abortIncompleteMultipartUpload.DaysAfterInitiation.GetPtr()
+			s3Rule.AbortIncompleteMultipartUpload = &awstypes.AbortIncompleteMultipartUpload{
+				DaysAfterInitiation: func() *int32 {
+					if daysAfterInitiation == nil {
+						return nil
+					}
+
+					value := int32(*daysAfterInitiation)
+					return &value
+				}(),
 			}
 		}
 
@@ -320,10 +327,18 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 				return diags
 			}
 
-			s3Rule.Expiration = &s3.LifecycleExpiration{}
+			s3Rule.Expiration = &awstypes.LifecycleExpiration{}
 
 			if expiration.Days.IsKnown() {
-				s3Rule.Expiration.Days = expiration.Days.GetPtr()
+				days := expiration.Days.GetPtr()
+				s3Rule.Expiration.Days = func() *int32 {
+					if days == nil {
+						return nil
+					}
+
+					value := int32(*days)
+					return &value
+				}()
 			}
 
 			if expiration.ExpiredObjectDeleteMarker.IsKnown() {
@@ -348,7 +363,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 				return diags
 			}
 
-			s3Rule.Filter = &s3.LifecycleRuleFilter{
+			s3Rule.Filter = &awstypes.LifecycleRuleFilter{
 				Prefix: filter.Prefix.GetPtr(),
 			}
 
@@ -360,7 +375,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 					return diags
 				}
 
-				s3Rule.Filter.Tag = &s3.Tag{
+				s3Rule.Filter.Tag = &awstypes.Tag{
 					Key:   tag.Key.GetPtr(),
 					Value: tag.Value.GetPtr(),
 				}
@@ -374,7 +389,7 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 					return diags
 				}
 
-				s3Rule.Filter.And = &s3.LifecycleRuleAndOperator{
+				s3Rule.Filter.And = &awstypes.LifecycleRuleAndOperator{
 					Prefix: and.Prefix.GetPtr(),
 				}
 
@@ -386,10 +401,10 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 						return diags
 					}
 
-					s3Rule.Filter.And.Tags = make([]*s3.Tag, 0)
+					s3Rule.Filter.And.Tags = make([]awstypes.Tag, 0)
 
 					for _, t := range tags {
-						s3Rule.Filter.And.Tags = append(s3Rule.Filter.And.Tags, &s3.Tag{
+						s3Rule.Filter.And.Tags = append(s3Rule.Filter.And.Tags, awstypes.Tag{
 							Key:   t.Key.GetPtr(),
 							Value: t.Value.GetPtr(),
 						})
@@ -406,18 +421,34 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 				return diags
 			}
 
-			s3Rule.NoncurrentVersionExpiration = &s3.NoncurrentVersionExpiration{
-				NoncurrentDays:          noncurrentVersionExpiration.NoncurrentDays.GetPtr(),
-				NewerNoncurrentVersions: noncurrentVersionExpiration.NewerNoncurrentVersions.GetPtr(),
+			noncurrentDays := noncurrentVersionExpiration.NoncurrentDays.GetPtr()
+			newerNoncurrentVersions := noncurrentVersionExpiration.NewerNoncurrentVersions.GetPtr()
+			s3Rule.NoncurrentVersionExpiration = &awstypes.NoncurrentVersionExpiration{
+				NoncurrentDays: func() *int32 {
+					if noncurrentDays == nil {
+						return nil
+					}
+
+					value := int32(*noncurrentDays)
+					return &value
+				}(),
+				NewerNoncurrentVersions: func() *int32 {
+					if newerNoncurrentVersions == nil {
+						return nil
+					}
+
+					value := int32(*newerNoncurrentVersions)
+					return &value
+				}(),
 			}
 		}
 
 		rules = append(rules, s3Rule)
 	}
 
-	input := &s3.PutBucketLifecycleConfigurationInput{
+	input := &awss3.PutBucketLifecycleConfigurationInput{
 		Bucket: planOrState.Bucket.GetPtr(),
-		LifecycleConfiguration: &s3.BucketLifecycleConfiguration{
+		LifecycleConfiguration: &awstypes.BucketLifecycleConfiguration{
 			Rules: rules,
 		},
 	}
@@ -428,18 +459,18 @@ func (r *BucketLifecycleConfigurationResource) createOrUpdateLifeCycle(ctx conte
 		return diags
 	}
 
-	if _, err := retryWhenAWSErrCodeEquals(ctx, []string{s3.ErrCodeNoSuchBucket}, &RetryWhenConfig[*s3.PutBucketLifecycleConfigurationOutput]{
+	if _, err := retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket}, &RetryWhenConfig[*awss3.PutBucketLifecycleConfigurationOutput]{
 		Timeout:  createTimeout,
 		Interval: 15 * time.Second,
-		Function: func() (*s3.PutBucketLifecycleConfigurationOutput, error) {
-			return r.s3Client.PutBucketLifecycleConfigurationWithContext(ctx, input)
+		Function: func() (*awss3.PutBucketLifecycleConfigurationOutput, error) {
+			return r.s3Client.PutBucketLifecycleConfiguration(ctx, input)
 		},
 	}); err != nil {
 		diags.AddError("Error putting S3 Bucket Lifecycle Configuration", err.Error())
 		return diags
 	}
 
-	if err := waitForLifecycleConfigurationRulesStatus(ctx, r.s3Client.S3, planOrState.Bucket.Get(), rules); err != nil {
+	if err := waitForLifecycleConfigurationRulesStatus(ctx, r.s3Client, planOrState.Bucket.Get(), rules); err != nil {
 		diags.AddError("Error waiting for S3 Lifecycle Configuration for bucket to reach expected rules status", err.Error())
 	}
 
@@ -457,7 +488,7 @@ const (
 	LifecycleConfigurationRulesStatusNotReady = "NOT_READY"
 )
 
-func waitForLifecycleConfigurationRulesStatus(ctx context.Context, conn *s3.S3, bucket string, rules []*s3.LifecycleRule) error {
+func waitForLifecycleConfigurationRulesStatus(ctx context.Context, conn Client, bucket string, rules []awstypes.LifecycleRule) error {
 	stateConf := &retry.StateChangeConf{
 		Pending:                   []string{"", LifecycleConfigurationRulesStatusNotReady},
 		Target:                    []string{LifecycleConfigurationRulesStatusReady},
@@ -473,15 +504,15 @@ func waitForLifecycleConfigurationRulesStatus(ctx context.Context, conn *s3.S3, 
 	return err
 }
 
-func lifecycleConfigurationRulesStatus(ctx context.Context, conn *s3.S3, bucket string, rules []*s3.LifecycleRule) retry.StateRefreshFunc {
+func lifecycleConfigurationRulesStatus(ctx context.Context, conn Client, bucket string, rules []awstypes.LifecycleRule) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		input := &s3.GetBucketLifecycleConfigurationInput{
+		input := &awss3.GetBucketLifecycleConfigurationInput{
 			Bucket: new(bucket),
 		}
 
-		output, err := conn.GetBucketLifecycleConfigurationWithContext(ctx, input)
+		output, err := conn.GetBucketLifecycleConfiguration(ctx, input)
 
-		if tfawserr.ErrCodeEquals(err, ErrCodeNoSuchLifecycleConfiguration, s3.ErrCodeNoSuchBucket) {
+		if s3ErrCodeEquals(err, ErrCodeNoSuchLifecycleConfiguration, ErrCodeNoSuchBucket) {
 			return nil, "", nil
 		}
 
@@ -500,11 +531,11 @@ func lifecycleConfigurationRulesStatus(ctx context.Context, conn *s3.S3, bucket 
 			found := false
 
 			for _, actualRule := range output.Rules {
-				if aws.StringValue(actualRule.ID) != aws.StringValue(expectedRule.ID) {
+				if awsv2.ToString(actualRule.ID) != awsv2.ToString(expectedRule.ID) {
 					continue
 				}
 				found = true
-				if aws.StringValue(actualRule.Status) != aws.StringValue(expectedRule.Status) {
+				if actualRule.Status != expectedRule.Status {
 					return output, LifecycleConfigurationRulesStatusNotReady, nil
 				}
 			}

@@ -24,7 +24,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -40,7 +39,7 @@ func NewBucketPolicyDataSource() datasource.DataSource {
 
 type BucketPolicyDataSource struct {
 	client   *client.CloudAvenue
-	s3Client v1.S3Client
+	s3Client Client
 }
 
 // Init Initializes the data source.
@@ -109,7 +108,7 @@ func (d *BucketPolicyDataSource) Read(ctx context.Context, req datasource.ReadRe
 		Timeout: func() (time.Duration, diag.Diagnostics) {
 			return readTimeout, diags
 		},
-		Client: d.s3Client.S3,
+		Client: d.s3Client,
 		BucketName: func() *string {
 			return config.Bucket.GetPtr()
 		},

@@ -18,14 +18,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	awstypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -45,7 +45,7 @@ func NewBucketVersioningConfigurationResource() resource.Resource {
 // BucketVersioningConfigurationResource is the resource implementation.
 type BucketVersioningConfigurationResource struct {
 	client   *client.CloudAvenue
-	s3Client v1.S3Client
+	s3Client Client
 }
 
 // Init Initializes the resource.
@@ -103,10 +103,10 @@ func (r *BucketVersioningConfigurationResource) Create(ctx context.Context, req 
 		Implement the resource creation logic here.
 	*/
 
-	if _, err := r.s3Client.PutBucketVersioningWithContext(ctx, &s3.PutBucketVersioningInput{
+	if _, err := r.s3Client.PutBucketVersioning(ctx, &awss3.PutBucketVersioningInput{
 		Bucket: plan.Bucket.GetPtr(),
-		VersioningConfiguration: &s3.VersioningConfiguration{
-			Status: plan.Status.GetPtr(),
+		VersioningConfiguration: &awstypes.VersioningConfiguration{
+			Status: awstypes.BucketVersioningStatus(plan.Status.Get()),
 		},
 	}); err != nil {
 		resp.Diagnostics.AddError("Error suspending bucket versioning", err.Error())
@@ -186,10 +186,10 @@ func (r *BucketVersioningConfigurationResource) Update(ctx context.Context, req 
 		Implement the resource update here
 	*/
 
-	if _, err := r.s3Client.PutBucketVersioningWithContext(ctx, &s3.PutBucketVersioningInput{
+	if _, err := r.s3Client.PutBucketVersioning(ctx, &awss3.PutBucketVersioningInput{
 		Bucket: state.Bucket.GetPtr(),
-		VersioningConfiguration: &s3.VersioningConfiguration{
-			Status: plan.Status.GetPtr(),
+		VersioningConfiguration: &awstypes.VersioningConfiguration{
+			Status: awstypes.BucketVersioningStatus(plan.Status.Get()),
 		},
 	}); err != nil {
 		resp.Diagnostics.AddError("Error updating bucket versioning", err.Error())
@@ -228,11 +228,11 @@ func (r *BucketVersioningConfigurationResource) Delete(ctx context.Context, req 
 		Implement the resource deletion here
 	*/
 
-	if state.Status.IsKnown() && state.Status.Get() != s3.BucketVersioningStatusSuspended {
-		if _, err := r.s3Client.PutBucketVersioningWithContext(ctx, &s3.PutBucketVersioningInput{
+	if state.Status.IsKnown() && state.Status.Get() != string(awstypes.BucketVersioningStatusSuspended) {
+		if _, err := r.s3Client.PutBucketVersioning(ctx, &awss3.PutBucketVersioningInput{
 			Bucket: state.Bucket.GetPtr(),
-			VersioningConfiguration: &s3.VersioningConfiguration{
-				Status: new(s3.BucketVersioningStatusSuspended),
+			VersioningConfiguration: &awstypes.VersioningConfiguration{
+				Status: awstypes.BucketVersioningStatusSuspended,
 			},
 		}); err != nil {
 			resp.Diagnostics.AddError("Error suspending bucket versioning", err.Error())
@@ -258,7 +258,7 @@ func (r *BucketVersioningConfigurationResource) read(ctx context.Context, planOr
 	*/
 
 	// Read the versioning configuration
-	versioningResponse, err := r.s3Client.GetBucketVersioningWithContext(ctx, &s3.GetBucketVersioningInput{
+	versioningResponse, err := r.s3Client.GetBucketVersioning(ctx, &awss3.GetBucketVersioningInput{
 		Bucket: planOrState.Bucket.GetPtr(),
 	})
 	if err != nil {
@@ -266,7 +266,7 @@ func (r *BucketVersioningConfigurationResource) read(ctx context.Context, planOr
 		return stateRefreshed, found, diags
 	}
 
-	stateRefreshed.Status.SetPtr(versioningResponse.Status)
+	stateRefreshed.Status.Set(string(versioningResponse.Status))
 
 	if !stateRefreshed.ID.IsKnown() {
 		stateRefreshed.ID.Set(planOrState.Bucket.Get())
