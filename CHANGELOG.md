@@ -1,4 +1,10 @@
 ## 0.38.0 (Unreleased)
+
+### :tada: **Improvements**
+
+* provider: centralize sdk v2 not-found error detection across provider resources and data sources to keep behavior consistent during the migration. (GH-1296)
+* provider: initialize the provider client with cloudavenue-sdk-go-v2 while preserving existing VMware compatibility during the migration. (GH-1295)
+
 ## 0.37.1 (October 28, 2026)
 
 ### :bug: **Bug Fixes**
