@@ -18,7 +18,6 @@ import (
 
 	iam "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/iam/v1"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"

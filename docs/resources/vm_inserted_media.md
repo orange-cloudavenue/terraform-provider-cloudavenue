@@ -2,13 +2,13 @@
 page_title: "cloudavenue_vm_inserted_media Resource - cloudavenue"
 subcategory: "VM (Virtual Machine)"
 description: |-
-  The inserted_media resource resource for inserting or ejecting media (ISO) file for the VM. Create this resource for inserting the media, and destroy it for ejecting.
+  The inserted_media resource for inserting or ejecting media (ISO) file for the VM. Create this resource for inserting the media, and destroy it for ejecting.
 
 ---
 
 # cloudavenue_vm_inserted_media (Resource)
 
-The inserted_media resource resource for inserting or ejecting media (ISO) file for the VM. Create this resource for inserting the media, and destroy it for ejecting.
+The inserted_media resource for inserting or ejecting media (ISO) file for the VM. Create this resource for inserting the media, and destroy it for ejecting.
 
 ~> Only one media is allowed per VM.
 
