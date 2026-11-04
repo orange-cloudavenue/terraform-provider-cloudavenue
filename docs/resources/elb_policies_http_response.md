@@ -2,12 +2,12 @@
 page_title: "cloudavenue_elb_policies_http_response Resource - cloudavenue"
 subcategory: "ELB (EdgeGateway Load Balancer)"
 description: |-
-  The cloudavenue_elb_policies_http_response resource allows you to manage HTTP response policies. HTTP response rules can be used to to evaluate and modify the response and response attributes that the application returns.
+  The cloudavenue_elb_policies_http_response resource allows you to manage HTTP response policies. HTTP response rules can be used to evaluate and modify the response and response attributes that the application returns.
 ---
 
 # cloudavenue_elb_policies_http_response (Resource)
 
-The `cloudavenue_elb_policies_http_response` resource allows you to manage HTTP response policies. HTTP response rules can be used to to evaluate and modify the response and response attributes that the application returns.
+The `cloudavenue_elb_policies_http_response` resource allows you to manage HTTP response policies. HTTP response rules can be used to evaluate and modify the response and response attributes that the application returns.
 
 ## Example Usage
 

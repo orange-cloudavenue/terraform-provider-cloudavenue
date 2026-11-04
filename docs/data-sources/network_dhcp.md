@@ -45,7 +45,7 @@ resource "cloudavenue_edgegateway_network_routed" "example" {
 
 ### Required
 
-- `org_network_id` (String) The ID of the network. Must be a valid URN.
+- `org_network_id` (String) The ID of the network. The value must respect the following rule : must be a valid URN.
 
 ### Read-Only
 

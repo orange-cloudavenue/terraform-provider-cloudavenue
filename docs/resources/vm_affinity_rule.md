@@ -78,7 +78,7 @@ resource "cloudavenue_vapp" "example" {
 
 - `name` (String) VM affinity rule name.
 - `polarity` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The polarity of the affinity rule. Value must be one of : `Affinity`, `Anti-Affinity`.
-- `vm_ids` (Set of String) List of VM IDs to apply the affinity rule to. Set must contain at least 2 elements. Element value must satisfy all validations: must be a valid URN.
+- `vm_ids` (Set of String) List of VM IDs to apply the affinity rule to. Set must contain at least 2 elements. Element value must satisfy all validations: The value must respect the following rule : must be a valid URN.
 
 ### Optional
 
