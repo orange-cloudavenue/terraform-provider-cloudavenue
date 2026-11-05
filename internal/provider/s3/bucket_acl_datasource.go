@@ -23,7 +23,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -39,7 +38,7 @@ func NewBucketACLDataSource() datasource.DataSource {
 
 type BucketACLDataSource struct {
 	client   *client.CloudAvenue
-	s3Client v1.S3Client
+	s3Client Client
 }
 
 // Init Initializes the data source.
@@ -105,7 +104,7 @@ func (d *BucketACLDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 	// Read data from the API
 	data, _, diags := genericReadACL(ctx, &readBucketACLGeneric[*BucketACLModelDatasource]{
-		Client: d.s3Client.S3,
+		Client: d.s3Client,
 		BucketName: func() *string {
 			return config.Bucket.GetPtr()
 		},

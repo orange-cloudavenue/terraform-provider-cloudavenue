@@ -17,7 +17,7 @@ package s3
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awstypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -72,9 +72,9 @@ func (rm *BucketCorsConfigurationModel) GetCorsRules(ctx context.Context) (value
 	return values, d
 }
 
-// CorsRulesToS3CorsRules converts the BucketCorsConfigurationModelCorsRules to a slice of []*s3.CORSRule.
-func (c BucketCorsConfigurationModelCorsRules) CorsRulesToS3CorsRules(ctx context.Context) (s3CorsRules []*s3.CORSRule, diags diag.Diagnostics) {
-	s3CorsRules = make([]*s3.CORSRule, 0)
+// CorsRulesToS3CorsRules converts the BucketCorsConfigurationModelCorsRules to a slice of awstypes.CORSRule.
+func (c BucketCorsConfigurationModelCorsRules) CorsRulesToS3CorsRules(ctx context.Context) (s3CorsRules []awstypes.CORSRule, diags diag.Diagnostics) {
+	s3CorsRules = make([]awstypes.CORSRule, 0)
 
 	for _, corsRule := range c {
 		allowedHeaders := make([]string, 0)
@@ -93,13 +93,21 @@ func (c BucketCorsConfigurationModelCorsRules) CorsRulesToS3CorsRules(ctx contex
 			return nil, diags
 		}
 
-		s3CorsRule := &s3.CORSRule{
-			ID:             corsRule.ID.GetPtr(),
-			MaxAgeSeconds:  corsRule.MaxAgeSeconds.GetPtr(),
-			AllowedHeaders: utils.SliceToSlicePointer(allowedHeaders),
-			AllowedMethods: utils.SliceToSlicePointer(allowedMethods),
-			AllowedOrigins: utils.SliceToSlicePointer(allowedOrigins),
-			ExposeHeaders:  utils.SliceToSlicePointer(exposeHeaders),
+		s3CorsRule := awstypes.CORSRule{
+			ID: corsRule.ID.GetPtr(),
+			MaxAgeSeconds: func() *int32 {
+				maxAgeSeconds := corsRule.MaxAgeSeconds.GetPtr()
+				if maxAgeSeconds == nil {
+					return nil
+				}
+
+				value := int32(*maxAgeSeconds)
+				return &value
+			}(),
+			AllowedHeaders: allowedHeaders,
+			AllowedMethods: allowedMethods,
+			AllowedOrigins: allowedOrigins,
+			ExposeHeaders:  exposeHeaders,
 		}
 
 		s3CorsRules = append(s3CorsRules, s3CorsRule)

@@ -20,12 +20,11 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
-	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	timeoutsD "github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
 	timeoutsR "github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -83,8 +82,8 @@ type (
 	}
 )
 
-// ToBucketLifecycleConfigurationModel converts a slice of *s3.GetBucketLifecycleConfigurationOutput to a slice of BucketLifecycleConfigurationModelRule.
-func ToBucketLifecycleConfigurationModel(ctx context.Context, lifecycle *s3.GetBucketLifecycleConfigurationOutput) (values BucketLifecycleConfigurationModelRules, diags diag.Diagnostics) {
+// ToBucketLifecycleConfigurationModel converts a lifecycle configuration to a slice of BucketLifecycleConfigurationModelRule.
+func ToBucketLifecycleConfigurationModel(ctx context.Context, lifecycle *awss3.GetBucketLifecycleConfigurationOutput) (values BucketLifecycleConfigurationModelRules, diags diag.Diagnostics) {
 	rulesRefreshed := BucketLifecycleConfigurationModelRules{}
 
 	if len(lifecycle.Rules) > 0 {
@@ -99,13 +98,15 @@ func ToBucketLifecycleConfigurationModel(ctx context.Context, lifecycle *s3.GetB
 			}
 
 			ruleRefreshed.ID.SetPtr(rule.ID)
-			ruleRefreshed.Status.SetPtr(rule.Status)
+			ruleRefreshed.Status.Set(string(rule.Status))
 
 			if rule.AbortIncompleteMultipartUpload != nil {
 				abortIncompleteMultipartUpload := &BucketLifecycleConfigurationModelAbortIncompleteMultipartUpload{
 					DaysAfterInitiation: supertypes.NewInt64Null(),
 				}
-				abortIncompleteMultipartUpload.DaysAfterInitiation.SetPtr(rule.AbortIncompleteMultipartUpload.DaysAfterInitiation)
+				if rule.AbortIncompleteMultipartUpload.DaysAfterInitiation != nil {
+					abortIncompleteMultipartUpload.DaysAfterInitiation.Set(int64(*rule.AbortIncompleteMultipartUpload.DaysAfterInitiation))
+				}
 				diags.Append(ruleRefreshed.AbortIncompleteMultipartUpload.Set(ctx, abortIncompleteMultipartUpload)...)
 			}
 
@@ -118,7 +119,9 @@ func ToBucketLifecycleConfigurationModel(ctx context.Context, lifecycle *s3.GetB
 				if rule.Expiration.Date != nil {
 					expiration.Date.Set(rule.Expiration.Date.Format(time.RFC3339))
 				}
-				expiration.Days.SetPtr(rule.Expiration.Days)
+				if rule.Expiration.Days != nil {
+					expiration.Days.Set(int64(*rule.Expiration.Days))
+				}
 				expiration.ExpiredObjectDeleteMarker.SetPtr(rule.Expiration.ExpiredObjectDeleteMarker)
 
 				diags.Append(ruleRefreshed.Expiration.Set(ctx, expiration)...)
@@ -173,8 +176,12 @@ func ToBucketLifecycleConfigurationModel(ctx context.Context, lifecycle *s3.GetB
 					NewerNoncurrentVersions: supertypes.NewInt64Null(),
 					NoncurrentDays:          supertypes.NewInt64Null(),
 				}
-				noncurrentVersionExpiration.NewerNoncurrentVersions.SetPtr(rule.NoncurrentVersionExpiration.NewerNoncurrentVersions)
-				noncurrentVersionExpiration.NoncurrentDays.SetPtr(rule.NoncurrentVersionExpiration.NoncurrentDays)
+				if rule.NoncurrentVersionExpiration.NewerNoncurrentVersions != nil {
+					noncurrentVersionExpiration.NewerNoncurrentVersions.Set(int64(*rule.NoncurrentVersionExpiration.NewerNoncurrentVersions))
+				}
+				if rule.NoncurrentVersionExpiration.NoncurrentDays != nil {
+					noncurrentVersionExpiration.NoncurrentDays.Set(int64(*rule.NoncurrentVersionExpiration.NoncurrentDays))
+				}
 
 				diags.Append(ruleRefreshed.NoncurrentVersionExpiration.Set(ctx, noncurrentVersionExpiration)...)
 			}
@@ -199,7 +206,7 @@ type readLifeCycleConfigurationResourceDatasource interface {
 
 type readLifeCycleConfigurationConfig[T readLifeCycleConfigurationResourceDatasource] struct {
 	Timeout    func() (time.Duration, diag.Diagnostics)
-	Client     *s3.S3
+	Client     Client
 	BucketName func() *string
 }
 
@@ -213,18 +220,18 @@ func genericReadLifeCycleConfiguration[T readLifeCycleConfigurationResourceDatas
 		return stateRefreshed, found, diags
 	}
 
-	var lastOutput, lifecycle *s3.GetBucketLifecycleConfigurationOutput
+	var lastOutput, lifecycle *awss3.GetBucketLifecycleConfigurationOutput
 
 	err := retry.RetryContext(ctx, readTimeout, func() *retry.RetryError {
 		var err error
 
 		time.Sleep(lifecycleConfigurationExtraRetryDelay)
 
-		lifecycle, err = config.Client.GetBucketLifecycleConfigurationWithContext(ctx, &s3.GetBucketLifecycleConfigurationInput{
+		lifecycle, err = config.Client.GetBucketLifecycleConfiguration(ctx, &awss3.GetBucketLifecycleConfigurationInput{
 			Bucket: config.BucketName(),
 		})
 
-		if tfawserr.ErrCodeEquals(err, ErrCodeNoSuchLifecycleConfiguration, s3.ErrCodeNoSuchBucket) {
+		if s3ErrCodeEquals(err, ErrCodeNoSuchLifecycleConfiguration, ErrCodeNoSuchBucket) {
 			return retry.RetryableError(err)
 		}
 
@@ -240,7 +247,7 @@ func genericReadLifeCycleConfiguration[T readLifeCycleConfigurationResourceDatas
 		return nil
 	})
 
-	if err != nil && !tfawserr.ErrMessageContains(err, ErrCodeNoSuchLifecycleConfiguration, "") {
+	if err != nil && !s3ErrCodeEquals(err, ErrCodeNoSuchLifecycleConfiguration) {
 		diags.AddError("Error retrieving bucket lifecycle configuration", err.Error())
 		return stateRefreshed, false, diags
 	}

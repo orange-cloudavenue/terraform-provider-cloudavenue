@@ -19,14 +19,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	awstypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -46,7 +46,7 @@ func NewBucketACLResource() resource.Resource {
 // BucketACLResource is the resource implementation.
 type BucketACLResource struct {
 	client   *client.CloudAvenue
-	s3Client v1.S3Client
+	s3Client Client
 }
 
 // Init Initializes the resource.
@@ -263,7 +263,7 @@ func (r *BucketACLResource) ImportState(ctx context.Context, req resource.Import
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
 func (r *BucketACLResource) read(ctx context.Context, planOrState *BucketACLModel) (stateRefreshed *BucketACLModel, found bool, diags diag.Diagnostics) {
 	return genericReadACL(ctx, &readBucketACLGeneric[*BucketACLModel]{
-		Client: r.s3Client.S3,
+		Client: r.s3Client,
 		BucketName: func() *string {
 			return planOrState.Bucket.GetPtr()
 		},
@@ -273,12 +273,12 @@ func (r *BucketACLResource) read(ctx context.Context, planOrState *BucketACLMode
 // createOrUpdate is a generic create or update function that can be used by the resource Create and Update functions.
 func (r *BucketACLResource) createOrUpdate(ctx context.Context, planOrState *BucketACLModel, timeout time.Duration) (diags diag.Diagnostics) {
 	// Set Bucket in input
-	input := &s3.PutBucketAclInput{
+	input := &awss3.PutBucketAclInput{
 		Bucket: planOrState.Bucket.GetPtr(),
 	}
 
 	if planOrState.ACL.IsKnown() {
-		input.ACL = planOrState.ACL.GetPtr()
+		input.ACL = awstypes.BucketCannedACL(planOrState.ACL.Get())
 	} else {
 		// ? Get AccessControlPolicy
 		accessControlPolicy, d := planOrState.AccessControlPolicy.Get(ctx)
@@ -293,8 +293,8 @@ func (r *BucketACLResource) createOrUpdate(ctx context.Context, planOrState *Buc
 		if diags.HasError() {
 			return diags
 		}
-		input.AccessControlPolicy = &s3.AccessControlPolicy{
-			Owner: &s3.Owner{
+		input.AccessControlPolicy = &awstypes.AccessControlPolicy{
+			Owner: &awstypes.Owner{
 				DisplayName: owner.DisplayName.GetPtr(),
 				ID:          owner.ID.GetPtr(),
 			},
@@ -302,7 +302,7 @@ func (r *BucketACLResource) createOrUpdate(ctx context.Context, planOrState *Buc
 
 		// ? Set Grants
 		if accessControlPolicy.Grants.IsKnown() {
-			input.AccessControlPolicy.Grants = make([]*s3.Grant, 0)
+			input.AccessControlPolicy.Grants = make([]awstypes.Grant, 0)
 			// Get Array of grants
 			grants, d := accessControlPolicy.Grants.Get(ctx)
 			diags.Append(d...)
@@ -316,25 +316,25 @@ func (r *BucketACLResource) createOrUpdate(ctx context.Context, planOrState *Buc
 				if diags.HasError() {
 					return diags
 				}
-				input.AccessControlPolicy.Grants = append(input.AccessControlPolicy.Grants, &s3.Grant{
-					Grantee: &s3.Grantee{
+				input.AccessControlPolicy.Grants = append(input.AccessControlPolicy.Grants, awstypes.Grant{
+					Grantee: &awstypes.Grantee{
 						ID:           grantee.ID.GetPtr(),
 						DisplayName:  grantee.DisplayName.GetPtr(),
 						EmailAddress: grantee.EmailAddress.GetPtr(),
 						URI:          grantee.URI.GetPtr(),
-						Type:         grantee.Type.GetPtr(),
+						Type:         awstypes.Type(grantee.Type.Get()),
 					},
-					Permission: grant.Permission.GetPtr(),
+					Permission: awstypes.Permission(grant.Permission.Get()),
 				})
 			}
 		}
 	}
 
-	if _, err := retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket}, &RetryWhenConfig[*s3.PutBucketAclOutput]{
+	if _, err := retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket}, &RetryWhenConfig[*awss3.PutBucketAclOutput]{
 		Timeout:  timeout,
 		Interval: 5 * time.Second,
-		Function: func() (*s3.PutBucketAclOutput, error) {
-			return r.s3Client.PutBucketAclWithContext(ctx, input)
+		Function: func() (*awss3.PutBucketAclOutput, error) {
+			return r.s3Client.PutBucketAcl(ctx, input)
 		},
 	}); err != nil {
 		diags.AddError("Error putting ACL configuration", err.Error())

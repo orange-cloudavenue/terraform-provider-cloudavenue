@@ -20,16 +20,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 var (
@@ -43,7 +41,7 @@ func NewBucketCorsConfigurationDatasource() datasource.DataSource {
 
 type BucketCorsConfigurationDatasource struct {
 	client   *client.CloudAvenue
-	s3Client v1.S3Client
+	s3Client Client
 }
 
 // Init Initializes the data source.
@@ -108,7 +106,7 @@ func (d *BucketCorsConfigurationDatasource) Read(ctx context.Context, req dataso
 	*/
 
 	// Read the CORS
-	corsResponse, err := d.s3Client.GetBucketCorsWithContext(ctx, &s3.GetBucketCorsInput{
+	corsResponse, err := d.s3Client.GetBucketCors(ctx, &awss3.GetBucketCorsInput{
 		Bucket: data.Bucket.GetPtr(),
 	})
 	if err != nil {
@@ -124,18 +122,20 @@ func (d *BucketCorsConfigurationDatasource) Read(ctx context.Context, req dataso
 	for _, corsRule := range corsResponse.CORSRules {
 		corsRuleModel := NewBucketCorsConfigurationModelCorsRule()
 
-		corsRuleModel.MaxAgeSeconds.SetPtr(corsRule.MaxAgeSeconds)
+		if corsRule.MaxAgeSeconds != nil {
+			corsRuleModel.MaxAgeSeconds.Set(int64(*corsRule.MaxAgeSeconds))
+		}
 		corsRuleModel.ID.SetPtr(corsRule.ID)
 
-		corsRuleModel.AllowedMethods.Set(ctx, utils.SlicePointerToSlice(corsRule.AllowedMethods))
-		corsRuleModel.AllowedOrigins.Set(ctx, utils.SlicePointerToSlice(corsRule.AllowedOrigins))
+		corsRuleModel.AllowedMethods.Set(ctx, corsRule.AllowedMethods)
+		corsRuleModel.AllowedOrigins.Set(ctx, corsRule.AllowedOrigins)
 
 		// AllowedHeaders and ExposeHeaders are optional
 		if len(corsRule.AllowedHeaders) > 0 {
-			corsRuleModel.AllowedHeaders.Set(ctx, utils.SlicePointerToSlice(corsRule.AllowedHeaders))
+			corsRuleModel.AllowedHeaders.Set(ctx, corsRule.AllowedHeaders)
 		}
 		if len(corsRule.ExposeHeaders) > 0 {
-			corsRuleModel.ExposeHeaders.Set(ctx, utils.SlicePointerToSlice(corsRule.ExposeHeaders))
+			corsRuleModel.ExposeHeaders.Set(ctx, corsRule.ExposeHeaders)
 		}
 
 		*corsPolicy = append(*corsPolicy, corsRuleModel)

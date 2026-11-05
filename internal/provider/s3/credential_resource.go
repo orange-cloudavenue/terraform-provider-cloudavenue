@@ -24,7 +24,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -44,7 +43,7 @@ func NewCredentialResource() resource.Resource {
 // CredentialResource is the resource implementation.
 type CredentialResource struct {
 	client   *client.CloudAvenue
-	s3Client v1.S3Client
+	s3Client Client
 }
 
 // Init Initializes the resource.

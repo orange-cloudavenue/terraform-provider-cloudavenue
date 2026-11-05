@@ -18,7 +18,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -156,7 +156,7 @@ type readACLResourceDatasource interface {
 
 // Generic type for the datasource.
 type readBucketACLGeneric[T readACLResourceDatasource] struct {
-	Client     *s3.S3
+	Client     Client
 	BucketName func() *string
 }
 
@@ -164,7 +164,7 @@ type readBucketACLGeneric[T readACLResourceDatasource] struct {
 func genericReadACL[T readACLResourceDatasource](ctx context.Context, config *readBucketACLGeneric[T], planOrState T) (stateRefreshed T, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy().(T)
 
-	bucketACLOutput, err := config.Client.GetBucketAclWithContext(ctx, &s3.GetBucketAclInput{
+	bucketACLOutput, err := config.Client.GetBucketAcl(ctx, &awss3.GetBucketAclInput{
 		Bucket: config.BucketName(),
 	})
 	if err != nil {
@@ -198,7 +198,7 @@ func genericReadACL[T readACLResourceDatasource](ctx context.Context, config *re
 		grantModel := NewBucketACLModelGrant(ctx)
 
 		// ? Set Permission in grant
-		grantModel.Permission.Set(*s3Grant.Permission)
+		grantModel.Permission.Set(string(s3Grant.Permission))
 
 		// ? Set Grantee in grant
 		if s3Grant.Grantee == nil {
@@ -206,7 +206,7 @@ func genericReadACL[T readACLResourceDatasource](ctx context.Context, config *re
 			return nil, true, diags
 		}
 		grantee := NewBucketACLModelGrantee()
-		grantee.Type.SetPtr(s3Grant.Grantee.Type)
+		grantee.Type.Set(string(s3Grant.Grantee.Type))
 		grantee.ID.SetPtr(s3Grant.Grantee.ID)
 		grantee.DisplayName.SetPtr(s3Grant.Grantee.DisplayName)
 		grantee.EmailAddress.SetPtr(s3Grant.Grantee.EmailAddress)

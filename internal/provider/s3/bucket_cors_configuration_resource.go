@@ -19,17 +19,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	awstypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -47,7 +46,7 @@ func NewBucketCorsConfigurationResource() resource.Resource {
 // BucketCorsConfigurationResource is the resource implementation.
 type BucketCorsConfigurationResource struct {
 	client   *client.CloudAvenue
-	s3Client v1.S3Client
+	s3Client Client
 }
 
 // Init Initializes the resource.
@@ -261,7 +260,7 @@ func (r *BucketCorsConfigurationResource) Delete(ctx context.Context, req resour
 	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
 	defer cancel()
 
-	if _, err := r.s3Client.DeleteBucketCorsWithContext(ctx, &s3.DeleteBucketCorsInput{
+	if _, err := r.s3Client.DeleteBucketCors(ctx, &awss3.DeleteBucketCorsInput{
 		Bucket: state.Bucket.GetPtr(),
 	}); err != nil {
 		resp.Diagnostics.AddError("Error deleting CORS policy", err.Error())
@@ -285,7 +284,7 @@ func (r *BucketCorsConfigurationResource) read(ctx context.Context, planOrState 
 	*/
 
 	// Read the CORS
-	corsResponse, err := r.s3Client.GetBucketCorsWithContext(ctx, &s3.GetBucketCorsInput{
+	corsResponse, err := r.s3Client.GetBucketCors(ctx, &awss3.GetBucketCorsInput{
 		Bucket: planOrState.Bucket.GetPtr(),
 	})
 	if err != nil {
@@ -302,18 +301,20 @@ func (r *BucketCorsConfigurationResource) read(ctx context.Context, planOrState 
 	for _, corsRule := range corsResponse.CORSRules {
 		corsRuleModel := NewBucketCorsConfigurationModelCorsRule()
 
-		corsRuleModel.MaxAgeSeconds.SetPtr(corsRule.MaxAgeSeconds)
+		if corsRule.MaxAgeSeconds != nil {
+			corsRuleModel.MaxAgeSeconds.Set(int64(*corsRule.MaxAgeSeconds))
+		}
 		corsRuleModel.ID.SetPtr(corsRule.ID)
 
-		corsRuleModel.AllowedMethods.Set(ctx, utils.SlicePointerToSlice(corsRule.AllowedMethods))
-		corsRuleModel.AllowedOrigins.Set(ctx, utils.SlicePointerToSlice(corsRule.AllowedOrigins))
+		corsRuleModel.AllowedMethods.Set(ctx, corsRule.AllowedMethods)
+		corsRuleModel.AllowedOrigins.Set(ctx, corsRule.AllowedOrigins)
 
 		// AllowedHeaders and ExposeHeaders are optional
 		if len(corsRule.AllowedHeaders) > 0 {
-			corsRuleModel.AllowedHeaders.Set(ctx, utils.SlicePointerToSlice(corsRule.AllowedHeaders))
+			corsRuleModel.AllowedHeaders.Set(ctx, corsRule.AllowedHeaders)
 		}
 		if len(corsRule.ExposeHeaders) > 0 {
-			corsRuleModel.ExposeHeaders.Set(ctx, utils.SlicePointerToSlice(corsRule.ExposeHeaders))
+			corsRuleModel.ExposeHeaders.Set(ctx, corsRule.ExposeHeaders)
 		}
 
 		*corsPolicy = append(*corsPolicy, corsRuleModel)
@@ -341,14 +342,14 @@ func (r *BucketCorsConfigurationResource) createOrUpdateCorsPolicy(ctx context.C
 		return diags
 	}
 
-	corsInput := &s3.PutBucketCorsInput{
+	corsInput := &awss3.PutBucketCorsInput{
 		Bucket: planOrState.Bucket.GetPtr(),
-		CORSConfiguration: &s3.CORSConfiguration{
+		CORSConfiguration: &awstypes.CORSConfiguration{
 			CORSRules: corsRulesS3,
 		},
 	}
 
-	if _, err := r.s3Client.PutBucketCorsWithContext(ctx, corsInput); err != nil {
+	if _, err := r.s3Client.PutBucketCors(ctx, corsInput); err != nil {
 		diags.AddError("Error on PUT CORS policy", err.Error())
 	}
 

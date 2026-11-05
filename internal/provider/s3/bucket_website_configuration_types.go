@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awstypes "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -85,8 +85,8 @@ type (
 	}
 )
 
-func (rm *BucketWebsiteConfigurationModel) CreateS3WebsiteConfigurationAPIObject(ctx context.Context) (websiteConfig *s3.WebsiteConfiguration, diags diag.Diagnostics) {
-	websiteConfig = new(s3.WebsiteConfiguration)
+func (rm *BucketWebsiteConfigurationModel) CreateS3WebsiteConfigurationAPIObject(ctx context.Context) (websiteConfig *awstypes.WebsiteConfiguration, diags diag.Diagnostics) {
+	websiteConfig = new(awstypes.WebsiteConfiguration)
 
 	if rm.ErrorDocument.IsKnown() {
 		errorDocument, d := rm.ErrorDocument.Get(ctx)
@@ -94,7 +94,7 @@ func (rm *BucketWebsiteConfigurationModel) CreateS3WebsiteConfigurationAPIObject
 		if diags.HasError() {
 			return websiteConfig, diags
 		}
-		websiteConfig.ErrorDocument = &s3.ErrorDocument{
+		websiteConfig.ErrorDocument = &awstypes.ErrorDocument{
 			Key: errorDocument.Key.GetPtr(),
 		}
 	}
@@ -106,7 +106,7 @@ func (rm *BucketWebsiteConfigurationModel) CreateS3WebsiteConfigurationAPIObject
 			return websiteConfig, diags
 		}
 
-		websiteConfig.IndexDocument = &s3.IndexDocument{
+		websiteConfig.IndexDocument = &awstypes.IndexDocument{
 			Suffix: indexDocument.Suffix.GetPtr(),
 		}
 	}
@@ -118,9 +118,9 @@ func (rm *BucketWebsiteConfigurationModel) CreateS3WebsiteConfigurationAPIObject
 			return websiteConfig, diags
 		}
 
-		websiteConfig.RedirectAllRequestsTo = &s3.RedirectAllRequestsTo{
+		websiteConfig.RedirectAllRequestsTo = &awstypes.RedirectAllRequestsTo{
 			HostName: redirectAllRequestsTo.HostName.GetPtr(),
-			Protocol: redirectAllRequestsTo.Protocol.GetPtr(),
+			Protocol: awstypes.Protocol(redirectAllRequestsTo.Protocol.Get()),
 		}
 	}
 
@@ -131,7 +131,7 @@ func (rm *BucketWebsiteConfigurationModel) CreateS3WebsiteConfigurationAPIObject
 			return websiteConfig, diags
 		}
 
-		websiteConfig.RoutingRules = make([]*s3.RoutingRule, len(routingRules))
+		websiteConfig.RoutingRules = make([]awstypes.RoutingRule, len(routingRules))
 		for i, routingRule := range routingRules {
 			redirect, d := routingRule.Redirect.Get(ctx)
 			diags.Append(d...)
@@ -141,15 +141,15 @@ func (rm *BucketWebsiteConfigurationModel) CreateS3WebsiteConfigurationAPIObject
 				return websiteConfig, diags
 			}
 
-			websiteConfig.RoutingRules[i] = &s3.RoutingRule{
-				Redirect: &s3.Redirect{
+			websiteConfig.RoutingRules[i] = awstypes.RoutingRule{
+				Redirect: &awstypes.Redirect{
 					HostName:             redirect.HostName.GetPtr(),
 					HttpRedirectCode:     redirect.HTTPRedirectCode.GetPtr(),
-					Protocol:             redirect.Protocol.GetPtr(),
+					Protocol:             awstypes.Protocol(redirect.Protocol.Get()),
 					ReplaceKeyPrefixWith: redirect.ReplaceKeyPrefixWith.GetPtr(),
 					ReplaceKeyWith:       redirect.ReplaceKeyWith.GetPtr(),
 				},
-				Condition: &s3.Condition{
+				Condition: &awstypes.Condition{
 					HttpErrorCodeReturnedEquals: condition.HTTPErrorCodeReturnedEquals.GetPtr(),
 					KeyPrefixEquals:             condition.KeyPrefixEquals.GetPtr(),
 				},
@@ -233,7 +233,7 @@ type (
 	}
 
 	readWebsiteConfigurationConfig[T readWebsiteConfigurationResourceDatasource] struct {
-		Client     *s3.S3
+		Client     Client
 		BucketName *string
 	}
 )
@@ -289,7 +289,7 @@ func genericReadWebsiteConfiguration[T readWebsiteConfigurationResourceDatasourc
 		}
 
 		rART.HostName.SetPtr(output.RedirectAllRequestsTo.HostName)
-		rART.Protocol.SetPtr(output.RedirectAllRequestsTo.Protocol)
+		rART.Protocol.Set(string(output.RedirectAllRequestsTo.Protocol))
 		diags.Append(stateRefreshed.SetRedirectAllRequestsTo(ctx, rART)...)
 		if diags.HasError() {
 			return nil, true, diags
@@ -321,7 +321,7 @@ func genericReadWebsiteConfiguration[T readWebsiteConfigurationResourceDatasourc
 			if rule.Redirect != nil {
 				redirect.HostName.SetPtr(rule.Redirect.HostName)
 				redirect.HTTPRedirectCode.SetPtr(rule.Redirect.HttpRedirectCode)
-				redirect.Protocol.SetPtr(rule.Redirect.Protocol)
+				redirect.Protocol.Set(string(rule.Redirect.Protocol))
 				redirect.ReplaceKeyPrefixWith.SetPtr(rule.Redirect.ReplaceKeyPrefixWith)
 				redirect.ReplaceKeyWith.SetPtr(rule.Redirect.ReplaceKeyWith)
 				diags.Append(rR.Redirect.Set(ctx, redirect)...)
@@ -349,7 +349,7 @@ func genericReadWebsiteConfiguration[T readWebsiteConfigurationResourceDatasourc
 	}
 
 	stateRefreshed.SetID(*config.BucketName)
-	stateRefreshed.SetWebsiteEnpoint(fmt.Sprintf("%s.%s", *config.BucketName, "website-region01.cloudavenue.orange-business.com"))
+	stateRefreshed.SetWebsiteEnpoint(fmt.Sprintf(s3WebsiteEndpointFormat, *config.BucketName))
 
 	return stateRefreshed, true, nil
 }

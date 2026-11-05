@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/s3" //nolint:staticcheck // SA1019: aws-sdk-go v1 is deprecated (EOL 2025-07-31); migration to aws-sdk-go-v2 tracked separately
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -28,7 +28,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -48,7 +47,7 @@ func NewBucketPolicyResource() resource.Resource {
 // BucketPolicyResource is the resource implementation.
 type BucketPolicyResource struct {
 	client   *client.CloudAvenue
-	s3Client v1.S3Client
+	s3Client Client
 }
 
 // Init Initializes the resource.
@@ -210,16 +209,16 @@ func (r *BucketPolicyResource) Delete(ctx context.Context, req resource.DeleteRe
 	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
 	defer cancel()
 
-	input := &s3.DeleteBucketPolicyInput{
+	input := &awss3.DeleteBucketPolicyInput{
 		Bucket: state.Bucket.GetPtr(),
 	}
 
 	// Delete Policy
-	_, err := retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket}, &RetryWhenConfig[*s3.DeleteBucketPolicyOutput]{
+	_, err := retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket}, &RetryWhenConfig[*awss3.DeleteBucketPolicyOutput]{
 		Timeout:  deleteTimeout,
 		Interval: 15 * time.Second,
-		Function: func() (*s3.DeleteBucketPolicyOutput, error) {
-			return r.s3Client.DeleteBucketPolicy(input)
+		Function: func() (*awss3.DeleteBucketPolicyOutput, error) {
+			return r.s3Client.DeleteBucketPolicy(ctx, input)
 		},
 	})
 	if err != nil {
@@ -246,15 +245,15 @@ func (r *BucketPolicyResource) genericCreateOrUpdate(ctx context.Context, timeou
 	}
 
 	// Loop for object creation
-	input := &s3.PutBucketPolicyInput{
+	input := &awss3.PutBucketPolicyInput{
 		Bucket: stateRefreshed.Bucket.GetPtr(),
 		Policy: new(policy),
 	}
-	_, err = retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket, ErrCodeMalformedPolicy}, &RetryWhenConfig[*s3.PutBucketPolicyOutput]{
+	_, err = retryWhenAWSErrCodeEquals(ctx, []string{ErrCodeNoSuchBucket, ErrCodeMalformedPolicy}, &RetryWhenConfig[*awss3.PutBucketPolicyOutput]{
 		Timeout:  timeout,
 		Interval: 15 * time.Second,
-		Function: func() (*s3.PutBucketPolicyOutput, error) {
-			return r.s3Client.PutBucketPolicy(input)
+		Function: func() (*awss3.PutBucketPolicyOutput, error) {
+			return r.s3Client.PutBucketPolicy(ctx, input)
 		},
 	})
 	if err != nil {
@@ -276,7 +275,7 @@ func (r *BucketPolicyResource) read(ctx context.Context, timeout time.Duration, 
 		Timeout: func() (time.Duration, diag.Diagnostics) {
 			return timeout, diags
 		},
-		Client: r.s3Client.S3,
+		Client: r.s3Client,
 		BucketName: func() *string {
 			return stateRefreshed.Bucket.GetPtr()
 		},
