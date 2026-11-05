@@ -17,6 +17,7 @@ package org
 import (
 	"context"
 	"fmt"
+	"time"
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
@@ -195,9 +196,31 @@ func (r *OrgResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		reqP.FullName = plan.Name.Get()
 	}
 
-	stateRefreshed, err := r.orgClient.UpdateOrganization(ctx, reqP)
+	job, err := r.orgClient.UpdateOrganization(ctx, reqP)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating properties", err.Error())
+		return
+	}
+
+	if err := cav.WaitJob(ctx, r.orgClient.GetClient(), cav.JobWaitRequest{
+		Backend: cav.BackendInfrapi,
+		JobID:   job.ID,
+		PollOptions: cav.JobPollOptions{
+			Timeout:         5 * time.Minute,
+			PollingInterval: 3 * time.Second,
+		},
+	}); err != nil {
+		resp.Diagnostics.AddError("Error waiting for organization update job", err.Error())
+		return
+	}
+
+	stateRefreshed, found, d := r.read(ctx, plan)
+	if !found {
+		resp.Diagnostics.AddError("Resource not found", "The resource was not found after update")
+		return
+	}
+	if d.HasError() {
+		resp.Diagnostics.Append(d...)
 		return
 	}
 
