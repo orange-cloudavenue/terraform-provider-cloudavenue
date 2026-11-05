@@ -17,7 +17,7 @@ package org
 import (
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -38,8 +38,8 @@ type CertificateLibraryDatasourceModel struct {
 }
 
 // ToSDKCertificateLibraryModel converts the data Terraform to the SDK model.
-func (rm *CertificateLibraryModel) ToSDKCertificateLibraryModel() org.CertificateModel {
-	return org.CertificateModel{
+func (rm *CertificateLibraryModel) ToSDKCertificateLibraryModel() types.ModelGetCertificate {
+	return types.ModelGetCertificate{
 		ID:          rm.ID.Get(),
 		Name:        rm.Name.Get(),
 		Description: rm.Description.Get(),
