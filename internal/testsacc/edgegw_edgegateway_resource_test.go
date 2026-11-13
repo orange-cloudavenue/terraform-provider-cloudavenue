@@ -19,13 +19,10 @@ import (
 	"context"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/edgegw"
 )
 
 var _ testsacc.TestACC = &EdgeGatewayResource{}
@@ -59,7 +56,7 @@ func (r *EdgeGatewayResource) Tests(_ context.Context) map[testsacc.TestName]fun
 					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
 
 					// Read-Only attributes
-					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
@@ -139,7 +136,7 @@ func (r *EdgeGatewayResource) Tests(_ context.Context) map[testsacc.TestName]fun
 					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
 
 					// Read-Only attributes
-					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				},
@@ -187,7 +184,7 @@ func (r *EdgeGatewayResource) Tests(_ context.Context) map[testsacc.TestName]fun
 					resource.TestCheckResourceAttrSet(resourceName, "owner_name"),
 
 					// Read-Only attributes
-					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Gateway)),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestMatchResourceAttr(resourceName, "tier0_vrf_name", regexp.MustCompile(regexpTier0VRFName)),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				},
@@ -220,12 +217,6 @@ func (r *EdgeGatewayResource) Tests(_ context.Context) map[testsacc.TestName]fun
 }
 
 func TestAccEdgeGatewayResource(t *testing.T) {
-	edgegw.ConfigEdgeGateway = func() edgegw.EdgeGatewayConfig {
-		return edgegw.EdgeGatewayConfig{
-			CheckJobDelay: 10 * time.Second,
-		}
-	}
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,

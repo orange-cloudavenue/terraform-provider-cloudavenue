@@ -46,14 +46,6 @@ func edgegwSchema() superschema.Schema {
 			MarkdownDescription: "data source allows you to show the details of an Edge Gateways in Cloud Avenue.",
 		},
 		Attributes: map[string]superschema.Attribute{
-			"timeouts": &superschema.TimeoutAttribute{
-				Resource: &superschema.ResourceTimeoutAttribute{
-					Create: true,
-					Read:   true,
-					Delete: true,
-					Update: true,
-				},
-			},
 			"id": &superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: edgeGatewayIDDescription,

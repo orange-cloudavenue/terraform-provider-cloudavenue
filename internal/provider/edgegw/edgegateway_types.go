@@ -17,13 +17,10 @@ package edgegw
 import (
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
 type edgeGatewayResourceModel struct {
-	Timeouts     timeouts.Value         `tfsdk:"timeouts"`
 	ID           supertypes.StringValue `tfsdk:"id"`
 	Tier0VRFName supertypes.StringValue `tfsdk:"tier0_vrf_name"`
 	Name         supertypes.StringValue `tfsdk:"name"`

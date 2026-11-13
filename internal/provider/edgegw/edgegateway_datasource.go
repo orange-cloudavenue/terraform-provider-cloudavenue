@@ -19,9 +19,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	edge "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -37,7 +40,23 @@ func NewEdgeGatewayDataSource() datasource.DataSource {
 }
 
 type edgeGatewayDataSource struct {
-	client *client.CloudAvenue
+	client     *client.CloudAvenue
+	edgeClient *edge.Client
+}
+
+func (d *edgeGatewayDataSource) Init(_ context.Context) (diags diag.Diagnostics) {
+	var err error
+	var v2 cav.Client
+
+	if v2, err = d.client.V2(); err == nil {
+		d.edgeClient, err = edge.New(v2)
+	}
+	if err != nil {
+		diags.AddError("Error initializing EdgeGateway client", err.Error())
+		return diags
+	}
+
+	return diags
 }
 
 func (d *edgeGatewayDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -48,7 +67,7 @@ func (d *edgeGatewayDataSource) Schema(ctx context.Context, _ datasource.SchemaR
 	resp.Schema = edgegwSchema().GetDataSource(ctx)
 }
 
-func (d *edgeGatewayDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *edgeGatewayDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -66,6 +85,12 @@ func (d *edgeGatewayDataSource) Configure(_ context.Context, req datasource.Conf
 	}
 
 	d.client = client
+
+	// Init the resource
+	resp.Diagnostics.Append(d.Init(ctx)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -79,36 +104,32 @@ func (d *edgeGatewayDataSource) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	data := config.Copy()
-
-	// Read data from the API
-	nameOrID := config.Name.Get()
-	if nameOrID == "" {
-		nameOrID = config.ID.Get()
+	s := &edgeGatewayResource{
+		client:     d.client,
+		edgeClient: d.edgeClient,
 	}
 
-	if nameOrID == "" {
-		resp.Diagnostics.AddError("Missing selector", "Either 'name' or 'id' must be specified.")
+	configResource := &edgeGatewayResourceModel{
+		ID:   config.ID,
+		Name: config.Name,
+	}
+
+	data, found, diags := s.read(ctx, configResource)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if !found {
+		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The edge gateway %s(%s) was not found.", config.Name.Get(), config.ID.Get()))
 		return
 	}
 
-	edgegw, err := d.client.CAVSDK.V1.EdgeGateway.Get(nameOrID)
-	if err != nil {
-		resp.Diagnostics.AddError("Error getting edge gateway", err.Error())
-		return
-	}
-
-	if edgegw == nil {
-		resp.Diagnostics.AddError("Resource not found", fmt.Sprintf("The edge gateway '%s' was not found.", nameOrID))
-		return
-	}
-
-	data.ID.Set(urn.Normalize(urn.Gateway, edgegw.GetID()).String())
-	data.Name.Set(edgegw.GetName())
-	data.Tier0VrfID.Set(edgegw.GetTier0VrfID())
-	data.OwnerName.Set(edgegw.GetOwnerName())
-	data.Description.Set(edgegw.GetDescription())
-	data.Bandwidth.SetInt(edgegw.GetBandwidth())
+	data.ID.Set(data.ID.Get())
+	data.Name.Set(data.Name.Get())
+	data.Tier0VRFName.Set(data.Tier0VRFName.Get())
+	data.OwnerName.Set(data.OwnerName.Get())
+	data.Description.Set(data.Description.Get())
+	data.Bandwidth.SetInt(data.Bandwidth.GetInt())
 
 	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

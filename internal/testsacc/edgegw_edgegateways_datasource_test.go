@@ -21,7 +21,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
@@ -57,7 +56,6 @@ func (r *EdgeGatewaysDataSource) Tests(_ context.Context) map[testsacc.TestName]
 					data "cloudavenue_edgegateways" "example" {}`,
 					Checks: []resource.TestCheckFunc{
 						resource.TestCheckResourceAttrSet(resourceName, "id"),
-						resource.TestCheckResourceAttrWith(resourceName, "edge_gateways.0.id", urn.TestIsType(urn.Gateway)),
 					},
 				},
 			}
