@@ -23,7 +23,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
+	org "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/organization/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -38,15 +39,18 @@ func NewOrgDataSource() datasource.DataSource {
 }
 
 type OrgDataSource struct { //nolint:revive
-	client *client.CloudAvenue
-	org    org.Client
+	client    *client.CloudAvenue
+	orgClient *org.Client
 }
 
 // Init Initializes the data source.
 func (d *OrgDataSource) Init(_ context.Context, _ *OrgModel) (diags diag.Diagnostics) {
 	var err error
+	var v2 cav.Client
 
-	d.org, err = org.NewClient()
+	if v2, err = d.client.V2(); err == nil {
+		d.orgClient, err = org.New(v2)
+	}
 	if err != nil {
 		diags.AddError("Error creating org client", err.Error())
 		return diags
@@ -103,8 +107,8 @@ func (d *OrgDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 	// If read function is identical to the resource, you can use the following code:
 
 	s := &OrgResource{
-		client: d.client,
-		org:    d.org,
+		client:    d.client,
+		orgClient: d.orgClient,
 	}
 
 	// Read data from the API

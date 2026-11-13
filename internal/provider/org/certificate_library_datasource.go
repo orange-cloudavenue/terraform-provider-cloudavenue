@@ -23,7 +23,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
+	org "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/organization/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -39,18 +40,21 @@ func NewCertificateLibraryDatasource() datasource.DataSource {
 
 type CertificateLibraryDatasource struct {
 	client    *client.CloudAvenue
-	orgClient org.Client
+	orgClient *org.Client
 }
 
 // Init Initializes the data source.
 func (d *CertificateLibraryDatasource) Init(_ context.Context, _ *CertificateLibraryDatasourceModel) (diags diag.Diagnostics) {
-	org, err := d.client.CAVSDK.V1.Org()
+	var err error
+	var v2 cav.Client
+
+	if v2, err = d.client.V2(); err == nil {
+		d.orgClient, err = org.New(v2)
+	}
 	if err != nil {
 		diags.AddError("Error initializing ORG client", err.Error())
 		return diags
 	}
-
-	d.orgClient = org.Client
 
 	return diags
 }
