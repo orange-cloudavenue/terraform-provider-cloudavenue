@@ -8,6 +8,10 @@
 * provider: migrate the IAM domain to CloudAPI via cloudavenue-sdk-go-v2: `resource/cloudavenue_iam_user`, `resource/cloudavenue_iam_user_saml`, `resource/cloudavenue_iam_role`, `resource/cloudavenue_iam_token`, `data/cloudavenue_iam_user`, `data/cloudavenue_iam_right`, `data/cloudavenue_iam_role` and `data/cloudavenue_iam_roles` are now served by the CloudAPI-based SDK client. Behavior is preserved: `provider_type` keeps its legacy values, and `deployed_vm_quota`/`stored_vm_quota` are read back through a dedicated quota fetch because CloudAPI user resources accept quotas on create/update but never return them on read. (GH-1309)
 * provider: migrate the Org domain to CloudAPI via cloudavenue-sdk-go-v2: `resource/certificate_library_datasource`, `resource/certificate_library_resource`, `resource/org_datasource`, `resource/org_resource` are now served by the CloudAPI-based SDK client. (GH-1317)
 
+### :dependabot: **Dependencies**
+
+* deps: bumps github.com/aws/aws-sdk-go-v2, github.com/aws/aws-sdk-go-v2/service/s3, github.com/aws/smithy-go from 1.47.4 to 1.47.5 (GH-1318)
+
 ## 0.37.1 (October 28, 2026)
 
 ### :bug: **Bug Fixes**
