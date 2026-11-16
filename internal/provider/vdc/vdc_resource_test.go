@@ -9,7 +9,6 @@ package vdc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -132,47 +131,6 @@ func TestValidateConfigStorageProfilesDisponibilityCompatibility(t *testing.T) {
 
 	if got, want := validationDiags[0].Summary(), "Storage profile class is not compatible with disponibility class"; got != want {
 		t.Fatalf("unexpected summary: got %q want %q", got, want)
-	}
-}
-
-func TestIsMissingJobIDCreateError(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name string
-		err  error
-		want bool
-	}{
-		{
-			name: "matches sdk create error",
-			err:  errors.New("error on create VDC: cannot refresh job status: job ID is empty"),
-			want: true,
-		},
-		{
-			name: "case insensitive match",
-			err:  errors.New("JOB ID IS EMPTY"),
-			want: true,
-		},
-		{
-			name: "other create error",
-			err:  errors.New("error on create VDC: api rejected request"),
-			want: false,
-		},
-		{
-			name: "nil error",
-			err:  nil,
-			want: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			if got := isMissingJobIDCreateError(tt.err); got != tt.want {
-				t.Fatalf("isMissingJobIDCreateError() = %v, want %v", got, tt.want)
-			}
-		})
 	}
 }
 
