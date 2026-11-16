@@ -23,10 +23,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	edge "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 var (
@@ -39,24 +40,25 @@ func NewFirewallDataSource() datasource.DataSource {
 }
 
 type firewallDataSource struct {
-	client *client.CloudAvenue
-	org    org.Org
-	edgegw edgegw.EdgeGateway
+	client     *client.CloudAvenue
+	edgeClient *edge.Client
+	edgegw     *types.ModelEdgeGateway
 }
 
 // Init Initializes the data source.
-func (d *firewallDataSource) Init(_ context.Context, dm *firewallModel) (diags diag.Diagnostics) {
+func (d *firewallDataSource) Init(ctx context.Context, dm *firewallModel) (diags diag.Diagnostics) {
 	var err error
+	var v2 cav.Client
 
-	d.org, diags = org.Init(d.client)
-	if diags.HasError() {
+	if v2, err = d.client.V2(); err == nil {
+		d.edgeClient, err = edge.New(v2)
+	}
+	if err != nil {
+		diags.AddError("Error initializing Edge Gateway client", err.Error())
 		return diags
 	}
 
-	d.edgegw, err = d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   dm.EdgeGatewayID.StringValue,
-		Name: dm.EdgeGatewayName.StringValue,
-	})
+	d.edgegw, err = d.edgeClient.GetEdgeGateway(ctx, types.ParamsEdgeGateway{ID: dm.EdgeGatewayID.Get(), Name: dm.EdgeGatewayName.Get()})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
 		return diags
@@ -115,9 +117,9 @@ func (d *firewallDataSource) Read(ctx context.Context, req datasource.ReadReques
 	*/
 
 	s := &firewallResource{
-		client: d.client,
-		org:    d.org,
-		edgegw: d.edgegw,
+		client:     d.client,
+		edgeClient: d.edgeClient,
+		edgegw:     d.edgegw,
 	}
 
 	// Read data from the API
