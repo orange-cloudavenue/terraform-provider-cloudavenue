@@ -11,6 +11,7 @@
 ### :dependabot: **Dependencies**
 
 * deps: bumps github.com/aws/aws-sdk-go-v2, github.com/aws/aws-sdk-go-v2/service/s3, github.com/aws/smithy-go from 1.47.4 to 1.47.5 (GH-1318)
+* deps: bumps github.com/aws/aws-sdk-go-v2, github.com/aws/aws-sdk-go-v2/service/s3, github.com/aws/smithy-go from 1.47.8 to 1.48.0 (GH-1320)
 
 ## 0.37.1 (October 28, 2026)
 
