@@ -20,22 +20,19 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	edge "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+	vdcgroup "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/vdcgroup/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
+	cav_types "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -52,30 +49,37 @@ func NewIPSetResource() resource.Resource {
 
 // ipSetResource is the resource implementation.
 type ipSetResource struct {
-	client *client.CloudAvenue
-	org    org.Org
-	edgegw edgegw.EdgeGateway
+	client         *client.CloudAvenue
+	edgeClient     *edge.Client
+	edgegw         *cav_types.ModelEdgeGateway
+	vdcgroupClient *vdcgroup.Client
 }
 
 // Init Initializes the resource.
-func (r *ipSetResource) Init(_ context.Context, rm *IPSetModel) (diags diag.Diagnostics) {
+func (r *ipSetResource) Init(ctx context.Context, rm *IPSetModel) (diags diag.Diagnostics) {
 	var err error
+	var v2 cav.Client
 
-	r.org, diags = org.Init(r.client)
-	if diags.HasError() {
+	if v2, err = r.client.V2(); err == nil {
+		r.edgeClient, err = edge.New(v2)
+	}
+	if err != nil {
+		diags.AddError("Error initializing Edge Gateway client", err.Error())
+		return diags
+	}
+	if r.vdcgroupClient, err = vdcgroup.New(v2); err == nil {
+		diags.AddError("Error initializing Vdc Group client", err.Error())
 		return diags
 	}
 
-	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   types.StringValue(rm.EdgeGatewayID.Get()),
-		Name: types.StringValue(rm.EdgeGatewayName.Get()),
-	})
+	r.edgegw, err = r.edgeClient.GetEdgeGateway(ctx, cav_types.ParamsEdgeGateway{ID: rm.EdgeGatewayID.Get(), Name: rm.EdgeGatewayName.Get()})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
 		return diags
 	}
 
-	if r.edgegw.OwnerType.IsVDCGROUP() {
+	_, err = r.vdcgroupClient.GetVDCGroup(ctx, cav_types.ParamsGetVDCGroup{ID: r.edgegw.OwnerRef.ID, Name: r.edgegw.OwnerRef.Name})
+	if err != nil {
 		diags.AddError(
 			"Edge Gateway belongs to a VDC Group",
 			"Edge Gateway belongs to a VDC Group, please use the VDC Group resource instead `cloudavenue_vdcg_ip_set`.",
@@ -134,39 +138,31 @@ func (r *ipSetResource) Create(ctx context.Context, req resource.CreateRequest, 
 		Implement the resource creation logic here.
 	*/
 
-	vdcOrVDCGroup, err := r.edgegw.GetParent()
+	var createdIPSet *cav_types.ModelGetFirewallGroup
+
+	_, err := r.vdcgroupClient.GetVDCGroup(ctx, cav_types.ParamsGetVDCGroup{ID: r.edgegw.OwnerRef.ID, Name: r.edgegw.OwnerRef.Name})
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
-		return
-	}
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.OwnerRef.ID)
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.OwnerRef.ID)
 
-	var createdIPSet *govcd.NsxtFirewallGroup
+		ipAddrs := make([]string, 0)
+		resp.Diagnostics.Append(plan.IPAddresses.Get(ctx, &ipAddrs, false)...)
 
-	if vdcOrVDCGroup.IsVDCGroup() {
-		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
-		ipSetConfig, d := plan.ToNsxtFirewallGroup(ctx, vdcOrVDCGroup.GetID())
-		resp.Diagnostics.Append(d...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		createdIPSet, err = vdcOrVDCGroup.SetIPSet(ipSetConfig)
+		createdIPSet, err = r.vdcgroupClient.CreateIPSet(ctx, cav_types.ParamsCreateIPSet{Name: plan.Name.Get(), Description: plan.Description.Get(), VDCGroupID: r.edgegw.OwnerRef.ID, VDCGroupName: r.edgegw.OwnerRef.Name, IPAddresses: ipAddrs})
 	} else {
-		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
-		ipSetConfig, d := plan.ToNsxtFirewallGroup(ctx, r.edgegw.GetID())
-		resp.Diagnostics.Append(d...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		createdIPSet, err = r.edgegw.SetIPSet(ipSetConfig)
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.ID)
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.ID)
+		ipAddrs := make([]string, 0)
+		resp.Diagnostics.Append(plan.IPAddresses.Get(ctx, &ipAddrs, false)...)
+
+		createdIPSet, err = r.edgeClient.CreateIPSet(ctx, cav_types.ParamsCreateEdgeGatewayIPSet{Name: plan.Name.Get(), Description: plan.Description.Get(), EdgeGatewayID: r.edgegw.ID, EdgeGatewayName: r.edgegw.Name, IPAddresses: ipAddrs})
 	}
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating IP Set", err.Error())
 		return
 	}
 
-	plan.ID.Set(createdIPSet.NsxtFirewallGroup.ID)
+	plan.ID.Set(createdIPSet.ID)
 	stateRefreshed, _, d := r.read(ctx, plan)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
@@ -238,45 +234,43 @@ func (r *ipSetResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		Implement the resource update here
 	*/
 
-	vdcOrVDCGroup, err := r.edgegw.GetParent()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
-		return
-	}
-
 	var (
-		ipSet       *govcd.NsxtFirewallGroup
-		ipSetConfig *govcdtypes.NsxtFirewallGroup
 		d           diag.Diagnostics
+		vdcGroupErr error
 	)
 
-	if vdcOrVDCGroup.IsVDCGroup() {
-		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
-		ipSetConfig, d = plan.ToNsxtFirewallGroup(ctx, vdcOrVDCGroup.GetID())
-		resp.Diagnostics.Append(d...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		ipSet, err = vdcOrVDCGroup.GetIPSetByID(state.ID.Get())
-	} else {
-		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
-		ipSetConfig, d = plan.ToNsxtFirewallGroup(ctx, r.edgegw.GetID())
-		resp.Diagnostics.Append(d...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		ipSet, err = r.edgegw.GetIPSetByID(state.ID.Get())
-	}
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving IP Set", err.Error())
+	ipAddrs := make([]string, 0)
+	resp.Diagnostics.Append(plan.IPAddresses.Get(ctx, &ipAddrs, false)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if _, err := ipSet.Update(ipSetConfig); err != nil {
-		resp.Diagnostics.AddError("Error updating IP Set", err.Error())
-		return
+	if _, vdcGroupErr = r.vdcgroupClient.GetVDCGroup(ctx, cav_types.ParamsGetVDCGroup{ID: r.edgegw.OwnerRef.ID, Name: r.edgegw.OwnerRef.Name}); vdcGroupErr != nil {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.OwnerRef.ID)
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.OwnerRef.ID)
+		_, err := r.vdcgroupClient.GetIPSet(ctx, cav_types.ParamsGetIPSet{ID: state.ID.Get(), Name: state.Name.Get(), VDCGroupID: r.edgegw.OwnerRef.ID, VDCGroupName: r.edgegw.OwnerRef.Name})
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving existing IP Set", err.Error())
+			return
+		}
+		_, err = r.vdcgroupClient.UpdateIPSet(ctx, cav_types.ParamsUpdateIPSet{ID: state.ID.Get(), Name: plan.Name.Get(), Description: plan.Description.Get(), VDCGroupID: r.edgegw.OwnerRef.ID, VDCGroupName: r.edgegw.OwnerRef.Name, IPAddresses: ipAddrs})
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating IP Set", err.Error())
+			return
+		}
+	} else {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.ID)
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.ID)
+		_, err := r.edgeClient.GetIPSet(ctx, cav_types.ParamsGetEdgeGatewayIPSet{ID: state.ID.Get(), Name: state.Name.Get(), EdgeGatewayID: r.edgegw.ID, EdgeGatewayName: r.edgegw.Name})
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving existing IP Set", err.Error())
+			return
+		}
+		_, err = r.edgeClient.UpdateIPSet(ctx, cav_types.ParamsUpdateEdgeGatewayIPSet{ID: state.ID.Get(), Name: plan.Name.Get(), Description: plan.Description.Get(), EdgeGatewayID: r.edgegw.ID, EdgeGatewayName: r.edgegw.Name, IPAddresses: ipAddrs})
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating IP Set", err.Error())
+			return
+		}
 	}
 
 	stateRefreshed, _, d := r.read(ctx, plan)
@@ -311,31 +305,34 @@ func (r *ipSetResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 		Implement the resource deletion here
 	*/
 
-	vdcOrVDCGroup, err := r.edgegw.GetParent()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
-		return
-	}
+	var vdcGroupErr error
 
-	var ipSet *govcd.NsxtFirewallGroup
-
-	if vdcOrVDCGroup.IsVDCGroup() {
-		mutex.GlobalMutex.KvLock(ctx, vdcOrVDCGroup.GetID())
-		defer mutex.GlobalMutex.KvUnlock(ctx, vdcOrVDCGroup.GetID())
-		ipSet, err = vdcOrVDCGroup.GetIPSetByID(state.ID.Get())
+	if _, vdcGroupErr = r.vdcgroupClient.GetVDCGroup(ctx, cav_types.ParamsGetVDCGroup{ID: r.edgegw.OwnerRef.ID, Name: r.edgegw.OwnerRef.Name}); vdcGroupErr != nil {
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.OwnerRef.ID)
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.OwnerRef.ID)
+		_, err := r.vdcgroupClient.GetIPSet(ctx, cav_types.ParamsGetIPSet{ID: state.ID.Get(), VDCGroupID: r.edgegw.OwnerRef.ID, VDCGroupName: r.edgegw.OwnerRef.Name})
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving IP Set", err.Error())
+			return
+		}
+		err = r.vdcgroupClient.DeleteIPSet(ctx, cav_types.ParamsDeleteIPSet{ID: state.ID.Get(), VDCGroupID: r.edgegw.OwnerRef.ID, VDCGroupName: r.edgegw.OwnerRef.Name})
+		if err != nil {
+			resp.Diagnostics.AddError("Error deleting IP Set", err.Error())
+			return
+		}
 	} else {
-		mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
-		ipSet, err = r.edgegw.GetIPSetByID(state.ID.Get())
-	}
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving IP Set", err.Error())
-		return
-	}
-
-	if err := ipSet.Delete(); err != nil {
-		resp.Diagnostics.AddError("Error deleting IP Set", err.Error())
-		return
+		mutex.GlobalMutex.KvLock(ctx, r.edgegw.ID)
+		defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.ID)
+		_, err := r.edgeClient.GetIPSet(ctx, cav_types.ParamsGetEdgeGatewayIPSet{ID: state.ID.Get(), EdgeGatewayID: r.edgegw.ID, EdgeGatewayName: r.edgegw.Name})
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving IP Set", err.Error())
+			return
+		}
+		err = r.edgeClient.DeleteIPSet(ctx, cav_types.ParamsDeleteEdgeGatewayIPSet{ID: state.ID.Get(), EdgeGatewayID: r.edgegw.ID, EdgeGatewayName: r.edgegw.Name})
+		if err != nil {
+			resp.Diagnostics.AddError("Error deleting IP Set", err.Error())
+			return
+		}
 	}
 }
 
@@ -354,75 +351,47 @@ func (r *ipSetResource) ImportState(ctx context.Context, req resource.ImportStat
 	}
 
 	var (
-		edgegwID, edgegwName string
-		d                    diag.Diagnostics
-		err                  error
-		ipSet                *govcd.NsxtFirewallGroup
+		err   error
+		ipSet *cav_types.ModelGetFirewallGroup
 	)
 
-	r.org, d = org.Init(r.client)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	state := &IPSetModel{}
+	state.EdgeGatewayID.Set(idParts[0])
+	state.Name.Set(idParts[1])
+
+	// Init the resource
+	resp.Diagnostics.Append(r.Init(ctx, state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if urn.IsEdgeGateway(idParts[0]) {
-		edgegwID = idParts[0]
+	if _, vdcGroupErr := r.vdcgroupClient.GetVDCGroup(ctx, cav_types.ParamsGetVDCGroup{ID: r.edgegw.OwnerRef.ID, Name: r.edgegw.OwnerRef.Name}); vdcGroupErr != nil {
+		ipSet, err = r.vdcgroupClient.GetIPSet(ctx, cav_types.ParamsGetIPSet{Name: state.Name.Get(), VDCGroupID: r.edgegw.OwnerRef.ID, VDCGroupName: r.edgegw.OwnerRef.Name})
 	} else {
-		edgegwName = idParts[0]
-	}
-
-	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   types.StringValue(edgegwID),
-		Name: types.StringValue(edgegwName),
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("Failed to import Security Group.", err.Error())
-		return
-	}
-
-	vdcOrVDCGroup, err := r.edgegw.GetParent()
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving Edge Gateway parent", err.Error())
-		return
-	}
-
-	if vdcOrVDCGroup.IsVDCGroup() {
-		ipSet, err = vdcOrVDCGroup.GetIPSetByName(idParts[1])
-	} else {
-		ipSet, err = r.edgegw.GetIPSetByName(idParts[1])
+		ipSet, err = r.edgeClient.GetIPSet(ctx, cav_types.ParamsGetEdgeGatewayIPSet{Name: state.Name.Get(), EdgeGatewayID: r.edgegw.ID, EdgeGatewayName: r.edgegw.Name})
 	}
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving IP Set", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), ipSet.NsxtFirewallGroup.ID)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), ipSet.NsxtFirewallGroup.Name)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(edgeGatewayID), r.edgegw.GetID())...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(edgeGatewayName), r.edgegw.GetName())...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), ipSet.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), ipSet.Name)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(edgeGatewayID), r.edgegw.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(edgeGatewayName), r.edgegw.Name)...)
 }
 
 func (r *ipSetResource) read(ctx context.Context, planOrState *IPSetModel) (stateRefreshed *IPSetModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
-	vdcOrVDCGroup, err := r.edgegw.GetParent()
-	if err != nil {
-		diags.AddError("Error retrieving Edge Gateway parent", err.Error())
-		return stateRefreshed, true, nil
-	}
+	var ipSetConfig *cav_types.ModelGetFirewallGroup
 
-	nameOrID := stateRefreshed.ID.Get()
-	if !stateRefreshed.ID.IsKnown() {
-		nameOrID = stateRefreshed.Name.Get()
-	}
-
-	var ipSetConfig *govcd.NsxtFirewallGroup
-
-	if vdcOrVDCGroup.IsVDCGroup() {
-		ipSetConfig, err = vdcOrVDCGroup.GetIPSetByNameOrID(nameOrID)
+	var err error
+	var vdcGroupErr error
+	if _, vdcGroupErr = r.vdcgroupClient.GetVDCGroup(ctx, cav_types.ParamsGetVDCGroup{ID: r.edgegw.OwnerRef.ID, Name: r.edgegw.OwnerRef.Name}); vdcGroupErr != nil {
+		ipSetConfig, err = r.vdcgroupClient.GetIPSet(ctx, cav_types.ParamsGetIPSet{ID: stateRefreshed.ID.Get(), Name: stateRefreshed.Name.Get(), VDCGroupID: r.edgegw.OwnerRef.ID, VDCGroupName: r.edgegw.OwnerRef.Name})
 	} else {
-		ipSetConfig, err = r.edgegw.GetIPSetByNameOrID(nameOrID)
+		ipSetConfig, err = r.edgeClient.GetIPSet(ctx, cav_types.ParamsGetEdgeGatewayIPSet{ID: stateRefreshed.ID.Get(), Name: stateRefreshed.Name.Get(), EdgeGatewayID: r.edgegw.ID, EdgeGatewayName: r.edgegw.Name})
 	}
 	if err != nil {
 		if cerrs.IsNotFound(err) {
@@ -432,12 +401,12 @@ func (r *ipSetResource) read(ctx context.Context, planOrState *IPSetModel) (stat
 		return stateRefreshed, found, diags
 	}
 
-	stateRefreshed.ID.Set(ipSetConfig.NsxtFirewallGroup.ID)
-	stateRefreshed.Name.Set(ipSetConfig.NsxtFirewallGroup.Name)
-	stateRefreshed.Description.Set(ipSetConfig.NsxtFirewallGroup.Description)
-	stateRefreshed.EdgeGatewayID.Set(r.edgegw.GetID())
-	stateRefreshed.EdgeGatewayName.Set(r.edgegw.GetName())
-	diags.Append(stateRefreshed.IPAddresses.Set(ctx, ipSetConfig.NsxtFirewallGroup.IpAddresses)...)
+	stateRefreshed.ID.Set(ipSetConfig.ID)
+	stateRefreshed.Name.Set(ipSetConfig.Name)
+	stateRefreshed.Description.Set(ipSetConfig.Description)
+	stateRefreshed.EdgeGatewayID.Set(r.edgegw.ID)
+	stateRefreshed.EdgeGatewayName.Set(r.edgegw.Name)
+	diags.Append(stateRefreshed.IPAddresses.Set(ctx, ipSetConfig.IPAddresses)...)
 
 	return stateRefreshed, true, diags
 }

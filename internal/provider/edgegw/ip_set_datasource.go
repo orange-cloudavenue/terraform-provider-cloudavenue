@@ -20,14 +20,15 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	edge "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+	vdcgroup "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/vdcgroup/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 var (
@@ -40,30 +41,37 @@ func NewIPSetDataSource() datasource.DataSource {
 }
 
 type ipSetDataSource struct {
-	client *client.CloudAvenue
-	org    org.Org
-	edgegw edgegw.EdgeGateway
+	client         *client.CloudAvenue
+	edgeClient     *edge.Client
+	edgegw         *types.ModelEdgeGateway
+	vdcgroupClient *vdcgroup.Client
 }
 
 // Init Initializes the data source.
-func (d *ipSetDataSource) Init(_ context.Context, dm *IPSetModel) (diags diag.Diagnostics) {
+func (d *ipSetDataSource) Init(ctx context.Context, dm *IPSetModel) (diags diag.Diagnostics) {
 	var err error
+	var v2 cav.Client
 
-	d.org, diags = org.Init(d.client)
-	if diags.HasError() {
+	if v2, err = d.client.V2(); err == nil {
+		d.edgeClient, err = edge.New(v2)
+	}
+	if err != nil {
+		diags.AddError("Error initializing Edge Gateway client", err.Error())
+		return diags
+	}
+	if d.vdcgroupClient, err = vdcgroup.New(v2); err == nil {
+		diags.AddError("Error initializing Vdc Group client", err.Error())
 		return diags
 	}
 
-	d.edgegw, err = d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   types.StringValue(dm.EdgeGatewayID.Get()),
-		Name: types.StringValue(dm.EdgeGatewayName.Get()),
-	})
+	d.edgegw, err = d.edgeClient.GetEdgeGateway(ctx, types.ParamsEdgeGateway{ID: dm.EdgeGatewayID.Get(), Name: dm.EdgeGatewayName.Get()})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
 		return diags
 	}
 
-	if d.edgegw.OwnerType.IsVDCGROUP() {
+	_, err = d.vdcgroupClient.GetVDCGroup(ctx, types.ParamsGetVDCGroup{ID: d.edgegw.OwnerRef.ID, Name: d.edgegw.OwnerRef.Name})
+	if err != nil {
 		diags.AddError(
 			"Edge Gateway belongs to a VDC Group",
 			"Edge Gateway belongs to a VDC Group, please use the VDC Group resource instead `cloudavenue_vdcg_ip_set`.",
@@ -121,9 +129,10 @@ func (d *ipSetDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 	// If read function is identical to the resource, you can use the following code:
 	s := &ipSetResource{
-		client: d.client,
-		org:    d.org,
-		edgegw: d.edgegw,
+		client:         d.client,
+		edgeClient:     d.edgeClient,
+		edgegw:         d.edgegw,
+		vdcgroupClient: d.vdcgroupClient,
 	}
 
 	// Read data from the API
