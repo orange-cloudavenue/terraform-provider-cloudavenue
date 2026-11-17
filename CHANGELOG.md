@@ -1,4 +1,5 @@
 ## 0.38.0 (Unreleased)
+## 0.37.2 (November 17, 2026)
 
 ### :tada: **Improvements**
 
