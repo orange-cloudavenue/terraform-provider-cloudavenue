@@ -20,7 +20,6 @@ import (
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 	"github.com/orange-cloudavenue/terraform-plugin-framework-validators/setvalidator"
-	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -35,7 +34,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	cav_types "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 )
 
@@ -102,7 +101,6 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.ExactlyOneOf(path.MatchRoot(edgeGatewayID), path.MatchRoot(edgeGatewayName)),
-						fstringvalidator.PrefixContains(string(urn.Gateway)),
 					},
 				},
 				Resource: &schemaR.StringAttribute{
@@ -133,9 +131,7 @@ func appPortProfilesSchema(_ context.Context) superschema.Schema {
 					Computed:            true,
 					Validators: []validator.String{
 						stringvalidator.OneOf(func() (resp []string) {
-							for _, scope := range v1.FirewallGroupAppPortProfileModelScopes {
-								resp = append(resp, string(scope))
-							}
+							resp = append(resp, cav_types.AppPortProfileProtocols...)
 							return resp
 						}()...),
 					},

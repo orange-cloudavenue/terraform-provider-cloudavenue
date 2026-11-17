@@ -22,18 +22,17 @@ import (
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	edge "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
+	cav_types "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 // NewAppPortProfileResource is a helper function to simplify the provider implementation.
@@ -43,27 +42,20 @@ func NewAppPortProfileResource() resource.Resource {
 
 // appPortProfileResource is the resource implementation.
 type appPortProfileResource struct {
-	client *client.CloudAvenue
-	org    org.Org
-	edgegw edgegw.EdgeGateway
+	client     *client.CloudAvenue
+	edgeClient *edge.Client
 }
 
 // Init Initializes the resource.
 func (r *appPortProfileResource) Init(_ context.Context, rm *AppPortProfileModel) (diags diag.Diagnostics) {
 	var err error
 
-	r.org, diags = org.Init(r.client)
-	if diags.HasError() {
-		return diags
+	var v2 cav.Client
+	if v2, err = r.client.V2(); err == nil {
+		r.edgeClient, err = edge.New(v2)
 	}
-
-	// Retrieve VDC from edge gateway
-	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   types.StringValue(rm.EdgeGatewayID.Get()),
-		Name: types.StringValue(rm.EdgeGatewayName.Get()),
-	})
 	if err != nil {
-		diags.AddError("Error retrieving Edge Gateway", err.Error())
+		diags.AddError("Error initializing Edge client", err.Error())
 		return diags
 	}
 
@@ -119,17 +111,24 @@ func (r *appPortProfileResource) Create(ctx context.Context, req resource.Create
 		Implement the resource creation logic here.
 	*/
 
-	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	// Retrieve VDC from edge gateway
+	edgeGateway, err := r.edgeClient.GetEdgeGateway(ctx, cav_types.ParamsEdgeGateway{ID: plan.EdgeGatewayID.Get(), Name: plan.EdgeGatewayName.Get()})
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving associated Edge Gateway", err.Error())
+		return
+	}
 
-	appPortProfileModel, d := plan.toSDKAppPortProfile(ctx)
+	mutex.GlobalMutex.KvLock(ctx, edgeGateway.ID)
+	defer mutex.GlobalMutex.KvUnlock(ctx, edgeGateway.ID)
+
+	applicationPortProfilePorts, d := plan.toSDKAppPortProfilePorts(ctx)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
 	}
 
 	// Create the application port profile
-	appPortProfile, err := r.edgegw.CreateFirewallAppPortProfile(appPortProfileModel)
+	appPortProfile, err := r.edgeClient.CreateAppPortProfile(ctx, cav_types.ParamsCreateEdgeGatewayAppPortProfile{Name: plan.Name.Get(), Description: plan.Description.Get(), EdgeGatewayID: edgeGateway.ID, EdgeGatewayName: edgeGateway.Name, ApplicationPorts: applicationPortProfilePorts})
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating application port profile", err.Error())
 		return
@@ -215,23 +214,31 @@ func (r *appPortProfileResource) Update(ctx context.Context, req resource.Update
 		Implement the resource update here
 	*/
 
-	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	// Retrieve VDC from edge gateway
+	edgeGateway, err := r.edgeClient.GetEdgeGateway(ctx, cav_types.ParamsEdgeGateway{ID: state.EdgeGatewayID.Get(), Name: state.EdgeGatewayName.Get()})
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving associated Edge Gateway", err.Error())
+		return
+	}
 
-	appPortProfile, err := r.edgegw.GetFirewallAppPortProfile(state.ID.Get())
+	mutex.GlobalMutex.KvLock(ctx, edgeGateway.ID)
+	defer mutex.GlobalMutex.KvUnlock(ctx, edgeGateway.ID)
+
+	_, err = r.edgeClient.GetAppPortProfile(ctx, cav_types.ParamsGetEdgeGatewayAppPortProfile{ID: state.ID.Get(), Name: state.Name.Get(), EdgeGatewayID: edgeGateway.ID, EdgeGatewayName: edgeGateway.Name})
 	if err != nil {
 		resp.Diagnostics.AddError("Error retrieving application port profile", err.Error())
 		return
 	}
 
-	appPortProfileModel, d := plan.toSDKAppPortProfile(ctx)
+	appPortProfilePorts, d := plan.toSDKAppPortProfilePorts(ctx)
 	if d.HasError() {
 		resp.Diagnostics.Append(d...)
 		return
 	}
 
 	// Update the application port profile
-	if err := appPortProfile.Update(appPortProfileModel); err != nil {
+	_, err = r.edgeClient.UpdateAppPortProfile(ctx, cav_types.ParamsUpdateEdgeGatewayAppPortProfile{ID: plan.ID.Get(), Name: plan.Name.Get(), EdgeGatewayID: edgeGateway.ID, EdgeGatewayName: edgeGateway.Name, ApplicationPorts: appPortProfilePorts})
+	if err != nil {
 		resp.Diagnostics.AddError("Error updating application port profile", err.Error())
 		return
 	}
@@ -273,17 +280,18 @@ func (r *appPortProfileResource) Delete(ctx context.Context, req resource.Delete
 		Implement the resource deletion here
 	*/
 
-	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
-
-	appPortProfile, err := r.edgegw.GetFirewallAppPortProfile(state.ID.Get())
+	// Retrieve VDC from edge gateway
+	edgeGateway, err := r.edgeClient.GetEdgeGateway(ctx, cav_types.ParamsEdgeGateway{ID: state.EdgeGatewayID.Get(), Name: state.EdgeGatewayName.Get()})
 	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving application port profile", err.Error())
+		resp.Diagnostics.AddError("Error retrieving associated Edge Gateway", err.Error())
 		return
 	}
 
+	mutex.GlobalMutex.KvLock(ctx, edgeGateway.ID)
+	defer mutex.GlobalMutex.KvUnlock(ctx, edgeGateway.ID)
+
 	// Delete the application port profile
-	if err := appPortProfile.Delete(); err != nil {
+	if err := r.edgeClient.DeleteAppPortProfile(ctx, cav_types.ParamsDeleteEdgeGatewayAppPortProfile{ID: state.ID.Get(), Name: state.Name.Get(), EdgeGatewayID: edgeGateway.ID, EdgeGatewayName: edgeGateway.Name}); err != nil {
 		resp.Diagnostics.AddError("Error deleting application port profile", err.Error())
 		return
 	}
@@ -297,7 +305,7 @@ func (r *appPortProfileResource) ImportState(ctx context.Context, req resource.I
 	// split req.ID into edge gateway ID and app port profile ID/name
 	split := strings.Split(req.ID, ".")
 	if len(split) != 2 {
-		resp.Diagnostics.AddError("Invalid import ID", "Import ID must be in the format <edge_gateway_id_or_name>.<app_port_profile_id_or_name>")
+		resp.Diagnostics.AddError("Invalid import ID", "Import ID must be in the format <edgeGateway_id_or_name>.<app_port_profile_id_or_name>")
 		return
 	}
 	edgeIDOrName, appPortProfileIDOrName := split[0], split[1]
@@ -346,17 +354,18 @@ func (r *appPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 	stateRefreshed = planOrState.Copy()
 
 	var (
-		appPortProfile *v1.FirewallGroupAppPortProfile
+		appPortProfile *cav_types.ModelGetAppPortProfile
 		err            error
-		nameOrID       = planOrState.Name.Get()
 	)
 
-	if planOrState.ID.IsKnown() {
-		// Use the ID
-		nameOrID = planOrState.ID.Get()
+	// Retrieve VDC from edge gateway
+	edgeGateway, err := r.edgeClient.GetEdgeGateway(ctx, cav_types.ParamsEdgeGateway{ID: planOrState.EdgeGatewayID.Get(), Name: planOrState.EdgeGatewayName.Get()})
+	if err != nil {
+		diags.AddError("Error retrieving associated Edge Gateway", err.Error())
+		return stateRefreshed, found, diags
 	}
 
-	appPortProfile, err = r.edgegw.GetFirewallAppPortProfile(nameOrID)
+	appPortProfile, err = r.edgeClient.GetAppPortProfile(ctx, cav_types.ParamsGetEdgeGatewayAppPortProfile{ID: planOrState.ID.Get(), Name: planOrState.Name.Get(), EdgeGatewayID: edgeGateway.ID, EdgeGatewayName: edgeGateway.Name})
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			return nil, false, nil
@@ -372,8 +381,8 @@ func (r *appPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 			Ports:    supertypes.NewSetValueOfNull[string](ctx),
 		}
 
-		ap.Protocol.Set(string(singlePort.Protocol))
-		if singlePort.Protocol == v1.FirewallGroupAppPortProfileModelPortProtocolTCP || singlePort.Protocol == v1.FirewallGroupAppPortProfileModelPortProtocolUDP {
+		ap.Protocol.Set(singlePort.Protocol)
+		if singlePort.Protocol == cav_types.AppPortProfileProtocolTCP || singlePort.Protocol == cav_types.AppPortProfileProtocolUDP {
 			// DestinationPorts is optional
 			if len(singlePort.DestinationPorts) > 0 {
 				diags.Append(ap.Ports.Set(ctx, singlePort.DestinationPorts)...)
@@ -389,8 +398,8 @@ func (r *appPortProfileResource) read(ctx context.Context, planOrState *AppPortP
 	stateRefreshed.Name.Set(appPortProfile.Name)
 	stateRefreshed.Description.Set(appPortProfile.Description)
 	stateRefreshed.AppPorts.Set(ctx, appPorts)
-	stateRefreshed.EdgeGatewayID.Set(r.edgegw.EdgeGateway.ID)
-	stateRefreshed.EdgeGatewayName.Set(r.edgegw.EdgeGateway.Name)
+	stateRefreshed.EdgeGatewayID.Set(edgeGateway.ID)
+	stateRefreshed.EdgeGatewayName.Set(edgeGateway.Name)
 
 	return stateRefreshed, true, nil
 }
