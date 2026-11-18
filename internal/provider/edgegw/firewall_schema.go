@@ -19,7 +19,6 @@ import (
 
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
-	fstringvalidator "github.com/orange-cloudavenue/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -34,10 +33,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 )
 
 func firewallSchema(_ context.Context) superschema.Schema {
@@ -223,11 +219,6 @@ func firewallSchema(_ context.Context) superschema.Schema {
 						},
 						Resource: &schemaR.SetAttribute{
 							Optional: true,
-							Validators: []validator.Set{
-								setvalidator.ValueStringsAre(
-									fstringvalidator.PrefixContains(urn.NetworkContextProfile.String()),
-								),
-							},
 						},
 						DataSource: &schemaD.SetAttribute{
 							Computed: true,
