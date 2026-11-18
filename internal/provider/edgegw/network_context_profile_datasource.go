@@ -104,7 +104,6 @@ func (d *networkContextProfileDataSource) Read(ctx context.Context, req datasour
 	}
 
 	profile, err := d.edgeClient.GetNetworkContextProfile(ctx, types.ParamsGetEdgeGatewayNetworkContextProfile{ID: config.ID.Get(), Name: config.ID.Get(), EdgeGatewayID: d.edgegw.ID, EdgeGatewayName: d.edgegw.Name})
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Network Context Profile not found",

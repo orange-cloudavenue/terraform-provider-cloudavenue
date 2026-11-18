@@ -10,11 +10,11 @@ package edgegw
 import (
 	"context"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -151,7 +151,7 @@ func (dm *networkContextProfileModelDatasource) fromSDKProfile(ctx context.Conte
 	dm.ID.Set(p.ID)
 	dm.Name.Set(p.Name)
 	dm.Description.Set(p.Description)
-	dm.Scope.Set(string(p.Scope))
+	dm.Scope.Set(p.Scope)
 	dm.EdgeGatewayID.Set(edgeGWID)
 	dm.EdgeGatewayName.Set(edgeGWName)
 
@@ -183,7 +183,7 @@ func attributesFromSDKProfile(ctx context.Context, p *types.ModelGetNetworkConte
 					Type:   supertypes.NewStringNull(),
 					Values: supertypes.NewSetValueOfNull[string](ctx),
 				}
-				sub.Type.Set(string(s.Type))
+				sub.Type.Set(s.Type)
 				diags.Append(sub.Values.Set(ctx, s.Values)...)
 				subAttrBlocks = append(subAttrBlocks, sub)
 			}

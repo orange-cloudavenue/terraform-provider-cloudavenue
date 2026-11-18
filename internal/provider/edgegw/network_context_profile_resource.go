@@ -12,15 +12,15 @@ import (
 	"fmt"
 	"strings"
 
-	edge "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
-	cav_types "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	edge "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
+	cav_types "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
@@ -292,7 +292,6 @@ func (r *networkContextProfileResource) read(ctx context.Context, planOrState *n
 	stateRefreshed = planOrState.Copy()
 
 	profile, err := r.edgeClient.GetNetworkContextProfile(ctx, cav_types.ParamsGetEdgeGatewayNetworkContextProfile{ID: planOrState.ID.Get(), Name: planOrState.Name.Get(), EdgeGatewayID: r.edgegw.ID, EdgeGatewayName: r.edgegw.Name})
-
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			return stateRefreshed, false, nil
