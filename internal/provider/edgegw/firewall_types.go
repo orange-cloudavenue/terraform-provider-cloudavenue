@@ -21,8 +21,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
-	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -53,50 +52,78 @@ func (rm *firewallModel) Copy() *firewallModel {
 	return x
 }
 
-func (rm *firewallModel) rulesToNsxtFirewallRule(ctx context.Context) (nsxtFirewallRules []*sdkv1.NsxtFirewallRuleExtended, diags diag.Diagnostics) {
+func (rm *firewallModel) rulesToFirewallRule(ctx context.Context) (firewallRules []types.ParamsFirewallRule, diags diag.Diagnostics) {
 	rules, d := rm.Rules.Get(ctx)
 	if d.HasError() {
 		diags.Append(d...)
-		return nsxtFirewallRules, diags
+		return firewallRules, diags
 	}
 
-	nsxtFirewallRules = make([]*sdkv1.NsxtFirewallRuleExtended, len(rules))
+	firewallRules = make([]types.ParamsFirewallRule, len(rules))
 	for i, rule := range rules {
-		nsxtFirewallRules[i] = &sdkv1.NsxtFirewallRuleExtended{
-			Name:        rule.Name.Get(),
-			ActionValue: rule.Action.Get(),
-			Enabled:     rule.Enabled.Get(),
-			IPProtocol:  rule.IPProtocol.Get(),
-			Logging:     rule.Logging.Get(),
-			Direction:   rule.Direction.Get(),
+		firewallRules[i] = types.ParamsFirewallRule{
+			Name:       rule.Name.Get(),
+			Action:     rule.Action.Get(),
+			Enabled:    rule.Enabled.Get(),
+			IPProtocol: rule.IPProtocol.Get(),
+			Logging:    rule.Logging.Get(),
+			Direction:  rule.Direction.Get(),
 		}
 
 		// ! If sourceIDs/destinationIDs is Null, it's an equivalent of any (source/destination)
 
-		nsxtFirewallRules[i].SourceFirewallGroups, d = common.ToOpenAPIReferenceID(ctx, rule.SourceIDs)
+		sourceFirewallGroups := make([]types.ParamsFirewallGroupMember, 0)
+		sourceIDs, d := rule.SourceIDs.Get(ctx)
 		if d.HasError() {
 			diags.Append(d...)
-			return nsxtFirewallRules, diags
 		}
-
-		nsxtFirewallRules[i].DestinationFirewallGroups, d = common.ToOpenAPIReferenceID(ctx, rule.DestinationIDs)
-		if d.HasError() {
-			diags.Append(d...)
-			return nsxtFirewallRules, diags
+		for _, id := range sourceIDs {
+			sourceFirewallGroups = append(sourceFirewallGroups, types.ParamsFirewallGroupMember{
+				ID: id,
+			})
 		}
+		firewallRules[i].SourceFirewallGroups = sourceFirewallGroups
 
-		nsxtFirewallRules[i].ApplicationPortProfiles, d = common.ToOpenAPIReferenceID(ctx, rule.AppPortProfileIDs)
+		destinationFirewallGroups := make([]types.ParamsFirewallGroupMember, 0)
+		destinationIDs, d := rule.DestinationIDs.Get(ctx)
 		if d.HasError() {
 			diags.Append(d...)
-			return nsxtFirewallRules, diags
 		}
+		for _, id := range destinationIDs {
+			destinationFirewallGroups = append(destinationFirewallGroups, types.ParamsFirewallGroupMember{
+				ID: id,
+			})
+		}
+		firewallRules[i].DestinationFirewallGroups = destinationFirewallGroups
 
-		nsxtFirewallRules[i].NetworkContextProfiles, d = common.ToOpenAPIReferenceID(ctx, rule.NetworkContextProfileIDs)
+		applicationPortProfiles := make([]types.ParamsFirewallGroupMember, 0)
+		applicationPortProfilesIDs, d := rule.AppPortProfileIDs.Get(ctx)
 		if d.HasError() {
 			diags.Append(d...)
-			return nsxtFirewallRules, diags
+		}
+		for _, id := range applicationPortProfilesIDs {
+			applicationPortProfiles = append(applicationPortProfiles, types.ParamsFirewallGroupMember{
+				ID: id,
+			})
+		}
+		firewallRules[i].ApplicationPortProfiles = applicationPortProfiles
+
+		networkContextProfiles := make([]types.ParamsFirewallGroupMember, 0)
+		networkContextProfilesIDs, d := rule.NetworkContextProfileIDs.Get(ctx)
+		if d.HasError() {
+			diags.Append(d...)
+		}
+		for _, id := range networkContextProfilesIDs {
+			networkContextProfiles = append(networkContextProfiles, types.ParamsFirewallGroupMember{
+				ID: id,
+			})
+		}
+		firewallRules[i].NetworkContextProfiles = networkContextProfiles
+		if d.HasError() {
+			diags.Append(d...)
+			return firewallRules, diags
 		}
 	}
 
-	return nsxtFirewallRules, diags
+	return firewallRules, diags
 }

@@ -17,6 +17,7 @@ package s3
 import (
 	"context"
 	"errors"
+	"slices"
 	"time"
 
 	awsv2 "github.com/aws/aws-sdk-go-v2/aws"
@@ -163,10 +164,8 @@ func retryWhenAWSErrCodeEquals[T any](ctx context.Context, codes []string, confi
 
 func s3ErrCodeEquals(err error, codes ...string) bool {
 	if apiErr, ok := errors.AsType[smithy.APIError](err); ok {
-		for _, code := range codes {
-			if apiErr.ErrorCode() == code {
-				return true
-			}
+		if slices.Contains(codes, apiErr.ErrorCode()) {
+			return true
 		}
 	}
 

@@ -21,7 +21,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
@@ -91,7 +90,7 @@ func (d *edgeGatewaysDataSource) Read(ctx context.Context, req datasource.ReadRe
 	gws := make([]*edgeGatewayDataSourceModelEdgeGateway, 0)
 	for _, edge := range *gateways {
 		gw := new(edgeGatewayDataSourceModelEdgeGateway)
-		gw.ID.Set(urn.Normalize(urn.Gateway, edge.GetID()).String())
+		gw.ID.Set(edge.GetID())
 		gw.Name.Set(edge.GetName())
 		gw.Description.Set(edge.GetDescription())
 		gw.OwnerName.Set(edge.GetOwnerName())

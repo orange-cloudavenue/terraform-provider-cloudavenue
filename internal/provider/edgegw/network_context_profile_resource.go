@@ -15,18 +15,16 @@ import (
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
-	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+	edge "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
+	cav_types "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 var (
@@ -41,26 +39,31 @@ func NewNetworkContextProfileResource() resource.Resource {
 }
 
 type networkContextProfileResource struct {
-	client *client.CloudAvenue
-	org    org.Org
-	edgegw edgegw.EdgeGateway
+	client     *client.CloudAvenue
+	edgeClient *edge.Client
+	edgegw     *cav_types.ModelEdgeGateway
 }
 
 // Init initializes the resource.
-func (r *networkContextProfileResource) Init(_ context.Context, rm *networkContextProfileModel) (diags diag.Diagnostics) {
+func (r *networkContextProfileResource) Init(ctx context.Context, rm *networkContextProfileModel) (diags diag.Diagnostics) {
 	var err error
+	var v2 cav.Client
 
-	r.org, diags = org.Init(r.client)
-	if diags.HasError() {
+	if v2, err = r.client.V2(); err == nil {
+		r.edgeClient, err = edge.New(v2)
+	}
+	if err != nil {
+		diags.AddError("Error creating Edge Gateway client", err.Error())
 		return diags
 	}
 
-	r.edgegw, err = r.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   types.StringValue(rm.EdgeGatewayID.Get()),
-		Name: types.StringValue(rm.EdgeGatewayName.Get()),
+	r.edgegw, err = r.edgeClient.GetEdgeGateway(ctx, cav_types.ParamsEdgeGateway{
+		ID:   rm.EdgeGatewayID.Get(),
+		Name: rm.EdgeGatewayName.Get(),
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
+		return diags
 	}
 
 	return diags
@@ -105,16 +108,16 @@ func (r *networkContextProfileResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.ID)
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.ID)
 
-	profile, d := plan.toSDKProfile(ctx)
+	attributes, d := plan.toSDKAttributes(ctx)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	created, err := r.edgegw.EdgeClient.CreateNetworkContextProfile(profile)
+	created, err := r.edgeClient.CreateNetworkContextProfile(ctx, cav_types.ParamsCreateEdgeGatewayNetworkContextProfile{Name: plan.Name.Get(), Description: plan.Description.Get(), EdgeGatewayID: r.edgegw.ID, EdgeGatewayName: r.edgegw.Name, Attributes: attributes})
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating Network Context Profile", err.Error())
 		return
@@ -181,19 +184,19 @@ func (r *networkContextProfileResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.ID)
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.ID)
 
 	// Carry ID from state to plan for the update call.
 	plan.ID.Set(state.ID.Get())
 
-	profile, d := plan.toSDKProfile(ctx)
+	attributes, d := plan.toSDKAttributes(ctx)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if _, err := r.edgegw.EdgeClient.UpdateNetworkContextProfile(profile); err != nil {
+	if _, err := r.edgeClient.UpdateNetworkContextProfile(ctx, cav_types.ParamsUpdateEdgeGatewayNetworkContextProfile{ID: plan.ID.Get(), Name: plan.Name.Get(), EdgeGatewayID: r.edgegw.ID, EdgeGatewayName: r.edgegw.Name, Description: plan.Description.Get(), Attributes: attributes}); err != nil {
 		resp.Diagnostics.AddError("Error updating Network Context Profile", err.Error())
 		return
 	}
@@ -225,10 +228,10 @@ func (r *networkContextProfileResource) Delete(ctx context.Context, req resource
 		return
 	}
 
-	mutex.GlobalMutex.KvLock(ctx, r.edgegw.GetID())
-	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.GetID())
+	mutex.GlobalMutex.KvLock(ctx, r.edgegw.ID)
+	defer mutex.GlobalMutex.KvUnlock(ctx, r.edgegw.ID)
 
-	if err := r.edgegw.EdgeClient.DeleteNetworkContextProfile(state.ID.Get()); err != nil {
+	if err := r.edgeClient.DeleteNetworkContextProfile(ctx, cav_types.ParamsDeleteEdgeGatewayNetworkContextProfile{ID: state.ID.Get(), Name: state.Name.Get(), EdgeGatewayID: r.edgegw.ID, EdgeGatewayName: r.edgegw.Name}); err != nil {
 		resp.Diagnostics.AddError("Error deleting Network Context Profile", err.Error())
 	}
 }
@@ -254,13 +257,13 @@ func (r *networkContextProfileResource) ImportState(ctx context.Context, req res
 		EdgeGatewayName: supertypes.NewStringNull(),
 	}
 
-	if urn.IsEdgeGateway(edgeIDOrName) {
+	if strings.Contains(edgeIDOrName, "urn:vcloud:gateway") {
 		x.EdgeGatewayID.Set(edgeIDOrName)
 	} else {
 		x.EdgeGatewayName.Set(edgeIDOrName)
 	}
 
-	if urn.IsNetworkContextProfile(profileIDOrName) {
+	if strings.Contains(edgeIDOrName, "urn:vcloud:networkContextProfile") {
 		x.ID.Set(profileIDOrName)
 	} else {
 		x.Name.Set(profileIDOrName)
@@ -288,17 +291,7 @@ func (r *networkContextProfileResource) ImportState(ctx context.Context, req res
 func (r *networkContextProfileResource) read(ctx context.Context, planOrState *networkContextProfileModel) (stateRefreshed *networkContextProfileModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
-	var (
-		profile *sdkv1.NetworkContextProfile
-		err     error
-	)
-
-	if planOrState.ID.IsKnown() && planOrState.ID.Get() != "" {
-		profile, err = r.edgegw.EdgeClient.GetNetworkContextProfileByID(planOrState.ID.Get())
-	} else {
-		profile, err = r.edgegw.EdgeClient.GetNetworkContextProfileByName(planOrState.Name.Get())
-	}
-
+	profile, err := r.edgeClient.GetNetworkContextProfile(ctx, cav_types.ParamsGetEdgeGatewayNetworkContextProfile{ID: planOrState.ID.Get(), Name: planOrState.Name.Get(), EdgeGatewayID: r.edgegw.ID, EdgeGatewayName: r.edgegw.Name})
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			return stateRefreshed, false, nil
@@ -308,8 +301,8 @@ func (r *networkContextProfileResource) read(ctx context.Context, planOrState *n
 	}
 
 	diags.Append(stateRefreshed.fromSDKProfile(ctx, profile)...)
-	stateRefreshed.EdgeGatewayID.Set(r.edgegw.GetID())
-	stateRefreshed.EdgeGatewayName.Set(r.edgegw.GetName())
+	stateRefreshed.EdgeGatewayID.Set(r.edgegw.ID)
+	stateRefreshed.EdgeGatewayName.Set(r.edgegw.Name)
 
 	return stateRefreshed, true, diags
 }

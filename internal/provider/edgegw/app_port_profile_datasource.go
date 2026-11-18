@@ -21,16 +21,15 @@ import (
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+	edge "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
+	cav_types "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 var (
@@ -43,27 +42,20 @@ func NewAppPortProfileDataSource() datasource.DataSource {
 }
 
 type appPortProfileDataSource struct {
-	client *client.CloudAvenue
-	org    org.Org
-	edgegw edgegw.EdgeGateway
+	client     *client.CloudAvenue
+	edgeClient *edge.Client
 }
 
 // Init Initializes the data source.
 func (d *appPortProfileDataSource) Init(_ context.Context, dm *AppPortProfileModelDatasource) (diags diag.Diagnostics) {
 	var err error
 
-	d.org, diags = org.Init(d.client)
-	if diags.HasError() {
-		return diags
+	var v2 cav.Client
+	if v2, err = d.client.V2(); err == nil {
+		d.edgeClient, err = edge.New(v2)
 	}
-
-	// Retrieve VDC from edge gateway
-	d.edgegw, err = d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   types.StringValue(dm.EdgeGatewayID.Get()),
-		Name: types.StringValue(dm.EdgeGatewayName.Get()),
-	})
 	if err != nil {
-		diags.AddError("Error retrieving Edge Gateway", err.Error())
+		diags.AddError("Error initializing Edge client", err.Error())
 		return diags
 	}
 
@@ -114,15 +106,16 @@ func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.Read
 	/*
 		Implement the data source read logic here.
 	*/
+	var appP cav_types.ModelGetAppPortProfile
 
-	nameOrID := config.Name.Get()
-	if config.ID.IsKnown() {
-		nameOrID = config.ID.Get()
+	// Retrieve VDC from edge gateway
+	edgeGateway, err := d.edgeClient.GetEdgeGateway(ctx, cav_types.ParamsEdgeGateway{ID: config.EdgeGatewayID.Get(), Name: config.EdgeGatewayName.Get()})
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving associated Edge Gateway", err.Error())
+		return
 	}
 
-	var appP *v1.FirewallGroupAppPortProfileModelResponse
-
-	appPortProfiles, err := d.edgegw.FindFirewallAppPortProfile(nameOrID)
+	appPortProfiles, err := d.edgeClient.ListAppPortProfile(ctx, cav_types.ParamsListEdgeGatewayAppPortProfile{EdgeGatewayID: edgeGateway.ID, EdgeGatewayName: edgeGateway.Name})
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			resp.Diagnostics.AddError("App Port Profile not found", err.Error())
@@ -147,13 +140,15 @@ func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.Read
 
 	if len(appPortProfiles.AppPortProfiles) >= 1 && config.Scope.IsKnown() {
 		// Find the App Port Profile with the correct scope
+		appFound := false
 		for _, appPortProfile := range appPortProfiles.AppPortProfiles {
-			if appPortProfile.Scope == v1.FirewallGroupAppPortProfileModelScope(config.Scope.Get()) {
+			if appPortProfile.Scope == config.Scope.Get() {
 				appP = appPortProfile
+				appFound = true
 				break
 			}
 		}
-		if appP == nil {
+		if !appFound {
 			resp.Diagnostics.AddError("App Port Profile not found", "App Port Profile not found with the specified scope.")
 			return
 		}
@@ -170,8 +165,8 @@ func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.Read
 			Ports:    supertypes.NewSetValueOfNull[string](ctx),
 		}
 
-		ap.Protocol.Set(string(singlePort.Protocol))
-		if singlePort.Protocol == v1.FirewallGroupAppPortProfileModelPortProtocolTCP || singlePort.Protocol == v1.FirewallGroupAppPortProfileModelPortProtocolUDP {
+		ap.Protocol.Set(singlePort.Protocol)
+		if singlePort.Protocol == cav_types.AppPortProfileProtocolTCP || singlePort.Protocol == cav_types.AppPortProfileProtocolUDP {
 			// DestinationPorts is optional
 			if len(singlePort.DestinationPorts) > 0 {
 				resp.Diagnostics.Append(ap.Ports.Set(ctx, singlePort.DestinationPorts)...)
@@ -189,9 +184,9 @@ func (d *appPortProfileDataSource) Read(ctx context.Context, req datasource.Read
 	stateRefreshed.Name.Set(appP.Name)
 	stateRefreshed.Description.Set(appP.Description)
 	stateRefreshed.AppPorts.Set(ctx, appPorts)
-	stateRefreshed.EdgeGatewayID.Set(d.edgegw.EdgeGateway.ID)
-	stateRefreshed.EdgeGatewayName.Set(d.edgegw.EdgeGateway.Name)
-	stateRefreshed.Scope.Set(string(appP.Scope))
+	stateRefreshed.EdgeGatewayID.Set(edgeGateway.ID)
+	stateRefreshed.EdgeGatewayName.Set(edgeGateway.Name)
+	stateRefreshed.Scope.Set(appP.Scope)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)

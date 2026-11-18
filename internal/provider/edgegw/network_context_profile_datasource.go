@@ -12,15 +12,14 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+	edge "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/edgegw"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
 )
 
 var (
@@ -34,26 +33,31 @@ func NewNetworkContextProfileDataSource() datasource.DataSource {
 }
 
 type networkContextProfileDataSource struct {
-	client *client.CloudAvenue
-	org    org.Org
-	edgegw edgegw.EdgeGateway
+	client     *client.CloudAvenue
+	edgeClient *edge.Client
+	edgegw     *types.ModelEdgeGateway
 }
 
 // Init initializes the data source.
-func (d *networkContextProfileDataSource) Init(_ context.Context, dm *networkContextProfileModelDatasource) (diags diag.Diagnostics) {
+func (d *networkContextProfileDataSource) Init(ctx context.Context, dm *networkContextProfileModelDatasource) (diags diag.Diagnostics) {
 	var err error
+	var v2 cav.Client
 
-	d.org, diags = org.Init(d.client)
-	if diags.HasError() {
+	if v2, err = d.client.V2(); err == nil {
+		d.edgeClient, err = edge.New(v2)
+	}
+	if err != nil {
+		diags.AddError("Error creating Edge Gateway client", err.Error())
 		return diags
 	}
 
-	d.edgegw, err = d.org.GetEdgeGateway(edgegw.BaseEdgeGW{
-		ID:   types.StringValue(dm.EdgeGatewayID.Get()),
-		Name: types.StringValue(dm.EdgeGatewayName.Get()),
+	d.edgegw, err = d.edgeClient.GetEdgeGateway(ctx, types.ParamsEdgeGateway{
+		ID:   dm.EdgeGatewayID.Get(),
+		Name: dm.EdgeGatewayName.Get(),
 	})
 	if err != nil {
 		diags.AddError("Error retrieving Edge Gateway", err.Error())
+		return diags
 	}
 
 	return diags
@@ -99,31 +103,18 @@ func (d *networkContextProfileDataSource) Read(ctx context.Context, req datasour
 		return
 	}
 
-	var (
-		profile  *sdkv1.NetworkContextProfile
-		err      error
-		nameOrID string
-	)
-
-	if config.ID.IsKnown() {
-		nameOrID = config.ID.Get()
-		profile, err = d.edgegw.GetNetworkContextProfileByID(nameOrID)
-	} else {
-		nameOrID = config.Name.Get()
-		profile, err = d.edgegw.GetNetworkContextProfileByName(nameOrID)
-	}
-
+	profile, err := d.edgeClient.GetNetworkContextProfile(ctx, types.ParamsGetEdgeGatewayNetworkContextProfile{ID: config.ID.Get(), Name: config.ID.Get(), EdgeGatewayID: d.edgegw.ID, EdgeGatewayName: d.edgegw.Name})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Network Context Profile not found",
-			fmt.Sprintf("No Network Context Profile found with name or ID %q on Edge Gateway %q: %s", nameOrID, d.edgegw.GetName(), err),
+			fmt.Sprintf("No Network Context Profile found with Id: %s , Name: %s on Edge Gateway %q: %s", config.ID.Get(), config.ID.Get(), d.edgegw.Name, err),
 		)
 		return
 	}
 
 	stateRefreshed := config.Copy()
 
-	resp.Diagnostics.Append(stateRefreshed.fromSDKProfile(ctx, profile, d.edgegw.GetID(), d.edgegw.GetName())...)
+	resp.Diagnostics.Append(stateRefreshed.fromSDKProfile(ctx, profile, d.edgegw.ID, d.edgegw.Name)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

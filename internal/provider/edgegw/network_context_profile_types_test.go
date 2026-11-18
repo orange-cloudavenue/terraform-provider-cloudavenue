@@ -10,16 +10,16 @@ package edgegw
 import (
 	"testing"
 
-	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 )
 
 func TestAttributesFromSDKProfileAppIDSubAttributeNullWhenEmpty(t *testing.T) {
 	t.Parallel()
 
-	appID, _, diags := attributesFromSDKProfile(t.Context(), &sdkv1.NetworkContextProfile{
-		Attributes: []sdkv1.NetworkContextProfileAttribute{
+	appID, _, diags := attributesFromSDKProfile(t.Context(), &types.ModelGetNetworkContextProfile{
+		Attributes: []types.ModelNetworkContextProfileAttribute{
 			{
-				Type:   sdkv1.NetworkContextProfileAttributeTypeAppID,
+				Type:   types.NetworkContextProfileAttributeTypeAppID,
 				Values: []string{"SSH", "DNS"},
 			},
 		},
@@ -38,14 +38,14 @@ func TestAttributesFromSDKProfileAppIDSubAttributeNullWhenEmpty(t *testing.T) {
 func TestAttributesFromSDKProfileAppIDSubAttributeSetWhenPresent(t *testing.T) {
 	t.Parallel()
 
-	appID, _, diags := attributesFromSDKProfile(t.Context(), &sdkv1.NetworkContextProfile{
-		Attributes: []sdkv1.NetworkContextProfileAttribute{
+	appID, _, diags := attributesFromSDKProfile(t.Context(), &types.ModelGetNetworkContextProfile{
+		Attributes: []types.ModelNetworkContextProfileAttribute{
 			{
-				Type:   sdkv1.NetworkContextProfileAttributeTypeAppID,
+				Type:   types.NetworkContextProfileAttributeTypeAppID,
 				Values: []string{"SSL"},
-				SubAttributes: []sdkv1.NetworkContextProfileSubAttribute{
+				SubAttributes: []types.ModelNetworkContextProfileSubAttribute{
 					{
-						Type:   sdkv1.NetworkContextProfileSubAttributeTypeTLSVersion,
+						Type:   types.NetworkContextProfileSubAttributeTypeTLSVersion,
 						Values: []string{"TLS_V12", "TLS_V13"},
 					},
 				},

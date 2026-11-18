@@ -14,7 +14,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
-	sdkv1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -71,10 +71,10 @@ func (rm *networkContextProfileModelDatasource) Copy() *networkContextProfileMod
 }
 
 // toSDKProfile converts the resource model to the SDK NetworkContextProfile.
-func (rm *networkContextProfileModel) toSDKProfile(ctx context.Context) (*sdkv1.NetworkContextProfile, diag.Diagnostics) {
+func (rm *networkContextProfileModel) toSDKAttributes(ctx context.Context) ([]types.ParamsNetworkContextProfileAttribute, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	attrs := make([]sdkv1.NetworkContextProfileAttribute, 0, 2)
+	attrs := make([]types.ParamsNetworkContextProfileAttribute, 0, 2)
 
 	// APP_ID block
 	if rm.AppID.IsKnown() {
@@ -95,21 +95,21 @@ func (rm *networkContextProfileModel) toSDKProfile(ctx context.Context) (*sdkv1.
 			return nil, diags
 		}
 
-		subAttrs := make([]sdkv1.NetworkContextProfileSubAttribute, 0, len(subAttrBlocks))
+		subAttrs := make([]types.ParamsNetworkContextProfileSubAttribute, 0, len(subAttrBlocks))
 		for _, sub := range subAttrBlocks {
 			subValues, d := sub.Values.Get(ctx)
 			diags.Append(d...)
 			if diags.HasError() {
 				return nil, diags
 			}
-			subAttrs = append(subAttrs, sdkv1.NetworkContextProfileSubAttribute{
-				Type:   sdkv1.NetworkContextProfileSubAttributeType(sub.Type.Get()),
+			subAttrs = append(subAttrs, types.ParamsNetworkContextProfileSubAttribute{
+				Type:   sub.Type.Get(),
 				Values: subValues,
 			})
 		}
 
-		attrs = append(attrs, sdkv1.NetworkContextProfileAttribute{
-			Type:          sdkv1.NetworkContextProfileAttributeTypeAppID,
+		attrs = append(attrs, types.ParamsNetworkContextProfileAttribute{
+			Type:          types.NetworkContextProfileAttributeTypeAppID,
 			Values:        values,
 			SubAttributes: subAttrs,
 		})
@@ -122,22 +122,17 @@ func (rm *networkContextProfileModel) toSDKProfile(ctx context.Context) (*sdkv1.
 	// Once Cerberus exposes DOMAIN_NAME management, this block should be wired up.
 	// The read path (attributesFromSDKProfile) already handles DOMAIN_NAME for existing SYSTEM profiles.
 
-	return &sdkv1.NetworkContextProfile{
-		ID:          rm.ID.Get(),
-		Name:        rm.Name.Get(),
-		Description: rm.Description.Get(),
-		Attributes:  attrs,
-	}, diags
+	return attrs, diags
 }
 
 // fromSDKProfile populates the resource model from the SDK NetworkContextProfile.
-func (rm *networkContextProfileModel) fromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextProfile) diag.Diagnostics {
+func (rm *networkContextProfileModel) fromSDKProfile(ctx context.Context, p *types.ModelGetNetworkContextProfile) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	rm.ID.Set(p.ID)
 	rm.Name.Set(p.Name)
 	rm.Description.Set(p.Description)
-	rm.Scope.Set(string(p.Scope))
+	rm.Scope.Set(p.Scope)
 
 	appIDBlock, _, d := attributesFromSDKProfile(ctx, p)
 	diags.Append(d...)
@@ -150,13 +145,13 @@ func (rm *networkContextProfileModel) fromSDKProfile(ctx context.Context, p *sdk
 }
 
 // fromSDKProfile populates the datasource model from the SDK NetworkContextProfile.
-func (dm *networkContextProfileModelDatasource) fromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextProfile, edgeGWID, edgeGWName string) diag.Diagnostics {
+func (dm *networkContextProfileModelDatasource) fromSDKProfile(ctx context.Context, p *types.ModelGetNetworkContextProfile, edgeGWID, edgeGWName string) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	dm.ID.Set(p.ID)
 	dm.Name.Set(p.Name)
 	dm.Description.Set(p.Description)
-	dm.Scope.Set(string(p.Scope))
+	dm.Scope.Set(p.Scope)
 	dm.EdgeGatewayID.Set(edgeGWID)
 	dm.EdgeGatewayName.Set(edgeGWName)
 
@@ -173,7 +168,7 @@ func (dm *networkContextProfileModelDatasource) fromSDKProfile(ctx context.Conte
 
 // attributesFromSDKProfile converts SDK profile attributes into the two optional model blocks.
 // Returns nil for a block if that attribute type is not present in the profile.
-func attributesFromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextProfile) (*networkContextProfileModelAppID, *networkContextProfileModelDomainName, diag.Diagnostics) {
+func attributesFromSDKProfile(ctx context.Context, p *types.ModelGetNetworkContextProfile) (*networkContextProfileModelAppID, *networkContextProfileModelDomainName, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	var appIDResult *networkContextProfileModelAppID
@@ -181,14 +176,14 @@ func attributesFromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextProfil
 
 	for _, attr := range p.Attributes {
 		switch attr.Type {
-		case sdkv1.NetworkContextProfileAttributeTypeAppID:
+		case types.NetworkContextProfileAttributeTypeAppID:
 			subAttrBlocks := make([]*networkContextProfileModelSubAttribute, 0, len(attr.SubAttributes))
 			for _, s := range attr.SubAttributes {
 				sub := &networkContextProfileModelSubAttribute{
 					Type:   supertypes.NewStringNull(),
 					Values: supertypes.NewSetValueOfNull[string](ctx),
 				}
-				sub.Type.Set(string(s.Type))
+				sub.Type.Set(s.Type)
 				diags.Append(sub.Values.Set(ctx, s.Values)...)
 				subAttrBlocks = append(subAttrBlocks, sub)
 			}
@@ -203,7 +198,7 @@ func attributesFromSDKProfile(ctx context.Context, p *sdkv1.NetworkContextProfil
 			}
 			appIDResult = block
 
-		case sdkv1.NetworkContextProfileAttributeTypeDomainName:
+		case types.NetworkContextProfileAttributeTypeDomainName:
 			block := &networkContextProfileModelDomainName{
 				Values: supertypes.NewSetValueOfNull[string](ctx),
 			}

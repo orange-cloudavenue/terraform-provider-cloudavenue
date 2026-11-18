@@ -21,8 +21,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/helpers"
-	v1 "github.com/orange-cloudavenue/cloudavenue-sdk-go/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -65,12 +64,8 @@ func (rm *AppPortProfileModel) Copy() *AppPortProfileModel {
 }
 
 // toSDKAppPortProfile converts the AppPortProfileModel to the SDK representation.
-func (rm *AppPortProfileModel) toSDKAppPortProfile(ctx context.Context) (nsxtAppPortProfilePorts *v1.FirewallGroupAppPortProfileModel, diags diag.Diagnostics) {
-	nsxtAppPortProfilePorts = &v1.FirewallGroupAppPortProfileModel{}
-
-	nsxtAppPortProfilePorts.ID = rm.ID.Get()
-	nsxtAppPortProfilePorts.Name = rm.Name.Get()
-	nsxtAppPortProfilePorts.Description = rm.Description.Get()
+func (rm *AppPortProfileModel) toSDKAppPortProfilePorts(ctx context.Context) (appPortProfilePorts []types.ParamsAppPortProfilePort, diags diag.Diagnostics) {
+	appPortProfilePorts = make([]types.ParamsAppPortProfilePort, 0)
 
 	appPorts, d := rm.AppPorts.Get(ctx)
 	diags.Append(d...)
@@ -78,7 +73,6 @@ func (rm *AppPortProfileModel) toSDKAppPortProfile(ctx context.Context) (nsxtApp
 		return nil, diags
 	}
 
-	nsxtAppPortProfilePorts.ApplicationPorts = make(v1.FirewallGroupAppPortProfileModelPorts, 0)
 	for _, appPort := range appPorts {
 		destPorts, d := appPort.Ports.Get(ctx)
 		diags.Append(d...)
@@ -86,17 +80,11 @@ func (rm *AppPortProfileModel) toSDKAppPortProfile(ctx context.Context) (nsxtApp
 			return nil, diags
 		}
 
-		protocol, err := helpers.ParseFirewallAppPortProfileProtocol(appPort.Protocol.Get())
-		if err != nil {
-			diags.AddError("Error parsing protocol", err.Error())
-			return nil, diags
-		}
-
-		nsxtAppPortProfilePorts.ApplicationPorts = append(nsxtAppPortProfilePorts.ApplicationPorts, v1.FirewallGroupAppPortProfileModelPort{
-			Protocol:         protocol,
+		appPortProfilePorts = append(appPortProfilePorts, types.ParamsAppPortProfilePort{
+			Protocol:         appPort.Protocol.Get(),
 			DestinationPorts: destPorts,
 		})
 	}
 
-	return nsxtAppPortProfilePorts, diags
+	return appPortProfilePorts, diags
 }
