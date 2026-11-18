@@ -48,10 +48,11 @@ func NewServicesResource() resource.Resource {
 type ServicesResource struct {
 	client     *client.CloudAvenue
 	edgeClient *edge.Client
+	edgegw     *types.ModelEdgeGateway
 }
 
 // Init Initializes the resource.
-func (r *ServicesResource) Init(_ context.Context, _ *ServicesModel) (diags diag.Diagnostics) {
+func (r *ServicesResource) Init(ctx context.Context, rm *ServicesModel) (diags diag.Diagnostics) {
 	var err error
 	var v2 cav.Client
 
@@ -60,6 +61,15 @@ func (r *ServicesResource) Init(_ context.Context, _ *ServicesModel) (diags diag
 	}
 	if err != nil {
 		diags.AddError("Error initializing EdgeGateway client", err.Error())
+		return diags
+	}
+
+	r.edgegw, err = r.edgeClient.GetEdgeGateway(ctx, types.ParamsEdgeGateway{
+		ID:   rm.EdgeGatewayID.Get(),
+		Name: rm.EdgeGatewayName.Get(),
+	})
+	if err != nil {
+		diags.AddError("Error retrieving Edge Gateway", err.Error())
 		return diags
 	}
 
@@ -115,14 +125,8 @@ func (r *ServicesResource) Create(ctx context.Context, req resource.CreateReques
 		Implement the resource creation logic here.
 	*/
 
-	edge, err := r.genericGetEdgeGateway(ctx, plan)
-	if err != nil {
-		resp.Diagnostics.AddError("Edge Gateway Retrieval Error", fmt.Sprintf("Failed to retrieve edge gateway: %s", err))
-		return
-	}
-
 	// * Allow the service to already be enabled as some edges may have the parameter enabled by default.
-	networkServices, err := r.edgeClient.GetServices(ctx, types.ParamsEdgeGateway{ID: edge.ID, Name: edge.Name})
+	networkServices, err := r.edgeClient.GetServices(ctx, types.ParamsEdgeGateway{ID: r.edgegw.ID, Name: r.edgegw.Name})
 	if err != nil {
 		resp.Diagnostics.AddError("Edge Gateway Services Retrieval Error", fmt.Sprintf("Failed to retrieve services of edge gateway: %s", err))
 		return
@@ -131,7 +135,7 @@ func (r *ServicesResource) Create(ctx context.Context, req resource.CreateReques
 		cloudavenue.Lock(ctx)
 		defer cloudavenue.Unlock(ctx)
 
-		if err := r.edgeClient.EnableCloudavenueServices(ctx, types.ParamsEdgeGateway{ID: edge.ID, Name: edge.Name}); err != nil {
+		if err := r.edgeClient.EnableCloudavenueServices(ctx, types.ParamsEdgeGateway{ID: r.edgegw.ID, Name: r.edgegw.Name}); err != nil {
 			resp.Diagnostics.AddError("EdgeGateway Service Activation Error", fmt.Sprintf("Failed to enable network service: %s", err))
 			return
 		}
@@ -216,16 +220,10 @@ func (r *ServicesResource) Delete(ctx context.Context, req resource.DeleteReques
 		Implement the resource deletion here
 	*/
 
-	edge, err := r.genericGetEdgeGateway(ctx, state)
-	if err != nil {
-		resp.Diagnostics.AddError("Edge Gateway Retrieval Error", fmt.Sprintf("Failed to retrieve edge gateway: %s", err))
-		return
-	}
-
 	cloudavenue.Lock(ctx)
 	defer cloudavenue.Unlock(ctx)
 
-	if err := r.edgeClient.DisableCloudavenueServices(ctx, types.ParamsEdgeGateway{ID: edge.ID, Name: edge.Name}); err != nil {
+	if err := r.edgeClient.DisableCloudavenueServices(ctx, types.ParamsEdgeGateway{ID: r.edgegw.ID, Name: r.edgegw.Name}); err != nil {
 		resp.Diagnostics.AddError("EdgeGateway Service Disablement Error", fmt.Sprintf("Failed to disable network service: %s", err))
 		return
 	}
@@ -248,13 +246,7 @@ func (r *ServicesResource) read(ctx context.Context, planOrState *ServicesModel)
 		Implement the resource read here
 	*/
 
-	edge, err := r.genericGetEdgeGateway(ctx, planOrState)
-	if err != nil {
-		diags.AddError("Edge Gateway Retrieval Error", fmt.Sprintf("Failed to retrieve edge gateway: %s", err))
-		return nil, true, diags
-	}
-
-	networkServices, err := r.edgeClient.GetServices(ctx, types.ParamsEdgeGateway{ID: edge.ID, Name: edge.Name})
+	networkServices, err := r.edgeClient.GetServices(ctx, types.ParamsEdgeGateway{ID: r.edgegw.ID, Name: r.edgegw.Name})
 	if err != nil {
 		diags.AddError("Edge Gateway Services Retrieval Error", fmt.Sprintf("Failed to retrieve services of edge gateway: %s", err))
 		return nil, false, diags
@@ -264,9 +256,9 @@ func (r *ServicesResource) read(ctx context.Context, planOrState *ServicesModel)
 		return nil, false, diags
 	}
 
-	stateRefreshed.ID.Set(edge.ID)
-	stateRefreshed.EdgeGatewayName.Set(edge.Name)
-	stateRefreshed.EdgeGatewayID.Set(edge.ID)
+	stateRefreshed.ID.Set(r.edgegw.ID)
+	stateRefreshed.EdgeGatewayName.Set(r.edgegw.Name)
+	stateRefreshed.EdgeGatewayID.Set(r.edgegw.ID)
 	stateRefreshed.Network.Set(networkServices.Services.Network)
 	stateRefreshed.IPAddress.Set(networkServices.Services.IPAddress)
 	svcs := map[string]*ServicesModelServices{}
@@ -313,9 +305,4 @@ func (r *ServicesResource) read(ctx context.Context, planOrState *ServicesModel)
 	diags.Append(stateRefreshed.Services.Set(ctx, svcs)...)
 
 	return stateRefreshed, true, diags
-}
-
-// genericGetEdgeGateway
-func (r *ServicesResource) genericGetEdgeGateway(ctx context.Context, rm *ServicesModel) (*types.ModelEdgeGateway, error) {
-	return r.edgeClient.GetEdgeGateway(ctx, types.ParamsEdgeGateway{ID: rm.EdgeGatewayID.Get(), Name: rm.EdgeGatewayName.Get()})
 }

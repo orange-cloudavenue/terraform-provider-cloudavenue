@@ -25,6 +25,7 @@ import (
 
 	edge "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -41,10 +42,11 @@ func NewServicesDataSource() datasource.DataSource {
 type ServicesDataSource struct {
 	client     *client.CloudAvenue
 	edgeClient *edge.Client
+	edgegw     *types.ModelEdgeGateway
 }
 
 // Init Initializes the data source.
-func (d *ServicesDataSource) Init(_ context.Context, _ *ServicesModel) (diags diag.Diagnostics) {
+func (d *ServicesDataSource) Init(ctx context.Context, dm *ServicesModel) (diags diag.Diagnostics) {
 	var err error
 	var v2 cav.Client
 
@@ -53,6 +55,15 @@ func (d *ServicesDataSource) Init(_ context.Context, _ *ServicesModel) (diags di
 	}
 	if err != nil {
 		diags.AddError("Error initializing EdgeGateway client", err.Error())
+		return diags
+	}
+
+	d.edgegw, err = d.edgeClient.GetEdgeGateway(ctx, types.ParamsEdgeGateway{
+		ID:   dm.EdgeGatewayID.Get(),
+		Name: dm.EdgeGatewayName.Get(),
+	})
+	if err != nil {
+		diags.AddError("Error retrieving Edge Gateway", err.Error())
 		return diags
 	}
 
@@ -108,6 +119,7 @@ func (d *ServicesDataSource) Read(ctx context.Context, req datasource.ReadReques
 	s := &ServicesResource{
 		client:     d.client,
 		edgeClient: d.edgeClient,
+		edgegw:     d.edgegw,
 	}
 
 	// Read data from the API
