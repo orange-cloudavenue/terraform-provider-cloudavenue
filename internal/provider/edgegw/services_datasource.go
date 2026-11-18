@@ -23,7 +23,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgegateway"
+	edge "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/edgegateway/v1"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 )
@@ -38,19 +39,22 @@ func NewServicesDataSource() datasource.DataSource {
 }
 
 type ServicesDataSource struct {
-	client *client.CloudAvenue
-	edge   edgegateway.Client
+	client     *client.CloudAvenue
+	edgeClient *edge.Client
 }
 
 // Init Initializes the data source.
 func (d *ServicesDataSource) Init(_ context.Context, _ *ServicesModel) (diags diag.Diagnostics) {
-	edge, err := edgegateway.NewClient()
+	var err error
+	var v2 cav.Client
+
+	if v2, err = d.client.V2(); err == nil {
+		d.edgeClient, err = edge.New(v2)
+	}
 	if err != nil {
-		diags.AddError("Client Initialization Error", fmt.Sprintf("Failed to create edge gateway client: %s", err))
+		diags.AddError("Error initializing EdgeGateway client", err.Error())
 		return diags
 	}
-
-	d.edge = edge
 
 	return diags
 }
@@ -102,8 +106,8 @@ func (d *ServicesDataSource) Read(ctx context.Context, req datasource.ReadReques
 	*/
 
 	s := &ServicesResource{
-		client: d.client,
-		edge:   d.edge,
+		client:     d.client,
+		edgeClient: d.edgeClient,
 	}
 
 	// Read data from the API
