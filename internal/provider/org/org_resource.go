@@ -28,6 +28,7 @@ import (
 	org "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/organization/v1"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
+
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
@@ -202,15 +203,21 @@ func (r *OrgResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	if err := cav.WaitJob(ctx, r.orgClient.GetClient(), cav.JobWaitRequest{
-		Backend: cav.BackendInfrapi,
-		JobID:   job.ID,
-		PollOptions: cav.JobPollOptions{
+	if job, err = cav.WaitJob(
+		ctx, r.orgClient.GetClient(), cav.JobWaitRequest{
+			Backend: cav.BackendInfrapi,
+			JobID:   job.ID,
+
 			Timeout:         5 * time.Minute,
 			PollingInterval: 3 * time.Second,
 		},
-	}); err != nil {
+	); err != nil {
 		resp.Diagnostics.AddError("Error waiting for organization update job", err.Error())
+		return
+	}
+
+	if job.Status != cav.JobSuccess {
+		resp.Diagnostics.AddError("Organization update job terminated with failure", fmt.Sprintf("job id (%s), job status(%s)",job.ID, job.Status),)
 		return
 	}
 
