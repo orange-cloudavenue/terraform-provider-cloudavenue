@@ -19,9 +19,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/orange-cloudavenue/common-go/urn"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
@@ -53,7 +54,7 @@ func (r *VAppResource) Tests(_ context.Context) map[testsacc.TestName]func(ctx c
 		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.VAPP)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", testIsURNType(urn.VAPP)),
 					resource.TestCheckResourceAttrSet(resourceName, testAttrVDC),
 				},
 				// ! Create testing
