@@ -20,19 +20,17 @@ import (
 	"fmt"
 	"strings"
 
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	sdktypes "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/acl"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -49,10 +47,14 @@ func NewACLResource() resource.Resource {
 
 // aclResource is the resource implementation.
 type aclResource struct {
-	client *client.CloudAvenue
-	vdc    vdc.VDC
-	vapp   vapp.VAPP
+	client       *client.CloudAvenue
+	vappClientV2 vAppClientV2
+	vdc          resolvedVDC
+	vapp         *sdktypes.ModelVApp
 }
+
+// sharedWithObjectType is the type of the shared_with set elements.
+var sharedWithObjectType = types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes}
 
 // Metadata returns the resource type name.
 func (r *aclResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -64,18 +66,20 @@ func (r *aclResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 	resp.Schema = aclSchema().GetResource(ctx)
 }
 
-func (r *aclResource) Init(_ context.Context, rm *aclResourceModel) (diags diag.Diagnostics) {
-	r.vdc, diags = vdc.Init(r.client, rm.VDC)
+// Init resolves the VDC and the parent vApp. The SDK client is built in Configure.
+func (r *aclResource) Init(ctx context.Context, rm *aclResourceModel) (diags diag.Diagnostics) {
+	vdc, diags := r.vappClientV2.resolveVDC(ctx, rm.VDC.ValueString())
 	if diags.HasError() {
 		return diags
 	}
+	r.vdc = vdc
 
-	vappModel, err := vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
-	if err != nil {
-		diags.AddError("Error getting parent vApp", err.Error())
+	app, diags := r.vappClientV2.resolveVApp(ctx, r.vdc, rm.VAppID.ValueString(), rm.VAppName.ValueString())
+	if diags.HasError() {
 		return diags
 	}
-	r.vapp = vappModel
+	r.vapp = app
+
 	return diags
 }
 
@@ -97,6 +101,13 @@ func (r *aclResource) Configure(_ context.Context, req resource.ConfigureRequest
 	}
 
 	r.client = client
+
+	v2, diags := InitVAppClientV2(client)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	r.vappClientV2 = v2
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -121,15 +132,13 @@ func (r *aclResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Create resource
 	plan, diags := r.createOrUpdateACL(ctx, plan)
-	if diags.HasError() {
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -151,49 +160,36 @@ func (r *aclResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	// Request acl
-	accessControl, err := r.vapp.GetAccessControl(false)
+	vappACL, err := r.vappClientV2.vappClient.GetVAppACL(ctx, sdktypes.ParamsGetVAppACL{ID: r.vapp.ID})
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting access control properties", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, fmt.Sprintf("vApp %s(%s) access control", r.vapp.Name, r.vapp.ID), err)
 		return
 	}
 
-	// SharedWithEveryone
-	everyoneAccessLevel := ""
-	if accessControl.EveryoneAccessLevel != nil {
-		everyoneAccessLevel = *accessControl.EveryoneAccessLevel
-	}
-
 	plan := &aclResourceModel{
-		ID:                  types.StringValue(r.vapp.GetID()),
-		VDC:                 types.StringValue(r.vdc.GetName()),
+		ID:                  types.StringValue(r.vapp.ID),
+		VDC:                 types.StringValue(r.vdc.Name),
 		VAppID:              state.VAppID,
 		VAppName:            state.VAppName,
-		EveryoneAccessLevel: types.StringValue(everyoneAccessLevel),
+		EveryoneAccessLevel: types.StringNull(),
+		SharedWith:          types.SetNull(sharedWithObjectType),
 	}
 
-	if plan.EveryoneAccessLevel.ValueString() == "" {
-		plan.EveryoneAccessLevel = types.StringNull()
+	// SharedWithEveryone
+	if vappACL.EveryoneAccessLevel != nil && *vappACL.EveryoneAccessLevel != "" {
+		plan.EveryoneAccessLevel = types.StringValue(*vappACL.EveryoneAccessLevel)
 	}
 
-	plan.SharedWith = types.SetNull(types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes})
-	if accessControl.AccessSettings != nil {
-		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName()) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
-		if err != nil {
-			wrappedErr := fmt.Errorf("failed to resolve admin organization for current org %q: %w", r.client.GetOrgName(), err)
-			resp.Diagnostics.AddError(
-				fmt.Sprintf("Error resolving admin organization for current org %q", r.client.GetOrgName()),
-				wrappedErr.Error(),
-			)
-			return
-		}
-
-		accessControlListSet, err := acl.AccessControlListToSharedSet(adminOrg, accessControl.AccessSettings.AccessSetting)
+	// SharedWith
+	if len(vappACL.SharedWith) > 0 {
+		sharedWith, err := sharedWithFromSDK(vappACL.SharedWith)
 		if err != nil {
 			resp.Diagnostics.AddError("Error converting slice AccessSetting into set", err.Error())
 			return
 		}
+
 		var diags diag.Diagnostics
-		plan.SharedWith, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes}, accessControlListSet)
+		plan.SharedWith, diags = types.SetValueFrom(ctx, sharedWithObjectType, sharedWith)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -208,9 +204,6 @@ func (r *aclResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -234,15 +227,12 @@ func (r *aclResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	// Update resource
 	plan, diags := r.createOrUpdateACL(ctx, plan)
 	resp.Diagnostics.Append(diags...)
-	if diags.HasError() {
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -264,18 +254,16 @@ func (r *aclResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
+	unlock, d := lockVApp(ctx, r.vdc.Name, r.vapp.Name)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockVAPP(ctx)
+	defer unlock()
 
 	// Delete vApp access control
-	if err := r.vapp.RemoveAccessControl(false); err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Error removing access control from vApp %s(%s)", r.vapp.GetName(), r.vapp.GetID()),
-			err.Error(),
-		)
+	if _, err := r.vappClientV2.vappClient.RemoveVAppACL(ctx, sdktypes.ParamsRemoveVAppACL{ID: r.vapp.ID}); err != nil {
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("access control of vApp %s(%s)", r.vapp.Name, r.vapp.ID), err)
 		return
 	}
 }
@@ -303,9 +291,6 @@ func (r *aclResource) ImportState(ctx context.Context, req resource.ImportStateR
 
 func (r *aclResource) createOrUpdateACL(ctx context.Context, plan *aclResourceModel) (*aclResourceModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	var accessControl govcdtypes.ControlAccessParams
-
-	everyoneAccessLevel := plan.EveryoneAccessLevel.ValueString()
 
 	sharedList := []acl.SharedWithModel{}
 	diags.Append(plan.SharedWith.ElementsAs(ctx, &sharedList, true)...)
@@ -314,66 +299,61 @@ func (r *aclResource) createOrUpdateACL(ctx context.Context, plan *aclResourceMo
 	}
 
 	// Lock vApp
-	diags.Append(r.vapp.LockVAPP(ctx)...)
+	unlock, d := lockVApp(ctx, r.vdc.Name, r.vapp.Name)
+	diags.Append(d...)
 	if diags.HasError() {
 		return nil, diags
 	}
-	defer r.vapp.UnlockVAPP(ctx)
+	defer unlock()
 
-	var accessSettings []*govcdtypes.AccessSetting
+	params := sdktypes.ParamsSetVAppACL{ID: r.vapp.ID}
 
 	isSharedWithEveryone := !plan.EveryoneAccessLevel.IsNull() && !plan.EveryoneAccessLevel.IsUnknown()
 	if isSharedWithEveryone {
-		accessControl.IsSharedToEveryone = true
-		accessControl.EveryoneAccessLevel = &everyoneAccessLevel
+		everyoneAccessLevel := plan.EveryoneAccessLevel.ValueString()
+		params.IsSharedToEveryone = true
+		params.EveryoneAccessLevel = &everyoneAccessLevel
 	} else {
-		var sharedListOutput []*acl.SharedWithModel
-
-		// Get admin Org
-		adminOrg, err := r.client.Vmware.GetAdminOrgByNameOrId(r.client.GetOrgName()) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
-		if err != nil {
-			wrappedErr := fmt.Errorf("failed to resolve admin organization for current org %q: %w", r.client.GetOrgName(), err)
-			diags.AddError(
-				fmt.Sprintf("Error resolving admin organization for current org %q", r.client.GetOrgName()),
-				wrappedErr.Error(),
-			)
-			return nil, diags
-		}
-
-		accessSettings, sharedListOutput, err = acl.SharedSetToAccessControl(r.client.Vmware, adminOrg, sharedList) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
+		subjects, err := sharedWithToSDK(sharedList)
 		if err != nil {
 			diags.AddError("Error when reading shared_with from schema.", err.Error())
 			return nil, diags
 		}
+		params.SharedWith = subjects
+	}
 
-		plan.SharedWith = types.SetNull(types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes})
-		if len(sharedListOutput) != 0 {
-			accessControl.AccessSettings = &govcdtypes.AccessSettingList{
-				AccessSetting: accessSettings,
+	vappACL, err := r.vappClientV2.vappClient.SetVAppACL(ctx, params)
+	if err != nil {
+		cerrs.AddError(&diags, cerrs.ActionUpdate, fmt.Sprintf("access control of vApp %s(%s)", r.vapp.Name, r.vapp.ID), err)
+		return nil, diags
+	}
+
+	sharedWith := plan.SharedWith
+	if !isSharedWithEveryone {
+		// Use the subjects returned by the API (they carry the subject name)
+		sharedWith = types.SetNull(sharedWithObjectType)
+		if len(vappACL.SharedWith) > 0 {
+			sharedWithModels, err := sharedWithFromSDK(vappACL.SharedWith)
+			if err != nil {
+				diags.AddError("Error converting slice AccessSetting into set", err.Error())
+				return nil, diags
 			}
-			plan.SharedWith, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: acl.SharedWithModelAttrTypes}, sharedListOutput)
 
-			diags.Append(diags...)
+			var d diag.Diagnostics
+			sharedWith, d = types.SetValueFrom(ctx, sharedWithObjectType, sharedWithModels)
+			diags.Append(d...)
 			if diags.HasError() {
 				return nil, diags
 			}
 		}
 	}
 
-	err := r.vapp.SetAccessControl(&accessControl, false)
-	if err != nil {
-		diags.AddError("Error setting access control for vApp", err.Error())
-		return nil, diags
-	}
-
-	plan = &aclResourceModel{
-		ID:                  types.StringValue(r.vapp.GetID()),
-		VDC:                 types.StringValue(r.vdc.GetName()),
+	return &aclResourceModel{
+		ID:                  types.StringValue(r.vapp.ID),
+		VDC:                 types.StringValue(r.vdc.Name),
 		VAppID:              plan.VAppID,
 		VAppName:            plan.VAppName,
 		EveryoneAccessLevel: plan.EveryoneAccessLevel,
-		SharedWith:          plan.SharedWith,
-	}
-
-	return plan, diags
+		SharedWith:          sharedWith,
+	}, diags
 }

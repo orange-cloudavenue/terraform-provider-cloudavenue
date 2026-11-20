@@ -27,9 +27,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
 /*
@@ -56,9 +53,9 @@ func aclSchema() superschema.Schema {
 					},
 				},
 			},
-			attrVDC:     vdc.SuperSchema(),
-			"vapp_id":   vapp.SuperSchema()["vapp_id"],
-			"vapp_name": vapp.SuperSchema()["vapp_name"],
+			attrVDC:     vdcSuperSchema(),
+			"vapp_id":   vappRefSuperSchema()["vapp_id"],
+			"vapp_name": vappRefSuperSchema()["vapp_name"],
 			"everyone_access_level": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Access level when the vApp is shared with everyone.",
