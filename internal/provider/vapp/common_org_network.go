@@ -15,13 +15,14 @@
 package vapp
 
 import (
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
+	"fmt"
+
+	"github.com/orange-cloudavenue/common-go/urn"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	sdktypes "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 )
 
 type orgNetworkModel struct {
@@ -32,26 +33,48 @@ type orgNetworkModel struct {
 	NetworkName types.String `tfsdk:"network_name"`
 }
 
-func (s *orgNetworkModel) findOrgNetwork(vAppNetworkConfig *govcdtypes.NetworkConfigSection) (*govcdtypes.VAppNetworkConfiguration, *string, diag.Diagnostics) {
+// vAppNetworkID returns the identifier of a vApp network: its own ID, then the UUID of
+// its HREF, then the org network it is attached to (ParentNetwork). The runtime
+// networkConfigSection does not always expose an id or an href on the NetworkConfig.
+func vAppNetworkID(network sdktypes.ModelVAppRuntimeNetworkConfig) string {
+	if network.ID != "" {
+		return network.ID
+	}
+	if uuid := urn.ExtractUUID(network.HREF); uuid != "" {
+		return uuid
+	}
+	if parent := network.Configuration.ParentNetwork; parent != nil {
+		if parent.ID != "" {
+			return parent.ID
+		}
+		if uuid := urn.ExtractUUID(parent.HREF); uuid != "" {
+			return uuid
+		}
+	}
+	return ""
+}
+
+func (s *orgNetworkModel) findOrgNetwork(vAppNetworkConfig []sdktypes.ModelVAppRuntimeNetworkConfig) (*sdktypes.ModelVAppRuntimeNetworkConfig, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	for _, networkConfig := range vAppNetworkConfig.NetworkConfig {
-		if networkConfig.ID == "" && networkConfig.Link != nil {
-			// Get the network id from the HREF
-			id, err := govcd.GetUuidFromHref(networkConfig.Link.HREF, false)
-			if err != nil {
-				break
-			}
-			networkConfig.ID = id
-		} else if networkConfig.ID == "" && networkConfig.Link == nil {
+	for _, networkConfig := range vAppNetworkConfig {
+		networkID := vAppNetworkID(networkConfig)
+
+		idMatch := s.ID.ValueString() != "" && networkID != "" && urn.ExtractUUID(networkID) == urn.ExtractUUID(s.ID.ValueString())
+		nameMatch := !s.NetworkName.IsNull() && networkConfig.NetworkName == s.NetworkName.ValueString()
+		if !idMatch && !nameMatch {
 			continue
 		}
 
-		if (!s.ID.IsNull() && networkConfig.ID == urn.ExtractUUID(s.ID.ValueString())) || (!s.NetworkName.IsNull() && networkConfig.NetworkName == s.NetworkName.ValueString()) {
-			return &networkConfig, &networkConfig.ID, nil
+		if networkID == "" {
+			diags.AddError("Network ID not found", fmt.Sprintf("vApp network %q was found but exposes no ID, href or parent network", networkConfig.NetworkName))
+			return nil, diags
 		}
+
+		networkConfig.ID = networkID
+		return &networkConfig, nil
 	}
 
 	diags.AddError("Network not found in vApp", "No vApp network matched ID or name")
-	return nil, nil, diags
+	return nil, diags
 }
