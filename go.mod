@@ -140,6 +140,6 @@ require (
 	google.golang.org/grpc v1.86.0-dev // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	resty.dev/v3 v3.0.0-rc.3 // indirect
+	resty.dev/v3 v3.0.0-rc.4 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
