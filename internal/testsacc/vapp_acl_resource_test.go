@@ -64,6 +64,23 @@ resource "cloudavenue_vapp_acl" "example" {
   }
 `
 
+// testAccVAPPACLResourceConfigGroup shares a vApp with an existing organization group.
+// The group ID (UUID or URN) is given by the TEST_CLOUDAVENUE_GROUP_ID environment variable.
+const testAccVAPPACLResourceConfigGroup = `
+resource "cloudavenue_vapp" "example" {
+	name        = "MyVappGroup"
+	description = "This is an example vApp shared with a group"
+}
+
+resource "cloudavenue_vapp_acl" "example" {
+	vapp_name      = cloudavenue_vapp.example.name
+	shared_with = [{
+	  access_level = "%s"
+	  group_id     = "%s"
+	  }]
+}
+`
+
 func TestAccVAPPACLResource(t *testing.T) {
 	const resourceName = "cloudavenue_vapp_acl.example"
 	resource.Test(t, resource.TestCase{
@@ -120,4 +137,54 @@ func testAccACLResourceImportStateIDFunc(resourceName string) resource.ImportSta
 
 		return fmt.Sprintf("%s.%s", rs.Primary.Attributes["vdc"], rs.Primary.Attributes["vapp_name"]), nil
 	}
+}
+
+// TestAccVAPPACLResourceGroup checks the group subject of the vApp ACL
+// (URN conversion between the provider and the SDK, subject kind detection).
+// It needs an existing organization group, there is no group resource in the provider.
+func TestAccVAPPACLResourceGroup(t *testing.T) {
+	const resourceName = "cloudavenue_vapp_acl.example"
+
+	groupID := os.Getenv("TEST_CLOUDAVENUE_GROUP_ID")
+	if groupID == "" {
+		t.Skip("TEST_CLOUDAVENUE_GROUP_ID (UUID or URN of an existing organization group) must be set to run this test")
+	}
+	// The provider always stores the group URN: a bare UUID in the configuration would not match the state.
+	groupID = urn.Normalize(urn.Group, groupID).String()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Create test
+				Config: fmt.Sprintf(testAccVAPPACLResourceConfigGroup, "ReadOnly", groupID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrWith(resourceName, "id", testIsURNType(urn.VAPP)),
+					resource.TestCheckResourceAttr(resourceName, "vdc", os.Getenv("CLOUDAVENUE_VDC")),
+					resource.TestCheckResourceAttr(resourceName, "vapp_name", "MyVappGroup"),
+					resource.TestCheckResourceAttr(resourceName, "shared_with.#", "1"),
+					resource.TestCheckResourceAttrWith(resourceName, "shared_with.0.group_id", testIsURNType(urn.Group)),
+					resource.TestCheckResourceAttr(resourceName, "shared_with.0.access_level", "ReadOnly"),
+					resource.TestCheckResourceAttrSet(resourceName, "shared_with.0.subject_name"),
+				),
+			},
+			{
+				// Update test
+				Config: fmt.Sprintf(testAccVAPPACLResourceConfigGroup, "Change", groupID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "shared_with.#", "1"),
+					resource.TestCheckResourceAttrWith(resourceName, "shared_with.0.group_id", testIsURNType(urn.Group)),
+					resource.TestCheckResourceAttr(resourceName, "shared_with.0.access_level", "Change"),
+				),
+			},
+			{
+				// Import test
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateIdFunc: testAccACLResourceImportStateIDFunc(resourceName),
+			},
+		},
+	})
 }
