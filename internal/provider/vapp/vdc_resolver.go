@@ -59,8 +59,6 @@ func (c vAppClientV2) resolveVDC(ctx context.Context, vdcName string) (resolvedV
 }
 
 // vappInVDC reports whether the vApp belongs to the VDC.
-// TODO(sdk): ModelVApp.VDC is empty with the real API (see vapp-sdk-v2-issues.md, B2):
-// the check is skipped in that case until the SDK fills it.
 func vappInVDC(app *types.ModelVApp, vdc resolvedVDC) bool {
-	return app.VDC == "" || app.VDC == vdc.ID
+	return app.VDC == vdc.ID
 }
