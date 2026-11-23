@@ -215,6 +215,11 @@ func (r *OrgResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
+	if job.Status != cav.JobSuccess {
+		resp.Diagnostics.AddError("Organization update job terminated with failure", fmt.Sprintf("job id (%s), job status(%s)", job.ID, job.Status))
+		return
+	}
+
 	stateRefreshed, found, d := r.read(ctx, plan)
 	if !found {
 		resp.Diagnostics.AddError("Resource not found", "The resource was not found after update")
