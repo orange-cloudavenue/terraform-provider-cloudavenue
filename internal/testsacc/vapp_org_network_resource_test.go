@@ -19,10 +19,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/orange-cloudavenue/common-go/urn"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/helpers/testsacc"
 )
 
@@ -55,7 +56,7 @@ func (r *VAppOrgNetworkResource) Tests(_ context.Context) map[testsacc.TestName]
 		testNameExample: func(_ context.Context, resourceName string) testsacc.Test {
 			return testsacc.Test{
 				CommonChecks: []resource.TestCheckFunc{
-					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", testIsURNType(urn.Network)),
 					resource.TestCheckResourceAttrSet(resourceName, testAttrVDC),
 					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
 					resource.TestCheckResourceAttrSet(resourceName, testAttrVAppName),
@@ -124,12 +125,12 @@ func (r *VAppOrgNetworkResource) Tests(_ context.Context) map[testsacc.TestName]
 				},
 				CommonChecks: []resource.TestCheckFunc{
 					// Checks for the first org network
-					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", testIsURNType(urn.Network)),
 					resource.TestCheckResourceAttrSet(resourceName, testAttrVDC),
 					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
 					resource.TestCheckResourceAttrSet(resourceName, testAttrVAppName),
 					// Checks for the second org network
-					resource.TestCheckResourceAttrWith(secondResourceName, "id", urn.TestIsType(urn.Network)),
+					resource.TestCheckResourceAttrWith(secondResourceName, "id", testIsURNType(urn.Network)),
 					resource.TestCheckResourceAttrSet(secondResourceName, testAttrVDC),
 					resource.TestCheckResourceAttrSet(secondResourceName, "network_name"),
 					resource.TestCheckResourceAttrSet(secondResourceName, testAttrVAppName),

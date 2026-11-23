@@ -14,6 +14,8 @@
 
 package vapp
 
+import "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
+
 const (
 	attrVDC               = "vdc"
 	attrName              = "name"
@@ -24,10 +26,10 @@ const (
 
 // vApp statuses, see govcd types.VAppStatuses.
 const (
-	resolved            = 1  // RESOLVED
-	suspended           = 3  // SUSPENDED
-	poweredON           = 4  // POWERED_ON
-	partiallyDeployed   = 19 // VAPP_PARTIALLY_DEPLOYED
-	partiallyPoweredOff = 20 // PARTIALLY_POWERED_OFF
-	partiallySuspended  = 21 // PARTIALLY_SUSPENDED
+	resolved            = types.VAppStatusResolved
+	suspended           = types.VAppStatusSuspended
+	poweredON           = types.VAppStatusPoweredOn
+	partiallyDeployed   = types.VAppStatusVAppPartiallyDeployed
+	partiallyPoweredOff = types.VAppStatusPartiallyPoweredOff
+	partiallySuspended  = types.VAppStatusPartiallySuspended
 )

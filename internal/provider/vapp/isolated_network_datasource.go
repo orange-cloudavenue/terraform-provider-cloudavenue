@@ -19,14 +19,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
 var (
@@ -39,26 +35,8 @@ func NewIsolatedNetworkDataSource() datasource.DataSource {
 }
 
 type isolatedNetworkDataSource struct {
-	client *client.CloudAvenue
-	vdc    vdc.VDC
-	vapp   vapp.VAPP
-}
-
-// Init initializes the data source.
-func (d *isolatedNetworkDataSource) Init(_ context.Context, dm *isolatedNetworkModel) (diags diag.Diagnostics) {
-	d.vdc, diags = vdc.Init(d.client, dm.VDC.StringValue)
-	if diags.HasError() {
-		return diags
-	}
-
-	vappModel, err := vapp.Init(d.client, d.vdc, dm.VAppID.StringValue, dm.VAppName.StringValue)
-	if err != nil {
-		diags.AddError("Error getting parent vApp", err.Error())
-		return diags
-	}
-	d.vapp = vappModel
-
-	return diags
+	client       *client.CloudAvenue
+	vappClientV2 vAppClientV2
 }
 
 func (d *isolatedNetworkDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -87,6 +65,13 @@ func (d *isolatedNetworkDataSource) Configure(_ context.Context, req datasource.
 	}
 
 	d.client = client
+
+	v2, diags := InitVAppClientV2(client)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	d.vappClientV2 = v2
 }
 
 func (d *isolatedNetworkDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -99,25 +84,38 @@ func (d *isolatedNetworkDataSource) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	// Init datasource
-	resp.Diagnostics.Append(d.Init(ctx, config)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	s := &isolatedNetworkResource{
-		client: d.client,
-		vdc:    d.vdc,
-		vapp:   d.vapp,
-	}
-
-	// Read data
-	data, _, diags := s.read(ctx, config)
+	// Resolve VDC and parent vApp
+	vdc, diags := d.vappClientV2.resolveVDC(ctx, config.VDC.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	app, diags := d.vappClientV2.resolveVApp(ctx, vdc, config.VAppID.ValueString(), config.VAppName.ValueString())
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// The read logic is shared with the resource
+	s := &isolatedNetworkResource{
+		client:       d.client,
+		vappClientV2: d.vappClientV2,
+		vdc:          vdc,
+		vapp:         app,
+	}
+
+	// Read data
+	data, found, diags := s.read(ctx, config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if !found {
+		resp.Diagnostics.AddError("Network not found in vApp", fmt.Sprintf("network %s not found in vApp %s(%s)", config.Name.Get(), app.Name, app.ID))
+		return
+	}
+
 	// Set refreshed state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }

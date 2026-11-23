@@ -21,20 +21,18 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
+	"github.com/orange-cloudavenue/common-go/urn"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	sdktypes "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -51,9 +49,10 @@ func NewOrgNetworkResource() resource.Resource {
 
 // orgNetworkResource is the resource implementation.
 type orgNetworkResource struct {
-	client *client.CloudAvenue
-	vdc    vdc.VDC
-	vapp   vapp.VAPP
+	client       *client.CloudAvenue
+	vappClientV2 vAppClientV2
+	vdc          resolvedVDC
+	vapp         *sdktypes.ModelVApp
 }
 
 // Metadata returns the resource type name.
@@ -66,21 +65,23 @@ func (r *orgNetworkResource) Schema(ctx context.Context, _ resource.SchemaReques
 	resp.Schema = network.GetSchema(network.SetRoutedVapp()).GetResource(ctx)
 }
 
-func (r *orgNetworkResource) Init(_ context.Context, rm *orgNetworkModel) (diags diag.Diagnostics) {
-	r.vdc, diags = vdc.Init(r.client, rm.VDC)
+// Init resolves the VDC and the parent vApp. The SDK client is built in Configure.
+func (r *orgNetworkResource) Init(ctx context.Context, rm *orgNetworkModel) (diags diag.Diagnostics) {
+	vdc, diags := r.vappClientV2.resolveVDC(ctx, rm.VDC.ValueString())
 	if diags.HasError() {
 		return diags
 	}
+	r.vdc = vdc
 
-	vappModel, err := vapp.Init(r.client, r.vdc, rm.VAppID, rm.VAppName)
-	if err != nil {
-		diags.AddError("Error getting parent vApp", err.Error())
+	app, diags := r.vappClientV2.resolveVApp(ctx, r.vdc, rm.VAppID.ValueString(), rm.VAppName.ValueString())
+	if diags.HasError() {
 		return diags
 	}
-	r.vapp = vappModel
+	r.vapp = app
 	return diags
 }
 
+// Configure clients
 func (r *orgNetworkResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
@@ -97,8 +98,14 @@ func (r *orgNetworkResource) Configure(_ context.Context, req resource.Configure
 
 		return
 	}
-
 	r.client = client
+
+	v2, diags := InitVAppClientV2(client)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	r.vappClientV2 = v2
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -122,55 +129,51 @@ func (r *orgNetworkResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
+	unlock, d := lockVApp(ctx, r.vdc.Name, r.vapp.Name)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockVAPP(ctx)
-
-	if err := r.vapp.Refresh(); err != nil {
-		resp.Diagnostics.AddError("Error refreshing parent vApp", err.Error())
-	}
+	defer unlock()
 
 	orgNetworkName := plan.NetworkName.ValueString()
-	orgNetwork, err := r.vdc.GetOrgVdcNetworkByNameOrId(orgNetworkName, true)
+	vdcNetwork, err := r.vappClientV2.vdcClient.GetVDCNetwork(ctx, sdktypes.ParamsGetVDCNetwork{Name: orgNetworkName, OwnerID: r.vdc.ID})
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting org network", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, fmt.Sprintf("Vdc Network %s", orgNetworkName), err)
 		return
 	}
 
-	// RetainIpMacEnabled and IsFenced are always false in CloudAvenue
-
-	vappNetworkSettings := &govcd.VappNetworkSettings{RetainIpMacEnabled: new(false)}
-	vAppNetworkConfig, err := r.vapp.AddOrgNetwork(vappNetworkSettings, orgNetwork.OrgVDCNetwork, false)
+	retain := false
+	section, err := r.vappClientV2.vappClient.AddOrgNetworkToVApp(
+		ctx,
+		sdktypes.ParamsAddOrgNetworkToVApp{
+			VAppID: r.vapp.ID,
+			Network: sdktypes.ModelVAppRuntimeNetworkConfig{
+				NetworkName: vdcNetwork.Name,
+				Configuration: sdktypes.ModelVAppRuntimeNetworkConfiguration{
+					FenceMode:                      "bridged",
+					RetainNetInfoAcrossDeployments: &retain,
+					ParentNetwork:                  vdcNetwork.VAppParentNetworkReference(),
+				},
+			},
+		},
+	)
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating vApp network", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionCreate, fmt.Sprintf("Add Network %s to vApp %s(%s)", orgNetworkName, r.vapp.Name, r.vapp.ID), err)
 		return
 	}
 
-	vAppNetwork := govcdtypes.VAppNetworkConfiguration{}
-	for _, networkConfig := range vAppNetworkConfig.NetworkConfig {
-		if networkConfig.NetworkName == orgNetwork.OrgVDCNetwork.Name {
-			vAppNetwork = networkConfig
-		}
-	}
-
-	if vAppNetwork == (govcdtypes.VAppNetworkConfiguration{}) {
-		resp.Diagnostics.AddError("Error creating vApp network", "vApp network not found in vApp network config")
-		return
-	}
-
-	networkID, err := govcd.GetUuidFromHref(vAppNetwork.Link.HREF, false)
-	if err != nil {
-		resp.Diagnostics.AddError("Error creating vApp network ID", err.Error())
+	vAppNetwork, diags := plan.findOrgNetwork(section.NetworkConfig)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	state := &orgNetworkModel{
-		ID:          types.StringValue(urn.Normalize(urn.Network, networkID).String()),
+		ID:          types.StringValue(urn.Normalize(urn.Network, urn.ExtractUUID(vAppNetwork.ID)).String()),
 		VAppName:    plan.VAppName,
 		VAppID:      plan.VAppID,
-		VDC:         types.StringValue(r.vdc.GetName()),
+		VDC:         types.StringValue(r.vdc.Name),
 		NetworkName: plan.NetworkName,
 	}
 
@@ -196,40 +199,31 @@ func (r *orgNetworkResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	// Lock
-	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
+	// Lock vApp
+	unlock, d := lockVApp(ctx, r.vdc.Name, r.vapp.Name)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	defer unlock()
 
-	defer r.vapp.UnlockVAPP(ctx)
-
-	if err := r.vapp.Refresh(); err != nil {
-		resp.Diagnostics.AddError("Error refreshing parent vApp", err.Error())
-	}
-
-	vAppNetworkConfig, err := r.vapp.GetNetworkConfig()
+	vAppNetworkConfig, err := r.vappClientV2.vappClient.GetVAppNetworkConfig(ctx, sdktypes.ParamsGetVAppNetworkConfig{ID: r.vapp.ID})
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting vApp network config", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, fmt.Sprintf("vApp %s(%s)", r.vapp.Name, r.vapp.ID), err)
 		return
 	}
 
-	vAppNetwork, networkID, d := state.findOrgNetwork(vAppNetworkConfig)
+	vAppNetwork, d := state.findOrgNetwork(vAppNetworkConfig.NetworkConfig)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if vAppNetwork == (&govcdtypes.VAppNetworkConfiguration{}) {
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
 	plan := &orgNetworkModel{
-		ID:          types.StringValue(urn.Normalize(urn.Network, *networkID).String()),
+		ID:          types.StringValue(urn.Normalize(urn.Network, urn.ExtractUUID(vAppNetwork.ID)).String()),
 		VAppName:    state.VAppName,
 		VAppID:      state.VAppID,
-		VDC:         types.StringValue(r.vdc.GetName()),
+		VDC:         types.StringValue(r.vdc.Name),
 		NetworkName: state.NetworkName,
 	}
 
@@ -262,66 +256,49 @@ func (r *orgNetworkResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
+	unlock, d := lockVApp(ctx, r.vdc.Name, r.vapp.Name)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockVAPP(ctx)
-
-	if err := r.vapp.Refresh(); err != nil {
-		resp.Diagnostics.AddError("Error refreshing parent vApp", err.Error())
-	}
+	defer unlock()
 
 	// A deployed vApp (poweredON, poweredOFF, suspended, partiallyDeployed, ...)
 	// cannot have a network detached (API error 409). Only an undeployed
 	// (resolved) vApp accepts network detach, so the vApp is undeployed first.
-	vAppRequiredStatuses := []int{resolved}
-	vAppStatusBeforeAction := r.vapp.VApp.VApp.Status
-
-	// Suspended vApp
-	if err := r.vapp.Refresh(); err != nil {
-		resp.Diagnostics.AddError("Error getting vApp status", err.Error())
+	vapp, err := r.vappClientV2.vappClient.GetVApp(ctx, sdktypes.ParamsGetVApp{ID: r.vapp.ID})
+	if err != nil {
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, fmt.Sprintf("vApp %s(%s)", r.vapp.Name, r.vapp.ID), err)
 		return
 	}
 
-	if !slices.Contains(vAppRequiredStatuses, r.vapp.VApp.VApp.Status) {
+	vAppRequiredStatuses := []string{resolved}
+	vAppStatusBeforeAction := vapp.Status
+	if !slices.Contains(vAppRequiredStatuses, vapp.Status) {
 		// A suspended vApp cannot be undeployed directly: discard its state first.
-		if r.vapp.VApp.VApp.Status == suspended {
-			if err := r.vapp.VApp.DiscardSuspendedState(); err != nil {
-				resp.Diagnostics.AddError("Error discarding suspended state of vApp", err.Error())
+		if vapp.Status == suspended {
+			if err := r.vappClientV2.vappClient.DiscardSuspendedStateVApp(ctx, vapp.ID); err != nil {
+				cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("Error discarding suspended state of vApp %s(%s)", r.vapp.Name, r.vapp.ID), err)
 				return
 			}
 		}
 
-		task, err := r.vapp.Undeploy()
+		err := r.vappClientV2.vappClient.UndeployVApp(ctx, sdktypes.ParamsUndeployVApp{ID: vapp.ID, Mode: sdktypes.VAppUndeployModePowerOff})
 		if err != nil {
-			resp.Diagnostics.AddError("Error undeploying vApp", err.Error())
-			return
-		}
-
-		if err = task.WaitTaskCompletion(); err != nil {
-			resp.Diagnostics.AddError("Error undeploying vApp", err.Error())
+			cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("Error undeploying vApp %s(%s)", r.vapp.Name, r.vapp.ID), err)
 			return
 		}
 	}
 
-	if _, err := r.vapp.RemoveNetwork(state.ID.ValueString()); err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Error deleting vApp network from vApp %s(%s)", state.VAppName.ValueString(), state.VAppID.ValueString()),
-			err.Error(),
-		)
+	if _, err := r.vappClientV2.vappClient.RemoveVAppNetwork(ctx, sdktypes.ParamsRemoveVAppNetwork{VAppID: vapp.ID, NetworkName: state.NetworkName.ValueString()}); err != nil {
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("Error deleting vApp network from vApp %s(%s)", r.vapp.Name, r.vapp.ID), err)
 	}
 
 	// Restore power if the vApp was powered on before the network was detached.
-	if slices.Contains([]int{poweredON, partiallyDeployed, partiallyPoweredOff, partiallySuspended}, vAppStatusBeforeAction) {
+	if slices.Contains([]string{poweredON, partiallyDeployed, partiallyPoweredOff, partiallySuspended}, vAppStatusBeforeAction) {
 		// Power On vApp
-		task, err := r.vapp.PowerOn()
+		err := r.vappClientV2.vappClient.PowerOnVApp(ctx, vapp.ID)
 		if err != nil {
-			resp.Diagnostics.AddError("Error powering on vApp", err.Error())
-			return
-		}
-
-		if err := task.WaitTaskCompletion(); err != nil {
 			resp.Diagnostics.AddError("Error powering on vApp", err.Error())
 			return
 		}

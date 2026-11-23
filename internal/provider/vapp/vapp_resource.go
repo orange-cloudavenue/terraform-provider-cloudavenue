@@ -18,29 +18,22 @@ package vapp
 import (
 	"context"
 	"fmt"
-	"reflect"
-	"regexp"
 	"strings"
 	"time"
 
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
+	"github.com/orange-cloudavenue/common-go/urn"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
 const vappSubsystem = "vapp"
@@ -59,10 +52,9 @@ func NewVappResource() resource.Resource {
 
 // vappResource is the resource implementation.
 type vappResource struct {
-	client   *client.CloudAvenue
-	vdc      vdc.VDC
-	adminorg adminorg.AdminOrg
-	vapp     vapp.VAPP
+	client       *client.CloudAvenue
+	vappClientV2 vAppClientV2
+	vdc          resolvedVDC
 }
 
 // Metadata returns the resource type name.
@@ -75,13 +67,14 @@ func (r *vappResource) Schema(ctx context.Context, _ resource.SchemaRequest, res
 	resp.Schema = vappSchema().GetResource(ctx)
 }
 
-func (r *vappResource) Init(_ context.Context, rm *vappResourceModel) (diags diag.Diagnostics) {
-	r.adminorg, diags = adminorg.Init(r.client)
+// Init resolves the VDC of the vApp. The SDK client is built in Configure.
+func (r *vappResource) Init(ctx context.Context, rm *vappResourceModel) (diags diag.Diagnostics) {
+	resolved, diags := r.vappClientV2.resolveVDC(ctx, rm.VDC.ValueString())
 	if diags.HasError() {
 		return diags
 	}
+	r.vdc = resolved
 
-	r.vdc, diags = vdc.Init(r.client, rm.VDC.StringValue)
 	return diags
 }
 
@@ -103,6 +96,13 @@ func (r *vappResource) Configure(_ context.Context, req resource.ConfigureReques
 	}
 
 	r.client = client
+
+	v2, diags := InitVAppClientV2(client)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	r.vappClientV2 = v2
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -110,10 +110,7 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 	defer metrics.New("cloudavenue_vapp", r.client.GetOrgName(), metrics.Create)()
 
 	// Retrieve values from plan
-	var (
-		plan  *vappResourceModel
-		diags diag.Diagnostics
-	)
+	var plan *vappResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -126,45 +123,38 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	// Create vApp
-	r.vapp, diags = vapp.Create(r.vdc, plan.VAppName.ValueString(), plan.Description.ValueString())
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 	if tflog.IsDebug(ctx) {
 		tflog.SubsystemDebug(ctx, vappSubsystem, "Creating vApp", map[string]any{attrVappName: plan.VAppName.ValueString(), attrVDC: plan.VDC.ValueString()})
 	}
 
-	// Wait for job to complete
-	errRetry := retry.RetryContext(ctx, 90*time.Second, func() *retry.RetryError {
-		currentStatus, errGetStatus := r.vapp.GetStatus()
-		if errGetStatus != nil {
-			tflog.SubsystemError(ctx, vappSubsystem, "vApp status read failed", map[string]any{attrVappName: plan.VAppName.ValueString()})
-			return retry.NonRetryableError(errGetStatus)
-		}
-		if tflog.IsDebug(ctx) {
-			tflog.SubsystemDebug(ctx, vappSubsystem, "vApp status", map[string]any{attrVappName: plan.VAppName.ValueString(), "status": currentStatus})
-		}
-		if currentStatus == "UNRESOLVED" {
-			return retry.RetryableError(fmt.Errorf("expected vapp status != UNRESOLVED"))
-		}
+	// Create vApp
+	app, err := r.vappClientV2.vappClient.ComposeVApp(ctx, types.ParamsComposeVApp{VDCID: r.vdc.ID, Name: plan.VAppName.Get(), Description: plan.Description.Get()})
+	if err != nil {
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionCreate, fmt.Sprintf("vApp %s", plan.VAppName.Get()), err)
+		return
+	}
 
-		return nil
-	})
+	// Wait for the vApp to leave the UNRESOLVED status
+	if err := r.waitVAppResolved(ctx, app.ID); err != nil {
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionCreate, fmt.Sprintf("vApp %s(%s) status", app.Name, app.ID), err)
+		return
+	}
 
-	if errRetry != nil {
-		resp.Diagnostics.AddError("Error waiting for vApp to complete", errRetry.Error())
+	// Persist the ID right away so the vApp is not orphaned if a later step fails
+	plan.VAppID.Set(app.ID)
+	plan.VDC.Set(r.vdc.Name)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	stateRefreshed, found, d := r.read(ctx, plan)
-	if !found {
-		resp.State.RemoveResource(ctx)
-		return
-	}
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+	if !found {
+		resp.Diagnostics.AddError("Error creating vApp", fmt.Sprintf("vApp %s(%s) not found right after creation", app.Name, app.ID))
 		return
 	}
 
@@ -182,6 +172,41 @@ func (r *vappResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
+}
+
+const (
+	vappStatusUnresolved     = "UNRESOLVED"
+	vappResolvedTimeout      = 90 * time.Second
+	vappResolvedPollInterval = 2 * time.Second
+)
+
+// waitVAppResolved polls GetVApp until the vApp status is no longer UNRESOLVED.
+// ComposeVApp only waits for the job, not for the status transition.
+func (r *vappResource) waitVAppResolved(ctx context.Context, vappID string) error {
+	ctx, cancel := context.WithTimeout(ctx, vappResolvedTimeout)
+	defer cancel()
+
+	ticker := time.NewTicker(vappResolvedPollInterval)
+	defer ticker.Stop()
+
+	for {
+		app, err := r.vappClientV2.vappClient.GetVApp(ctx, types.ParamsGetVApp{ID: vappID})
+		if err != nil {
+			return err
+		}
+		if tflog.IsDebug(ctx) {
+			tflog.SubsystemDebug(ctx, vappSubsystem, "vApp status", map[string]any{"id": vappID, "status": app.Status})
+		}
+		if app.Status != vappStatusUnresolved {
+			return nil
+		}
+
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("timeout waiting for status != %s (last status %s): %w", vappStatusUnresolved, app.Status, ctx.Err())
+		case <-ticker.C:
+		}
+	}
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -241,21 +266,14 @@ func (r *vappResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		tflog.SubsystemDebug(ctx, vappSubsystem, "Updating vApp", map[string]any{attrVappName: plan.VAppName.ValueString(), attrVDC: plan.VDC.ValueString()})
 	}
 
-	// Request vApp
-	vappModel, err := vapp.Init(r.client, r.vdc, plan.VAppID.StringValue, plan.VAppName.StringValue)
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving vApp", fmt.Sprintf("error retrieving vApp %q during update: %s", plan.VAppName.ValueString(), err))
-		return
-	}
-	r.vapp = vappModel
-
 	// Update vApp
 	resp.Diagnostics.Append(r.updateVapp(ctx, plan, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	stateRefreshed, found, d := r.read(ctx, state)
+	// Read from the plan (not the old state) so removed guest properties are not kept
+	stateRefreshed, found, d := r.read(ctx, plan)
 	if !found {
 		resp.State.RemoveResource(ctx)
 		return
@@ -288,39 +306,13 @@ func (r *vappResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	}
 
 	// Request vApp
-	vapp, err := r.vdc.GetVAppByNameOrId(state.VAppID.Get(), true)
+	err := r.vappClientV2.vappClient.DeleteVApp(ctx, types.ParamsDeleteVApp{ID: state.VAppID.ValueString()})
 	if err != nil {
 		if cerrs.IsNotFound(err) {
-			resp.Diagnostics.AddError("vApp not found", err.Error())
+			cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp not found %s(%s)", state.VAppName.ValueString(), state.VAppID.ValueString()), err)
 			return
 		}
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "vApp", err)
-		return
-	}
-	// to avoid network destroy issues - detach networks from vApp
-	task, err := vapp.RemoveAllNetworks()
-	if err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
-		return
-	}
-	if err := task.WaitTaskCompletion(); err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
-		return
-	}
-
-	if err := tryUndeploy(*vapp); err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
-		return
-	}
-
-	task, err = vapp.Delete()
-	if err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
-		return
-	}
-
-	if err := task.WaitTaskCompletion(); err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", vapp.VApp.Name, vapp.VApp.ID), err)
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s)", state.VAppName.ValueString(), state.VAppID.ValueString()), err)
 		return
 	}
 }
@@ -330,20 +322,21 @@ func (r *vappResource) ImportState(ctx context.Context, req resource.ImportState
 
 	var (
 		diags        diag.Diagnostics
+		resolved     resolvedVDC
 		vAppIDOrName string
 	)
 
-	// Split req.ID with dot. ID format is EdgeGatewayIDOrName.StaticRouteNameOrID
+	// Split req.ID with dot. ID format is  VDCName.VAppIDOrName or VAppIDOrName
 	idParts := strings.Split(req.ID, ".")
 
 	switch len(idParts) {
 	case 1:
 		vAppIDOrName = idParts[0]
-		r.vdc, diags = vdc.Init(r.client, basetypes.NewStringNull())
+		resolved, diags = r.vappClientV2.resolveVDC(ctx, "")
 		resp.Diagnostics.Append(diags...)
 	case 2:
 		vAppIDOrName = idParts[1]
-		r.vdc, diags = vdc.Init(r.client, basetypes.NewStringValue(idParts[0]))
+		resolved, diags = r.vappClientV2.resolveVDC(ctx, idParts[0])
 		resp.Diagnostics.Append(diags...)
 	default:
 		resp.Diagnostics.AddError("Invalid ID format", fmt.Sprintf("ID format is VDCName.VAppIDOrName or VAppIDOrName, got: %s", req.ID))
@@ -352,50 +345,36 @@ func (r *vappResource) ImportState(ctx context.Context, req resource.ImportState
 		return
 	}
 
-	vapp, err := r.vdc.GetVAppByNameOrId(vAppIDOrName, true)
+	var p types.ParamsGetVApp
+	if urn.IsValid(vAppIDOrName) && urn.IsVAPP(vAppIDOrName) {
+		p = types.ParamsGetVApp{ID: vAppIDOrName}
+	} else {
+		p = types.ParamsGetVApp{Name: vAppIDOrName}
+	}
+	app, err := r.vappClientV2.vappClient.GetVApp(ctx, p)
 	if err != nil {
 		if cerrs.IsNotFound(err) {
-			resp.Diagnostics.AddError("vApp not found", err.Error())
+			cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, fmt.Sprintf("vApp not found %s", vAppIDOrName), err)
 			return
 		}
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "vApp", err)
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, fmt.Sprintf("vApp %s", vAppIDOrName), err)
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), vapp.VApp.ID)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), vapp.VApp.Name)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vdc"), r.vdc.GetName())...)
-}
-
-// tryUndeploy try to undeploy a vApp, but do not throw an error if the vApp is powered off.
-// Very often the vApp is powered off at this point and Undeploy() would fail with error:
-// "The requested operation could not be executed since vApp vApp_name is not running"
-// So, if the error matches we just ignore it and the caller may fast forward to vapp.Delete().
-func tryUndeploy(vapp govcd.VApp) error {
-	task, err := vapp.Undeploy()
-	reErr := regexp.MustCompile(`.*The requested operation could not be executed since vApp.*is not running.*`)
-	if err != nil && reErr.MatchString(err.Error()) {
-		// ignore - can't be undeployed
-		return nil
-	} else if err != nil {
-		return fmt.Errorf("error undeploying vApp %s(%s): %w", vapp.VApp.Name, vapp.VApp.ID, err)
+	if !vappInVDC(app, resolved) {
+		resp.Diagnostics.AddError("Vdc not found", fmt.Sprintf("App vdc id %s different from resolved vdc id %s", app.VDC, resolved.ID))
+		return
 	}
 
-	err = task.WaitTaskCompletion()
-	if err != nil {
-		return fmt.Errorf("error undeploying vApp %s(%s): %w", vapp.VApp.Name, vapp.VApp.ID, err)
-	}
-	return nil
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), app.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), app.Name)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("vdc"), resolved.Name)...)
 }
 
 // updateVapp make updates only on elements that must be updated.
 func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResourceModel) (diags diag.Diagnostics) {
-	// Set default lease values
-	var (
-		runtimeLease = *r.adminorg.GetOrgVAppLeaseSettings().DeploymentLeaseSeconds
-		storageLease = *r.adminorg.GetOrgVAppLeaseSettings().StorageLeaseSeconds
-	)
-
+	var runtimeLease, storageLease *int
+	var planLease *vappResourceModelLease
 	// Get lease config
 	if !plan.Lease.IsNull() {
 		lease, d := plan.Lease.Get(ctx)
@@ -403,130 +382,111 @@ func (r *vappResource) updateVapp(ctx context.Context, plan, state *vappResource
 		if diags.HasError() {
 			return diags
 		}
-
-		runtimeLease = lease.RuntimeLeaseInSec.GetInt()
-		storageLease = lease.StorageLeaseInSec.GetInt()
-	}
-
-	// Update lease if needed
-	if runtimeLease != r.vapp.GetDeploymentLeaseInSeconds() ||
-		storageLease != r.vapp.GetStorageLeaseInSeconds() {
-		if err := r.vapp.RenewLease(runtimeLease, storageLease); err != nil {
-			diags.AddError("Error renewing lease", err.Error())
-			return diags
+		// Lease is unknown: nothing to send
+		if lease != nil {
+			planLease = lease
+			runtimeLease = lease.RuntimeLeaseInSec.GetIntPtr()
+			storageLease = lease.StorageLeaseInSec.GetIntPtr()
 		}
 	}
 
-	// Update description if needed
+	p := types.ParamsUpdateVApp{ID: plan.VAppID.ValueString()}
+	stateLease, d := state.Lease.Get(ctx)
+	diags.Append(d...)
+	if diags.HasError() {
+		return diags
+	}
+
+	var modify bool
+	switch {
+	case planLease == nil:
+		// No lease in plan: leave the lease untouched
+	case stateLease == nil:
+		p.DeploymentLeaseInSeconds = runtimeLease
+		p.StorageLeaseInSeconds = storageLease
+		modify = true
+	default:
+		if !planLease.RuntimeLeaseInSec.Equal(stateLease.RuntimeLeaseInSec) {
+			p.DeploymentLeaseInSeconds = runtimeLease
+			modify = true
+		}
+		if !planLease.StorageLeaseInSec.Equal(stateLease.StorageLeaseInSec) {
+			p.StorageLeaseInSeconds = storageLease
+			modify = true
+		}
+	}
+
+	// Check updates
 	if !plan.Description.Equal(state.Description) {
-		if err := r.vapp.UpdateDescription(plan.Description.ValueString()); err != nil {
-			diags.AddError("Error updating vApp description", err.Error())
+		description := plan.Description.ValueString()
+		p.Description = &description
+		modify = true
+	}
+
+	// Update if needed
+	if modify {
+		if _, err := r.vappClientV2.vappClient.UpdateVApp(ctx, p); err != nil {
+			cerrs.AddError(&diags, cerrs.ActionUpdate, fmt.Sprintf("vApp %s(%s)", plan.VAppName.ValueString(), plan.VAppID.ValueString()), err)
 			return diags
 		}
 	}
 
 	// Update GuestProperties if needed
-	if !reflect.DeepEqual(plan.GuestProperties, state.GuestProperties) {
-		// Init guestProperties struct
-		x := &govcdtypes.ProductSectionList{
-			ProductSection: &govcdtypes.ProductSection{
-				Info:     "Custom properties",
-				Property: []*govcdtypes.Property{},
-			},
+	if !plan.GuestProperties.Equal(state.GuestProperties) {
+		gp, d := plan.guestPropertiesToSDK(ctx)
+		diags.Append(d...)
+		if diags.HasError() {
+			return diags
 		}
 
-		// Extract values from plan
-		if !plan.GuestProperties.IsNull() {
-			guestProperties := make(map[string]string)
-			diags.Append(plan.GuestProperties.Get(ctx, &guestProperties, true)...)
-			if diags.HasError() {
-				return diags
-			}
-
-			for k, v := range guestProperties {
-				oneProp := &govcdtypes.Property{
-					UserConfigurable: true,
-					Type:             "string",
-					Key:              k,
-					Label:            k,
-					Value:            &govcdtypes.Value{Value: v},
-				}
-				x.ProductSection.Property = append(x.ProductSection.Property, oneProp)
-			}
-		}
-		if _, err := r.vapp.SetProductSectionList(x); err != nil {
-			diags.AddError("Error updating vApp guest properties", err.Error())
+		_, err := r.vappClientV2.vappClient.UpdateVAppGuestProperties(ctx, types.ParamsUpdateVAppGuestProperties{ID: plan.VAppID.ValueString(), GuestProperties: gp})
+		if err != nil {
+			cerrs.AddError(&diags, cerrs.ActionUpdate, fmt.Sprintf("vApp %s(%s)", plan.VAppName.ValueString(), plan.VAppID.ValueString()), err)
 			return diags
 		}
 	}
 
-	return nil
+	return diags
 }
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
 func (r *vappResource) read(ctx context.Context, planOrState *vappResourceModel) (stateRefreshed *vappResourceModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
-	/*
-		Implement the resource read here
-	*/
-
-	vappModel, err := vapp.Init(r.client, r.vdc, planOrState.VAppID.StringValue, planOrState.VAppName.StringValue)
+	app, err := r.vappClientV2.vappClient.GetVApp(ctx, types.ParamsGetVApp{ID: planOrState.VAppID.ValueString()})
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			tflog.SubsystemDebug(ctx, vappSubsystem, "vApp not found, removing from state", map[string]any{attrVappName: planOrState.VAppName.ValueString(), attrVDC: planOrState.VDC.ValueString()})
 			return nil, false, diags
 		}
-		tflog.SubsystemError(ctx, vappSubsystem, "vApp init failed", map[string]any{attrVappName: planOrState.VAppName.ValueString(), attrVDC: planOrState.VDC.ValueString()})
-		diags.AddError("Error retrieving vApp", fmt.Sprintf("error retrieving vApp %q during read: %s", planOrState.VAppName.ValueString(), err))
+		tflog.SubsystemError(ctx, vappSubsystem, "vApp read failed", map[string]any{attrVappName: planOrState.VAppName.ValueString(), attrVDC: planOrState.VDC.ValueString()})
+		cerrs.AddError(&diags, cerrs.ActionRead, fmt.Sprintf("vApp %s", planOrState.VAppName.ValueString()), err)
 		return nil, true, diags
 	}
-	r.vapp = vappModel
+
+	if !vappInVDC(app, r.vdc) {
+		diags.AddError("Vdc not found", fmt.Sprintf("App vdc id %s different from resolved vdc id %s", app.VDC, r.vdc.ID))
+		return nil, true, diags
+	}
 
 	// * Guest properties
-	guestProperties, err := r.vapp.GetProductSectionList()
+	guestProperties, err := r.vappClientV2.vappClient.GetVAppGuestProperties(ctx, types.ParamsGetVAppGuestProperties{ID: app.ID})
 	if err != nil {
 		tflog.SubsystemError(ctx, vappSubsystem, "vApp guest properties read failed", map[string]any{attrVappName: planOrState.VAppName.ValueString()})
-		diags.AddError("Error retrieving guest properties", fmt.Sprintf("error retrieving guest properties for vApp %q: %s", planOrState.VAppName.ValueString(), err))
-		return stateRefreshed, found, diags
+		cerrs.AddError(&diags, cerrs.ActionRead, fmt.Sprintf("vApp %s(%s) guest properties", app.Name, app.ID), err)
+		return nil, true, diags
 	}
 
-	properties := make(map[string]string)
-	if guestProperties != nil && guestProperties.ProductSection != nil && guestProperties.ProductSection.Property != nil {
-		for _, guestProperty := range guestProperties.ProductSection.Property {
-			if guestProperty.Value != nil {
-				properties[guestProperty.Key] = guestProperty.Value.Value
-			}
-		}
+	refreshDiag := stateRefreshed.guestPropertiesFromSDK(ctx, guestProperties)
+	diags.Append(refreshDiag...)
+	if diags.HasError() {
+		return nil, true, diags
+	}
+	refreshDiag = stateRefreshed.fromSDK(ctx, app, r.vdc.Name)
+	diags.Append(refreshDiag...)
+	if diags.HasError() {
+		return nil, true, diags
 	}
 
-	if len(properties) > 0 {
-		diags.Append(stateRefreshed.GuestProperties.Set(ctx, properties)...)
-		if diags.HasError() {
-			return nil, true, diags
-		}
-	}
-
-	// * Lease
-	leaseInfo, err := r.vapp.GetLease()
-	if err != nil {
-		tflog.SubsystemError(ctx, vappSubsystem, "vApp lease read failed", map[string]any{attrVappName: planOrState.VAppName.ValueString()})
-		diags.AddError("Error retrieving lease info", fmt.Sprintf("error retrieving lease info for vApp %q: %s", planOrState.VAppName.ValueString(), err))
-		return stateRefreshed, found, diags
-	}
-
-	if leaseInfo != nil {
-		vappLease := new(vappResourceModelLease)
-		vappLease.RuntimeLeaseInSec.SetInt(leaseInfo.DeploymentLeaseInSeconds)
-		vappLease.StorageLeaseInSec.SetInt(leaseInfo.StorageLeaseInSeconds)
-
-		stateRefreshed.Lease.Set(ctx, vappLease)
-	}
-
-	stateRefreshed.VAppID.Set(r.vapp.GetID())
-	stateRefreshed.VAppName.Set(r.vapp.GetName())
-	stateRefreshed.VDC.Set(r.vdc.GetName())
-	stateRefreshed.Description.Set(r.vapp.GetDescription())
-
-	return stateRefreshed, true, nil
+	return stateRefreshed, true, diags
 }

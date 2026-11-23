@@ -17,25 +17,18 @@ package vapp
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
-
-	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
-
-	"github.com/vmware/go-vcloud-director/v2/govcd"
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	sdktypes "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -52,9 +45,10 @@ func NewIsolatedNetworkResource() resource.Resource {
 
 // isolatedNetworkResource is isolated network resource implementation.
 type isolatedNetworkResource struct {
-	client *client.CloudAvenue
-	vdc    vdc.VDC
-	vapp   vapp.VAPP
+	client       *client.CloudAvenue
+	vappClientV2 vAppClientV2
+	vdc          resolvedVDC
+	vapp         *sdktypes.ModelVApp
 }
 
 // Metadata returns the resource type name.
@@ -67,21 +61,24 @@ func (r *isolatedNetworkResource) Schema(ctx context.Context, _ resource.SchemaR
 	resp.Schema = isolatedNetworkSchema().GetResource(ctx)
 }
 
-func (r *isolatedNetworkResource) Init(_ context.Context, rm *isolatedNetworkModel) (diags diag.Diagnostics) {
-	r.vdc, diags = vdc.Init(r.client, rm.VDC.StringValue)
+// Init resolves the VDC and the parent vApp. The SDK client is built in Configure.
+func (r *isolatedNetworkResource) Init(ctx context.Context, rm *isolatedNetworkModel) (diags diag.Diagnostics) {
+	vdc, diags := r.vappClientV2.resolveVDC(ctx, rm.VDC.ValueString())
 	if diags.HasError() {
 		return diags
 	}
+	r.vdc = vdc
 
-	vappModel, err := vapp.Init(r.client, r.vdc, rm.VAppID.StringValue, rm.VAppName.StringValue)
-	if err != nil {
-		diags.AddError("Error getting parent vApp", err.Error())
+	app, diags := r.vappClientV2.resolveVApp(ctx, r.vdc, rm.VAppID.ValueString(), rm.VAppName.ValueString())
+	if diags.HasError() {
 		return diags
 	}
-	r.vapp = vappModel
+	r.vapp = app
+
 	return diags
 }
 
+// Configure clients
 func (r *isolatedNetworkResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
@@ -100,6 +97,13 @@ func (r *isolatedNetworkResource) Configure(_ context.Context, req resource.Conf
 	}
 
 	r.client = client
+
+	v2, diags := InitVAppClientV2(client)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	r.vappClientV2 = v2
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -121,37 +125,39 @@ func (r *isolatedNetworkResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
+	unlock, d := lockVApp(ctx, r.vdc.Name, r.vapp.Name)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockVAPP(ctx)
+	defer unlock()
 
-	vappNetworkSettings, d := r.buildVappNetworkObject(ctx, plan)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	network, d := plan.toSDK(ctx, nil)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Create network
-	_, err := r.vapp.CreateVappNetwork(vappNetworkSettings, nil)
+	_, err := r.vappClientV2.vappClient.CreateVAppNetwork(ctx, sdktypes.ParamsCreateVAppNetwork{VAppID: r.vapp.ID, Network: network})
 	if err != nil {
-		resp.Diagnostics.AddError("Error creating vApp isolated network", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionCreate, fmt.Sprintf("vApp isolated network %s", plan.Name.ValueString()), err)
 		return
 	}
 
 	// Use generic read function to refresh the state
-	stateRefreshed, _, d := r.read(ctx, plan)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	stateRefreshed, found, d := r.read(ctx, plan)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if !found {
+		resp.Diagnostics.AddError("Error creating vApp isolated network", fmt.Sprintf("network %s not found in vApp %s(%s) right after creation", plan.Name.ValueString(), r.vapp.Name, r.vapp.ID))
 		return
 	}
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, stateRefreshed)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 // Read refreshes the Terraform state with the latest data.
@@ -174,12 +180,12 @@ func (r *isolatedNetworkResource) Read(ctx context.Context, req resource.ReadReq
 
 	// Refresh the state
 	stateRefreshed, found, d := r.read(ctx, state)
-	if !found {
-		resp.State.RemoveResource(ctx)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	if !found {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -210,29 +216,45 @@ func (r *isolatedNetworkResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
+	unlock, d := lockVApp(ctx, r.vdc.Name, r.vapp.Name)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockVAPP(ctx)
+	defer unlock()
 
-	vappNetworkSettings, d := r.buildVappNetworkObject(ctx, plan)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	// Current network is the base of the update to preserve unmanaged runtime fields
+	current, d := r.findNetwork(ctx, plan.Name.ValueString())
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if current == nil {
+		resp.Diagnostics.AddError("Error updating vApp isolated network", fmt.Sprintf("network %s not found in vApp %s(%s)", plan.Name.ValueString(), r.vapp.Name, r.vapp.ID))
+		return
+	}
+
+	network, d := plan.toSDK(ctx, current)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Update network
-	_, err := r.vapp.UpdateNetwork(vappNetworkSettings, nil)
+	_, err := r.vappClientV2.vappClient.UpdateVAppNetwork(ctx, sdktypes.ParamsUpdateVAppNetwork{VAppID: r.vapp.ID, NetworkName: plan.Name.ValueString(), Network: network})
 	if err != nil {
-		resp.Diagnostics.AddError("Error updating vApp isolated network", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, fmt.Sprintf("vApp isolated network %s", plan.Name.ValueString()), err)
 		return
 	}
 
 	// Use generic read function to refresh the state
-	stateRefreshed, _, d := r.read(ctx, plan)
-	if d.HasError() {
-		resp.Diagnostics.Append(d...)
+	stateRefreshed, found, d := r.read(ctx, plan)
+	resp.Diagnostics.Append(d...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if !found {
+		resp.Diagnostics.AddError("Error updating vApp isolated network", fmt.Sprintf("network %s not found in vApp %s(%s) right after update", plan.Name.ValueString(), r.vapp.Name, r.vapp.ID))
 		return
 	}
 
@@ -259,18 +281,16 @@ func (r *isolatedNetworkResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	// Lock vApp
-	resp.Diagnostics.Append(r.vapp.LockVAPP(ctx)...)
+	unlock, d := lockVApp(ctx, r.vdc.Name, r.vapp.Name)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	defer r.vapp.UnlockVAPP(ctx)
+	defer unlock()
 
-	_, err := r.vapp.RemoveNetwork(state.ID.String())
+	_, err := r.vappClientV2.vappClient.RemoveVAppNetwork(ctx, sdktypes.ParamsRemoveVAppNetwork{VAppID: r.vapp.ID, NetworkName: state.Name.ValueString()})
 	if err != nil {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("Error deleting vApp network from vApp %s(%s)", state.VAppName.ValueString(), state.VAppID.ValueString()),
-			err.Error(),
-		)
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, fmt.Sprintf("vApp %s(%s) network %s", r.vapp.Name, r.vapp.ID, state.Name.ValueString()), err)
 		return
 	}
 }
@@ -301,100 +321,45 @@ func (r *isolatedNetworkResource) ImportState(ctx context.Context, req resource.
 // * CustomFuncs
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
+// found is false (without error) when the network does not exist in the vApp.
 func (r *isolatedNetworkResource) read(ctx context.Context, planOrState *isolatedNetworkModel) (stateRefreshed *isolatedNetworkModel, found bool, diags diag.Diagnostics) {
-	stateRefreshed = planOrState.Copy()
-
-	net, err := r.findNetwork(planOrState.Name.Get())
-	if err != nil {
-		diags.AddError("Error finding network", err.Error())
+	network, d := r.findNetwork(ctx, planOrState.Name.ValueString())
+	diags.Append(d...)
+	if diags.HasError() {
+		return nil, true, diags
+	}
+	if network == nil {
 		return nil, false, diags
 	}
 
-	// Get UUID.
-	networkID, err := govcd.GetUuidFromHref(net.Link.HREF, false)
-	if err != nil {
-		diags.AddError("Error creating vApp network ID", err.Error())
-		return stateRefreshed, found, diags
+	stateRefreshed = planOrState.Copy()
+	diags.Append(stateRefreshed.fromSDK(ctx, network)...)
+	if diags.HasError() {
+		return nil, true, diags
 	}
 
-	planOrState.ID.Set(urn.Normalize(urn.Network, networkID).String())
-	planOrState.Name.Set(net.NetworkName)
-	planOrState.VDC.Set(r.vdc.GetName())
-	planOrState.VAppName.Set(r.vapp.GetName())
-	planOrState.VAppID.Set(r.vapp.GetID())
-	planOrState.Description.Set(net.Description)
-	planOrState.GuestVLANAllowed.SetPtr(net.Configuration.GuestVlanAllowed)
-	planOrState.RetainIPMacEnabled.SetPtr(net.Configuration.RetainNetInfoAcrossDeployments)
+	stateRefreshed.VDC.Set(r.vdc.Name)
+	stateRefreshed.VAppName.Set(r.vapp.Name)
+	stateRefreshed.VAppID.Set(r.vapp.ID)
 
-	if len(net.Configuration.IPScopes.IPScope) > 0 {
-		planOrState.Netmask.Set(net.Configuration.IPScopes.IPScope[0].Netmask)
-		planOrState.Gateway.Set(net.Configuration.IPScopes.IPScope[0].Gateway)
-		planOrState.DNS1.Set(net.Configuration.IPScopes.IPScope[0].DNS1)
-		planOrState.DNS2.Set(net.Configuration.IPScopes.IPScope[0].DNS2)
-		planOrState.DNSSuffix.Set(net.Configuration.IPScopes.IPScope[0].DNSSuffix)
-	}
-
-	if net.Configuration.IPScopes.IPScope[0].IPRanges != nil {
-		ipPool := make([]*isolatedNetworkModelStaticIPPool, 0)
-		for _, ipRange := range net.Configuration.IPScopes.IPScope[0].IPRanges.IPRange {
-			ipPool = append(ipPool, &isolatedNetworkModelStaticIPPool{
-				StartAddress: supertypes.NewStringValue(ipRange.StartAddress),
-				EndAddress:   supertypes.NewStringValue(ipRange.EndAddress),
-			})
-		}
-		diags.Append(planOrState.StaticIPPool.Set(ctx, ipPool)...)
-		if diags.HasError() {
-			return stateRefreshed, found, diags
-		}
-	} else {
-		planOrState.StaticIPPool.SetNull(ctx)
-	}
-
-	return planOrState, true, diags
+	return stateRefreshed, true, diags
 }
 
-// find network in network list.
-func (r *isolatedNetworkResource) findNetwork(networkName string) (network *govcdtypes.VAppNetworkConfiguration, err error) {
-	vAppNetworkConfig, err := r.vapp.GetNetworkConfig()
+// findNetwork returns the vApp network matching the name, or nil if there is none.
+func (r *isolatedNetworkResource) findNetwork(ctx context.Context, networkName string) (*sdktypes.ModelVAppRuntimeNetworkConfig, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	section, err := r.vappClientV2.vappClient.GetVAppNetworkConfig(ctx, sdktypes.ParamsGetVAppNetworkConfig{ID: r.vapp.ID})
 	if err != nil {
-		return nil, err
+		cerrs.AddError(&diags, cerrs.ActionRead, fmt.Sprintf("vApp %s(%s) network config", r.vapp.Name, r.vapp.ID), err)
+		return nil, diags
 	}
 
-	for _, networkConfig := range vAppNetworkConfig.NetworkConfig {
-		if networkConfig.NetworkName == networkName {
-			return &networkConfig, nil
+	for i := range section.NetworkConfig {
+		if section.NetworkConfig[i].NetworkName == networkName {
+			return &section.NetworkConfig[i], diags
 		}
 	}
 
-	return nil, errors.New("network not found")
-}
-
-// build vapp isolated network object.
-func (r *isolatedNetworkResource) buildVappNetworkObject(ctx context.Context, plan *isolatedNetworkModel) (vappNetworkSettings *govcd.VappNetworkSettings, diags diag.Diagnostics) {
-	staticIPPools, d := plan.StaticIPPool.Get(ctx)
-	if d.HasError() {
-		diags.Append(d...)
-		return vappNetworkSettings, diags
-	}
-
-	staticIPRanges := make([]*govcdtypes.IPRange, 0)
-	for _, staticIPPool := range staticIPPools {
-		staticIPRanges = append(staticIPRanges, &govcdtypes.IPRange{
-			StartAddress: staticIPPool.StartAddress.Get(),
-			EndAddress:   staticIPPool.EndAddress.Get(),
-		})
-	}
-
-	return &govcd.VappNetworkSettings{
-		Name:               plan.Name.Get(),
-		Description:        plan.Description.Get(),
-		Gateway:            plan.Gateway.Get(),
-		NetMask:            plan.Netmask.Get(),
-		DNS1:               plan.DNS1.Get(),
-		DNS2:               plan.DNS2.Get(),
-		DNSSuffix:          plan.DNSSuffix.Get(),
-		StaticIPRanges:     staticIPRanges,
-		RetainIpMacEnabled: plan.RetainIPMacEnabled.GetPtr(),
-		GuestVLANAllowed:   plan.GuestVLANAllowed.GetPtr(),
-	}, diags
+	return nil, diags
 }

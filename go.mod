@@ -20,8 +20,9 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/madflojo/testcerts v1.5.1
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.31.3
-	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20261106110404-b3b615a08ebf
+	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v1.1.1-0.20261123132531-7c9e6365840a
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20260722075754-a69ff15f4d0f
+	github.com/orange-cloudavenue/common-go/urn v1.4.0
 	github.com/orange-cloudavenue/common-go/utils v1.0.0
 	github.com/orange-cloudavenue/common-go/validators v1.2.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-planmodifiers v1.4.1
@@ -110,7 +111,6 @@ require (
 	github.com/orange-cloudavenue/common-go/internal/regex v0.0.0-20250812202800-bd0d5bbb6c4a // indirect
 	github.com/orange-cloudavenue/common-go/regex v1.2.0 // indirect
 	github.com/orange-cloudavenue/common-go/strcase v1.0.0 // indirect
-	github.com/orange-cloudavenue/common-go/urn v1.4.0 // indirect
 	github.com/peterhellberg/link v1.2.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/rivo/uniseg v0.1.0 // indirect
@@ -140,6 +140,6 @@ require (
 	google.golang.org/grpc v1.86.0-dev // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	resty.dev/v3 v3.0.0-rc.3 // indirect
+	resty.dev/v3 v3.0.0-rc.4 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )

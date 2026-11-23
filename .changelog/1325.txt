@@ -1,0 +1,3 @@
+```release-note:enhancement
+provider: migrate the vApp domain to cloudavenue-sdk-go-v2: `resource/cloudavenue_vapp`, `resource/cloudavenue_vapp_org_network`, `resource/cloudavenue_vapp_isolated_network`, `resource/cloudavenue_vapp_acl` and their data sources are now served by the SDK v2 client. Schemas and behavior are preserved.
+```

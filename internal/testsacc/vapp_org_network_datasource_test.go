@@ -15,20 +15,22 @@
 package testsacc
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/orange-cloudavenue/common-go/urn"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+// testAccOrgNetworkDataSourceConfig is formatted with the name of an existing VDC (CLOUDAVENUE_VDC).
 const testAccOrgNetworkDataSourceConfig = `
 data "cloudavenue_tier0_vrfs" "example" {}
 
 resource "cloudavenue_edgegateway" "example" {
-  owner_name     = "MyVDC"
+  owner_name     = "%[1]s"
   tier0_vrf_name = data.cloudavenue_tier0_vrfs.example.names.0
-  owner_type     = "vdc"
 }
 
 resource "cloudavenue_network_routed" "example" {
@@ -55,7 +57,7 @@ resource "cloudavenue_network_routed" "example" {
 
 resource "cloudavenue_vapp" "example" {
   name        = "MyVapp"
-  vdc         = "MyVDC"
+  vdc         = "%[1]s"
   description = "This is an example vApp"
 }
 
@@ -69,12 +71,21 @@ data "cloudavenue_vapp_org_network" "example" {
 	vapp_name    = cloudavenue_vapp.example.name
 	network_name = cloudavenue_network_routed.example.name
 	vdc          = cloudavenue_vapp.example.vdc
+
+	// The network must be attached to the vApp before it is read.
+	depends_on = [cloudavenue_vapp_org_network.example]
 }
 `
 
 func TestAccOrgNetworkDataSource(t *testing.T) {
 	const dataSourceName = "data.cloudavenue_vapp_org_network.example"
 	const resourceName = "cloudavenue_vapp_org_network.example"
+
+	vdc := os.Getenv("CLOUDAVENUE_VDC")
+	if vdc == "" {
+		t.Fatal("CLOUDAVENUE_VDC must be set for this acceptance test")
+	}
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
@@ -82,9 +93,9 @@ func TestAccOrgNetworkDataSource(t *testing.T) {
 			// Read testing
 			{
 				// Apply test
-				Config: testAccOrgNetworkDataSourceConfig,
+				Config: fmt.Sprintf(testAccOrgNetworkDataSourceConfig, vdc),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrWith(resourceName, "id", urn.TestIsType(urn.Network)),
+					resource.TestCheckResourceAttrWith(resourceName, "id", testIsURNType(urn.Network)),
 					resource.TestCheckResourceAttrPair(dataSourceName, "network_name", resourceName, "network_name"),
 				),
 			},

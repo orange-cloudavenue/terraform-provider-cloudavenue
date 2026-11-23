@@ -32,8 +32,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
 /*
@@ -88,7 +86,7 @@ func vappSchema() superschema.Schema {
 					},
 				},
 			},
-			attrVDC: vdc.SuperSchemaSuperType(),
+			attrVDC: vdcSuperSchemaSuperType(),
 			"description": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "Description of the vApp.",

@@ -51,11 +51,8 @@ type VAPP struct {
 	vdc vdc.VDC
 }
 
-var (
-	// ErrVAppRefEmpty indicates vApp reference is missing required fields.
-	ErrVAppRefEmpty = errors.New("missing information in vApp reference")
-	vcdMutexKV      = mutex.NewKV()
-)
+// ErrVAppRefEmpty indicates vApp reference is missing required fields.
+var ErrVAppRefEmpty = errors.New("missing information in vApp reference")
 
 // Schema returns schema for `vapp_id` and `vapp_name`.
 func Schema() map[string]schemaR.Attribute {
@@ -150,23 +147,16 @@ func Create(vdc vdc.VDC, vappName, description string) (vapp VAPP, d diag.Diagno
 
 // LockVAPP locks the parent vApp.
 func (v VAPP) LockVAPP(ctx context.Context) (d diag.Diagnostics) {
-	if v.vdc.GetName() == "" || v.GetName() == "" || ctx == nil {
-		d.AddError("Invalid lock arguments", "vDC: "+v.vdc.GetName()+" vApp: "+v.GetName())
-		return d
+	if err := mutex.LockVApp(ctx, v.vdc.GetName(), v.GetName()); err != nil {
+		d.AddError("Invalid lock arguments", err.Error())
 	}
-	key := fmt.Sprintf("vdc:%s|vapp:%s", v.vdc.GetName(), v.GetName())
-	vcdMutexKV.KvLock(ctx, key)
 	return d
 }
 
 // UnlockVAPP unlocks the parent vApp.
 func (v VAPP) UnlockVAPP(ctx context.Context) (d diag.Diagnostics) {
-	if v.vdc.GetName() == "" || v.GetName() == "" || ctx == nil {
-		d.AddError("Invalid lock arguments", "vDC: "+v.vdc.GetName()+" vApp: "+v.GetName())
-		return d
+	if err := mutex.UnlockVApp(ctx, v.vdc.GetName(), v.GetName()); err != nil {
+		d.AddError("Invalid lock arguments", err.Error())
 	}
-	key := fmt.Sprintf("vdc:%s|vapp:%s", v.vdc.GetName(), v.GetName())
-	vcdMutexKV.KvUnlock(ctx, key)
-
 	return d
 }

@@ -31,8 +31,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 )
 
 func isolatedNetworkSchema() superschema.Schema {
@@ -186,7 +184,7 @@ func isolatedNetworkSchema() superschema.Schema {
 					},
 				},
 			},
-			attrVDC: vdc.SuperSchemaSuperType(),
+			attrVDC: vdcSuperSchemaSuperType(),
 			"vapp_id": superschema.SuperStringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "ID of the vApp.",

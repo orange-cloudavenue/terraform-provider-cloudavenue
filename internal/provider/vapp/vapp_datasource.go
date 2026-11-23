@@ -16,16 +16,16 @@
 package vapp
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 var (
@@ -41,8 +41,8 @@ func NewVappDataSource() datasource.DataSource {
 }
 
 type vappDataSource struct {
-	client *client.CloudAvenue
-	vdc    vdc.VDC
+	client       *client.CloudAvenue
+	vappClientV2 vAppClientV2
 }
 
 func (d *vappDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -51,15 +51,6 @@ func (d *vappDataSource) Metadata(_ context.Context, req datasource.MetadataRequ
 
 func (d *vappDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = vappSchema().GetDataSource(ctx)
-}
-
-func (d *vappDataSource) Init(_ context.Context, dm *vappResourceModel) (diags diag.Diagnostics) {
-	d.vdc, diags = vdc.Init(d.client, dm.VDC.StringValue)
-	if diags.HasError() {
-		return diags
-	}
-
-	return diags
 }
 
 func (d *vappDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -79,6 +70,13 @@ func (d *vappDataSource) Configure(_ context.Context, req datasource.ConfigureRe
 	}
 
 	d.client = client
+
+	v2, diags := InitVAppClientV2(client)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	d.vappClientV2 = v2
 }
 
 func (d *vappDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -92,25 +90,42 @@ func (d *vappDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	// Init the resource
-	resp.Diagnostics.Append(d.Init(ctx, config)...)
+	resolved, diags := d.vappClientV2.resolveVDC(ctx, config.VDC.ValueString())
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// If read function is identical to the resource, you can use the following code:
-	s := &vappResource{
-		client: d.client,
-		vdc:    d.vdc,
+	p := types.ParamsGetVApp{ID: config.VAppID.ValueString(), Name: config.VAppName.ValueString()}
+	app, err := d.vappClientV2.vappClient.GetVApp(ctx, p)
+	if err != nil {
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, fmt.Sprintf("vApp %s", cmp.Or(p.Name, p.ID)), err)
+		return
 	}
 
-	// Read data from the API
-	data, _, diags := s.read(ctx, config)
+	if !vappInVDC(app, resolved) {
+		resp.Diagnostics.AddError("Vdc not found", "App vdc id different from resolved vdc id")
+		return
+	}
+
+	gp, err := d.vappClientV2.vappClient.GetVAppGuestProperties(ctx, types.ParamsGetVAppGuestProperties{ID: app.ID})
+	if err != nil {
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, fmt.Sprintf("vApp %s(%s) guest properties", app.Name, app.ID), err)
+		return
+	}
+
+	diags = config.fromSDK(ctx, app, resolved.Name)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	diags = config.guestPropertiesFromSDK(ctx, gp)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, config)...)
 }

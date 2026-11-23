@@ -19,20 +19,17 @@ import (
 	"context"
 	"fmt"
 
-	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
+	"github.com/orange-cloudavenue/common-go/urn"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	sdktypes "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/network"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/org"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vapp"
-	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/vdc"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/pkg/utils"
 )
 
@@ -46,33 +43,8 @@ func NewOrgNetworkDataSource() datasource.DataSource {
 }
 
 type orgNetworkDataSource struct {
-	client *client.CloudAvenue
-
-	org  org.Org
-	vdc  vdc.VDC
-	vapp vapp.VAPP
-}
-
-// Init initializes the data source.
-func (d *orgNetworkDataSource) Init(_ context.Context, dm *orgNetworkModel) (diags diag.Diagnostics) {
-	d.org, diags = org.Init(d.client)
-	if diags.HasError() {
-		return diags
-	}
-
-	d.vdc, diags = vdc.Init(d.client, dm.VDC)
-	if diags.HasError() {
-		return diags
-	}
-
-	vappModel, err := vapp.Init(d.client, d.vdc, dm.VAppID, dm.VAppName)
-	if err != nil {
-		diags.AddError("Error getting parent vApp", err.Error())
-		return diags
-	}
-	d.vapp = vappModel
-
-	return diags
+	client       *client.CloudAvenue
+	vappClientV2 vAppClientV2
 }
 
 func (d *orgNetworkDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -101,6 +73,13 @@ func (d *orgNetworkDataSource) Configure(_ context.Context, req datasource.Confi
 	}
 
 	d.client = client
+
+	v2, diags := InitVAppClientV2(client)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	d.vappClientV2 = v2
 }
 
 func (d *orgNetworkDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -114,41 +93,42 @@ func (d *orgNetworkDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	// Init resource
-	resp.Diagnostics.Append(d.Init(ctx, data)...)
+	// Resolve VDC and parent vApp
+	vdc, diags := d.vappClientV2.resolveVDC(ctx, data.VDC.ValueString())
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	app, diags := d.vappClientV2.resolveVApp(ctx, vdc, data.VAppID.ValueString(), data.VAppName.ValueString())
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Get vApp Network information
-	vAppNetworkConfig, err := d.vapp.GetNetworkConfig()
+	section, err := d.vappClientV2.vappClient.GetVAppNetworkConfig(ctx, sdktypes.ParamsGetVAppNetworkConfig{ID: app.ID})
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting vApp network config", err.Error())
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, fmt.Sprintf("vApp %s(%s) network config", app.Name, app.ID), err)
 		return
 	}
 
-	// Get Network Config
-	vAppNetwork, networkID, errFindNetwork := data.findOrgNetwork(vAppNetworkConfig)
-	resp.Diagnostics.Append(errFindNetwork...)
+	// Get Network Config (returns an error diagnostic if the network is not found)
+	vAppNetwork, diags := data.findOrgNetwork(section.NetworkConfig)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Remove resource from state if not found
-	if vAppNetwork == (&govcdtypes.VAppNetworkConfiguration{}) {
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
 	// Set data
-	plan := &orgNetworkModel{
-		ID:          types.StringValue(urn.Normalize(urn.Network, *networkID).String()),
-		VAppName:    utils.StringValueOrNull(d.vapp.GetName()),
-		VAppID:      utils.StringValueOrNull(d.vapp.GetID()),
-		VDC:         types.StringValue(d.vdc.GetName()),
+	state := &orgNetworkModel{
+		ID:          types.StringValue(urn.Normalize(urn.Network, urn.ExtractUUID(vAppNetwork.ID)).String()),
+		VAppName:    utils.StringValueOrNull(app.Name),
+		VAppID:      utils.StringValueOrNull(app.ID),
+		VDC:         types.StringValue(vdc.Name),
 		NetworkName: data.NetworkName,
 	}
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
