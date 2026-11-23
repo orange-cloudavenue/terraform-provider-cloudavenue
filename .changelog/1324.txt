@@ -1,0 +1,12 @@
+```release-note:chore
+resource/cloudavenue_edgegateway: migrate underlying calls to clouadvenue-sdk-v2. Remove associated timeouts configuration which is now handled internally
+```
+
+```release-note:chore
+datasource/cloudavenue_edgegateway: migrate underlying calls to clouadvenue-sdk-v2
+```
+
+```release-note:dependency
+deps: bumps cloudavenue-sdk-v2 from v0.0.0-20261106110404-b3b615a08ebf to v1.1.1-0.20261123103457-3ca082e1773f
+deps: bumps resty.dev/v3 from v3.0.0-rc.3 to v3.0.0-rc.4
+```
