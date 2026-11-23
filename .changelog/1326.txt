@@ -1,0 +1,7 @@
+```release-note:bug
+`resource/cloudavenue_org` - Fixed the update silently succeeding when the organization update job ends in failure.
+```
+
+```release-note:chore
+`resource/cloudavenue_org` - Align job polling request after SDK API change.
+```

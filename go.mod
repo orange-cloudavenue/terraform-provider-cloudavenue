@@ -20,7 +20,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/madflojo/testcerts v1.5.1
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.31.3
-	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20261106110404-b3b615a08ebf
+	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v1.0.1-0.20261117085114-811fe548a767
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20260722075754-a69ff15f4d0f
 	github.com/orange-cloudavenue/common-go/utils v1.0.0
 	github.com/orange-cloudavenue/common-go/validators v1.2.0
@@ -140,6 +140,6 @@ require (
 	google.golang.org/grpc v1.86.0-dev // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	resty.dev/v3 v3.0.0-rc.3 // indirect
+	resty.dev/v3 v3.0.0-rc.4 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
