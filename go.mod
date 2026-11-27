@@ -1,6 +1,6 @@
 module github.com/orange-cloudavenue/terraform-provider-cloudavenue
 
-go 1.26.11
+go 1.26.10
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.48.0
@@ -20,6 +20,9 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/madflojo/testcerts v1.5.1
 	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.31.3
+	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20261106110404-b3b615a08ebf
+||||||| parent of b7f081dc (Revert "chore: migrate organization to SDK v2 (#1317)")
+	github.com/orange-cloudavenue/cloudavenue-sdk-go v0.31.2
 	github.com/orange-cloudavenue/cloudavenue-sdk-go-v2 v0.0.0-20261106110404-b3b615a08ebf
 	github.com/orange-cloudavenue/common-go/print v0.0.0-20260722075754-a69ff15f4d0f
 	github.com/orange-cloudavenue/common-go/utils v1.0.0
