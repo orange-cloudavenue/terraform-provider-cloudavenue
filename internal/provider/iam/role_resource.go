@@ -19,6 +19,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/vmware/go-vcloud-director/v2/govcd"
+	govcdtypes "github.com/vmware/go-vcloud-director/v2/types/v56"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
@@ -26,9 +29,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	sdktypes "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
@@ -39,6 +42,7 @@ var (
 	_ resource.Resource                = &roleResource{}
 	_ resource.ResourceWithConfigure   = &roleResource{}
 	_ resource.ResourceWithImportState = &roleResource{}
+	_ role                             = &roleResource{}
 )
 
 // NewroleResource is a helper function to simplify the provider implementation.
@@ -48,12 +52,18 @@ func NewRoleResource() resource.Resource {
 
 // roleResource is the resource implementation.
 type roleResource struct {
-	client     *client.CloudAvenue
-	roleClient roleClientV2
+	client   *client.CloudAvenue
+	adminOrg adminorg.AdminOrg
+	role     commonRole
 }
 
-func (r *roleResource) Init(_ context.Context, _ *RoleResourceModel) (diags diag.Diagnostics) {
-	r.roleClient, diags = InitRoleClientV2(r.client)
+func (r *roleResource) Init(_ context.Context, rm *RoleResourceModel) (diags diag.Diagnostics) {
+	r.role = commonRole{
+		ID:   rm.ID.StringValue,
+		Name: rm.Name.StringValue,
+	}
+	r.adminOrg, diags = adminorg.Init(r.client)
+
 	return diags
 }
 
@@ -87,38 +97,6 @@ func (r *roleResource) Configure(_ context.Context, req resource.ConfigureReques
 	r.client = client
 }
 
-// findMissingImpliedRights computes implied rights that need to be added.
-// This is a provider-side reimplementation of the govcd.FindMissingImpliedRights logic:
-// every requested right is seeded first so an implied right that is itself requested
-// is not reported as missing, and each requested right's implied set is examined once.
-func findMissingImpliedRights(rightsMap map[string]*sdktypes.ModelRight, requestedRights []string) []string {
-	// Track all rights we've seen (both directly requested and implied)
-	seen := make(map[string]bool)
-	for _, rightName := range requestedRights {
-		seen[rightName] = true
-	}
-
-	var missing []string
-
-	for _, rightName := range requestedRights {
-		// Check if this right has implied rights
-		right, exists := rightsMap[rightName]
-		if !exists {
-			continue
-		}
-
-		for _, impliedRight := range right.ImpliedRights {
-			if seen[impliedRight.Name] {
-				continue
-			}
-			seen[impliedRight.Name] = true
-			missing = append(missing, impliedRight.Name)
-		}
-	}
-
-	return missing
-}
-
 // Create creates the resource and sets the initial Terraform state.
 func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	defer metrics.New("cloudavenue_iam_role", r.client.GetOrgName(), metrics.Create)()
@@ -141,75 +119,60 @@ func (r *roleResource) Create(ctx context.Context, req resource.CreateRequest, r
 		tflog.SubsystemDebug(ctx, roleSubsystem, "Creating role", map[string]any{attrName: plan.Name.ValueString()})
 	}
 
-	// Get all rights to build a name->ModelRight map
-	allRights, err := r.roleClient.ListRights(ctx, "")
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving rights", err.Error())
-		return
-	}
-
-	rightsMap := make(map[string]*sdktypes.ModelRight)
-	for _, right := range allRights {
-		rightsMap[right.Name] = right
-	}
-
-	// Validate and collect requested rights
-	planRights, d := plan.Rights.Get(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Build list of rights with their IDs
-	rightsEntities := make([]sdktypes.ParamsEntityReference, 0)
-	for _, rightName := range planRights {
-		right, exists := rightsMap[rightName]
-		if !exists {
-			resp.Diagnostics.AddError("This right does not exist", rightName)
+	// Check rights are valid
+	rights := make([]govcdtypes.OpenApiReference, 0)
+	for _, right := range plan.Rights.Elements() {
+		rg := strings.Trim(right.String(), "\"")
+		x, err := r.adminOrg.GetRightByName(rg)
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving right", err.Error())
 			return
 		}
-		rightsEntities = append(rightsEntities, sdktypes.ParamsEntityReference{
-			ID:   right.ID,
-			Name: right.Name,
-		})
+		rights = append(rights, govcdtypes.OpenApiReference{Name: rg, ID: x.ID})
 	}
 
-	// Find missing implied rights
-	missingImpliedRights := findMissingImpliedRights(rightsMap, planRights)
+	// Add implied rights
+	missingImpliedRights, err := govcd.FindMissingImpliedRights(&r.client.Vmware.Client, rights) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving implied rights", err.Error())
+		return
+	}
 
 	// Print missing implied rights
 	if len(missingImpliedRights) > 0 {
 		message := "The rights set for this role require the following implied rights to be added:"
 		var rightsList strings.Builder
 		for _, right := range missingImpliedRights {
-			fmt.Fprintf(&rightsList, "\"%s\",\n", right)
+			fmt.Fprintf(&rightsList, "\"%s\",\n", right.Name)
 		}
 		resp.Diagnostics.AddError(message, rightsList.String())
 		return
 	}
 
 	// Create the role
-	role, err := r.roleClient.CreateOrgRole(ctx, plan.Name.ValueString(), plan.Description.ValueString())
+	role, err := r.adminOrg.CreateRole(&govcdtypes.Role{
+		Name:        plan.Name.ValueString(),
+		Description: plan.Description.ValueString(),
+		BundleKey:   govcdtypes.VcloudUndefinedKey,
+	})
 	if err != nil {
 		tflog.SubsystemError(ctx, roleSubsystem, "Role create failed", map[string]any{attrName: plan.Name.ValueString()})
 		resp.Diagnostics.AddError("Error creating role", err.Error())
 		return
 	}
-
-	// Assign rights if any
-	if len(rightsEntities) > 0 {
-		_, err = r.roleClient.ReplaceOrgRoleRights(ctx, role.ID, rightsEntities)
+	if len(rights) > 0 {
+		err = role.AddRights(rights)
 		if err != nil {
-			tflog.SubsystemError(ctx, roleSubsystem, "Role rights update failed", map[string]any{attrName: plan.Name.ValueString(), attrRights: len(rightsEntities)})
+			tflog.SubsystemError(ctx, roleSubsystem, "Role rights update failed", map[string]any{attrName: plan.Name.ValueString(), attrRights: len(rights)})
 			resp.Diagnostics.AddError("Error adding rights to role", err.Error())
 			return
 		}
 	}
 
 	// Set Plan state
-	plan.ID.Set(role.ID)
-	plan.Name.Set(role.Name)
-	plan.Description.Set(role.Description)
+	plan.ID.Set(role.Role.ID)
+	plan.Name.Set(role.Role.Name)
+	plan.Description.Set(role.Role.Description)
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
@@ -239,13 +202,8 @@ func (r *roleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		tflog.SubsystemDebug(ctx, roleSubsystem, "Reading role", map[string]any{attrName: state.Name.ValueString()})
 	}
 
-	// Get Role - use ID from state if available, otherwise use Name
-	lookupKey := state.ID.ValueString()
-	if lookupKey == "" {
-		lookupKey = state.Name.ValueString()
-	}
-
-	role, err := r.roleClient.GetOrgRole(ctx, lookupKey)
+	// Get Role
+	role, err := r.GetRole()
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			tflog.SubsystemDebug(ctx, roleSubsystem, "Role not found, removing from state", map[string]any{attrName: state.Name.ValueString()})
@@ -258,9 +216,8 @@ func (r *roleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	}
 
 	// Get rights
-	rights, err := r.roleClient.ListOrgRoleRights(ctx, role.ID)
+	rights, err := role.GetRights(nil)
 	if err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "role", err)
 		return
 	}
 
@@ -274,9 +231,9 @@ func (r *roleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	state.ID.Set(role.ID)
-	state.Name.Set(role.Name)
-	state.Description.Set(role.Description)
+	state.ID.Set(role.Role.ID)
+	state.Name.Set(role.Role.Name)
+	state.Description.Set(role.Role.Description)
 
 	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -288,7 +245,11 @@ func (r *roleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 func (r *roleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	defer metrics.New("cloudavenue_iam_role", r.client.GetOrgName(), metrics.Delete)()
 
-	var state *RoleResourceModel
+	var (
+		state *RoleResourceModel
+		err   error
+		role  *govcd.Role
+	)
 
 	// Read state
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -305,13 +266,8 @@ func (r *roleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		tflog.SubsystemDebug(ctx, roleSubsystem, "Deleting role", map[string]any{attrName: state.Name.ValueString()})
 	}
 
-	// Get the role - use ID from state if available, otherwise use Name
-	lookupKey := state.ID.ValueString()
-	if lookupKey == "" {
-		lookupKey = state.Name.ValueString()
-	}
-
-	role, err := r.roleClient.GetOrgRole(ctx, lookupKey)
+	// Get the role
+	role, err = r.GetRole()
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			tflog.SubsystemDebug(ctx, roleSubsystem, "Role not found, removing from state", map[string]any{attrName: state.Name.ValueString()})
@@ -322,8 +278,7 @@ func (r *roleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "role", err)
 		return
 	}
-
-	err = r.roleClient.DeleteOrgRole(ctx, role.ID)
+	err = role.Delete()
 	if err != nil {
 		tflog.SubsystemError(ctx, roleSubsystem, "Role delete failed", map[string]any{attrName: state.Name.ValueString()})
 		resp.Diagnostics.AddError("Error deleting role", err.Error())
@@ -337,6 +292,7 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	var (
 		plan, state *RoleResourceModel
 		err         error
+		role        *govcd.Role
 	)
 
 	// Get state and plan
@@ -355,13 +311,8 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		tflog.SubsystemDebug(ctx, roleSubsystem, "Updating role", map[string]any{attrName: state.Name.ValueString()})
 	}
 
-	// Get the role - use ID from state if available, otherwise use Name
-	lookupKey := state.ID.ValueString()
-	if lookupKey == "" {
-		lookupKey = state.Name.ValueString()
-	}
-
-	role, err := r.roleClient.GetOrgRole(ctx, lookupKey)
+	// Get the role
+	role, err = r.GetRole()
 	if err != nil {
 		tflog.SubsystemError(ctx, roleSubsystem, "Role update lookup failed", map[string]any{attrName: state.Name.ValueString()})
 		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, "role", err)
@@ -370,24 +321,13 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	// Update the role Name or Description
 	if (!plan.Name.Equal(state.Name)) || (!plan.Description.Equal(state.Description)) {
-		role, err = r.roleClient.UpdateOrgRole(ctx, role.ID, plan.Name.ValueString(), plan.Description.ValueString())
-		if err != nil {
+		role.Role.Name = plan.Name.Get()
+		role.Role.Description = plan.Description.Get()
+		if _, err := role.Update(); err != nil {
 			tflog.SubsystemError(ctx, roleSubsystem, "Role attribute update failed", map[string]any{attrName: plan.Name.ValueString()})
 			resp.Diagnostics.AddError("Error updating role", err.Error())
 			return
 		}
-	}
-
-	// Get all rights to build a name->ModelRight map
-	allRights, err := r.roleClient.ListRights(ctx, "")
-	if err != nil {
-		resp.Diagnostics.AddError("Error retrieving rights", err.Error())
-		return
-	}
-
-	rightsMap := make(map[string]*sdktypes.ModelRight)
-	for _, right := range allRights {
-		rightsMap[right.Name] = right
 	}
 
 	// Check rights are valid
@@ -397,51 +337,48 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	// Build list of rights with their IDs
-	rightsEntities := make([]sdktypes.ParamsEntityReference, 0)
-	for _, rightName := range planRights {
-		right, exists := rightsMap[rightName]
-		if !exists {
-			resp.Diagnostics.AddError("This right does not exist", rightName)
+	rights := make([]govcdtypes.OpenApiReference, 0)
+	for _, right := range planRights {
+		x, err := r.adminOrg.GetRightByName(right)
+		if err != nil {
+			resp.Diagnostics.AddError("Error retrieving right", err.Error())
 			return
 		}
-		rightsEntities = append(rightsEntities, sdktypes.ParamsEntityReference{
-			ID:   right.ID,
-			Name: right.Name,
-		})
+		rights = append(rights, govcdtypes.OpenApiReference{Name: right, ID: x.ID})
 	}
 
-	// Find missing implied rights
-	missingImpliedRights := findMissingImpliedRights(rightsMap, planRights)
+	// Add implied rights
+	missingImpliedRights, err := govcd.FindMissingImpliedRights(&r.client.Vmware.Client, rights) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
+	if err != nil {
+		resp.Diagnostics.AddError("Error retrieving implied rights", err.Error())
+		return
+	}
 
 	// Print missing implied rights
 	if len(missingImpliedRights) > 0 {
 		message := "The rights set for this role require the following implied rights to be added:"
 		var rightsList strings.Builder
 		for _, right := range missingImpliedRights {
-			fmt.Fprintf(&rightsList, "\"%s\",\n", right)
+			fmt.Fprintf(&rightsList, "\"%s\",\n", right.Name)
 		}
 		resp.Diagnostics.AddError(message, rightsList.String())
 		return
 	}
 
 	// Update the role rights
-	if len(rightsEntities) > 0 {
-		_, err = r.roleClient.ReplaceOrgRoleRights(ctx, role.ID, rightsEntities)
-		if err != nil {
+	if len(rights) > 0 {
+		if err := role.UpdateRights(rights); err != nil {
 			resp.Diagnostics.AddError("Error updating role rights", err.Error())
 			return
 		}
 	} else {
-		// Check if there are current rights to remove
-		currentRights, err := r.roleClient.ListOrgRoleRights(ctx, role.ID)
+		currentRights, err := role.GetRights(nil)
 		if err != nil {
 			resp.Diagnostics.AddError("Error retrieving role rights", err.Error())
 			return
 		}
 		if len(currentRights) > 0 {
-			err = r.roleClient.RemoveAllOrgRoleRights(ctx, role.ID)
-			if err != nil {
+			if err := role.RemoveAllRights(); err != nil {
 				resp.Diagnostics.AddError("Error removing role rights", err.Error())
 				return
 			}
@@ -449,9 +386,9 @@ func (r *roleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	// Set Plan state
-	plan.ID.Set(role.ID)
-	plan.Name.Set(role.Name)
-	plan.Description.Set(role.Description)
+	plan.ID.Set(role.Role.ID)
+	plan.Name.Set(role.Role.Name)
+	plan.Description.Set(role.Role.Description)
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -464,4 +401,8 @@ func (r *roleResource) ImportState(ctx context.Context, req resource.ImportState
 	defer metrics.New("cloudavenue_iam_role", r.client.GetOrgName(), metrics.Import)()
 
 	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
+}
+
+func (r *roleResource) GetRole() (*govcd.Role, error) {
+	return r.role.GetRole(r.adminOrg)
 }
