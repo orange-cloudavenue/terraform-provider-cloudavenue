@@ -1,3 +1,0 @@
-```release-note:bug
-resource/cloudavenue_vdc: remove the special-case handling of "no job ID" create failures. The underlying SDK error now carries the HTTP status and the truncated API response body, so the generic error rendering is complete and the special case only duplicated it.
-```
