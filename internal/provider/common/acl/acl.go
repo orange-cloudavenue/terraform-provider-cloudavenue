@@ -33,7 +33,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
-	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 type SharedWithModel struct {
@@ -225,14 +224,14 @@ func AccessControlListToSharedSet(org *govcd.AdminOrg, input []*govcdtypes.Acces
 			if _, err := org.GetUserById(subjectUUID, false); err == nil {
 				o.UserID = types.StringValue(urn.Normalize(urn.User, subjectUUID).String())
 				break
-			} else if !cerrs.IsNotFound(err) {
+			} else if !govcd.ContainsNotFound(err) {
 				return nil, fmt.Errorf("error retrieving ACL user %s: %w", subjectUUID, err)
 			}
 
 			if _, err := org.GetGroupById(subjectUUID, false); err == nil {
 				o.GroupID = types.StringValue(urn.Normalize(urn.Group, subjectUUID).String())
 				break
-			} else if !cerrs.IsNotFound(err) {
+			} else if !govcd.ContainsNotFound(err) {
 				return nil, fmt.Errorf("error retrieving ACL group %s: %w", subjectUUID, err)
 			}
 			return nil, fmt.Errorf("cannot resolve ACL subject '%s' (%s)", item.Subject.Name, item.Subject.HREF)
