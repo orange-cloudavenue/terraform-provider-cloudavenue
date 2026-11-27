@@ -22,10 +22,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	org "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/organization/v1"
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/pkg/urn"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
@@ -46,21 +44,20 @@ func NewCertificateLibraryResource() resource.Resource {
 // CertificateLibraryResource is the resource implementation.
 type CertificateLibraryResource struct {
 	client    *client.CloudAvenue
-	orgClient *org.Client
+	orgClient org.Client
 }
 
 // Init Initializes the resource.
 func (r *CertificateLibraryResource) Init(_ context.Context, _ *CertificateLibraryModel) (diags diag.Diagnostics) {
 	var err error
 
-	var v2 cav.Client
-	if v2, err = r.client.V2(); err == nil {
-		r.orgClient, err = org.New(v2)
-	}
+	org, err := r.client.CAVSDK.V1.Org()
 	if err != nil {
 		diags.AddError("Error initializing ORG client", err.Error())
 		return diags
 	}
+
+	r.orgClient = org.Client
 
 	return diags
 }
@@ -115,12 +112,12 @@ func (r *CertificateLibraryResource) Create(ctx context.Context, req resource.Cr
 	*/
 
 	// Create the certificate library
-	newCertificate, err := r.orgClient.CreateCertificate(ctx, types.ParamsCreateCertificate{
-		Name:                 plan.Name.Get(),
-		Description:          plan.Description.Get(),
-		Certificate:          plan.Certificate.Get(),
-		PrivateKey:           plan.PrivateKey.Get(),
-		PrivateKeyPassphrase: plan.Passphrase.Get(),
+	newCertificate, err := r.orgClient.CreateCertificateInLibrary(ctx, &org.CertificateCreateRequest{
+		Name:        plan.Name.Get(),
+		Description: plan.Description.Get(),
+		Certificate: plan.Certificate.Get(),
+		PrivateKey:  plan.PrivateKey.Get(),
+		Passphrase:  plan.Passphrase.Get(),
 	})
 	if err != nil {
 		cerrs.AddError(&resp.Diagnostics, cerrs.ActionCreate, "certificate in library", err)
@@ -203,8 +200,7 @@ func (r *CertificateLibraryResource) Update(ctx context.Context, req resource.Up
 		Implement the resource update here
 	*/
 
-	_, err := r.orgClient.UpdateCertificate(ctx, types.ParamsUpdateCertificate{
-		ID:          state.ID.Get(),
+	_, err := r.orgClient.UpdateCertificateInLibrary(ctx, state.ID.Get(), &org.CertificateUpdateRequest{
 		Name:        plan.Name.Get(),
 		Description: plan.Description.Get(),
 	})
@@ -246,7 +242,7 @@ func (r *CertificateLibraryResource) Delete(ctx context.Context, req resource.De
 		Implement the resource deletion here
 	*/
 
-	if err := r.orgClient.DeleteCertificate(ctx, types.ParamsDeleteCertificate{ID: state.ID.Get()}); err != nil {
+	if err := r.orgClient.DeleteCertificateFromLibrary(ctx, state.ID.Get()); err != nil {
 		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "certificate", err)
 		return
 	}
@@ -293,14 +289,14 @@ func (r *CertificateLibraryResource) read(ctx context.Context, planOrState *Cert
 	stateRefreshed = planOrState.Copy()
 
 	var (
-		certificate *types.ModelGetCertificate
+		certificate *org.CertificateModel
 		err         error
 	)
 
 	if planOrState.ID.IsKnown() {
-		certificate, err = r.orgClient.GetCertificate(ctx, types.ParamsGetCertificate{ID: planOrState.ID.Get()})
+		certificate, err = r.orgClient.GetCertificateFromLibrary(ctx, planOrState.ID.Get())
 	} else {
-		certificate, err = r.orgClient.GetCertificate(ctx, types.ParamsGetCertificate{Name: planOrState.Name.Get()})
+		certificate, err = r.orgClient.GetCertificateFromLibrary(ctx, planOrState.Name.Get())
 	}
 	if err != nil {
 		if cerrs.IsNotFound(err) {
