@@ -21,6 +21,8 @@ import (
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
+	"github.com/vmware/go-vcloud-director/v2/govcd"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -30,7 +32,6 @@ import (
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgeloadbalancer"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 )
 
@@ -381,7 +382,7 @@ func (r *PoolResource) read(ctx context.Context, planOrState *PoolModel) (stateR
 
 	data, err := r.elb.GetPool(ctx, planOrState.EdgeGatewayID.Get(), idOrName)
 	if err != nil {
-		if cerrs.IsNotFound(err) {
+		if govcd.ContainsNotFound(err) {
 			return nil, false, nil
 		}
 		diags.AddError("Error retrieving pool", err.Error())
