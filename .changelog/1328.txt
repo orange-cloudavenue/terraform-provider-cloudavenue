@@ -1,0 +1,3 @@
+```release-note:note
+provider: revert the CloudAvenue SDK v2 migration from `main`, keeping the baseline on SDK v1 (`cloudavenue-sdk-go` + `govcd`). The SDK v2 migration now lives exclusively on the `v2` branch. No user-facing behavior change.
+```
