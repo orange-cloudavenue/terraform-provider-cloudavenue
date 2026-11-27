@@ -39,7 +39,6 @@ type CloudAvenue struct {
 	CAVSDKOpts *clientca.ClientOpts
 
 	CAVSDKV2         cav.Client
-	v2Err            error
 	defaultVDC       string
 	organizationName string
 	username         string
@@ -65,20 +64,11 @@ func (c *CloudAvenue) New() (*CloudAvenue, error) {
 		return nil, err
 	}
 
-	// The v2 client is only needed by migrated domains. A failure must
-	// not prevent the other resources from working, so it is reported lazily
-	// through V2().
-	c.v2Err = c.newV2()
+	if err := c.newV2(); err != nil {
+		return nil, err
+	}
 
 	return c, nil
-}
-
-// V2 returns the SDK v2 client, or the error that prevented its initialization.
-func (c *CloudAvenue) V2() (cav.Client, error) {
-	if c.v2Err != nil {
-		return nil, c.v2Err
-	}
-	return c.CAVSDKV2, nil
 }
 
 func (c *CloudAvenue) newV2() error {
@@ -86,14 +76,9 @@ func (c *CloudAvenue) newV2() error {
 		return fmt.Errorf("initialize v2 client: missing cloudavenue options")
 	}
 
-	c.defaultVDC = c.CAVSDKOpts.CloudAvenue.VDC
-	c.organizationName = c.CAVSDKOpts.CloudAvenue.Org
-	c.username = c.CAVSDKOpts.CloudAvenue.Username
-	c.url = c.CAVSDKOpts.CloudAvenue.URL
-
 	console, ok := v2consoles.FindByOrganizationName(c.CAVSDKOpts.CloudAvenue.Org)
 	if !ok {
-		return fmt.Errorf("initialize v2 client: console not found for organization %q", c.CAVSDKOpts.CloudAvenue.Org)
+		return fmt.Errorf("initialize v2 client: console not found")
 	}
 
 	services := console.Services()
@@ -115,6 +100,9 @@ func (c *CloudAvenue) newV2() error {
 	}
 
 	c.CAVSDKV2 = client
+	c.defaultVDC = c.CAVSDKOpts.CloudAvenue.VDC
+	c.organizationName = c.CAVSDKOpts.CloudAvenue.Org
+	c.username = c.CAVSDKOpts.CloudAvenue.Username
 	c.url = services.APIVCD.Endpoint
 
 	return nil

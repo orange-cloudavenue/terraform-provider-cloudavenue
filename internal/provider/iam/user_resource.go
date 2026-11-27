@@ -5,6 +5,13 @@
 // the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
 // or see the "LICENSE" file for more details.
 
+// SPDX-FileCopyrightText: Copyright (c) 2023-2026 Orange
+// SPDX-License-Identifier: MPL-2.0
+//
+// This software is distributed under the MPL-2.0 license.
+// the text of which is available at https://www.mozilla.org/en-US/MPL/2.0/
+// or see the "LICENSE" file for more details.
+
 // Package org provides a Terraform resource to manage org users.
 package iam
 
@@ -16,8 +23,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	iam "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/iam/v1"
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/iam"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
@@ -74,10 +80,7 @@ func (r *userResource) Configure(_ context.Context, req resource.ConfigureReques
 func (r *userResource) Init(_ context.Context, _ *userResourceModel) (diags diag.Diagnostics) {
 	var err error
 
-	var v2 cav.Client
-	if v2, err = r.client.V2(); err == nil {
-		r.iamClient, err = iam.New(v2)
-	}
+	r.iamClient, err = r.client.CAVSDK.V1.IAM()
 	if err != nil {
 		diags.AddError("Error initializing IAM client", err.Error())
 	}
@@ -101,16 +104,18 @@ func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	userCreated, err := r.iamClient.CreateLocalUser(ctx, iam.ParamsCreateLocalUser{
-		Name:            plan.Name.Get(),
-		Password:        plan.Password.Get(),
-		RoleName:        plan.RoleName.Get(),
-		FullName:        plan.FullName.Get(),
-		EmailAddress:    plan.Email.Get(),
-		Telephone:       plan.Telephone.Get(),
-		IsEnabled:       plan.Enabled.Get(),
-		DeployedVMQuota: new(plan.DeployedVMQuota.GetInt()),
-		StoredVMQuota:   new(plan.StoredVMQuota.GetInt()),
+	userCreated, err := r.iamClient.CreateLocalUser(iam.LocalUser{
+		User: iam.User{
+			Name:            plan.Name.Get(),
+			RoleName:        plan.RoleName.Get(),
+			FullName:        plan.FullName.Get(),
+			Email:           plan.Email.Get(),
+			Telephone:       plan.Telephone.Get(),
+			Enabled:         plan.Enabled.Get(),
+			DeployedVMQuota: plan.DeployedVMQuota.GetInt(),
+			StoredVMQuota:   plan.StoredVMQuota.GetInt(),
+		},
+		Password: plan.Password.Get(),
 	})
 	if err != nil {
 		if cerrs.IsNotFound(err) {
@@ -121,7 +126,7 @@ func (r *userResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	plan.ID.Set(userCreated.ID)
+	plan.ID.Set(userCreated.User.ID)
 
 	// Use generic read function to refresh the state
 	stateRefreshed, found, d := r.read(ctx, plan)
@@ -193,25 +198,32 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	params := iam.ParamsUpdateUser{
-		ID:              state.ID.Get(),
-		Name:            plan.Name.Get(),
-		RoleName:        plan.RoleName.Get(),
-		FullName:        plan.FullName.Get(),
-		EmailAddress:    plan.Email.Get(),
-		Telephone:       plan.Telephone.Get(),
-		IsEnabled:       new(plan.Enabled.Get()),
-		DeployedVMQuota: new(plan.DeployedVMQuota.GetInt()),
-		StoredVMQuota:   new(plan.StoredVMQuota.GetInt()),
+	user, err := r.iamClient.GetUser(state.ID.Get())
+	if err != nil {
+		cerrs.AddError(&resp.Diagnostics, cerrs.ActionUpdate, "user", err)
+		return
+	}
+
+	user.User.ID = plan.ID.Get()
+	user.User.Name = plan.Name.Get()
+	user.User.RoleName = plan.RoleName.Get()
+	user.User.FullName = plan.FullName.Get()
+	user.User.Email = plan.Email.Get()
+	user.User.Telephone = plan.Telephone.Get()
+	user.User.Enabled = plan.Enabled.Get()
+	user.User.DeployedVMQuota = plan.DeployedVMQuota.GetInt()
+	user.User.StoredVMQuota = plan.StoredVMQuota.GetInt()
+
+	if err := user.Update(); err != nil {
+		resp.Diagnostics.AddError("Error updating user", err.Error())
+		return
 	}
 
 	if !state.Password.Equal(plan.Password) {
-		params.Password = plan.Password.Get()
-	}
-
-	if _, err := r.iamClient.UpdateUser(ctx, params); err != nil {
-		resp.Diagnostics.AddError("Error updating user", err.Error())
-		return
+		if err := user.ChangePassword(plan.Password.Get()); err != nil {
+			resp.Diagnostics.AddError("Error changing password", err.Error())
+			return
+		}
 	}
 
 	// Use generic read function to refresh the state
@@ -246,7 +258,8 @@ func (r *userResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	if _, err := r.iamClient.GetUser(ctx, iam.ParamsGetUser{ID: state.ID.Get()}); err != nil {
+	user, err := r.iamClient.GetUser(state.ID.Get())
+	if err != nil {
 		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
@@ -255,10 +268,7 @@ func (r *userResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	if err := r.iamClient.DeleteUser(ctx, iam.ParamsDeleteUser{
-		ID:            state.ID.Get(),
-		TakeOwnership: state.TakeOwnership.Get(),
-	}); err != nil {
+	if err = user.Delete(state.TakeOwnership.Get()); err != nil {
 		resp.Diagnostics.AddError("Error deleting user", err.Error())
 	}
 }
@@ -275,7 +285,7 @@ func (r *userResource) ImportState(ctx context.Context, req resource.ImportState
 	}
 
 	// req.ID is the user name
-	user, err := r.iamClient.GetUser(ctx, iam.ParamsGetUser{Name: req.ID})
+	user, err := r.iamClient.GetUser(req.ID)
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			resp.Diagnostics.AddError("User not found", fmt.Sprintf("User with name %s not found", req.ID))
@@ -285,13 +295,13 @@ func (r *userResource) ImportState(ctx context.Context, req resource.ImportState
 		return
 	}
 
-	if user.ProviderType != sdkUserProviderTypeLocal {
-		resp.Diagnostics.AddError("User is not an local user", fmt.Sprintf("User with name %s is %s type and not local user", req.ID, user.ProviderType))
+	if user.User.Type != iam.UserTypeLocal {
+		resp.Diagnostics.AddError("User is not an local user", fmt.Sprintf("User with name %s is %s type and not local user", req.ID, user.User.Type))
 		return
 	}
 
-	userData.ID.Set(user.ID)
-	userData.Name.Set(user.Name)
+	userData.ID.Set(user.User.ID)
+	userData.Name.Set(user.User.Name)
 
 	// Use generic read function to refresh the state
 	stateRefreshed, found, d := r.read(ctx, userData)
@@ -310,7 +320,7 @@ func (r *userResource) ImportState(ctx context.Context, req resource.ImportState
 // * CustomFuncs
 
 // read is a generic read function that can be used by the resource Create, Read and Update functions.
-func (r *userResource) read(ctx context.Context, planOrState *userResourceModel) (stateRefreshed *userResourceModel, found bool, diags diag.Diagnostics) {
+func (r *userResource) read(_ context.Context, planOrState *userResourceModel) (stateRefreshed *userResourceModel, found bool, diags diag.Diagnostics) {
 	stateRefreshed = planOrState.Copy()
 
 	/*
@@ -318,15 +328,15 @@ func (r *userResource) read(ctx context.Context, planOrState *userResourceModel)
 	*/
 
 	var (
-		user *iam.ModelUser
+		user *iam.UserClient
 		err  error
 	)
 
 	// Get user by ID is more efficient
 	if stateRefreshed.ID.IsKnown() {
-		user, err = r.iamClient.GetUser(ctx, iam.ParamsGetUser{ID: stateRefreshed.ID.Get()})
+		user, err = r.iamClient.GetUser(stateRefreshed.ID.Get())
 	} else {
-		user, err = r.iamClient.GetUser(ctx, iam.ParamsGetUser{Name: stateRefreshed.Name.Get()})
+		user, err = r.iamClient.GetUser(stateRefreshed.Name.Get())
 	}
 	if err != nil {
 		if cerrs.IsNotFound(err) {
@@ -336,25 +346,15 @@ func (r *userResource) read(ctx context.Context, planOrState *userResourceModel)
 		return nil, true, diags
 	}
 
-	stateRefreshed.ID.Set(user.ID)
-	stateRefreshed.Name.Set(user.Name)
-	stateRefreshed.RoleName.Set(user.RoleName)
-	stateRefreshed.FullName.Set(user.FullName)
-	stateRefreshed.Email.Set(user.EmailAddress)
-	stateRefreshed.Telephone.Set(user.Telephone)
-	stateRefreshed.Enabled.Set(user.IsEnabled)
-	// CloudAPI never returns quotas on the user resource; read them back
-	// from the legacy admin user record (the XML API is deprecated but is
-	// still the only surface that echoes back the exact assigned values).
-	// TODO(entityQuotas): switch to the CloudAPI quotas read once validated
-	// against quota policies — see getUserQuotas.
-	deployedQuota, storedQuota, err := getUserQuotas(ctx, r.iamClient, user.ID)
-	if err != nil {
-		cerrs.AddError(&diags, cerrs.ActionRead, "user quotas", err)
-		return nil, true, diags
-	}
-	stateRefreshed.DeployedVMQuota.SetInt(deployedQuota)
-	stateRefreshed.StoredVMQuota.SetInt(storedQuota)
+	stateRefreshed.ID.Set(user.User.ID)
+	stateRefreshed.Name.Set(user.User.Name)
+	stateRefreshed.RoleName.Set(user.User.RoleName)
+	stateRefreshed.FullName.Set(user.User.FullName)
+	stateRefreshed.Email.Set(user.User.Email)
+	stateRefreshed.Telephone.Set(user.User.Telephone)
+	stateRefreshed.Enabled.Set(user.User.Enabled)
+	stateRefreshed.DeployedVMQuota.SetInt(user.User.DeployedVMQuota)
+	stateRefreshed.StoredVMQuota.SetInt(user.User.StoredVMQuota)
 
 	return stateRefreshed, true, diags
 }

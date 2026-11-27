@@ -19,13 +19,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/vmware/go-vcloud-director/v2/govcd"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	iam "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/iam/v1"
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
-	sdktypes "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
@@ -45,27 +44,13 @@ func NewTokenResource() resource.Resource {
 
 // tokenResource is the resource implementation.
 type tokenResource struct {
-	client    *client.CloudAvenue
-	org       org.Org
-	iamClient *iam.Client
+	client *client.CloudAvenue
+	org    org.Org
 }
 
 // Init Initializes the resource.
 func (r *tokenResource) Init(_ context.Context, _ *TokenModel) (diags diag.Diagnostics) {
 	r.org, diags = org.Init(r.client)
-	if diags.HasError() {
-		return diags
-	}
-
-	var err error
-	var v2 cav.Client
-	if v2, err = r.client.V2(); err == nil {
-		r.iamClient, err = iam.New(v2)
-	}
-	if err != nil {
-		diags.AddError("Error initializing IAM client", err.Error())
-	}
-
 	return diags
 }
 
@@ -118,12 +103,15 @@ func (r *tokenResource) Create(ctx context.Context, req resource.CreateRequest, 
 		Implement the resource creation logic here.
 	*/
 
-	token, err := r.iamClient.CreateAPIToken(ctx, sdktypes.ParamsCreateAPIToken{
-		TenantID: r.org.GetName(),
-		Name:     plan.Name.Get(),
-	})
+	token, err := r.client.Vmware.CreateToken(r.org.GetName(), plan.Name.Get()) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating token", err.Error())
+		return
+	}
+
+	tokenString, err := token.GetInitialApiToken()
+	if err != nil {
+		resp.Diagnostics.AddError("Error getting token", err.Error())
 		return
 	}
 
@@ -134,15 +122,15 @@ func (r *tokenResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 
 	if plan.PrintToken.Get() {
-		resp.Diagnostics.AddWarning(fmt.Sprintf("%s token generated", plan.Name.Get()), token.InitialAccessToken)
+		resp.Diagnostics.AddWarning(fmt.Sprintf("%s token generated", plan.Name.Get()), tokenString.AccessToken)
 	}
 
 	if plan.SaveInTfstate.Get() {
-		state.Token.Set(token.InitialAccessToken)
+		state.Token.Set(tokenString.AccessToken)
 	}
 
 	if plan.SaveInFile.Get() {
-		if err := saveAPITokenToFile(plan.FileName.Get(), token.RefreshToken); err != nil {
+		if err := govcd.SaveApiTokenToFile(plan.FileName.Get(), r.client.Vmware.Client.UserAgent, tokenString); err != nil { //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 			resp.Diagnostics.AddError("Error saving token", err.Error())
 			return
 		}
@@ -152,7 +140,7 @@ func (r *tokenResource) Create(ctx context.Context, req resource.CreateRequest, 
 		resp.Diagnostics.AddWarning(fmt.Sprintf("%s token generated", plan.Name.Get()), "Token not saved")
 	}
 
-	state.ID.Set(token.ID)
+	state.ID.Set(token.Token.ID)
 
 	// Set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
@@ -180,7 +168,7 @@ func (r *tokenResource) Read(ctx context.Context, req resource.ReadRequest, resp
 		Implement the resource read here
 	*/
 
-	token, err := r.iamClient.GetToken(ctx, sdktypes.ParamsGetToken{ID: state.ID.Get()})
+	token, err := r.client.Vmware.GetTokenById(state.ID.Get()) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -190,8 +178,8 @@ func (r *tokenResource) Read(ctx context.Context, req resource.ReadRequest, resp
 		return
 	}
 
-	state.ID.Set(token.ID)
-	state.Name.Set(token.Name)
+	state.ID.Set(token.Token.ID)
+	state.Name.Set(token.Token.Name)
 
 	// Set refreshed state
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
@@ -223,12 +211,18 @@ func (r *tokenResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 		Implement the resource deletion here
 	*/
 
-	if err := r.iamClient.DeleteToken(ctx, sdktypes.ParamsDeleteToken{ID: state.ID.Get()}); err != nil {
+	token, err := r.client.Vmware.GetTokenById(state.ID.Get()) //nolint:staticcheck // SA1019: govcd Vmware client kept for compatibility; migration to CAVSDK accessors tracked separately
+	if err != nil {
 		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
 		cerrs.AddError(&resp.Diagnostics, cerrs.ActionDelete, "token", err)
+		return
+	}
+
+	if err := token.Delete(); err != nil {
+		resp.Diagnostics.AddError("Error deleting token", err.Error())
 		return
 	}
 }
