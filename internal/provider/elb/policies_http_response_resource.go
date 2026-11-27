@@ -20,6 +20,8 @@ import (
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
+	"github.com/vmware/go-vcloud-director/v2/govcd"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -27,7 +29,6 @@ import (
 	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/edgeloadbalancer"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
-	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/mutex"
 )
 
@@ -312,7 +313,7 @@ func (r *PoliciesHTTPResponseResource) read(ctx context.Context, planOrState *Po
 
 	data, err := r.elb.GetPoliciesHTTPResponse(ctx, stateRefreshed.VirtualServiceID.Get())
 	if err != nil {
-		if cerrs.IsNotFound(err) {
+		if govcd.ContainsNotFound(err) {
 			return nil, false, nil
 		}
 		diags.AddError("Error retrieving policies http request", err.Error())
@@ -382,7 +383,7 @@ func (r *PoliciesHTTPResponseResource) getEdgeGateway(ctx context.Context, virtu
 
 	vs, err := r.elb.GetVirtualService(ctx, "", virtualServiceID)
 	if err != nil {
-		if cerrs.IsNotFound(err) {
+		if govcd.ContainsNotFound(err) {
 			diags.AddError("virtual service not found", err.Error())
 			return "", nil
 		}

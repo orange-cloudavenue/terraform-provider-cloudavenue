@@ -17,7 +17,6 @@ package org
 import (
 	"context"
 	"fmt"
-	"time"
 
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 
@@ -25,9 +24,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
-	org "github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/api/organization/v1"
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/cav"
-	"github.com/orange-cloudavenue/cloudavenue-sdk-go-v2/types"
+	"github.com/orange-cloudavenue/cloudavenue-sdk-go/v1/org"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
@@ -47,18 +44,15 @@ func NewOrgResource() resource.Resource {
 
 // OrgResource is the resource implementation.
 type OrgResource struct { //nolint:revive
-	client    *client.CloudAvenue
-	orgClient *org.Client
+	client *client.CloudAvenue
+	org    org.Client
 }
 
 // Init Initializes the resource.
 func (r *OrgResource) Init(_ context.Context, _ *OrgModel) (diags diag.Diagnostics) {
 	var err error
-	var v2 cav.Client
 
-	if v2, err = r.client.V2(); err == nil {
-		r.orgClient, err = org.New(v2)
-	}
+	r.org, err = org.NewClient()
 	if err != nil {
 		diags.AddError("Error creating org client", err.Error())
 		return diags
@@ -178,10 +172,10 @@ func (r *OrgResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		Implement the resource update here
 	*/
 
-	reqP := types.ParamsUpdateOrganization{}
+	reqP := &org.PropertiesRequest{}
 
 	if !state.Description.Equal(plan.Description) {
-		reqP.Description = plan.Description.GetPtr()
+		reqP.Description = plan.Description.Get()
 	}
 
 	if !state.Email.Equal(plan.Email) {
@@ -189,31 +183,31 @@ func (r *OrgResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 
 	if !state.InternetBillingModel.Equal(plan.InternetBillingModel) {
-		reqP.InternetBillingMode = plan.InternetBillingModel.Get()
+		reqP.BillingModel = plan.InternetBillingModel.Get()
 	}
 
 	if !state.Name.Equal(plan.Name) {
 		reqP.FullName = plan.Name.Get()
 	}
 
-	job, err := r.orgClient.UpdateOrganization(ctx, reqP)
+	job, err := r.org.UpdateProperties(ctx, reqP)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating properties", err.Error())
 		return
 	}
 
-	if err := cav.WaitJob(ctx, r.orgClient.GetClient(), cav.JobWaitRequest{
-		Backend: cav.BackendInfrapi,
-		JobID:   job.ID,
-		PollOptions: cav.JobPollOptions{
-			Timeout:         5 * time.Minute,
-			PollingInterval: 3 * time.Second,
-		},
-	}); err != nil {
-		resp.Diagnostics.AddError("Error waiting for organization update job", err.Error())
+	// Wait for the job to complete
+	jobStatus, err := job.GetJobStatus()
+	if err != nil {
+		resp.Diagnostics.AddError("Error getting job status", err.Error())
 		return
 	}
 
+	if err := jobStatus.WaitWithContext(ctx, 2); err != nil {
+		resp.Diagnostics.AddError("Error waiting for job to complete", err.Error())
+	}
+
+	// Use generic read function to refresh the state
 	stateRefreshed, found, d := r.read(ctx, plan)
 	if !found {
 		resp.Diagnostics.AddError("Resource not found", "The resource was not found after update")
@@ -291,7 +285,7 @@ func (r *OrgResource) read(ctx context.Context, planOrState *OrgModel) (stateRef
 		Implement the resource read here
 	*/
 
-	properties, err := r.orgClient.GetOrganization(ctx)
+	properties, err := r.org.GetProperties(ctx)
 	if err != nil {
 		cerrs.AddError(&diags, cerrs.ActionRead, "properties", err)
 		// GetProperties never return not found error
@@ -302,7 +296,7 @@ func (r *OrgResource) read(ctx context.Context, planOrState *OrgModel) (stateRef
 	stateRefreshed.Name.Set(properties.FullName)
 	stateRefreshed.Description.Set(properties.Description)
 	stateRefreshed.Email.Set(properties.Email)
-	stateRefreshed.InternetBillingModel.Set(properties.InternetBillingMode)
+	stateRefreshed.InternetBillingModel.Set(properties.BillingModel)
 
 	return stateRefreshed, true, nil
 }

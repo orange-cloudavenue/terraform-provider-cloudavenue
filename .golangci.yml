@@ -189,7 +189,7 @@ formatters:
         - prefix(github.com/hashicorp/terraform-plugin-framework-validators/)
         - prefix(github.com/hashicorp)
         - prefix(github.com/FrangipaneTeam)
-        - prefix(github.com/orange-cloudavenue/terraform-provider-cloudavenue,github.com/orange-cloudavenue/cloudavenue-sdk-go,github.com/orange-cloudavenue/cloudavenue-sdk-go-v2)
+        - prefix(github.com/orange-cloudavenue/terraform-provider-cloudavenue,github.com/orange-cloudavenue/cloudavenue-sdk-go
         - blank # Blank section: captures all blank lines.
         - dot # Dot section: captures all dot imports.
       custom-order: true

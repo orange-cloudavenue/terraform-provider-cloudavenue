@@ -19,18 +19,22 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/vmware/go-vcloud-director/v2/govcd"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/client"
 	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/metrics"
+	"github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/adminorg"
 	cerrs "github.com/orange-cloudavenue/terraform-provider-cloudavenue/internal/provider/common/errors"
 )
 
 var (
 	_ datasource.DataSource              = &roleDataSource{}
 	_ datasource.DataSourceWithConfigure = &roleDataSource{}
+	_ role                               = &roleDataSource{}
 )
 
 func NewRoleDataSource() datasource.DataSource {
@@ -38,12 +42,19 @@ func NewRoleDataSource() datasource.DataSource {
 }
 
 type roleDataSource struct {
-	client     *client.CloudAvenue
-	roleClient roleClientV2
+	client   *client.CloudAvenue
+	adminOrg adminorg.AdminOrg
+	role     commonRole
 }
 
-func (d *roleDataSource) Init(_ context.Context, _ *RoleDataSourceModel) (diags diag.Diagnostics) {
-	d.roleClient, diags = InitRoleClientV2(d.client)
+func (d *roleDataSource) Init(_ context.Context, rm *RoleDataSourceModel) (diags diag.Diagnostics) {
+	d.role = commonRole{
+		ID:   rm.ID.StringValue,
+		Name: rm.Name.StringValue,
+	}
+
+	d.adminOrg, diags = adminorg.Init(d.client)
+
 	return diags
 }
 
@@ -91,14 +102,8 @@ func (d *roleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	// Determine lookup key: prefer ID if set, otherwise use Name
-	lookupKey := data.ID.ValueString()
-	if lookupKey == "" {
-		lookupKey = data.Name.ValueString()
-	}
-
 	// Get Role
-	role, err := d.roleClient.GetOrgRole(ctx, lookupKey)
+	role, err := d.GetRole()
 	if err != nil {
 		if cerrs.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -109,9 +114,8 @@ func (d *roleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	}
 
 	// Get rights
-	rights, err := d.roleClient.ListOrgRoleRights(ctx, role.ID)
+	rights, err := role.GetRights(nil)
 	if err != nil {
-		cerrs.AddError(&resp.Diagnostics, cerrs.ActionRead, "role", err)
 		return
 	}
 	assignedRights := []string{}
@@ -124,14 +128,18 @@ func (d *roleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	data.ID.Set(role.ID)
-	data.Name.Set(role.Name)
-	data.ReadOnly.Set(role.ReadOnly)
-	data.Description.Set(role.Description)
+	data.ID.Set(role.Role.ID)
+	data.Name.Set(role.Role.Name)
+	data.ReadOnly.Set(role.Role.ReadOnly)
+	data.Description.Set(role.Role.Description)
 
 	// Save data into Terraform data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func (d *roleDataSource) GetRole() (*govcd.Role, error) {
+	return d.role.GetRole(d.adminOrg)
 }

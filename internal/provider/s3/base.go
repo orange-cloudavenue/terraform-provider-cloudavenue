@@ -189,14 +189,14 @@ func initS3Client(client *client.CloudAvenue) (s3Client Client, diags diag.Diagn
 		return Client{}, diags
 	}
 
-	// Temporary bridge until cloudavenue-sdk-go-v2 migrates the S3 domain:
+	// Temporary bridge until the CloudAvenue SDK migrates the S3 domain:
 	// reuse the CloudAvenue SDK v1-resolved S3 settings to build an AWS SDK v2
 	// client, while keeping the remaining upstream v1-only helper methods.
 	cavSDKV1Config := v1Client.Config
 	config := awsv2.Config{
 		Region: awsv2.ToString(cavSDKV1Config.Region),
 		// Reuse the CloudAvenue SDK v1 credential source until the upstream S3
-		// domain is migrated using cloudavenue-sdk-go-v2.
+		// domain is migrated using the CloudAvenue SDK v2.
 		Credentials: awsv2.CredentialsProviderFunc(func(context.Context) (awsv2.Credentials, error) {
 			cavSDKV1Credentials, err := cavSDKV1Config.Credentials.Get()
 			if err != nil {

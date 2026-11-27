@@ -1,3 +1,0 @@
-```release-note:enhancement
-provider: initialize the provider client with cloudavenue-sdk-go-v2 while preserving existing VMware compatibility during the migration.
-```
