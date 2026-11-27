@@ -22,7 +22,7 @@ data "cloudavenue_catalog_acl" "example" {
 
 ### Optional
 
-- `catalog_id` (String) The ID of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`. Must be a valid URN. This value must start with `urn:vcloud:catalog:`.
+- `catalog_id` (String) The ID of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`. The value must respect the following rule : must be a valid URN. This value must start with `urn:vcloud:catalog:`.
 - `catalog_name` (String) The Name of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
 
 ### Read-Only

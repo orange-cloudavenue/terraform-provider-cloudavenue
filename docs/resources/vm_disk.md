@@ -71,7 +71,7 @@ resource "cloudavenue_vm_disk" "example-detachable" {
 - `vapp_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> ID of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
 - `vapp_name` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Name of the vApp. Ensure that one and only one attribute from this collection is set : `vapp_id`, `vapp_name`.
 - `vdc` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The name of vDC to use, optional if defined at provider level.
-- `vm_id` (String) The ID of the VM where the disk will be attached. If `is_detachable` is set to `false`, `vm_id` or `vm_name` must be set and force the replacement if this attribute is changed. Must be a valid URN. This value must start with `urn:vcloud:vm:`.
+- `vm_id` (String) The ID of the VM where the disk will be attached. If `is_detachable` is set to `false`, `vm_id` or `vm_name` must be set and force the replacement if this attribute is changed. The value must respect the following rule : must be a valid URN. This value must start with `urn:vcloud:vm:`.
 - `vm_name` (String) The name of the VM where the disk will be attached. If `is_detachable` is set to `false`, `vm_id` or `vm_name` must be set and force the replacement if this attribute is changed.
 
 ### Read-Only

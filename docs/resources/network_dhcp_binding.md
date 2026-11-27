@@ -30,7 +30,7 @@ resource "cloudavenue_network_dhcp_binding" "example" {
 - `ip_address` (String) The IP address of the DHCP Binding. Must be a valid IP with net.ParseIP.
 - `mac_address` (String) The MAC address of the DHCP Binding. Must be a valid mac address.
 - `name` (String) The name of the DHCP Binding.
-- `org_network_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the Org Network.<br/>**Note** (`.id` field) of `cloudavenue_vdc_network_isolated`, `cloudavenue_edgegateway_network_routed` or `cloudavenue_network_dhcp` can be referenced here. It is more convenient to use reference to `cloudavenue_network_dhcp` ID because it makes sure that DHCP is enabled before configuring pools. Must be a valid URN.
+- `org_network_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the Org Network.<br/>**Note** (`.id` field) of `cloudavenue_vdc_network_isolated`, `cloudavenue_edgegateway_network_routed` or `cloudavenue_network_dhcp` can be referenced here. It is more convenient to use reference to `cloudavenue_network_dhcp` ID because it makes sure that DHCP is enabled before configuring pools. The value must respect the following rule : must be a valid URN.
 
 ### Optional
 

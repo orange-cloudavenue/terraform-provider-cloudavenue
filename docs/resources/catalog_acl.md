@@ -56,7 +56,7 @@ resource "cloudavenue_catalog_acl" "example" {
 
 ### Optional
 
-- `catalog_id` (String) The ID of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`. Must be a valid URN. This value must start with `urn:vcloud:catalog:`.
+- `catalog_id` (String) The ID of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`. The value must respect the following rule : must be a valid URN. This value must start with `urn:vcloud:catalog:`.
 - `catalog_name` (String) The Name of the catalog. Ensure that one and only one attribute from this collection is set : `catalog_name`, `catalog_id`.
 - `everyone_access_level` (String) Access level when the Catalog is shared with everyone. Value must be one of : `ReadOnly`, `Change`, `FullControl`. If the value of [`shared_with_everyone`](#shared_with_everyone) attribute is `true` this attribute is **REQUIRED**. If the value of [`shared_with_everyone`](#shared_with_everyone) attribute is `false` this attribute is **NULL**.
 - `shared_with_everyone` (Boolean) Whether the Catalog is shared with everyone in your organization with right `ReadOnly`. Value defaults to `false`.
@@ -71,7 +71,7 @@ resource "cloudavenue_catalog_acl" "example" {
 
 Required:
 
-- `user_id` (String) The ID of the user to which we are sharing. Must be a valid URN. This value must start with `urn:vcloud:user:`.
+- `user_id` (String) The ID of the user to which we are sharing. The value must respect the following rule : must be a valid URN. This value must start with `urn:vcloud:user:`.
 
 Optional:
 

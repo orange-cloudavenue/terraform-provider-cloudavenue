@@ -30,7 +30,7 @@ data "cloudavenue_backup" "example" {
 ### Optional
 
 - `id` (Number) The ID of the backup.
-- `target_id` (String) The URN of the target. A target can be a VDC, a VApp or a VM. Ensure that one and only one attribute from this collection is set : `target_id`, `target_name`. Must be a valid URN.
+- `target_id` (String) The URN of the target. A target can be a VDC, a VApp or a VM. Ensure that one and only one attribute from this collection is set : `target_id`, `target_name`. The value must respect the following rule : must be a valid URN.
 - `target_name` (String) The name of the target. A target can be a VDC, a VApp or a VM. Ensure that one and only one attribute from this collection is set : `target_id`, `target_name`.
 
 ### Read-Only

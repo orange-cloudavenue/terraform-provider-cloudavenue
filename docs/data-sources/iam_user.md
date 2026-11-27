@@ -35,7 +35,7 @@ output "example_user_id" {
 - `email` (String) The user's email address.
 - `enabled` (Boolean) `true` if the user is enabled and can log in.
 - `full_name` (String) The user's full name.
-- `provider_type` (String) Identity provider type for this this user.
+- `provider_type` (String) Identity provider type for this user.
 - `role_name` (String) The role assigned to the user.
 - `stored_vm_quota` (Number) Quota of vApps that this user can store. A value of `0` specifies an unlimited quota.
 - `telephone` (String) The user's telephone number.

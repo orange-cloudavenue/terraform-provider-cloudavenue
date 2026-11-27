@@ -33,7 +33,7 @@ resource "cloudavenue_network_dhcp" "example" {
 
 ### Required
 
-- `org_network_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the network. Must be a valid URN.
+- `org_network_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> The ID of the network. The value must respect the following rule : must be a valid URN.
 
 ### Optional
 

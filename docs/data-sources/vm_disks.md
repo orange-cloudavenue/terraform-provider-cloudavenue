@@ -23,10 +23,10 @@ data "cloudavenue_vm_disks" "example" {
 
 ### Optional
 
-- `vapp_id` (String) . Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`. Must be a valid URN. This value must start with `urn:vcloud:vapp:`.
+- `vapp_id` (String) . Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`. The value must respect the following rule : must be a valid URN. This value must start with `urn:vcloud:vapp:`.
 - `vapp_name` (String) . Ensure that one and only one attribute from this collection is set : `vapp_name`, `vapp_id`.
 - `vdc` (String) The name of vDC to use, optional if defined at provider level.
-- `vm_id` (String) . Ensure that one and only one attribute from this collection is set : `vm_name`, `vm_id`. Must be a valid URN. This value must start with `urn:vcloud:vm:`.
+- `vm_id` (String) . Ensure that one and only one attribute from this collection is set : `vm_name`, `vm_id`. The value must respect the following rule : must be a valid URN. This value must start with `urn:vcloud:vm:`.
 - `vm_name` (String) . Ensure that one and only one attribute from this collection is set : `vm_name`, `vm_id`.
 
 ### Read-Only
